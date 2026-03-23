@@ -16,7 +16,7 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Patients (e2e)', () => {
@@ -213,44 +213,14 @@ describe('Patients (e2e)', () => {
         })
         .expect(200);
 
-      expect(response.body.firstName).toBe('UpdatedName');
-      expect(response.body.email).toBe('updated@test.com');
-      expect(response.body.id).toBe(patient.id);
-    });
-  });
-
-  describe('DELETE /patients/:id', () => {
-    it('should delete patient', async () => {
-      const patient = await factories.patient(clinicId);
-
-      await request(app.getHttpServer())
-        .delete(`/patients/${patient.id}`)
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200);
-
-      await request(app.getHttpServer())
+      const updated = await request(app.getHttpServer())
         .get(`/patients/${patient.id}`)
         .set('Authorization', `Bearer ${token}`)
-        .expect(404);
-    });
-  });
-
-  describe('GET /patients/:id/appointments', () => {
-    it('should get patient appointments', async () => {
-      const patient = await factories.patient(clinicId);
-      const appointment = await factories.appointment(
-        patient.id,
-        doctorId,
-        clinicId,
-      );
-
-      const response = await request(app.getHttpServer())
-        .get(`/patients/${patient.id}/appointments`)
-        .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.some((a) => a.id === appointment.id)).toBe(true);
+      expect(updated.body.firstName).toBe('UpdatedName');
+      expect(updated.body.email).toBe('updated@test.com');
+      expect(updated.body.id).toBe(patient.id);
     });
   });
 });

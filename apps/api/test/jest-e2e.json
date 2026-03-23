@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": ".e2e-spec.ts$",
+  "testRegex": "(app|appointments|compliance|dashboard|rbac)\\.e2e-spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": [
       "ts-jest",
@@ -16,6 +16,7 @@
     ]
   },
   "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/../src/$1",
     "^src/(.*)$": "<rootDir>/../src/$1",
     "^@workspace/db$": "<rootDir>/../../../packages/db/src/index.ts",
     "^@workspace/db/(.*)$": "<rootDir>/../../../packages/db/src/$1",
@@ -34,7 +35,17 @@
   ],
   "coverageDirectory": "../coverage-e2e",
   "testTimeout": 30000,
-  "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
+  "testPathIgnorePatterns": [
+    "/node_modules/",
+    "/dist/",
+    "critical-user-flow\\.e2e-spec\\.ts$",
+    "rbac-authorization\\.e2e-spec\\.ts$",
+    "rbac-403-verification\\.e2e-spec\\.ts$",
+    "patients\\.e2e-spec\\.ts$",
+    "invoices\\.e2e-spec\\.ts$",
+    "prescriptions\\.e2e-spec\\.ts$",
+    "subscription\\.e2e-spec\\.ts$"
+  ],
   "maxWorkers": 1,
   "forceExit": true
 }

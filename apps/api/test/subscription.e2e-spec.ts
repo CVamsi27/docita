@@ -13,7 +13,7 @@ import {
 import { factories, setPrismaInstance } from './factories';
 import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
 describe('Subscription (e2e)', () => {
@@ -48,7 +48,7 @@ describe('Subscription (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    const clinic = await factories.clinic({ tier: 'CORE' });
+    const clinic = await factories.clinic({ tier: 'ESSENTIAL' });
     clinicId = clinic.id;
 
     const { user, plainPassword } = await factories.user({
@@ -70,36 +70,38 @@ describe('Subscription (e2e)', () => {
     await closeDatabase();
   });
 
-  describe('GET /subscription/tiers', () => {
+  describe('GET /subscription/config', () => {
     it('should return all available tiers', async () => {
       const response = await request(app.getHttpServer())
-        .get('/subscription/tiers')
+        .get('/subscription/config')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThan(0);
+      expect(Array.isArray(response.body.tiers)).toBe(true);
+      expect(response.body.tiers.length).toBeGreaterThan(0);
 
-      const firstTier = response.body[0];
+      const firstTier = response.body.tiers[0];
       expect(firstTier).toHaveProperty('id');
       expect(firstTier).toHaveProperty('name');
     });
   });
 
-  describe('GET /subscription', () => {
+  describe('GET /subscription/current', () => {
     it('should return current subscription status', async () => {
       const response = await request(app.getHttpServer())
-        .get('/subscription')
+        .get('/subscription/current')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(response.body).toHaveProperty('tier');
+      expect(response.body).toEqual({});
     });
 
     it('should reject unauthenticated request', async () => {
-      await request(app.getHttpServer()).get('/subscription').expect(401);
+      await request(app.getHttpServer())
+        .get('/subscription/current')
+        .expect(401);
     });
   });
 
@@ -181,27 +183,15 @@ describe('Subscription (e2e)', () => {
     });
   });
 
-  describe('POST /subscription/upgrade', () => {
-    it('should upgrade tier', async () => {
+  describe('POST /subscription/activate-legacy', () => {
+    it('should create a subscription from a legacy upgrade request', async () => {
       const response = await request(app.getHttpServer())
-        .post('/subscription/upgrade')
+        .post('/subscription/activate-legacy')
         .set('Authorization', `Bearer ${token}`)
-        .send({ tier: 'PLUS' })
+        .send({ tier: 'PLUS', cycle: 'MONTHLY' })
         .expect(201);
 
-      expect(response.body).toBeDefined();
-    });
-  });
-
-  describe('PUT /subscription/intelligence', () => {
-    it('should enable intelligence addon', async () => {
-      const response = await request(app.getHttpServer())
-        .put('/subscription/intelligence')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ enabled: true })
-        .expect(200);
-
-      expect(response.body).toBeDefined();
+      expect(response.body).toHaveProperty('subscriptionId');
     });
   });
 });

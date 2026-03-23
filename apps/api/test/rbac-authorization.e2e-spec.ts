@@ -10,12 +10,11 @@ import {
   closeDatabase,
   getPrismaInstance,
 } from './setup';
-import { _factories, setPrismaInstance } from './factories';
+import { factories, setPrismaInstance } from './factories';
 import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
-import { UserRole, ClinicType } from '@workspace/types';
 
 describe('RBAC Authorization (e2e)', () => {
   let app: INestApplication;
@@ -82,23 +81,14 @@ describe('RBAC Authorization (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    adminClinic = await prisma.clinic.create({
-      data: {
-        name: 'Admin Test Clinic',
-        type: ClinicType.GENERAL,
-        owner: 'Test Owner',
-        region: 'Test Region',
-        encryptionKeyVersion: 1,
-        subscriptionTier: 'STANDARD',
-      },
-    });
+    adminClinic = await factories.clinic();
 
     adminUser = await prisma.user.create({
       data: {
         email: 'admin@test.com',
         name: 'Admin User',
-        hashedPassword: '$2b$10$mock_hashed_password',
-        role: UserRole.ADMIN,
+        password: '$2b$10$mock_hashed_password',
+        role: 'ADMIN',
         clinicId: adminClinic.id,
       },
     });
@@ -107,8 +97,8 @@ describe('RBAC Authorization (e2e)', () => {
       data: {
         email: 'doctor@test.com',
         name: 'Doctor User',
-        hashedPassword: '$2b$10$mock_hashed_password',
-        role: UserRole.DOCTOR,
+        password: '$2b$10$mock_hashed_password',
+        role: 'DOCTOR',
         clinicId: adminClinic.id,
       },
     });
@@ -117,29 +107,20 @@ describe('RBAC Authorization (e2e)', () => {
       data: {
         email: 'staff@test.com',
         name: 'Staff User',
-        hashedPassword: '$2b$10$mock_hashed_password',
-        role: UserRole.STAFF,
+        password: '$2b$10$mock_hashed_password',
+        role: 'RECEPTIONIST',
         clinicId: adminClinic.id,
       },
     });
 
-    doctorClinic = await prisma.clinic.create({
-      data: {
-        name: 'Doctor Clinic',
-        type: ClinicType.GENERAL,
-        owner: 'Doctor Owner',
-        region: 'Test Region',
-        encryptionKeyVersion: 1,
-        subscriptionTier: 'STANDARD',
-      },
-    });
+    doctorClinic = await factories.clinic();
 
     otherClinicUser = await prisma.user.create({
       data: {
         email: 'other@test.com',
         name: 'Other Clinic User',
-        hashedPassword: '$2b$10$mock_hashed_password',
-        role: UserRole.DOCTOR,
+        password: '$2b$10$mock_hashed_password',
+        role: 'DOCTOR',
         clinicId: doctorClinic.id,
       },
     });

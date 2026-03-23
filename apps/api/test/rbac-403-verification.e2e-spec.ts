@@ -10,12 +10,11 @@ import {
   closeDatabase,
   getPrismaInstance,
 } from './setup';
-import { _factories, setPrismaInstance } from './factories';
+import { factories, setPrismaInstance } from './factories';
 import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.gateway';
 import { mockRazorpayGateway } from './razorpay.provider';
-import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
-import { UserRole, ClinicType } from '@workspace/types';
 
 describe('RBAC 403 Forbidden Responses (e2e)', () => {
   let app: INestApplication;
@@ -55,16 +54,7 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
   beforeEach(async () => {
     await resetDatabase();
 
-    testClinic = await prisma.clinic.create({
-      data: {
-        name: 'Test Clinic',
-        type: ClinicType.GENERAL,
-        owner: 'Test Owner',
-        region: 'Test Region',
-        encryptionKeyVersion: 1,
-        subscriptionTier: 'STANDARD',
-      },
-    });
+    testClinic = await factories.clinic();
 
     adminUser = {
       id: 'admin-id',
@@ -331,7 +321,7 @@ describe('RBAC 403 Forbidden Responses (e2e)', () => {
         .send({
           email: 'newuser@test.com',
           name: 'New User',
-          role: UserRole.STAFF,
+          role: 'RECEPTIONIST',
         });
 
       expect(response.status).toBe(403);

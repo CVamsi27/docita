@@ -6,6 +6,7 @@ import {
   Query,
   UseGuards,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import {
@@ -216,12 +217,22 @@ export class SubscriptionsController {
     },
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
-    return this.createCheckoutUseCase.execute({
-      clinicId: req.user.clinicId,
-      tier: body.tier,
-      cycle: body.billingCycle,
-      addOns: body.addOns,
-    });
+    try {
+      return await this.createCheckoutUseCase.execute({
+        clinicId: req.user.clinicId,
+        tier: body.tier,
+        cycle: body.billingCycle,
+        addOns: body.addOns,
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        /invalid (clinic )?tier/i.test(error.message)
+      ) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
   }
 
   @UseGuards(JwtAuthGuard)

@@ -3,12 +3,41 @@ import * as bcrypt from 'bcrypt';
 
 let prisma: PrismaClient;
 
+function normalizeRole(role: unknown): string {
+  if (role === 'STAFF') {
+    return 'RECEPTIONIST';
+  }
+
+  return typeof role === 'string' ? role : 'DOCTOR';
+}
+
+function normalizeClinicTier(tier: unknown): string {
+  switch (tier) {
+    case 'CAPTURE':
+      return 'STARTER';
+    case 'CORE':
+    case 'PLUS':
+      return 'ESSENTIAL';
+    case 'PRO':
+    case 'CLINIC':
+      return 'PROFESSIONAL';
+    case 'ENTERPRISE':
+    case 'STARTER':
+    case 'ESSENTIAL':
+    case 'PROFESSIONAL':
+      return tier;
+    default:
+      return 'ESSENTIAL';
+  }
+}
+
 export function setPrismaInstance(client: PrismaClient) {
   prisma = client;
 }
 
 export const factories = {
   user: async (overrides = {}) => {
+    const userOverrides = overrides as Record<string, unknown>;
     const email = `user${Date.now()}${Math.random().toString().slice(2, 5)}@test.com`;
     const password = 'Test@123456';
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -18,8 +47,9 @@ export const factories = {
         email,
         name: 'Test Doctor',
         password: hashedPassword,
-        role: 'DOCTOR',
-        ...overrides,
+        role: normalizeRole(userOverrides.role),
+        ...userOverrides,
+        role: normalizeRole(userOverrides.role),
       },
     });
 
@@ -27,20 +57,30 @@ export const factories = {
   },
 
   clinic: async (overrides = {}) => {
+    const clinicOverrides = overrides as Record<string, unknown>;
     return prisma.clinic.create({
       data: {
         name: `Clinic ${Date.now()}`,
         address: '123 Main St',
         phone: `987654${String(Date.now()).slice(-4)}`,
         email: `clinic${Date.now()}@test.com`,
-        tier: 'ESSENTIAL',
+        tier: normalizeClinicTier(clinicOverrides.tier),
         type: 'GENERAL',
-        ...overrides,
+        ...clinicOverrides,
+        tier: normalizeClinicTier(clinicOverrides.tier),
       },
     });
   },
 
-  patient: async (clinicId: string, overrides = {}) => {
+  patient: async (
+    clinicIdOrArgs: string | { clinicId: string },
+    overrides = {},
+  ) => {
+    const resolvedClinicId =
+      typeof clinicIdOrArgs === 'string'
+        ? clinicIdOrArgs
+        : clinicIdOrArgs.clinicId;
+    const patientOverrides = overrides as Record<string, unknown>;
     return prisma.patient.create({
       data: {
         firstName: 'John',
@@ -49,8 +89,9 @@ export const factories = {
         email: `patient${Date.now()}@test.com`,
         gender: 'MALE',
         dateOfBirth: new Date('1990-01-01'),
-        clinicId,
-        ...overrides,
+        clinicId: resolvedClinicId,
+        ...patientOverrides,
+        clinicId: resolvedClinicId,
       },
     });
   },
