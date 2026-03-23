@@ -25,6 +25,15 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
         ports:
           - 5434:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -68,10 +77,11 @@ jobs:
       - name: Run backend E2E tests
         env:
           DATABASE_URL: postgresql://docita:docita@localhost:5434/docita_test
+          REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-secret-key-for-ci-minimum-32-chars
           ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
           NODE_ENV: test
-        run: pnpm --filter api test:e2e
+        run: pnpm --filter @docita/api run test:e2e
 
       - name: Upload coverage reports
         if: always()
