@@ -5,7 +5,9 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -65,11 +67,15 @@
     "vitest": "^4.0.16"
   },
   "exports": {
-    ".": "./src/index.ts",
+    ".": "./dist/index.js",
     "./globals.css": "./src/styles/globals.css",
     "./postcss.config": "./postcss.config.mjs",
-    "./lib/*": "./src/lib/*.ts",
-    "./components": "./src/components/index.ts",
-    "./components/*": "./src/components/*.tsx"
-  }
+    "./lib/*": "./dist/lib/*.js",
+    "./components": "./dist/components/index.js",
+    "./components/*": "./dist/components/*.js",
+    "./design-tokens": "./dist/design-tokens.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts"
 }

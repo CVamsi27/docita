@@ -3,9 +3,18 @@
     "version": "0.0.0",
     "type": "module",
     "private": true,
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "exports": {
-        ".": "./src/index.ts",
-        "./client": "./src/lib/api-client.ts"
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "default": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "clean": "rm -rf dist"
     },
     "dependencies": {
         "@workspace/types": "workspace:*",
