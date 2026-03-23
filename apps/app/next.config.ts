@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 import bundleAnalyzer from "@next/bundle-analyzer";
@@ -37,7 +38,7 @@ const nextConfig: NextConfig = {
 
   productionBrowserSourceMaps: false,
 
-  webpack: (config) => {
+  webpack: (config, { isServer, webpack }) => {
 
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
@@ -46,6 +47,29 @@ const nextConfig: NextConfig = {
       { module: /node_modules\/require-in-the-middle/ },
       { module: /node_modules\/import-in-the-middle/ },
     ];
+
+    if (isServer) {
+      // @sentry/node auto-instruments ~20 frameworks via @opentelemetry/instrumentation-*
+      // packages (Koa, GraphQL, Redis, etc.). These pull in the actual framework code —
+      // that's the ~9MB of dead weight in the server bundle. They cannot run in Cloudflare
+      // Workers anyway (Node.js-only APIs). NormalModuleReplacementPlugin swaps every
+      // matching request with an empty CJS stub at bundle time, so none of the OTel
+      // instrumentation or framework code is included. Sentry error capturing is
+      // unaffected — it doesn't rely on OTel.
+      const STUB = path.resolve(process.cwd(), "lib/stubs/empty-module.cjs");
+      const otelPatterns = [
+        /^@opentelemetry\/instrumentation/,
+        /^@sentry\/opentelemetry/,
+        /^import-in-the-middle/,
+        /^require-in-the-middle/,
+      ];
+      for (const pattern of otelPatterns) {
+        config.plugins.push(
+          new webpack.NormalModuleReplacementPlugin(pattern, STUB),
+        );
+      }
+    }
+
     return config;
   },
 
@@ -63,10 +87,15 @@ let config: NextConfig = withBundleAnalyzer(nextConfig);
 
 config = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(config, {
-
       org: process.env.SENTRY_ORG || "docita",
       project: process.env.SENTRY_PROJECT || "frontend",
       silent: true,
+      bundleSizeOptimizations: {
+        excludeDebugStatements: true,
+        excludeReplayShadowDom: true,
+        excludeReplayIframe: true,
+        excludeReplayWorker: true,
+      },
     })
   : config;
 

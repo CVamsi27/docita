@@ -99,8 +99,7 @@ export async function setupTestUser(
         }
       }
     }
-  } catch {
-
+  } catch (err) {
     throw err;
   }
 
