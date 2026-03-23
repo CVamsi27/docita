@@ -10,15 +10,6 @@ const API_PROXY_TARGET = process.env.API_PROXY_TARGET || "http://localhost:3001"
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: [
-    "@workspace/ui",
-    "@workspace/db",
-    "@workspace/types",
-    "@workspace/hooks",
-    "@workspace/utils",
-    "@workspace/auth",
-    "@workspace/data-access",
-  ],
   turbopack: {},
 
   compress: true,
@@ -37,7 +28,6 @@ const nextConfig: NextConfig = {
 
   experimental: {
     optimizePackageImports: [
-      "@workspace/ui",
       "lucide-react",
       "recharts",
       "date-fns",
