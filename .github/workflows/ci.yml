@@ -221,5 +221,9 @@ jobs:
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
           ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-          NODE_ENV: development
+          NODE_ENV: test
+          APP_URL: http://localhost:3001
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          CORS_ORIGINS: http://localhost:3000
         run: pnpm --filter @docita/api run test:e2e
