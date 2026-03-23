@@ -1,3 +1,8 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
-export default defineCloudflareConfig({});
+const config = defineCloudflareConfig({});
+
+config.default.minify = true;
+config.default.runtime = "edge";
+
+export default config;

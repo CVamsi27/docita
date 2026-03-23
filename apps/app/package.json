@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "next build --webpack",
-    "build:cloudflare": "turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access --filter=@workspace/db && opennextjs-cloudflare build",
+    "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access --filter=@workspace/db && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build",
     "build:analyze": "ANALYZE=true next build --webpack",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy",

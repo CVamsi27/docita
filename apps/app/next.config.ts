@@ -8,6 +8,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const API_PROXY_TARGET = process.env.API_PROXY_TARGET || "http://localhost:3001";
+const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -33,12 +34,24 @@ const nextConfig: NextConfig = {
       "recharts",
       "date-fns",
       "@tanstack/react-query",
+      "@workspace/ui",
+      "@workspace/hooks",
+      "@workspace/utils"
     ],
   },
 
   productionBrowserSourceMaps: false,
 
   webpack: (config, { isServer, webpack }) => {
+    if (isCloudflareBuild) {
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        "@sentry/nextjs$": path.resolve(
+          process.cwd(),
+          "lib/stubs/sentry-nextjs-cloudflare.ts",
+        ),
+      };
+    }
 
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
@@ -49,13 +62,6 @@ const nextConfig: NextConfig = {
     ];
 
     if (isServer) {
-      // @sentry/node auto-instruments ~20 frameworks via @opentelemetry/instrumentation-*
-      // packages (Koa, GraphQL, Redis, etc.). These pull in the actual framework code —
-      // that's the ~9MB of dead weight in the server bundle. They cannot run in Cloudflare
-      // Workers anyway (Node.js-only APIs). NormalModuleReplacementPlugin swaps every
-      // matching request with an empty CJS stub at bundle time, so none of the OTel
-      // instrumentation or framework code is included. Sentry error capturing is
-      // unaffected — it doesn't rely on OTel.
       const STUB = path.resolve(process.cwd(), "lib/stubs/empty-module.cjs");
       const otelPatterns = [
         /^@opentelemetry\/instrumentation/,
@@ -85,7 +91,7 @@ const nextConfig: NextConfig = {
 
 let config: NextConfig = withBundleAnalyzer(nextConfig);
 
-config = process.env.NEXT_PUBLIC_SENTRY_DSN
+config = process.env.NEXT_PUBLIC_SENTRY_DSN && !isCloudflareBuild
   ? withSentryConfig(config, {
       org: process.env.SENTRY_ORG || "docita",
       project: process.env.SENTRY_PROJECT || "frontend",

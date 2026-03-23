@@ -1,4 +1,4 @@
-
+"use client";
 
 import * as Sentry from "@sentry/nextjs";
 
@@ -65,19 +65,18 @@ export function captureException(
   context?: Record<string, unknown>,
 ) {
   if (isDev) {
-
     return;
   }
 
   try {
-    Sentry.captureException(
+    return Sentry.captureException(
       typeof error === "string" ? new Error(error) : error,
       {
         contexts: context ? { custom: context } : undefined,
       },
     );
   } catch {
-
+    return;
   }
 }
 

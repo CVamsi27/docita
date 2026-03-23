@@ -3,7 +3,7 @@
 import Link from "next/link";
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertCircle, Home, RefreshCcw } from "lucide-react";
-import * as Sentry from "@sentry/nextjs";
+import { captureException, captureMessage } from "@/lib/sentry.client.config";
 
 interface Props {
   children?: ReactNode;
@@ -26,19 +26,15 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-
-    const eventId = Sentry.captureException(error, {
-      contexts: {
-        react: {
-          componentStack: errorInfo.componentStack,
-        },
+    const eventId = captureException(error, {
+      react: {
+        componentStack: errorInfo.componentStack,
       },
-      level: "error",
     });
 
     this.setState({ eventId });
 
-    Sentry.captureMessage(`React Component Error: ${error.message}`, "error");
+    captureMessage(`React Component Error: ${error.message}`, "error");
   }
 
   private handleReset = () => {
