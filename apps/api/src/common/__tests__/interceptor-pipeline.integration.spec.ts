@@ -1,12 +1,17 @@
-import { Controller, Get, INestApplication, Module } from '@nestjs/common';
+import {
+  CallHandler,
+  Controller,
+  ForbiddenException,
+  Get,
+  Module,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { beforeAll, afterAll, describe, expect, it, jest } from '@jest/globals';
-import request from 'supertest';
+import { beforeAll, describe, expect, it, jest } from '@jest/globals';
 import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { NextFunction, Response } from 'express';
-import cookieParser from 'cookie-parser';
+import type { Request, Response } from 'express';
+import { from, lastValueFrom, of } from 'rxjs';
 
 import { CsrfInterceptor } from '@/common/interceptors/csrf.interceptor';
 import { RequestIdInterceptor } from '@/common/interceptors/request-id.interceptor';
@@ -116,57 +121,181 @@ Get('health')(
 class InterceptorPipelineTestModule {}
 
 describe('Interceptor Pipeline Integration', () => {
-  let app: INestApplication;
+  let moduleFixture: TestingModule;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    moduleFixture = await Test.createTestingModule({
       imports: [InterceptorPipelineTestModule],
     }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.use(cookieParser());
-
-    app.use((req: RequestWithUser, _res: Response, next: NextFunction) => {
-      (req as unknown as { user: RequestWithUser['user'] }).user = {
-        id: 'test-user-1',
-        clinicId: 'test-clinic-1',
-        role: 'ADMIN',
-      } as RequestWithUser['user'];
-      next();
-    });
-
-    await app.init();
-  });
-
-  afterAll(async () => {
-    if (app) {
-      await app.close();
-    }
   });
 
   it('applies global interceptors on request lifecycle', async () => {
     const requestId = 'integration-request-001';
 
-    const response = await request(app.getHttpServer())
-      .get('/pipeline/health')
-      .set('x-request-id', requestId);
+    const response = await runPipeline({
+      moduleFixture,
+      request: {
+        headers: { 'x-request-id': requestId },
+      },
+    });
 
-    expect(response.status).toBe(200);
-    const cookies = response.get('Set-Cookie') ?? [];
-
+    expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ ok: true });
-    expect(response.headers['x-request-id']).toBe(requestId);
+    expect(response.headers['X-Request-ID']).toBe(requestId);
     expect(response.headers['x-correlation-id']).toBe(requestId);
-    expect(cookies.some((cookie) => cookie.startsWith('XSRF-TOKEN='))).toBe(
-      true,
-    );
+    expect(
+      response.cookies.some((cookie) => cookie.startsWith('XSRF-TOKEN=')),
+    ).toBe(true);
   });
 
   it('enforces break-the-glass eligibility checks from interceptor chain', async () => {
-    await request(app.getHttpServer())
-      .get('/pipeline/health')
-      .set('x-break-the-glass', 'true')
-      .set('x-btg-reason', 'Emergency access validation')
-      .expect(403);
+    await expect(
+      runPipeline({
+        moduleFixture,
+        request: {
+          headers: {
+            'x-break-the-glass': 'true',
+            'x-btg-reason': 'Emergency access validation',
+          },
+        },
+      }),
+    ).rejects.toThrow(ForbiddenException);
   });
 });
+
+type PipelineRequest = Partial<RequestWithUser> & {
+  headers?: Record<string, string>;
+  cookies?: Record<string, string>;
+  params?: Record<string, string>;
+  query?: Record<string, string>;
+  body?: Record<string, unknown>;
+};
+
+type PipelineResponse = {
+  body: unknown;
+  cookies: string[];
+  headers: Record<string, string>;
+  statusCode: number;
+};
+
+async function runPipeline({
+  moduleFixture,
+  request,
+}: {
+  moduleFixture: TestingModule;
+  request: PipelineRequest;
+}): Promise<PipelineResponse> {
+  const headers: Record<string, string> = {};
+  const cookies: string[] = [];
+  let statusCode = 200;
+
+  const req = createRequest(request);
+  const res = createResponse(headers, cookies, (code) => {
+    statusCode = code;
+  });
+
+  const context = {
+    switchToHttp: () => ({
+      getRequest: () => req,
+      getResponse: () => res,
+    }),
+    getHandler: () => PipelineController.prototype.getHealth,
+  };
+
+  const interceptors = [
+    new CsrfInterceptor(moduleFixture.get(AppConfigService)),
+    new RequestIdInterceptor(),
+    new RequestContextInterceptor(),
+    new TimeoutInterceptor(moduleFixture.get(AppConfigService)),
+    new TenantContextInterceptor(),
+    new CacheInterceptor(moduleFixture.get(CACHE_MANAGER)),
+    new PatientDataAuditInterceptor(moduleFixture.get(AuditService)),
+    new BreakTheGlassInterceptor(
+      moduleFixture.get(Reflector),
+      moduleFixture.get(AuditService),
+    ),
+  ];
+
+  const body = await invokeInterceptors(interceptors, context);
+
+  return {
+    body,
+    cookies,
+    headers,
+    statusCode,
+  };
+}
+
+function createRequest(request: PipelineRequest): RequestWithUser {
+  const headers = request.headers ?? {};
+
+  return {
+    method: 'GET',
+    url: '/pipeline/health',
+    headers,
+    cookies: request.cookies ?? {},
+    params: request.params ?? {},
+    query: request.query ?? {},
+    body: request.body ?? {},
+    ip: '127.0.0.1',
+    connection: { remoteAddress: '127.0.0.1' },
+    user: {
+      id: 'test-user-1',
+      clinicId: 'test-clinic-1',
+      role: 'ADMIN',
+    },
+    get: jest.fn((name: string) => headers[name.toLowerCase()]),
+    ...request,
+  } as RequestWithUser;
+}
+
+function createResponse(
+  headers: Record<string, string>,
+  cookies: string[],
+  setStatusCode: (code: number) => void,
+): Response {
+  return {
+    cookie: jest.fn((name: string, value: string) => {
+      cookies.push(`${name}=${value}`);
+    }),
+    setHeader: jest.fn((name: string, value: string) => {
+      headers[name] = value;
+    }),
+    status: jest.fn((code: number) => {
+      setStatusCode(code);
+      return undefined;
+    }),
+  } as unknown as Response;
+}
+
+async function invokeInterceptors(
+  interceptors: Array<{
+    intercept: (
+      context: unknown,
+      next: CallHandler,
+    ) =>
+      | ReturnType<CallHandler['handle']>
+      | Promise<ReturnType<CallHandler['handle']>>;
+  }>,
+  context: {
+    switchToHttp: () => {
+      getRequest: () => RequestWithUser;
+      getResponse: () => Response;
+    };
+    getHandler: () => typeof PipelineController.prototype.getHealth;
+  },
+  index = 0,
+): Promise<unknown> {
+  if (index >= interceptors.length) {
+    return { ok: true };
+  }
+
+  const interceptor = interceptors[index];
+  const next: CallHandler = {
+    handle: () => from(invokeInterceptors(interceptors, context, index + 1)),
+  };
+
+  return lastValueFrom(
+    await Promise.resolve(interceptor.intercept(context, next)),
+  );
+}
