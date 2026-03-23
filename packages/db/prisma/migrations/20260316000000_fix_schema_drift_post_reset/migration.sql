@@ -81,6 +81,8 @@ ADD COLUMN     "status" "OcrDocumentStatus" NOT NULL DEFAULT 'PENDING';
 ALTER TABLE "Patient" ADD COLUMN     "abhaAddress" TEXT,
 ADD COLUMN     "deletedAt" TIMESTAMP(3);
 
+ALTER TABLE "Patient" ADD COLUMN IF NOT EXISTS "userId" TEXT;
+
 -- AlterTable
 ALTER TABLE "PaymentSession" DROP COLUMN "status",
 ADD COLUMN     "status" "PaymentSessionStatus" NOT NULL DEFAULT 'CREATED';
@@ -430,7 +432,7 @@ CREATE INDEX "Patient_deletedAt_idx" ON "Patient"("deletedAt");
 CREATE INDEX "Patient_abhaAddress_idx" ON "Patient"("abhaAddress");
 
 -- CreateIndex
-CREATE INDEX "Patient_userId_idx" ON "Patient"("userId");
+CREATE INDEX IF NOT EXISTS "Patient_userId_idx" ON "Patient"("userId");
 
 -- CreateIndex
 CREATE INDEX "PaymentSession_status_idx" ON "PaymentSession"("status");
@@ -477,6 +479,19 @@ ALTER TABLE "MetricDefinition" ADD CONSTRAINT "MetricDefinition_clinicId_fkey" F
 -- AddForeignKey
 ALTER TABLE "MetricDefinition" ADD CONSTRAINT "MetricDefinition_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "Patient"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'Patient_userId_fkey'
+  ) THEN
+    ALTER TABLE "Patient"
+      ADD CONSTRAINT "Patient_userId_fkey"
+      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+  END IF;
+END $$;
+
 -- AddForeignKey
 ALTER TABLE "MetricOption" ADD CONSTRAINT "MetricOption_definitionId_fkey" FOREIGN KEY ("definitionId") REFERENCES "MetricDefinition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -509,4 +524,3 @@ ALTER TABLE "PatientMetricSelection" ADD CONSTRAINT "PatientMetricSelection_pati
 
 -- AddForeignKey
 ALTER TABLE "PatientMetricSelection" ADD CONSTRAINT "PatientMetricSelection_definitionId_fkey" FOREIGN KEY ("definitionId") REFERENCES "MetricDefinition"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
