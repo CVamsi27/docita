@@ -15,6 +15,7 @@ binding = "ASSETS"
 
 [vars]
 NODE_ENV = "production"
+DOCITA_CLOUDFLARE = "1"
 
 [observability]
 enabled = false
