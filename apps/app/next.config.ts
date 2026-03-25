@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   turbopack: {},
 
-  compress: true,
+  compress: !isCloudflareBuild,
 
   compiler: {
     removeConsole:
