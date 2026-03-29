@@ -5,6 +5,7 @@ export type UserRole = "ADMIN" | "ADMIN_DOCTOR" | "DOCTOR" | "RECEPTIONIST";
 export interface Clinic {
   id: string;
   name: string;
+  currency?: string;
 }
 
 export interface User {

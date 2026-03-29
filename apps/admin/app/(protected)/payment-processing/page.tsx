@@ -54,6 +54,7 @@ interface Clinic {
   tier: string;
   email: string;
   phone: string;
+  currency?: string;
 }
 
 interface TierInfo {
@@ -86,12 +87,15 @@ export default function PaymentProcessingPage() {
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
   const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
   const [tierPricing, setTierPricing] = useState<TierPricing[]>([]);
+  const [selectedTierPricing, setSelectedTierPricing] = useState<
+    TierPricing[]
+  >([]);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-  const formatCurrency = (amount: number) =>
+  const formatCurrency = (amount: number, currency: string = DEFAULT_CURRENCY) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: DEFAULT_CURRENCY,
+      currency,
       maximumFractionDigits: 0,
     }).format(amount);
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -216,15 +220,36 @@ export default function PaymentProcessingPage() {
 
       if (res.ok) {
         const data = await res.json();
+
+        const pricingRes = await fetch(
+          `${API_URL}/pricing/config?currency=${clinic.currency || DEFAULT_CURRENCY}`,
+        );
+        let nextPricing: TierPricing[] = [];
+        if (pricingRes.ok) {
+          const pricingData = await pricingRes.json();
+          nextPricing = Array.isArray(pricingData.tiers)
+            ? pricingData.tiers.map((tier: { id: string; pricing?: { monthly?: number } }) => ({
+                tier: tier.id,
+                price: typeof tier.pricing?.monthly === "number" ? tier.pricing.monthly : 0,
+                billingCycle: "monthly",
+                maxDoctors: -1,
+                maxPatients: -1,
+                features: [],
+              }))
+            : [];
+        }
+        setSelectedTierPricing(nextPricing);
+
         setTierInfo(data);
         setSelectedClinic(clinic);
-        setShowPaymentDialog(true);
-
         form.reset({
           paymentMethod: "razorpay",
           newTier: clinic.tier,
-          amount: data.pricing.toString(),
+          amount:
+            nextPricing.find((t) => t.tier === clinic.tier)?.price?.toString() ??
+            data.pricing.toString(),
         });
+        setShowPaymentDialog(true);
       }
     } catch {
 
@@ -248,7 +273,7 @@ export default function PaymentProcessingPage() {
           body: JSON.stringify({
             paymentId: `PAY_${Date.now()}`,
             amount: parseFloat(data.amount),
-            currency: DEFAULT_CURRENCY,
+            currency: selectedClinic?.currency || DEFAULT_CURRENCY,
             newTier: data.newTier,
             paymentMethod: data.paymentMethod,
             notes: data.paymentNotes,
@@ -365,12 +390,13 @@ export default function PaymentProcessingPage() {
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                  <TableRow>
                       <TableHead>Clinic Name</TableHead>
                       <TableHead>Current Tier</TableHead>
                       <TableHead>Max Doctors</TableHead>
                       <TableHead>Max Patients</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Currency</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -396,6 +422,9 @@ export default function PaymentProcessingPage() {
                           </TableCell>
                           <TableCell className="text-sm">
                             {clinic.email}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {clinic.currency || DEFAULT_CURRENCY}
                           </TableCell>
                           <TableCell>
                             <Button
@@ -449,7 +478,12 @@ export default function PaymentProcessingPage() {
                     Current Price
                   </p>
                   <p className="text-lg font-semibold">
-                    {formatCurrency(tierInfo.pricing)}
+                    {formatCurrency(
+                      (selectedTierPricing.find(
+                        (t) => t.tier === tierInfo.currentTier,
+                      )?.price ?? tierInfo.pricing),
+                      selectedClinic?.currency || DEFAULT_CURRENCY,
+                    )}
                   </p>
                 </div>
               </div>
@@ -464,7 +498,11 @@ export default function PaymentProcessingPage() {
                       value={field.value}
                       onValueChange={(value) => {
                         field.onChange(value);
-                        const tierData = tierPricing.find(
+                        const tierData = (
+                          selectedTierPricing.length > 0
+                            ? selectedTierPricing
+                            : tierPricing
+                        ).find(
                           (t) => t.tier === value,
                         );
                         if (tierData) {
@@ -478,9 +516,16 @@ export default function PaymentProcessingPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {tierPricing.map((tier) => (
+                        {(selectedTierPricing.length > 0
+                          ? selectedTierPricing
+                          : tierPricing
+                        ).map((tier) => (
                           <SelectItem key={tier.tier} value={tier.tier}>
-                            {tier.tier} - {formatCurrency(tier.price)}/
+                            {tier.tier} - {formatCurrency(
+                              tier.price,
+                              selectedClinic?.currency || DEFAULT_CURRENCY,
+                            )}
+                            /
                             {tier.billingCycle}
                           </SelectItem>
                         ))}
@@ -499,7 +544,9 @@ export default function PaymentProcessingPage() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount ({DEFAULT_CURRENCY})</FormLabel>
+                    <FormLabel>
+                      Amount ({selectedClinic?.currency || DEFAULT_CURRENCY})
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
