@@ -21,7 +21,6 @@ interface PaymentSuccessModalProps {
   planName?: string;
   amount?: number;
   transactionId?: string;
-  isAddon?: boolean;
 }
 
 export function PaymentSuccessModal({
@@ -30,7 +29,6 @@ export function PaymentSuccessModal({
   planName = "Pro Plan",
   amount,
   transactionId,
-  isAddon = false,
 }: PaymentSuccessModalProps) {
   const router = useRouter();
 
@@ -84,7 +82,7 @@ export function PaymentSuccessModal({
           <DialogDescription className="text-center text-base">
             Your payment was processed successfully. You now have access to{" "}
             <span className="font-semibold text-foreground">{planName}</span>
-            {isAddon ? " add-on" : ""}.
+            .
           </DialogDescription>
         </DialogHeader>
 

@@ -112,11 +112,11 @@ const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
       Feature.BULK_IMPORT_SUITE,
     ],
   },
-  {
-    label: "AI Add-ons (Intelligence)",
-    features: [
-      Feature.AI_PRESCRIPTION_ASSISTANT,
-      Feature.AI_DIAGNOSIS_HINTS,
+    {
+      label: "AI Features",
+      features: [
+        Feature.AI_PRESCRIPTION_ASSISTANT,
+        Feature.AI_DIAGNOSIS_HINTS,
       Feature.SMART_TASK_ENGINE,
       Feature.PREDICTIVE_NO_SHOW,
       Feature.PATIENT_SEGMENTATION,

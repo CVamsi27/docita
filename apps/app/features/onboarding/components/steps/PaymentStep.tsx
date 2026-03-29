@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldCheck, CreditCard, Loader2, Info } from "lucide-react";
+import { CreditCard, Loader2, Info, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -21,9 +21,6 @@ import { api } from "@/lib/api-client";
 
 interface PaymentDetails {
   autoPay: boolean;
-  addons: {
-    intelligence: boolean;
-  };
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
 }
@@ -39,7 +36,6 @@ interface PaymentStepProps {
   clinicPhone?: string;
   tier?: string;
   onStartTrial?: () => void;
-  intelligencePricing?: { monthly: number; yearly: number };
 }
 
 
@@ -54,25 +50,12 @@ export function PaymentStep({
   clinicPhone,
   tier,
   onStartTrial,
-  intelligencePricing,
 }: PaymentStepProps) {
   const [autoPay, setAutoPay] = useState(true);
-  const [intelligenceAddon, setIntelligenceAddon] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const intelligencePrice =
-    intelligencePricing
-      ? billingCycle === "YEARLY"
-        ? intelligencePricing.yearly
-        : intelligencePricing.monthly
-      : billingCycle === "YEARLY"
-        ? 29990
-        : 2999;
-
   const calculateTotal = () => {
-    let total = selectedPlanPrice;
-    if (intelligenceAddon) total += intelligencePrice;
-    return total;
+    return selectedPlanPrice;
   };
 
   const loadRazorpayScript = (): Promise<boolean> => {
@@ -94,10 +77,7 @@ export function PaymentStep({
 
     // For free/trial plans, skip payment entirely
     if (total === 0) {
-      onComplete({
-        autoPay,
-        addons: { intelligence: intelligenceAddon },
-      });
+      onComplete({ autoPay });
       return;
     }
 
@@ -119,25 +99,18 @@ export function PaymentStep({
           {
             amount: total,
             planId,
-            addons: { intelligence: intelligenceAddon },
           },
         );
       } catch {
         // If create-order fails in dev/trial, proceed without payment
-        onComplete({
-          autoPay,
-          addons: { intelligence: intelligenceAddon },
-        });
+        onComplete({ autoPay });
         return;
       }
 
       const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
       if (!razorpayKey) {
         // No key in dev environment - proceed without payment
-        onComplete({
-          autoPay,
-          addons: { intelligence: intelligenceAddon },
-        });
+        onComplete({ autoPay });
         return;
       }
 
@@ -162,7 +135,6 @@ export function PaymentStep({
 
             onComplete({
               autoPay,
-              addons: { intelligence: intelligenceAddon },
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
             });
@@ -223,35 +195,6 @@ export function PaymentStep({
               are never stored on our servers.
             </AlertDescription>
           </Alert>
-
-          {/* Add-ons */}
-          <div className="space-y-4 border-b pb-6">
-            <h3 className="font-medium">Recommended Add-ons</h3>
-
-            <div className="flex items-start space-x-3 p-3 border rounded-lg bg-muted/50">
-              <Checkbox
-                id="intelligence"
-                checked={intelligenceAddon}
-                onCheckedChange={(c) => setIntelligenceAddon(!!c)}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label
-                  htmlFor="intelligence"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Docita Intelligence (AI)
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  AI diagnosis assist, smart notes, and predictive insights.
-                </p>
-                <p className="text-sm font-semibold mt-1">
-                  +{currencySymbol}
-                  {intelligencePrice.toLocaleString()}/
-                  {billingCycle === "YEARLY" ? "year" : "month"}
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* Auto-pay */}
           <div className="flex items-center space-x-2">

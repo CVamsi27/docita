@@ -13,11 +13,6 @@ export const clinicDetailsSchema = z.object({
 export const planSelectionSchema = z.object({
   tier: z.enum(["CAPTURE", "CORE", "PLUS", "PRO", "ENTERPRISE"]),
   billingCycle: z.enum(["MONTHLY", "YEARLY"]),
-  addons: z
-    .object({
-      intelligence: z.boolean(),
-    })
-    .default({ intelligence: false }),
   referralCode: z.string().optional(),
 });
 

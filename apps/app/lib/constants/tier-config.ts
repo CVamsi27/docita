@@ -30,14 +30,6 @@ export interface TierConfig {
   features: string[];
 }
 
-export interface IntelligenceAddon {
-  feature: string;
-  name: string;
-  description: string;
-  monthlyPrice: number;
-  icon: string;
-}
-
 export interface FeatureDisplay {
   name: string;
   description: string;
@@ -47,8 +39,6 @@ export interface TierConfigData {
   tiers: TierConfig[];
   featureTierMap: Record<string, number>;
   featureDisplay: Record<string, FeatureDisplay>;
-  intelligenceAddons: IntelligenceAddon[];
-  intelligenceBundleDiscount: number;
   intelligenceInfo: {
     name: string;
     description: string;
@@ -120,5 +110,3 @@ export const DEFAULT_DESCRIPTIONS: Record<
     description: TIER_INFO.INTELLIGENCE.description,
   },
 };
-
-export const DEFAULT_BUNDLE_DISCOUNT = 0.4;

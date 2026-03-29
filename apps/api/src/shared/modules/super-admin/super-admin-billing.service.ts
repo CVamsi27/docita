@@ -540,29 +540,6 @@ export class SuperAdminBillingService {
     });
   }
 
-  async getPricingAddons() {
-    return this.prisma.addOn.findMany({ orderBy: { type: 'asc' } });
-  }
-
-  async updatePricingAddon(addonId: string, data: Record<string, unknown>) {
-    const allowed = [
-      'name',
-      'description',
-      'pricingByTier',
-      'includedQuotaByTier',
-      'overageRateByTier',
-      'isActive',
-    ];
-    const update: Record<string, unknown> = {};
-    for (const key of allowed) {
-      if (key in data) update[key] = data[key];
-    }
-    return this.prisma.addOn.update({
-      where: { id: addonId },
-      data: update,
-    });
-  }
-
   private parseOfferValue(
     value: Prisma.JsonValue | null,
   ): ClinicPricingOffer | null {

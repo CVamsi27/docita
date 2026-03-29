@@ -42,7 +42,6 @@ describe("PaymentStep", () => {
 
     expect(onComplete).toHaveBeenCalledWith({
       autoPay: true,
-      addons: { intelligence: false },
     });
   });
 

@@ -201,9 +201,6 @@ export function useClinicRegistrationFlow() {
           paymentDetails: {
             skipPayment: true,
             autoPay: true,
-            addons: {
-              intelligence: false,
-            },
           },
         }));
 
@@ -262,9 +259,6 @@ export function useClinicRegistrationFlow() {
                 razorpaySignature: response.razorpay_signature,
                 autoPay: true,
                 skipPayment: false,
-                addons: {
-                  intelligence: false,
-                },
               },
             }));
             setStep(3);
@@ -291,10 +285,15 @@ export function useClinicRegistrationFlow() {
     [ensureOnboardingId, formData.clinicDetails, openCheckout, user, setStep],
   );
 
-  const setTeamMembers = useCallback((members: TeamMember[]) => {
+  const setTeamMembers = useCallback(async (members: TeamMember[]) => {
     setFormData((prev) => ({ ...prev, teamMembers: members }));
+    try {
+      await ensureOnboardingId();
+    } catch {
+      // Non-fatal — QR will fall back to draw mode if initialization fails
+    }
     setStep(4);
-  }, [setStep]);
+  }, [setStep, ensureOnboardingId]);
 
   const goBackFromCompliance = useCallback(() => {
     setStep(3);
@@ -348,7 +347,6 @@ export function useClinicRegistrationFlow() {
             razorpayOrderId: formData.paymentDetails?.razorpayOrderId,
             razorpaySignature: formData.paymentDetails?.razorpaySignature,
             autoPay: formData.paymentDetails?.autoPay,
-            addons: formData.paymentDetails?.addons,
             skipPayment: formData.paymentDetails?.skipPayment,
           },
           teamMembers: formData.teamMembers,
@@ -405,7 +403,7 @@ export function useClinicRegistrationFlow() {
         });
       }
     },
-    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.addons, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.tier, formData.teamMembers, refreshUser, user?.email, user?.name, user?.role],
+    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.tier, formData.teamMembers, refreshUser, user?.email, user?.name, user?.role],
   );
 
   return {

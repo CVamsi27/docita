@@ -1,8 +1,5 @@
-export * from "./cards/addon-card";
 export * from "./cards/current-plan-card";
-export * from "./cards/intelligence-addon-card";
 export * from "./cards/tier-card";
-export * from "./sections/addons-section";
 export * from "./sections/faq-section";
 export * from "./sections/trust-section";
 export * from "./sections/plan-features";
@@ -12,3 +9,5 @@ export * from "./dialogs/tier-change-dialog";
 export * from "./modals/payment-success-modal";
 export * from "./pricing/dynamic-pricing-estimator";
 export * from "./pricing/comparison-table";
+export * from "./usage-dashboard";
+export * from "./usage-pricing-calculator";

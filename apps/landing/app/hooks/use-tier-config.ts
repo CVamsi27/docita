@@ -28,20 +28,10 @@ export interface TierConfig {
   features: string[];
 }
 
-export interface IntelligenceAddon {
-  feature: string;
-  name: string;
-  description: string;
-  monthlyPrice: number;
-  icon: string;
-}
-
 export interface TierConfigData {
   tiers: TierConfig[];
   featureTierMap: Record<string, number>;
   featureDisplay: Record<string, { name: string; description: string }>;
-  intelligenceAddons: IntelligenceAddon[];
-  intelligenceBundleDiscount: number;
   intelligenceInfo: {
     name: string;
     description: string;
@@ -159,8 +149,6 @@ const DEFAULT_CONFIG: TierConfigData = {
   ],
   featureTierMap: {},
   featureDisplay: {},
-  intelligenceAddons: [],
-  intelligenceBundleDiscount: 0,
   intelligenceInfo: {
     name: "Docita Intelligence",
     description: "AI-powered clinical assistant — Coming Soon in Docita Pro and above",
@@ -315,13 +303,7 @@ export function useTierConfig() {
     [config],
   );
 
-  const getIntelligenceBundlePrice = useCallback((): number => {
-    const totalPrice = config.intelligenceAddons?.reduce(
-      (sum: number, addon: IntelligenceAddon) => sum + addon.monthlyPrice,
-      0,
-    ) ?? 0;
-    return Math.round(totalPrice * (1 - (config.intelligenceBundleDiscount ?? 0)));
-  }, [config]);
+  const getIntelligenceBundlePrice = useCallback((): number => 0, []);
 
   const getCurrencySymbol = useCallback((currency: string): string => {
     return CURRENCY_SYMBOLS[currency] || CURRENCY_SYMBOLS.INR;

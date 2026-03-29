@@ -8,8 +8,6 @@ export {
   TIER_LIMITS,
   TIER_FEATURES,
   FEATURE_DISPLAY,
-  INTELLIGENCE_ADDONS,
-  INTELLIGENCE_BUNDLE_DISCOUNT,
   getFeaturesForTier,
   getAllFeaturesUpToTier,
   getIntelligenceBundlePrice,
@@ -25,7 +23,6 @@ export {
   type TierLimits,
   type TierInfo,
   type FeatureDisplay,
-  type IntelligenceAddon,
 } from "@workspace/types";
 
 import {

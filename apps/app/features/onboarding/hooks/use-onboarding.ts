@@ -27,7 +27,6 @@ const initialData: Partial<OnboardingData> = {
   planSelection: {
     tier: "CAPTURE",
     billingCycle: "MONTHLY",
-    addons: { intelligence: false },
   },
   teamInvites: { members: [] },
   compliance: {

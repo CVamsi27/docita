@@ -51,9 +51,6 @@ export interface PaymentDetails {
   cardLast4?: string;
   autoPay?: boolean;
   skipPayment?: boolean;
-  addons: {
-    intelligence: boolean;
-  };
 }
 
 export interface TeamMember {

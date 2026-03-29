@@ -7,7 +7,6 @@ import { AlertCircle } from "lucide-react";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { usePricingConfig } from "@/hooks/api/use-pricing";
 import {
   ClinicDetailsStep,
   ComplianceStep,
@@ -51,7 +50,6 @@ export function ClinicRegistrationForm({
 }) {
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
-  const { pricingConfig } = usePricingConfig(currency);
   const [stepError, setStepError] = useState<string | null>(null);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [savedDraft, setSavedDraft] = useState<{ clinicDetails: Partial<ClinicDetails>; savedAt: string } | null>(null);
@@ -60,17 +58,6 @@ export function ClinicRegistrationForm({
     billingCycle: "MONTHLY" | "YEARLY";
     pricing: { monthly: number | "custom"; yearly: number | "custom" };
   } | null>(null);
-
-  const intelligenceAddOn = pricingConfig?.addOns?.find((a) => a.id === "INTELLIGENCE");
-  const intelligencePricingByTier = intelligenceAddOn && pendingPaymentPlan
-    ? intelligenceAddOn.pricingByTier?.[pendingPaymentPlan.tier as keyof typeof intelligenceAddOn.pricingByTier]
-    : undefined;
-  const resolvedIntelligencePricing =
-    intelligencePricingByTier &&
-    typeof intelligencePricingByTier.monthly === "number" &&
-    typeof intelligencePricingByTier.yearly === "number"
-      ? { monthly: intelligencePricingByTier.monthly, yearly: intelligencePricingByTier.yearly }
-      : undefined;
 
   const {
     step,
@@ -186,9 +173,9 @@ export function ClinicRegistrationForm({
     });
   };
 
-  const handleSetTeamMembers = (members: Parameters<typeof setTeamMembers>[0]) => {
+  const handleSetTeamMembers = async (members: Parameters<typeof setTeamMembers>[0]) => {
     setStepError(null);
-    setTeamMembers(members);
+    await setTeamMembers(members);
   };
 
   const handleSubmitRegistration = async (
@@ -340,7 +327,6 @@ export function ClinicRegistrationForm({
           tier={pendingPaymentPlan.tier}
           onStartTrial={handleStartTrial}
           onBack={() => setPendingPaymentPlan(null)}
-          intelligencePricing={resolvedIntelligencePricing}
           onComplete={async () => {
             setPendingPaymentPlan(null);
             await handleSetPlanSelection(

@@ -14,7 +14,6 @@ import { Tier, TIER_INFO } from "@workspace/types";
 import { Feature, FEATURE_TIER_MAP } from "./stores/permission-store";
 
 import {
-  DEFAULT_BUNDLE_DISCOUNT,
   DEFAULT_DESCRIPTIONS,
   DEFAULT_LIMITS,
   DEFAULT_PRICING,
@@ -30,7 +29,6 @@ export type {
   PlanPricing,
   PlanLimits,
   TierConfig,
-  IntelligenceAddon,
   FeatureDisplay,
   TierConfigData,
 } from "./constants/tier-config";
@@ -155,19 +153,7 @@ export function TierConfigProvider({
     [config],
   );
 
-  const getIntelligenceBundlePrice = useCallback((): number => {
-    if (!config?.intelligenceAddons) {
-      return Math.round(4497 * (1 - DEFAULT_BUNDLE_DISCOUNT));
-    }
-    const totalPrice = config.intelligenceAddons.reduce(
-      (sum, addon) => sum + addon.monthlyPrice,
-      0,
-    );
-    return Math.round(
-      totalPrice *
-        (1 - (config.intelligenceBundleDiscount ?? DEFAULT_BUNDLE_DISCOUNT)),
-    );
-  }, [config]);
+  const getIntelligenceBundlePrice = useCallback((): number => 0, []);
 
   const value = useMemo(
     () => ({
@@ -212,6 +198,5 @@ export function useTierConfig() {
 export const PLAN_PRICING = DEFAULT_PRICING;
 export const PLAN_LIMITS = DEFAULT_LIMITS;
 export const PLAN_DESCRIPTIONS = DEFAULT_DESCRIPTIONS;
-export const INTELLIGENCE_BUNDLE_DISCOUNT = DEFAULT_BUNDLE_DISCOUNT;
 
 export { Tier, Feature, FEATURE_TIER_MAP, TIER_INFO };

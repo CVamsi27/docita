@@ -11,18 +11,11 @@ export interface CheckoutSuccessData {
   planName: string;
   amount?: number;
   transactionId?: string;
-  isAddon?: boolean;
 }
 
 interface TierCheckoutParams {
   tier: TierName;
   billingCycle: "MONTHLY" | "YEARLY";
-}
-
-interface AddonCheckoutParams {
-  addonId: string;
-  billingCycle: "MONTHLY" | "YEARLY";
-  currentTier: number;
 }
 
 export function useSubscriptionCheckout(
@@ -59,7 +52,7 @@ export function useSubscriptionCheckout(
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ tier, billingCycle, addOns: [] }),
+            body: JSON.stringify({ tier, billingCycle }),
           },
         );
         const createData = await createRes.json();
@@ -91,7 +84,6 @@ export function useSubscriptionCheckout(
                   razorpaySignature: response.razorpay_signature,
                   tier,
                   billingCycle,
-                  addOns: [],
                 }),
               },
             );
@@ -106,7 +98,6 @@ export function useSubscriptionCheckout(
               planName: `${tier} Plan`,
               amount: amountCents ? amountCents / 100 : undefined,
               transactionId: response.razorpay_payment_id,
-              isAddon: false,
             });
           },
           prefill: {
@@ -139,98 +130,5 @@ export function useSubscriptionCheckout(
     ],
   );
 
-  const checkoutAddon = useCallback(
-    async ({ addonId, billingCycle, currentTier }: AddonCheckoutParams) => {
-      if (!token) {
-        throw new Error("Please sign in to continue");
-      }
-      setIsProcessing(true);
-      setProcessingId(addonId);
-
-      try {
-        const createRes = await fetch(
-          `${API_URL}/subscription/billing/checkout`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              billingCycle,
-              addOns: [addonId],
-              tier: currentTier,
-            }),
-          },
-        );
-        const createData = await createRes.json();
-        if (!createRes.ok) {
-          throw new Error(createData.message || "Failed to initiate checkout");
-        }
-
-        const { orderId, amountCents, currency, razorpayKeyId } = createData;
-
-        await openCheckout({
-          key: razorpayKeyId as string,
-          amount: amountCents as number,
-          currency: currency as string,
-          name: "Docita Subscription",
-          description: `Add-on: ${addonId}`,
-          order_id: orderId as string,
-          handler: async (response: RazorpayResponse) => {
-            const activateRes = await fetch(
-              `${API_URL}/subscription/billing/activate`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpaySignature: response.razorpay_signature,
-                  billingCycle,
-                  addOns: [addonId],
-                  tier: currentTier,
-                }),
-              },
-            );
-            const activateData = await activateRes.json();
-            if (!activateRes.ok) {
-              throw new Error(activateData.message || "Activation failed");
-            }
-
-            await invalidateSubscriptionQueries();
-            onSuccess({
-              planName: addonId,
-              amount: amountCents ? amountCents / 100 : undefined,
-              transactionId: response.razorpay_payment_id,
-              isAddon: true,
-            });
-          },
-          prefill: {
-            name: user?.name || "Clinic Admin",
-            email: user?.email || "",
-          },
-          theme: { color: "#0F172A" },
-        });
-      } catch (error: unknown) {
-        const message =
-          error instanceof Error ? error.message : "Failed to process purchase";
-        if (message === "Payment was cancelled") {
-          toast.info(message);
-        } else {
-          toast.error(message);
-        }
-        throw error;
-      } finally {
-        setIsProcessing(false);
-        setProcessingId(null);
-      }
-    },
-    [token, openCheckout, invalidateSubscriptionQueries, onSuccess, user],
-  );
-
-  return { checkoutTier, checkoutAddon, isProcessing, processingId };
+  return { checkoutTier, isProcessing, processingId };
 }

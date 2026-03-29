@@ -87,9 +87,7 @@ export function CurrentPlanCard({
         {hasIntelligence && (
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              Intelligence Add-on Active
-            </span>
+            <span className="text-sm font-medium">AI features active</span>
           </div>
         )}
 
