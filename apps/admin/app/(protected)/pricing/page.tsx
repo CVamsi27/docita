@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { type AddOnRow, billingAPI, type TierPricingRow } from "@/lib/api";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  billingAPI,
+  type PricingOfferRow,
+  type TierPricingRow,
+} from "@/lib/api";
+import { fetchClinics } from "@/features/users/api";
+import type { Clinic } from "@/features/users/types";
+import { useAuth } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -26,19 +33,45 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { Badge } from "@workspace/ui/components/badge";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Plus, Save, Sparkles, Trash2 } from "lucide-react";
 
 interface EditableTierRow extends TierPricingRow {
   isDirty?: boolean;
 }
 
+interface PricingOfferFormState {
+  clinicId: string;
+  title: string;
+  description: string;
+  percentOff: number;
+  durationMonths: number;
+  validUntil: string;
+  notes: string;
+}
+
+const DEFAULT_OFFER_FORM: PricingOfferFormState = {
+  clinicId: "",
+  title: "",
+  description: "",
+  percentOff: 100,
+  durationMonths: 3,
+  validUntil: "",
+  notes: "",
+};
+
 export default function PricingPage() {
+  const { token } = useAuth();
   const [tiers, setTiers] = useState<EditableTierRow[]>([]);
-  const [addons, setAddons] = useState<AddOnRow[]>([]);
+  const [offers, setOffers] = useState<PricingOfferRow[]>([]);
+  const [clinics, setClinics] = useState<Clinic[]>([]);
   const [isLoadingTiers, setIsLoadingTiers] = useState(true);
-  const [isLoadingAddons, setIsLoadingAddons] = useState(true);
+  const [isLoadingOffers, setIsLoadingOffers] = useState(true);
+  const [isLoadingClinics, setIsLoadingClinics] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [offerForm, setOfferForm] = useState<PricingOfferFormState>(
+    DEFAULT_OFFER_FORM,
+  );
 
   const loadTiers = useCallback(async () => {
     setIsLoadingTiers(true);
@@ -50,20 +83,46 @@ export default function PricingPage() {
     }
   }, []);
 
-  const loadAddons = useCallback(async () => {
-    setIsLoadingAddons(true);
+  const loadOffers = useCallback(async () => {
+    setIsLoadingOffers(true);
     try {
-      const data = await billingAPI.getPricingAddons();
-      setAddons(data);
+      const data = await billingAPI.getPricingOffers();
+      setOffers(data);
     } finally {
-      setIsLoadingAddons(false);
+      setIsLoadingOffers(false);
     }
   }, []);
 
+  const loadClinics = useCallback(async () => {
+    if (!token) {
+      setClinics([]);
+      setIsLoadingClinics(false);
+      return;
+    }
+
+    setIsLoadingClinics(true);
+    try {
+      const data = await fetchClinics(token);
+      setClinics(data);
+    } catch {
+      setClinics([]);
+    } finally {
+      setIsLoadingClinics(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     loadTiers();
-    loadAddons();
-  }, [loadTiers, loadAddons]);
+    loadOffers();
+    loadClinics();
+  }, [loadTiers, loadOffers, loadClinics]);
+
+  const clinicOptions = useMemo(() => {
+    return clinics.map((clinic) => ({
+      id: clinic.id,
+      name: clinic.name,
+    }));
+  }, [clinics]);
 
   const handleTierFieldChange = (
     tierId: string,
@@ -71,8 +130,8 @@ export default function PricingPage() {
     value: number | string,
   ) => {
     setTiers((prev) =>
-      prev.map((t) =>
-        t.id === tierId ? { ...t, [field]: value, isDirty: true } : t,
+      prev.map((tier) =>
+        tier.id === tierId ? { ...tier, [field]: value, isDirty: true } : tier,
       ),
     );
   };
@@ -97,10 +156,58 @@ export default function PricingPage() {
         overageApiCallCents: tier.overageApiCallCents,
       });
       setTiers((prev) =>
-        prev.map((t) => (t.id === tier.id ? { ...t, isDirty: false } : t)),
+        prev.map((item) =>
+          item.id === tier.id ? { ...item, isDirty: false } : item,
+        ),
       );
     } catch {
       setSaveError(`Failed to save ${tier.name}`);
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const saveOffer = async () => {
+    if (!offerForm.clinicId || !offerForm.title.trim()) {
+      setSaveError("Pick a clinic and enter an offer title first.");
+      return;
+    }
+
+    setSavingId(offerForm.clinicId);
+    setSaveError(null);
+    try {
+      const updated = await billingAPI.upsertPricingOffer(offerForm.clinicId, {
+        title: offerForm.title.trim(),
+        description: offerForm.description.trim(),
+        percentOff: offerForm.percentOff,
+        durationMonths: offerForm.durationMonths || undefined,
+        validUntil: offerForm.validUntil || undefined,
+        notes: offerForm.notes.trim() || undefined,
+      });
+
+      setOffers((prev) => {
+        const next = prev.filter((offer) => offer.clinicId !== updated.clinicId);
+        return [updated, ...next];
+      });
+      setOfferForm(DEFAULT_OFFER_FORM);
+    } catch {
+      setSaveError("Failed to save the clinic offer.");
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const deleteOffer = async (clinicId: string) => {
+    setSavingId(clinicId);
+    setSaveError(null);
+    try {
+      await billingAPI.deletePricingOffer(clinicId);
+      setOffers((prev) => prev.filter((offer) => offer.clinicId !== clinicId));
+      if (offerForm.clinicId === clinicId) {
+        setOfferForm(DEFAULT_OFFER_FORM);
+      }
+    } catch {
+      setSaveError("Failed to delete the clinic offer.");
     } finally {
       setSavingId(null);
     }
@@ -116,7 +223,7 @@ export default function PricingPage() {
       className="w-24 h-7 text-xs"
       value={value}
       onChange={(e) =>
-        handleTierFieldChange(tierId, field, parseInt(e.target.value) || 0)
+        handleTierFieldChange(tierId, field, parseInt(e.target.value, 10) || 0)
       }
     />
   );
@@ -126,8 +233,8 @@ export default function PricingPage() {
       <div>
         <h1 className="text-2xl font-bold">Pricing Management</h1>
         <p className="text-muted-foreground text-sm">
-          Edit tier and add-on pricing. Changes take effect immediately on the
-          next pricing config fetch.
+          Manage tier pricing centrally and create clinic-specific offers for
+          requested hospitals.
         </p>
       </div>
 
@@ -137,10 +244,10 @@ export default function PricingPage() {
         </div>
       )}
 
-      <Tabs defaultValue="tiers">
+      <Tabs defaultValue="tiers" className="space-y-4">
         <TabsList>
           <TabsTrigger value="tiers">Tier Pricing</TabsTrigger>
-          <TabsTrigger value="addons">Add-ons</TabsTrigger>
+          <TabsTrigger value="offers">Clinic Offers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tiers">
@@ -148,18 +255,18 @@ export default function PricingPage() {
             <CardHeader>
               <CardTitle>Tier Pricing</CardTitle>
               <CardDescription>
-                All prices in smallest currency unit (paise for INR). The
-                pricing API serves these values divided by 100.
+                All prices are stored in cents/paise. The public pricing API
+                converts them for display.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingTiers ? (
-                <div className="flex items-center gap-2 py-8 justify-center text-muted-foreground">
+                <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   Loading tiers...
                 </div>
               ) : tiers.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-8 text-center">
+                <p className="py-8 text-center text-sm text-muted-foreground">
                   No tier pricing rows found. Run the seed script first.
                 </p>
               ) : (
@@ -173,12 +280,12 @@ export default function PricingPage() {
                         <TableHead>Appointments</TableHead>
                         <TableHead>Storage GB</TableHead>
                         <TableHead>Users</TableHead>
-                        <TableHead>Overage: Patient</TableHead>
-                        <TableHead>Overage: Appt</TableHead>
-                        <TableHead>Overage: Rx</TableHead>
-                        <TableHead>Overage: Invoice</TableHead>
-                        <TableHead>Overage: OCR</TableHead>
-                        <TableHead>Overage: API</TableHead>
+                        <TableHead>Patient Overage</TableHead>
+                        <TableHead>Appt Overage</TableHead>
+                        <TableHead>Rx Overage</TableHead>
+                        <TableHead>Invoice Overage</TableHead>
+                        <TableHead>OCR Overage</TableHead>
+                        <TableHead>API Overage</TableHead>
                         <TableHead />
                       </TableRow>
                     </TableHeader>
@@ -281,10 +388,8 @@ export default function PricingPage() {
                             <Button
                               size="sm"
                               variant={tier.isDirty ? "default" : "outline"}
-                              className="h-7 px-2 text-xs gap-1"
-                              disabled={
-                                !tier.isDirty || savingId === tier.id
-                              }
+                              className="h-7 gap-1 px-2 text-xs"
+                              disabled={savingId === tier.id || !tier.isDirty}
                               onClick={() => saveTier(tier)}
                             >
                               {savingId === tier.id ? (
@@ -305,44 +410,203 @@ export default function PricingPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="addons">
+        <TabsContent value="offers" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Add-on Pricing</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Clinic Offer Builder
+              </CardTitle>
               <CardDescription>
-                JSON objects stored per-tier. Edit the raw pricing JSON below.
+                Grant special pricing to requested hospitals. The offer is
+                stored per clinic and applied automatically in checkout and
+                billing previews.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Clinic</label>
+                  <select
+                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                    value={offerForm.clinicId}
+                    onChange={(e) =>
+                      setOfferForm((prev) => ({
+                        ...prev,
+                        clinicId: e.target.value,
+                      }))
+                    }
+                    disabled={isLoadingClinics}
+                  >
+                    <option value="">
+                      {isLoadingClinics ? "Loading clinics..." : "Select clinic"}
+                    </option>
+                    {clinicOptions.map((clinic) => (
+                      <option key={clinic.id} value={clinic.id}>
+                        {clinic.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Offer title</label>
+                  <Input
+                    value={offerForm.title}
+                    onChange={(e) =>
+                      setOfferForm((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
+                    placeholder="3 months free"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Discount %</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={offerForm.percentOff}
+                    onChange={(e) =>
+                      setOfferForm((prev) => ({
+                        ...prev,
+                        percentOff: parseInt(e.target.value, 10) || 0,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Duration (months)</label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={offerForm.durationMonths}
+                    onChange={(e) =>
+                      setOfferForm((prev) => ({
+                        ...prev,
+                        durationMonths: parseInt(e.target.value, 10) || 0,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Valid until</label>
+                  <Input
+                    type="date"
+                    value={offerForm.validUntil}
+                    onChange={(e) =>
+                      setOfferForm((prev) => ({
+                        ...prev,
+                        validUntil: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">Description</label>
+                  <Input
+                    value={offerForm.description}
+                    onChange={(e) =>
+                      setOfferForm((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                    placeholder="In exchange for weekly feedback"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-3">
+                  <label className="text-sm font-medium">Internal notes</label>
+                  <Input
+                    value={offerForm.notes}
+                    onChange={(e) =>
+                      setOfferForm((prev) => ({
+                        ...prev,
+                        notes: e.target.value,
+                      }))
+                    }
+                    placeholder="Requested by founder / approved by sales"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setOfferForm(DEFAULT_OFFER_FORM)}
+                >
+                  Reset
+                </Button>
+                <Button onClick={saveOffer} disabled={savingId !== null}>
+                  {savingId === offerForm.clinicId ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  Save Offer
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Offers</CardTitle>
+              <CardDescription>
+                These offers are automatically applied to the next checkout
+                preview for each clinic.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingAddons ? (
-                <div className="flex items-center gap-2 py-8 justify-center text-muted-foreground">
+              {isLoadingOffers ? (
+                <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Loading add-ons...
+                  Loading offers...
                 </div>
+              ) : offers.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No clinic offers are active yet.
+                </p>
               ) : (
-                <div className="space-y-6">
-                  {addons.map((addon) => (
-                    <AddonEditor
-                      key={addon.id}
-                      addon={addon}
-                      onSave={async (updated) => {
-                        setSavingId(addon.id);
-                        setSaveError(null);
-                        try {
-                          await billingAPI.updatePricingAddon(addon.id, updated);
-                          setAddons((prev) =>
-                            prev.map((a) =>
-                              a.id === addon.id ? { ...a, ...updated } : a,
-                            ),
-                          );
-                        } catch {
-                          setSaveError(`Failed to save ${addon.name}`);
-                        } finally {
-                          setSavingId(null);
-                        }
-                      }}
-                      isSaving={savingId === addon.id}
-                    />
+                <div className="space-y-3">
+                  {offers.map((offer) => (
+                    <div
+                      key={offer.id}
+                      className="rounded-lg border bg-background p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">
+                            {offer.clinic?.name ?? offer.clinicId}
+                          </p>
+                          <Badge variant="outline">{offer.percentOff}% off</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {offer.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {offer.description}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {offer.durationMonths
+                            ? `${offer.durationMonths} month offer`
+                            : "No fixed duration"}{" "}
+                          {offer.validUntil ? ` • until ${offer.validUntil}` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteOffer(offer.clinicId)}
+                          disabled={savingId === offer.clinicId}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -350,92 +614,6 @@ export default function PricingPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-function AddonEditor({
-  addon,
-  onSave,
-  isSaving,
-}: {
-  addon: AddOnRow;
-  onSave: (data: Partial<AddOnRow>) => Promise<void>;
-  isSaving: boolean;
-}) {
-  const [pricingJson, setPricingJson] = useState(
-    JSON.stringify(addon.pricingByTier, null, 2),
-  );
-  const [overageJson, setOverageJson] = useState(
-    JSON.stringify(addon.overageRateByTier, null, 2),
-  );
-  const [quotaJson, setQuotaJson] = useState(
-    JSON.stringify(addon.includedQuotaByTier, null, 2),
-  );
-  const [jsonError, setJsonError] = useState<string | null>(null);
-
-  const handleSave = async () => {
-    setJsonError(null);
-    try {
-      const pricingByTier = JSON.parse(pricingJson);
-      const overageRateByTier = JSON.parse(overageJson);
-      const includedQuotaByTier = JSON.parse(quotaJson);
-      await onSave({ pricingByTier, overageRateByTier, includedQuotaByTier });
-    } catch {
-      setJsonError("Invalid JSON in one of the fields.");
-    }
-  };
-
-  return (
-    <div className="rounded-md border p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-medium text-sm">{addon.name}</p>
-          <p className="text-xs text-muted-foreground">{addon.type}</p>
-        </div>
-        <Button
-          size="sm"
-          className="gap-1"
-          onClick={handleSave}
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <Save className="h-3 w-3" />
-          )}
-          Save
-        </Button>
-      </div>
-      {jsonError && (
-        <p className="text-xs text-destructive">{jsonError}</p>
-      )}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div>
-          <p className="text-xs font-medium mb-1">Pricing by tier (cents)</p>
-          <textarea
-            className="w-full h-32 text-xs font-mono rounded-md border bg-muted p-2 resize-none"
-            value={pricingJson}
-            onChange={(e) => setPricingJson(e.target.value)}
-          />
-        </div>
-        <div>
-          <p className="text-xs font-medium mb-1">Included quota by tier</p>
-          <textarea
-            className="w-full h-32 text-xs font-mono rounded-md border bg-muted p-2 resize-none"
-            value={quotaJson}
-            onChange={(e) => setQuotaJson(e.target.value)}
-          />
-        </div>
-        <div>
-          <p className="text-xs font-medium mb-1">Overage rate by tier (cents)</p>
-          <textarea
-            className="w-full h-32 text-xs font-mono rounded-md border bg-muted p-2 resize-none"
-            value={overageJson}
-            onChange={(e) => setOverageJson(e.target.value)}
-          />
-        </div>
-      </div>
     </div>
   );
 }

@@ -304,17 +304,22 @@ export interface TierPricingRow {
   isActive: boolean;
 }
 
-export interface AddOnRow {
+export interface PricingOfferRow {
   id: string;
-  type: string;
-  name: string;
+  clinicId: string;
+  clinic?: {
+    id: string;
+    name: string;
+    email: string;
+    tier: string;
+  };
+  title: string;
   description: string;
-  icon: string;
-  pricingByTier: unknown;
-  includedQuotaByTier: unknown;
-  overageRateByTier: unknown;
-  features: unknown;
-  isActive: boolean;
+  percentOff: number;
+  durationMonths?: number;
+  validUntil?: string;
+  notes?: string;
+  updatedAt?: string;
 }
 
 export const billingAPI = {
@@ -344,11 +349,13 @@ export const billingAPI = {
     data: Partial<TierPricingRow>,
   ): Promise<TierPricingRow> =>
     client.put(`/super-admin/billing/pricing/tiers/${tierId}`, data),
-  getPricingAddons: (): Promise<AddOnRow[]> =>
-    client.get("/super-admin/billing/pricing/addons"),
-  updatePricingAddon: (
-    addonId: string,
-    data: Partial<AddOnRow>,
-  ): Promise<AddOnRow> =>
-    client.put(`/super-admin/billing/pricing/addons/${addonId}`, data),
+  getPricingOffers: (): Promise<PricingOfferRow[]> =>
+    client.get("/super-admin/billing/pricing/offers"),
+  upsertPricingOffer: (
+    clinicId: string,
+    data: Partial<PricingOfferRow>,
+  ): Promise<PricingOfferRow> =>
+    client.put(`/super-admin/billing/pricing/offers/${clinicId}`, data),
+  deletePricingOffer: (clinicId: string): Promise<void> =>
+    client.delete(`/super-admin/billing/pricing/offers/${clinicId}`),
 };

@@ -1,9 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { AlertCircle, RefreshCw } from "lucide-react";
-
 export default function GlobalError({
   error,
   reset,
@@ -11,42 +7,88 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-
-  }, [error]);
-
   return (
     <html>
-      <body>
-        <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-          <div className="mx-auto max-w-md text-center">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-              <AlertCircle className="h-8 w-8 text-destructive" />
+      <body style={{ margin: 0, fontFamily: "system-ui, sans-serif" }}>
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+            background: "linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)",
+            color: "#0f172a",
+          }}
+        >
+          <div style={{ maxWidth: 560, textAlign: "center" }}>
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 9999,
+                margin: "0 auto 24px",
+                background: "rgba(239, 68, 68, 0.12)",
+                display: "grid",
+                placeItems: "center",
+                fontSize: 28,
+              }}
+            >
+              !
             </div>
-            <h1 className="mb-2 text-2xl font-bold tracking-tight">
+            <h1 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: 700 }}>
               Something went wrong
             </h1>
-            <p className="mb-6 text-muted-foreground">
-              We encountered an unexpected error. Our team has been notified and
-              is working to fix the issue.
+            <p style={{ margin: "0 0 24px", color: "#475569", lineHeight: 1.6 }}>
+              We encountered an unexpected error. Please try again or return to
+              the home page.
             </p>
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-              <Button onClick={() => reset()}>
-                <RefreshCw className="mr-2 h-4 w-4" />
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => reset()}
+                style={{
+                  border: 0,
+                  borderRadius: 12,
+                  padding: "12px 18px",
+                  background: "#0f172a",
+                  color: "white",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
                 Try again
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => (window.location.href = "/")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/";
+                }}
+                style={{
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 12,
+                  padding: "12px 18px",
+                  background: "white",
+                  color: "#0f172a",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
               >
                 Go to home
-              </Button>
+              </button>
             </div>
-            {error.digest && (
-              <p className="mt-4 text-xs text-muted-foreground">
+            {error.digest ? (
+              <p style={{ marginTop: 16, fontSize: 12, color: "#64748b" }}>
                 Error ID: {error.digest}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </body>

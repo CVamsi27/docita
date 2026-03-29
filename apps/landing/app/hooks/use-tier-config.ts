@@ -82,51 +82,63 @@ const DEFAULT_CONFIG: TierConfigData = {
         "Patient profiles & visit history",
         "Paper record scanning & archival",
         "Excel import & CSV export",
+        "Single doctor",
       ],
     },
     {
       id: "ESSENTIAL",
       tier: 1,
-      name: "Docita Essential",
-      description: "Professional practice management for solo clinics",
-      tagline: "Solo Clinic Pro",
+      name: "Docita Pro",
+      description: "All features included. Pay only for what you use beyond your base quota.",
+      tagline: "Scale with your clinic",
       color: "blue",
-      pricing: { monthly: 999, yearly: 10789, currency: CURRENCY_SYMBOLS.INR },
-      limits: { patients: 500, doctors: 1, storageGB: 10, branches: 1 },
+      pricing: { monthly: 999, yearly: 9990, currency: CURRENCY_SYMBOLS.INR },
+      limits: { patients: 1000, doctors: 999, storageGB: 20, branches: 999 },
       features: [
-        "500 active patients",
-        "1,000 appointments/month",
-        "Invoicing & billing",
-        "Basic analytics dashboard",
-        "ICD-10/CPT medical coding",
-        "Prescription templates",
-        "3 users included",
+        "1,000 patients included",
+        "2,000 appointments/month",
+        "5 users included",
+        "WhatsApp messaging (500 msgs/mo)",
+        "Multi-doctor & multi-branch",
+        "Lab tests & inventory",
+        "Queue management",
+        "Advanced analytics",
+        "Audit logs & compliance",
+        "Insurance billing",
+        "Digital intake forms",
+        "AI features — Coming Soon",
       ],
     },
     {
       id: "PROFESSIONAL",
       tier: 2,
-      name: "Docita Professional",
-      description: "Full-featured for multi-doctor clinics",
-      tagline: "Multi-Doctor Clinics",
+      name: "Docita Clinic",
+      description: "Full EHR, API access, custom branding, and broadcast campaigns for scaling practices.",
+      tagline: "Built for growing clinics",
       color: "purple",
-      pricing: { monthly: 3999, yearly: 43189, currency: CURRENCY_SYMBOLS.INR },
-      limits: { patients: 10000, doctors: 999, storageGB: 100, branches: 5 },
+      pricing: { monthly: 2499, yearly: 24990, currency: CURRENCY_SYMBOLS.INR },
+      limits: { patients: 5000, doctors: 999, storageGB: 50, branches: 999 },
       features: [
-        "10,000 active patients",
-        "20,000 appointments/month",
-        "Everything in Essential",
-        "Unlimited doctors",
-        "Multi-clinic branching (up to 5)",
-        "Lab tests, inventory & queue",
-        "15 users included",
+        "5,000 patients included",
+        "10,000 appointments/month",
+        "20 users included",
+        "WhatsApp messaging (2,000 msgs/mo)",
+        "Broadcast campaigns",
+        "Patient segmentation",
+        "Full EHR (IPD, vitals, clinical notes)",
+        "Custom branding on reports",
+        "Multi-location analytics",
+        "Bulk data import suite",
+        "REST API access (10k calls/day)",
+        "SSO (Google / Azure AD)",
+        "Priority support with SLA",
       ],
     },
     {
       id: "ENTERPRISE",
       tier: 3,
       name: "Docita Enterprise",
-      description: "Hospital-grade solution with full customization",
+      description: "Hospital-grade solution with custom contracts and unlimited scale.",
       tagline: "Hospital-Grade System",
       color: "orange",
       pricing: {
@@ -136,48 +148,25 @@ const DEFAULT_CONFIG: TierConfigData = {
       },
       limits: { patients: 999999, doctors: 999, storageGB: 500, branches: 999 },
       features: [
-        "Unlimited patients & doctors",
-        "Everything in Professional",
-        "Full EHR capabilities",
-        "API access & SSO",
-        "Custom branding & white-label",
-        "Data warehouse export",
+        "Unlimited patients, users & branches",
+        "Everything in Docita Clinic",
+        "Data warehouse export (BI tools)",
+        "Custom contract & invoicing",
         "Dedicated account manager",
+        "Custom SLA guarantee",
       ],
     },
   ],
   featureTierMap: {},
   featureDisplay: {},
-  intelligenceAddons: [
-    {
-      feature: "AI_DIAGNOSIS_HINTS",
-      name: "AI Diagnosis Assist",
-      description: "Get AI-powered diagnosis suggestions based on symptoms",
-      monthlyPrice: 1999,
-      icon: "Brain",
-    },
-    {
-      feature: "AI_PRESCRIPTION_ASSISTANT",
-      name: "AI Prescription Assistant",
-      description: "Smart prescription suggestions and drug interactions",
-      monthlyPrice: 999,
-      icon: "Pill",
-    },
-    {
-      feature: "SMART_TASK_ENGINE",
-      name: "Smart Task Engine",
-      description: "AI-powered workflow automation and reminders",
-      monthlyPrice: 1499,
-      icon: "Bot",
-    },
-  ],
-  intelligenceBundleDiscount: 0.4,
+  intelligenceAddons: [],
+  intelligenceBundleDiscount: 0,
   intelligenceInfo: {
     name: "Docita Intelligence",
-    description: "AI-powered features to enhance your clinic",
-    tagline: "AI-Powered Add-on",
-    color: "pink",
-    pricing: { monthly: 2999, yearly: 32389, currency: CURRENCY_SYMBOLS.INR },
+    description: "AI-powered clinical assistant — Coming Soon in Docita Pro and above",
+    tagline: "Coming Soon",
+    color: "blue",
+    pricing: { monthly: 0, yearly: 0, currency: CURRENCY_SYMBOLS.INR },
     features: [
       "AI-assisted clinical notes",
       "Smart prescription suggestions",
@@ -195,38 +184,33 @@ const DEFAULT_CONFIG: TierConfigData = {
 const TIER_PRICING: Record<string, Record<string, { monthly: number | "custom"; yearly: number | "custom" }>> = {
   INR: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 999, yearly: 10789 },
-    PROFESSIONAL: { monthly: 3999, yearly: 43189 },
+    ESSENTIAL: { monthly: 999, yearly: 9990 },
+    PROFESSIONAL: { monthly: 2499, yearly: 24990 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 1999, yearly: 21589 },
   },
   USD: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 19, yearly: 205 },
-    PROFESSIONAL: { monthly: 79, yearly: 853 },
+    ESSENTIAL: { monthly: 39, yearly: 390 },
+    PROFESSIONAL: { monthly: 79, yearly: 790 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 29, yearly: 313 },
   },
   EUR: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 17, yearly: 184 },
-    PROFESSIONAL: { monthly: 69, yearly: 745 },
+    ESSENTIAL: { monthly: 35, yearly: 350 },
+    PROFESSIONAL: { monthly: 72, yearly: 720 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 25, yearly: 270 },
   },
   GBP: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 15, yearly: 162 },
-    PROFESSIONAL: { monthly: 59, yearly: 637 },
+    ESSENTIAL: { monthly: 29, yearly: 290 },
+    PROFESSIONAL: { monthly: 59, yearly: 590 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 22, yearly: 238 },
   },
   AUD: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 29, yearly: 313 },
-    PROFESSIONAL: { monthly: 119, yearly: 1285 },
+    ESSENTIAL: { monthly: 59, yearly: 590 },
+    PROFESSIONAL: { monthly: 119, yearly: 1190 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 45, yearly: 486 },
   },
 };
 
@@ -238,9 +222,69 @@ const CURRENCY_MULTIPLIERS: Record<string, number> = {
   ZAR: 0.6,
 };
 
+// Numeric overage rates per currency (matches TIER_OVERAGE_RATES_BY_CURRENCY in @workspace/types)
+const OVERAGE_RATES_NUMERIC: Record<
+  string,
+  {
+    pro: { patient: number; appt: number; user: number; wa: number };
+    clinic: { patient: number; appt: number; user: number; wa: number };
+  }
+> = {
+  INR: { pro: { patient: 1.5,   appt: 0.75,  user: 399, wa: 0.5   }, clinic: { patient: 1.2,   appt: 0.6,   user: 299, wa: 0.3   } },
+  USD: { pro: { patient: 0.04,  appt: 0.02,  user: 12,  wa: 0.015 }, clinic: { patient: 0.03,  appt: 0.015, user: 9,   wa: 0.008 } },
+  EUR: { pro: { patient: 0.035, appt: 0.018, user: 10,  wa: 0.013 }, clinic: { patient: 0.027, appt: 0.014, user: 8,   wa: 0.007 } },
+  GBP: { pro: { patient: 0.03,  appt: 0.015, user: 9,   wa: 0.012 }, clinic: { patient: 0.023, appt: 0.012, user: 7,   wa: 0.006 } },
+  AUD: { pro: { patient: 0.06,  appt: 0.03,  user: 18,  wa: 0.022 }, clinic: { patient: 0.048, appt: 0.024, user: 14,  wa: 0.012 } },
+};
+
+export interface OverageRateRow {
+  patient: string;
+  appt: string;
+  user: string;
+  wa: string;
+}
+
+export interface OverageRatesResult {
+  pro: OverageRateRow;
+  clinic: OverageRateRow;
+}
+
+function fmtRate(val: number, sym: string): string {
+  if (val >= 10) return `${sym}${Math.round(val)}`;
+  if (val >= 1)  return `${sym}${parseFloat(val.toFixed(2))}`;
+  return `${sym}${parseFloat(val.toFixed(3))}`;
+}
+
+function computeOverageRates(currency: string): OverageRatesResult {
+  const sym = CURRENCY_SYMBOLS[currency] ?? "$";
+  const exact = OVERAGE_RATES_NUMERIC[currency];
+
+  if (exact) {
+    const fmt = (tier: typeof exact.pro) => ({
+      patient: fmtRate(tier.patient, sym),
+      appt:    fmtRate(tier.appt,    sym),
+      user:    fmtRate(tier.user,    sym),
+      wa:      fmtRate(tier.wa,      sym),
+    });
+    return { pro: fmt(exact.pro), clinic: fmt(exact.clinic) };
+  }
+
+  // Fallback: multiply INR base rates by the currency multiplier
+  const mult = CURRENCY_MULTIPLIERS[currency] ?? 0.012;
+  const base = OVERAGE_RATES_NUMERIC.INR;
+  const fmtScaled = (val: number) => fmtRate(val * mult, sym);
+  return {
+    pro:    { patient: fmtScaled(base.pro.patient),    appt: fmtScaled(base.pro.appt),    user: fmtScaled(base.pro.user),    wa: fmtScaled(base.pro.wa)    },
+    clinic: { patient: fmtScaled(base.clinic.patient), appt: fmtScaled(base.clinic.appt), user: fmtScaled(base.clinic.user), wa: fmtScaled(base.clinic.wa) },
+  };
+}
+
 async function fetchTierConfig(): Promise<TierConfigData> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-  const response = await fetch(`${apiUrl}/subscription/config`);
+  let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+  if (apiUrl.endsWith('/api')) {
+    apiUrl = `${apiUrl}/v1`;
+  }
+  const response = await fetch(`${apiUrl}/pricing/config`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch tier configuration");
@@ -272,11 +316,11 @@ export function useTierConfig() {
   );
 
   const getIntelligenceBundlePrice = useCallback((): number => {
-    const totalPrice = config.intelligenceAddons.reduce(
+    const totalPrice = config.intelligenceAddons?.reduce(
       (sum: number, addon: IntelligenceAddon) => sum + addon.monthlyPrice,
       0,
-    );
-    return Math.round(totalPrice * (1 - config.intelligenceBundleDiscount));
+    ) ?? 0;
+    return Math.round(totalPrice * (1 - (config.intelligenceBundleDiscount ?? 0)));
   }, [config]);
 
   const getCurrencySymbol = useCallback((currency: string): string => {
@@ -288,22 +332,10 @@ export function useTierConfig() {
       tierId: string,
       currency: string,
     ): { monthly: number; yearly: number; isCustom: boolean } | null => {
-      // Use actual per-currency pricing when available
-      const currencyTable = TIER_PRICING[currency];
-      if (currencyTable) {
-        const entry = currencyTable[tierId];
-        if (entry) {
-          if (entry.monthly === "custom" || entry.yearly === "custom") {
-            return { monthly: 0, yearly: 0, isCustom: true };
-          }
-          return { monthly: entry.monthly as number, yearly: entry.yearly as number, isCustom: false };
-        }
-      }
-
-      // Fallback: use INR base price × currency multiplier
-      const basePricing = tierId === "INTELLIGENCE"
-        ? config.intelligenceInfo?.pricing
-        : getTier(tierId)?.pricing;
+      const basePricing =
+        tierId === "INTELLIGENCE"
+          ? config.intelligenceInfo?.pricing
+          : getTier(tierId)?.pricing;
 
       if (!basePricing) return null;
       if (basePricing.monthly === "custom" || basePricing.yearly === "custom") {
@@ -320,6 +352,11 @@ export function useTierConfig() {
     [config, getTier],
   );
 
+  const getOverageRates = useCallback(
+    (currency: string): OverageRatesResult => computeOverageRates(currency),
+    [],
+  );
+
   return {
     tierConfig: config,
     isLoading,
@@ -330,5 +367,6 @@ export function useTierConfig() {
     getIntelligenceBundlePrice,
     getCurrencySymbol,
     getPricing,
+    getOverageRates,
   };
 }

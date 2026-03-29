@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Switch } from "@workspace/ui/components/switch";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { useDebounce } from "@workspace/hooks";
@@ -85,10 +84,6 @@ export function DynamicPricingEstimator({
   const [patients, setPatients] = useState(DEFAULT_PRICING_USAGE_INPUTS.patients);
   const [appointments, setAppointments] = useState(DEFAULT_PRICING_USAGE_INPUTS.appointments);
   const [users, setUsers] = useState(DEFAULT_PRICING_USAGE_INPUTS.users);
-  const [whatsappEnabled, setWhatsappEnabled] = useState(DEFAULT_PRICING_USAGE_INPUTS.whatsapp);
-  const [whatsappMessages, setWhatsappMessages] = useState(DEFAULT_PRICING_USAGE_INPUTS.whatsappMessages);
-  const [intelligence, setIntelligence] = useState(DEFAULT_PRICING_USAGE_INPUTS.intelligence);
-  const [aiCredits, setAiCredits] = useState(DEFAULT_PRICING_USAGE_INPUTS.aiCredits);
 
   const { pricingConfig } = usePricingConfig(selectedCurrency);
 
@@ -113,21 +108,12 @@ export function DynamicPricingEstimator({
       patients,
       appointments,
       users,
-      whatsapp: whatsappEnabled,
-      whatsappMessages,
-      intelligence,
-      aiCredits,
+      whatsapp: false,
+      whatsappMessages: 0,
+      intelligence: false,
+      aiCredits: 0,
     });
-  }, [
-    patients,
-    appointments,
-    users,
-    whatsappEnabled,
-    whatsappMessages,
-    intelligence,
-    aiCredits,
-    onUsageChange,
-  ]);
+  }, [patients, appointments, users, onUsageChange]);
 
   const estimateParams = useMemo(
     () => ({
@@ -137,23 +123,12 @@ export function DynamicPricingEstimator({
       patients,
       appointments,
       users,
-      whatsapp: whatsappEnabled,
-      whatsappMessages: whatsappEnabled ? whatsappMessages : 0,
-      intelligence,
-      aiCredits: intelligence ? aiCredits : 0,
+      whatsapp: false,
+      whatsappMessages: 0,
+      intelligence: false,
+      aiCredits: 0,
     }),
-    [
-      tier,
-      selectedCurrency,
-      effectiveBillingCycle,
-      patients,
-      appointments,
-      users,
-      whatsappEnabled,
-      whatsappMessages,
-      intelligence,
-      aiCredits,
-    ],
+    [tier, selectedCurrency, effectiveBillingCycle, patients, appointments, users],
   );
 
   const debouncedEstimateParams = useDebounce(
@@ -182,27 +157,13 @@ export function DynamicPricingEstimator({
         : estimate.totalMonthly
       : null;
 
-  const whatsappOverage =
-    hasDetailedEstimate && estimate
-      ? (estimate.breakdown.addOns.whatsapp?.overage ?? 0)
-      : 0;
-
-  const intelligenceOverage =
-    hasDetailedEstimate && estimate
-      ? (estimate.breakdown.addOns.intelligence?.overage ?? 0)
-      : 0;
-
-  const intelligenceBase =
-    hasDetailedEstimate && estimate
-      ? (estimate.breakdown.addOns.intelligence?.base ?? 0)
-      : 0;
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Estimate My Cost</CardTitle>
         <CardDescription>
-          Enter your expected usage to calculate your monthly cost including any overage.
+          Your base plan price is fixed. This estimator calculates any additional charges
+          if your usage exceeds the plan limits. All prices include 18% GST.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -307,53 +268,10 @@ export function DynamicPricingEstimator({
           </div>
         </div>
 
-        <div className="space-y-3 border rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">WhatsApp Add-on</p>
-              <p className="text-xs text-muted-foreground">
-                Estimate overage for outbound messages
-              </p>
-            </div>
-            <Switch
-              checked={whatsappEnabled}
-              onCheckedChange={setWhatsappEnabled}
-            />
-          </div>
-          {whatsappEnabled && (
-            <div className="space-y-2">
-              <Label>WhatsApp messages / Month</Label>
-              <Input
-                type="number"
-                min={0}
-                value={whatsappMessages}
-                onChange={(e) => setWhatsappMessages(Number(e.target.value) || 0)}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-3 border rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Docita Intelligence Add-on</p>
-              <p className="text-xs text-muted-foreground">
-                AI credits for prescriptions, coding, and automation
-              </p>
-            </div>
-            <Switch checked={intelligence} onCheckedChange={setIntelligence} />
-          </div>
-          {intelligence && (
-            <div className="space-y-2">
-              <Label>AI Credits / Month</Label>
-              <Input
-                type="number"
-                min={0}
-                value={aiCredits}
-                onChange={(e) => setAiCredits(Number(e.target.value) || 0)}
-              />
-            </div>
-          )}
+        <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
+          WhatsApp and AI are now included in the plan experience. This
+          estimator focuses on tier price plus usage overage for patients,
+          appointments, and team size.
         </div>
 
         <div className="rounded-xl border overflow-hidden">
@@ -391,18 +309,6 @@ export function DynamicPricingEstimator({
                 label="Base plan"
                 value={`${estimate.currency.symbol}${estimate.breakdown.basePrice.toLocaleString()}`}
               />
-              {estimate.breakdown.addOnTotal > 0 && (
-                <EstimateRow
-                  label="Add-ons"
-                  value={`${estimate.currency.symbol}${estimate.breakdown.addOnTotal.toLocaleString()}`}
-                />
-              )}
-              {intelligenceBase > 0 && (
-                <EstimateRow
-                  label="Intelligence (base)"
-                  value={`${estimate.currency.symbol}${intelligenceBase.toLocaleString()}`}
-                />
-              )}
               {estimate.breakdown.overageTotal > 0 && (
                 <EstimateRow
                   label="Usage overage"
@@ -428,20 +334,6 @@ export function DynamicPricingEstimator({
                 <EstimateRow
                   label="Team overage"
                   value={`${estimate.currency.symbol}${estimate.breakdown.overages.users.charge.toLocaleString()}`}
-                  indent
-                />
-              )}
-              {whatsappOverage > 0 && (
-                <EstimateRow
-                  label="WhatsApp overage"
-                  value={`${estimate.currency.symbol}${whatsappOverage.toLocaleString()}`}
-                  indent
-                />
-              )}
-              {intelligenceOverage > 0 && (
-                <EstimateRow
-                  label="AI credit overage"
-                  value={`${estimate.currency.symbol}${intelligenceOverage.toLocaleString()}`}
                   indent
                 />
               )}
