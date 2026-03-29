@@ -177,7 +177,6 @@ export class SubscriptionsController {
     const newPriceCents = this.pricingService.calculatePrice(
       newTier,
       newCycle,
-      [],
       pricingOffer?.percentOff ?? 0,
     );
 
@@ -200,7 +199,6 @@ export class SubscriptionsController {
     const currentPriceCents = this.pricingService.calculatePrice(
       currentTierObj,
       currentCycleObj,
-      [],
       pricingOffer?.percentOff ?? 0,
     );
     const daysRemaining = subscription.daysRemaining;
@@ -233,7 +231,6 @@ export class SubscriptionsController {
     body: {
       tier: string;
       billingCycle: string;
-      addOns?: string[];
       referralCode?: string;
     },
   ) {
@@ -243,7 +240,6 @@ export class SubscriptionsController {
         clinicId: req.user.clinicId,
         tier: body.tier,
         cycle: body.billingCycle,
-        addOns: body.addOns,
       });
     } catch (error) {
       if (
@@ -267,7 +263,6 @@ export class SubscriptionsController {
       razorpaySignature: string;
       tier: string;
       billingCycle: string;
-      addOns?: string[];
     },
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
@@ -278,7 +273,6 @@ export class SubscriptionsController {
       razorpaySignature: body.razorpaySignature,
       tier: body.tier,
       cycle: body.billingCycle,
-      addOns: body.addOns,
     });
     return { success: true };
   }

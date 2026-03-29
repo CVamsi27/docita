@@ -121,7 +121,6 @@ export class PricingService {
           },
           features: this.parseJsonValue(tier.features),
         })),
-        addOns: [],
         discounts: {
           annualPercent: ANNUAL_DISCOUNT_PERCENT,
           semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
@@ -252,7 +251,6 @@ export class PricingService {
           ],
         },
       ],
-      addOns: [],
       discounts: {
         annualPercent: ANNUAL_DISCOUNT_PERCENT,
         semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
@@ -359,8 +357,6 @@ export class PricingService {
       },
       breakdown: {
         basePrice,
-        addOns: {},
-        addOnTotal: 0,
         subtotal,
         discount: {
           percent: discount,

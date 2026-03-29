@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import type { PricingEstimateRequest } from "@workspace/types";
+import type { CurrentUsage, PricingEstimateRequest } from "@workspace/types";
 import { API_URL } from "@/lib/api-config";
+import { useAuth } from "@/lib/auth-context";
 
 function getVersionedApiBaseUrl(baseUrl: string): string {
   const normalized = baseUrl.replace(/\/+$/, "");
@@ -37,21 +38,6 @@ interface TierPricing {
   features?: string[];
 }
 
-interface AddOnInfo {
-  id: string;
-  name: string;
-  description: string;
-  pricing?: {
-    monthly: number;
-    yearly: number;
-    currency: string;
-  };
-  pricingByTier?: Record<
-    string,
-    { monthly: number | string; yearly: number | string }
-  >;
-}
-
 interface PricingConfig {
   currency: {
     code: string;
@@ -60,7 +46,6 @@ interface PricingConfig {
   };
   supportedCurrencies: Array<{ code: string; symbol: string; name: string }>;
   tiers: TierPricing[];
-  addOns: AddOnInfo[];
   discounts: {
     annualPercent: number;
     semiAnnualPercent: number;
@@ -86,8 +71,6 @@ interface EstimateResponse {
   currency: { code: string; symbol: string };
   breakdown: {
     basePrice: number;
-    addOns: Record<string, { base: number; overage: number }>;
-    addOnTotal: number;
     discount: { percent: number; amount: number };
     subtotal: number;
     overages: {
@@ -283,10 +266,29 @@ export function useDetectedCurrency(): string {
   return currency;
 }
 
+export function useCurrentUsage() {
+  const { token } = useAuth();
+
+  const { data, isLoading, error, refetch } = useQuery<CurrentUsage>({
+    queryKey: ["subscription-usage"],
+    queryFn: async () => {
+      const res = await fetch(`${PRICING_API_BASE_URL}/subscriptions/usage`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch usage");
+      return res.json();
+    },
+    enabled: !!token,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
+  return { usage: data, isLoading, error, refetch };
+}
+
 export type {
   PricingConfig,
   TierPricing,
-  AddOnInfo,
   EstimateRequest,
   EstimateResponse,
 };

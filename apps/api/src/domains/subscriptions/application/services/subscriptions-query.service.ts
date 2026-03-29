@@ -72,8 +72,6 @@ export class SubscriptionsQueryService {
       })),
       featureTierMap: FEATURE_TIER_MAP,
       featureDisplay: FEATURE_DISPLAY,
-      intelligenceAddons: [],
-      intelligenceBundleDiscount: 0,
       intelligenceInfo: {
         ...this.getTierObject(TIER_INFO, 'INTELLIGENCE'),
         pricing:
@@ -82,7 +80,6 @@ export class SubscriptionsQueryService {
           )?.pricing ?? undefined,
         features: [],
       },
-      addOns: [],
     };
   }
 
@@ -169,7 +166,6 @@ export class SubscriptionsQueryService {
     const pricePaise = this.pricingService.calculatePrice(
       subscription.getPlan(),
       subscription.getBillingCycle(),
-      [],
       pricingOffer?.percentOff ?? 0,
     );
     const amount = pricePaise / 100;

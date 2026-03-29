@@ -38,10 +38,8 @@ describe('PricingService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  it('should return pricing with addOns removed and discounts exposed', async () => {
+  it('should return pricing with discounts exposed', async () => {
     const config = await service.getPricingConfig('INR');
-    expect(Array.isArray(config.addOns)).toBe(true);
-    expect(config.addOns).toHaveLength(0);
     expect(config).toHaveProperty('discounts');
     expect(config.discounts).toMatchObject({
       annualPercent: expect.any(Number),

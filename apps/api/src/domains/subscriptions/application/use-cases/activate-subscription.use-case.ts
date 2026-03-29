@@ -29,7 +29,6 @@ export interface ActivateSubscriptionRequest {
   razorpaySignature: string;
   tier: string;
   cycle: string;
-  addOns?: string[];
 }
 
 @Injectable()
@@ -48,7 +47,6 @@ export class ActivateSubscriptionUseCase {
   async execute(request: ActivateSubscriptionRequest): Promise<void> {
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
-    const addOns = request.addOns || [];
     const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
       request.clinicId,
     );
@@ -60,7 +58,6 @@ export class ActivateSubscriptionUseCase {
     const priceCents = this.pricingService.calculatePrice(
       tier,
       cycle,
-      addOns,
       offerPercent,
     );
 

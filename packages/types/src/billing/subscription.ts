@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { featureSchema } from "./tier";
 
 export const SubscriptionTierConfigSchema = z.object({
   id: z.string(),
@@ -22,28 +21,6 @@ export const SubscriptionTierConfigSchema = z.object({
   features: z.array(z.string()),
 });
 
-export const AddOnSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  pricing: z.record(
-    z.string(), 
-    z.object({
-      basePrice: z.number().or(z.literal("custom")),
-      includedQuota: z.number(),
-      overageRate: z.number(),
-    }),
-  ),
-});
-
-export const IntelligenceAddonSchema = z.object({
-  feature: featureSchema,
-  name: z.string(),
-  description: z.string(),
-  monthlyPrice: z.number(),
-  icon: z.string(),
-});
-
 export const IntelligenceInfoSchema = z.object({
   name: z.string(),
   description: z.string(),
@@ -64,10 +41,7 @@ export const SubscriptionConfigResponseSchema = z.object({
     z.string(),
     z.object({ name: z.string(), description: z.string() }),
   ),
-  intelligenceAddons: z.array(IntelligenceAddonSchema),
-  intelligenceBundleDiscount: z.number(),
   intelligenceInfo: IntelligenceInfoSchema,
-  addOns: z.array(AddOnSchema).optional(), 
 });
 
 export const SubscriptionSchema = z.object({

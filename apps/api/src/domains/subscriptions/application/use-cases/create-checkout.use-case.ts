@@ -24,7 +24,6 @@ export interface CreateCheckoutRequest {
   tier: string;
   cycle: string;
   referrals?: string[];
-  addOns?: string[];
 }
 
 export interface CheckoutResponse {
@@ -53,7 +52,6 @@ export class CreateCheckoutUseCase {
   async execute(request: CreateCheckoutRequest): Promise<CheckoutResponse> {
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
-    const addOns = request.addOns || [];
 
     const clinic = await this.clinicOps.getClinicDetails(request.clinicId);
     let customerId = clinic.razorpayCustomerId;
@@ -75,7 +73,6 @@ export class CreateCheckoutUseCase {
     const amountCents = this.pricingService.calculatePrice(
       tier,
       cycle,
-      addOns,
       offerPercent,
     );
     const currencyCode = this.configService.getCurrencyCode();
@@ -92,7 +89,6 @@ export class CreateCheckoutUseCase {
         clinicId: request.clinicId,
         tier: request.tier,
         cycle: request.cycle,
-        addOns: addOns.join(','),
         pricingOffer: clinicOffer?.title ?? '',
       },
     });

@@ -54,7 +54,6 @@ export const subscriptionBillingCheckoutRequestSchema = z.object({
   tier: z.string(),
   billingCycle: z.string(),
   referralCode: z.string().optional(),
-  addOns: z.array(z.string()).optional(),
 });
 
 export const subscriptionBillingActivateRequestSchema = z.object({

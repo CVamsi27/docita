@@ -67,7 +67,7 @@ export class PricingController {
   @ApiQuery({
     name: 'intelligence',
     required: false,
-    description: 'Include Intelligence add-on (true/false)',
+    description: 'Include AI features in the estimate (true/false)',
   })
   @ApiQuery({
     name: 'aiCredits',

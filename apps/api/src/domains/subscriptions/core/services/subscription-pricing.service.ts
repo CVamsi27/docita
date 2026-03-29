@@ -37,15 +37,9 @@ export class SubscriptionPricingService {
   calculatePrice(
     tier: ClinicTier,
     cycle: BillingCycle,
-    addOns: string[] = [],
     discountPercent = 0,
   ): number {
-    let totalPricePaise = this.getPricePaise(tier, cycle, discountPercent);
-
-    if (addOns.includes('INTELLIGENCE')) {
-      const intelligencePrice = cycle.isYearly() ? 120000 : 12000;
-      totalPricePaise += intelligencePrice;
-    }
+    const totalPricePaise = this.getPricePaise(tier, cycle, discountPercent);
 
     return totalPricePaise;
   }
