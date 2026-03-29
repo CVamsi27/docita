@@ -7,20 +7,18 @@ import {
 } from '@/domains/subscriptions/application/ports';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
-  TIER_PRICING,
   TIER_LIMITS,
   TIER_INFO,
   TIER_FEATURES,
   FEATURE_DISPLAY,
-  INTELLIGENCE_ADDONS,
-  INTELLIGENCE_BUNDLE_DISCOUNT,
-  INTELLIGENCE_ADDON_PRICING,
 } from '@workspace/types';
 import {
   Tier,
   FEATURE_TIER_MAP,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
+import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 
 @Injectable()
 export class SubscriptionsQueryService {
@@ -30,6 +28,8 @@ export class SubscriptionsQueryService {
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
     private readonly pricingService: SubscriptionPricingService,
+    private readonly billingPricingService: BillingPricingService,
+    private readonly featureFlagService: FeatureFlagService,
   ) {}
 
   private getTierData<T extends Record<string, V>, V>(
@@ -51,45 +51,43 @@ export class SubscriptionsQueryService {
     return Object.fromEntries(Object.entries(value as Record<string, unknown>));
   }
 
-  getTierConfig() {
+  async getTierConfig() {
     const tiers = ['STARTER', 'ESSENTIAL', 'PROFESSIONAL', 'ENTERPRISE'];
-    const intelligenceFeatures = [
-      'AI prescription assistant',
-      'Diagnosis suggestions (non-clinical)',
-      'Smart task automation',
-      'Predictive no-show model',
-      'Patient risk segmentation',
-      'Anomaly detection in analytics',
-      'Voice-to-text dictation',
-    ];
-
+    const pricingConfig =
+      await this.billingPricingService.getPricingConfig(DEFAULT_CURRENCY);
+    const pricingTiers = pricingConfig.tiers as Array<{
+      id: string;
+      pricing?: unknown;
+    }>;
     return {
       tiers: tiers.map((tier) => ({
         id: tier,
         tier: this.getTierData(Tier, tier),
         ...this.getTierObject(TIER_INFO, tier),
-        pricing: this.getTierData(TIER_PRICING, tier),
+        pricing:
+          pricingTiers.find((item: { id: string }) => item.id === tier)
+            ?.pricing ?? undefined,
         limits: this.getTierData(TIER_LIMITS, tier),
         features: this.getTierData(TIER_FEATURES, tier) || [],
       })),
       featureTierMap: FEATURE_TIER_MAP,
       featureDisplay: FEATURE_DISPLAY,
-      intelligenceAddons: INTELLIGENCE_ADDONS,
-      intelligenceBundleDiscount: INTELLIGENCE_BUNDLE_DISCOUNT,
+      intelligenceAddons: [],
+      intelligenceBundleDiscount: 0,
       intelligenceInfo: {
         ...this.getTierObject(TIER_INFO, 'INTELLIGENCE'),
-        pricing: this.getTierData(TIER_PRICING, 'INTELLIGENCE'),
-        features: intelligenceFeatures,
+        pricing:
+          pricingTiers.find(
+            (item: { id: string }) => item.id === 'INTELLIGENCE',
+          )?.pricing ?? undefined,
+        features: [],
       },
-      addOns: [
-        {
-          id: 'INTELLIGENCE',
-          name: 'Docita Intelligence',
-          description: 'AI-powered clinical assistant add-on',
-          pricing: INTELLIGENCE_ADDON_PRICING,
-        },
-      ],
+      addOns: [],
     };
+  }
+
+  async getClinicPricingOffer(clinicId: string) {
+    return this.featureFlagService.getClinicPricingOffer(clinicId);
   }
 
   async getSubscriptionDetails(clinicId: string) {
@@ -167,9 +165,12 @@ export class SubscriptionsQueryService {
       throw new NotFoundException('No subscription found');
     }
 
+    const pricingOffer = await this.getClinicPricingOffer(clinicId);
     const pricePaise = this.pricingService.calculatePrice(
       subscription.getPlan(),
       subscription.getBillingCycle(),
+      [],
+      pricingOffer?.percentOff ?? 0,
     );
     const amount = pricePaise / 100;
 

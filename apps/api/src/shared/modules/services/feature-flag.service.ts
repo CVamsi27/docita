@@ -6,7 +6,18 @@ export type FeatureFlagValue =
   | boolean
   | number
   | string
-  | Record<string, unknown>;
+  | Record<string, unknown>
+  | null
+  | unknown[];
+
+export interface ClinicPricingOffer {
+  title: string;
+  description: string;
+  percentOff: number;
+  validUntil?: string;
+  durationMonths?: number;
+  notes?: string;
+}
 
 export interface FeatureFlagConfig {
   key: string;
@@ -92,16 +103,26 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlagConfig[] = [
     description: 'Enable telemedicine/video consultations',
     perClinic: true,
   },
+  {
+    key: 'clinic_pricing_offer',
+    defaultValue: {
+      title: '',
+      description: '',
+      percentOff: 0,
+    },
+    description: 'Per-clinic pricing offer for requested hospitals',
+    perClinic: true,
+  },
 ];
 
-function toInputJsonValue(value: FeatureFlagValue): Prisma.InputJsonValue {
+function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
   return value as Prisma.InputJsonValue;
 }
 
 @Injectable()
 export class FeatureFlagService implements OnModuleInit {
   private readonly logger = new Logger(FeatureFlagService.name);
-  private cache: Map<string, FeatureFlagValue> = new Map();
+  private cache: Map<string, unknown> = new Map();
   private cacheExpiry: Date = new Date(0);
   private readonly CACHE_TTL_MS = 60000;
 
@@ -140,7 +161,7 @@ export class FeatureFlagService implements OnModuleInit {
     return value === true;
   }
 
-  async getValue<T extends FeatureFlagValue>(
+  async getValue<T>(
     key: string,
     clinicId?: string,
     defaultValue?: T,
@@ -179,7 +200,7 @@ export class FeatureFlagService implements OnModuleInit {
 
   async setValue(
     key: string,
-    value: FeatureFlagValue,
+    value: unknown,
     clinicId?: string,
   ): Promise<void> {
     try {
@@ -256,6 +277,34 @@ export class FeatureFlagService implements OnModuleInit {
       this.logger.error(`Failed to delete clinic override: ${key}`, error);
       throw error;
     }
+  }
+
+  async getClinicPricingOffer(
+    clinicId: string,
+  ): Promise<ClinicPricingOffer | null> {
+    const offer = await this.getValue<ClinicPricingOffer>(
+      'clinic_pricing_offer',
+      clinicId,
+      null as unknown as ClinicPricingOffer,
+    );
+
+    if (!offer || !offer.percentOff || offer.percentOff <= 0) {
+      return null;
+    }
+
+    return offer;
+  }
+
+  async setClinicPricingOffer(
+    clinicId: string,
+    offer: ClinicPricingOffer | null,
+  ): Promise<void> {
+    if (!offer) {
+      await this.deleteClinicOverride('clinic_pricing_offer', clinicId);
+      return;
+    }
+
+    await this.setValue('clinic_pricing_offer', offer, clinicId);
   }
 
   invalidateCache(): void {

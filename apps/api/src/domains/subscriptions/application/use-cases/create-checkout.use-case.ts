@@ -17,6 +17,7 @@ import {
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 
 export interface CreateCheckoutRequest {
   clinicId: string;
@@ -46,6 +47,7 @@ export class CreateCheckoutUseCase {
     private readonly paymentGateway: IPaymentGateway,
     private readonly pricingService: SubscriptionPricingService,
     private readonly configService: AppConfigService,
+    private readonly featureFlagService: FeatureFlagService,
   ) {}
 
   async execute(request: CreateCheckoutRequest): Promise<CheckoutResponse> {
@@ -55,6 +57,10 @@ export class CreateCheckoutUseCase {
 
     const clinic = await this.clinicOps.getClinicDetails(request.clinicId);
     let customerId = clinic.razorpayCustomerId;
+    const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
+      request.clinicId,
+    );
+    const offerPercent = clinicOffer?.percentOff ?? 0;
 
     if (!customerId) {
       customerId = await this.paymentGateway.createCustomer({
@@ -66,7 +72,12 @@ export class CreateCheckoutUseCase {
       await this.clinicOps.updateRazorpayCustomerId(clinic.id, customerId);
     }
 
-    const amountCents = this.pricingService.calculatePrice(tier, cycle, addOns);
+    const amountCents = this.pricingService.calculatePrice(
+      tier,
+      cycle,
+      addOns,
+      offerPercent,
+    );
     const currencyCode = this.configService.getCurrencyCode();
 
     const order = await this.paymentGateway.createOrder({
@@ -82,6 +93,7 @@ export class CreateCheckoutUseCase {
         tier: request.tier,
         cycle: request.cycle,
         addOns: addOns.join(','),
+        pricingOffer: clinicOffer?.title ?? '',
       },
     });
 

@@ -7,7 +7,11 @@ import {
 import { ANNUAL_DISCOUNT_PERCENT, TIER_PRICING } from '@workspace/types';
 
 export class SubscriptionPricingService {
-  getPricePaise(tier: ClinicTier, cycle: BillingCycle): number {
+  getPricePaise(
+    tier: ClinicTier,
+    cycle: BillingCycle,
+    discountPercent = 0,
+  ): number {
     const tierName = tier.toString() as keyof typeof TIER_PRICING;
     const pricing = TIER_PRICING[tierName];
     if (!pricing) {
@@ -23,6 +27,10 @@ export class SubscriptionPricingService {
       paise = typeof monthlyPrice === 'number' ? monthlyPrice * 100 : 0;
     }
 
+    if (discountPercent > 0) {
+      paise = Math.round(paise * ((100 - discountPercent) / 100));
+    }
+
     return paise;
   }
 
@@ -30,8 +38,9 @@ export class SubscriptionPricingService {
     tier: ClinicTier,
     cycle: BillingCycle,
     addOns: string[] = [],
+    discountPercent = 0,
   ): number {
-    let totalPricePaise = this.getPricePaise(tier, cycle);
+    let totalPricePaise = this.getPricePaise(tier, cycle, discountPercent);
 
     if (addOns.includes('INTELLIGENCE')) {
       const intelligencePrice = cycle.isYearly() ? 120000 : 12000;

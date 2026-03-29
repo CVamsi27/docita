@@ -7,12 +7,8 @@ import {
   SEMI_ANNUAL_DISCOUNT_PERCENT,
   TIER_PRICING_BY_CURRENCY,
   TIER_OVERAGE_RATES_BY_CURRENCY,
-  WHATSAPP_ADDON_PRICING_BY_CURRENCY,
-  INTELLIGENCE_ADDON_PRICING_BY_CURRENCY,
   REFERRAL_REWARDS_BY_CURRENCY,
   PRICING_CURRENCY_CONFIG,
-  AI_CREDIT_COSTS,
-  DISCOUNT_CONFIG,
   SupportedCurrency,
 } from '@workspace/types';
 
@@ -62,8 +58,6 @@ export class PricingService {
     const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const overageRates = TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency];
-    const intelligencePricing =
-      INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
     const DB_TIER_TO_CANONICAL: Record<string, string> = {
@@ -78,14 +72,6 @@ export class PricingService {
     const dbTiers = await this.prisma.tierPricing.findMany({
       where: { isActive: true },
       orderBy: { displayOrder: 'asc' },
-    });
-
-    const dbAddOns = await this.prisma.addOn.findMany({
-      where: { isActive: true },
-    });
-
-    const dbDiscounts = await this.prisma.discount.findMany({
-      where: { isActive: true },
     });
 
     if (dbTiers.length > 0) {
@@ -135,32 +121,13 @@ export class PricingService {
           },
           features: this.parseJsonValue(tier.features),
         })),
-        addOns: dbAddOns
-          .filter((addOn) => addOn.type !== 'WHATSAPP')
-          .map((addOn) => ({
-            id: addOn.type,
-            name: addOn.name,
-            description: addOn.description,
-            icon: addOn.icon,
-            pricingByTier: this.parseJsonValue(addOn.pricingByTier),
-            includedQuotaByTier: this.parseJsonValue(addOn.includedQuotaByTier),
-            overageRateByTier: this.parseJsonValue(addOn.overageRateByTier),
-            features: this.parseJsonValue(addOn.features),
-          })),
-        discounts: dbDiscounts.map((discount) => ({
-          type: discount.type,
-          name: discount.name,
-          description: discount.description,
-          percentOff: discount.percentOff,
-          maxCombined: discount.maxCombinedPercent,
-          badgeText: discount.badgeText,
-        })),
-        referralRewards: referralRewards,
-        aiCreditCosts: AI_CREDIT_COSTS,
-        discountPercents: {
-          annual: ANNUAL_DISCOUNT_PERCENT,
-          semiAnnual: SEMI_ANNUAL_DISCOUNT_PERCENT,
+        addOns: [],
+        discounts: {
+          annualPercent: ANNUAL_DISCOUNT_PERCENT,
+          semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
+          referralCredits: referralRewards.ESSENTIAL,
         },
+        referralRewards: referralRewards,
       };
     }
 
@@ -204,9 +171,10 @@ export class PricingService {
         },
         {
           id: 'ESSENTIAL',
-          name: 'Docita Essential',
-          description: 'Professional practice management for solo clinics',
-          tagline: 'Solo Clinic Pro',
+          name: 'Docita Pro',
+          description:
+            'All features included. Pay only for what you use beyond your base quota.',
+          tagline: 'Scale with your clinic',
           color: 'blue',
           pricing: {
             monthly: tierPricing.ESSENTIAL.monthly,
@@ -216,24 +184,26 @@ export class PricingService {
           limits: TIER_LIMITS.ESSENTIAL,
           overageRates: overageRates.ESSENTIAL,
           features: [
-            '500 active patients included',
-            '1,000 appointments/month',
-            'Everything in Starter',
-            'Invoicing & billing',
-            'Basic analytics dashboard',
-            'ICD-10/CPT medical coding',
-            'Prescription templates',
-            'Digital consent management',
-            'Doctor signature on prescriptions',
-            '3 users included',
-            'Email support',
+            '1,000 patients included',
+            '2,000 appointments/month',
+            '5 users included',
+            'WhatsApp messaging (500 msgs/mo)',
+            'Multi-doctor & multi-branch',
+            'Lab tests & inventory',
+            'Queue management',
+            'Advanced analytics',
+            'Audit logs & compliance',
+            'Insurance billing',
+            'Digital intake forms',
+            'AI features — Coming Soon',
           ],
         },
         {
           id: 'PROFESSIONAL',
-          name: 'Docita Professional',
-          description: 'Full-featured solution for multi-doctor clinics',
-          tagline: 'Multi-Doctor Clinics',
+          name: 'Docita Clinic',
+          description:
+            'Full EHR, API access, custom branding, and broadcast campaigns for scaling practices.',
+          tagline: 'Built for growing clinics',
           color: 'purple',
           pricing: {
             monthly: tierPricing.PROFESSIONAL.monthly,
@@ -243,24 +213,26 @@ export class PricingService {
           limits: TIER_LIMITS.PROFESSIONAL,
           overageRates: overageRates.PROFESSIONAL,
           features: [
-            '10,000 active patients included',
-            '20,000 appointments/month',
-            'Everything in Essential',
-            'Unlimited doctors',
-            'Multi-clinic branching (up to 5)',
-            'Lab tests catalog & tracking',
-            'Inventory & pharmacy module',
-            'Token queue management',
-            'Audit logs & compliance',
-            'Advanced analytics',
-            '15 users included',
-            'Priority support',
+            '5,000 patients included',
+            '10,000 appointments/month',
+            '20 users included',
+            'WhatsApp messaging (2,000 msgs/mo)',
+            'Broadcast campaigns',
+            'Patient segmentation',
+            'Full EHR (IPD, vitals, clinical notes)',
+            'Custom branding on reports',
+            'Multi-location analytics',
+            'Bulk data import suite',
+            'REST API access (10k calls/day)',
+            'SSO (Google / Azure AD)',
+            'Priority support with SLA',
           ],
         },
         {
           id: 'ENTERPRISE',
           name: 'Docita Enterprise',
-          description: 'Hospital-grade solution with full customization',
+          description:
+            'Hospital-grade solution with custom contracts and unlimited scale.',
           tagline: 'Hospital-Grade System',
           color: 'orange',
           pricing: {
@@ -271,46 +243,22 @@ export class PricingService {
           limits: TIER_LIMITS.ENTERPRISE,
           overageRates: overageRates.ENTERPRISE,
           features: [
-            'Unlimited patients',
-            'Unlimited appointments',
-            'Everything in Professional',
-            'Unlimited doctors & branches',
-            'Full EHR capabilities',
-            'API access (10k calls/day)',
-            'SSO & advanced security',
-            'Custom branding & white-label',
-            'Data warehouse export',
+            'Unlimited patients, users & branches',
+            'Everything in Clinic',
+            'Data warehouse export (BI tools)',
+            'Custom contract & invoicing',
             'Dedicated account manager',
-            'SLA guarantee',
+            'Custom SLA guarantee',
           ],
         },
       ],
-      addOns: [
-        {
-          id: 'INTELLIGENCE',
-          name: 'Docita Intelligence',
-          description: 'AI-powered clinical assistant',
-          icon: 'Sparkles',
-          pricingByTier: intelligencePricing,
-          features: [
-            'AI-assisted clinical notes',
-            'Smart prescription suggestions',
-            'Voice-to-text dictation',
-            'Predictive no-show alerts',
-            'Patient risk segmentation',
-            'Anomaly detection',
-            'Treatment insights',
-            'Automated coding suggestions',
-          ],
-          creditCosts: AI_CREDIT_COSTS,
-        },
-      ],
-      discounts: DISCOUNT_CONFIG,
-      referralRewards: referralRewards,
-      discountPercents: {
-        annual: ANNUAL_DISCOUNT_PERCENT,
-        semiAnnual: SEMI_ANNUAL_DISCOUNT_PERCENT,
+      addOns: [],
+      discounts: {
+        annualPercent: ANNUAL_DISCOUNT_PERCENT,
+        semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
+        referralCredits: referralRewards.ESSENTIAL,
       },
+      referralRewards: referralRewards,
     };
   }
 
@@ -332,9 +280,6 @@ export class PricingService {
       patients = 0,
       appointments = 0,
       users = 1,
-      whatsappMessages = 0,
-      intelligence = false,
-      aiCredits = 0,
     } = params;
 
     const validCurrency = this.resolveCurrency(currency);
@@ -342,9 +287,6 @@ export class PricingService {
     const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
     const tierOverageRates = TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency];
-    const whatsappPricing = WHATSAPP_ADDON_PRICING_BY_CURRENCY[validCurrency];
-    const intelligencePricing =
-      INTELLIGENCE_ADDON_PRICING_BY_CURRENCY[validCurrency];
 
     const LEGACY_TIER_MAP: Record<string, string> = {
       CAPTURE: 'STARTER',
@@ -390,33 +332,7 @@ export class PricingService {
     const userOverage =
       Math.max(0, users - (limits.users || 1)) * overageRates.userRate;
 
-    let totalOverage = patientOverage + appointmentOverage + userOverage;
-
-    let addOnCosts = 0;
-    const addOnsBreakdown: Record<string, { base: number; overage: number }> =
-      {};
-
-    if (tierKey !== 'STARTER') {
-      const waPrice = whatsappPricing[tierKey as keyof typeof whatsappPricing];
-      const waOverage =
-        Math.max(0, whatsappMessages - waPrice.includedQuota) *
-        waPrice.overageRate;
-
-      totalOverage += waOverage;
-      addOnsBreakdown.whatsapp = { base: 0, overage: waOverage };
-    }
-
-    if (intelligence && tierKey !== 'STARTER') {
-      const aiPrice =
-        intelligencePricing[tierKey as keyof typeof intelligencePricing];
-      const aiBase = this.readNumber(aiPrice.basePrice);
-      const aiOverage =
-        Math.max(0, aiCredits - aiPrice.includedQuota) * aiPrice.overageRate;
-
-      addOnCosts += aiBase;
-      totalOverage += aiOverage;
-      addOnsBreakdown.intelligence = { base: aiBase, overage: aiOverage };
-    }
+    const totalOverage = patientOverage + appointmentOverage + userOverage;
 
     let discount = 0;
     if (billingCycle === 'yearly') {
@@ -425,7 +341,7 @@ export class PricingService {
       discount = SEMI_ANNUAL_DISCOUNT_PERCENT;
     }
 
-    const subtotal = basePrice + addOnCosts;
+    const subtotal = basePrice;
     const discountAmount = subtotal * (discount / 100);
     const totalMonthly = subtotal - discountAmount + totalOverage;
 
@@ -443,8 +359,8 @@ export class PricingService {
       },
       breakdown: {
         basePrice,
-        addOns: addOnsBreakdown,
-        addOnTotal: addOnCosts,
+        addOns: {},
+        addOnTotal: 0,
         subtotal,
         discount: {
           percent: discount,

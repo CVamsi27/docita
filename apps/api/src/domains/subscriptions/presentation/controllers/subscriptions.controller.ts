@@ -20,6 +20,7 @@ import {
 import { SubscriptionsQueryService } from '@/domains/subscriptions/application/services/subscriptions-query.service';
 import { ProratingService } from '@/domains/subscriptions/core/services';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
+import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import {
   ClinicTier,
   BillingCycle,
@@ -48,6 +49,7 @@ export class SubscriptionsController {
     private readonly queryService: SubscriptionsQueryService,
     private readonly proratingService: ProratingService,
     private readonly pricingService: SubscriptionPricingService,
+    private readonly usageTrackingService: UsageTrackingService,
   ) {}
 
   @Public()
@@ -63,6 +65,15 @@ export class SubscriptionsController {
       throw new Error('Clinic ID not found');
     }
     return this.queryService.getSubscriptionDetails(req.user.clinicId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('usage')
+  async getCurrentUsage(@Request() req: RequestWithUser) {
+    if (!req.user?.clinicId) {
+      throw new Error('Clinic ID not found');
+    }
+    return this.usageTrackingService.getCurrentUsage(req.user.clinicId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -158,9 +169,17 @@ export class SubscriptionsController {
     const subscription = await this.queryService.getSubscriptionDetails(
       req.user.clinicId,
     );
+    const pricingOffer = await this.queryService.getClinicPricingOffer(
+      req.user.clinicId,
+    );
     const newTier = ClinicTier.fromString(tier);
     const newCycle = BillingCycle.fromString(cycle);
-    const newPriceCents = this.pricingService.calculatePrice(newTier, newCycle);
+    const newPriceCents = this.pricingService.calculatePrice(
+      newTier,
+      newCycle,
+      [],
+      pricingOffer?.percentOff ?? 0,
+    );
 
     if (!subscription) {
       return {
@@ -181,6 +200,8 @@ export class SubscriptionsController {
     const currentPriceCents = this.pricingService.calculatePrice(
       currentTierObj,
       currentCycleObj,
+      [],
+      pricingOffer?.percentOff ?? 0,
     );
     const daysRemaining = subscription.daysRemaining;
     const billingCycleDays = currentCycleObj.isYearly() ? 365 : 30;

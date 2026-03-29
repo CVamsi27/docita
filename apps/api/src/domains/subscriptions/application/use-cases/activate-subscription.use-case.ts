@@ -20,6 +20,7 @@ import {
   SubscriptionStatusEnum,
 } from '@/domains/subscriptions/core/value-objects';
 import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
+import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -41,17 +42,27 @@ export class ActivateSubscriptionUseCase {
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
     private readonly pricingService: SubscriptionPricingService,
+    private readonly featureFlagService: FeatureFlagService,
   ) {}
 
   async execute(request: ActivateSubscriptionRequest): Promise<void> {
     const tier = ClinicTier.fromString(request.tier);
     const cycle = BillingCycle.fromString(request.cycle);
     const addOns = request.addOns || [];
+    const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
+      request.clinicId,
+    );
+    const offerPercent = clinicOffer?.percentOff ?? 0;
 
     let subscription = await this.subscriptionRepo.findByClinicId(
       request.clinicId,
     );
-    const priceCents = this.pricingService.calculatePrice(tier, cycle, addOns);
+    const priceCents = this.pricingService.calculatePrice(
+      tier,
+      cycle,
+      addOns,
+      offerPercent,
+    );
 
     if (!subscription) {
       subscription = new Subscription({

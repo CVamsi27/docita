@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Param,
   Body,
   Query,
@@ -99,20 +100,43 @@ export class SuperAdminBillingController {
     return this.billingService.updatePricingTier(tierId, dto);
   }
 
-  @Get('pricing/addons')
-  @ApiOperation({ summary: 'List all add-on pricing rows' })
-  async getPricingAddons() {
-    return this.billingService.getPricingAddons();
+  @Get('pricing/offers')
+  @ApiOperation({ summary: 'List all clinic pricing offers' })
+  async getPricingOffers() {
+    return this.billingService.getPricingOffers();
   }
 
-  @Put('pricing/addons/:addonId')
+  @Put('pricing/offers/:clinicId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update an add-on pricing row' })
-  async updatePricingAddon(
-    @Param('addonId') addonId: string,
+  @ApiOperation({ summary: 'Create or update a clinic pricing offer' })
+  async updatePricingOffer(
+    @Param('clinicId') clinicId: string,
     @Body() dto: Record<string, unknown>,
   ) {
-    return this.billingService.updatePricingAddon(addonId, dto);
+    return this.billingService.upsertPricingOffer(clinicId, {
+      title: String(dto.title ?? ''),
+      description: typeof dto.description === 'string' ? dto.description : '',
+      percentOff:
+        typeof dto.percentOff === 'number'
+          ? dto.percentOff
+          : Number(dto.percentOff ?? 0),
+      validUntil:
+        typeof dto.validUntil === 'string' ? dto.validUntil : undefined,
+      durationMonths:
+        typeof dto.durationMonths === 'number'
+          ? dto.durationMonths
+          : Number.isFinite(Number(dto.durationMonths))
+            ? Number(dto.durationMonths)
+            : undefined,
+      notes: typeof dto.notes === 'string' ? dto.notes : undefined,
+    });
+  }
+
+  @Delete('pricing/offers/:clinicId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a clinic pricing offer' })
+  async deletePricingOffer(@Param('clinicId') clinicId: string) {
+    return this.billingService.deletePricingOffer(clinicId);
   }
 
   @Post('subscriptions/:subscriptionId/extend-grace')

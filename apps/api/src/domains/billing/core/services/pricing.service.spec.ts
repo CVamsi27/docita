@@ -5,7 +5,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PricingService', () => {
   let service: PricingService;
-  let _prismaService: PrismaService;
+  let prismaService: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,9 +14,21 @@ describe('PricingService', () => {
         {
           provide: PrismaService,
           useValue: {
-            tierPricing: { findMany: jest.fn().mockResolvedValue([]) },
-            addOn: { findMany: jest.fn().mockResolvedValue([]) },
-            discount: { findMany: jest.fn().mockResolvedValue([]) },
+            tierPricing: {
+              findMany: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue([]),
+            },
+            addOn: {
+              findMany: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue([]),
+            },
+            discount: {
+              findMany: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue([]),
+            },
           },
         },
       ],
@@ -26,10 +38,15 @@ describe('PricingService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  it('should return addOns as an Array in fallback mode', async () => {
+  it('should return pricing with addOns removed and discounts exposed', async () => {
     const config = await service.getPricingConfig('INR');
     expect(Array.isArray(config.addOns)).toBe(true);
-    expect(config.addOns).toHaveLength(1);
-    expect(config.addOns[0]).toHaveProperty('id', 'INTELLIGENCE');
+    expect(config.addOns).toHaveLength(0);
+    expect(config).toHaveProperty('discounts');
+    expect(config.discounts).toMatchObject({
+      annualPercent: expect.any(Number),
+      semiAnnualPercent: expect.any(Number),
+      referralCredits: expect.any(Number),
+    });
   });
 });
