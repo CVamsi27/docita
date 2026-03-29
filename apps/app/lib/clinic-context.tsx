@@ -20,6 +20,7 @@ export interface Clinic {
   phone?: string;
   email?: string;
   logo?: string;
+  gstin?: string | null;
   tier?: "STARTER" | "ESSENTIAL" | "PROFESSIONAL" | "ENTERPRISE" | string;
   type?:
     | "GENERAL"

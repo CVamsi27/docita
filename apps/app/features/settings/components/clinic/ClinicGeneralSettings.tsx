@@ -32,6 +32,7 @@ const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Clinic Name"),
   address: requiredStringSchema("Address"),
   phone: phoneSchema,
+  gstin: z.union([z.string().trim(), z.literal("")]).optional(),
 });
 
 type ClinicSettingsFormValues = z.infer<typeof clinicSettingsSchema>;
@@ -42,7 +43,7 @@ export function ClinicGeneralSettings() {
   const [copied, setCopied] = useState(false);
 
   const handleCopyCode = () => {
-    const code = (clinic as Record<string, unknown> | undefined)?.referralCode as string | undefined;
+    const code = clinic?.referralCode;
     if (!code) return;
     navigator.clipboard.writeText(code).then(() => {
       setCopied(true);
@@ -56,6 +57,7 @@ export function ClinicGeneralSettings() {
       name: "",
       address: "",
       phone: "",
+      gstin: "",
     },
   });
 
@@ -65,9 +67,11 @@ export function ClinicGeneralSettings() {
         name: clinic.name || "",
         address: clinic.address || "",
         phone: clinic.phone || "",
+        gstin: clinic.gstin || "",
       });
     }
-  }, [clinic, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clinic]);
 
   const handleSubmit = (data: ClinicSettingsFormValues) => {
     updateClinic(data, {
@@ -103,12 +107,12 @@ export function ClinicGeneralSettings() {
         <CardDescription>Basic clinic settings and information</CardDescription>
       </CardHeader>
       <CardContent>
-        {!!(clinic as Record<string, unknown> | undefined)?.referralCode && (
+        {!!clinic?.referralCode && (
           <div className="mb-4 rounded-lg border bg-muted/30 p-4">
             <p className="text-xs font-medium text-muted-foreground mb-1">Clinic Join Code</p>
             <div className="flex items-center gap-2">
               <code className="text-sm font-mono font-semibold tracking-wider text-foreground">
-                {String((clinic as Record<string, unknown>).referralCode)}
+                {clinic.referralCode}
               </code>
               <Button
                 type="button"
@@ -175,6 +179,26 @@ export function ClinicGeneralSettings() {
                 >
                   <FormControl>
                     <Input placeholder="Enter phone number" {...field} />
+                  </FormControl>
+                </FormFieldGroup>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gstin"
+              render={({ field }) => (
+                <FormFieldGroup
+                  label="GSTIN"
+                  error={form.formState.errors.gstin?.message}
+                  hint="Needed for GST invoices on paid Indian plans. Keep this aligned with your tax registration."
+                >
+                  <FormControl>
+                    <Input
+                      placeholder="27ABCDE1234F1Z5"
+                      {...field}
+                      value={field.value || ""}
+                    />
                   </FormControl>
                 </FormFieldGroup>
               )}

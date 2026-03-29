@@ -31,6 +31,7 @@ interface ClinicSettingsData {
   address?: string;
   phone?: string;
   phoneNumber?: string;
+  gstin?: string;
   email?: string;
   website?: string;
   description?: string;

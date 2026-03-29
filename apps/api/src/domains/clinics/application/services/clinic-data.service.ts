@@ -85,6 +85,14 @@ export class ClinicDataService {
     return typeof value === 'number' ? value : undefined;
   }
 
+  private readOptionalString(
+    source: Record<string, unknown>,
+    key: string,
+  ): string | undefined {
+    const value = source[key];
+    return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  }
+
   private generateReferralCode(clinicName: string): string {
     const prefix = clinicName
       .replace(/[^a-zA-Z0-9]/g, '')
@@ -141,6 +149,7 @@ export class ClinicDataService {
     return {
       ...raw,
       phoneNumber: raw.phone,
+      gstin: this.readOptionalString(settings, 'gstin'),
       description: this.readString(settings, 'description'),
       openingTime: this.readString(settings, 'openingTime'),
       closingTime: this.readString(settings, 'closingTime'),
@@ -179,6 +188,7 @@ export class ClinicDataService {
       return {
         ...clinic,
         phoneNumber: clinic.phone,
+        gstin: this.readOptionalString(settings, 'gstin'),
         description: this.readString(settings, 'description'),
         openingTime: this.readString(settings, 'openingTime'),
         closingTime: this.readString(settings, 'closingTime'),

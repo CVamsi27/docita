@@ -22,6 +22,7 @@ export const clinicSchema = z.object({
   phone: z.string(),
   email: z.string().email(),
   website: z.string().nullable().optional(),
+  gstin: z.string().nullable().optional(),
   logo: z.string().nullable().optional(),
   active: z.boolean(),
   tier: z.string().or(ClinicTier),

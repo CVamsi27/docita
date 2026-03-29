@@ -8,6 +8,7 @@ interface ClinicSettingsData {
   address?: string;
   phone?: string;
   phoneNumber?: string;
+  gstin?: string;
   email?: string;
   website?: string;
   description?: string;
@@ -33,6 +34,24 @@ interface ClinicSettingsData {
   theme?: string;
   primaryColor?: string;
   compactMode?: boolean;
+  avgConsultationMinutes?: number;
+  lateArrivalGraceMinutes?: number;
+  queueBufferMinutes?: number;
+  useDoctorQueues?: boolean;
+  followUpReminderEnabled?: boolean;
+  followUpReminderBefore?: string;
+  followUpReminderUnit?: string;
+  invoiceReminderEnabled?: boolean;
+  invoiceReminderBefore?: string;
+  invoiceReminderUnit?: string;
+  prescriptionReminderEnabled?: boolean;
+  prescriptionReminderBefore?: string;
+  prescriptionReminderUnit?: string;
+  scheduleNotificationEnabled?: boolean;
+  scheduleNotificationBefore?: string;
+  scheduleNotificationUnit?: string;
+  whatsappPreAppointmentEnabled?: boolean;
+  whatsappPreAppointmentMinutes?: number;
   paymentReminderEnabled?: boolean;
   paymentReminderDays?: number[];
   paymentReminderAutoSendWhatsApp?: boolean;
@@ -117,6 +136,20 @@ export class ClinicSettingsService {
       theme: data.theme,
       primaryColor: data.primaryColor,
       compactMode: data.compactMode,
+      followUpReminderEnabled: data.followUpReminderEnabled,
+      followUpReminderBefore: data.followUpReminderBefore,
+      followUpReminderUnit: data.followUpReminderUnit,
+      invoiceReminderEnabled: data.invoiceReminderEnabled,
+      invoiceReminderBefore: data.invoiceReminderBefore,
+      invoiceReminderUnit: data.invoiceReminderUnit,
+      prescriptionReminderEnabled: data.prescriptionReminderEnabled,
+      prescriptionReminderBefore: data.prescriptionReminderBefore,
+      prescriptionReminderUnit: data.prescriptionReminderUnit,
+      scheduleNotificationEnabled: data.scheduleNotificationEnabled,
+      scheduleNotificationBefore: data.scheduleNotificationBefore,
+      scheduleNotificationUnit: data.scheduleNotificationUnit,
+      whatsappPreAppointmentEnabled: data.whatsappPreAppointmentEnabled,
+      whatsappPreAppointmentMinutes: data.whatsappPreAppointmentMinutes,
       paymentReminderEnabled: data.paymentReminderEnabled,
       paymentReminderDays: data.paymentReminderDays,
       paymentReminderAutoSendWhatsApp: data.paymentReminderAutoSendWhatsApp,
@@ -162,9 +195,26 @@ export class ClinicSettingsService {
         name: data.name,
         address: data.address,
         phone: data.phoneNumber || data.phone,
+        settings: this.toInputJsonValue({
+          ...resolvedSettings,
+          ...(data.gstin !== undefined && {
+            gstin: data.gstin || undefined,
+          }),
+        }),
         email: data.email,
         website: data.website,
-        settings: this.toInputJsonValue(resolvedSettings),
+        ...(data.avgConsultationMinutes !== undefined && {
+          avgConsultationMinutes: data.avgConsultationMinutes,
+        }),
+        ...(data.lateArrivalGraceMinutes !== undefined && {
+          lateArrivalGraceMinutes: data.lateArrivalGraceMinutes,
+        }),
+        ...(data.queueBufferMinutes !== undefined && {
+          queueBufferMinutes: data.queueBufferMinutes,
+        }),
+        ...(data.useDoctorQueues !== undefined && {
+          useDoctorQueues: data.useDoctorQueues,
+        }),
       },
     });
   }
