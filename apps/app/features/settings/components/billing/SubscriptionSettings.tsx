@@ -9,7 +9,6 @@ import {
   getTierInfo,
   getTierName,
   Tier,
-  TIER_LIMITS,
 } from "@/lib/tier-config";
 import {
   PRICING_CURRENCY_SYMBOLS,
@@ -24,10 +23,10 @@ import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
-import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
+import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
-import { AddonsSection } from "@/features/subscription/components/sections/addons-section";
+import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
 import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
 import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
@@ -237,33 +236,11 @@ function BillingHistory() {
   );
 }
 
-interface UsageBarProps {
-  label: string;
-  included: number;
-  unlimited?: boolean;
-}
-
-function UsageBar({ label, included, unlimited }: UsageBarProps) {
-  return (
-    <div className="space-y-1">
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>{label}</span>
-        <span>{unlimited ? "Unlimited" : `up to ${included.toLocaleString()} included`}</span>
-      </div>
-      <div className="h-1.5 w-full rounded-full bg-muted">
-        <div
-          className="h-1.5 rounded-full bg-primary/60"
-          style={{ width: unlimited ? "100%" : "20%" }}
-        />
-      </div>
-    </div>
-  );
-}
 
 export function SubscriptionSettings() {
   const router = useRouter();
   const { isAdmin } = useAuth();
-  const { currentTier, hasIntelligence } = usePermissionStore();
+  const { currentTier } = usePermissionStore();
   const { data: subscription, isLoading } = useSubscription();
   const billingHistoryRef = useRef<HTMLDivElement>(null);
   const [showPricingDialog, setShowPricingDialog] = useState(false);
@@ -275,7 +252,8 @@ export function SubscriptionSettings() {
 
   const { currency } = useLocaleCurrency();
   const { pricingConfig } = usePricingConfig(currency);
-  const { checkoutAddon, processingId } = useSubscriptionCheckout((data) => {
+  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
+  useSubscriptionCheckout((data) => {
     setSuccessData(data);
     setShowSuccessModal(true);
   });
@@ -328,24 +306,6 @@ export function SubscriptionSettings() {
     );
   }
 
-  const intelligenceFeatures = Object.entries(FEATURE_TIER_MAP)
-    .filter(([, requiredTier]) => requiredTier === Tier.INTELLIGENCE)
-    .map(([feature]) => ({
-      feature: feature as Feature,
-      details: getFeatureDetails(feature as Feature),
-    }));
-
-  const intelligenceAddOn = pricingConfig?.addOns.find(
-    (addOn) => addOn.id === "INTELLIGENCE",
-  );
-  const pricingByTier = intelligenceAddOn?.pricingByTier?.[currentTierName];
-  const dynamicIntelligencePricing =
-    pricingByTier &&
-    typeof pricingByTier.monthly === "number" &&
-    typeof pricingByTier.yearly === "number"
-      ? { monthly: pricingByTier.monthly, yearly: pricingByTier.yearly }
-      : undefined;
-
   const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
     .filter(([, requiredTier]) => requiredTier > currentTier && requiredTier !== Tier.INTELLIGENCE)
     .map(([feature, requiredTier]) => ({
@@ -379,10 +339,6 @@ export function SubscriptionSettings() {
     Math.min(currentTierIndex, allTiers.length - 3),
     Math.min(currentTierIndex, allTiers.length - 3) + 3,
   );
-
-  const tierLimits = TIER_LIMITS[currentTierName];
-  const unlimitedPatients = tierLimits.patients >= 999999;
-  const unlimitedAppointments = (tierLimits.appointments ?? 0) >= 999999;
 
   const trialDaysLeft =
     subscriptionStatus === "TRIALING" && subscription?.currentPeriodEnd
@@ -455,10 +411,25 @@ export function SubscriptionSettings() {
         </CardHeader>
 
         <CardContent className="pt-6 space-y-6">
+          <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <p className="font-semibold">Billing guidance</p>
+              <p className="text-sm text-muted-foreground">
+                Paid Indian plans need a GSTIN on file before charge. For onboarding and follow-ups, keep the conversation on WhatsApp.
+              </p>
+            </div>
+            <WhatsAppButton
+              phoneNumber={supportPhone}
+              message="Hi Docita team, I need help with billing and onboarding."
+              label="Message support"
+              variant="default"
+            />
+          </div>
+
           <CurrentPlanCard
             tierInfo={currentTierInfo}
             currentTier={currentTier}
-            hasIntelligence={hasIntelligence}
+            hasIntelligence={false}
             canChangeTier={isAdmin}
             onChangePlan={() => router.push("/upgrade")}
             onViewBillingHistory={() =>
@@ -469,8 +440,7 @@ export function SubscriptionSettings() {
             }
           />
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
+          <div className="space-y-6">
               <div className="bg-muted/30 rounded-xl p-6 border space-y-4">
                 <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                   Active Subscription
@@ -499,21 +469,7 @@ export function SubscriptionSettings() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Current period usage
-                </p>
-                <UsageBar
-                  label="Patients"
-                  included={tierLimits.patients}
-                  unlimited={unlimitedPatients}
-                />
-                <UsageBar
-                  label="Appointments"
-                  included={tierLimits.appointments ?? 0}
-                  unlimited={unlimitedAppointments}
-                />
-              </div>
+              <UsageDashboard />
 
               <div className="flex gap-3">
                 <Button
@@ -524,30 +480,9 @@ export function SubscriptionSettings() {
                   Open Upgrade &amp; Billing
                 </Button>
               </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold mb-4">Plan Estimator</h4>
-              <DynamicPricingEstimator />
-            </div>
           </div>
         </CardContent>
       </Card>
-
-      <AddonsSection
-        hasIntelligence={hasIntelligence}
-        intelligenceFeatures={intelligenceFeatures}
-        purchasingId={processingId}
-        currency={currency}
-        intelligencePricing={dynamicIntelligencePricing}
-        onPurchaseIntelligence={(cycle) =>
-          checkoutAddon({
-            addonId: "INTELLIGENCE",
-            billingCycle: cycle,
-            currentTier,
-          })
-        }
-      />
 
       {lockedFeatures.length > 0 && (
         <LockedFeatures lockedFeatures={lockedFeatures} />

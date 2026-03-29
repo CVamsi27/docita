@@ -229,6 +229,20 @@ export default function BillingDashboard() {
         </Button>
       </div>
 
+      <Card className="border-dashed bg-muted/30">
+        <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="font-semibold">Internal billing reminder</p>
+            <p className="text-sm text-muted-foreground">
+              Keep requested hospital offers in WhatsApp, and do not charge a paid Indian plan until GSTIN is captured.
+            </p>
+          </div>
+          <Badge variant="outline" className="w-fit">
+            WhatsApp-first + GST invoice required
+          </Badge>
+        </CardContent>
+      </Card>
+
       {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
