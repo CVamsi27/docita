@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ import {
   usePricingConfig,
   useTierEstimates,
 } from "@/hooks/api/use-pricing";
+import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DEFAULT_PRICING_USAGE_INPUTS,
   PRICING_DIALOG_TIER_BORDERS,
@@ -65,12 +66,17 @@ export function PricingDialog({
     INTELLIGENCE: "tier-intelligence",
   };
 
+  const { currency: detectedCurrency } = useLocaleCurrency();
   const [currency, setCurrency] = useState<SupportedCurrency>(
-    initialCurrency ?? "INR",
+    initialCurrency ?? detectedCurrency,
   );
   const [isYearly, setIsYearly] = useState(false);
 
   const { pricingConfig } = usePricingConfig(currency);
+
+  useEffect(() => {
+    setCurrency(initialCurrency ?? detectedCurrency);
+  }, [initialCurrency, detectedCurrency]);
 
   const tiers: TierName[] = PRICING_DIALOG_TIERS;
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];

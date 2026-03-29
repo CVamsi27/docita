@@ -25,13 +25,30 @@ export interface TierConfig {
   color: string;
   pricing: PlanPricing;
   limits: PlanLimits;
+  overageRates?: {
+    patient: number;
+    appointment: number;
+    storage: number;
+    user: number;
+  };
   features: string[];
 }
 
 export interface TierConfigData {
+  currency: {
+    code: string;
+    symbol: string;
+    name: string;
+  };
+  supportedCurrencies: Array<{ code: string; symbol: string; name: string }>;
   tiers: TierConfig[];
   featureTierMap: Record<string, number>;
   featureDisplay: Record<string, { name: string; description: string }>;
+  discounts: {
+    annualPercent: number;
+    semiAnnualPercent: number;
+    referralCredits: number;
+  };
   intelligenceInfo: {
     name: string;
     description: string;
@@ -55,6 +72,27 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 const DEFAULT_CONFIG: TierConfigData = {
+  currency: {
+    code: "INR",
+    symbol: CURRENCY_SYMBOLS.INR,
+    name: "Indian Rupee",
+  },
+  supportedCurrencies: Object.entries(CURRENCY_SYMBOLS).map(([code, symbol]) => ({
+    code,
+    symbol,
+    name:
+      code === "INR"
+        ? "Indian Rupee"
+        : code === "USD"
+          ? "US Dollar"
+          : code === "GBP"
+            ? "British Pound"
+            : code === "EUR"
+              ? "Euro"
+              : code === "AUD"
+                ? "Australian Dollar"
+                : code,
+  })),
   tiers: [
     {
       id: "STARTER",
@@ -149,6 +187,11 @@ const DEFAULT_CONFIG: TierConfigData = {
   ],
   featureTierMap: {},
   featureDisplay: {},
+  discounts: {
+    annualPercent: 10,
+    semiAnnualPercent: 8,
+    referralCredits: 0,
+  },
   intelligenceInfo: {
     name: "Docita Intelligence",
     description: "AI-powered clinical assistant — Coming Soon in Docita Pro and above",
@@ -267,12 +310,13 @@ function computeOverageRates(currency: string): OverageRatesResult {
   };
 }
 
-async function fetchTierConfig(): Promise<TierConfigData> {
+async function fetchTierConfig(currency?: string): Promise<TierConfigData> {
   let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
   if (apiUrl.endsWith('/api')) {
     apiUrl = `${apiUrl}/v1`;
   }
-  const response = await fetch(`${apiUrl}/pricing/config`);
+  const query = currency ? `?currency=${currency}` : "";
+  const response = await fetch(`${apiUrl}/pricing/config${query}`);
 
   if (!response.ok) {
     throw new Error("Failed to fetch tier configuration");
@@ -281,15 +325,16 @@ async function fetchTierConfig(): Promise<TierConfigData> {
   return response.json();
 }
 
-export function useTierConfig() {
+export function useTierConfig(currency?: string) {
+  const resolvedCurrency = currency ?? "INR";
   const {
     data: config = DEFAULT_CONFIG,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["tier-config"],
-    queryFn: fetchTierConfig,
+    queryKey: ["tier-config", resolvedCurrency],
+    queryFn: () => fetchTierConfig(resolvedCurrency),
     staleTime: 5 * 60 * 1000, 
     gcTime: 30 * 60 * 1000, 
     retry: 2,
@@ -324,7 +369,19 @@ export function useTierConfig() {
         return { monthly: 0, yearly: 0, isCustom: true };
       }
 
-      const multiplier = CURRENCY_MULTIPLIERS[currency] ?? 1;
+      const activeCurrency = currency.toUpperCase();
+      const isApiCurrency =
+        config.currency?.code?.toUpperCase() === activeCurrency;
+
+      if (isApiCurrency) {
+        return {
+          monthly: basePricing.monthly as number,
+          yearly: basePricing.yearly as number,
+          isCustom: false,
+        };
+      }
+
+      const multiplier = CURRENCY_MULTIPLIERS[activeCurrency] ?? 1;
       return {
         monthly: Math.round((basePricing.monthly as number) * multiplier),
         yearly: Math.round((basePricing.yearly as number) * multiplier),
@@ -335,8 +392,40 @@ export function useTierConfig() {
   );
 
   const getOverageRates = useCallback(
-    (currency: string): OverageRatesResult => computeOverageRates(currency),
-    [],
+    (currency: string): OverageRatesResult => {
+      const tierCurrency = currency.toUpperCase();
+      const proTier = config.tiers.find((tier) => tier.id === "PROFESSIONAL");
+      const clinicTier = config.tiers.find((tier) => tier.id === "ENTERPRISE");
+      const fallbackRates = computeOverageRates(tierCurrency);
+
+      if (
+        config.currency?.code?.toUpperCase() === tierCurrency &&
+        proTier?.overageRates &&
+        clinicTier?.overageRates
+      ) {
+        const toRow = (rate: {
+          patient: number;
+          appointment: number;
+          user: number;
+        }) => ({
+          patient: fmtRate(rate.patient, getCurrencySymbol(tierCurrency)),
+          appt: fmtRate(rate.appointment, getCurrencySymbol(tierCurrency)),
+          user: fmtRate(rate.user, getCurrencySymbol(tierCurrency)),
+          wa: fallbackRates.pro.wa,
+        });
+
+        return {
+          pro: toRow(proTier.overageRates),
+          clinic: {
+            ...toRow(clinicTier.overageRates),
+            wa: fallbackRates.clinic.wa,
+          },
+        };
+      }
+
+      return fallbackRates;
+    },
+    [config, getCurrencySymbol],
   );
 
   return {

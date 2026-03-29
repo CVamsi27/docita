@@ -22,6 +22,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { useDebounce } from "@workspace/hooks";
 import type { SupportedCurrency, TierName } from "@workspace/types";
 import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from "@workspace/utils";
+import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DEFAULT_PRICING_USAGE_INPUTS,
   PRICING_ESTIMATE_DEBOUNCE_MS,
@@ -69,15 +70,16 @@ interface DynamicPricingEstimatorProps {
 
 export function DynamicPricingEstimator({
   defaultTier = "ESSENTIAL",
-  currency = "INR",
+  currency,
   billingCycle: controlledBillingCycle,
   showCurrencySelector = true,
   showBillingSelector = true,
   onUsageChange,
 }: DynamicPricingEstimatorProps) {
+  const { currency: detectedCurrency } = useLocaleCurrency();
   const [tier, setTier] = useState(defaultTier);
   const [selectedCurrency, setSelectedCurrency] =
-    useState<SupportedCurrency>(currency);
+    useState<SupportedCurrency>(currency ?? detectedCurrency);
   const [localBillingCycle, setLocalBillingCycle] = useState<
     "monthly" | "yearly"
   >("monthly");
@@ -92,8 +94,8 @@ export function DynamicPricingEstimator({
   }, [defaultTier]);
 
   useEffect(() => {
-    setSelectedCurrency(currency);
-  }, [currency]);
+    setSelectedCurrency(currency ?? detectedCurrency);
+  }, [currency, detectedCurrency]);
 
   useEffect(() => {
     if (controlledBillingCycle) {

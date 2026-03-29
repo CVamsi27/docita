@@ -33,6 +33,7 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
 } from "@workspace/types";
+import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 
 interface PlanSelectionProps {
   onSelect: (
@@ -61,8 +62,9 @@ export function PlanSelectionStep({
   defaultTier = "STARTER",
   defaultBillingCycle = "MONTHLY",
   defaultIsCoreTrial = false,
-  currency = "INR",
+  currency,
 }: PlanSelectionProps) {
+  const { currency: detectedCurrency } = useLocaleCurrency();
   const [selectedTier, setSelectedTier] = useState<string>(defaultTier);
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
     defaultBillingCycle,
@@ -71,7 +73,8 @@ export function PlanSelectionStep({
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
 
-  const { pricingConfig, isLoading, error } = usePricingConfig(currency);
+  const resolvedCurrency = currency ?? detectedCurrency;
+  const { pricingConfig, isLoading, error } = usePricingConfig(resolvedCurrency);
 
   const featuresByTier = Object.values(Tier)
     .filter((t): t is Tier => typeof t === "number" && t !== Tier.INTELLIGENCE)
@@ -196,8 +199,8 @@ Please contact me with deployment and commercial details.`;
               const tierPricingData = pricingConfig.tiers.find(
                 (t: TierPricing) => t.id === tierName,
               );
-              const currencyKey = currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
-              const currencySymbol = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
+              const currencyKey = resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
+              const currencySymbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
               const overageRates =
                 (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
               const overageHint =

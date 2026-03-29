@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageSquare, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  MessageSquare,
+  Sparkles,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { PricingTierCard } from "@/components/pricing/pricing-tier-card";
-import { PricingAddon } from "@/components/pricing/pricing-addon";
 import {
   detectCurrencyFromIP,
   getCurrencyInfo,
@@ -18,7 +24,8 @@ export function PricingSection() {
     "monthly",
   );
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
-  const { isLoading, getPricing, getCurrencySymbol } = useTierConfig();
+  const { isLoading, getPricing, getCurrencySymbol, getOverageRates } =
+    useTierConfig(detectedCurrency);
 
   useEffect(() => {
     detectCurrencyFromIP().then((currency) => {
@@ -60,43 +67,43 @@ export function PricingSection() {
   ];
 
   const essentialFeatures = [
-    "500 active patients included",
-    "1,000 appointments/month",
-    "Everything in Starter",
-    "Invoicing & billing",
-    "Basic analytics dashboard",
-    "ICD-10/CPT medical coding",
-    "Prescription templates",
-    "Digital consent management",
-    "Doctor signature on prescriptions",
-    "3 users included",
+    "1,000 patients included",
+    "2,000 appointments/month",
+    "5 users included",
+    "WhatsApp messaging (500 msgs/mo)",
+    "Multi-doctor & multi-branch",
+    "Lab tests & inventory",
+    "Queue management",
+    "Advanced analytics",
+    "Audit logs & compliance",
+    "Insurance billing",
+    "Digital intake forms",
+    "AI features — Coming Soon",
   ];
 
   const professionalFeatures = [
-    "10,000 active patients included",
-    "20,000 appointments/month",
-    "Everything in Essential",
-    "Unlimited doctors",
-    "Multi-clinic branching (up to 5)",
-    "Lab tests catalog & tracking",
-    "Inventory & pharmacy module",
-    "Token queue management",
-    "Audit logs & compliance",
-    "Advanced analytics",
-    "15 users included",
+    "5,000 patients included",
+    "10,000 appointments/month",
+    "20 users included",
+    "WhatsApp messaging (2,000 msgs/mo)",
+    "Broadcast campaigns",
+    "Patient segmentation",
+    "Full EHR (IPD, vitals, clinical notes)",
+    "Custom branding on reports",
+    "Multi-location analytics",
+    "Bulk data import suite",
+    "REST API access (10k calls/day)",
+    "SSO (Google / Azure AD)",
+    "Priority support with SLA",
   ];
 
   const enterpriseFeatures = [
-    "Unlimited patients & appointments",
-    "Everything in Professional",
-    "Unlimited doctors & branches",
-    "Full EHR capabilities",
-    "API access (10k calls/day)",
-    "SSO & advanced security",
-    "Custom branding & white-label",
-    "Data warehouse export",
+    "Unlimited patients, users & branches",
+    "Everything in Docita Clinic",
+    "Data warehouse export (BI tools)",
+    "Custom contract & invoicing",
     "Dedicated account manager",
-    "SLA guarantee",
+    "Custom SLA guarantee",
   ];
 
   return (
@@ -155,8 +162,8 @@ export function PricingSection() {
 
           <PricingTierCard
             tier="Essential"
-            title="Docita Essential"
-            description="Professional tools for solo clinics"
+            title="Docita Pro"
+            description="All features included. Pay only for what you use beyond your base quota."
             price={formatPrice("ESSENTIAL")}
             pricePerMonth="/mo"
             billingNote={
@@ -174,8 +181,8 @@ export function PricingSection() {
 
           <PricingTierCard
             tier="Professional"
-            title="Docita Professional"
-            description="Full-featured for multi-doctor clinics"
+            title="Docita Clinic"
+            description="Full EHR, API access, custom branding, and broadcast campaigns."
             price={formatPrice("PROFESSIONAL")}
             pricePerMonth="/mo"
             billingNote={
@@ -201,76 +208,148 @@ export function PricingSection() {
           />
         </div>
 
-        <div className="mt-12 space-y-6">
-          <div className="text-center mb-8">
-            <h3 className="text-xl font-bold">Powerful Add-ons</h3>
+        <div className="mt-12 grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border bg-muted/30 p-6 flex items-start gap-4">
+            <div className="rounded-lg bg-green-500/10 p-2 mt-0.5">
+              <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="font-semibold">WhatsApp Messaging — Included</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                500 msgs/mo on Docita Pro, 2,000 msgs/mo on Docita Clinic.
+                Additional messages billed per use.
+              </p>
+            </div>
+          </div>
+          <div className="rounded-xl border bg-muted/30 p-6 flex items-start gap-4">
+            <div className="rounded-lg bg-primary/10 p-2 mt-0.5">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold">AI Features — Coming Soon</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                AI-assisted notes, smart prescriptions, voice dictation, and
+                predictive analytics — bundled into Docita Pro and above.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* How billing works */}
+        <div className="mt-16 text-center mb-8">
+          <h3 className="text-xl font-bold">How billing works</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Simple, transparent — no surprises on your invoice.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3 mb-16">
+          <div className="rounded-xl border bg-background p-6 text-center">
+            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">1</div>
+            <p className="font-semibold mb-1">Pick a plan</p>
             <p className="text-sm text-muted-foreground">
-              Enhance your clinic with these optional modules
+              Your base monthly fee covers the included quota — patients, appointments, users, and WhatsApp messages.
             </p>
           </div>
+          <div className="rounded-xl border bg-background p-6 text-center">
+            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">2</div>
+            <p className="font-semibold mb-1">Use Docita freely</p>
+            <p className="text-sm text-muted-foreground">
+              No hard limits. When your usage exceeds the included quota, you continue working without interruption.
+            </p>
+          </div>
+          <div className="rounded-xl border bg-background p-6 text-center">
+            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">3</div>
+            <p className="font-semibold mb-1">Pay for extras monthly</p>
+            <p className="text-sm text-muted-foreground">
+              Any overage is calculated and billed at the start of the next month — even on annual plans.
+            </p>
+          </div>
+        </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <PricingAddon
-              icon={<MessageSquare className="h-6 w-6" />}
-              title="WhatsApp Integration"
-              description="Automated patient communication"
-              price={`+${sym}${({ INR: "499", USD: "9", EUR: "8", GBP: "7", AUD: "15" })[detectedCurrency] ?? "9"}`}
-              priceNote="(from Essential tier)"
-              features={[
-                {
-                  label: "500 messages included",
-                  icon: <MessageSquare className="h-3 w-3" />,
-                },
-                {
-                  label: "Appointment reminders",
-                  icon: <MessageSquare className="h-3 w-3" />,
-                },
-                {
-                  label: "Prescription sharing",
-                  icon: <MessageSquare className="h-3 w-3" />,
-                },
-                {
-                  label: "Two-way messaging",
-                  icon: <MessageSquare className="h-3 w-3" />,
-                },
-                {
-                  label: `${sym}${({ INR: "0.50", USD: "0.015", EUR: "0.013", GBP: "0.012", AUD: "0.022" })[detectedCurrency] ?? "0.015"}/extra message`,
-                  icon: <MessageSquare className="h-3 w-3" />,
-                },
-              ]}
-              iconBgColor="green"
-            />
-
-            <PricingAddon
-              icon={<Sparkles className="h-6 w-6" />}
-              title="Docita Intelligence"
-              description="AI-powered clinical assistant"
-              price={`+${formatPrice("INTELLIGENCE")}`}
-              priceNote="(from Essential tier)"
-              features={[
-                {
-                  label: "500 AI credits included",
-                  icon: <Sparkles className="h-3 w-3" />,
-                },
-                {
-                  label: "AI-assisted clinical notes",
-                  icon: <Sparkles className="h-3 w-3" />,
-                },
-                {
-                  label: "Smart prescriptions",
-                  icon: <Sparkles className="h-3 w-3" />,
-                },
-                {
-                  label: "Voice-to-text dictation",
-                  icon: <Sparkles className="h-3 w-3" />,
-                },
-                {
-                  label: "Predictive analytics",
-                  icon: <Sparkles className="h-3 w-3" />,
-                },
-              ]}
-              iconBgColor="primary"
-            />
+        {/* Overage rates table */}
+        <div className="rounded-2xl border bg-muted/30 overflow-hidden">
+          <div className="p-6 border-b">
+            <h3 className="font-bold text-lg">Usage overage rates</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Charged only when you exceed the included quota on your plan.
+              {isHydrated && ` Rates shown in ${sym}.`}
+              </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground">Usage type</th>
+                  <th className="px-6 py-3 text-center font-medium">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-primary inline-block" />
+                      Docita Pro
+                    </span>
+                  </th>
+                  <th className="px-6 py-3 text-center font-medium">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-purple-500 inline-block" />
+                      Docita Clinic
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {(() => {
+                  const rates = getOverageRates(detectedCurrency);
+                  return (
+                    <>
+                      <tr className="bg-background hover:bg-muted/20 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+                            Extra patient (per month)
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center font-medium">{rates.pro.patient}</td>
+                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.patient}</td>
+                      </tr>
+                      <tr className="bg-background hover:bg-muted/20 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="flex items-center gap-2">
+                            <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
+                            Extra appointment
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center font-medium">{rates.pro.appt}</td>
+                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.appt}</td>
+                      </tr>
+                      <tr className="bg-background hover:bg-muted/20 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="flex items-center gap-2">
+                            <UserPlus className="h-4 w-4 text-muted-foreground shrink-0" />
+                            Extra user (per month)
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center font-medium">{rates.pro.user}</td>
+                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.user}</td>
+                      </tr>
+                      <tr className="bg-background hover:bg-muted/20 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+                            Extra WhatsApp message
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center font-medium">{rates.pro.wa}</td>
+                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.wa}</td>
+                      </tr>
+                    </>
+                  );
+                })()}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-6 py-4 bg-muted/20 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm text-muted-foreground">
+            <span>Docita Clinic rates are ~20% lower — the larger your plan, the less you pay per extra unit.</span>
+            <a href="#pricing" className="inline-flex items-center gap-1 text-primary font-medium hover:underline whitespace-nowrap">
+              See plans <ArrowRight className="h-3.5 w-3.5" />
+            </a>
           </div>
         </div>
 
@@ -279,10 +358,6 @@ export function PricingSection() {
           <p>
             Save 10% with annual billing. Loyalty discounts up to 10% after 3
             years.
-          </p>
-          <p className="text-xs">
-            Usage-based pricing: Pay only for what you use beyond included
-            quotas.
           </p>
         </div>
       </div>
