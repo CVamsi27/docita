@@ -55,6 +55,10 @@ export function PricingSection() {
 
   const currencyInfo = getCurrencyInfo(detectedCurrency);
   const sym = currencyInfo.symbol;
+  const regionPricingLabel =
+    detectedCurrency === "INR"
+      ? "India-competitive pricing"
+      : "Premium international pricing";
 
   const starterFeatures = [
     "Up to 50 patients",
@@ -118,7 +122,7 @@ export function PricingSection() {
           </p>
           {isHydrated && !isLoading && (
             <p className="mt-2 text-sm text-muted-foreground">
-              Pricing shown in {sym} ({currencyInfo.country})
+              {regionPricingLabel} shown in {sym} ({currencyInfo.country})
             </p>
           )}
 

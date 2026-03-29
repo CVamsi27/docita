@@ -40,7 +40,7 @@ interface PlanSelectionProps {
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { isCoreTrial?: boolean },
+    options?: { isCoreTrial?: boolean; currency?: string },
   ) => Promise<void>;
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";
@@ -103,7 +103,9 @@ export function PlanSelectionStep({
 
     setIsSubmitting(true);
     try {
-      await onSelect(tier, billingCycle, tierPricingData.pricing);
+      await onSelect(tier, billingCycle, tierPricingData.pricing, {
+        currency: resolvedCurrency,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -119,6 +121,7 @@ export function PlanSelectionStep({
     try {
       await onSelect("ESSENTIAL", billingCycle, tierPricingData.pricing, {
         isCoreTrial: true,
+        currency: resolvedCurrency,
       });
     } finally {
       setIsSubmitting(false);
@@ -149,6 +152,10 @@ export function PlanSelectionStep({
   }
 
   const { discounts } = pricingConfig;
+  const pricingRegionLabel =
+    resolvedCurrency === "INR"
+      ? "India-competitive pricing"
+      : "Premium international pricing";
 
   const enterpriseContactMessage = `Hi Docita Sales Team,
 
@@ -167,6 +174,10 @@ Please contact me with deployment and commercial details.`;
           Select a plan that fits your clinic needs. Paid plans redirect to
           Razorpay for secure checkout.
         </CardDescription>
+        <p className="text-xs text-muted-foreground">
+          {pricingRegionLabel} for clinics in{" "}
+          {pricingConfig.currency.code === "INR" ? "India" : "your region"}.
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex justify-center">

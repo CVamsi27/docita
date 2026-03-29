@@ -49,6 +49,16 @@ interface PricingOfferFormState {
   notes: string;
 }
 
+interface OfferTemplate {
+  key: string;
+  label: string;
+  title: string;
+  description: string;
+  percentOff: number;
+  durationMonths: number;
+  notes: string;
+}
+
 const DEFAULT_OFFER_FORM: PricingOfferFormState = {
   clinicId: "",
   title: "",
@@ -58,6 +68,39 @@ const DEFAULT_OFFER_FORM: PricingOfferFormState = {
   validUntil: "",
   notes: "",
 };
+
+const OFFER_TEMPLATES: OfferTemplate[] = [
+  {
+    key: "three_months_free",
+    label: "3 months free",
+    title: "3 months free with weekly feedback",
+    description:
+      "Offer 100% discount for the first three months in exchange for weekly feedback and onboarding calls.",
+    percentOff: 100,
+    durationMonths: 3,
+    notes: "Founders asked for hands-on onboarding. Keep the weekly feedback cadence.",
+  },
+  {
+    key: "half_year_discount",
+    label: "50% for 6 months",
+    title: "Half-price launch offer",
+    description:
+      "Reduce the first six months by 50% to close a skeptical clinic quickly.",
+    percentOff: 50,
+    durationMonths: 6,
+    notes: "Good for tier 2/3 city clinics that need a softer entry point.",
+  },
+  {
+    key: "annual_soft_launch",
+    label: "25% annual",
+    title: "Annual soft-launch discount",
+    description:
+      "Use this for annual commitment deals where payment is collected upfront.",
+    percentOff: 25,
+    durationMonths: 12,
+    notes: "Best when the clinic is ready to commit and needs an intro discount.",
+  },
+];
 
 export default function PricingPage() {
   const { token } = useAuth();
@@ -211,6 +254,17 @@ export default function PricingPage() {
     } finally {
       setSavingId(null);
     }
+  };
+
+  const applyTemplate = (template: OfferTemplate) => {
+    setOfferForm((prev) => ({
+      ...prev,
+      title: template.title,
+      description: template.description,
+      percentOff: template.percentOff,
+      durationMonths: template.durationMonths,
+      notes: template.notes,
+    }));
   };
 
   const numericField = (
@@ -424,6 +478,24 @@ export default function PricingPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Quick offer templates</p>
+                <div className="flex flex-wrap gap-2">
+                  {OFFER_TEMPLATES.map((template) => (
+                    <Button
+                      key={template.key}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => applyTemplate(template)}
+                    >
+                      {template.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Clinic</label>
