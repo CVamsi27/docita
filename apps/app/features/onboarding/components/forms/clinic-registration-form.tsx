@@ -134,17 +134,27 @@ export function ClinicRegistrationForm({
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { isCoreTrial?: boolean },
+    options?: { isCoreTrial?: boolean; currency?: string },
   ) => {
     setStepError(null);
 
     // For paid CORE plans without trial, show PaymentStep before Razorpay
     const price = billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
+    const clinicGstin = clinicForm.getValues("gstin");
+    const isIndianCurrency = currency === "INR";
+    const isPaidPlan = typeof price === "number" && price > 0;
+
+    if (isIndianCurrency && isPaidPlan && !options?.isCoreTrial && !clinicGstin?.trim()) {
+      setStepError(
+        "Add your GSTIN in Clinic Details before charging a paid Indian plan. We need it for GST invoices.",
+      );
+      return;
+    }
+
     if (
       tier === "CORE" &&
       !options?.isCoreTrial &&
-      typeof price === "number" &&
-      price > 0
+      isPaidPlan
     ) {
       setPendingPaymentPlan({ tier, billingCycle, pricing });
       return;
@@ -157,7 +167,7 @@ export function ClinicRegistrationForm({
         pricing as PlanSelection["billingCycle"] extends "MONTHLY" | "YEARLY"
           ? { monthly: number | "custom"; yearly: number | "custom" }
           : never,
-        options,
+        { ...options, currency },
       );
     } catch {
       setStepError("Unable to proceed with the selected plan. Please try again.");
@@ -322,6 +332,7 @@ export function ClinicRegistrationForm({
             : currency === "AUD" ? "A$"
             : "₹"
           }
+          currencyCode={currency}
           clinicEmail={user?.email}
           clinicPhone={formData.clinicDetails.phone}
           tier={pendingPaymentPlan.tier}

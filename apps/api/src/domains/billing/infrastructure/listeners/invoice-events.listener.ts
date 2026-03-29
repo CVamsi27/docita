@@ -36,12 +36,17 @@ export class InvoiceEventsListener {
       return;
     }
 
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: { name: true, currency: true },
+    });
+
     let paymentLink: string | undefined;
     try {
       const paymentSession = await this.paymentsService.createPaymentSession({
         invoiceId: invoice.id,
         amount: invoice.total,
-        currency: this.configService.getCurrencyCode(),
+        currency: clinic?.currency || this.configService.getCurrencyCode(),
         patientId: invoice.patientId,
         clinicId,
         description: `Invoice #${invoice.id.slice(0, 8).toUpperCase()}`,
@@ -55,12 +60,8 @@ export class InvoiceEventsListener {
       );
     }
 
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: clinicId },
-      select: { name: true },
-    });
-
-    const currencyCode = this.configService.getCurrencyCode();
+    const currencyCode =
+      clinic?.currency || this.configService.getCurrencyCode();
     const formattedAmount = new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: currencyCode,
@@ -69,6 +70,7 @@ export class InvoiceEventsListener {
     const message = this.buildFallbackMessage(
       invoice,
       clinic?.name || clinicId,
+      currencyCode,
       paymentLink,
     );
 
@@ -104,6 +106,7 @@ export class InvoiceEventsListener {
       createdAt: Date;
     },
     clinicName: string,
+    currencyCode: string,
     paymentLink?: string,
   ): string {
     const patientName = invoice.patient.firstName;
@@ -117,7 +120,6 @@ export class InvoiceEventsListener {
     message += `Your invoice from *${clinicName}* is ready!\n\n`;
     message += `Invoice #: ${invoice.id.slice(0, 8).toUpperCase()}\n`;
     message += `Date: ${date}\n`;
-    const currencyCode = this.configService.getCurrencyCode();
     const formattedAmount = new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: currencyCode,

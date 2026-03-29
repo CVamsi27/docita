@@ -9,6 +9,15 @@ export const clinicDetailsSchema = z.object({
   address: z.string().min(5, "Address is required"),
   type: clinicTypeSchema,
   website: z.string().url().optional().or(z.literal("")),
+  gstin: z
+    .string()
+    .trim()
+    .regex(
+      /^[0-9]{2}[A-Z0-9]{13}$/,
+      "GSTIN must be a valid 15 character GST registration number",
+    )
+    .optional()
+    .or(z.literal("")),
 });
 
 export const complianceSchema = z.object({

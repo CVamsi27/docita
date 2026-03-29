@@ -351,6 +351,9 @@ export const INVOICE_DETAIL_SELECT = {
   doctorRegistrationNumber: true,
   createdAt: true,
   updatedAt: true,
+  pdfUrl: true,
+  pdfGeneratedAt: true,
+  pdfTemplateVersion: true,
   patient: {
     select: {
       id: true,
@@ -366,6 +369,7 @@ export const INVOICE_DETAIL_SELECT = {
           address: true,
           phone: true,
           email: true,
+          settings: true,
         },
       },
     },

@@ -31,6 +31,7 @@ interface PaymentStepProps {
   selectedPlanPrice: number;
   billingCycle: "MONTHLY" | "YEARLY";
   currencySymbol: string;
+  currencyCode?: string;
   planId?: string;
   clinicEmail?: string;
   clinicPhone?: string;
@@ -45,6 +46,7 @@ export function PaymentStep({
   selectedPlanPrice,
   billingCycle,
   currencySymbol,
+  currencyCode,
   planId,
   clinicEmail,
   clinicPhone,
@@ -195,6 +197,16 @@ export function PaymentStep({
               are never stored on our servers.
             </AlertDescription>
           </Alert>
+
+          {currencyCode === "INR" && (
+            <Alert>
+              <ShieldCheck className="h-4 w-4" />
+              <AlertDescription>
+                GST invoices are issued using the GSTIN saved in Clinic Details
+                before any paid Indian plan is charged.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Auto-pay */}
           <div className="flex items-center space-x-2">

@@ -200,6 +200,35 @@ export function ClinicDetailsStep({
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gstin">GSTIN for invoices</Label>
+              <Input
+                id="gstin"
+                {...clinicForm.register("gstin")}
+                placeholder="27ABCDE1234F1Z5"
+                aria-invalid={!!clinicForm.formState.errors.gstin}
+                aria-describedby={
+                  clinicForm.formState.errors.gstin
+                    ? "clinic-gstin-error"
+                    : "clinic-gstin-help"
+                }
+                className={cn(
+                  clinicForm.formState.errors.gstin &&
+                    "border-destructive focus-visible:ring-destructive/30",
+                  clinicForm.formState.errors.gstin && "focus-visible:ring-2",
+                )}
+              />
+              {clinicForm.formState.errors.gstin ? (
+                <p id="clinic-gstin-error" className="text-sm text-destructive">
+                  {clinicForm.formState.errors.gstin.message}
+                </p>
+              ) : (
+                <p id="clinic-gstin-help" className="text-xs text-muted-foreground">
+                  Required for GST invoices before charging paid Indian plans.
+                </p>
+              )}
+            </div>
           </div>
         </form>
       </CardContent>

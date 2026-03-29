@@ -1,6 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
+  TIER_PRICING_BY_CURRENCY,
+  type SupportedCurrency,
+} from '@workspace/types';
+import {
   CompleteOnboardingDto,
   ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
@@ -12,6 +16,17 @@ import {
 
 @Injectable()
 export class OnboardingValidationService {
+  private resolveCurrency(currency?: string): SupportedCurrency {
+    const resolved = currency?.toUpperCase() as SupportedCurrency | undefined;
+    if (
+      resolved &&
+      Object.prototype.hasOwnProperty.call(TIER_PRICING_BY_CURRENCY, resolved)
+    ) {
+      return resolved;
+    }
+    return 'INR';
+  }
+
   validateOnboardingCompletion(data: CompleteOnboardingDto): {
     valid: boolean;
     errors?: string[];
@@ -47,6 +62,7 @@ export class OnboardingValidationService {
     }
 
     if (data.planSelection && data.planSelection.tier !== ClinicTier.STARTER) {
+      const currency = this.resolveCurrency(data.planSelection.currency);
       const isEssentialFreeTrial =
         data.planSelection.tier === ClinicTier.ESSENTIAL &&
         data.paymentDetails?.skipPayment === true;
@@ -58,6 +74,16 @@ export class OnboardingValidationService {
 
       if (!hasProcessedPayment && !isEssentialFreeTrial) {
         errors.push('Payment details are required for paid plans');
+      }
+
+      if (
+        currency === 'INR' &&
+        !isEssentialFreeTrial &&
+        !data.clinicDetails?.gstin
+      ) {
+        errors.push(
+          'GSTIN is required for paid Indian plans so we can issue GST invoices',
+        );
       }
     }
 
@@ -156,18 +182,15 @@ export class OnboardingValidationService {
     }
   }
 
-  getTierPricing(tier: string, cycle: string): number {
+  getTierPricing(tier: string, cycle: string, currency?: string): number {
     validateClinicTier(tier);
     validateBillingCycle(cycle);
 
-    const pricing: Record<string, Record<string, number>> = {
-      STARTER: { MONTHLY: 0, YEARLY: 0 },
-      ESSENTIAL: { MONTHLY: 99900, YEARLY: 1078900 },
-      PROFESSIONAL: { MONTHLY: 399900, YEARLY: 4318900 },
-      ENTERPRISE: { MONTHLY: 0, YEARLY: 0 },
-    };
-
-    return pricing[tier]?.[cycle] || 0;
+    const resolvedCurrency = this.resolveCurrency(currency);
+    const pricing = TIER_PRICING_BY_CURRENCY[resolvedCurrency];
+    const tierPricing = pricing[tier as keyof typeof pricing];
+    const amount = tierPricing?.[cycle as keyof typeof tierPricing];
+    return typeof amount === 'number' ? amount : 0;
   }
 
   getTierLimits(tier: string): {

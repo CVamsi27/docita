@@ -21,6 +21,7 @@ interface PlanPricing {
 
 interface PlanSelectionOptions {
   isCoreTrial?: boolean;
+  currency?: string;
 }
 
 interface OnboardingCheckoutResponse {
@@ -178,6 +179,7 @@ export function useClinicRegistrationFlow() {
 
       const isCoreTrial =
         tier === "ESSENTIAL" && options?.isCoreTrial === true;
+      const resolvedCurrency = options?.currency || DEFAULT_CURRENCY;
 
       setFormData((prev) => ({
         ...prev,
@@ -185,7 +187,7 @@ export function useClinicRegistrationFlow() {
           tier,
           billingCycle,
           price: typeof price === "number" ? price : 0,
-          currency: DEFAULT_CURRENCY,
+          currency: resolvedCurrency,
           isCoreTrial,
         },
       }));
@@ -225,6 +227,8 @@ export function useClinicRegistrationFlow() {
             body: JSON.stringify({
               tier,
               billingCycle,
+              currency: resolvedCurrency,
+              gstin: formData.clinicDetails.gstin,
               customerEmail: user.email,
               customerName: user.name,
               customerPhone: formData.clinicDetails.phone,
@@ -321,6 +325,7 @@ export function useClinicRegistrationFlow() {
           planSelection: {
             tier: formData.planSelection.tier,
             billingCycle: formData.planSelection.billingCycle,
+            currency: formData.planSelection.currency,
           },
           slaAgreement: {
             acceptedSLA: complianceData.acceptedSLA,
@@ -403,7 +408,7 @@ export function useClinicRegistrationFlow() {
         });
       }
     },
-    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.tier, formData.teamMembers, refreshUser, user?.email, user?.name, user?.role],
+    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, user?.email, user?.name, user?.role],
   );
 
   return {

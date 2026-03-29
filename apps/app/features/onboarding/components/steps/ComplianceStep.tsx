@@ -29,6 +29,7 @@ import {
   PrivacyPolicyContent,
   SLAContent,
 } from "@/features/legal";
+import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
 import { API_URL } from "@/lib/api-config";
@@ -222,6 +223,9 @@ export function ComplianceStep({
   const [qrPolling, setQrPolling] = useState(false);
   const [qrUploaded, setQrUploaded] = useState(false);
   const qrPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
+  const supportMessage =
+    "Hi Docita team, I need help with clinic onboarding and pricing for my hospital.";
 
   const stopQrPolling = useCallback(() => {
     if (qrPollRef.current) {
@@ -422,6 +426,23 @@ export function ComplianceStep({
       </CardHeader>
       <CardContent>
         <form id="step5" onSubmit={onSubmit} noValidate className="space-y-6">
+          <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <p className="font-semibold">Need hand-holding?</p>
+              <p className="text-sm text-muted-foreground">
+                We support onboarding, reminders, and follow-up over WhatsApp.
+                Reach us directly if you want a guided setup or a 3-month trial
+                offer.
+              </p>
+            </div>
+            <WhatsAppButton
+              phoneNumber={supportPhone}
+              message={supportMessage}
+              label="Message onboarding team"
+              variant="default"
+            />
+          </div>
+
           {/* DPDP Compliance */}
           <div className="space-y-3 border p-4 rounded-md">
             <h3 className="font-semibold text-sm">DPDP Compliance Settings</h3>
@@ -585,7 +606,7 @@ export function ComplianceStep({
                 {acceptedCount} of {legalDocs.length} accepted
               </span>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {legalDocs.map((doc) => (
                 <LegalCard
                   key={doc.key}

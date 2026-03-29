@@ -70,7 +70,20 @@ export class OnboardingService {
     const amountCents = this.validationService.getTierPricing(
       data.tier,
       data.billingCycle,
+      data.currency,
     );
+
+    if (
+      this.validationService.validateTier(data.tier) &&
+      this.validationService.validateBillingCycle(data.billingCycle) &&
+      data.currency?.toUpperCase() === 'INR' &&
+      amountCents > 0 &&
+      !data.gstin
+    ) {
+      throw new BadRequestException(
+        'GSTIN is required before charging paid Indian plans',
+      );
+    }
 
     if (amountCents <= 0) {
       throw new BadRequestException(
@@ -80,7 +93,7 @@ export class OnboardingService {
 
     const order = await this.paymentGateway.createOrder({
       amountCents,
-      currency: this.configService.getCurrencyCode(),
+      currency: data.currency || this.configService.getCurrencyCode(),
       customerId: `onboarding-${onboardingId}`,
       customerEmail: data.customerEmail,
       customerPhone: data.customerPhone,
@@ -211,6 +224,7 @@ export class OnboardingService {
         const expectedAmountCents = this.validationService.getTierPricing(
           completeData.planSelection.tier,
           completeData.planSelection.billingCycle,
+          completeData.planSelection.currency,
         );
 
         const verification = await this.paymentGateway.verifyPayment({

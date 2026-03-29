@@ -19,6 +19,10 @@ import {
   InvoiceDetail,
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+
+const CURRENT_PDF_TEMPLATE_VERSION = 1;
+const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 
 const toPrismaInvoiceItems = (items: InvoiceItem[]): Prisma.InputJsonValue => {
   const parsedItems = invoiceItemSchema.array().parse(items);
@@ -55,6 +59,27 @@ const normalizeDoctorRole = (
     : undefined;
 };
 
+const extractClinicGstin = (
+  clinic:
+    | {
+        gstin?: string | null;
+        settings?: Prisma.JsonValue | null;
+      }
+    | null
+    | undefined,
+): string | undefined => {
+  if (!clinic) return undefined;
+  if (clinic.gstin) return clinic.gstin;
+
+  const settings = clinic.settings;
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    return undefined;
+  }
+
+  const gstin = (settings as Record<string, unknown>).gstin;
+  return typeof gstin === 'string' && gstin.trim() ? gstin.trim() : undefined;
+};
+
 @Injectable()
 export class InvoicesService {
   constructor(
@@ -63,6 +88,7 @@ export class InvoicesService {
     private readonly pdfService: PDFService,
     private readonly eventEmitter: EventEmitter2,
     private readonly usageTracking: UsageTrackingService,
+    private readonly storageProvider: StorageProvider,
   ) {}
 
   async findAll(
@@ -184,7 +210,7 @@ export class InvoicesService {
         address: clinic.address || undefined,
         phone: clinic.phone || undefined,
         email: clinic.email || undefined,
-        gstin: clinic.gstin || undefined,
+        gstin: extractClinicGstin(clinic),
       },
       patient: {
         name: `${patient?.firstName} ${patient?.lastName}`,
@@ -215,5 +241,47 @@ export class InvoicesService {
       status: invoice.status.toUpperCase(),
       date: new Date(invoice.createdAt),
     });
+  }
+
+  async getPdf(
+    id: string,
+    clinicId?: string,
+  ): Promise<
+    { type: 'url'; url: string } | { type: 'buffer'; buffer: Buffer }
+  > {
+    if (this.storageProvider.supportsSignedUrls) {
+      const invoice = await this.findOne(id, clinicId);
+
+      if (invoice.pdfUrl) {
+        const url = await this.storageProvider.generateSignedUrl(
+          invoice.pdfUrl,
+          PDF_SIGNED_URL_TTL_SECONDS,
+        );
+        return { type: 'url', url };
+      }
+
+      const buffer = await this.generatePDF(id, clinicId);
+      const objectKey = `pdfs/invoices/${id}.pdf`;
+      const storedKey = await this.storageProvider.uploadBuffer(
+        buffer,
+        objectKey,
+        'application/pdf',
+      );
+
+      await this.repository.update(id, {
+        pdfUrl: storedKey,
+        pdfGeneratedAt: new Date(),
+        pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
+      });
+
+      const url = await this.storageProvider.generateSignedUrl(
+        storedKey,
+        PDF_SIGNED_URL_TTL_SECONDS,
+      );
+      return { type: 'url', url };
+    }
+
+    const buffer = await this.generatePDF(id, clinicId);
+    return { type: 'buffer', buffer };
   }
 }

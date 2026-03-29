@@ -35,6 +35,7 @@ export interface ClinicInfoData {
   phone: string;
   email: string;
   website?: string;
+  gstin?: string;
   type?: string;
   timezone?: string;
   locale?: string;
@@ -56,7 +57,7 @@ export interface DoctorInfoData {
 export interface PlanSelectionData {
   tier: TierName;
   billingCycle: BillingCycle;
-  addOns?: string[];
+  currency?: string;
 }
 
 export interface OnboardingPaymentData {

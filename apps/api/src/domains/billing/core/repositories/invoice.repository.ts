@@ -27,6 +27,9 @@ export interface InvoiceDetail {
   doctorRegistrationNumber: string | null;
   createdAt: Date;
   updatedAt: Date;
+  pdfUrl: string | null;
+  pdfGeneratedAt: Date | null;
+  pdfTemplateVersion: number;
   patient?: {
     id: string;
     firstName: string;
@@ -41,6 +44,7 @@ export interface InvoiceDetail {
       phone: string | null;
       email: string | null;
       gstin?: string | null;
+      settings?: Prisma.JsonValue | null;
     };
   } | null;
   appointment?: {

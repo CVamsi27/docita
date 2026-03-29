@@ -47,6 +47,12 @@ export const clinicDetailsSchema = z.object({
   mrnPrefix: z.string().max(20).optional(),
   dataResidency: z.string().optional(),
   timezone: z.string().optional(),
+  gstin: z
+    .string()
+    .trim()
+    .regex(/^[0-9]{2}[A-Z0-9]{13}$/, 'Invalid GSTIN')
+    .optional()
+    .or(z.literal('')),
 });
 export class ClinicDetailsDto extends createZodDto(clinicDetailsSchema) {}
 export const adminAccountSchema = z.object({
@@ -66,6 +72,7 @@ export const planSelectionSchema = z.object({
   referralCode: z.string().optional(),
   whatsappAddon: z.boolean().optional(),
   intelligenceAddon: z.boolean().optional(),
+  currency: z.string().optional(),
 });
 export class PlanSelectionDto extends createZodDto(planSelectionSchema) {}
 export const paymentDetailsSchema = z.object({
@@ -148,6 +155,8 @@ export class OnboardingProgressDto extends createZodDto(
 export const onboardingCheckoutSchema = z.object({
   tier: clinicTierSchema,
   billingCycle: billingCycleSchema,
+  currency: z.string().optional(),
+  gstin: z.string().optional(),
   customerEmail: z.string().email(),
   customerName: z.string().min(2).max(100),
   customerPhone: z.string().optional(),

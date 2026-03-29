@@ -80,6 +80,7 @@ export class OnboardingWorkflowService {
         active: true,
         settings: {
           dataResidency: clinicData.dataResidency || 'IN',
+          gstin: clinicData.gstin || undefined,
           privacyComplianceVersion: '1.0',
           onboardedAt: new Date().toISOString(),
           onboardedFromIP: ipAddress,
@@ -193,6 +194,7 @@ export class OnboardingWorkflowService {
     const priceCents = this.validation.getTierPricing(
       planData.tier,
       planData.billingCycle,
+      planData.currency,
     );
 
     const tierLimits = this.validation.getTierLimits(planData.tier);
@@ -207,6 +209,7 @@ export class OnboardingWorkflowService {
         plan: planData.tier,
         billingCycle: planData.billingCycle,
         basePriceCents: priceCents,
+        currency: planData.currency || 'INR',
         status: hasPayment
           ? SubscriptionStatus.ACTIVE
           : SubscriptionStatus.TRIALING,
