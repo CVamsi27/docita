@@ -104,6 +104,11 @@ jobs:
   validate-migrations:
     name: Validate Migrations
     runs-on: ubuntu-latest
+    env:
+      PGHOST: localhost
+      PGPORT: "5434"
+      PGUSER: docita
+      PGPASSWORD: password
     services:
       postgres:
         image: postgres:16-alpine
@@ -173,6 +178,11 @@ jobs:
   api-e2e-tests:
     name: API E2E Tests
     runs-on: ubuntu-latest
+    env:
+      PGHOST: localhost
+      PGPORT: "5434"
+      PGUSER: docita
+      PGPASSWORD: password
     services:
       postgres:
         image: postgres:16-alpine

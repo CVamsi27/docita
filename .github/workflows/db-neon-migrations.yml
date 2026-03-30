@@ -13,6 +13,8 @@ jobs:
   migrate-neon:
     name: Apply Prisma Migrations to Neon
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
 
     steps:
       - uses: actions/checkout@v4
@@ -39,10 +41,10 @@ jobs:
             pnpm --filter @workspace/db run db:generate
           fi
 
-      - name: Run Prisma migrate deploy
+      - name: Run Safe Prisma Migrations
         env:
           DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: |
           if [ -n "$DATABASE_URL" ]; then
-            pnpm --filter @workspace/db run db:migrate:deploy
+            pnpm --filter @workspace/db run db:migrate:safe
           fi
