@@ -1,18 +1,26 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { MfaService } from './mfa.service';
+import { ApiKeyService } from './api-key.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 import { ClinicAuthCacheService } from './clinic-auth-cache.service';
+import { PasswordExpiredGuard } from '@/shared/modules/auth/guards/password-expired.guard';
+import { ApiKeyGuard } from '@/shared/modules/auth/guards/api-key.guard';
 import { UsersModule } from '@/domains/users/users.module';
 import { ClinicsModule } from '@/domains/clinics/clinics.module';
 import { PassportModule } from '@nestjs/passport';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { DefaultPasswordPolicy } from './policies/password.policy';
+import { EmailModule } from '@/shared/modules/messaging/email/email.module';
+import { ConsentGuard } from '@/shared/modules/auth/guards/consent.guard';
+import { PatientDoctorGuard } from '@/shared/modules/auth/guards/patient-doctor.guard';
+import { EmailVerifiedGuard } from '@/shared/modules/auth/guards/email-verified.guard';
 
 type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
 
@@ -22,6 +30,7 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
     PassportModule,
     UsersModule,
     forwardRef(() => ClinicsModule),
+    EmailModule,
     JwtModule.registerAsync({
       imports: [AppConfigModule],
       inject: [AppConfigService],
@@ -45,11 +54,18 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
   ],
   providers: [
     AuthService,
+    MfaService,
+    ApiKeyService,
     JwtStrategy,
     JwtAuthGuard,
     ClinicTypeGuard,
     FacilityTypeGuard,
     ClinicAuthCacheService,
+    PasswordExpiredGuard,
+    ApiKeyGuard,
+    ConsentGuard,
+    PatientDoctorGuard,
+    EmailVerifiedGuard,
     {
       provide: 'IPasswordPolicy',
       useClass: DefaultPasswordPolicy,
@@ -58,6 +74,8 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
   controllers: [AuthController],
   exports: [
     AuthService,
+    MfaService,
+    ApiKeyService,
     JwtAuthGuard,
     JwtStrategy,
     PassportModule,
@@ -65,6 +83,11 @@ type JwtDuration = `${number}${'s' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
     ClinicTypeGuard,
     FacilityTypeGuard,
     ClinicAuthCacheService,
+    PasswordExpiredGuard,
+    ApiKeyGuard,
+    ConsentGuard,
+    PatientDoctorGuard,
+    EmailVerifiedGuard,
   ],
 })
 export class AuthModule {}

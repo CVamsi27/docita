@@ -34,9 +34,16 @@ export class MedicalCodingController {
   @Post('icd/favorites')
   async addFavorite(
     @Body('userId') userId: string,
-    @Body('icdCodeId') icdCodeId: string,
+    @Body('code') code: string,
+    @Body('description') description: string,
+    @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
-    return await this.clinicalService.addFavorite(userId, icdCodeId);
+    return await this.clinicalService.addFavorite(
+      userId,
+      code,
+      description,
+      category,
+    );
   }
 
   @Delete('icd/favorites/:icdCodeId')
@@ -62,9 +69,16 @@ export class MedicalCodingController {
   @Post('cpt/favorites')
   async addCptFavorite(
     @Body('userId') userId: string,
-    @Body('cptCodeId') cptCodeId: string,
+    @Body('code') code: string,
+    @Body('description') description: string,
+    @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
-    return await this.clinicalService.addCptFavorite(userId, cptCodeId);
+    return await this.clinicalService.addCptFavorite(
+      userId,
+      code,
+      description,
+      category,
+    );
   }
 
   @Delete('cpt/favorites/:cptCodeId')

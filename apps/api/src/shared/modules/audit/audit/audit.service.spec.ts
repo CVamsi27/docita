@@ -11,7 +11,9 @@ describe('AuditService', () => {
 
   beforeEach(async () => {
     mockQueue = {
-      add: jest.fn().mockResolvedValue({ id: 'job-1' }),
+      add: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue({ id: 'job-1' }),
       process: jest.fn(),
       on: jest.fn(),
     };
@@ -26,11 +28,17 @@ describe('AuditService', () => {
               create: jest
                 .fn()
                 .mockImplementation(({ data }) => Promise.resolve(data)),
-              findMany: jest.fn().mockResolvedValue([]),
-              count: jest.fn().mockResolvedValue(0),
+              findMany: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue([]),
+              count: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue(0),
             },
             clinic: {
-              findUnique: jest.fn().mockResolvedValue({ id: 'clinic-1' }),
+              findUnique: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'clinic-1' }),
             },
             user: {
               findUnique: jest

@@ -1,0 +1,11 @@
+<svg viewBox="0 0 128 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="128" height="32">
+  <!--
+    Wordmark: light mode — white wave on dark rounded square + dark "Docita" text.
+    Use on light backgrounds.
+  -->
+  <rect width="32" height="32" rx="8" fill="#0f172a"/>
+  <path d="M4 16H8L10 13L12 7L14 24L16 16H20L21 11L22 16H28"
+        stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="40" y="22" font-family="system-ui,-apple-system,sans-serif"
+        font-size="16" font-weight="700" letter-spacing="-0.5" fill="#0f172a">Docita</text>
+</svg>

@@ -250,17 +250,56 @@ const mockRazorpay = {
 };
 ```
 
-### Twilio/WhatsApp
+### WhatsApp (Meta Business API)
+
+The WhatsApp integration uses the Meta Business Cloud API (not Twilio). Unit tests mock `global.fetch` directly.
 
 ```typescript
-const mockTwilio = {
-  messages: {
-    create: jest.fn().mockResolvedValue({
-      sid: "SM_mock_123",
-      status: "queued",
-    }),
-  },
-};
+global.fetch = jest.fn().mockResolvedValue({
+  ok: true,
+  json: jest.fn().mockResolvedValue({
+    messages: [{ id: "wamid.abc123" }],
+  }),
+}) as unknown as typeof fetch;
+```
+
+**Required `.env` variables for integration testing:**
+
+```env
+META_BUSINESS_ACCOUNT_ID=<Meta Business Account ID>
+META_PHONE_NUMBER_ID=<Phone Number ID from Meta App Dashboard>
+META_ACCESS_TOKEN=<Permanent or Temporary Access Token from Meta>
+META_VERIFY_TOKEN=<Any random string for webhook verification>
+WHATSAPP_PRODUCTION_MODE=false
+```
+
+**Meta Business API sandbox setup:**
+
+1. Go to https://developers.facebook.com and create an App (Business type)
+2. Add "WhatsApp" product to the app
+3. In WhatsApp > Getting Started, note your Test phone number ID and temporary token
+4. Add a recipient number in the "To" field (must be verified for sandbox)
+
+**Message templates** (create in WhatsApp > Message Templates in Meta Business Suite):
+
+| Template name | Category | Variables |
+|---|---|---|
+| `appointment_reminder_24hr` | UTILITY | patient_name, doctor_name, clinic_name, date, time |
+| `appointment_reminder_30min` | UTILITY | patient_name, time |
+| `prescription_sent` | UTILITY | patient_name, doctor_name, pdf_link (button) |
+| `invoice_payment` | UTILITY | patient_name, amount, payment_link (button) |
+
+Templates typically take 24-48 hours to be approved for production accounts. For testing, use the pre-approved Meta sample template `hello_world`.
+
+**Webhook setup for local testing:**
+
+```bash
+# Expose local server
+ngrok http 3001
+
+# Set webhook URL in Meta App Dashboard:
+# https://<ngrok-url>/api/whatsapp/webhook
+# Subscribe to: messages, message_deliveries, message_reads
 ```
 
 ## Environment Variables

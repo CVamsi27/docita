@@ -1,13 +1,37 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   EditPatientDialog,
-  PatientMedicalHistoryContainer as PatientMedicalHistory,
   PatientFaceSheetHeaderContainer as PatientFaceSheetHeader,
   PatientTagManagerContainer as PatientTagManager,
 } from "@/features/patients/components";
-import { MedicalDocumentList } from "@/features/medical-documents/components/MedicalDocumentList";
+import { Skeleton } from "@workspace/ui/components/skeleton";
+
+const PatientMedicalHistory = dynamic(
+  () =>
+    import("@/features/patients/components").then(
+      (m) => m.PatientMedicalHistoryContainer,
+    ),
+  { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
+);
+
+const MedicalDocumentList = dynamic(
+  () =>
+    import(
+      "@/features/medical-documents/components/MedicalDocumentList"
+    ).then((m) => m.MedicalDocumentList),
+  { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
+);
+
+const UnifiedTimelineContainer = dynamic(
+  () =>
+    import(
+      "@/features/patients/components/timeline/UnifiedTimelineContainer"
+    ).then((m) => m.UnifiedTimelineContainer),
+  { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
+);
 import { Button } from "@workspace/ui/components/button";
 import { ErrorState } from "@workspace/ui/components/error-state";
 import {
@@ -21,7 +45,6 @@ import { Feature } from "@/lib/stores/permission-store";
 import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
 import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history";
-import { UnifiedTimelineContainer } from "@/features/patients/components/timeline/UnifiedTimelineContainer";
 import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
 
 export default function PatientDetailPage() {

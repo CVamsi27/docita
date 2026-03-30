@@ -226,4 +226,9 @@ jobs:
           NEXT_PUBLIC_APP_URL: http://localhost:3000
           NEXT_PUBLIC_API_URL: http://localhost:3001/api
           CORS_ORIGINS: http://localhost:3000
+          META_ACCESS_TOKEN: test-ci-token
+          META_PHONE_NUMBER_ID: test-ci-phone-id
+          META_APP_SECRET: test-ci-app-secret
+          META_VERIFY_TOKEN: test-ci-verify-token
+          WHATSAPP_PRODUCTION_MODE: "false"
         run: pnpm --filter @docita/api run test:e2e

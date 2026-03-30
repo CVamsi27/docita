@@ -9,8 +9,24 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { useClinic } from "@/lib/clinic-context";
 
 export default function VisionTestsPage() {
+  const { clinic } = useClinic();
+
+  if (clinic?.type && clinic.type !== "OPHTHALMOLOGY") {
+    return (
+      <div className="container mx-auto py-8 max-w-2xl text-center space-y-4">
+        <Eye className="h-12 w-12 text-muted-foreground mx-auto" />
+        <h1 className="text-2xl font-bold tracking-tight">Vision Tests</h1>
+        <p className="text-muted-foreground">
+          Vision testing is only available for ophthalmology clinics. Your
+          clinic is configured as <strong>{clinic.type}</strong>.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center gap-3">

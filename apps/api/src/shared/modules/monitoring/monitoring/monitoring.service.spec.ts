@@ -13,36 +13,37 @@ describe('MonitoringService', () => {
   let healthCheckService: HealthCheckService;
 
   const mockRequestLogService = {
-    logRequest: jest.fn(),
-    getRequestStats: jest.fn(),
-    cleanupOldRequests: jest.fn(),
+    logRequest: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getRequestStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    cleanupOldRequests: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockErrorTrackingService = {
-    logError: jest.fn(),
-    getErrorStats: jest.fn(),
-    resolveError: jest.fn(),
-    resolveMultipleErrors: jest.fn(),
-    cleanupOldErrors: jest.fn(),
+    logError: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getErrorStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    resolveError: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    resolveMultipleErrors: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    cleanupOldErrors: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockMetricsService = {
-    recordMetric: jest.fn(),
-    recordSystemMetrics: jest.fn(),
-    recordFeatureUsage: jest.fn(),
-    recordCacheMetric: jest.fn(),
-    recordDatabaseMetric: jest.fn(),
-    getSystemMetrics: jest.fn(),
-    getPerformanceMetrics: jest.fn(),
-    aggregateHourlyMetrics: jest.fn(),
-    getAggregatedPerformance: jest.fn(),
-    recordWebVital: jest.fn(),
-    getWebVitals: jest.fn(),
-    cleanupOldMetrics: jest.fn(),
+    recordMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    recordSystemMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    recordFeatureUsage: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    recordCacheMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    recordDatabaseMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getSystemMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getPerformanceMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    aggregateHourlyMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getAggregatedPerformance:
+      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    recordWebVital: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getWebVitals: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    cleanupOldMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockHealthCheckService = {
-    getSystemHealth: jest.fn(),
+    getSystemHealth: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   beforeEach(async () => {

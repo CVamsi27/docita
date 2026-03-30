@@ -2,7 +2,7 @@ import { cn } from "@workspace/ui/lib/utils";
 
 // ECG / heartbeat waveform path — center baseline at y=16.
 // P wave (small bump), QRS complex (dominant spike), T wave (medium bump).
-// Round caps + joins so every vertex reads as a smooth node.
+// Round caps + joins for a smooth, continuous trace.
 const ECG_PATH = "M4 16H8L10 13L12 7L14 24L16 16H20L21 11L22 16H28";
 
 interface DocitaLogoProps {
@@ -20,10 +20,9 @@ interface DocitaLogoFullProps {
   taglineClassName?: string;
 }
 
-// Rounded-square icon.
-// Gradient: indigo → cyan  (Medical Cloud)
-// White ECG waveform       (Heartbeat Line)
-// Round joints at every vertex (Abstract Cross Node feel)
+// Theme-adaptive icon.
+// Light mode: white ECG waveform on dark (slate-900) rounded-square — high contrast on light app bg.
+// Dark mode: dark (slate-900) ECG waveform on white rounded-square — high contrast on dark app bg.
 export function DocitaIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -31,33 +30,29 @@ export function DocitaIcon({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("h-8 w-8", className)}
+      aria-hidden="true"
+      suppressHydrationWarning
     >
-      <rect width="32" height="32" rx="8" fill="url(#docita_ecg_g)" />
+      <rect
+        width="32"
+        height="32"
+        rx="8"
+        className="fill-slate-900 dark:fill-white"
+        suppressHydrationWarning
+      />
       <path
         d={ECG_PATH}
-        stroke="white"
+        className="stroke-white dark:stroke-slate-900"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
+        suppressHydrationWarning
       />
-      <defs>
-        <linearGradient
-          id="docita_ecg_g"
-          x1="0"
-          y1="0"
-          x2="32"
-          y2="32"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#4F46E5" />
-          <stop offset="1" stopColor="#06B6D4" />
-        </linearGradient>
-      </defs>
     </svg>
   );
 }
 
-// No background — inherits text colour from parent.
+// No background — inherits text colour from parent via currentColor.
 export function DocitaIconMonochrome({ className }: { className?: string }) {
   return (
     <svg
@@ -65,6 +60,8 @@ export function DocitaIconMonochrome({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("h-8 w-8", className)}
+      aria-hidden="true"
+      suppressHydrationWarning
     >
       <path
         d={ECG_PATH}
@@ -72,6 +69,7 @@ export function DocitaIconMonochrome({ className }: { className?: string }) {
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
+        suppressHydrationWarning
       />
     </svg>
   );
@@ -89,7 +87,10 @@ export function DocitaLogo({
       <DocitaIcon className={cn("h-8 w-8 shrink-0", iconClassName)} />
       {showText && (
         <span
-          className={cn("text-xl font-semibold tracking-tight", textClassName)}
+          className={cn(
+            "text-xl font-bold tracking-tight text-foreground",
+            textClassName,
+          )}
         >
           Docita
         </span>
@@ -99,11 +100,12 @@ export function DocitaLogo({
 }
 
 // Vertical lock-up for auth pages, onboarding, and hero sections.
+// Defaults to the "Modern Healthcare OS" tagline when none is provided.
 export function DocitaLogoFull({
   className,
   iconClassName,
   textClassName,
-  tagline,
+  tagline = "Modern Healthcare OS",
   taglineClassName,
 }: DocitaLogoFullProps) {
   return (
@@ -112,7 +114,7 @@ export function DocitaLogoFull({
       <div className="flex flex-col items-center gap-1.5">
         <span
           className={cn(
-            "text-3xl font-semibold tracking-tight",
+            "text-3xl font-bold tracking-tight text-foreground",
             textClassName,
           )}
         >
@@ -120,7 +122,10 @@ export function DocitaLogoFull({
         </span>
         {tagline && (
           <span
-            className={cn("text-sm text-muted-foreground", taglineClassName)}
+            className={cn(
+              "text-xs font-medium tracking-widest uppercase text-muted-foreground",
+              taglineClassName,
+            )}
           >
             {tagline}
           </span>
@@ -141,7 +146,7 @@ export function DocitaWordmark({
   return (
     <span
       className={cn(
-        "text-xl font-semibold tracking-tight text-foreground",
+        "text-xl font-bold tracking-tight text-foreground",
         className,
         textClassName,
       )}

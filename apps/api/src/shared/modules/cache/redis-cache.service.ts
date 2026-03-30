@@ -88,10 +88,23 @@ export class RedisCacheService
 
   async deletePattern(pattern: string): Promise<void> {
     this.ensureConnected();
-    const keys = await this.redis!.keys(pattern);
+    const stream = this.redis!.scanStream({ match: pattern, count: 100 });
+    const pipeline = this.redis!.pipeline();
+    let batchSize = 0;
 
-    if (keys.length > 0) {
-      await this.redis!.del(...keys);
+    await new Promise<void>((resolve, reject) => {
+      stream.on('data', (keys: string[]) => {
+        for (const key of keys) {
+          pipeline.del(key);
+          batchSize++;
+        }
+      });
+      stream.on('end', () => resolve());
+      stream.on('error', reject);
+    });
+
+    if (batchSize > 0) {
+      await pipeline.exec();
     }
   }
 

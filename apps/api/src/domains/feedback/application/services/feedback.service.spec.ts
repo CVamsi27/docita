@@ -10,13 +10,13 @@ describe('FeedbackService', () => {
 
   const mockPrismaService = {
     feedback: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      count: jest.fn(),
-      groupBy: jest.fn(),
-      aggregate: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      groupBy: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      aggregate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 

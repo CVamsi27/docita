@@ -135,7 +135,7 @@ export function QrSignatureUpload({
       )}
 
       <Dialog open={dialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md overflow-hidden">
           <DialogHeader>
             <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogDescription>{dialogDescription}</DialogDescription>
@@ -148,9 +148,9 @@ export function QrSignatureUpload({
               )}
             </div>
 
-            <div className="w-full space-y-3">
-              <div className="flex items-center gap-2 rounded-md border p-2">
-                <code className="flex-1 truncate text-xs">{fullUploadUrl}</code>
+            <div className="w-full min-w-0 space-y-3">
+              <div className="flex min-w-0 items-center gap-2 rounded-md border p-2">
+                <code className="min-w-0 flex-1 truncate text-xs">{fullUploadUrl}</code>
                 <Button
                   variant="ghost"
                   size="sm"

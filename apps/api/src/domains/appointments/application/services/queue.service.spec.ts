@@ -6,7 +6,10 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('QueueService', () => {
   let service: QueueService;
-  let queueRepository: Record<string, jest.Mock>;
+  let queueRepository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   const mockToken = {
     id: 'token-1',
@@ -54,14 +57,18 @@ describe('QueueService', () => {
 
   beforeEach(async () => {
     queueRepository = {
-      findTodayTokens: jest.fn(),
-      findAppointmentForCheckIn: jest.fn(),
-      findExistingToken: jest.fn(),
-      findLastTodayTokenNumber: jest.fn(),
-      createToken: jest.fn(),
-      findTokenByIdAndClinic: jest.fn(),
-      updateToken: jest.fn(),
-      cancelTodayActiveTokens: jest.fn(),
+      findTodayTokens: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findAppointmentForCheckIn:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findExistingToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findLastTodayTokenNumber:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findTokenByIdAndClinic:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      cancelTodayActiveTokens:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

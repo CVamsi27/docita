@@ -10,20 +10,21 @@ describe('FinancialAnalyticsFactory', () => {
   let prisma: PrismaService;
   let _cacheManager: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
 
+  const mockInvoiceFindMany =
+    jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const mockProcedureGroupBy =
+    jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const mockReadClientValue = {
+    invoice: { findMany: mockInvoiceFindMany },
+    procedure: { groupBy: mockProcedureGroupBy },
+  };
   const mockPrismaService = {
-    getReadClient: jest.fn().mockReturnValue({
-      invoice: {
-        findMany: jest.fn(),
-      },
-      procedure: {
-        groupBy: jest.fn(),
-      },
-    }),
+    getReadClient: jest.fn().mockReturnValue(mockReadClientValue),
   };
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
+    get: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    set: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   beforeEach(async () => {
@@ -45,7 +46,7 @@ describe('FinancialAnalyticsFactory', () => {
 
     factory = module.get<FinancialAnalyticsFactory>(FinancialAnalyticsFactory);
     prisma = module.get<PrismaService>(PrismaService);
-    cacheManager = module.get(CACHE_MANAGER);
+    _cacheManager = module.get(CACHE_MANAGER);
   });
 
   it('should be defined', () => {
@@ -61,7 +62,7 @@ describe('FinancialAnalyticsFactory', () => {
 
       expect(result).toEqual(mockCachedData);
       expect(mockCacheManager.get).toHaveBeenCalled();
-      expect(prisma.getReadClient).not.toHaveBeenCalled();
+      expect(mockPrismaService.getReadClient).not.toHaveBeenCalled();
     });
 
     it('should query db if cache miss', async () => {
@@ -72,8 +73,7 @@ describe('FinancialAnalyticsFactory', () => {
         { createdAt: new Date('2023-01-01'), total: 50 },
       ];
 
-      const mockReadClient = mockPrismaService.getReadClient();
-      mockReadClient.invoice.findMany.mockResolvedValue(mockInvoices);
+      mockInvoiceFindMany.mockResolvedValue(mockInvoices);
 
       const result = await factory.getRevenueTrends('clinic-1');
 

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicTier, Prisma } from '@workspace/db';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { WHATSAPP_ADDON_PRICING, TIER_OVERAGE_RATES } from '@workspace/types';
 
 interface UsageData {
   period: { start: Date; end: Date };
@@ -66,19 +67,33 @@ export class OverageCalculationService {
       );
     }
 
-    const whatsappAddOn = addOns.find((a) => a.addOnType === 'WHATSAPP');
-    if (
-      whatsappAddOn &&
-      usageData.usage.whatsappMessages &&
-      usageData.usage.whatsappMessages.overage > 0
-    ) {
-      const rate = this.getAddOnOverageRate(whatsappAddOn, tier);
-      this.addOverage(
-        breakdown,
-        'whatsappMessages',
-        usageData.usage.whatsappMessages.overage,
-        rate * 100,
-      );
+    // WhatsApp is bundled into ESSENTIAL and PROFESSIONAL tiers — use tier-based rate
+    const whatsappUsage = usageData.usage.whatsappMessages;
+    if (whatsappUsage && whatsappUsage.overage > 0) {
+      const tierKey = tier as keyof typeof TIER_OVERAGE_RATES;
+      const bundledWhatsapp =
+        WHATSAPP_ADDON_PRICING[tierKey as keyof typeof WHATSAPP_ADDON_PRICING];
+      if (bundledWhatsapp) {
+        const rateCents = Math.round(bundledWhatsapp.overageRate * 100);
+        this.addOverage(
+          breakdown,
+          'whatsappMessages',
+          whatsappUsage.overage,
+          rateCents,
+        );
+      } else {
+        // Fallback to legacy add-on lookup for older subscriptions
+        const whatsappAddOn = addOns.find((a) => a.addOnType === 'WHATSAPP');
+        if (whatsappAddOn) {
+          const rate = this.getAddOnOverageRate(whatsappAddOn, tier);
+          this.addOverage(
+            breakdown,
+            'whatsappMessages',
+            whatsappUsage.overage,
+            rate * 100,
+          );
+        }
+      }
     }
 
     const intelligenceAddOn = addOns.find(

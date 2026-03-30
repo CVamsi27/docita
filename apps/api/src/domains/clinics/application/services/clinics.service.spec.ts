@@ -19,7 +19,10 @@ describe('ClinicsService', () => {
   let prismaService: PrismaService;
   let clinicFactory: ClinicFactory;
   let _settingsFactory: SettingsFactory;
-  let clinicDataRepository: Record<string, jest.Mock>;
+  let clinicDataRepository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   const mockClinic = {
     id: 'clinic-123',
@@ -86,18 +89,21 @@ describe('ClinicsService', () => {
 
   beforeEach(async () => {
     clinicDataRepository = {
-      findByReferralCode: jest.fn().mockResolvedValue(null),
-      create: jest.fn(),
-      findAll: jest.fn(),
-      findById: jest.fn(),
-      update: jest.fn(),
-      softDelete: jest.fn(),
-      findDoctorClinics: jest.fn(),
-      getStats: jest.fn(),
-      findUserForJoin: jest.fn(),
-      findClinicByCodeOrEmail: jest.fn(),
-      joinClinic: jest.fn(),
-      searchActive: jest.fn(),
+      findByReferralCode: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue(null),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findAll: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      softDelete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findDoctorClinics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      getStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUserForJoin: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findClinicByCodeOrEmail:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      joinClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      searchActive: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -250,9 +256,10 @@ describe('ClinicsService', () => {
 
       const result = await service.findOne('clinic-123');
 
-      expect(result).toBeDefined();
-      expect(result?.id).toBe('clinic-123');
-      expect(result?.phoneNumber).toBe(mockClinic.phone);
+      const clinicResult = result as Record<string, unknown>;
+      expect(clinicResult).toBeDefined();
+      expect(clinicResult?.id).toBe('clinic-123');
+      expect(clinicResult?.phoneNumber).toBe(mockClinic.phone);
     });
 
     it('should return null if clinic not found', async () => {
@@ -273,7 +280,7 @@ describe('ClinicsService', () => {
         name: 'Updated Clinic',
       });
 
-      expect(result.name).toBe('Updated Clinic');
+      expect((result as Record<string, unknown>).name).toBe('Updated Clinic');
       expect(clinicDataRepository.update).toHaveBeenCalledWith(
         'clinic-123',
         expect.objectContaining({ name: 'Updated Clinic' }),
@@ -288,7 +295,7 @@ describe('ClinicsService', () => {
 
       const result = await service.delete('clinic-123');
 
-      expect(result.active).toBe(false);
+      expect((result as Record<string, unknown>).active).toBe(false);
       expect(clinicDataRepository.softDelete).toHaveBeenCalledWith(
         'clinic-123',
       );

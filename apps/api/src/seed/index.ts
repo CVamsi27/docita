@@ -8,7 +8,6 @@ import { seedPatientsAndEncounters } from './seed-patients-encounters';
 import { seedStructuredMedicalHistory } from './seed-structured-medical-history';
 import { seedSchedulesAndLabTests } from './seed-schedules-lab-tests';
 import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
-import { seedIcdCodes } from './seed-icd-codes';
 
 async function assertSeedSchemaReady(pool: Pool): Promise<void> {
   // Check that the latest baseline migration has been applied. Update this
@@ -87,8 +86,6 @@ async function main() {
       doctor3Id: doctor3.id,
       patients,
     });
-
-    await seedIcdCodes(prisma);
   } catch (error) {
     throw error;
   } finally {

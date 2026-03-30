@@ -6,7 +6,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('InventoryService', () => {
   let service: InventoryService;
-  let repo: Record<string, jest.Mock>;
+  let repo: Record<string, jest.Mock<(...args: unknown[]) => Promise<unknown>>>;
 
   const mockItem = {
     id: 'item-1',
@@ -30,12 +30,13 @@ describe('InventoryService', () => {
 
   beforeEach(async () => {
     repo = {
-      findItems: jest.fn(),
-      findItemById: jest.fn(),
-      findItemByClinic: jest.fn(),
-      createItem: jest.fn(),
-      updateItem: jest.fn(),
-      addMovementAndUpdateQuantity: jest.fn(),
+      findItems: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findItemById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findItemByClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createItem: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateItem: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      addMovementAndUpdateQuantity:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

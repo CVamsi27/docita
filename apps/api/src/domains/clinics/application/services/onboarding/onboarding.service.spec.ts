@@ -26,11 +26,11 @@ import {
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
-  let _prismaService: PrismaService;
-  let _authService: AuthService;
-  let _dataService: OnboardingDataService;
-  let _validationService: OnboardingValidationService;
-  let _workflowService: OnboardingWorkflowService;
+  let prismaService: PrismaService;
+  let authService: AuthService;
+  let dataService: OnboardingDataService;
+  let validationService: OnboardingValidationService;
+  let workflowService: OnboardingWorkflowService;
   let complianceService: OnboardingComplianceService;
 
   const mockPrismaService = {
@@ -274,6 +274,7 @@ describe('OnboardingService', () => {
         slaVersion: '1.0',
         acceptedBy: 'Admin User',
         ipAddress: '127.0.0.1',
+        signatureSessionId: 'sig-session-test',
       },
       consentManagement: {
         enableWhatsAppCommunication: true,

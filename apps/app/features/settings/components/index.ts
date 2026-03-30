@@ -6,10 +6,7 @@ export * from "./management/DoctorAvailabilitySettings";
 export * from "./clinic/ClinicGeneralSettings";
 export * from "./clinic/WhatsAppAutomationSettings";
 export * from "./clinic/QueueSettings";
-export * from "./clinic/CustomFieldsSettings";
-
 export * from "./clinical/PrescriptionDefaultsSettings";
-export * from "./clinical/TemplatesSettings";
 
 export * from "./security/SecuritySettings";
 export * from "./security/ChangePasswordSettings";
@@ -29,7 +26,6 @@ export { ReminderSettingsUI as ReminderSettings } from "./notifications/Reminder
 export {
   SubscriptionSettingsDynamic,
   DoctorAvailabilitySettingsDynamic,
-  TemplatesSettingsDynamic,
   DrugInteractionCheckerDynamic,
   FeedbackFormDynamic,
   FeedbackDialogDynamic,

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -8,6 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { MicButton } from "@workspace/ui/components/mic-button";
+import { useSpeechToText } from "@workspace/hooks";
 import { Activity, Plus, Trash2 } from "lucide-react";
 
 export interface ChiefComplaintItem {
@@ -31,6 +33,34 @@ export function ChiefComplaintInput({
   readOnly = false,
 }: ChiefComplaintInputProps) {
   const items = value.length > 0 ? value : [];
+  const [listeningIndex, setListeningIndex] = useState<number | null>(null);
+
+  const { isListening, isSupported, start, stop } = useSpeechToText({
+    language: "en-IN",
+    onResult: (text) => {
+      if (listeningIndex === null) return;
+      const newItems = [...items];
+      const current = newItems[listeningIndex];
+      if (!current) return;
+      newItems[listeningIndex] = {
+        ...current,
+        complaint: current.complaint
+          ? `${current.complaint} ${text}`.trim()
+          : text,
+      };
+      onChange(newItems);
+    },
+  });
+
+  const handleMicToggle = (index: number) => {
+    if (isListening) {
+      stop();
+      setListeningIndex(null);
+    } else {
+      setListeningIndex(index);
+      start();
+    }
+  };
 
   const addItem = () => {
     onChange([
@@ -91,7 +121,7 @@ export function ChiefComplaintInput({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-              <div className="col-span-1 md:col-span-5">
+              <div className="col-span-1 md:col-span-5 flex items-center gap-1">
                 <Input
                   placeholder="Symptom (e.g. Fever, Headache)"
                   value={item.complaint}
@@ -99,8 +129,15 @@ export function ChiefComplaintInput({
                     updateItem(index, "complaint", e.target.value)
                   }
                   readOnly={readOnly}
-                  className="bg-background"
+                  className="bg-background flex-1"
                 />
+                {!readOnly && (
+                  <MicButton
+                    isListening={isListening && listeningIndex === index}
+                    isSupported={isSupported}
+                    onClick={() => handleMicToggle(index)}
+                  />
+                )}
               </div>
               <div className="col-span-1 md:col-span-2">
                 <Input

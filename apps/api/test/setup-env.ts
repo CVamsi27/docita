@@ -85,6 +85,16 @@ ConsoleLogger.prototype.error = function (...args: unknown[]) {
   return originalConsoleLoggerError.apply(this, args as never);
 };
 
+if (!global.fetch) {
+  global.fetch = (() =>
+    Promise.resolve({
+      ok: false,
+      status: 503,
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve(''),
+    })) as unknown as typeof fetch;
+}
+
 const originalError = console.error;
 console.error = (
   ...args: Array<string | number | boolean | Record<string, unknown> | null>

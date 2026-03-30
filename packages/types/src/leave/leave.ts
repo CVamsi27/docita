@@ -47,6 +47,7 @@ export const createLeaveRequestSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   reason: z.string().max(500).optional(),
+  staffId: z.string().optional(),
 });
 export type CreateLeaveRequest = z.infer<typeof createLeaveRequestSchema>;
 

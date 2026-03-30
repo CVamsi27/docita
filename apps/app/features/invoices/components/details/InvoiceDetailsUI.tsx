@@ -11,6 +11,7 @@ import {
   Printer,
   Share2,
 } from "lucide-react";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,7 @@ interface InvoiceDetailsUIProps {
 export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   const searchParams = useSearchParams();
   const shouldAutoPrint = searchParams.get("print") === "true";
+  const goBack = useSmartBack("/invoices");
 
   const {
     invoice,
@@ -76,7 +78,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/invoices")}
+            onClick={goBack}
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back

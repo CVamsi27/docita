@@ -33,7 +33,7 @@ describe('RequestContextInterceptor', () => {
           getRequest: jest.fn().mockReturnValue(mockRequest),
           getResponse: jest.fn().mockReturnValue(mockResponse),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const mockCallHandler = {
         handle: jest.fn().mockReturnValue(of({})),
@@ -72,7 +72,7 @@ describe('RequestContextInterceptor', () => {
           getRequest: jest.fn().mockReturnValue(mockRequest),
           getResponse: jest.fn().mockReturnValue(mockResponse),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const mockCallHandler = {
         handle: jest.fn().mockReturnValue(of({})),
@@ -107,7 +107,7 @@ describe('RequestContextInterceptor', () => {
           getRequest: jest.fn().mockReturnValue(mockRequest),
           getResponse: jest.fn().mockReturnValue(mockResponse),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const mockCallHandler = {
         handle: jest.fn().mockReturnValue(of({ data: 'response' })),
@@ -147,7 +147,7 @@ describe('RequestContextInterceptor', () => {
           getRequest: jest.fn().mockReturnValue(mockRequest),
           getResponse: jest.fn().mockReturnValue(mockResponse),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const mockCallHandler = {
         handle: jest.fn().mockReturnValue(of({})),
@@ -179,7 +179,7 @@ describe('RequestContextInterceptor', () => {
           getRequest: jest.fn().mockReturnValue(mockRequest),
           getResponse: jest.fn().mockReturnValue(mockResponse),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const mockCallHandler = {
         handle: jest.fn().mockReturnValue(of(responseData)),
@@ -211,7 +211,7 @@ describe('RequestContextInterceptor', () => {
           getRequest: jest.fn().mockReturnValue(mockRequest),
           getResponse: jest.fn().mockReturnValue(mockResponse),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const mockCallHandler = {
         handle: jest.fn().mockReturnValue(of(testError).pipe()),
@@ -245,7 +245,7 @@ describe('RequestContextInterceptor', () => {
             getRequest: jest.fn().mockReturnValue(mockRequest),
             getResponse: jest.fn().mockReturnValue(mockResponse),
           }),
-        } as ExecutionContext;
+        } as unknown as ExecutionContext;
 
         const mockCallHandler = {
           handle: jest.fn().mockReturnValue(of({})),
@@ -280,7 +280,7 @@ describe('RequestContextInterceptor', () => {
           getRequest: jest.fn().mockReturnValue(mockRequest),
           getResponse: jest.fn().mockReturnValue(mockResponse),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const mockCallHandler = {
         handle: jest.fn().mockReturnValue(of({})),

@@ -90,15 +90,17 @@ export class InvoicesController {
     @Param('id') id: string,
     @Res() res: Response,
   ) {
-    const pdfBuffer = await this.invoicesService.generatePDF(
-      id,
-      req.user.clinicId,
-    );
+    const result = await this.invoicesService.getPdf(id, req.user.clinicId);
+
+    if (result.type === 'url') {
+      return res.json({ url: result.url });
+    }
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
       `attachment; filename=invoice-${id}.pdf`,
     );
-    res.send(pdfBuffer);
+    res.send(result.buffer);
   }
 }

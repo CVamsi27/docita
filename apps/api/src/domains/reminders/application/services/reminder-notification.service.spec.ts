@@ -7,11 +7,23 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ReminderNotificationService', () => {
   let service: ReminderNotificationService;
-  let prisma: jest.Mocked<PrismaService>;
-  let sendMessage: jest.Mocked<SendMessageUseCase>;
+  let prisma: {
+    appointmentReminder: {
+      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    whatsappLog: {
+      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    clinic: { findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>> };
+  };
+  let sendMessage: {
+    execute: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  };
 
   const sendMessageMock = {
-    execute: jest.fn().mockResolvedValue({ messageId: 'msg-1' }),
+    execute: jest
+      .fn<(...args: unknown[]) => Promise<unknown>>()
+      .mockResolvedValue({ messageId: 'msg-1' }),
   };
 
   const mockAppointment = {
@@ -50,13 +62,19 @@ describe('ReminderNotificationService', () => {
   beforeEach(async () => {
     const prismaMock = {
       appointmentReminder: {
-        create: jest.fn().mockResolvedValue({}),
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({}),
       },
       whatsappLog: {
-        create: jest.fn().mockResolvedValue({}),
+        create: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({}),
       },
       clinic: {
-        findUnique: jest.fn().mockResolvedValue({ whatsappAutomation: null }),
+        findUnique: jest
+          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .mockResolvedValue({ whatsappAutomation: null }),
       },
     };
 
@@ -126,14 +144,14 @@ describe('ReminderNotificationService', () => {
     });
 
     it('should log error and mark reminder as failed on exception', async () => {
-      (prisma.appointmentReminder.create as jest.Mock)
+      prisma.appointmentReminder.create
         .mockResolvedValueOnce({})
         .mockRejectedValueOnce(new Error('Send failed'))
         .mockResolvedValueOnce({});
 
       const testSettings = { ...mockSettings, emailTemplate: 'Test' };
 
-      (prisma.appointmentReminder.create as jest.Mock).mockRejectedValueOnce(
+      prisma.appointmentReminder.create.mockRejectedValueOnce(
         new Error('Database error'),
       );
 
@@ -202,7 +220,7 @@ describe('ReminderNotificationService', () => {
     });
 
     it('should log error when SMS sending fails', async () => {
-      (prisma.appointmentReminder.create as jest.Mock)
+      prisma.appointmentReminder.create
         .mockResolvedValueOnce({})
         .mockRejectedValueOnce(new Error('SMS error'))
         .mockResolvedValueOnce({});
@@ -336,8 +354,8 @@ describe('ReminderNotificationService', () => {
 
       await service.sendEmailReminder(mockAppointment, mockSettings as never);
 
-      const firstCall = (prisma.appointmentReminder.create as jest.Mock).mock
-        .calls[0][0];
+      const firstCall = prisma.appointmentReminder.create.mock
+        .calls[0][0] as Record<string, Record<string, unknown>>;
       expect(firstCall.data.appointmentId).toBe(originalId);
     });
   });

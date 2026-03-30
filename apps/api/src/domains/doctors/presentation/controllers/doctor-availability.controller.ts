@@ -66,7 +66,10 @@ export class DoctorAvailabilityController {
       throw new BadRequestException('Clinic ID is required');
     }
     const doctorId =
-      req.user.role === Role.ADMIN && dto.doctorId ? dto.doctorId : req.user.id;
+      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(req.user.role) &&
+      dto.doctorId
+        ? dto.doctorId
+        : req.user.id;
     return this.doctorAvailabilityService.bulkUpsertSchedules(
       doctorId,
       req.user.clinicId,
@@ -81,7 +84,11 @@ export class DoctorAvailabilityController {
   ) {
     const { doctorId } = query;
     const targetDoctorId =
-      req.user?.role === Role.ADMIN && doctorId ? doctorId : req.user!.id;
+      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(
+        req.user?.role ?? '',
+      ) && doctorId
+        ? doctorId
+        : req.user!.id;
     return this.doctorAvailabilityService.getSchedules(
       targetDoctorId,
       req.user?.clinicId || undefined,
@@ -98,7 +105,10 @@ export class DoctorAvailabilityController {
       throw new BadRequestException('Clinic ID is required');
     }
     const doctorId =
-      req.user.role === Role.ADMIN && dto.doctorId ? dto.doctorId : req.user.id;
+      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(req.user.role) &&
+      dto.doctorId
+        ? dto.doctorId
+        : req.user.id;
     return this.doctorAvailabilityService.createSchedule({
       doctorId,
       clinicId: req.user.clinicId,

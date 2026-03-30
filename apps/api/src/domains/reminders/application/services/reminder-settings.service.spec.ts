@@ -10,10 +10,10 @@ describe('ReminderSettingsService', () => {
   beforeEach(async () => {
     const prismaMock = {
       reminderSettings: {
-        findUnique: jest.fn(),
-        findFirst: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
+        findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       },
     };
 

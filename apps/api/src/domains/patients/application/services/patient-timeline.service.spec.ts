@@ -6,28 +6,36 @@ import { PATIENT_TIMELINE_REPOSITORY_TOKEN } from '@/domains/patients/core/repos
 
 describe('PatientTimelineService', () => {
   let service: PatientTimelineService;
-  let repository: Record<string, jest.Mock>;
+  let repository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   const mockDate = new Date('2026-03-21T10:00:00Z');
   const olderDate = new Date('2026-03-15T10:00:00Z');
 
   beforeEach(async () => {
     repository = {
-      verifyPatientAccess: jest.fn(),
-      fetchAppointments: jest.fn(),
-      fetchPrescriptions: jest.fn(),
-      fetchMetricRecords: jest.fn(),
-      fetchLabTests: jest.fn(),
-      fetchMedicalDocuments: jest.fn(),
-      fetchFollowUps: jest.fn(),
-      fetchImmunizations: jest.fn(),
-      fetchAdmissions: jest.fn(),
-      fetchMedicationDoses: jest.fn(),
-      fetchPatientConditions: jest.fn(),
-      fetchPatientAllergies: jest.fn(),
-      fetchRecentPrescriptionsWithMedications: jest.fn(),
-      fetchLatestVitals: jest.fn(),
-      groupMedicationDosesByStatus: jest.fn(),
+      verifyPatientAccess: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchAppointments: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchPrescriptions: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchMetricRecords: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchLabTests: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchMedicalDocuments:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchFollowUps: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchImmunizations: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchAdmissions: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchMedicationDoses: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchPatientConditions:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchPatientAllergies:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchRecentPrescriptionsWithMedications:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      fetchLatestVitals: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      groupMedicationDosesByStatus:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

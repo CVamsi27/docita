@@ -10,13 +10,13 @@ describe('RemindersService (Facade)', () => {
 
   beforeEach(async () => {
     const settingsServiceMock = {
-      getSettings: jest.fn(),
-      updateSettings: jest.fn(),
+      getSettings: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateSettings: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const historyServiceMock = {
-      sendManualReminder: jest.fn(),
-      getReminderHistory: jest.fn(),
+      sendManualReminder: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      getReminderHistory: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

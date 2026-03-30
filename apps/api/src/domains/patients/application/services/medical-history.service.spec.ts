@@ -9,62 +9,62 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 describe('MedicalHistoryService', () => {
   let service: MedicalHistoryService;
   let factory: MedicalHistoryFactory;
-  let _aiService: AiService;
-  let _aiFactory: AiFactory;
+  let aiService: AiService;
+  let aiFactory: AiFactory;
 
   const mockPrismaService = {
     patientMedicalCondition: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     patientAllergy: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     patientFamilyHistory: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     patientSocialHistory: {
-      upsert: jest.fn(),
-      findUnique: jest.fn(),
-      delete: jest.fn(),
+      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     patientSurgicalHistory: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     prescription: {
-      findMany: jest.fn(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 
   const mockFactory = {
-    createCondition: jest.fn(),
-    createAllergy: jest.fn(),
-    createFamilyHistory: jest.fn(),
-    createSocialHistory: jest.fn(),
-    createSurgicalHistory: jest.fn(),
+    createCondition: jest.fn<(...args: unknown[]) => unknown>(),
+    createAllergy: jest.fn<(...args: unknown[]) => unknown>(),
+    createFamilyHistory: jest.fn<(...args: unknown[]) => unknown>(),
+    createSocialHistory: jest.fn<(...args: unknown[]) => unknown>(),
+    createSurgicalHistory: jest.fn<(...args: unknown[]) => unknown>(),
   };
 
   const mockAiService = {
-    generateText: jest.fn(),
+    generateText: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockAiFactory = {
-    createPrompt: jest.fn(),
+    createPrompt: jest.fn<(...args: unknown[]) => unknown>(),
   };
 
   beforeEach(async () => {

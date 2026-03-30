@@ -126,4 +126,5 @@ model LabTestOrder {
   @@index([clinicId])
   @@index([patientId])
   @@index([status])
+  @@index([patientId, clinicId, status])
 }

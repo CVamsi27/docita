@@ -7,7 +7,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('DoctorsService', () => {
   let service: DoctorsService;
-  let _prisma: PrismaService;
+  let prisma: PrismaService;
 
   const mockDoctor = {
     id: 'doctor-123',
@@ -43,42 +43,43 @@ describe('DoctorsService', () => {
 
   const mockPrismaService = {
     user: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     doctorClinic: {
-      findFirst: jest.fn(),
-      create: jest.fn(),
-      findMany: jest.fn(),
-      deleteMany: jest.fn(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     doctorEducation: {
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
-      findMany: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     doctorCertification: {
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
-      findMany: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     doctorSpecialization: {
-      create: jest.fn(),
-      deleteMany: jest.fn(),
-      findMany: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
-    $transaction: jest.fn(),
+    $transaction: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockDoctorVerificationService = {
-    verifyAndPersistDoctorVerification: jest.fn(),
+    verifyAndPersistDoctorVerification:
+      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   beforeEach(async () => {

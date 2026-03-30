@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { CommonServicesModule } from '@/shared/modules/services/common-services.module';
 import { BillingModule } from '@/domains/billing/billing.module';
+import { DocumentsModule } from '@/domains/documents/documents.module';
 import { PrescriptionsController } from './presentation/controllers/prescription.controller';
 import { PrescriptionsService } from './application/services/prescription.service';
 import { PrescriptionPdfService } from './application/services/prescription-pdf.service';
@@ -14,6 +15,7 @@ import { PrismaPrescriptionRepository } from './infrastructure/repositories/pres
     PrismaModule,
     CommonServicesModule,
     forwardRef(() => BillingModule),
+    DocumentsModule,
   ],
   controllers: [PrescriptionsController],
   providers: [

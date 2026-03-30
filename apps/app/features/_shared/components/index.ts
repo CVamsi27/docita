@@ -6,6 +6,7 @@ export * from "./navigation/sidebar";
 export * from "./navigation/command-menu";
 export * from "./navigation/command-palette";
 export * from "./navigation/mobile-nav";
+export * from "./navigation/smart-back-button";
 export * from "./consultation/floating-start-consultation";
 export * from "./whatsapp/whatsapp-button";
 export * from "./patient/PatientHistorySummaryCard";

@@ -47,7 +47,6 @@ export const factories = {
         email,
         name: 'Test Doctor',
         password: hashedPassword,
-        role: normalizeRole(userOverrides.role),
         ...userOverrides,
         role: normalizeRole(userOverrides.role),
       },
@@ -64,7 +63,6 @@ export const factories = {
         address: '123 Main St',
         phone: `987654${String(Date.now()).slice(-4)}`,
         email: `clinic${Date.now()}@test.com`,
-        tier: normalizeClinicTier(clinicOverrides.tier),
         type: 'GENERAL',
         ...clinicOverrides,
         tier: normalizeClinicTier(clinicOverrides.tier),
@@ -89,7 +87,6 @@ export const factories = {
         email: `patient${Date.now()}@test.com`,
         gender: 'MALE',
         dateOfBirth: new Date('1990-01-01'),
-        clinicId: resolvedClinicId,
         ...patientOverrides,
         clinicId: resolvedClinicId,
       },
@@ -137,6 +134,57 @@ export const factories = {
         total: 100,
         status: InvoiceStatus.PENDING,
         items: [{ description: 'Consultation', amount: 100 }],
+        ...overrides,
+      },
+    });
+  },
+
+  whatsappLog: async (
+    clinicId: string,
+    phoneNumber: string,
+    overrides = {},
+  ) => {
+    return prisma.whatsappLog.create({
+      data: {
+        clinicId,
+        phoneNumber,
+        type: 'reminder',
+        message: 'Test WhatsApp message',
+        ...overrides,
+      },
+    });
+  },
+
+  prescription: async (
+    appointmentId: string,
+    patientId: string,
+    doctorId: string,
+    overrides = {},
+  ) => {
+    return prisma.prescription.create({
+      data: {
+        appointmentId,
+        patientId,
+        doctorId,
+        ...overrides,
+      },
+    });
+  },
+
+  appointmentReminder: async (
+    appointmentId: string,
+    clinicId: string,
+    overrides = {},
+  ) => {
+    const scheduledFor = new Date();
+    scheduledFor.setHours(scheduledFor.getHours() + 1);
+    return prisma.appointmentReminder.create({
+      data: {
+        appointmentId,
+        clinicId,
+        type: 'whatsapp',
+        status: 'pending',
+        scheduledFor,
         ...overrides,
       },
     });

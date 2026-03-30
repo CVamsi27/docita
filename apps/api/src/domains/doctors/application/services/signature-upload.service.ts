@@ -37,7 +37,7 @@ export class SignatureUploadService {
         throw new NotFoundException('Doctor not found');
       }
 
-      if (doctor.role !== 'DOCTOR') {
+      if (doctor.role !== 'DOCTOR' && doctor.role !== 'ADMIN_DOCTOR') {
         throw new BadRequestException(
           'Only doctors can upload prescription signatures',
         );

@@ -6,6 +6,8 @@ import {
   Request,
   Res,
   Get,
+  Delete,
+  Param,
   UnauthorizedException,
   BadRequestException,
   UsePipes,
@@ -22,9 +24,13 @@ import { Response } from 'express';
 import { Public } from './public.decorator';
 import { Roles } from './roles.decorator';
 import { AuthService } from './auth.service';
+import { MfaService } from './mfa.service';
+import { ApiKeyService } from './api-key.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
+import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
+import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
 import { RequestWithUser } from '@/common/types/common.types';
 import { Prisma, Role } from '@workspace/db';
 import {
@@ -55,6 +61,8 @@ export class AuthController {
 
   constructor(
     private authService: AuthService,
+    private mfaService: MfaService,
+    private apiKeyService: ApiKeyService,
     private configService: AppConfigService,
   ) {}
 
@@ -119,11 +127,14 @@ export class AuthController {
   })
   @Post('login')
   @ApiOperation({ summary: 'User login' })
-  @ApiResponse({ status: 200, description: 'Successfully logged in' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully logged in or MFA challenge issued',
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  @ZodSerializerDto(LoginResponseDto)
   async login(
     @Body() dto: LoginDto,
+    @Request() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
@@ -131,9 +142,12 @@ export class AuthController {
       if (!user) {
         throw new UnauthorizedException('Invalid credentials');
       }
-      const tokens = await this.authService.login(user);
-      this.setAuthCookies(res, tokens);
-      return tokens;
+      const result = await this.authService.loginWithMfaCheck(user);
+      if ('mfa_required' in result) {
+        return result;
+      }
+      this.setAuthCookies(res, result);
+      return result;
     } catch (error) {
       this.logger.error('Login error:', error);
       throw error;
@@ -218,6 +232,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   @Roles(
     Role.ADMIN,
     Role.DOCTOR,
@@ -251,6 +267,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
   @Roles(
     Role.ADMIN,
     Role.DOCTOR,
@@ -326,5 +344,212 @@ export class AuthController {
     }
     this.clearAuthCookies(res);
     return { message: 'Logged out successfully' };
+  }
+
+  // ── MFA Endpoints ──────────────────────────────────────────────────────────
+
+  @Public()
+  @UseGuards(IpRateLimitGuard)
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
+  @Post('mfa/verify')
+  @ApiOperation({ summary: 'Complete MFA step after password login' })
+  @ApiResponse({ status: 200, description: 'MFA verified, tokens issued' })
+  async verifyMfa(
+    @Body() body: { mfa_challenge_token: string; code: string },
+    @Request() req: RequestWithUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const deviceInfo = {
+      ipAddress: req.ip,
+      userAgent: req.headers?.['user-agent'] as string | undefined,
+    };
+    const tokens = await this.authService.loginAfterMfa(
+      body.mfa_challenge_token,
+      body.code,
+      deviceInfo,
+    );
+    this.setAuthCookies(res, tokens);
+    return tokens;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
+  @Post('mfa/setup')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Initiate MFA setup — returns QR code' })
+  async setupMfa(@Request() req: AuthenticatedRequest) {
+    return this.mfaService.generateSetupSecret(req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
+  @Post('mfa/enable')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Confirm TOTP code to activate MFA' })
+  async enableMfa(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { code: string },
+  ) {
+    return this.mfaService.enableMfa(req.user.sub, body.code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
+  @Post('mfa/disable')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Disable MFA (requires valid TOTP code)' })
+  async disableMfa(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { code: string },
+  ) {
+    await this.mfaService.disableMfa(req.user.sub, body.code);
+    return { message: 'MFA disabled successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
+  @Post('mfa/backup-codes')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Regenerate MFA backup codes' })
+  async regenerateBackupCodes(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { code: string },
+  ) {
+    return this.mfaService.regenerateBackupCodes(req.user.sub, body.code);
+  }
+
+  // ── Session Management Endpoints ───────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Get('sessions')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'List all active sessions for current user' })
+  async getSessions(@Request() req: AuthenticatedRequest) {
+    return this.authService.getSessions(req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Delete('sessions/:id')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Revoke a specific session' })
+  async revokeSession(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') sessionId: string,
+  ) {
+    await this.authService.revokeSession(sessionId, req.user.sub);
+    return { message: 'Session revoked successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Delete('sessions')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Revoke all sessions except current' })
+  async revokeAllSessions(
+    @Request() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const currentRefreshToken = (req as unknown as RequestWithUser).cookies
+      ?.refresh_token;
+    await this.authService.revokeAllSessions(
+      req.user.sub,
+      currentRefreshToken as string | undefined,
+    );
+    return { message: 'All other sessions revoked' };
+  }
+
+  // ── Email Verification Endpoints ───────────────────────────────────────────
+
+  @Public()
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Verify email address with token' })
+  @ApiResponse({ status: 200, description: 'Email verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async verifyEmail(@Body() body: { token: string }) {
+    return this.authService.verifyEmail(body.token);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipSubscriptionCheck()
+  @SkipPasswordExpiry()
+  @SkipEmailVerification()
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
+  @Post('resend-verification')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Resend email verification link' })
+  @ApiResponse({ status: 200, description: 'Verification email sent' })
+  async resendVerification(@Request() req: AuthenticatedRequest) {
+    return this.authService.sendVerificationEmail(req.user.sub);
+  }
+
+  // ── API Key Endpoints ──────────────────────────────────────────────────────
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
+  @Post('api-keys')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Create a new API key for the clinic' })
+  async createApiKey(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { name: string; scopes: string[]; expiresAt?: string },
+  ) {
+    if (!req.user.clinicId) {
+      throw new BadRequestException('No clinic associated with this account');
+    }
+    return this.apiKeyService.createApiKey(req.user.clinicId, req.user.sub, {
+      name: body.name,
+      scopes: body.scopes,
+      expiresAt: body.expiresAt ? new Date(body.expiresAt) : undefined,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Get('api-keys')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'List all API keys for the clinic' })
+  async listApiKeys(@Request() req: AuthenticatedRequest) {
+    if (!req.user.clinicId) {
+      throw new BadRequestException('No clinic associated with this account');
+    }
+    return this.apiKeyService.listApiKeys(req.user.clinicId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Delete('api-keys/:id')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Revoke an API key' })
+  async revokeApiKey(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ) {
+    if (!req.user.clinicId) {
+      throw new BadRequestException('No clinic associated with this account');
+    }
+    await this.apiKeyService.revokeApiKey(id, req.user.clinicId);
+    return { message: 'API key revoked successfully' };
   }
 }

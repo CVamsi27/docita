@@ -1,17 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OverageCalculationService } from './overage-calculation.service';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ClinicTier } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('OverageCalculationService', () => {
   let service: OverageCalculationService;
   let prisma: {
-    tierPricing: { findUnique: jest.Mock };
-    clinicAddOn: { findMany: jest.Mock };
+    tierPricing: {
+      findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    clinicAddOn: {
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
   };
 
   const mockTierPricing = {
-    tier: 'PRO',
+    tier: 'PRO' as ClinicTier,
     overagePatientCents: 500,
     overageAppointmentCents: 200,
     overageUserCents: 10000,
@@ -37,7 +42,7 @@ describe('OverageCalculationService', () => {
       whatsappMessages: { current: 100, included: 200, overage: 0 },
       aiCredits: { current: 0, included: 0, overage: 0 },
     },
-    tier: 'PRO',
+    tier: 'PRO' as ClinicTier,
   };
 
   beforeEach(async () => {
@@ -48,10 +53,14 @@ describe('OverageCalculationService', () => {
           provide: PrismaService,
           useValue: {
             tierPricing: {
-              findUnique: jest.fn().mockResolvedValue(mockTierPricing),
+              findUnique: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue(mockTierPricing),
             },
             clinicAddOn: {
-              findMany: jest.fn().mockResolvedValue(mockAddOns),
+              findMany: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue(mockAddOns),
             },
           },
         },

@@ -37,13 +37,13 @@ describe('DoctorClinicsService', () => {
 
   const mockPrismaService = {
     doctorClinic: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      findMany: jest.fn(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     user: {
-      update: jest.fn(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 

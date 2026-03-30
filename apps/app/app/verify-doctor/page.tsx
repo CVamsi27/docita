@@ -1,29 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Circle, Loader2, ShieldCheck } from 'lucide-react';
+import {
+  CheckCircle2,
+  Circle,
+  ImageIcon,
+  Loader2,
+  Pencil,
+  ShieldCheck,
+  Upload,
+} from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import { useAPIQuery, useAPIMutation } from '@/lib/api-core';
-import { QrSignatureUpload } from '@/features/settings/components/shared/qr-signature-upload';
+import { SignaturePad, SignaturePreview } from '@/components/signature-canvas';
 import {
   useGenerateSignatureToken,
-  useActiveSignatureTokens,
-  useRevokeSignatureToken,
+  uploadSignature,
 } from '@/hooks/api/use-signature-upload';
 import type { User } from '@workspace/types';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { DocitaLogo } from '@workspace/ui/components/docita-logo';
+import Image from 'next/image';
 
 export default function VerifyDoctorPage() {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [isSavingReg, setIsSavingReg] = useState(false);
+
+  // Signature state
+  const [uploadMethod, setUploadMethod] = useState<'draw' | 'upload'>('draw');
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploadingSignature, setIsUploadingSignature] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: doctorProfile, isLoading, refetch } = useAPIQuery<User>(
     ['doctor-profile', user?.id ?? ''],
@@ -38,8 +55,6 @@ export default function VerifyDoctorPage() {
   );
 
   const generateToken = useGenerateSignatureToken();
-  const { data: activeTokens = [] } = useActiveSignatureTokens();
-  const revokeToken = useRevokeSignatureToken();
 
   const hasSignature = !!doctorProfile?.signatureUrl;
   const hasRegistration = !!doctorProfile?.registrationNumber;
@@ -62,6 +77,55 @@ export default function VerifyDoctorPage() {
   const handleContinue = async () => {
     await refreshUser();
     router.replace('/dashboard');
+  };
+
+  const dataURLtoFile = (dataUrl: string, filename: string): File => {
+    const arr = dataUrl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const handleSignatureUpload = async (file: File) => {
+    setIsUploadingSignature(true);
+    try {
+      const tokenData = await generateToken.mutateAsync();
+      await uploadSignature(tokenData.token, file);
+      await refetch();
+      toast.success('Signature uploaded successfully.');
+    } catch {
+      toast.error('Failed to upload signature. Please try again.');
+    } finally {
+      setIsUploadingSignature(false);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must not exceed 5MB');
+      return;
+    }
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleResetFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   if (isLoading) {
@@ -155,17 +219,113 @@ export default function VerifyDoctorPage() {
                 Signature uploaded successfully.
               </div>
             ) : (
-              <QrSignatureUpload
-                onGenerate={async () => generateToken.mutateAsync()}
-                isGenerating={generateToken.isPending}
-                activeTokens={activeTokens}
-                onRevoke={async (tokenId: string) => { await revokeToken.mutateAsync({ tokenId }); }}
-                isRevoking={revokeToken.isPending}
-                alertText="Generate a QR code to upload your signature from your mobile device. The link expires in 15 minutes."
-                buttonLabel="Generate Signature Upload Link"
-                dialogTitle="Upload Signature via Mobile"
-                dialogDescription="Scan this QR code with your phone camera to upload your signature. It expires in 15 minutes."
-              />
+              <Tabs
+                value={uploadMethod}
+                onValueChange={(v) => setUploadMethod(v as 'draw' | 'upload')}
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="draw">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Draw
+                  </TabsTrigger>
+                  <TabsTrigger value="upload">
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    Upload Image
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="draw" className="space-y-3 pt-1">
+                  {!signatureDataUrl ? (
+                    <SignaturePad onSave={(dataUrl) => setSignatureDataUrl(dataUrl)} />
+                  ) : (
+                    <div className="space-y-3">
+                      <SignaturePreview
+                        dataUrl={signatureDataUrl}
+                        onEdit={() => setSignatureDataUrl(null)}
+                      />
+                      <Button
+                        onClick={() =>
+                          handleSignatureUpload(
+                            dataURLtoFile(signatureDataUrl, 'signature.png'),
+                          )
+                        }
+                        disabled={isUploadingSignature}
+                        className="w-full"
+                      >
+                        {isUploadingSignature ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Save Signature
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="upload" className="space-y-3 pt-1">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  {!previewUrl ? (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Select Image
+                    </Button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="rounded-lg border bg-white p-4">
+                        <Image
+                          src={previewUrl}
+                          alt="Signature preview"
+                          width={400}
+                          height={120}
+                          className="mx-auto max-h-32 object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleSignatureUpload(selectedFile!)}
+                          disabled={isUploadingSignature}
+                          className="flex-1"
+                        >
+                          {isUploadingSignature ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="mr-2 h-4 w-4" />
+                              Save Signature
+                            </>
+                          )}
+                        </Button>
+                        <Button variant="outline" onClick={handleResetFile}>
+                          Change
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG, or WebP. Max 5MB.
+                  </p>
+                </TabsContent>
+              </Tabs>
             )}
           </div>
 
@@ -220,14 +380,7 @@ export default function VerifyDoctorPage() {
 
           <div className="flex gap-3">
             <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => router.replace('/settings')}
-            >
-              Go to Settings
-            </Button>
-            <Button
-              className="flex-1"
+              className="w-full"
               disabled={!canContinue}
               onClick={handleContinue}
             >

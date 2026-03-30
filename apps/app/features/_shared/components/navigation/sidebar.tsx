@@ -37,6 +37,7 @@ import { NotificationPanel } from "./notification-panel";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import {
   navItems,
+  SETTINGS_NAV_ITEM,
   SPECIALTY_ICONS,
   SPECIALTY_URLS,
   IPD_NAV_ITEM,
@@ -94,10 +95,13 @@ export function Sidebar({
     (item) => !item.feature || canAccess(item.feature),
   );
 
-  // Items shown in the sidebar (respecting admin hide preferences)
-  const visibleNavItems = accessibleNavItems.filter(
-    (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
-  );
+  // Items shown in the sidebar (respecting admin hide preferences), Settings always last
+  const visibleNavItems = [
+    ...accessibleNavItems.filter(
+      (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
+    ),
+    SETTINGS_NAV_ITEM,
+  ];
 
   // Items that admins can toggle (accessible, non-fixed)
   const customizableNavItems = accessibleNavItems.filter(

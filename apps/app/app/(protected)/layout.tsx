@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   FloatingStartConsultation,
   MobileNav,
   Sidebar,
 } from "@/features/_shared/components";
+import { SmartBackButton } from "@/features/_shared/components/navigation/smart-back-button";
+import { useNavigationStore } from "@/lib/stores/navigation-store";
 import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
 import { ClinicProvider, useClinic } from "@/lib/clinic-context";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
@@ -15,6 +17,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@workspace/ui/components/resizable";
+import type { ImperativePanelHandle } from "@workspace/ui/components/resizable";
 import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
 import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
@@ -23,7 +26,7 @@ import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/upgrade", "/settings", "/login"];
-const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/settings", "/login"];
+const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
 
 function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -35,7 +38,7 @@ function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
     useAPIQuery<User>(
       ["doctor-profile", user?.id ?? ""],
       `/doctors/${user?.id}`,
-      { enabled: !!user?.id && isDoctor },
+      { enabled: !!user?.id && isDoctor, staleTime: 5 * 60 * 1000 },
     );
 
   useEffect(() => {
@@ -74,12 +77,33 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function MobileHeader() {
+  const { canGoBack } = useNavigationStore();
+  return (
+    <header
+      className="flex h-14 items-center gap-2 border-b bg-background px-4 md:hidden"
+      aria-label="Mobile navigation"
+    >
+      <MobileNav />
+      {canGoBack() ? (
+        <SmartBackButton fallback="/dashboard" label="" className="px-2" />
+      ) : (
+        <span className="font-bold text-lg">Docita</span>
+      )}
+      <div className="ml-auto">
+        <ThemeToggle />
+      </div>
+    </header>
+  );
+}
+
 export default function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -142,6 +166,7 @@ export default function ProtectedLayout({
         <div className="flex h-screen overflow-hidden bg-background">
           <ResizablePanelGroup direction="horizontal">
             <ResizablePanel
+              ref={sidebarPanelRef}
               defaultSize={18}
               minSize={15}
               maxSize={25}
@@ -151,21 +176,22 @@ export default function ProtectedLayout({
               onCollapse={() => setIsCollapsed(true)}
               onExpand={() => setIsCollapsed(false)}
             >
-              <Sidebar isCollapsed={isCollapsed} />
+              <Sidebar
+                isCollapsed={isCollapsed}
+                onCollapsedChange={(collapsed) => {
+                  setIsCollapsed(collapsed);
+                  if (collapsed) {
+                    sidebarPanelRef.current?.collapse();
+                  } else {
+                    sidebarPanelRef.current?.expand();
+                  }
+                }}
+              />
             </ResizablePanel>
             <ResizableHandle withHandle className="hidden md:flex" />
             <ResizablePanel defaultSize={82}>
               <div className="flex h-full flex-col overflow-hidden">
-                <header
-                  className="flex h-14 items-center gap-4 border-b bg-background px-6 md:hidden"
-                  aria-label="Mobile navigation"
-                >
-                  <MobileNav />
-                  <span className="font-bold text-lg">Docita</span>
-                  <div className="ml-auto">
-                    <ThemeToggle />
-                  </div>
-                </header>
+                <MobileHeader />
                 <main
                   className="flex-1 overflow-y-auto p-4 md:p-6"
                   aria-label="Main content"

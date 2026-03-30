@@ -8,6 +8,8 @@ import { ClinicScopedGuard } from '@/shared/modules/auth/decorators/clinic-scope
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { EncryptionService } from '@/common/encryption.service';
+import { UserRateLimitService } from './user-rate-limit.service';
+import { UserRateLimitGuard } from '@/shared/modules/auth/guards/user-rate-limit.guard';
 import { DPDPComplianceService as _DPDPComplianceService } from '@/shared/modules/compliance/dpdp-compliance.service';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
@@ -30,6 +32,8 @@ import { UsersModule } from '@/domains/users/users.module';
     ClinicScopedGuard,
     EncryptionService,
     BasePdfService,
+    UserRateLimitService,
+    UserRateLimitGuard,
   ],
   exports: [
     WhatsAppNotificationService,
@@ -37,6 +41,8 @@ import { UsersModule } from '@/domains/users/users.module';
     EncryptionService,
     ComplianceModule,
     BasePdfService,
+    UserRateLimitService,
+    UserRateLimitGuard,
   ],
 })
 export class CommonServicesModule {}

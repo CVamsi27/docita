@@ -9,6 +9,7 @@ import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { tenantExtension } from '@/common/extensions/tenant.extension';
 import { createEncryptionExtension } from '@/common/extensions/encryption.extension';
+import { auditImmutabilityExtension } from '@/common/extensions/audit-immutability.extension';
 import { tenantStorage } from '@/common/middleware/tenant.middleware';
 import { EncryptionService } from '@/common/encryption.service';
 import { slowQueryExtension } from '@/common/extensions/logging.extension';
@@ -86,6 +87,7 @@ export class PrismaService
       const extended = this.$extends(
         createEncryptionExtension(this.encryptionService),
       )
+        .$extends(auditImmutabilityExtension)
         .$extends(tenantExtension)
         .$extends(slowQueryExtension);
       Object.assign(this, extended);

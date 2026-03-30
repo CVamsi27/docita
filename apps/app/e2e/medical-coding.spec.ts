@@ -77,25 +77,21 @@ test.describe("Medical Coding", () => {
 
   test("should add favorite ICD code", async ({ request }) => {
 
-    const icdRes = await request.get(`${API_URL}/medical-coding/icd-codes`, {
-      headers: { Authorization: `Bearer ${authToken}` },
-      params: {
-        limit: 1,
-      },
-    });
+    const icdRes = await request.get(
+      `${API_URL}/clinical/medical-coding/icd/search?q=diabetes`,
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
     if (icdRes.ok()) {
       const codes = await icdRes.json();
       if (Array.isArray(codes) && codes.length > 0) {
-        const codeId = codes[0].id;
+        const { code, description, category } = codes[0];
 
         const favRes = await request.post(
-          `${API_URL}/medical-coding/favorites`,
+          `${API_URL}/clinical/medical-coding/icd/favorites`,
           {
             headers: { Authorization: `Bearer ${authToken}` },
-            data: {
-              icdCodeId: codeId,
-            },
+            data: { code, description, category },
           },
         );
 

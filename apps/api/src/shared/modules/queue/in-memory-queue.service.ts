@@ -55,7 +55,7 @@ export class InMemoryQueueService implements IQueueProvider {
 
     this.jobsByName.get(name)!.add(jobId);
 
-    if (!options?.delay) {
+    if (!options?.delay || options.delay <= 0) {
       await this.processJob(job);
     } else {
       setTimeout(() => {

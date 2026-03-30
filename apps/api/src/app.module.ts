@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { SentryModule } from '@sentry/nestjs/setup';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -54,6 +55,9 @@ import { RequestContextInterceptor } from './common/interceptors/request-context
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
 import { SubscriptionStatusGuard } from './shared/modules/auth/guards/subscription-status.guard';
+import { PasswordExpiredGuard } from './shared/modules/auth/guards/password-expired.guard';
+import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.guard';
+import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit.guard';
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
@@ -72,6 +76,7 @@ const BullModule = MockBullModule;
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['../../.env', '.env'],
@@ -192,6 +197,18 @@ const BullModule = MockBullModule;
     {
       provide: APP_GUARD,
       useClass: SubscriptionStatusGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PasswordExpiredGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: EmailVerifiedGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: UserRateLimitGuard,
     },
 
     {

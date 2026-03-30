@@ -29,7 +29,12 @@ const faqs = [
   {
     question: "How does the pricing work?",
     answer:
-      "We have a transparent tiered pricing model. Every paid plan starts with a 14-day free trial — no credit card required. You can upgrade or downgrade as your practice grows. No hidden setup fees.",
+      "Each paid plan includes a base quota of patients, appointments, users, and WhatsApp messages. Your flat monthly fee covers that quota. If you go beyond — say you register more patients or book more appointments than your plan includes — the extra usage is billed at a per-unit rate at the start of the next month. Annual subscribers also get overage billed monthly, not at year-end. No hard limits, no service interruptions. Every plan starts with a 14-day free trial, no credit card required.",
+  },
+  {
+    question: "What happens if I exceed my plan limits?",
+    answer:
+      "Nothing stops — Docita keeps working. We meter your usage automatically. At the start of each month we calculate any overage from the prior month and add it to your next invoice. Docita Clinic rates are roughly 20% lower than Docita Pro per unit. You can see the exact rates for your currency in the pricing section above, or upgrade to a higher tier to reduce per-unit costs.",
   },
   {
     question: "What if I need help?",

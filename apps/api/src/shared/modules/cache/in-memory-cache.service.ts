@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ICacheProvider } from './cache.interface';
 
 interface CacheEntry<T> {
@@ -6,9 +6,29 @@ interface CacheEntry<T> {
   expiresAt?: number;
 }
 
+const MAX_ENTRIES = 10000;
+const CLEANUP_INTERVAL_MS = 60_000;
+
 @Injectable()
-export class InMemoryCacheService implements ICacheProvider {
+export class InMemoryCacheService
+  implements ICacheProvider, OnModuleInit, OnModuleDestroy
+{
   private cache = new Map<string, CacheEntry<unknown>>();
+  private cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+  onModuleInit() {
+    this.cleanupTimer = setInterval(
+      () => this.cleanExpired(),
+      CLEANUP_INTERVAL_MS,
+    );
+  }
+
+  onModuleDestroy() {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+  }
 
   async get<T>(key: string): Promise<T | null> {
     await Promise.resolve();
@@ -27,6 +47,15 @@ export class InMemoryCacheService implements ICacheProvider {
   }
 
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    if (this.cache.size >= MAX_ENTRIES && !this.cache.has(key)) {
+      this.cleanExpired();
+      if (this.cache.size >= MAX_ENTRIES) {
+        const oldestKey = this.cache.keys().next().value;
+        if (oldestKey !== undefined) {
+          this.cache.delete(oldestKey);
+        }
+      }
+    }
     const expiresAt = ttl ? Date.now() + ttl * 1000 : undefined;
     this.cache.set(key, { value, expiresAt });
     await Promise.resolve();

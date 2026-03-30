@@ -10,31 +10,31 @@ describe('DashboardService', () => {
 
   const mockPrismaService = {
     patient: {
-      count: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     user: {
-      count: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     appointment: {
-      count: jest.fn(),
-      findMany: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     prescription: {
-      count: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     labTestOrder: {
-      count: jest.fn(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     invoice: {
-      aggregate: jest.fn(),
+      aggregate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
-    reset: jest.fn(),
+    get: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    set: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    del: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    reset: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   beforeEach(async () => {

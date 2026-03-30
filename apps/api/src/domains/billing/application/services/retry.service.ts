@@ -61,15 +61,15 @@ export class RetryService {
   async processPendingRetries(): Promise<void> {
     await runWithTenant({ bypassed: true }, async () => {
       try {
-        this.logger.debug('Processing pending payment retries...');
-
         const result = await this.invoiceRepository.findAll({
           clinicId: '',
           status: InvoiceStatus.PENDING,
           limit: 100,
         });
 
-        this.logger.log(`Found ${result.items.length} unpaid invoices`);
+        if (result.items.length > 0) {
+          this.logger.log(`Processing ${result.items.length} unpaid invoices`);
+        }
 
         for (const invoice of result.items) {
           this.attemptPayment(invoice.id);

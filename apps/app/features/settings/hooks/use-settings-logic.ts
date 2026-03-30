@@ -6,15 +6,20 @@ import { useAuth } from "@/lib/auth-context";
 export const useSettingsLogic = () => {
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const defaultTab = searchParams.get("tab") || "general";
+  const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredTabs = useMemo(() => {
-    let tabs = settingsTabs;
-
-    if (user?.role === "DOCTOR" || user?.role === "RECEPTIONIST") {
-      tabs = tabs.filter((category) => category.category !== "Practice");
-    }
+    const userRole = user?.role;
+    const tabs = settingsTabs
+      .map((category) => ({
+        ...category,
+        items: category.items.filter((item) => {
+          if (!("roles" in item) || !item.roles) return true;
+          return userRole && (item.roles as readonly string[]).includes(userRole);
+        }),
+      }))
+      .filter((category) => category.items.length > 0);
 
     if (!searchQuery.trim()) return tabs;
 
@@ -32,6 +37,11 @@ export const useSettingsLogic = () => {
   }, [searchQuery, user]);
 
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;
+
+  const allVisibleTabValues = filteredTabs.flatMap((c) => c.items.map((i) => i.value));
+  const defaultTab = allVisibleTabValues.includes(requestedTab)
+    ? requestedTab
+    : (allVisibleTabValues[0] ?? "notifications");
 
   return {
     state: {

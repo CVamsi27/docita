@@ -1,8 +1,4 @@
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+import './instrument';
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -225,53 +221,7 @@ async function bootstrap() {
     }
   };
 
-  interface SentryIntegration {
-    name: string;
-    setupOnce: () => void;
-  }
-  const isSentryIntegration = (value: unknown): value is SentryIntegration => {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-
-    const candidate = value as {
-      name?: unknown;
-      setupOnce?: unknown;
-    };
-    return (
-      typeof candidate.name === 'string' &&
-      typeof candidate.setupOnce === 'function'
-    );
-  };
-
-  const integrations: SentryIntegration[] = [];
-  try {
-    const { nodeProfilingIntegration } = await import('@sentry/profiling-node');
-    const profilingIntegration = nodeProfilingIntegration();
-    if (isSentryIntegration(profilingIntegration)) {
-      integrations.push(profilingIntegration);
-    }
-  } catch (_error) {}
-
-  const sentryConfig = appConfigService.getSentryConfig();
-  Sentry.init({
-    dsn: sentryConfig.dsn,
-    environment: appConfigService.getEnvironment(),
-    integrations,
-    tracesSampleRate: sentryConfig.tracesSampleRate,
-    profilesSampleRate:
-      appConfigService.getEnvironment() === 'production'
-        ? sentryConfig.profilesSampleRate
-        : 1.0,
-    maxBreadcrumbs: 50,
-    attachStacktrace: true,
-    initialScope: {
-      tags: {
-        service: 'docita-api',
-        version: appConfigService.getAppVersion(),
-      },
-    },
-  });
+  Sentry.setTag('version', appConfigService.getAppVersion());
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const logger = app.get(Logger);

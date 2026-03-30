@@ -1,8 +1,8 @@
-import { ArrowLeft, LogOut, Search, Settings } from "lucide-react";
-import Link from "next/link";
+import { LogOut, Search, Settings } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { SmartBackButton } from "@/features/_shared/components/navigation/smart-back-button";
 import {
   Tabs,
   TabsContent,
@@ -13,7 +13,6 @@ import { RoleGuard } from "@/features/_shared/components";
 import {
   AppearanceSettings,
   ClinicGeneralSettings,
-  CustomFieldsSettings,
   DoctorAvailabilitySettings,
   LeaveManagementSettings,
   MemberManagementSettings,
@@ -21,7 +20,6 @@ import {
   ReminderSettings,
   SecuritySettings,
   SubscriptionSettings,
-  TemplatesSettingsUI,
   WhatsAppAutomationSettings,
 } from ".";
 import {
@@ -66,12 +64,7 @@ export function SettingsPageUI({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
+            <SmartBackButton fallback="/dashboard" label="Back to Dashboard" />
           </div>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -155,7 +148,9 @@ export function SettingsPageUI({
           </TabsContent>
 
           <TabsContent value="subscription" className="mt-0 space-y-6">
-            <SubscriptionSettings />
+            <RoleGuard requiredPermission="manageBilling">
+              <SubscriptionSettings />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="members" className="mt-0 space-y-6">
@@ -165,39 +160,45 @@ export function SettingsPageUI({
           </TabsContent>
 
           <TabsContent value="availability" className="mt-0 space-y-6">
-            <DoctorAvailabilitySettings />
+            <RoleGuard requiredRole="DOCTOR">
+              <DoctorAvailabilitySettings />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="queue" className="mt-0 space-y-6">
-            <QueueSettings />
+            <RoleGuard requiredPermission="manageClinic">
+              <QueueSettings />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="prescriptions" className="mt-0 space-y-6">
-            <PrescriptionDefaultsSettingsContainer />
-          </TabsContent>
-
-          <TabsContent value="templates" className="mt-0">
-            <TemplatesSettingsUI />
-          </TabsContent>
-
-          <TabsContent value="custom-fields" className="mt-0">
-            <CustomFieldsSettings />
+            <RoleGuard requiredPermission="createPrescription">
+              <PrescriptionDefaultsSettingsContainer />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="reminders" className="mt-0">
-            <ReminderSettings />
+            <RoleGuard requiredPermission="manageClinic">
+              <ReminderSettings />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="whatsapp" className="mt-0">
-            <WhatsAppAutomationSettings />
+            <RoleGuard requiredPermission="manageClinic">
+              <WhatsAppAutomationSettings />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-0">
-            <NotificationSettings />
+            <RoleGuard requiredPermission="manageClinic">
+              <NotificationSettings />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="security" className="mt-0">
-            <SecuritySettings />
+            <RoleGuard requiredPermission="manageClinic">
+              <SecuritySettings />
+            </RoleGuard>
           </TabsContent>
 
           <TabsContent value="appearance" className="mt-0">
@@ -205,7 +206,9 @@ export function SettingsPageUI({
           </TabsContent>
 
           <TabsContent value="leave" className="mt-0 space-y-6">
-            <LeaveManagementSettings />
+            <RoleGuard requiredRole="DOCTOR">
+              <LeaveManagementSettings />
+            </RoleGuard>
           </TabsContent>
         </div>
       </Tabs>

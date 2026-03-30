@@ -19,11 +19,21 @@ describe('RequestLogService', () => {
   const mockPrismaService = {
     apiRequest: {
       createMany: jest.fn(),
-      count: jest.fn().mockResolvedValue(100),
-      aggregate: jest.fn().mockResolvedValue({ _avg: { duration: 50 } }),
-      groupBy: jest.fn().mockResolvedValue([]),
-      findMany: jest.fn().mockResolvedValue([]),
-      deleteMany: jest.fn().mockResolvedValue({ count: 10 }),
+      count: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue(100),
+      aggregate: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue({ _avg: { duration: 50 } }),
+      groupBy: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue([]),
+      findMany: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue([]),
+      deleteMany: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue({ count: 10 }),
     },
   };
 

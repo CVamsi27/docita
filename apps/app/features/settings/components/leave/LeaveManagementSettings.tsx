@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -30,6 +30,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Loader2, Plus, Check, X, Ban } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useClinicMembers } from "@/hooks/api/use-settings";
 import {
   useLeaves,
   useLeaveBalance,
@@ -60,14 +61,27 @@ const STATUS_VARIANT: Record<
   CANCELLED: "secondary",
 };
 
-const isAdmin = (role?: string) =>
+const isAdminRole = (role?: string) =>
   role === "ADMIN" || role === "ADMIN_DOCTOR";
 
 export function LeaveManagementSettings() {
   const { user } = useAuth();
-  const userIsAdmin = isAdmin(user?.role);
+  const userIsAdmin = isAdminRole(user?.role);
 
-  const { data: leaves = [], isLoading: leavesLoading, refetch } = useLeaves();
+  const { data: members = [] } = useClinicMembers();
+
+  const staffMembers = useMemo(
+    () => members.filter((m) => m.id !== user?.id),
+    [members, user?.id],
+  );
+
+  const [staffFilter, setStaffFilter] = useState<string>("all");
+
+  const leavesQuery = useLeaves(
+    userIsAdmin && staffFilter !== "all" ? { staffId: staffFilter } : undefined,
+  );
+  const { data: leaves = [], isLoading: leavesLoading, refetch } = leavesQuery;
+
   const { data: balance = [] } = useLeaveBalance();
   const { data: plans = [] } = useLeavePlans();
 
@@ -85,6 +99,7 @@ export function LeaveManagementSettings() {
     startDate: "",
     endDate: "",
     reason: "",
+    staffId: "",
   });
 
   const [planForm, setPlanForm] = useState({
@@ -105,10 +120,11 @@ export function LeaveManagementSettings() {
         startDate: applyForm.startDate,
         endDate: applyForm.endDate,
         reason: applyForm.reason || undefined,
+        staffId: userIsAdmin && applyForm.staffId ? applyForm.staffId : undefined,
       });
       toast.success("Leave request submitted");
       setApplyDialogOpen(false);
-      setApplyForm({ leaveType: "", startDate: "", endDate: "", reason: "" });
+      setApplyForm({ leaveType: "", startDate: "", endDate: "", reason: "", staffId: "" });
       refetch();
     } catch {
       toast.error("Failed to submit leave request");
@@ -143,11 +159,10 @@ export function LeaveManagementSettings() {
 
   return (
     <div className="space-y-6">
-      {/* Balance summary */}
       {balance.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Leave Balance</CardTitle>
+            <CardTitle className="text-base">My Leave Balance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -175,15 +190,11 @@ export function LeaveManagementSettings() {
         </Card>
       )}
 
-      {/* Leave plans (admin only) */}
       {userIsAdmin && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Leave Plans</CardTitle>
-            <Button
-              size="sm"
-              onClick={() => setPlanDialogOpen(true)}
-            >
+            <Button size="sm" onClick={() => setPlanDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-1" />
               Configure Plan
             </Button>
@@ -206,7 +217,8 @@ export function LeaveManagementSettings() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {plan.annualQuota} days/year
-                        {plan.carryForward && ` • Carry forward: up to ${plan.maxCarryForward} days`}
+                        {plan.carryForward &&
+                          ` • Carry forward: up to ${plan.maxCarryForward} days`}
                       </p>
                     </div>
                     <Badge variant={plan.isActive ? "default" : "secondary"}>
@@ -220,16 +232,32 @@ export function LeaveManagementSettings() {
         </Card>
       )}
 
-      {/* Leave requests */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-base">
             {userIsAdmin ? "All Leave Requests" : "My Leave Requests"}
           </CardTitle>
-          <Button size="sm" onClick={() => setApplyDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Apply for Leave
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {userIsAdmin && staffMembers.length > 0 && (
+              <Select value={staffFilter} onValueChange={setStaffFilter}>
+                <SelectTrigger className="w-44 h-8 text-xs">
+                  <SelectValue placeholder="Filter by staff" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All staff</SelectItem>
+                  {staffMembers.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <Button size="sm" onClick={() => setApplyDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Apply for Leave
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {leavesLoading ? (
@@ -265,6 +293,32 @@ export function LeaveManagementSettings() {
             <DialogTitle>Apply for Leave</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {userIsAdmin && staffMembers.length > 0 && (
+              <div className="space-y-1.5">
+                <Label>On behalf of (optional)</Label>
+                <Select
+                  value={applyForm.staffId || "self"}
+                  onValueChange={(v) =>
+                    setApplyForm((f) => ({
+                      ...f,
+                      staffId: v === "self" ? "" : v,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select staff member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="self">Myself</SelectItem>
+                    {staffMembers.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label>Leave Type</Label>
               <Select
@@ -321,10 +375,7 @@ export function LeaveManagementSettings() {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setApplyDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setApplyDialogOpen(false)}>
               Cancel
             </Button>
             <Button
@@ -360,13 +411,11 @@ export function LeaveManagementSettings() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map(
-                      (lt) => (
-                        <SelectItem key={lt} value={lt}>
-                          {LEAVE_TYPE_LABELS[lt]}
-                        </SelectItem>
-                      ),
-                    )}
+                    {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map((lt) => (
+                      <SelectItem key={lt} value={lt}>
+                        {LEAVE_TYPE_LABELS[lt]}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -384,10 +433,7 @@ export function LeaveManagementSettings() {
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setPlanDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setPlanDialogOpen(false)}>
                 Cancel
               </Button>
               <Button

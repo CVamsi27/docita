@@ -104,6 +104,32 @@ export class EmailService {
     });
   }
 
+  async sendVerificationEmail(
+    email: string,
+    name: string,
+    verificationToken: string,
+  ): Promise<EmailSendResult> {
+    const verifyUrl = `${this.configService.getAppUrl()}/verify-email?token=${verificationToken}`;
+    const safeName = escapeHtml(name);
+
+    return this.emailProvider.send({
+      to: email,
+      subject: 'Verify Your Email - Docita',
+      html: `
+        <h1>Verify Your Email Address</h1>
+        <p>Hi ${safeName},</p>
+        <p>Please verify your email address by clicking the button below:</p>
+        <p>
+          <a href="${verifyUrl}"
+             style="background: #4F46E5; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+            Verify Email
+          </a>
+        </p>
+        <p><small>This link expires in 24 hours. If you didn't create an account, please ignore this email.</small></p>
+      `,
+    });
+  }
+
   async send(options: EmailOptions): Promise<EmailSendResult> {
     return this.emailProvider.send(options);
   }

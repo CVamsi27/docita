@@ -21,7 +21,9 @@ describe('MetricsService', () => {
       create: jest.fn(),
       createMany: jest.fn(),
       findMany: jest.fn(),
-      deleteMany: jest.fn().mockResolvedValue({ count: 5 }),
+      deleteMany: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue({ count: 5 }),
     },
     apiRequest: {
       groupBy: jest.fn(),

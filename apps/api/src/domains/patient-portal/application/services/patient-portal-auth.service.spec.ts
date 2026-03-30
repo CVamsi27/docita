@@ -7,7 +7,9 @@ import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 jest.mock('bcrypt', () => ({
-  hash: jest.fn().mockResolvedValue('hashed'),
+  hash: jest
+    .fn<(...args: unknown[]) => Promise<unknown>>()
+    .mockResolvedValue('hashed'),
   compare: jest.fn(),
 }));
 
@@ -63,7 +65,9 @@ describe('PatientPortalAuthService', () => {
         {
           provide: AuthService,
           useValue: {
-            login: jest.fn().mockResolvedValue({ access_token: 'jwt-token' }),
+            login: jest
+              .fn<(...args: unknown[]) => Promise<unknown>>()
+              .mockResolvedValue({ access_token: 'jwt-token' }),
           },
         },
       ],

@@ -18,6 +18,7 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
   private readonly baseUrl = 'https://graph.facebook.com';
   private readonly phoneNumberId: string;
   private readonly accessToken: string;
+  private tokenExpired = false;
 
   constructor(private readonly configService: AppConfigService) {
     const metaConfig = this.configService.getMetaConfig();
@@ -55,12 +56,67 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
     return typeof id === 'string' ? id : '';
   }
 
+  private isTokenExpiredError(data: Record<string, unknown>): boolean {
+    const error = this.toRecord(data.error);
+    const code = error.code;
+    const subcode = error.error_subcode;
+    const message =
+      typeof error.message === 'string' ? error.message.toLowerCase() : '';
+    return (
+      code === 190 ||
+      subcode === 463 ||
+      subcode === 467 ||
+      message.includes('session has expired') ||
+      message.includes('access token') ||
+      message.includes('token has expired')
+    );
+  }
+
+  private async callApi(
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    const response = await fetch(
+      `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const data = this.toRecord(await response.json());
+
+    if (!response.ok) {
+      const errorMsg = this.extractErrorMessage(data);
+      if (this.isTokenExpiredError(data)) {
+        if (!this.tokenExpired) {
+          this.tokenExpired = true;
+          this.logger.error(
+            `WhatsApp access token expired — all sends disabled until token is refreshed. Error: ${errorMsg}`,
+          );
+        }
+      } else {
+        this.logger.error(`WhatsApp send failed: ${errorMsg}`);
+      }
+      throw new ServiceUnavailableException(errorMsg);
+    }
+
+    return data;
+  }
+
   async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
     const { to, templateName, languageCode, components, text } = request;
 
     if (!this.phoneNumberId || !this.accessToken) {
       this.logger.warn('WhatsApp not configured, skipping send');
       return { externalId: `skipped-${Date.now()}` };
+    }
+
+    if (this.tokenExpired) {
+      throw new ServiceUnavailableException('WhatsApp access token expired');
     }
 
     const cleanPhone = this.normalizePhoneNumber(to);
@@ -85,30 +141,14 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
     }
 
     try {
-      const response = await fetch(
-        `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const data = this.toRecord(await response.json());
-
-      if (!response.ok) {
-        const errorMsg = this.extractErrorMessage(data);
-        this.logger.error(`WhatsApp send failed: ${errorMsg}`, data);
-        throw new ServiceUnavailableException(errorMsg);
-      }
-
+      const data = await this.callApi(payload);
       return { externalId: this.extractFirstMessageId(data) };
     } catch (error: unknown) {
+      if (error instanceof ServiceUnavailableException) {
+        throw error;
+      }
       this.logger.error(
-        `WhatsApp send failed for ${to}`,
+        `WhatsApp request failed for ${to}`,
         error instanceof Error ? error.message : String(error),
       );
       throw new ServiceUnavailableException('WhatsApp service unavailable');
@@ -120,6 +160,10 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
   ): Promise<SendMessageResponse> {
     if (!this.phoneNumberId || !this.accessToken) {
       return { externalId: `skipped-${Date.now()}` };
+    }
+
+    if (this.tokenExpired) {
+      throw new ServiceUnavailableException('WhatsApp access token expired');
     }
 
     const cleanPhone = this.normalizePhoneNumber(request.to);
@@ -142,33 +186,20 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
     if (request.footerText) interactive.footer = { text: request.footerText };
 
     try {
-      const response = await fetch(
-        `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            recipient_type: 'individual',
-            to: cleanPhone,
-            type: 'interactive',
-            interactive,
-          }),
-        },
-      );
-
-      const data = this.toRecord(await response.json());
-      if (!response.ok) {
-        throw new ServiceUnavailableException(this.extractErrorMessage(data));
-      }
-
+      const data = await this.callApi({
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: cleanPhone,
+        type: 'interactive',
+        interactive,
+      });
       return { externalId: this.extractFirstMessageId(data) };
     } catch (error: unknown) {
+      if (error instanceof ServiceUnavailableException) {
+        throw error;
+      }
       this.logger.error(
-        `Interactive message failed`,
+        `WhatsApp interactive message failed`,
         error instanceof Error ? error.message : String(error),
       );
       throw new ServiceUnavailableException('WhatsApp service unavailable');
@@ -176,7 +207,9 @@ export class WhatsAppApiAdapter implements IWhatsAppClient {
   }
 
   checkHealth(): Promise<boolean> {
-    return Promise.resolve(!!(this.phoneNumberId && this.accessToken));
+    return Promise.resolve(
+      !!(this.phoneNumberId && this.accessToken) && !this.tokenExpired,
+    );
   }
 
   private normalizePhoneNumber(phone: string): string {

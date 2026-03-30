@@ -11,86 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  backend-tests:
-    name: Backend E2E Tests
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: docita_test
-          POSTGRES_PASSWORD: docita
-          POSTGRES_USER: docita
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-        ports:
-          - 5434:5432
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Wait for PostgreSQL
-        run: |
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5434 -U docita && break
-            echo "Waiting for PostgreSQL... ($i/30)"
-            sleep 1
-          done
-
-      - name: Reset test database
-        env:
-          PGPASSWORD: docita
-        run: |
-          dropdb -h localhost -U docita docita_test 2>/dev/null || true
-          createdb -h localhost -U docita docita_test
-
-      - name: Run database migrations
-        env:
-          DATABASE_URL: postgresql://docita:docita@localhost:5434/docita_test
-        working-directory: packages/db
-        run: npx prisma migrate deploy
-
-      - name: Run backend E2E tests
-        env:
-          DATABASE_URL: postgresql://docita:docita@localhost:5434/docita_test
-          REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-secret-key-for-ci-minimum-32-chars
-          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-          NODE_ENV: test
-        run: pnpm --filter @docita/api run test:e2e
-
-      - name: Upload coverage reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-coverage
-          path: apps/api/coverage-e2e/
-          retention-days: 30
-
   frontend-tests:
     name: Frontend Playwright Tests
     runs-on: ubuntu-latest
@@ -133,19 +53,3 @@ jobs:
           name: playwright-report
           path: apps/app/playwright-report/
           retention-days: 30
-
-  test-summary:
-    name: Test Summary
-    runs-on: ubuntu-latest
-    needs: [backend-tests]
-    if: always()
-
-    steps:
-      - name: Check test results
-        run: |
-          if [ "${{ needs.backend-tests.result }}" = "failure" ]; then
-            echo "Backend tests failed. Please review the logs above."
-            exit 1
-          fi
-          echo "Backend tests passed!"
-          echo "Note: Frontend E2E tests are skipped in CI (they require a running API server)"

@@ -28,6 +28,7 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import { ArrowLeft, FileText, Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
 import { type InvoiceFormValues, useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
+import { useSmartBack } from "@/hooks/use-smart-back";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
@@ -38,6 +39,7 @@ interface InvoiceEditUIProps {
 }
 
 export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
+  const goBack = useSmartBack(`/invoices/${invoiceId}`);
   const {
     form,
     fields,
@@ -81,7 +83,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push(`/invoices/${invoiceId}`)}
+          onClick={goBack}
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Cancel
@@ -208,7 +210,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push(`/invoices/${invoiceId}`)}
+              onClick={goBack}
             >
               Cancel
             </Button>

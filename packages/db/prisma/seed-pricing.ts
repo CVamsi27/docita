@@ -4,8 +4,7 @@ import {
   AddOnType,
   DiscountType,
 } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../src/index";
 
 async function seedPricing() {
 

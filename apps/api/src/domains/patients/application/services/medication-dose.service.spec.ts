@@ -6,21 +6,26 @@ import { MEDICATION_DOSE_REPOSITORY_TOKEN } from '@/domains/patients/core/reposi
 
 describe('MedicationDoseService', () => {
   let service: MedicationDoseService;
-  let repository: Record<string, jest.Mock>;
+  let repository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   beforeEach(async () => {
     repository = {
-      verifyPatientAccess: jest.fn(),
-      findMedicationWithPrescription: jest.fn(),
-      createDose: jest.fn(),
-      findDoseById: jest.fn(),
-      updateDose: jest.fn(),
-      findDoses: jest.fn(),
-      countDoses: jest.fn(),
-      groupDosesByStatus: jest.fn(),
-      createManyDoses: jest.fn(),
-      findPrescriptionsWithMedications: jest.fn(),
-      findPrescriptionById: jest.fn(),
+      verifyPatientAccess: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMedicationWithPrescription:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createDose: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findDoseById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateDose: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findDoses: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      countDoses: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      groupDosesByStatus: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createManyDoses: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findPrescriptionsWithMedications:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findPrescriptionById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -246,8 +251,11 @@ describe('MedicationDoseService', () => {
         'rx-1',
       );
 
-      const call = (repository.createManyDoses as jest.Mock).mock
-        .calls[0]?.[0] as unknown[] | undefined;
+      const call = (
+        repository.createManyDoses as jest.Mock<
+          (...args: unknown[]) => Promise<unknown>
+        >
+      ).mock.calls[0]?.[0] as unknown[] | undefined;
       expect(call).toHaveLength(14);
       expect(result.medicationsProcessed).toBe(1);
     });
@@ -336,8 +344,11 @@ describe('MedicationDoseService', () => {
 
       await service.generateScheduledDoses('clinic-1', 'patient-1', 'rx-qd');
 
-      const call = (repository.createManyDoses as jest.Mock).mock
-        .calls[0]?.[0] as unknown[] | undefined;
+      const call = (
+        repository.createManyDoses as jest.Mock<
+          (...args: unknown[]) => Promise<unknown>
+        >
+      ).mock.calls[0]?.[0] as unknown[] | undefined;
       expect(call).toHaveLength(5);
     });
 
@@ -361,8 +372,11 @@ describe('MedicationDoseService', () => {
 
       await service.generateScheduledDoses('clinic-1', 'patient-1', 'rx-ft');
 
-      const call = (repository.createManyDoses as jest.Mock).mock
-        .calls[0]?.[0] as unknown[] | undefined;
+      const call = (
+        repository.createManyDoses as jest.Mock<
+          (...args: unknown[]) => Promise<unknown>
+        >
+      ).mock.calls[0]?.[0] as unknown[] | undefined;
       expect(call).toHaveLength(6);
     });
 

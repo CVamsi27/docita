@@ -1,4 +1,4 @@
-import { useAPIMutation, useAPIQuery, fetchAPI } from "@/lib/api-core";
+import { useAPIMutation, useAPIQuery, fetchAPI, API_URL } from "@/lib/api-core";
 
 export interface SignatureUploadToken {
   token: string;
@@ -87,7 +87,7 @@ export const uploadSignature = async (
       : `/doctors/signature/upload/${token}`;
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
+    `${API_URL}${endpoint}`,
     {
       method: "POST",
       body: formData,

@@ -1,4 +1,3 @@
-
 export async function register() {
   if (
     process.env.DOCITA_CLOUDFLARE === "1" ||
@@ -9,7 +8,7 @@ export async function register() {
 
   try {
     await import("./lib/sentry.server.config");
-  } catch (error) {
+  } catch {
     // Ignore errors during instrumentation loading in non-NodeJS runtimes
     // or if the module is missing/stubbed.
   }

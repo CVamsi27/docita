@@ -11,7 +11,10 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('LeaveService', () => {
   let service: LeaveService;
-  let leaveRepository: Record<string, jest.Mock>;
+  let leaveRepository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   const mockLeave = {
     id: 'leave-1',
@@ -34,17 +37,17 @@ describe('LeaveService', () => {
 
   beforeEach(async () => {
     leaveRepository = {
-      createLeave: jest.fn(),
-      findLeaveById: jest.fn(),
-      findLeaveWithStaff: jest.fn(),
-      updateLeave: jest.fn(),
-      findLeaves: jest.fn(),
-      findTimeOffsForLeave: jest.fn(),
-      findLeavePlans: jest.fn(),
-      createLeavePlan: jest.fn(),
-      upsertLeavePlan: jest.fn(),
-      findLeavePlanById: jest.fn(),
-      updateLeavePlan: jest.fn(),
+      createLeave: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findLeaveById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findLeaveWithStaff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateLeave: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findLeaves: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findTimeOffsForLeave: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findLeavePlans: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createLeavePlan: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      upsertLeavePlan: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findLeavePlanById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateLeavePlan: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -54,8 +57,8 @@ describe('LeaveService', () => {
         {
           provide: AvailabilityScheduleService,
           useValue: {
-            createTimeOff: jest.fn(),
-            deleteTimeOff: jest.fn(),
+            createTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            deleteTimeOff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
         },
       ],

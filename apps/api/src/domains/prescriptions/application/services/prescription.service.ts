@@ -13,6 +13,7 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/prescription-created.event';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import {
   calculateAge,
   DEFAULT_TIMEZONE as _DEFAULT_TIMEZONE,
@@ -27,6 +28,9 @@ import {
   SigCode,
 } from '@workspace/db';
 
+const CURRENT_PDF_TEMPLATE_VERSION = 1;
+const PDF_SIGNED_URL_TTL_SECONDS = 3600;
+
 @Injectable()
 export class PrescriptionsService {
   private readonly logger = new Logger(PrescriptionsService.name);
@@ -37,6 +41,7 @@ export class PrescriptionsService {
     private pdfService: PrescriptionPdfService,
     private eventEmitter: EventEmitter2,
     private usageTracking: UsageTrackingService,
+    private readonly storageProvider: StorageProvider,
   ) {}
 
   async findAll(clinicId: string, params?: { search?: string; date?: string }) {
@@ -289,5 +294,47 @@ export class PrescriptionsService {
       date: new Date(),
       validityDays: 30,
     });
+  }
+
+  async getPdf(
+    id: string,
+    clinicId?: string,
+  ): Promise<
+    { type: 'url'; url: string } | { type: 'buffer'; buffer: Buffer }
+  > {
+    if (this.storageProvider.supportsSignedUrls) {
+      const prescription = await this.findOne(id, clinicId);
+
+      if (prescription.pdfUrl) {
+        const url = await this.storageProvider.generateSignedUrl(
+          prescription.pdfUrl,
+          PDF_SIGNED_URL_TTL_SECONDS,
+        );
+        return { type: 'url', url };
+      }
+
+      const buffer = await this.generatePDF(id, clinicId);
+      const objectKey = `pdfs/prescriptions/${id}.pdf`;
+      const storedKey = await this.storageProvider.uploadBuffer(
+        buffer,
+        objectKey,
+        'application/pdf',
+      );
+
+      await this.repository.update(id, {
+        pdfUrl: storedKey,
+        pdfGeneratedAt: new Date(),
+        pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
+      });
+
+      const url = await this.storageProvider.generateSignedUrl(
+        storedKey,
+        PDF_SIGNED_URL_TTL_SECONDS,
+      );
+      return { type: 'url', url };
+    }
+
+    const buffer = await this.generatePDF(id, clinicId);
+    return { type: 'buffer', buffer };
   }
 }

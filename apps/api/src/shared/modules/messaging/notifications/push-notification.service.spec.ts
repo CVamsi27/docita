@@ -12,11 +12,11 @@ describe('PushNotificationService', () => {
 
     const mockPrismaService = {
       deviceToken: {
-        findFirst: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        updateMany: jest.fn(),
+        findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       },
     };
 

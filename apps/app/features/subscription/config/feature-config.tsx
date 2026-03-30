@@ -3,6 +3,7 @@ import {
   Brain,
   Building2,
   Calendar,
+  CalendarOff,
   FileText,
   FlaskConical,
   Lock,
@@ -71,6 +72,9 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
   [Feature.PREDICTIVE_NO_SHOW]: Calendar,
   [Feature.PATIENT_SEGMENTATION]: Users,
   [Feature.ANOMALY_DETECTION]: Shield,
+
+  [Feature.LEAVE_MANAGEMENT]: CalendarOff,
+  [Feature.WHATSAPP_MESSAGING]: MessageSquare,
 };
 
 export function getFeatureDetails(feature: Feature) {

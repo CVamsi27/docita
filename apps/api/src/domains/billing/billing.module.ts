@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { DocumentsModule } from '@/domains/documents/documents.module';
 import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
 import {
   BillingCalculatorService,
@@ -39,6 +40,7 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
 @Module({
   imports: [
     PrismaModule,
+    DocumentsModule,
     PaymentsModule,
     WhatsAppModule,
     AuditModule,

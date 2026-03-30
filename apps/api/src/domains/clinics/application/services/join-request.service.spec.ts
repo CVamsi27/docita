@@ -23,19 +23,23 @@ const mockRequest = {
 
 describe('JoinRequestService', () => {
   let service: JoinRequestService;
-  let repository: Record<string, jest.Mock>;
+  let repository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   beforeEach(async () => {
     repository = {
-      create: jest.fn(),
-      findById: jest.fn(),
-      findPending: jest.fn(),
-      findUserPendingRequests: jest.fn(),
-      findByClinic: jest.fn(),
-      approve: jest.fn(),
-      reject: jest.fn(),
-      withdraw: jest.fn(),
-      expireOldRequests: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findPending: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUserPendingRequests:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findByClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      approve: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      reject: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      withdraw: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      expireOldRequests: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

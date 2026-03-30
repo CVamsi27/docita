@@ -34,16 +34,20 @@ export interface ILabRepository {
 }
 
 export interface IMedicalCodingRepository {
-  searchIcdCodes(query: string): Promise<IcdCode[]>;
-  findIcdByCode(code: string): Promise<IcdCode | null>;
-  searchCptCodes(query: string): Promise<CptCode[]>;
   getFavorites(userId: string): Promise<IcdCode[]>;
-  addFavorite(userId: string, icdCodeId: string): Promise<DoctorFavoriteCode>;
+  addFavorite(
+    userId: string,
+    code: string,
+    description: string,
+    category: string,
+  ): Promise<DoctorFavoriteCode>;
   removeFavorite(userId: string, icdCodeId: string): Promise<void>;
   getCptFavorites(userId: string): Promise<CptCode[]>;
   addCptFavorite(
     userId: string,
-    cptCodeId: string,
+    code: string,
+    description: string,
+    category: string,
   ): Promise<DoctorFavoriteCode>;
   removeCptFavorite(userId: string, cptCodeId: string): Promise<void>;
   getUncodedVisits(clinicId: string, search?: string): Promise<Appointment[]>;

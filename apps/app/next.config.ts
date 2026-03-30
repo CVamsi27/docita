@@ -94,7 +94,7 @@ let config: NextConfig = withBundleAnalyzer(nextConfig);
 config = process.env.NEXT_PUBLIC_SENTRY_DSN && !isCloudflareBuild
   ? withSentryConfig(config, {
       org: process.env.SENTRY_ORG || "docita",
-      project: process.env.SENTRY_PROJECT || "frontend",
+      project: process.env.NEXT_PUBLIC_SENTRY_PROJECT || "javascript-nextjs",
       silent: true,
       bundleSizeOptimizations: {
         excludeDebugStatements: true,

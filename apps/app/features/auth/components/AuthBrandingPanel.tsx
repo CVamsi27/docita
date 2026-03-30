@@ -1,5 +1,5 @@
 import { Lock, Server, Shield } from "lucide-react";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { DocitaIconMonochrome } from "@workspace/ui/components/docita-logo";
 
 export function AuthBrandingPanel() {
   return (
@@ -13,7 +13,10 @@ export function AuthBrandingPanel() {
         aria-hidden="true"
       />
 
-      <DocitaLogo textClassName="text-primary-foreground" />
+      <div className="flex items-center gap-2.5">
+        <DocitaIconMonochrome className="h-8 w-8 text-primary-foreground" />
+        <span className="text-xl font-bold tracking-tight text-primary-foreground">Docita</span>
+      </div>
 
       <div className="relative z-10 space-y-4">
         <h2 className="text-4xl font-bold text-primary-foreground leading-tight">
@@ -30,6 +33,7 @@ export function AuthBrandingPanel() {
           viewBox="0 0 400 80"
           className="w-full mt-8 text-primary-foreground/20"
           aria-hidden="true"
+          suppressHydrationWarning
         >
           <polyline
             points="0,40 40,40 60,10 80,70 100,40 140,40 160,20 180,60 200,40 240,40 260,15 280,65 300,40 340,40 360,25 380,55 400,40"
@@ -38,6 +42,7 @@ export function AuthBrandingPanel() {
             strokeWidth="2"
             strokeLinejoin="round"
             strokeLinecap="round"
+            suppressHydrationWarning
           />
         </svg>
       </div>

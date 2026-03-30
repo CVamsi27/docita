@@ -41,6 +41,21 @@ model User {
   lastFailedLoginAt   DateTime?
   accountLockedUntil  DateTime?
 
+  // MFA (TOTP-based two-factor authentication)
+  mfaEnabled     Boolean  @default(false)
+  mfaSecret      String?
+  mfaTempSecret  String?
+  mfaBackupCodes String[]
+
+  // Password expiry and history enforcement
+  passwordChangedAt  DateTime?
+  passwordExpiresAt  DateTime?
+
+  // Email verification
+  emailVerified              Boolean   @default(false)
+  emailVerificationToken     String?   @unique
+  emailVerificationExpiresAt DateTime?
+
   // Password reset
   passwordResetToken     String?   @unique
   passwordResetExpiresAt DateTime?
@@ -73,6 +88,9 @@ model User {
   notificationPreferences   NotificationPreferences?
   memberJoinRequests        MemberJoinRequest[]
   approvedJoinRequests      MemberJoinRequest[]   @relation("ApprovedRequests")
+  passwordHistory           PasswordHistory[]
+  mfaChallenges             MfaChallenge[]
+  apiKeys                   ApiKey[]              @relation("ApiKeyCreator")
   medicalDocuments          MedicalDocument[]     @relation("DoctorMedicalDocuments")
   followUps                 FollowUp[]            @relation("DoctorFollowUps")
   staffLeaves               StaffLeave[]          @relation("StaffLeaves")
@@ -81,6 +99,7 @@ model User {
   // Patient Portal: Link to Patient record for PATIENT role users
   linkedPatient             Patient?
   recordedMetricRecords     PatientMetricRecord[]
+  patientDoctors            PatientDoctor[]        @relation("DoctorPatients")
 
   @@index([clinicId])
   @@index([specialization])
@@ -95,8 +114,6 @@ model NotificationPreferences {
   sms      Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }
 
 model SignatureUploadToken {
@@ -114,7 +131,6 @@ model SignatureUploadToken {
   clinic Clinic? @relation("ClinicSlaSignatureTokens", fields: [clinicId], references: [id], onDelete: Cascade)
 
   @@index([doctorId])
-  @@index([token])
   @@index([expiresAt])
   @@index([clinicId])
 }
@@ -313,6 +329,7 @@ model Patient {
   followUps         FollowUp[]
   medicationDoses   MedicationDose[]
   labTestOrders     LabTestOrder[]
+  patientDoctors    PatientDoctor[]
 
   @@index([mrn])
   @@index([phoneNumber])
@@ -670,6 +687,10 @@ model Prescription {
   doctorRole               HospitalRole?
   doctorRegistrationNumber String?
   doctorLicenseNumber      String?
+  // PDF storage (R2) — immutable once generated
+  pdfUrl                   String?
+  pdfGeneratedAt           DateTime?
+  pdfTemplateVersion       Int              @default(1)
   medications              Medication[]
   medicationDoses          MedicationDose[]
   appointment              Appointment     @relation(fields: [appointmentId], references: [id])
@@ -800,6 +821,10 @@ model Invoice {
   doctorRole               HospitalRole?
   doctorRegistrationNumber String?
   doctorLicenseNumber      String?
+  // PDF storage (R2) — immutable once generated
+  pdfUrl                   String?
+  pdfGeneratedAt           DateTime?
+  pdfTemplateVersion       Int              @default(1)
   appointment              Appointment?     @relation(fields: [appointmentId], references: [id])
   patient                  Patient          @relation(fields: [patientId], references: [id])
   paymentSessions          PaymentSession[]
@@ -899,6 +924,7 @@ model AppointmentReminder {
 
   @@index([appointmentId])
   @@index([status])
+  @@index([appointmentId, status])
 }
 
 model Clinic {
@@ -984,6 +1010,8 @@ model Clinic {
   followUps             FollowUp[]
   staffLeaves           StaffLeave[]
   leavePlans            LeavePlan[]
+  apiKeys               ApiKey[]
+  patientDoctors        PatientDoctor[]
 }
 
 model MetricCategory {
@@ -1432,7 +1460,6 @@ model IcdCode {
   diagnoses   Diagnosis[]
   favorites   DoctorFavoriteCode[]
 
-  @@index([code])
   @@index([description])
   @@index([category])
   @@index([isCommon])
@@ -1450,7 +1477,6 @@ model CptCode {
   favorites   DoctorFavoriteCode[]
   procedures  Procedure[]
 
-  @@index([code])
   @@index([description])
   @@index([category])
   @@index([isCommon])
@@ -1718,6 +1744,7 @@ model LabTestOrder {
   @@index([clinicId])
   @@index([patientId])
   @@index([status])
+  @@index([patientId, clinicId, status])
 }
 
 model WhatsappFlow {
@@ -3141,6 +3168,10 @@ model RefreshToken {
   revokedAt       DateTime?
   replacedByToken String?
   tokenFamily     String?
+  deviceName      String?
+  ipAddress       String?
+  userAgent       String?
+  lastUsedAt      DateTime  @default(now())
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -3390,4 +3421,75 @@ model LeavePlan {
   clinic          Clinic    @relation(fields: [clinicId], references: [id])
 
   @@unique([clinicId, leaveType])
+}
+
+// ============================================================================
+// Auth Security Models
+// ============================================================================
+
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+
+model MfaChallenge {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  clinicId    String
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String
+  scopes      String[]
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  clinic    Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  createdBy User   @relation("ApiKeyCreator", fields: [createdById], references: [id])
+
+  @@index([clinicId])
+  @@index([createdById])
+  @@index([keyHash])
+}
+
+// PatientDoctor: tracks which doctors have treated a patient (soft ABAC)
+model PatientDoctor {
+  id          String   @id @default(cuid())
+  patientId   String
+  doctorId    String
+  clinicId    String
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  User    @relation("DoctorPatients", fields: [doctorId], references: [id])
+  clinic  Clinic  @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, doctorId, clinicId])
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([clinicId])
 }

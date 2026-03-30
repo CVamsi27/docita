@@ -41,6 +41,8 @@ export enum Feature {
   ROLE_MANAGEMENT = "ROLE_MANAGEMENT",
   CONSENT_MANAGEMENT = "CONSENT_MANAGEMENT",
   DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE",
+  LEAVE_MANAGEMENT = "LEAVE_MANAGEMENT",
+  WHATSAPP_MESSAGING = "WHATSAPP_MESSAGING",
 
   MULTI_DOCTOR = "MULTI_DOCTOR",
   MULTI_CLINIC = "MULTI_CLINIC",
@@ -96,33 +98,39 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.MULTI_DEVICE]: Tier.ESSENTIAL,
   [Feature.CONSENT_MANAGEMENT]: Tier.ESSENTIAL,
   [Feature.DOCTOR_SIGNATURE]: Tier.ESSENTIAL,
+  [Feature.LEAVE_MANAGEMENT]: Tier.ESSENTIAL,
+  [Feature.WHATSAPP_MESSAGING]: Tier.ESSENTIAL,
 
-  [Feature.MULTI_DOCTOR]: Tier.PROFESSIONAL,
-  [Feature.MULTI_CLINIC]: Tier.PROFESSIONAL,
-  [Feature.LAB_TESTS]: Tier.PROFESSIONAL,
-  [Feature.INVENTORY]: Tier.PROFESSIONAL,
-  [Feature.QUEUE_MANAGEMENT]: Tier.PROFESSIONAL,
-  [Feature.AUDIT_LOGS]: Tier.PROFESSIONAL,
-  [Feature.INSURANCE_BILLING]: Tier.PROFESSIONAL,
-  [Feature.DIGITAL_INTAKE_FORMS]: Tier.PROFESSIONAL,
+  // Clinical operations — all in Pro (ESSENTIAL)
+  [Feature.MULTI_DOCTOR]: Tier.ESSENTIAL,
+  [Feature.MULTI_CLINIC]: Tier.ESSENTIAL,
+  [Feature.LAB_TESTS]: Tier.ESSENTIAL,
+  [Feature.INVENTORY]: Tier.ESSENTIAL,
+  [Feature.QUEUE_MANAGEMENT]: Tier.ESSENTIAL,
+  [Feature.AUDIT_LOGS]: Tier.ESSENTIAL,
+  [Feature.INSURANCE_BILLING]: Tier.ESSENTIAL,
+  [Feature.DIGITAL_INTAKE_FORMS]: Tier.ESSENTIAL,
+  [Feature.OCR_ADVANCED]: Tier.ESSENTIAL,
+  [Feature.ADVANCED_ANALYTICS]: Tier.ESSENTIAL,
+  // AI features bundled in Pro (Coming Soon in UI)
+  [Feature.AI_PRESCRIPTION_ASSISTANT]: Tier.ESSENTIAL,
+  [Feature.AI_DIAGNOSIS_HINTS]: Tier.ESSENTIAL,
+  [Feature.SMART_TASK_ENGINE]: Tier.ESSENTIAL,
+  [Feature.PREDICTIVE_NO_SHOW]: Tier.ESSENTIAL,
+  [Feature.ANOMALY_DETECTION]: Tier.ESSENTIAL,
+
+  // Clinic tier (PROFESSIONAL) — advanced scale & integrations
   [Feature.BROADCAST_CAMPAIGNS]: Tier.PROFESSIONAL,
-  [Feature.OCR_ADVANCED]: Tier.PROFESSIONAL,
-  [Feature.ADVANCED_ANALYTICS]: Tier.PROFESSIONAL,
+  [Feature.PATIENT_SEGMENTATION]: Tier.PROFESSIONAL,
+  [Feature.FULL_EHR]: Tier.PROFESSIONAL,
+  [Feature.API_ACCESS]: Tier.PROFESSIONAL,
+  [Feature.MULTI_LOCATION_ANALYTICS]: Tier.PROFESSIONAL,
+  [Feature.CUSTOM_BRANDING]: Tier.PROFESSIONAL,
+  [Feature.SSO]: Tier.PROFESSIONAL,
+  [Feature.BULK_IMPORT_SUITE]: Tier.PROFESSIONAL,
 
-  [Feature.FULL_EHR]: Tier.ENTERPRISE,
-  [Feature.API_ACCESS]: Tier.ENTERPRISE,
-  [Feature.MULTI_LOCATION_ANALYTICS]: Tier.ENTERPRISE,
-  [Feature.CUSTOM_BRANDING]: Tier.ENTERPRISE,
+  // Enterprise only
   [Feature.DATA_WAREHOUSE_EXPORT]: Tier.ENTERPRISE,
-  [Feature.SSO]: Tier.ENTERPRISE,
-  [Feature.BULK_IMPORT_SUITE]: Tier.ENTERPRISE,
-
-  [Feature.AI_PRESCRIPTION_ASSISTANT]: Tier.INTELLIGENCE,
-  [Feature.AI_DIAGNOSIS_HINTS]: Tier.INTELLIGENCE,
-  [Feature.SMART_TASK_ENGINE]: Tier.INTELLIGENCE,
-  [Feature.PREDICTIVE_NO_SHOW]: Tier.INTELLIGENCE,
-  [Feature.PATIENT_SEGMENTATION]: Tier.INTELLIGENCE,
-  [Feature.ANOMALY_DETECTION]: Tier.INTELLIGENCE,
 };
 
 export type SupportedCurrency = "INR" | "USD" | "EUR" | "GBP" | "AUD";
@@ -180,55 +188,55 @@ export const TIER_PRICING_BY_CURRENCY: Record<
 
   INR: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 999, yearly: 10789 },
-    PROFESSIONAL: { monthly: 3999, yearly: 43189 },
+    ESSENTIAL: { monthly: 999, yearly: 9990 },
+    PROFESSIONAL: { monthly: 2499, yearly: 24990 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 1999, yearly: 21589 },
+    INTELLIGENCE: { monthly: 0, yearly: 0 },
   },
 
   USD: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 19, yearly: 205 },
-    PROFESSIONAL: { monthly: 79, yearly: 853 },
+    ESSENTIAL: { monthly: 39, yearly: 390 },
+    PROFESSIONAL: { monthly: 79, yearly: 790 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 29, yearly: 313 },
+    INTELLIGENCE: { monthly: 0, yearly: 0 },
   },
 
   EUR: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 17, yearly: 184 },
-    PROFESSIONAL: { monthly: 69, yearly: 745 },
+    ESSENTIAL: { monthly: 35, yearly: 350 },
+    PROFESSIONAL: { monthly: 72, yearly: 720 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 25, yearly: 270 },
+    INTELLIGENCE: { monthly: 0, yearly: 0 },
   },
 
   GBP: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 15, yearly: 162 },
-    PROFESSIONAL: { monthly: 59, yearly: 637 },
+    ESSENTIAL: { monthly: 29, yearly: 290 },
+    PROFESSIONAL: { monthly: 59, yearly: 590 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 22, yearly: 238 },
+    INTELLIGENCE: { monthly: 0, yearly: 0 },
   },
 
   AUD: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 29, yearly: 313 },
-    PROFESSIONAL: { monthly: 119, yearly: 1285 },
+    ESSENTIAL: { monthly: 59, yearly: 590 },
+    PROFESSIONAL: { monthly: 119, yearly: 1190 },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
-    INTELLIGENCE: { monthly: 45, yearly: 486 },
+    INTELLIGENCE: { monthly: 0, yearly: 0 },
   },
 };
 
 export const TIER_PRICING: Record<TierName, TierPricing> = {
   STARTER: { monthly: 0, yearly: 0, currency: "₹" },
-  ESSENTIAL: { monthly: 999, yearly: 10789, currency: "₹" },
-  PROFESSIONAL: { monthly: 3999, yearly: 43189, currency: "₹" },
+  ESSENTIAL: { monthly: 999, yearly: 9990, currency: "₹" },
+  PROFESSIONAL: { monthly: 2499, yearly: 24990, currency: "₹" },
   ENTERPRISE: { monthly: "custom", yearly: "custom", currency: "₹" },
-  INTELLIGENCE: { monthly: 1999, yearly: 21589, currency: "₹" },
+  INTELLIGENCE: { monthly: 0, yearly: 0, currency: "₹" },
 };
 
-export const ANNUAL_DISCOUNT_PERCENT = 10;
-export const SEMI_ANNUAL_DISCOUNT_PERCENT = 5;
+export const ANNUAL_DISCOUNT_PERCENT = 17;
+export const SEMI_ANNUAL_DISCOUNT_PERCENT = 8;
 export const REFERRAL_DISCOUNT_PERCENT = 25;
 export const MAX_REFERRAL_CREDITS_PER_YEAR = 12;
 export const GRACE_PERIOD_DAYS = 3;
@@ -249,40 +257,42 @@ export type TierLimits = z.infer<typeof tierLimitsSchema>;
 
 export const TIER_LIMITS: Record<TierName, TierLimits> = {
   STARTER: {
-    patients: 50,
+    patients: 100,
     doctors: 1,
-    storageGB: 1,
+    storageGB: 2,
     branches: 1,
-    appointments: 100,
+    appointments: 200,
     users: 1,
-    prescriptions: 50,
+    prescriptions: 100,
     invoices: 0,
-    ocrPages: 50,
+    ocrPages: 100,
     apiCallsPerDay: 0,
   },
+  // ESSENTIAL = "Docita Pro" — base inclusions, overage billed monthly beyond these
   ESSENTIAL: {
-    patients: 500,
-    doctors: 1,
+    patients: 1000,
+    doctors: 999,
     storageGB: 10,
-    branches: 1,
-    appointments: 1000,
-    users: 3,
-    prescriptions: 500,
-    invoices: 300,
-    ocrPages: 200,
+    branches: 5,
+    appointments: 2000,
+    users: 5,
+    prescriptions: 1000,
+    invoices: 500,
+    ocrPages: 500,
     apiCallsPerDay: 0,
   },
+  // PROFESSIONAL = "Docita Clinic" — higher quotas, better overage rates, advanced features
   PROFESSIONAL: {
-    patients: 10000,
+    patients: 5000,
     doctors: 999,
-    storageGB: 100,
-    branches: 5,
-    appointments: 20000,
-    users: 15,
+    storageGB: 50,
+    branches: 999,
+    appointments: 10000,
+    users: 20,
     prescriptions: 5000,
-    invoices: 4000,
+    invoices: 2000,
     ocrPages: 2000,
-    apiCallsPerDay: 0,
+    apiCallsPerDay: 10000,
   },
   ENTERPRISE: {
     patients: 999999,
@@ -296,6 +306,7 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     ocrPages: 10000,
     apiCallsPerDay: 10000,
   },
+  // INTELLIGENCE is an add-on, not a standalone tier — these limits are placeholder values and are not applied
   INTELLIGENCE: {
     patients: 999999,
     doctors: 999,
@@ -310,7 +321,8 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
   },
 };
 
-const FLAT_OVERAGE_RATES = {
+// Pro (ESSENTIAL) overage rates
+const ESSENTIAL_OVERAGE_INR = {
   patientRate: 1.5,
   appointmentRate: 0.75,
   storageRate: 40,
@@ -321,7 +333,7 @@ const FLAT_OVERAGE_RATES = {
   apiCallRate: 0,
 };
 
-const FLAT_OVERAGE_RATES_USD = {
+const ESSENTIAL_OVERAGE_USD = {
   patientRate: 0.04,
   appointmentRate: 0.02,
   storageRate: 1.2,
@@ -332,7 +344,7 @@ const FLAT_OVERAGE_RATES_USD = {
   apiCallRate: 0,
 };
 
-const FLAT_OVERAGE_RATES_EUR = {
+const ESSENTIAL_OVERAGE_EUR = {
   patientRate: 0.035,
   appointmentRate: 0.018,
   storageRate: 1.0,
@@ -343,7 +355,7 @@ const FLAT_OVERAGE_RATES_EUR = {
   apiCallRate: 0,
 };
 
-const FLAT_OVERAGE_RATES_GBP = {
+const ESSENTIAL_OVERAGE_GBP = {
   patientRate: 0.03,
   appointmentRate: 0.015,
   storageRate: 0.85,
@@ -354,7 +366,7 @@ const FLAT_OVERAGE_RATES_GBP = {
   apiCallRate: 0,
 };
 
-const FLAT_OVERAGE_RATES_AUD = {
+const ESSENTIAL_OVERAGE_AUD = {
   patientRate: 0.06,
   appointmentRate: 0.03,
   storageRate: 1.8,
@@ -363,6 +375,62 @@ const FLAT_OVERAGE_RATES_AUD = {
   invoiceRate: 0.015,
   ocrPageRate: 0.06,
   apiCallRate: 0,
+};
+
+// Clinic (PROFESSIONAL) overage rates — ~20% cheaper per unit to reward higher tier
+const PROFESSIONAL_OVERAGE_INR = {
+  patientRate: 1.2,
+  appointmentRate: 0.6,
+  storageRate: 30,
+  userRate: 299,
+  prescriptionRate: 0.6,
+  invoiceRate: 0.3,
+  ocrPageRate: 1.2,
+  apiCallRate: 0.001,
+};
+
+const PROFESSIONAL_OVERAGE_USD = {
+  patientRate: 0.03,
+  appointmentRate: 0.015,
+  storageRate: 0.9,
+  userRate: 9,
+  prescriptionRate: 0.015,
+  invoiceRate: 0.008,
+  ocrPageRate: 0.03,
+  apiCallRate: 0.00003,
+};
+
+const PROFESSIONAL_OVERAGE_EUR = {
+  patientRate: 0.027,
+  appointmentRate: 0.014,
+  storageRate: 0.8,
+  userRate: 8,
+  prescriptionRate: 0.013,
+  invoiceRate: 0.007,
+  ocrPageRate: 0.027,
+  apiCallRate: 0.000025,
+};
+
+const PROFESSIONAL_OVERAGE_GBP = {
+  patientRate: 0.023,
+  appointmentRate: 0.012,
+  storageRate: 0.65,
+  userRate: 7,
+  prescriptionRate: 0.011,
+  invoiceRate: 0.006,
+  ocrPageRate: 0.023,
+  apiCallRate: 0.00002,
+};
+
+const PROFESSIONAL_OVERAGE_AUD = {
+  patientRate: 0.048,
+  appointmentRate: 0.024,
+  storageRate: 1.4,
+  userRate: 14,
+  prescriptionRate: 0.024,
+  invoiceRate: 0.012,
+  ocrPageRate: 0.048,
+  apiCallRate: 0.00004,
 };
 
 const ZERO_OVERAGE = {
@@ -390,8 +458,8 @@ export const TIER_OVERAGE_RATES: Record<
   }
 > = {
   STARTER: ZERO_OVERAGE,
-  ESSENTIAL: FLAT_OVERAGE_RATES,
-  PROFESSIONAL: FLAT_OVERAGE_RATES,
+  ESSENTIAL: ESSENTIAL_OVERAGE_INR,
+  PROFESSIONAL: PROFESSIONAL_OVERAGE_INR,
   ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.01 },
   INTELLIGENCE: ZERO_OVERAGE,
 };
@@ -416,32 +484,32 @@ export const TIER_OVERAGE_RATES_BY_CURRENCY: Record<
 
   USD: {
     STARTER: ZERO_OVERAGE,
-    ESSENTIAL: FLAT_OVERAGE_RATES_USD,
-    PROFESSIONAL: FLAT_OVERAGE_RATES_USD,
+    ESSENTIAL: ESSENTIAL_OVERAGE_USD,
+    PROFESSIONAL: PROFESSIONAL_OVERAGE_USD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0003 },
     INTELLIGENCE: ZERO_OVERAGE,
   },
 
   EUR: {
     STARTER: ZERO_OVERAGE,
-    ESSENTIAL: FLAT_OVERAGE_RATES_EUR,
-    PROFESSIONAL: FLAT_OVERAGE_RATES_EUR,
+    ESSENTIAL: ESSENTIAL_OVERAGE_EUR,
+    PROFESSIONAL: PROFESSIONAL_OVERAGE_EUR,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.00025 },
     INTELLIGENCE: ZERO_OVERAGE,
   },
 
   GBP: {
     STARTER: ZERO_OVERAGE,
-    ESSENTIAL: FLAT_OVERAGE_RATES_GBP,
-    PROFESSIONAL: FLAT_OVERAGE_RATES_GBP,
+    ESSENTIAL: ESSENTIAL_OVERAGE_GBP,
+    PROFESSIONAL: PROFESSIONAL_OVERAGE_GBP,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0002 },
     INTELLIGENCE: ZERO_OVERAGE,
   },
 
   AUD: {
     STARTER: ZERO_OVERAGE,
-    ESSENTIAL: FLAT_OVERAGE_RATES_AUD,
-    PROFESSIONAL: FLAT_OVERAGE_RATES_AUD,
+    ESSENTIAL: ESSENTIAL_OVERAGE_AUD,
+    PROFESSIONAL: PROFESSIONAL_OVERAGE_AUD,
     ENTERPRISE: { ...ZERO_OVERAGE, apiCallRate: 0.0004 },
     INTELLIGENCE: ZERO_OVERAGE,
   },
@@ -453,22 +521,24 @@ export interface AddOnPricing {
   overageRate: number;
 }
 
+// WhatsApp is now bundled in each tier — these quotas reflect what's included per tier
 export const WHATSAPP_ADDON_PRICING: Record<
   Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
 > = {
-  ESSENTIAL: { basePrice: 499, includedQuota: 500, overageRate: 0.5 },
-  PROFESSIONAL: { basePrice: 1499, includedQuota: 5000, overageRate: 0.3 },
-  ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.2 },
+  ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.5 },
+  PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.3 },
+  ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.2 },
 };
 
+// INTELLIGENCE add-on is coming soon — prices set to 0 until launch
 export const INTELLIGENCE_ADDON_PRICING: Record<
   Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
 > = {
-  ESSENTIAL: { basePrice: 1999, includedQuota: 500, overageRate: 3 },
-  PROFESSIONAL: { basePrice: 3499, includedQuota: 5000, overageRate: 2 },
-  ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 1.5 },
+  ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
 };
 
 export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
@@ -477,52 +547,43 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
 > = {
   INR: WHATSAPP_ADDON_PRICING,
   USD: {
-    ESSENTIAL: { basePrice: 9, includedQuota: 500, overageRate: 0.015 },
-    PROFESSIONAL: { basePrice: 25, includedQuota: 5000, overageRate: 0.008 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.005 },
+    ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.015 },
+    PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.008 },
+    ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.005 },
   },
   EUR: {
-    ESSENTIAL: { basePrice: 8, includedQuota: 500, overageRate: 0.013 },
-    PROFESSIONAL: { basePrice: 22, includedQuota: 5000, overageRate: 0.007 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.004 },
+    ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.013 },
+    PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.007 },
+    ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
   },
   GBP: {
-    ESSENTIAL: { basePrice: 7, includedQuota: 500, overageRate: 0.012 },
-    PROFESSIONAL: { basePrice: 19, includedQuota: 5000, overageRate: 0.006 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.004 },
+    ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.012 },
+    PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.006 },
+    ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.004 },
   },
   AUD: {
-    ESSENTIAL: { basePrice: 15, includedQuota: 500, overageRate: 0.022 },
-    PROFESSIONAL: { basePrice: 35, includedQuota: 5000, overageRate: 0.012 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.008 },
+    ESSENTIAL: { basePrice: 0, includedQuota: 500, overageRate: 0.022 },
+    PROFESSIONAL: { basePrice: 0, includedQuota: 2000, overageRate: 0.012 },
+    ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.008 },
   },
+};
+
+// INTELLIGENCE add-on is coming soon — all values set to 0 until launch
+const INTELLIGENCE_ZERO_PRICING: Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing> = {
+  ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
+  ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
 };
 
 export const INTELLIGENCE_ADDON_PRICING_BY_CURRENCY: Record<
   SupportedCurrency,
   Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing>
 > = {
-  INR: INTELLIGENCE_ADDON_PRICING,
-  USD: {
-    ESSENTIAL: { basePrice: 29, includedQuota: 500, overageRate: 0.05 },
-    PROFESSIONAL: { basePrice: 55, includedQuota: 5000, overageRate: 0.03 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.02 },
-  },
-  EUR: {
-    ESSENTIAL: { basePrice: 25, includedQuota: 500, overageRate: 0.045 },
-    PROFESSIONAL: { basePrice: 49, includedQuota: 5000, overageRate: 0.025 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.018 },
-  },
-  GBP: {
-    ESSENTIAL: { basePrice: 22, includedQuota: 500, overageRate: 0.04 },
-    PROFESSIONAL: { basePrice: 42, includedQuota: 5000, overageRate: 0.022 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.015 },
-  },
-  AUD: {
-    ESSENTIAL: { basePrice: 45, includedQuota: 500, overageRate: 0.075 },
-    PROFESSIONAL: { basePrice: 85, includedQuota: 5000, overageRate: 0.045 },
-    ENTERPRISE: { basePrice: "custom", includedQuota: 15000, overageRate: 0.03 },
-  },
+  INR: INTELLIGENCE_ZERO_PRICING,
+  USD: INTELLIGENCE_ZERO_PRICING,
+  EUR: INTELLIGENCE_ZERO_PRICING,
+  GBP: INTELLIGENCE_ZERO_PRICING,
+  AUD: INTELLIGENCE_ZERO_PRICING,
 };
 
 export const AI_CREDIT_COSTS = {
@@ -686,15 +747,15 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
     color: "gray",
   },
   ESSENTIAL: {
-    name: "Docita Essential",
-    description: "Professional practice management for solo clinics",
-    tagline: "Solo Clinic Pro",
+    name: "Docita Pro",
+    description: "All features included. Pay only for what you use beyond your base quota.",
+    tagline: "Scale with your clinic",
     color: "blue",
   },
   PROFESSIONAL: {
-    name: "Docita Professional",
-    description: "Full-featured solution for multi-doctor clinics",
-    tagline: "Multi-Doctor Clinics",
+    name: "Docita Clinic",
+    description: "Full EHR, API access, custom branding, and broadcast campaigns for scaling practices.",
+    tagline: "Built for growing clinics",
     color: "purple",
   },
   ENTERPRISE: {
@@ -803,6 +864,14 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.DOCTOR_SIGNATURE]: {
     name: "Doctor Signature",
     description: "Digital signature on prescriptions",
+  },
+  [Feature.LEAVE_MANAGEMENT]: {
+    name: "Leave Management",
+    description: "Track and manage staff leave",
+  },
+  [Feature.WHATSAPP_MESSAGING]: {
+    name: "WhatsApp Messaging",
+    description: "Send messages and reminders via WhatsApp",
   },
 
   [Feature.MULTI_DOCTOR]: {
@@ -942,7 +1011,7 @@ export const INTELLIGENCE_BUNDLE_DISCOUNT = 0.4;
 
 export const TIER_FEATURES: Record<TierName, string[]> = {
   STARTER: [
-    "Up to 50 patients",
+    "Up to 100 patients",
     "Calendar & appointment scheduling",
     "Digital prescriptions with PDF",
     "Patient profiles & visit history",
@@ -953,60 +1022,50 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Single doctor",
   ],
   ESSENTIAL: [
-    "Everything in Starter",
-    "Up to 500 patients",
-    "Invoicing & billing",
-    "Basic analytics dashboard",
+    "All features from Starter",
+    "1,000 patients included — then ₹1.5/extra",
+    "5 users included — then ₹399/extra user/mo",
+    "2,000 appointments/mo included",
+    "WhatsApp messaging (500 msgs/mo included)",
+    "Multi-doctor & multi-branch support",
+    "Lab tests & inventory",
+    "Queue management",
+    "Advanced analytics & reporting",
     "ICD-10/CPT medical coding",
-    "Prescription templates",
-    "Digital consent management",
-    "Doctor signature on prescriptions",
-    "Multi-device staff login",
-    "Team management (3 users, roles & permissions)",
-    "Automated appointment reminders",
-    "Payment links",
-    "Email support",
+    "Digital intake forms",
+    "Audit logs & compliance",
+    "Prescription templates & doctor signature",
+    "Automated reminders & payment links",
+    "Insurance billing",
+    "Leave management",
+    "AI features — Coming Soon",
   ],
   PROFESSIONAL: [
-    "Everything in Essential",
-    "Up to 10,000 patients",
-    "Unlimited doctors",
-    "Multi-doctor calendar",
-    "Multi-clinic branching (up to 5 branches)",
-    "Lab tests catalog & tracking",
-    "Inventory & pharmacy module",
-    "Token queue management",
-    "Audit logs & compliance",
-    "Digital intake forms",
-    "WhatsApp broadcast campaigns",
-    "Advanced OCR with AI",
-    "Advanced analytics dashboard",
-    "Insurance billing",
-    "15 users included",
-    "Priority support",
+    "Everything in Pro",
+    "5,000 patients included — then ₹1.2/extra",
+    "20 users included — then ₹299/extra user/mo",
+    "10,000 appointments/mo included",
+    "WhatsApp messaging (2,000 msgs/mo included)",
+    "Broadcast campaigns (mass WhatsApp/SMS)",
+    "Patient segmentation & targeted messaging",
+    "Full EHR (IPD, structured vitals, clinical notes)",
+    "Custom branding on reports & receipts",
+    "Multi-location analytics (cross-branch)",
+    "Bulk data import suite",
+    "REST API access (10,000 calls/day)",
+    "SSO (Google Workspace / Azure AD)",
+    "Unlimited branches",
+    "Priority support with SLA",
   ],
   ENTERPRISE: [
-    "Everything in Professional",
-    "Unlimited patients & doctors",
-    "Full EHR capabilities",
-    "API access for integrations",
-    "Multi-location analytics",
-    "Custom branding & white-label",
-    "Data warehouse export",
-    "SSO & advanced security",
-    "Bulk import suite",
+    "Everything in Clinic",
+    "Unlimited patients, users & branches",
+    "Data warehouse export (BI tools)",
+    "Custom contract & invoicing",
     "Dedicated account manager",
-    "SLA guarantee",
+    "Custom SLA guarantee",
   ],
-  INTELLIGENCE: [
-    "AI prescription assistant",
-    "Diagnosis suggestions (non-clinical)",
-    "Smart task automation",
-    "Predictive no-show model",
-    "Patient risk segmentation",
-    "Anomaly detection in analytics",
-    "Voice-to-text dictation",
-  ],
+  INTELLIGENCE: [],
 };
 
 export function getTierValue(tierName: TierName): Tier {
@@ -1072,3 +1131,68 @@ export function getTierFeaturesList(tier: Tier | TierName): string[] {
   const tierName = typeof tier === "number" ? getTierName(tier) : tier;
   return TIER_FEATURES[tierName];
 }
+
+// ── Usage-based pricing types ─────────────────────────────────────────────────
+
+export const usageMetricsSchema = z.object({
+  patients: z.number().int().min(0),
+  appointmentsPerMonth: z.number().int().min(0),
+  users: z.number().int().min(0),
+  prescriptionsPerMonth: z.number().int().min(0),
+  invoicesPerMonth: z.number().int().min(0),
+  whatsappMessagesPerMonth: z.number().int().min(0),
+  storageGB: z.number().min(0),
+});
+export type UsageMetrics = z.infer<typeof usageMetricsSchema>;
+
+export const currentUsageSchema = z.object({
+  period: z.object({
+    start: z.string(),
+    end: z.string(),
+  }),
+  usage: z.object({
+    activePatients: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+    }),
+    appointments: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+    }),
+    users: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+    }),
+    whatsappMessages: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+      addOnActive: z.boolean(),
+    }),
+    aiCredits: z.object({
+      current: z.number(),
+      included: z.number(),
+      overage: z.number(),
+      addOnActive: z.boolean(),
+    }),
+  }),
+  tier: z.string(),
+});
+export type CurrentUsage = z.infer<typeof currentUsageSchema>;
+
+// Included WhatsApp messages in the Pro base plan (no add-on required)
+export const WHATSAPP_INCLUDED_IN_PRO = 500;
+
+// The Pro plan (ESSENTIAL) overage rates per unit — matches TIER_OVERAGE_RATES.ESSENTIAL
+export const PRO_OVERAGE_RATES_INR = {
+  patient: 1.5,         // per extra active patient
+  appointment: 0.75,   // per extra appointment/mo
+  user: 399,           // per extra user/mo
+  prescription: 0.75,  // per extra prescription/mo
+  invoice: 0.4,        // per extra invoice/mo
+  whatsappMessage: 0.5, // per extra WhatsApp message/mo
+  storageGB: 40,       // per extra GB/mo
+} as const;

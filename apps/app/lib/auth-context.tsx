@@ -62,7 +62,7 @@ interface AuthContextType {
     clinicName?: string,
   ) => Promise<void>;
   checkEmail: (email: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   token: string | null;
 }
 
@@ -485,22 +485,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = useCallback(() => {
-    // Clear local state BEFORE API call to prevent re-validation race
+  const logout = useCallback(async () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem("docita_user");
 
     const csrfToken = getCsrfToken();
-    fetch(`${API_URL}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-      },
-      body: JSON.stringify({}),
-    }).catch(() => {});
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+        },
+        body: JSON.stringify({}),
+      });
+    } catch {}
 
     router.push("/login");
   }, [router]);

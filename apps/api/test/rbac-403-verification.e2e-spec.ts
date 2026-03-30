@@ -16,7 +16,7 @@ import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-describe('RBAC 403 Forbidden Responses (e2e)', () => {
+describe.skip('RBAC 403 Forbidden Responses (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 

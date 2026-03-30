@@ -13,6 +13,7 @@ import { AiAutomationSection } from "@/components/sections/ai-automation-section
 import { WhatsappSection } from "@/components/sections/whatsapp-section";
 import { FeaturesGridSection } from "@/components/sections/features-grid-section";
 import { TrustSecuritySection } from "@/components/sections/trust-security-section";
+import { PricingSection } from "@/components/sections/pricing-section";
 import { FaqSection } from "@/components/sections/faq-section";
 import { CtaBottomSection } from "@/components/sections/cta-bottom-section";
 import { FooterSection } from "@/components/sections/footer-section";
@@ -46,6 +47,8 @@ export default function Page() {
       <FeaturesGridSection />
 
       <TrustSecuritySection />
+
+      <PricingSection />
 
       <FaqSection />
 

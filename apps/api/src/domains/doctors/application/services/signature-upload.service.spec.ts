@@ -8,7 +8,10 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('SignatureUploadService', () => {
   let service: SignatureUploadService;
-  let repository: Record<string, jest.Mock>;
+  let repository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   const mockDoctor = {
     id: 'doctor-1',
@@ -34,18 +37,22 @@ describe('SignatureUploadService', () => {
 
   beforeEach(async () => {
     repository = {
-      findUserById: jest.fn(),
-      findClinicById: jest.fn(),
-      createUploadToken: jest.fn(),
-      findTokenByValue: jest.fn(),
-      findTokenById: jest.fn(),
-      findClinicTokenById: jest.fn(),
-      findActiveTokensByDoctor: jest.fn(),
-      findActiveTokensByClinic: jest.fn(),
-      markTokenUsed: jest.fn(),
-      markTokenUsedById: jest.fn(),
-      updateDoctorSignature: jest.fn(),
-      updateClinicSignature: jest.fn(),
+      findUserById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findClinicById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createUploadToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findTokenByValue: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findTokenById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findClinicTokenById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findActiveTokensByDoctor:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findActiveTokensByClinic:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      markTokenUsed: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      markTokenUsedById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateDoctorSignature:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateClinicSignature:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -58,8 +65,8 @@ describe('SignatureUploadService', () => {
         {
           provide: StorageProvider,
           useValue: {
-            upload: jest.fn(),
-            delete: jest.fn(),
+            upload: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
         },
       ],

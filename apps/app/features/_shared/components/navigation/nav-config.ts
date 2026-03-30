@@ -87,8 +87,13 @@ export const navItems: NavItem[] = [
     feature: Feature.MEDICAL_CODING,
   },
   { href: "/import", icon: Upload, label: "Import Data" },
-  { href: "/settings", icon: Settings, label: "Settings" },
 ];
+
+export const SETTINGS_NAV_ITEM: NavItem = {
+  href: "/settings",
+  icon: Settings,
+  label: "Settings",
+};
 
 // Items that are always shown and cannot be hidden by admins
 export const FIXED_NAV_HREFS = new Set(["/dashboard", "/settings"]);

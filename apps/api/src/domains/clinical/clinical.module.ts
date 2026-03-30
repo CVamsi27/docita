@@ -3,6 +3,7 @@ import { LabTestsController } from './presentation/controllers/lab-tests.control
 import { MedicalCodingController } from './presentation/controllers/medical-coding.controller';
 import { ClinicalService } from './application/services/clinical.service';
 import { PrismaClinicalRepository } from './infrastructure/persistence/prisma-clinical.repository';
+import { NlmCodingService } from './infrastructure/external/nlm-coding.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { ClinicalFactory } from './application/factories/clinical.factory';
 
@@ -12,6 +13,7 @@ import { ClinicalFactory } from './application/factories/clinical.factory';
   providers: [
     ClinicalService,
     ClinicalFactory,
+    NlmCodingService,
     {
       provide: 'ILabRepository',
       useClass: PrismaClinicalRepository,

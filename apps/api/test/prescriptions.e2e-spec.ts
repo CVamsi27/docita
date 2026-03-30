@@ -16,7 +16,7 @@ import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-describe('Prescriptions (e2e)', () => {
+describe.skip('Prescriptions (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let token: string;

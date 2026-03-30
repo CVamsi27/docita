@@ -6,7 +6,10 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('LeavePlanService', () => {
   let service: LeavePlanService;
-  let leaveRepository: Record<string, jest.Mock>;
+  let leaveRepository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   const mockPlan = {
     id: 'plan-1',
@@ -22,10 +25,10 @@ describe('LeavePlanService', () => {
 
   beforeEach(async () => {
     leaveRepository = {
-      findLeavePlans: jest.fn(),
-      findLeavePlanById: jest.fn(),
-      upsertLeavePlan: jest.fn(),
-      updateLeavePlan: jest.fn(),
+      findLeavePlans: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findLeavePlanById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      upsertLeavePlan: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateLeavePlan: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -3,6 +3,7 @@ import {
   ILabRepository,
   IMedicalCodingRepository,
 } from '@/domains/clinical/core/repositories/clinical.repository.interface';
+import { NlmCodingService } from '@/domains/clinical/infrastructure/external/nlm-coding.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import {
@@ -27,6 +28,7 @@ export class ClinicalService {
     private readonly labRepository: ILabRepository,
     @Inject('IMedicalCodingRepository')
     private readonly codingRepository: IMedicalCodingRepository,
+    private readonly nlmCodingService: NlmCodingService,
   ) {}
 
   private toLabTestInput(
@@ -107,11 +109,11 @@ export class ClinicalService {
   }
 
   async searchIcdCodes(query: string): Promise<IcdCode[]> {
-    return await this.codingRepository.searchIcdCodes(query);
+    return await this.nlmCodingService.searchIcdCodes(query);
   }
 
   async searchCptCodes(query: string): Promise<CptCode[]> {
-    return await this.codingRepository.searchCptCodes(query);
+    return await this.nlmCodingService.searchCptCodes(query);
   }
 
   async getFavorites(userId: string): Promise<(IcdCode | null)[]> {
@@ -120,9 +122,16 @@ export class ClinicalService {
 
   async addFavorite(
     userId: string,
-    icdCodeId: string,
+    code: string,
+    description: string,
+    category: string,
   ): Promise<DoctorFavoriteCode> {
-    return await this.codingRepository.addFavorite(userId, icdCodeId);
+    return await this.codingRepository.addFavorite(
+      userId,
+      code,
+      description,
+      category,
+    );
   }
 
   async removeFavorite(userId: string, icdCodeId: string): Promise<void> {
@@ -135,9 +144,16 @@ export class ClinicalService {
 
   async addCptFavorite(
     userId: string,
-    cptCodeId: string,
+    code: string,
+    description: string,
+    category: string,
   ): Promise<DoctorFavoriteCode> {
-    return await this.codingRepository.addCptFavorite(userId, cptCodeId);
+    return await this.codingRepository.addCptFavorite(
+      userId,
+      code,
+      description,
+      category,
+    );
   }
 
   async removeCptFavorite(userId: string, cptCodeId: string): Promise<void> {

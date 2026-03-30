@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": "(app|appointments|compliance|dashboard|rbac)\\.e2e-spec\\.ts$",
+  "testRegex": "(app|appointments|auth|clinic-members|compliance|csrf|dashboard|idempotency|rbac)\\.e2e-spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": [
       "ts-jest",

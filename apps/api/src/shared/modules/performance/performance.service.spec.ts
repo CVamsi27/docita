@@ -8,7 +8,7 @@ describe('PerformanceService', () => {
   let prismaService: PrismaService;
 
   const mockPrismaService = {
-    $queryRaw: jest.fn(),
+    $queryRaw: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   beforeEach(async () => {
@@ -150,7 +150,9 @@ describe('PerformanceService', () => {
 
       expect(result.uptime.formatted).toContain('d');
 
-      (process.uptime as jest.Mock).mockRestore();
+      (
+        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
+      ).mockRestore();
     });
 
     it('should format uptime with hours and minutes', () => {
@@ -163,7 +165,9 @@ describe('PerformanceService', () => {
       expect(result.uptime.formatted).toContain('m');
       expect(result.uptime.formatted).toContain('s');
 
-      (process.uptime as jest.Mock).mockRestore();
+      (
+        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
+      ).mockRestore();
     });
 
     it('should format uptime with only seconds when uptime is low', () => {
@@ -176,7 +180,9 @@ describe('PerformanceService', () => {
       expect(result.uptime.formatted).not.toContain('m');
       expect(result.uptime.formatted).not.toContain('h');
 
-      (process.uptime as jest.Mock).mockRestore();
+      (
+        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
+      ).mockRestore();
     });
 
     it('should show 0s for zero uptime', () => {
@@ -187,7 +193,9 @@ describe('PerformanceService', () => {
 
       expect(result.uptime.formatted).toBe('0s');
 
-      (process.uptime as jest.Mock).mockRestore();
+      (
+        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
+      ).mockRestore();
     });
   });
 

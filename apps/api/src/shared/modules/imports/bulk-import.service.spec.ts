@@ -12,7 +12,9 @@ describe('BulkImportService', () => {
 
   beforeEach(async () => {
     mockQueue = {
-      add: jest.fn().mockResolvedValue({ id: 'job-1' }),
+      add: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue({ id: 'job-1' }),
       process: jest.fn(),
       on: jest.fn(),
     };
@@ -24,11 +26,17 @@ describe('BulkImportService', () => {
           provide: PrismaService,
           useValue: {
             patient: {
-              create: jest.fn().mockResolvedValue({ id: 'patient-1' }),
-              findFirst: jest.fn().mockResolvedValue(null),
+              create: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'patient-1' }),
+              findFirst: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue(null),
             },
             user: {
-              findUnique: jest.fn().mockResolvedValue({ id: 'user-1' }),
+              findUnique: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue({ id: 'user-1' }),
             },
           },
         },

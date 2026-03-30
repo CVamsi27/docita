@@ -46,7 +46,7 @@ export class SubscriptionReminderScheduler {
       return;
     }
 
-    this.logger.log('Running subscription reminder cron');
+    this.logger.debug('Running subscription reminder cron');
     const now = new Date();
 
     const schedules = [
@@ -85,7 +85,7 @@ export class SubscriptionReminderScheduler {
       return;
     }
 
-    this.logger.log('Checking for lapsed subscriptions');
+    this.logger.debug('Checking for lapsed subscriptions');
     const now = new Date();
 
     try {

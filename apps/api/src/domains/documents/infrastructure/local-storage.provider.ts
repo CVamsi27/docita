@@ -7,6 +7,8 @@ import { nanoid } from 'nanoid';
 
 @Injectable()
 export class LocalStorageProvider extends StorageProvider {
+  readonly supportsSignedUrls = false;
+
   private readonly logger = new Logger(LocalStorageProvider.name);
   private readonly uploadDir = path.join(process.cwd(), 'uploads');
 
@@ -57,5 +59,24 @@ export class LocalStorageProvider extends StorageProvider {
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);
     }
+  }
+
+  async uploadBuffer(
+    _buffer: Buffer,
+    _objectKey: string,
+    _contentType: string,
+  ): Promise<string> {
+    throw new Error(
+      'uploadBuffer is not supported by local storage. Set STORAGE_PROVIDER=r2 to enable PDF storage.',
+    );
+  }
+
+  async generateSignedUrl(
+    _objectKey: string,
+    _expiresInSeconds: number,
+  ): Promise<string> {
+    throw new Error(
+      'generateSignedUrl is not supported by local storage. Set STORAGE_PROVIDER=r2 to enable PDF storage.',
+    );
   }
 }

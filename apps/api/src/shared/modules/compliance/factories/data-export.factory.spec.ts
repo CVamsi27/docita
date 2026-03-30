@@ -9,7 +9,7 @@ describe('DataExportFactory', () => {
 
   const mockPrismaService = {
     patient: {
-      findUnique: jest.fn(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 
@@ -31,7 +31,11 @@ describe('DataExportFactory', () => {
 
   it('should export patient data', async () => {
     const mockPatient = { id: 'patient-1', firstName: 'John' };
-    (prisma.patient.findUnique as jest.Mock).mockResolvedValue(mockPatient);
+    (
+      prisma.patient.findUnique as jest.Mock<
+        (...args: unknown[]) => Promise<unknown>
+      >
+    ).mockResolvedValue(mockPatient);
 
     const result = await factory.exportPatientData('patient-1');
 

@@ -76,7 +76,10 @@ export async function seedClinicUsers(
 
   const doctor1 = await prisma.user.upsert({
     where: { email: 'doctor@docita.work' },
-    update: {},
+    update: {
+      signatureUrl:
+        'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Vamsi+Krishna',
+    },
     create: {
       email: 'doctor@docita.work',
       password: hashedPassword,
@@ -92,6 +95,8 @@ export async function seedClinicUsers(
       bio: 'Senior Cardiologist with over 10 years of experience in interventional cardiology. Specializes in complex cardiac procedures and heart failure management.',
       yearsOfExperience: 10,
       consultationFee: 1500,
+      signatureUrl:
+        'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Vamsi+Krishna',
     },
   });
 

@@ -82,17 +82,20 @@ export class PrescriptionsController {
     @Param('id') id: string,
     @Res() res: Response,
   ) {
-    const buffer = await this.prescriptionsService.generatePDF(
+    const result = await this.prescriptionsService.getPdf(
       id,
       req.user.clinicId,
     );
 
+    if (result.type === 'url') {
+      return res.json({ url: result.url });
+    }
+
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename=prescription-${id}.pdf`,
-      'Content-Length': buffer.length,
+      'Content-Length': result.buffer.length,
     });
-
-    res.end(buffer);
+    res.end(result.buffer);
   }
 }

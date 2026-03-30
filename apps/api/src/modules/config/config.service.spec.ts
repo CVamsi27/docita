@@ -9,7 +9,7 @@ describe('ConfigService', () => {
 
   const mockPrismaService = {
     clinic: {
-      findUnique: jest.fn(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 

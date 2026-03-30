@@ -216,7 +216,10 @@ async function runPipeline({
     ),
   ];
 
-  const body = await invokeInterceptors(interceptors, context);
+  const body = await invokeInterceptors(
+    interceptors as Parameters<typeof invokeInterceptors>[0],
+    context,
+  );
 
   return {
     body,

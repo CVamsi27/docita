@@ -74,9 +74,8 @@ export class ReminderNotificationService {
         appointment,
       );
 
-      this.logger.log(`[EMAIL] To: ${appointment.patient.email}`);
-      this.logger.log(`[EMAIL] Subject: ${subject}`);
-      this.logger.log(`[EMAIL] Message: ${message}`);
+      this.logger.debug(`[EMAIL] To: ${appointment.patient.email}`);
+      this.logger.debug(`[EMAIL] Subject: ${subject}`);
 
       await this.prisma.appointmentReminder.create({
         data: {
@@ -113,8 +112,7 @@ export class ReminderNotificationService {
         appointment,
       );
 
-      this.logger.log(`[SMS] To: ${appointment.patient.phoneNumber}`);
-      this.logger.log(`[SMS] Message: ${message}`);
+      this.logger.debug(`[SMS] To: ${appointment.patient.phoneNumber}`);
 
       await this.prisma.appointmentReminder.create({
         data: {
@@ -222,25 +220,24 @@ export class ReminderNotificationService {
     appointment: AppointmentForReminder,
     timezone: string = DEFAULT_TIMEZONE,
   ): string {
+    const patientName = `${appointment.patient.firstName} ${appointment.patient.lastName}`;
+    const formattedDate = formatDate(
+      appointment.startTime,
+      DATE_FORMATS.DATE_MEDIUM,
+      { timezone },
+    );
+    const formattedTime = formatTime(
+      appointment.startTime,
+      DATE_FORMATS.TIME_MEDIUM,
+      { timezone },
+    );
+
     return template
-      .replace(
-        /{patientName}/g,
-        `${appointment.patient.firstName} ${appointment.patient.lastName}`,
-      )
-      .replace(/{doctorName}/g, appointment.doctor.name)
-      .replace(
-        /{appointmentDate}/g,
-        formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM, {
-          timezone,
-        }),
-      )
-      .replace(
-        /{appointmentTime}/g,
-        formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM, {
-          timezone,
-        }),
-      )
-      .replace(/{appointmentType}/g, appointment.type)
-      .replace(/{clinicName}/g, appointment.clinic?.name ?? '');
+      .replace(/\{\{patientName\}\}/g, patientName)
+      .replace(/\{\{doctorName\}\}/g, appointment.doctor.name)
+      .replace(/\{\{appointmentDate\}\}|\{\{date\}\}/g, formattedDate)
+      .replace(/\{\{appointmentTime\}\}|\{\{time\}\}/g, formattedTime)
+      .replace(/\{\{appointmentType\}\}/g, appointment.type)
+      .replace(/\{\{clinicName\}\}/g, appointment.clinic?.name ?? '');
   }
 }

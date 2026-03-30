@@ -79,7 +79,9 @@ export class ReminderSchedulerService {
         });
 
         if (allSettings.length === 0) {
-          this.logger.log('No clinic reminder settings found or all disabled');
+          this.logger.debug(
+            'No clinic reminder settings found or all disabled',
+          );
           return;
         }
 
@@ -126,9 +128,11 @@ export class ReminderSchedulerService {
             },
           });
 
-          this.logger.log(
-            `Found ${appointments.length} appointments needing reminders for clinic ${settings.clinicId}`,
-          );
+          if (appointments.length > 0) {
+            this.logger.log(
+              `Found ${appointments.length} appointments needing reminders for clinic ${settings.clinicId}`,
+            );
+          }
 
           for (const appointment of appointments) {
             const existingReminder =
@@ -242,9 +246,11 @@ export class ReminderSchedulerService {
           },
         });
 
-        this.logger.log(
-          `Found ${appointments.length} appointments needing 30-min reminders`,
-        );
+        if (appointments.length > 0) {
+          this.logger.log(
+            `Found ${appointments.length} appointments needing 30-min reminders`,
+          );
+        }
 
         for (const appointment of appointments) {
           const existingReminder =

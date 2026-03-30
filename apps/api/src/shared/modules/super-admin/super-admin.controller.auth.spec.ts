@@ -17,33 +17,33 @@ describe('SuperAdminController - Authorization', () => {
   let rolesGuard: RolesGuard;
 
   const mockClinicManagementService = {
-    getAllClinics: jest.fn(),
-    createClinic: jest.fn(),
-    updateClinic: jest.fn(),
+    getAllClinics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    createClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    updateClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockAnalyticsService = {
-    getGlobalStats: jest.fn(),
+    getGlobalStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockLogService = {
-    getRecentLogs: jest.fn(),
+    getRecentLogs: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockAiService = {
-    getFeatureCatalog: jest.fn(),
+    getFeatureCatalog: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockBillingService = {
-    getTierPricing: jest.fn(),
+    getTierPricing: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockFeedbackService = {
-    findAll: jest.fn(),
-    getStats: jest.fn(),
-    findOne: jest.fn(),
-    updateStatus: jest.fn(),
-    delete: jest.fn(),
+    findAll: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    findOne: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    updateStatus: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   beforeEach(async () => {

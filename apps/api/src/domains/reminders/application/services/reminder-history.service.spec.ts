@@ -8,9 +8,23 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ReminderHistoryService', () => {
   let service: ReminderHistoryService;
-  let prisma: jest.Mocked<PrismaService>;
-  let settingsService: jest.Mocked<ReminderSettingsService>;
-  let notificationService: jest.Mocked<ReminderNotificationService>;
+  let prisma: {
+    appointmentReminder: {
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    appointment: {
+      findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+  };
+  let settingsService: {
+    getSettings: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  };
+  let notificationService: {
+    sendEmailReminder: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    sendSmsReminder: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    sendWhatsappReminder: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  };
 
   const mockAppointment = {
     id: 'appt-1',
@@ -60,22 +74,22 @@ describe('ReminderHistoryService', () => {
   beforeEach(async () => {
     const prismaMock = {
       appointmentReminder: {
-        findMany: jest.fn(),
+        findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       },
       appointment: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
+        findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       },
     };
 
     const settingsServiceMock = {
-      getSettings: jest.fn(),
+      getSettings: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const notificationServiceMock = {
-      sendEmailReminder: jest.fn(),
-      sendSmsReminder: jest.fn(),
-      sendWhatsappReminder: jest.fn(),
+      sendEmailReminder: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      sendSmsReminder: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      sendWhatsappReminder: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { MfaService } from './mfa.service';
+import { ApiKeyService } from './api-key.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -12,11 +14,16 @@ describe('AuthController', () => {
   let _authService: AuthService;
 
   const mockAuthService = {
-    checkEmailExists: jest.fn(),
-    validateUser: jest.fn(),
-    login: jest.fn(),
-    register: jest.fn(),
-    changePassword: jest.fn(),
+    checkEmailExists: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    validateUser: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    login: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    loginWithMfaCheck: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    loginAfterMfa: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    register: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    changePassword: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getSessions: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    revokeSession: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    revokeAllSessions: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   const mockAppConfigService = {
@@ -32,6 +39,25 @@ describe('AuthController', () => {
         {
           provide: AuthService,
           useValue: mockAuthService,
+        },
+        {
+          provide: MfaService,
+          useValue: {
+            generateSetupSecret:
+              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            enableMfa: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            disableMfa: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            regenerateBackupCodes:
+              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+          },
+        },
+        {
+          provide: ApiKeyService,
+          useValue: {
+            createApiKey: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            listApiKeys: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            revokeApiKey: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+          },
         },
         {
           provide: AppConfigService,
@@ -66,28 +92,33 @@ describe('AuthController', () => {
 
   describe('login', () => {
     it('should return token on successful login', async () => {
-      const user = { id: '1', email: 'test@example.com' };
+      const user = { id: '1', email: 'test@example.com', mfaEnabled: false };
       const token = { access_token: 'token', refresh_token: 'refresh', user };
-      const response = { cookie: jest.fn() } as never;
+      const response = {
+        cookie: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      } as never;
+      const request = { ip: '127.0.0.1', headers: {} } as never;
       mockAuthService.validateUser.mockResolvedValue(user);
-      mockAuthService.login.mockReturnValue(token);
+      mockAuthService.loginWithMfaCheck.mockResolvedValue(token);
 
       const result = await controller.login(
-        {
-          email: 'test@example.com',
-          password: 'password',
-        },
+        { email: 'test@example.com', password: 'password' },
+        request,
         response,
       );
       expect(result).toEqual(token);
     });
 
     it('should throw UnauthorizedException on invalid credentials', async () => {
-      const response = { cookie: jest.fn() } as never;
+      const response = {
+        cookie: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      } as never;
+      const request = { ip: '127.0.0.1', headers: {} } as never;
       mockAuthService.validateUser.mockResolvedValue(null);
       await expect(
         controller.login(
           { email: 'test@example.com', password: 'wrong' },
+          request,
           response,
         ),
       ).rejects.toThrow(UnauthorizedException);
@@ -111,7 +142,9 @@ describe('AuthController', () => {
         clinicName: dto.clinicName,
       };
 
-      const response = { cookie: jest.fn() } as never;
+      const response = {
+        cookie: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      } as never;
       mockAuthService.register.mockResolvedValue({
         id: '1',
         ...expectedCall,

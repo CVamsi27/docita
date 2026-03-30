@@ -58,4 +58,5 @@ model AppointmentReminder {
 
   @@index([appointmentId])
   @@index([status])
+  @@index([appointmentId, status])
 }

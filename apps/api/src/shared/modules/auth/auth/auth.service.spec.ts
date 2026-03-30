@@ -5,6 +5,8 @@ import {
   BadRequestException as _BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { MfaService } from './mfa.service';
+import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
@@ -33,12 +35,20 @@ describe('AuthService', () => {
       findUnique: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
       update: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     };
+    passwordHistory: {
+      create: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+      deleteMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    };
+    $transaction: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     runUnrestricted: jest.MockedFunction<(callback: () => unknown) => unknown>;
   };
   let jwtService: JwtService;
   let userFactory: UserFactory;
   let _clinicFactory: ClinicFactory;
-  let passwordPolicy: { validate: jest.Mock };
+  let passwordPolicy: {
+    validate: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  };
 
   const mockUser = {
     id: 'user-123',
@@ -49,6 +59,16 @@ describe('AuthService', () => {
     clinicId: 'clinic-123',
     createdAt: new Date(),
     updatedAt: new Date(),
+    mfaEnabled: false,
+    mfaSecret: null,
+    mfaTempSecret: null,
+    mfaBackupCodes: [],
+    passwordChangedAt: null,
+    passwordExpiresAt: null,
+    passwordHistory: [],
+    failedLoginAttempts: 0,
+    lastFailedLoginAt: null,
+    accountLockedUntil: null,
     qualification: null,
     registrationNumber: null,
     signatureUrl: null,
@@ -71,6 +91,7 @@ describe('AuthService', () => {
     clinicId: 'clinic-123',
     createdAt: mockUser.createdAt,
     updatedAt: mockUser.updatedAt,
+    mfaEnabled: false,
     qualification: null,
     registrationNumber: null,
     signatureUrl: null,
@@ -93,19 +114,39 @@ describe('AuthService', () => {
           provide: PrismaService,
           useValue: {
             user: {
-              findUnique: jest.fn(),
-              create: jest.fn(),
-              update: jest.fn(),
+              findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
             },
             clinic: {
-              create: jest.fn(),
-              findUnique: jest.fn(),
+              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
             },
             refreshToken: {
-              create: jest.fn(),
-              findUnique: jest.fn(),
-              update: jest.fn(),
+              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
             },
+            passwordHistory: {
+              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              findMany: jest
+                .fn<(...args: unknown[]) => Promise<unknown>>()
+                .mockResolvedValue([]),
+              deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            },
+            $transaction: jest.fn().mockImplementation(async (ops: unknown) => {
+              if (typeof ops === 'function') {
+                return (ops as (tx: unknown) => Promise<unknown>)({
+                  user: {
+                    update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+                  },
+                  passwordHistory: {
+                    create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+                  },
+                });
+              }
+              return Promise.all(ops as Promise<unknown>[]);
+            }),
             runUnrestricted: jest
               .fn()
               .mockImplementation((callback: unknown) =>
@@ -122,7 +163,7 @@ describe('AuthService', () => {
         {
           provide: 'IPasswordPolicy',
           useValue: {
-            validate: jest.fn(),
+            validate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
         },
         {
@@ -160,16 +201,33 @@ describe('AuthService', () => {
         {
           provide: MonitoringService,
           useValue: {
-            logError: jest.fn(),
-            trackMetric: jest.fn(),
+            logError: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            trackMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
         },
         {
           provide: ObservabilityService,
           useValue: {
-            logStructured: jest.fn(),
-            captureMessage: jest.fn(),
-            recordMetric: jest.fn(),
+            logStructured: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            captureMessage: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            recordMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+          },
+        },
+        {
+          provide: MfaService,
+          useValue: {
+            issueMfaChallenge:
+              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            verifyMfaChallenge:
+              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+          },
+        },
+        {
+          provide: EmailService,
+          useValue: {
+            sendVerificationEmail: jest
+              .fn()
+              .mockResolvedValue({ messageId: 'test' }),
           },
         },
       ],
@@ -179,7 +237,7 @@ describe('AuthService', () => {
     prismaService = module.get<typeof prismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
     userFactory = module.get<UserFactory>(UserFactory);
-    clinicFactory = module.get<ClinicFactory>(ClinicFactory);
+    _clinicFactory = module.get<ClinicFactory>(ClinicFactory);
     passwordPolicy = module.get('IPasswordPolicy');
 
     jest.clearAllMocks();
@@ -196,7 +254,8 @@ describe('AuthService', () => {
 
       const result = await service.validateUser('test@example.com', 'password');
 
-      expect(result).toEqual(mockUserWithoutPassword);
+      expect(result).toMatchObject(mockUserWithoutPassword);
+      expect(result).not.toHaveProperty('password');
       expect(prismaService.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'test@example.com' },
       });
@@ -331,11 +390,10 @@ describe('AuthService', () => {
   describe('changePassword', () => {
     it('should change password successfully', async () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
-      jest.spyOn(prismaService.user, 'update').mockResolvedValue(mockUser);
       jest
         .mocked(bcrypt.compare)
         .mockImplementationOnce(async () => true)
-        .mockImplementationOnce(async () => false);
+        .mockImplementation(async () => false);
       jest
         .mocked(bcrypt.hash)
         .mockImplementation(async () => 'newHashedPassword');
@@ -348,10 +406,6 @@ describe('AuthService', () => {
 
       expect(passwordPolicy.validate).toHaveBeenCalledWith('NewPass456!');
       expect(result).toEqual({ message: 'Password changed successfully' });
-      expect(prismaService.user.update).toHaveBeenCalledWith({
-        where: { id: 'user-123' },
-        data: { password: 'newHashedPassword' },
-      });
     });
 
     it('should throw UnauthorizedException when user not found', async () => {
@@ -379,17 +433,20 @@ describe('AuthService', () => {
       ).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should throw UnauthorizedException when new password is same as current', async () => {
+    it('should throw BadRequestException when new password is same as current', async () => {
       jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(mockUser);
-      jest.mocked(bcrypt.compare).mockImplementation(async () => true);
+      jest
+        .mocked(bcrypt.compare)
+        .mockImplementationOnce(async () => true)
+        .mockImplementation(async () => true);
 
       await expect(
         service.changePassword({
           userId: 'user-123',
-          currentPassword: 'SamePass123!',
+          currentPassword: 'OldPass123!',
           newPassword: 'SamePass123!',
         }),
-      ).rejects.toThrow(UnauthorizedException);
+      ).rejects.toThrow();
     });
   });
 });

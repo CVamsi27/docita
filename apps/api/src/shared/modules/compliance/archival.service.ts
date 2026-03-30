@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppointmentStatus, Prisma } from '@workspace/db';
+import { runInArchivalMode } from '@/common/extensions/audit-immutability.extension';
 
 function toNullableJsonInput(
   value: Prisma.JsonValue | null,
@@ -19,56 +20,58 @@ export class ArchivalService {
   constructor(private prisma: PrismaService) {}
 
   async archiveAuditLogs(daysOld = 90): Promise<number> {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+    return runInArchivalMode(async () => {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-    this.logger.log(
-      `Starting archival for AuditLogs older than ${cutoffDate.toISOString()}`,
-    );
+      this.logger.log(
+        `Starting archival for AuditLogs older than ${cutoffDate.toISOString()}`,
+      );
 
-    let totalArchived = 0;
-    const batchSize = 500;
+      let totalArchived = 0;
+      const batchSize = 500;
 
-    while (true) {
-      const records = await this.prisma.auditLog.findMany({
-        where: { createdAt: { lt: cutoffDate } },
-        take: batchSize,
-      });
-
-      if (records.length === 0) break;
-
-      await this.prisma.$transaction(async (tx) => {
-        await tx.auditLogArchive.createMany({
-          data: records.map((record) => ({
-            id: record.id,
-            clinicId: record.clinicId,
-            userId: record.userId,
-            action: record.action,
-            entityType: record.entityType,
-            entityId: record.entityId,
-            oldValue: toNullableJsonInput(record.oldValue),
-            newValue: toNullableJsonInput(record.newValue),
-            ipAddress: record.ipAddress,
-            userAgent: record.userAgent,
-            status: record.status,
-            errorMessage: record.errorMessage,
-            metadata: toNullableJsonInput(record.metadata),
-            createdAt: record.createdAt,
-            archivedAt: new Date(),
-          })),
-          skipDuplicates: true,
+      while (true) {
+        const records = await this.prisma.auditLog.findMany({
+          where: { createdAt: { lt: cutoffDate } },
+          take: batchSize,
         });
 
-        await tx.auditLog.deleteMany({
-          where: { id: { in: records.map((r) => r.id) } },
+        if (records.length === 0) break;
+
+        await this.prisma.$transaction(async (tx) => {
+          await tx.auditLogArchive.createMany({
+            data: records.map((record) => ({
+              id: record.id,
+              clinicId: record.clinicId,
+              userId: record.userId,
+              action: record.action,
+              entityType: record.entityType,
+              entityId: record.entityId,
+              oldValue: toNullableJsonInput(record.oldValue),
+              newValue: toNullableJsonInput(record.newValue),
+              ipAddress: record.ipAddress,
+              userAgent: record.userAgent,
+              status: record.status,
+              errorMessage: record.errorMessage,
+              metadata: toNullableJsonInput(record.metadata),
+              createdAt: record.createdAt,
+              archivedAt: new Date(),
+            })),
+            skipDuplicates: true,
+          });
+
+          await tx.auditLog.deleteMany({
+            where: { id: { in: records.map((r) => r.id) } },
+          });
         });
-      });
 
-      totalArchived += records.length;
-      this.logger.log(`Archived ${totalArchived} AuditLogs so far...`);
-    }
+        totalArchived += records.length;
+        this.logger.log(`Archived ${totalArchived} AuditLogs so far...`);
+      }
 
-    return totalArchived;
+      return totalArchived;
+    });
   }
 
   async archiveWhatsappLogs(daysOld = 180): Promise<number> {

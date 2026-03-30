@@ -16,8 +16,10 @@ import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monito
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { nanoid } from 'nanoid';
+import { MfaService } from './mfa.service';
+import { EmailService } from '@/shared/modules/messaging/email/email.service';
 
-interface UserWithoutPassword {
+export interface UserWithoutPassword {
   id: string;
   email: string;
   name: string;
@@ -25,6 +27,7 @@ interface UserWithoutPassword {
   clinicId: string | null;
   createdAt: Date;
   updatedAt: Date;
+  mfaEnabled?: boolean;
 }
 
 interface RegisterData {
@@ -54,6 +57,8 @@ export class AuthService {
     private userFactory: UserFactory,
     private monitoringService: MonitoringService,
     private observability: ObservabilityService,
+    private mfaService: MfaService,
+    private emailService: EmailService,
   ) {}
 
   private isDatabaseAuthError(error: unknown): boolean {
@@ -160,7 +165,7 @@ export class AuthService {
         }
 
         const { password: _password, ...result } = user;
-        return result;
+        return { ...result, mfaEnabled: user.mfaEnabled };
       }
 
       const newFailedAttempts = user.failedLoginAttempts + 1;
@@ -226,7 +231,61 @@ export class AuthService {
     });
   }
 
-  async login(user: UserWithoutPassword, tokenFamily?: string) {
+  async loginWithMfaCheck(
+    user: UserWithoutPassword,
+  ): Promise<
+    | { mfa_required: true; mfa_challenge_token: string }
+    | Awaited<ReturnType<typeof this.login>>
+  > {
+    if (user.mfaEnabled) {
+      const challengeToken = await this.mfaService.issueMfaChallenge(user.id);
+      return { mfa_required: true, mfa_challenge_token: challengeToken };
+    }
+    return this.login(user);
+  }
+
+  async loginAfterMfa(
+    challengeToken: string,
+    totpCode: string,
+    deviceInfo?: {
+      deviceName?: string;
+      ipAddress?: string;
+      userAgent?: string;
+    },
+  ) {
+    const userId = await this.mfaService.verifyMfaChallenge(
+      challengeToken,
+      totpCode,
+    );
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        clinicId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return this.login(user, undefined, deviceInfo);
+  }
+
+  async login(
+    user: UserWithoutPassword,
+    tokenFamily?: string,
+    deviceInfo?: {
+      deviceName?: string;
+      ipAddress?: string;
+      userAgent?: string;
+    },
+  ) {
     const payload: Record<string, unknown> = {
       email: user.email,
       sub: user.id,
@@ -259,6 +318,10 @@ export class AuthService {
         userId: user.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         tokenFamily: newTokenFamily,
+        deviceName: deviceInfo?.deviceName,
+        ipAddress: deviceInfo?.ipAddress,
+        userAgent: deviceInfo?.userAgent,
+        lastUsedAt: new Date(),
       },
     });
 
@@ -308,9 +371,15 @@ export class AuthService {
     }
 
     const { password: _password, ...userWithoutPassword } = storedToken.user;
+    const deviceInfo = {
+      deviceName: storedToken.deviceName ?? undefined,
+      ipAddress: storedToken.ipAddress ?? undefined,
+      userAgent: storedToken.userAgent ?? undefined,
+    };
     const newTokens = await this.login(
       userWithoutPassword,
       storedToken.tokenFamily ?? undefined,
+      deviceInfo,
     );
 
     await this.prisma.refreshToken.update({
@@ -322,6 +391,52 @@ export class AuthService {
     });
 
     return newTokens;
+  }
+
+  async getSessions(userId: string) {
+    return this.prisma.refreshToken.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        deviceName: true,
+        ipAddress: true,
+        userAgent: true,
+        lastUsedAt: true,
+        createdAt: true,
+        expiresAt: true,
+      },
+      orderBy: { lastUsedAt: 'desc' },
+    });
+  }
+
+  async revokeSession(sessionId: string, userId: string): Promise<void> {
+    const session = await this.prisma.refreshToken.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session || session.userId !== userId) {
+      throw new BadRequestException('Session not found');
+    }
+
+    await this.prisma.refreshToken.update({
+      where: { id: sessionId },
+      data: { revokedAt: new Date() },
+    });
+  }
+
+  async revokeAllSessions(userId: string, exceptToken?: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+        ...(exceptToken ? { NOT: { token: exceptToken } } : {}),
+      },
+      data: { revokedAt: new Date() },
+    });
   }
 
   async logout(refreshToken: string) {
@@ -376,7 +491,20 @@ export class AuthService {
           updatedAt: true,
         },
       });
-      return this.login(user);
+      const tokens = await this.login(user);
+
+      // Fire-and-forget: send verification email; don't block registration on email failure
+      this.sendVerificationEmail(user.id).catch((err: unknown) => {
+        this.logger.warn(
+          'Failed to send verification email after registration',
+          {
+            userId: user.id,
+            error: err instanceof Error ? err.message : String(err),
+          },
+        );
+      });
+
+      return tokens;
     });
   }
 
@@ -422,6 +550,12 @@ export class AuthService {
           passwordResetToken: token,
           passwordResetExpiresAt: { gt: new Date() },
         },
+        include: {
+          passwordHistory: {
+            orderBy: { createdAt: 'desc' },
+            take: AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT,
+          },
+        },
       });
 
       if (!user) {
@@ -430,19 +564,38 @@ export class AuthService {
 
       this.passwordPolicy.validate(newPassword);
 
+      await this.checkPasswordHistory(
+        newPassword,
+        user.passwordHistory,
+        user.password,
+      );
+
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          password: hashedPassword,
-          passwordResetToken: null,
-          passwordResetExpiresAt: null,
-          failedLoginAttempts: 0,
-          accountLockedUntil: null,
-          lastFailedLoginAt: null,
-        },
-      });
+      const now = new Date();
+      await this.prisma.$transaction([
+        this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            password: hashedPassword,
+            passwordResetToken: null,
+            passwordResetExpiresAt: null,
+            failedLoginAttempts: 0,
+            accountLockedUntil: null,
+            lastFailedLoginAt: null,
+            passwordChangedAt: now,
+            passwordExpiresAt: new Date(
+              now.getTime() +
+                AUTH_CONSTANTS.PASSWORD_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+            ),
+          },
+        }),
+        this.prisma.passwordHistory.create({
+          data: { userId: user.id, passwordHash: user.password },
+        }),
+      ]);
+
+      await this.prunePasswordHistory(user.id);
 
       this.logger.log('Password reset completed', { userId: user.id });
 
@@ -453,6 +606,12 @@ export class AuthService {
   async changePassword(data: ChangePasswordData) {
     const user = await this.prisma.user.findUnique({
       where: { id: data.userId },
+      include: {
+        passwordHistory: {
+          orderBy: { createdAt: 'desc' },
+          take: AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT,
+        },
+      },
     });
 
     if (!user) {
@@ -467,22 +626,132 @@ export class AuthService {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
-    const samePassword = await bcrypt.compare(data.newPassword, user.password);
-    if (samePassword) {
-      throw new UnauthorizedException(
-        'New password must be different from current password',
-      );
-    }
-
     this.passwordPolicy.validate(data.newPassword);
+
+    await this.checkPasswordHistory(
+      data.newPassword,
+      user.passwordHistory,
+      user.password,
+    );
 
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);
 
-    await this.prisma.user.update({
-      where: { id: data.userId },
-      data: { password: hashedPassword },
-    });
+    const now = new Date();
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: data.userId },
+        data: {
+          password: hashedPassword,
+          passwordChangedAt: now,
+          passwordExpiresAt: new Date(
+            now.getTime() +
+              AUTH_CONSTANTS.PASSWORD_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+          ),
+        },
+      }),
+      this.prisma.passwordHistory.create({
+        data: { userId: data.userId, passwordHash: user.password },
+      }),
+    ]);
+
+    await this.prunePasswordHistory(data.userId);
 
     return { message: 'Password changed successfully' };
+  }
+
+  private async checkPasswordHistory(
+    newPassword: string,
+    history: Array<{ passwordHash: string }>,
+    currentHash: string,
+  ): Promise<void> {
+    const allHashes = [currentHash, ...history.map((h) => h.passwordHash)];
+
+    for (const hash of allHashes) {
+      const isReused = await bcrypt.compare(newPassword, hash);
+      if (isReused) {
+        throw new BadRequestException(
+          `Password cannot be the same as your last ${AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT} passwords`,
+        );
+      }
+    }
+  }
+
+  async sendVerificationEmail(userId: string): Promise<{ message: string }> {
+    return this.prisma.runUnrestricted(async () => {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, name: true, emailVerified: true },
+      });
+
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      if (user.emailVerified) {
+        throw new BadRequestException('Email is already verified');
+      }
+
+      const token = nanoid(64);
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          emailVerificationToken: token,
+          emailVerificationExpiresAt: new Date(
+            Date.now() + 24 * 60 * 60 * 1000,
+          ),
+        },
+      });
+
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        user.name,
+        token,
+      );
+
+      return { message: 'Verification email sent' };
+    });
+  }
+
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    return this.prisma.runUnrestricted(async () => {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          emailVerificationToken: token,
+          emailVerificationExpiresAt: { gt: new Date() },
+          emailVerified: false,
+        },
+        select: { id: true },
+      });
+
+      if (!user) {
+        throw new BadRequestException('Invalid or expired verification token');
+      }
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: true,
+          emailVerificationToken: null,
+          emailVerificationExpiresAt: null,
+        },
+      });
+
+      return { message: 'Email verified successfully' };
+    });
+  }
+
+  private async prunePasswordHistory(userId: string): Promise<void> {
+    const history = await this.prisma.passwordHistory.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+
+    if (history.length > AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT) {
+      const toDelete = history.slice(AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT);
+      await this.prisma.passwordHistory.deleteMany({
+        where: { id: { in: toDelete.map((h) => h.id) } },
+      });
+    }
   }
 }

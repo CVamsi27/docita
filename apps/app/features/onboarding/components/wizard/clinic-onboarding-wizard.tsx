@@ -50,7 +50,13 @@ export function ClinicOnboardingWizard() {
         </p>
       </div>
 
-      <ClinicRegistrationForm onSuccess={() => router.push("/dashboard")} />
+      <ClinicRegistrationForm
+        onSuccess={() =>
+          user?.role === "ADMIN_DOCTOR"
+            ? router.push("/verify-doctor")
+            : router.push("/dashboard")
+        }
+      />
     </div>
   );
 }

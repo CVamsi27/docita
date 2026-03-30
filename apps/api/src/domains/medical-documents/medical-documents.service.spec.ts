@@ -6,7 +6,7 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('MedicalDocumentsService', () => {
   let service: MedicalDocumentsService;
-  let repo: Record<string, jest.Mock>;
+  let repo: Record<string, jest.Mock<(...args: unknown[]) => Promise<unknown>>>;
 
   const mockDoc = {
     id: 'doc-1',
@@ -28,11 +28,11 @@ describe('MedicalDocumentsService', () => {
 
   beforeEach(async () => {
     repo = {
-      create: jest.fn(),
-      findAllForPatient: jest.fn(),
-      findOne: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findAllForPatient: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findOne: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -36,16 +36,16 @@ describe('PatientService', () => {
       (clinicId: string) => Promise<PatientRecord[]>
     >;
   };
-  let _prisma: PrismaService;
+  let prisma: PrismaService;
 
   const mockPrismaService = {
     patient: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      count: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 
@@ -55,12 +55,13 @@ describe('PatientService', () => {
         {
           provide: 'PatientService',
           useValue: {
-            createPatient: jest.fn(),
-            getPatient: jest.fn(),
-            updatePatient: jest.fn(),
-            listPatients: jest.fn(),
-            deletePatient: jest.fn(),
-            getPatientsByClinic: jest.fn(),
+            createPatient: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            getPatient: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            updatePatient: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            listPatients: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            deletePatient: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            getPatientsByClinic:
+              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
         },
         {

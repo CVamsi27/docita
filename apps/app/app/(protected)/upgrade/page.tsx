@@ -19,7 +19,6 @@ import {
 } from "@workspace/ui/components/tabs";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import {
-  AddonsSection,
   ComparisonTable,
   CurrentPlanCard,
   FaqSection,
@@ -29,11 +28,11 @@ import {
   TierCard,
   TierChangeDialog,
   TrustSection,
+  UsagePricingCalculator,
 } from "@/features/subscription/components";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
 import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
-import { DynamicPricingEstimator } from "@/features/subscription/components/pricing/dynamic-pricing-estimator";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
@@ -50,7 +49,7 @@ import {
 import { Loader2 } from "lucide-react";
 
 export default function UpgradePage() {
-  const { currentTier, hasIntelligence, canAccess } = usePermissionStore();
+  const { currentTier, canAccess } = usePermissionStore();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -67,11 +66,11 @@ export default function UpgradePage() {
   });
   const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
 
-  const { checkoutTier, checkoutAddon, processingId } = useSubscriptionCheckout(
+  const { checkoutTier } = useSubscriptionCheckout(
     (data) => {
       setSuccessData(data);
       setShowSuccessModal(true);
-      if (!data.isAddon) setShowTierChangeDialog(false);
+      setShowTierChangeDialog(false);
     },
   );
 
@@ -126,26 +125,6 @@ export default function UpgradePage() {
 
   const nextTier = currentTier < Tier.ENTERPRISE ? currentTier + 1 : null;
 
-  const intelligenceFeatures =
-    featuresByTier
-      .find((t) => t.tier === Tier.INTELLIGENCE)
-      ?.features.map((f) => ({ feature: f.feature, details: f.details })) ?? [];
-
-  const currentTierName = Tier[currentTier] as TierName;
-  const intelligenceAddOn = pricingConfig?.addOns.find(
-    (addOn) => addOn.id === "INTELLIGENCE",
-  );
-  const pricingByTier = intelligenceAddOn?.pricingByTier?.[currentTierName];
-  const dynamicIntelligencePricing =
-    pricingByTier &&
-    typeof pricingByTier.monthly === "number" &&
-    typeof pricingByTier.yearly === "number"
-      ? {
-          monthly: pricingByTier.monthly,
-          yearly: pricingByTier.yearly,
-        }
-      : undefined;
-
   if (!user || !canAccessPage) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
@@ -177,7 +156,7 @@ export default function UpgradePage() {
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={currentTier}
-          hasIntelligence={hasIntelligence}
+          hasIntelligence={false}
           canChangeTier={canAccessPage}
           onChangePlan={() => setShowPricingDialog(true)}
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
@@ -230,7 +209,7 @@ export default function UpgradePage() {
                     info={info}
                     features={features}
                     isCurrentTier={tier === currentTier}
-                    isLocked={tier > currentTier}
+                    isLocked={tier < currentTier}
                     currentTierValue={currentTier}
                     pricing={tierPricingData?.pricing}
                     billingCycle={selectedCycle}
@@ -248,14 +227,8 @@ export default function UpgradePage() {
         </div>
 
         {/* Detail zone – tabbed */}
-        <Tabs defaultValue="estimator" className="w-full">
+        <Tabs defaultValue="compare" className="w-full">
           <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1">
-            <TabsTrigger
-              value="estimator"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-            >
-              Price Estimator
-            </TabsTrigger>
             <TabsTrigger
               value="compare"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
@@ -263,10 +236,10 @@ export default function UpgradePage() {
               Compare Plans
             </TabsTrigger>
             <TabsTrigger
-              value="addons"
+              value="calculator"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
             >
-              Add-ons
+              Pricing Calculator
             </TabsTrigger>
             <TabsTrigger
               value="missing"
@@ -282,32 +255,12 @@ export default function UpgradePage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="estimator" className="pt-4">
-            <DynamicPricingEstimator
-              defaultTier={currentTierName}
-              currency={currency}
-            />
-          </TabsContent>
-
           <TabsContent value="compare" className="pt-4">
             <ComparisonTable currentTier={currentTier} />
           </TabsContent>
 
-          <TabsContent value="addons" className="pt-4">
-            <AddonsSection
-              hasIntelligence={hasIntelligence}
-              intelligenceFeatures={intelligenceFeatures}
-              purchasingId={processingId}
-              currency={currency}
-              intelligencePricing={dynamicIntelligencePricing}
-              onPurchaseIntelligence={(cycle) =>
-                checkoutAddon({
-                  addonId: "INTELLIGENCE",
-                  billingCycle: cycle,
-                  currentTier,
-                })
-              }
-            />
+          <TabsContent value="calculator" className="pt-4">
+            <UsagePricingCalculator currency={currency as Parameters<typeof UsagePricingCalculator>[0]["currency"]} />
           </TabsContent>
 
           <TabsContent value="missing" className="pt-4 space-y-6">

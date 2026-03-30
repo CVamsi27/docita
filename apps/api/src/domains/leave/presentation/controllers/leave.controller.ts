@@ -38,10 +38,13 @@ export class LeaveController {
       startDate: string;
       endDate: string;
       reason?: string;
+      staffId?: string;
     },
   ) {
+    const isAdmin = ADMIN_ROLES.includes(req.user!.role as Role);
+    const targetStaffId = isAdmin && body.staffId ? body.staffId : req.user!.id;
     return this.leaveService.applyLeave(
-      req.user!.id,
+      targetStaffId,
       req.user!.clinicId!,
       body,
     );

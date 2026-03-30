@@ -304,8 +304,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         `HTTP ${status} ${request.method} ${request.path}: ${message}`,
         errorStack,
       );
-    } else {
-      this.logger.warn(logPayload);
+    } else if (
+      !(exception instanceof ForbiddenException) &&
+      !(exception instanceof UnauthorizedException)
+    ) {
+      this.logger.warn(
+        `HTTP ${status} ${request.method} ${request.path}: ${message}`,
+        { status, errorType },
+      );
     }
 
     const isDevelopment = this.configService

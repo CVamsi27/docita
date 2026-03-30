@@ -10,7 +10,6 @@ model IcdCode {
   diagnoses   Diagnosis[]
   favorites   DoctorFavoriteCode[]
 
-  @@index([code])
   @@index([description])
   @@index([category])
   @@index([isCommon])
@@ -28,7 +27,6 @@ model CptCode {
   favorites   DoctorFavoriteCode[]
   procedures  Procedure[]
 
-  @@index([code])
   @@index([description])
   @@index([category])
   @@index([isCommon])

@@ -32,7 +32,7 @@ export const useCPTFavorites = () =>
   );
 
 export const useAddICDFavorite = () =>
-  useAPIMutation<IcdFavorite, { icdCodeId: string }>(
+  useAPIMutation<IcdFavorite, { code: string; description: string; category: string }>(
     "/clinical/medical-coding/icd/favorites",
     "POST",
   );
@@ -44,7 +44,7 @@ export const useRemoveICDFavorite = (id: string) =>
   );
 
 export const useAddCPTFavorite = () =>
-  useAPIMutation<CptFavorite, { cptCodeId: string }>(
+  useAPIMutation<CptFavorite, { code: string; description: string; category: string }>(
     "/clinical/medical-coding/cpt/favorites",
     "POST",
   );

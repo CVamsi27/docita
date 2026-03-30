@@ -6,7 +6,10 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('FollowUpService', () => {
   let service: FollowUpService;
-  let followUpRepository: Record<string, jest.Mock>;
+  let followUpRepository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   const mockFollowUp = {
     id: 'followup-1',
@@ -30,11 +33,11 @@ describe('FollowUpService', () => {
 
   beforeEach(async () => {
     followUpRepository = {
-      create: jest.fn(),
-      findUpcoming: jest.fn(),
-      findForAppointment: jest.fn(),
-      findByIdAndClinic: jest.fn(),
-      update: jest.fn(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUpcoming: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findForAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findByIdAndClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -217,36 +217,6 @@ export class PrismaClinicalRepository
     return stats;
   }
 
-  searchIcdCodes(query: string): Promise<IcdCode[]> {
-    return this.prisma.icdCode.findMany({
-      where: {
-        OR: [
-          { code: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } },
-        ],
-      },
-      take: 20,
-    });
-  }
-
-  findIcdByCode(code: string): Promise<IcdCode | null> {
-    return this.prisma.icdCode.findUnique({
-      where: { code },
-    });
-  }
-
-  searchCptCodes(query: string): Promise<CptCode[]> {
-    return this.prisma.cptCode.findMany({
-      where: {
-        OR: [
-          { code: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } },
-        ],
-      },
-      take: 20,
-    });
-  }
-
   async getFavorites(userId: string): Promise<IcdCode[]> {
     const favorites = await this.prisma.doctorFavoriteCode.findMany({
       where: { userId, icdCodeId: { not: null } },
@@ -255,9 +225,19 @@ export class PrismaClinicalRepository
     return favorites.map((f) => f.icdCode).filter((c): c is IcdCode => !!c);
   }
 
-  addFavorite(userId: string, icdCodeId: string): Promise<DoctorFavoriteCode> {
+  async addFavorite(
+    userId: string,
+    code: string,
+    description: string,
+    category: string,
+  ): Promise<DoctorFavoriteCode> {
+    const icdCode = await this.prisma.icdCode.upsert({
+      where: { code },
+      create: { code, description, category, version: 'ICD-10' },
+      update: { description, category },
+    });
     return this.prisma.doctorFavoriteCode.create({
-      data: { userId, icdCodeId },
+      data: { userId, icdCodeId: icdCode.id },
     });
   }
 
@@ -275,12 +255,19 @@ export class PrismaClinicalRepository
     return favorites.map((f) => f.cptCode).filter((c): c is CptCode => !!c);
   }
 
-  addCptFavorite(
+  async addCptFavorite(
     userId: string,
-    cptCodeId: string,
+    code: string,
+    description: string,
+    category: string,
   ): Promise<DoctorFavoriteCode> {
+    const cptCode = await this.prisma.cptCode.upsert({
+      where: { code },
+      create: { code, description, category },
+      update: { description, category },
+    });
     return this.prisma.doctorFavoriteCode.create({
-      data: { userId, cptCodeId },
+      data: { userId, cptCodeId: cptCode.id },
     });
   }
 

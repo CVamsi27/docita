@@ -114,8 +114,7 @@ export function TierCard({
         "bg-linear-to-br border-2",
         gradient.card,
         isCurrentTier && "border-primary ring-2 ring-primary/20 shadow-lg",
-        isLocked && "opacity-60 border-muted",
-        !isCurrentTier && !isLocked && "border-border/50 hover:border-border",
+        !isCurrentTier && "border-border hover:border-border",
         className,
       )}
     >
@@ -148,6 +147,9 @@ export function TierCard({
             <p className="text-sm font-semibold text-foreground">
               {formatTierPrice(pricing, billingCycle, currencySymbol)}
             </p>
+            {pricing.monthly !== 0 && pricing.monthly !== "custom" && (
+              <p className="text-xs text-muted-foreground">Incl. 18% GST</p>
+            )}
             {overageHint && (
               <p className="text-xs text-muted-foreground">{overageHint}</p>
             )}
@@ -190,7 +192,7 @@ export function TierCard({
               isCurrentTier && "bg-muted text-muted-foreground",
               isUpgrade &&
                 "bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold shadow-md shadow-primary/25",
-              isDowngrade && "bg-muted/50 text-muted-foreground border-muted hover:bg-muted/70 opacity-70",
+              isDowngrade && "bg-muted/50 text-muted-foreground border-muted hover:bg-muted/70",
             )}
             variant={isDowngrade ? "outline" : "default"}
             disabled={isCurrentTier}

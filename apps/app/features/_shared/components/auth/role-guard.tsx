@@ -4,10 +4,11 @@ import React, { ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import type { UserRole } from "@workspace/types";
+import { hasPermission, type Permission } from "@/lib/permissions";
 
 interface RoleGuardProps {
   children: ReactNode;
-  requiredPermission?: string;
+  requiredPermission?: Permission;
   requiredRole?: UserRole;
   fallback?: ReactNode;
 }
@@ -45,6 +46,10 @@ export function RoleGuard({
     }
     router.push("/login");
     return null;
+  }
+
+  if (requiredPermission && !hasPermission(user.role, requiredPermission)) {
+    return fallback ? <>{fallback}</> : null;
   }
 
   if (requiredRole && !hasRoleAccess(user.role, requiredRole)) {

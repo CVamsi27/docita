@@ -36,6 +36,20 @@ export interface ClinicAppSettings {
   whatsappBirthdayWishes?: boolean;
   whatsappMedicineReminders?: boolean;
   customFields?: CustomField[];
+  followUpReminderEnabled?: boolean;
+  followUpReminderBefore?: string;
+  followUpReminderUnit?: string;
+  invoiceReminderEnabled?: boolean;
+  invoiceReminderBefore?: string;
+  invoiceReminderUnit?: string;
+  prescriptionReminderEnabled?: boolean;
+  prescriptionReminderBefore?: string;
+  prescriptionReminderUnit?: string;
+  scheduleNotificationEnabled?: boolean;
+  scheduleNotificationBefore?: string;
+  scheduleNotificationUnit?: string;
+  whatsappPreAppointmentEnabled?: boolean;
+  whatsappPreAppointmentMinutes?: number;
 }
 
 export interface DoctorSchedule {
@@ -156,7 +170,9 @@ export const useDeleteClinicMember = () =>
   );
 
 export const useUpdateClinicSettings = () =>
-  useAPIMutation<Clinic, UpdateClinicSettingsRequest>("/clinic/settings", "PUT");
+  useAPIMutation<Clinic, UpdateClinicSettingsRequest>("/clinic/settings", "PUT", {
+    invalidateKeys: [["clinic", "settings"]],
+  });
 
 export const usePrescriptionDefaults = () =>
   useAPIQuery<PrescriptionDefaults>(
