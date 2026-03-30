@@ -77,9 +77,10 @@ services:
 
   # Test PostgreSQL
   db_test:
+    profiles: ["test"]
     image: postgres:15-alpine
     ports:
-      - "5433:5432"
+      - "5434:5432"
     environment:
       - POSTGRES_USER=docita
       - POSTGRES_PASSWORD=docita

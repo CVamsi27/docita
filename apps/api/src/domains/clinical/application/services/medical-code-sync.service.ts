@@ -1,33 +1,10 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
-import { NlmCodingService } from '@/domains/clinical/infrastructure/external/nlm-coding.service';
-
-const COMMON_ICD_SEARCH_TERMS = [
-  'diabetes',
-  'hypertension',
-  'fever',
-  'cough',
-  'headache',
-  'asthma',
-  'abdominal pain',
-  'anemia',
-  'infection',
-  'pregnancy',
-] as const;
-
-const COMMON_CPT_SEARCH_TERMS = [
-  'consultation',
-  'ecg',
-  'xray',
-  'ultrasound',
-  'blood test',
-  'injection',
-  'wound repair',
-  'vaccination',
-  'follow up',
-  'physiotherapy',
-] as const;
+import {
+  CODE_CATALOG_PROVIDER,
+  CodeCatalogProvider,
+} from '@/domains/clinical/core/providers/code-catalog.provider';
 
 @Injectable()
 export class MedicalCodeSyncService implements OnModuleInit {
@@ -35,7 +12,8 @@ export class MedicalCodeSyncService implements OnModuleInit {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly nlmCodingService: NlmCodingService,
+    @Inject(CODE_CATALOG_PROVIDER)
+    private readonly codeCatalogProvider: CodeCatalogProvider,
   ) {}
 
   async onModuleInit() {
@@ -62,13 +40,8 @@ export class MedicalCodeSyncService implements OnModuleInit {
   }
 
   async syncCommonIcdCodes(): Promise<number> {
-    const codes = await Promise.all(
-      COMMON_ICD_SEARCH_TERMS.map((term) =>
-        this.nlmCodingService.searchIcdCodes(term),
-      ),
-    );
-
-    const uniqueCodes = new Map(codes.flat().map((code) => [code.code, code]));
+    const codes = await this.codeCatalogProvider.fetchAllIcdCodesForSync();
+    const uniqueCodes = new Map(codes.map((code) => [code.code, code]));
 
     for (const code of uniqueCodes.values()) {
       await this.prisma.icdCode.upsert({
@@ -92,13 +65,8 @@ export class MedicalCodeSyncService implements OnModuleInit {
   }
 
   async syncCommonCptCodes(): Promise<number> {
-    const codes = await Promise.all(
-      COMMON_CPT_SEARCH_TERMS.map((term) =>
-        this.nlmCodingService.searchCptCodes(term),
-      ),
-    );
-
-    const uniqueCodes = new Map(codes.flat().map((code) => [code.code, code]));
+    const codes = await this.codeCatalogProvider.fetchAllCptCodesForSync();
+    const uniqueCodes = new Map(codes.map((code) => [code.code, code]));
 
     for (const code of uniqueCodes.values()) {
       await this.prisma.cptCode.upsert({

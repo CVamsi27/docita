@@ -16,6 +16,10 @@ describe('MedicalCodeSyncService', () => {
   const nlmCodingService = {
     searchIcdCodes: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     searchCptCodes: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    fetchAllIcdCodesForSync:
+      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    fetchAllCptCodesForSync:
+      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
   let service: MedicalCodeSyncService;
@@ -29,27 +33,23 @@ describe('MedicalCodeSyncService', () => {
   });
 
   it('syncs unique ICD codes into the database as common codes', async () => {
-    nlmCodingService.searchIcdCodes.mockResolvedValue([]);
-    nlmCodingService.searchIcdCodes
-      .mockResolvedValueOnce([
-        {
-          code: 'E11.9',
-          description: 'Type 2 diabetes mellitus without complications',
-          category: 'Endocrine',
-        },
-        {
-          code: 'I10',
-          description: 'Essential hypertension',
-          category: 'Circulatory',
-        },
-      ])
-      .mockResolvedValueOnce([
-        {
-          code: 'E11.9',
-          description: 'Type 2 diabetes mellitus without complications',
-          category: 'Endocrine',
-        },
-      ]);
+    nlmCodingService.fetchAllIcdCodesForSync.mockResolvedValue([
+      {
+        code: 'E11.9',
+        description: 'Type 2 diabetes mellitus without complications',
+        category: 'Endocrine',
+      },
+      {
+        code: 'I10',
+        description: 'Essential hypertension',
+        category: 'Circulatory',
+      },
+      {
+        code: 'E11.9',
+        description: 'Type 2 diabetes mellitus without complications',
+        category: 'Endocrine',
+      },
+    ]);
 
     prisma.icdCode.upsert.mockResolvedValue({} as never);
 
@@ -74,27 +74,23 @@ describe('MedicalCodeSyncService', () => {
   });
 
   it('syncs unique CPT codes into the database as common codes', async () => {
-    nlmCodingService.searchCptCodes.mockResolvedValue([]);
-    nlmCodingService.searchCptCodes
-      .mockResolvedValueOnce([
-        {
-          code: '99213',
-          description: 'Office or other outpatient visit',
-          category: 'Evaluation and Management',
-        },
-        {
-          code: '93000',
-          description: 'Electrocardiogram',
-          category: 'Medicine',
-        },
-      ])
-      .mockResolvedValueOnce([
-        {
-          code: '99213',
-          description: 'Office or other outpatient visit',
-          category: 'Evaluation and Management',
-        },
-      ]);
+    nlmCodingService.fetchAllCptCodesForSync.mockResolvedValue([
+      {
+        code: '99213',
+        description: 'Office or other outpatient visit',
+        category: 'Evaluation and Management',
+      },
+      {
+        code: '93000',
+        description: 'Electrocardiogram',
+        category: 'Medicine',
+      },
+      {
+        code: '99213',
+        description: 'Office or other outpatient visit',
+        category: 'Evaluation and Management',
+      },
+    ]);
 
     prisma.cptCode.upsert.mockResolvedValue({} as never);
 
@@ -119,14 +115,14 @@ describe('MedicalCodeSyncService', () => {
   });
 
   it('syncs both ICD and CPT code sets together', async () => {
-    nlmCodingService.searchIcdCodes.mockResolvedValue([
+    nlmCodingService.fetchAllIcdCodesForSync.mockResolvedValue([
       {
         code: 'J02.9',
         description: 'Acute pharyngitis, unspecified',
         category: 'Respiratory',
       },
     ]);
-    nlmCodingService.searchCptCodes.mockResolvedValue([
+    nlmCodingService.fetchAllCptCodesForSync.mockResolvedValue([
       {
         code: '87880',
         description: 'Infectious agent detection',

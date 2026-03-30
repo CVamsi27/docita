@@ -20,6 +20,10 @@ import {
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import {
+  ClaimReadinessResult,
+  ClaimValidationService,
+} from '@/domains/billing/core/services/claim-validation.service';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
@@ -89,7 +93,20 @@ export class InvoicesService {
     private readonly eventEmitter: EventEmitter2,
     private readonly usageTracking: UsageTrackingService,
     private readonly storageProvider: StorageProvider,
+    private readonly claimValidationService: ClaimValidationService,
   ) {}
+
+  private requiresClaimReadinessValidation(
+    currentStatus: InvoiceStatus,
+    targetStatus: InvoiceStatus,
+  ): boolean {
+    if (currentStatus === targetStatus) return false;
+    return (
+      targetStatus === InvoiceStatus.PAID ||
+      targetStatus === InvoiceStatus.PARTIALLY_PAID ||
+      targetStatus === InvoiceStatus.OVERDUE
+    );
+  }
 
   async findAll(
     clinicId: string,
@@ -173,12 +190,46 @@ export class InvoicesService {
     data: { status?: InvoiceStatus; total?: number; items?: InvoiceItem[] },
     clinicId?: string,
   ): Promise<InvoiceDetail> {
-    await this.findOne(id, clinicId);
+    const existing = await this.findOne(id, clinicId);
+
+    if (
+      data.status &&
+      this.requiresClaimReadinessValidation(existing.status, data.status)
+    ) {
+      await this.claimValidationService.assertClaimReady(id, clinicId);
+    }
 
     return this.repository.update(id, {
       ...data,
       items: data.items ? toPrismaInvoiceItems(data.items) : undefined,
     });
+  }
+
+  async getClaimReadiness(
+    id: string,
+    clinicId?: string,
+  ): Promise<ClaimReadinessResult> {
+    return this.claimValidationService.evaluateClaimReadiness(id, clinicId);
+  }
+
+  async submitClaim(
+    id: string,
+    clinicId?: string,
+  ): Promise<{
+    invoiceId: string;
+    claimReady: true;
+    submittedAt: string;
+    status: InvoiceStatus;
+  }> {
+    await this.claimValidationService.assertClaimReady(id, clinicId);
+    const invoice = await this.findOne(id, clinicId);
+
+    return {
+      invoiceId: invoice.id,
+      claimReady: true,
+      submittedAt: new Date().toISOString(),
+      status: invoice.status,
+    };
   }
 
   async remove(id: string): Promise<void> {

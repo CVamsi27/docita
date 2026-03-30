@@ -3,7 +3,10 @@ import {
   ILabRepository,
   IMedicalCodingRepository,
 } from '@/domains/clinical/core/repositories/clinical.repository.interface';
-import { NlmCodingService } from '@/domains/clinical/infrastructure/external/nlm-coding.service';
+import {
+  CODE_CATALOG_PROVIDER,
+  CodeCatalogProvider,
+} from '@/domains/clinical/core/providers/code-catalog.provider';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import {
@@ -28,7 +31,8 @@ export class ClinicalService {
     private readonly labRepository: ILabRepository,
     @Inject('IMedicalCodingRepository')
     private readonly codingRepository: IMedicalCodingRepository,
-    private readonly nlmCodingService: NlmCodingService,
+    @Inject(CODE_CATALOG_PROVIDER)
+    private readonly codeCatalogProvider: CodeCatalogProvider,
   ) {}
 
   private toLabTestInput(
@@ -109,11 +113,11 @@ export class ClinicalService {
   }
 
   async searchIcdCodes(query: string): Promise<IcdCode[]> {
-    return await this.nlmCodingService.searchIcdCodes(query);
+    return await this.codeCatalogProvider.searchIcdCodes(query);
   }
 
   async searchCptCodes(query: string): Promise<CptCode[]> {
-    return await this.nlmCodingService.searchCptCodes(query);
+    return await this.codeCatalogProvider.searchCptCodes(query);
   }
 
   async getFavorites(userId: string): Promise<(IcdCode | null)[]> {

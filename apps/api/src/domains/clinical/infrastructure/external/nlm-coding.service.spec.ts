@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { NlmCodingService } from './nlm-coding.service';
 
@@ -10,27 +11,224 @@ describe('NlmCodingService', () => {
     global.fetch = jest.fn();
   });
 
-  it('searches CPT codes from the local catalog without calling NLM', async () => {
+  it('searches CPT/HCPCS codes from NLM first when available', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: jest
+        .fn()
+        .mockResolvedValue([
+          1,
+          ['99213'],
+          null,
+          [['99213', 'Office or other outpatient visit']],
+        ]),
+    } as unknown as Response);
+
     const results = await service.searchCptCodes('office');
 
-    expect(global.fetch).not.toHaveBeenCalled();
-    expect(results.map((code) => code.code)).toContain('99213');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(results).toEqual([
+      expect.objectContaining({
+        code: '99213',
+        description: 'Office or other outpatient visit',
+      }),
+    ]);
+  });
+
+  it('falls back to local CPT catalog when HCPCS API is unavailable', async () => {
+    const warnSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
+    (global.fetch as jest.Mock).mockRejectedValue(
+      new TypeError('fetch failed'),
+    );
+
+    const first = await service.searchCptCodes('office');
+    const second = await service.searchCptCodes('office');
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(first.map((code) => code.code)).toContain('99213');
+    expect(second.map((code) => code.code)).toContain('99213');
+    warnSpy.mockRestore();
+  });
+
+  it('returns local CPT matches for queries even when API fallback is used', async () => {
+    (global.fetch as jest.Mock).mockRejectedValue(
+      new TypeError('fetch failed'),
+    );
+
+    const results = await service.searchCptCodes('office');
+
     expect(results[0]).toMatchObject({
       code: '99201',
       description: 'Office/Outpatient Visit - New Patient, 10 min',
-      category: 'Evaluation & Management',
+      category: 'Evaluation and Management',
       isCommon: false,
     });
   });
 
-  it('returns no CPT results for unmatched queries without calling NLM', async () => {
+  it('returns no CPT results for unmatched queries', async () => {
+    (global.fetch as jest.Mock).mockRejectedValue(
+      new TypeError('fetch failed'),
+    );
+
     const results = await service.searchCptCodes('nonexistent procedure');
 
-    expect(global.fetch).not.toHaveBeenCalled();
     expect(results).toEqual([]);
+  });
+
+  it('maps ICD search results from NLM response', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: jest
+        .fn()
+        .mockResolvedValue([
+          1,
+          ['E11.9'],
+          null,
+          [['E11.9', 'Type 2 diabetes mellitus without complications']],
+        ]),
+    } as unknown as Response);
+
+    const results = await service.searchIcdCodes('diabetes');
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(results).toEqual([
+      expect.objectContaining({
+        code: 'E11.9',
+        description: 'Type 2 diabetes mellitus without complications',
+        category: 'Endocrine',
+        version: 'ICD-10',
+        isCommon: false,
+      }),
+    ]);
+  });
+
+  it('suppresses repeated ICD fetch failures during cooldown', async () => {
+    const warnSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
+    (global.fetch as jest.Mock).mockRejectedValue(
+      new TypeError('fetch failed'),
+    );
+
+    await service.searchIcdCodes('diabetes');
+    await service.searchIcdCodes('hypertension');
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+  });
+
+  it('fetches ICD sync data with paginated API calls', async () => {
+    const pageSize = 500;
+    const firstPageRows = Array.from({ length: pageSize }, (_, idx) => [
+      `A${String(idx).padStart(2, '0')}`,
+      `Condition ${idx}`,
+    ]);
+    const secondPageRows = [['A500', 'Condition 500']];
+
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      const parsed = new URL(url);
+      const terms = parsed.searchParams.get('terms');
+      const offset = parsed.searchParams.get('offset');
+
+      if (terms === 'A' && offset === '0') {
+        return Promise.resolve({
+          ok: true,
+          json: jest
+            .fn()
+            .mockResolvedValue([
+              501,
+              firstPageRows.map((row) => row[0]),
+              null,
+              firstPageRows,
+            ]),
+        } as unknown as Response);
+      }
+
+      if (terms === 'A' && offset === '500') {
+        return Promise.resolve({
+          ok: true,
+          json: jest
+            .fn()
+            .mockResolvedValue([
+              501,
+              secondPageRows.map((row) => row[0]),
+              null,
+              secondPageRows,
+            ]),
+        } as unknown as Response);
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: jest.fn().mockResolvedValue([0, [], null, []]),
+      } as unknown as Response);
+    });
+
+    const results = await service.fetchAllIcdCodesForSync();
+
+    expect(results.some((code) => code.code === 'A00')).toBe(true);
+    expect(results.some((code) => code.code === 'A500')).toBe(true);
+    expect(results.every((code) => code.isCommon)).toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('terms=A'),
+      expect.any(Object),
+    );
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('offset=500'),
+      expect.any(Object),
+    );
+  });
+
+  it('fetches CPT/HCPCS sync data from API', async () => {
+    (global.fetch as jest.Mock).mockImplementation((url: string) => {
+      const parsed = new URL(url);
+      const terms = parsed.searchParams.get('terms');
+
+      if (terms === 'A') {
+        return Promise.resolve({
+          ok: true,
+          json: jest
+            .fn()
+            .mockResolvedValue([
+              1,
+              ['A4550'],
+              null,
+              [['A4550', 'Surgical trays']],
+            ]),
+        } as unknown as Response);
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: jest.fn().mockResolvedValue([0, [], null, []]),
+      } as unknown as Response);
+    });
+
+    const results = await service.fetchAllCptCodesForSync();
+
+    expect(results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'A4550',
+          description: 'Surgical trays',
+          category: 'HCPCS',
+          isCommon: true,
+        }),
+      ]),
+    );
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('q=obsolete%3Afalse'),
+      expect.any(Object),
+    );
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
+    jest.restoreAllMocks();
   });
 });

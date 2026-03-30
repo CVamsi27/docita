@@ -4,6 +4,7 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
 import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
 import {
   BillingCalculatorService,
+  ClaimValidationService,
   InvoiceValidatorService,
 } from './core/services';
 import { PricingService } from './core/services/pricing.service';
@@ -60,6 +61,7 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
   ],
   providers: [
     BillingCalculatorService,
+    ClaimValidationService,
     InvoiceValidatorService,
     PricingService,
     UsageTrackingService,
@@ -83,6 +85,7 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
     InvoicesService,
     PaymentsService,
     BillingCalculatorService,
+    ClaimValidationService,
     InvoiceValidatorService,
     PricingService,
     UsageTrackingService,

@@ -84,6 +84,17 @@ export class InvoicesController {
     return this.invoicesService.update(id, dto, req.user.clinicId);
   }
 
+  @Get(':id/claim-readiness')
+  getClaimReadiness(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.invoicesService.getClaimReadiness(id, req.user.clinicId);
+  }
+
+  @Post(':id/submit-claim')
+  @RequireFeature(Feature.INVOICING)
+  submitClaim(@Request() req: AuthRequest, @Param('id') id: string) {
+    return this.invoicesService.submitClaim(id, req.user.clinicId);
+  }
+
   @Get(':id/pdf')
   async generatePDF(
     @Request() req: AuthRequest,

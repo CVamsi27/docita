@@ -23,10 +23,10 @@ export default function AppleIcon() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect width="32" height="32" rx="8" fill="#0f172a" />
+        <rect width="32" height="32" rx="8" fill="#ffffff" />
         <path
           d={ECG_PATH}
-          stroke="white"
+          stroke="#050505"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"

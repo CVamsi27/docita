@@ -27,7 +27,11 @@ export function ClientErrorReporter() {
   useEffect(() => {
     const reportedKeys = new Map<string, number>();
     const shouldReport = true;
-    const shouldPrintToConsole = false;
+    const shouldPrintToConsole = true;
+    const captureConsoleInfo =
+      process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_INFO === "true";
+    const captureConsoleWarnings =
+      process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_WARNINGS === "true";
     const showConsoleToasts =
       process.env.NODE_ENV !== "production" &&
       process.env.NEXT_PUBLIC_ENABLE_CONSOLE_TOASTS === "true";
@@ -127,11 +131,13 @@ export function ClientErrorReporter() {
         toast(message);
       }
 
-      report(`console-log:${message}`, {
-        type: "ConsoleLog",
-        message,
-        severity: "INFO",
-      });
+      if (captureConsoleInfo) {
+        report(`console-log:${message}`, {
+          type: "ConsoleLog",
+          message,
+          severity: "INFO",
+        });
+      }
     };
 
     const patchedConsoleWarn = (...args: unknown[]) => {
@@ -145,13 +151,15 @@ export function ClientErrorReporter() {
         toast.warning(message);
       }
 
-      const firstError = args.find((arg): arg is Error => arg instanceof Error);
-      report(`console-warn:${message}`, {
-        type: "ConsoleWarning",
-        message,
-        severity: "WARNING",
-        stack: firstError?.stack,
-      });
+      if (captureConsoleWarnings) {
+        const firstError = args.find((arg): arg is Error => arg instanceof Error);
+        report(`console-warn:${message}`, {
+          type: "ConsoleWarning",
+          message,
+          severity: "WARNING",
+          stack: firstError?.stack,
+        });
+      }
     };
 
     const patchedConsoleError = (...args: unknown[]) => {

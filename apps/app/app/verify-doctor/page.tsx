@@ -1,51 +1,30 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  CheckCircle2,
-  Circle,
-  ImageIcon,
-  Loader2,
-  Pencil,
-  ShieldCheck,
-  Upload,
-} from 'lucide-react';
+import { CheckCircle2, Circle, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@workspace/ui/components/tabs';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import { useAPIQuery, useAPIMutation } from '@/lib/api-core';
-import { SignaturePad, SignaturePreview } from '@/components/signature-canvas';
-import {
-  useGenerateSignatureToken,
-  uploadSignature,
-} from '@/hooks/api/use-signature-upload';
+import { SignatureUploadQR } from '@/features/settings/components/signature-upload-qr';
 import type { User } from '@workspace/types';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { DocitaLogo } from '@workspace/ui/components/docita-logo';
-import Image from 'next/image';
 
 export default function VerifyDoctorPage() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [isSavingReg, setIsSavingReg] = useState(false);
+  const isDoctor = user?.role === 'DOCTOR' || user?.role === 'ADMIN_DOCTOR';
 
-  // Signature state
-  const [uploadMethod, setUploadMethod] = useState<'draw' | 'upload'>('draw');
-  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isUploadingSignature, setIsUploadingSignature] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { data: doctorProfile, isLoading, refetch } = useAPIQuery<User>(
+  const { data: doctorProfile, isLoading: profileLoading, refetch } = useAPIQuery<User>(
     ['doctor-profile', user?.id ?? ''],
     `/doctors/${user?.id}`,
-    { enabled: !!user?.id },
+    { enabled: !!user?.id && isDoctor },
   );
 
   const updateDoctor = useAPIMutation<User, { registrationNumber: string }>(
@@ -54,11 +33,36 @@ export default function VerifyDoctorPage() {
     { invalidateKeys: [['doctor-profile', user?.id ?? '']] },
   );
 
-  const generateToken = useGenerateSignatureToken();
-
-  const hasSignature = !!doctorProfile?.signatureUrl;
-  const hasRegistration = !!doctorProfile?.registrationNumber;
+  const profile = doctorProfile ?? user;
+  const hasSignature = !!profile?.signatureUrl;
+  const hasRegistration = !!profile?.registrationNumber;
   const canContinue = hasSignature && hasRegistration;
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!user) {
+      router.replace('/login?next=/verify-doctor');
+      return;
+    }
+
+    if (!isDoctor) {
+      router.replace('/dashboard');
+      return;
+    }
+
+    if (canContinue) {
+      router.replace('/dashboard');
+    }
+  }, [authLoading, user, isDoctor, canContinue, router]);
+
+  useEffect(() => {
+    if (!user?.id || !isDoctor || hasSignature) return;
+    const intervalId = window.setInterval(() => {
+      void refetch();
+    }, 8000);
+    return () => window.clearInterval(intervalId);
+  }, [user?.id, isDoctor, hasSignature, refetch]);
 
   const handleSaveRegistration = async () => {
     if (!registrationNumber.trim()) return;
@@ -79,56 +83,13 @@ export default function VerifyDoctorPage() {
     router.replace('/dashboard');
   };
 
-  const dataURLtoFile = (dataUrl: string, filename: string): File => {
-    const arr = dataUrl.split(',');
-    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
-  };
-
-  const handleSignatureUpload = async (file: File) => {
-    setIsUploadingSignature(true);
-    try {
-      const tokenData = await generateToken.mutateAsync();
-      await uploadSignature(tokenData.token, file);
-      await refetch();
-      toast.success('Signature uploaded successfully.');
-    } catch {
-      toast.error('Failed to upload signature. Please try again.');
-    } finally {
-      setIsUploadingSignature(false);
-    }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must not exceed 5MB');
-      return;
-    }
-    setSelectedFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setPreviewUrl(reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleResetFile = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  if (isLoading) {
+  if (
+    authLoading ||
+    (user?.id && isDoctor && profileLoading && !doctorProfile) ||
+    !user ||
+    !isDoctor ||
+    canContinue
+  ) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -219,113 +180,24 @@ export default function VerifyDoctorPage() {
                 Signature uploaded successfully.
               </div>
             ) : (
-              <Tabs
-                value={uploadMethod}
-                onValueChange={(v) => setUploadMethod(v as 'draw' | 'upload')}
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="draw">
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Draw
-                  </TabsTrigger>
-                  <TabsTrigger value="upload">
-                    <ImageIcon className="mr-2 h-4 w-4" />
-                    Upload Image
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="draw" className="space-y-3 pt-1">
-                  {!signatureDataUrl ? (
-                    <SignaturePad onSave={(dataUrl) => setSignatureDataUrl(dataUrl)} />
-                  ) : (
-                    <div className="space-y-3">
-                      <SignaturePreview
-                        dataUrl={signatureDataUrl}
-                        onEdit={() => setSignatureDataUrl(null)}
-                      />
-                      <Button
-                        onClick={() =>
-                          handleSignatureUpload(
-                            dataURLtoFile(signatureDataUrl, 'signature.png'),
-                          )
-                        }
-                        disabled={isUploadingSignature}
-                        className="w-full"
-                      >
-                        {isUploadingSignature ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="mr-2 h-4 w-4" />
-                            Save Signature
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="upload" className="space-y-3 pt-1">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  {!previewUrl ? (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Select Image
-                    </Button>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="rounded-lg border bg-white p-4">
-                        <Image
-                          src={previewUrl}
-                          alt="Signature preview"
-                          width={400}
-                          height={120}
-                          className="mx-auto max-h-32 object-contain"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleSignatureUpload(selectedFile!)}
-                          disabled={isUploadingSignature}
-                          className="flex-1"
-                        >
-                          {isUploadingSignature ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="mr-2 h-4 w-4" />
-                              Save Signature
-                            </>
-                          )}
-                        </Button>
-                        <Button variant="outline" onClick={handleResetFile}>
-                          Change
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    PNG, JPG, or WebP. Max 5MB.
-                  </p>
-                </TabsContent>
-              </Tabs>
+              <p className="text-xs text-muted-foreground">
+                Generate a QR code and upload your signature from your mobile device.
+              </p>
+            )}
+            {!hasSignature && (
+              <div className="pt-2 space-y-2">
+                <SignatureUploadQR />
+                <div className="flex items-center justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void refetch()}
+                    disabled={profileLoading}
+                  >
+                    Refresh upload status
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
 
@@ -345,7 +217,7 @@ export default function VerifyDoctorPage() {
               <p className="text-sm text-muted-foreground">
                 Saved:{' '}
                 <span className="font-medium text-foreground">
-                  {doctorProfile?.registrationNumber}
+                  {profile?.registrationNumber}
                 </span>
               </p>
             ) : (
