@@ -10,15 +10,15 @@ import {
   useAPIMutation,
   useAPIQuery,
 } from "@/lib/api-core";
+import { withQueryString } from "@/lib/http/query-string";
 
 export const usePatients = (
   options?: { limit?: number; search?: string } | null,
 ) => {
-  const params = new URLSearchParams();
-  if (options?.limit) params.append("limit", options.limit.toString());
-  if (options?.search) params.append("search", options.search);
-  const queryString = params.toString();
-  const url = queryString ? `/patients?${queryString}` : "/patients";
+  const url = withQueryString("/patients", {
+    limit: options?.limit,
+    search: options?.search,
+  });
 
   return useAPIQuery<{
     items: Patient[];
@@ -39,17 +39,18 @@ export const useInfinitePatients = (options?: {
   return useInfiniteQuery({
     queryKey: ["patients", "infinite", options?.search ?? ""],
     queryFn: ({ pageParam }) => {
-      const params = new URLSearchParams();
-      if (options?.limit) params.append("limit", options.limit.toString());
-      if (options?.search) params.append("search", options.search);
-      if (pageParam) params.append("cursor", pageParam as string);
-      const queryString = params.toString();
       return fetchAPI<{
         items: Patient[];
         nextCursor?: string;
         hasMore: boolean;
         count: number;
-      }>(`/patients?${queryString}`);
+      }>(
+        withQueryString("/patients", {
+          limit: options?.limit,
+          search: options?.search,
+          cursor: pageParam as string | undefined,
+        }),
+      );
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
@@ -62,7 +63,10 @@ export const useRecentPatients = (limit: number = 5) => {
     nextCursor?: string;
     hasMore: boolean;
     count: number;
-  }>(["patients", "recent", limit.toString()], `/patients?limit=${limit}`);
+  }>(
+    ["patients", "recent", limit.toString()],
+    withQueryString("/patients", { limit }),
+  );
 };
 
 export const usePatient = (id: string) =>
@@ -132,8 +136,5 @@ export const useTodaysPatients = (doctorId?: string, search?: string) =>
     };
   }>(
     ["todays-patients", doctorId ?? "all", search ?? ""],
-    `/queue/today?${new URLSearchParams({
-      ...(doctorId && { doctorId }),
-      ...(search && { search }),
-    }).toString()}`,
+    withQueryString("/queue/today", { doctorId, search }),
   );

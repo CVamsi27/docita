@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { format } from "date-fns";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 
 import {
   AddPatientDialog,
@@ -41,17 +42,24 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 
 function PatientsContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get("search") ?? "",
+  );
+  const debouncedSearch = useDebounce(searchQuery, 250);
+
   const {
     data: patientsResponse,
     isLoading: loading,
     error: queryError,
     refetch,
-  } = usePatients();
+  } = usePatients({
+    limit: 100,
+    search: debouncedSearch.trim() || undefined,
+  });
 
   const error = queryError ? (queryError as Error).message : null;
-  const [searchQuery, setSearchQuery] = useState("");
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Patient | "fullName";
     direction: "asc" | "desc";
@@ -65,6 +73,22 @@ function PatientsContent() {
       setIsAddDialogOpen(true);
     }
   }, [currentAction]);
+
+  useEffect(() => {
+    const normalizedCurrentSearch = (searchParams.get("search") ?? "").trim();
+    const normalizedNextSearch = debouncedSearch.trim();
+    if (normalizedCurrentSearch === normalizedNextSearch) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (normalizedNextSearch) {
+      nextParams.set("search", normalizedNextSearch);
+    } else {
+      nextParams.delete("search");
+    }
+    router.replace(`/patients?${nextParams.toString()}`);
+  }, [debouncedSearch, router, searchParams]);
 
   const handleDialogChange = useCallback(
     (open: boolean) => {
@@ -92,19 +116,8 @@ function PatientsContent() {
   };
 
   const filteredPatients = useMemo(() => {
-
     const patients = patientsResponse?.items || [];
-    let result = [...patients];
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter((patient) => {
-        const fullName =
-          `${patient.firstName} ${patient.lastName}`.toLowerCase();
-        const phoneNumber = patient.phoneNumber.toLowerCase();
-        return fullName.includes(query) || phoneNumber.includes(query);
-      });
-    }
+    const result = [...patients];
 
     if (sortConfig) {
       result.sort((a, b) => {
@@ -139,7 +152,7 @@ function PatientsContent() {
     }
 
     return result;
-  }, [patientsResponse, searchQuery, sortConfig]);
+  }, [patientsResponse, sortConfig]);
 
   const SortIcon = ({ column }: { column: keyof Patient | "fullName" }) => {
     if (sortConfig?.key !== column) {
@@ -278,9 +291,7 @@ function PatientsContent() {
                     <TableRow
                       key={patient.id}
                       className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        (window.location.href = `/patients/${patient.id}`)
-                      }
+                      onClick={() => router.push(`/patients/${patient.id}`)}
                     >
                       <TableCell>
                         <Avatar className="h-8 w-8 bg-primary/10 text-primary">

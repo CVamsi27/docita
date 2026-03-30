@@ -11,6 +11,7 @@ import {
   UpdateInvoiceRequest,
 } from "@workspace/types";
 import { API_URL, useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { withQueryString } from "@/lib/http/query-string";
 
 export const useInvoices = (filters?: ListInvoicesContractQuery) =>
   useAPIQuery<
@@ -20,19 +21,7 @@ export const useInvoices = (filters?: ListInvoicesContractQuery) =>
     })[]
   >(
     ["invoices", filters || {}],
-    (() => {
-      if (!filters) return "/invoices";
-      const params = new URLSearchParams();
-      (
-        Object.entries(filters) as [string, string | number | undefined][]
-      ).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          params.append(key, String(value));
-        }
-      });
-      const qs = params.toString();
-      return qs ? `/invoices?${qs}` : "/invoices";
-    })(),
+    withQueryString("/invoices", filters),
   );
 
 export const useInvoice = (id: string) =>
@@ -178,20 +167,21 @@ export const useInfiniteInvoices = (options?: {
   return useInfiniteQuery({
     queryKey: ["invoices", "infinite", options],
     queryFn: async ({ pageParam }) => {
-      const params = new URLSearchParams({
-        limit: (options?.limit || 50).toString(),
-        ...(pageParam && { cursor: pageParam }),
-        ...(options?.patientId && { patientId: options.patientId }),
-        ...(options?.status && { status: options.status }),
-        ...(options?.date && { date: options.date }),
-        ...(options?.search && { search: options.search }),
-      });
-
-      const response = await fetch(`${API_URL}/invoices?${params}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      const response = await fetch(
+        `${API_URL}${withQueryString("/invoices", {
+          limit: options?.limit || 50,
+          cursor: pageParam,
+          patientId: options?.patientId,
+          status: options?.status,
+          date: options?.date,
+          search: options?.search,
+        })}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) throw new Error("Failed to fetch invoices");
       return response.json() as Promise<{

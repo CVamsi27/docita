@@ -11,6 +11,7 @@ import {
   useAPIMutation,
   useAPIQuery,
 } from "@/lib/api-core";
+import { withQueryString } from "@/lib/http/query-string";
 
 export type AppointmentWithRelations = Appointment & {
   patient?: Patient;
@@ -54,14 +55,13 @@ export const useAppointments = (
     search?: string;
   } | null,
 ) => {
-  const params = new URLSearchParams();
-  if (options?.date) params.append("date", options.date);
-  if (options?.startDate) params.append("startDate", options.startDate);
-  if (options?.endDate) params.append("endDate", options.endDate);
-  if (options?.doctorId) params.append("doctorId", options.doctorId);
-  if (options?.search) params.append("search", options.search);
-  const queryString = params.toString();
-  const url = queryString ? `/appointments?${queryString}` : "/appointments";
+  const url = withQueryString("/appointments", {
+    date: options?.date,
+    startDate: options?.startDate,
+    endDate: options?.endDate,
+    doctorId: options?.doctorId,
+    search: options?.search,
+  });
 
   return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     [
@@ -135,16 +135,15 @@ export const useInfiniteAppointments = (options?: {
       options?.search,
     ],
     queryFn: ({ pageParam }) => {
-      const params = new URLSearchParams({
-        limit: (options?.limit || 50).toString(),
-        ...(pageParam && { cursor: pageParam as string }),
-        ...(options?.date && { date: options.date }),
-        ...(options?.startDate && { startDate: options.startDate }),
-        ...(options?.endDate && { endDate: options.endDate }),
-        ...(options?.search && { search: options.search }),
-      });
       return fetchAPI<PaginatedResponse<Appointment & { patient?: Patient }>>(
-        `/appointments?${params}`,
+        withQueryString("/appointments", {
+          limit: options?.limit || 50,
+          cursor: pageParam as string | undefined,
+          date: options?.date,
+          startDate: options?.startDate,
+          endDate: options?.endDate,
+          search: options?.search,
+        }),
       );
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -160,23 +159,18 @@ export const useCheckInAppointment = () =>
   );
 
 export const useQueue = (options?: { search?: string }) => {
-  const params = new URLSearchParams();
-  if (options?.search) params.append("search", options.search);
-  const queryString = params.toString();
   return useAPIQuery<QueueItem[]>(
     ["queue", options?.search ?? ""],
-    queryString ? `/queue?${queryString}` : "/queue",
+    withQueryString("/queue", {
+      search: options?.search,
+    }),
   );
 };
 
 export const useQueueByDoctor = (doctorId?: string, search?: string) => {
-  const params = new URLSearchParams();
-  if (doctorId) params.append("doctorId", doctorId);
-  if (search) params.append("search", search);
-  const queryString = params.toString();
   return useAPIQuery<QueueItem[]>(
     ["queue", doctorId ?? "all", search ?? ""],
-    `/queue?${queryString}`,
+    withQueryString("/queue", { doctorId, search }),
   );
 };
 

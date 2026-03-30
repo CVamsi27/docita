@@ -21,6 +21,7 @@ import {
   useAPIMutation,
   useAPIQuery,
 } from "@/lib/api-core";
+import { withQueryString } from "@/lib/http/query-string";
 
 export const useVitalSigns = (patientId: string) =>
   useAPIQuery<VitalSign[]>(
@@ -44,7 +45,7 @@ export const usePrescriptions = (filters?: {
 }) =>
   useAPIQuery<(Prescription & { patient: Patient })[]>(
     ["prescriptions", filters || {}],
-    `/prescriptions${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    withQueryString("/prescriptions", filters),
   );
 
 export const usePatientPrescriptions = (
@@ -52,16 +53,14 @@ export const usePatientPrescriptions = (
   options?: { limit?: number },
   queryOptions?: { enabled?: boolean },
 ) => {
-  const params = new URLSearchParams();
-  if (options?.limit) params.append("limit", options.limit.toString());
-  const queryString = params.toString();
-
   return useAPIQuery<{
     items: (Prescription & { patient: Patient })[];
     count: number;
   }>(
     ["prescriptions", "patient", patientId],
-    `/patients/${patientId}/prescriptions?${queryString}`,
+    withQueryString(`/patients/${patientId}/prescriptions`, {
+      limit: options?.limit,
+    }),
     queryOptions,
   );
 };
@@ -158,7 +157,7 @@ export const useLabTestOrders = (filters?: {
 }) =>
   useAPIQuery<LabTestOrder[]>(
     ["lab-test-orders", filters || {}],
-    `/clinical/lab-tests/orders${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    withQueryString("/clinical/lab-tests/orders", filters),
   );
 
 export const useLabTestStats = () =>
@@ -176,7 +175,7 @@ export const useLabTestCatalog = () =>
 export const useDocuments = (filters?: ListDocumentsContractQuery) =>
   useAPIQuery<DocumentContractResponse[]>(
     ["documents", filters || {}],
-    `/medical-documents${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    withQueryString("/medical-documents", filters),
   );
 
 export const useDocument = (id: string) =>
@@ -185,7 +184,7 @@ export const useDocument = (id: string) =>
 export const useTemplates = (filters?: ListTemplatesContractQuery) =>
   useAPIQuery<TemplateContractResponse[]>(
     ["templates", filters || {}],
-    `/templates${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    withQueryString("/templates", filters),
   );
 
 export const useTemplate = (id: string) =>
@@ -217,4 +216,3 @@ export const useDeleteTemplate = () =>
       invalidateKeys: [["templates"]],
     },
   );
-

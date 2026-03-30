@@ -1,5 +1,25 @@
 import { InventoryItem } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { withQueryString } from "@/lib/http/query-string";
+
+interface InventoryMovementInput {
+  type: string;
+  quantity: number;
+  referenceType?: string;
+  referenceId?: string;
+  notes?: string;
+}
+
+interface InventoryMovementResponse {
+  id: string;
+  itemId: string;
+  type: string;
+  quantity: number;
+  referenceType?: string | null;
+  referenceId?: string | null;
+  notes?: string | null;
+  createdAt: string;
+}
 
 export const useInventory = (filters?: {
   search?: string;
@@ -8,7 +28,7 @@ export const useInventory = (filters?: {
 }) =>
   useAPIQuery<InventoryItem[]>(
     ["inventory", filters || {}],
-    `/inventory${filters ? `?${new URLSearchParams(filters as Record<string, string>).toString()}` : ""}`,
+    withQueryString("/inventory", filters),
   );
 
 export const useInventoryStats = () =>
@@ -46,12 +66,6 @@ export const useDeleteInventoryItem = (id: string) =>
 
 export const useAddInventoryMovement = (itemId: string) =>
   useAPIMutation<
-    Record<string, unknown>,
-    {
-      type: string;
-      quantity: number;
-      referenceType?: string;
-      referenceId?: string;
-      notes?: string;
-    }
+    InventoryMovementResponse,
+    InventoryMovementInput
   >(`/inventory/${itemId}/movements`, "POST");
