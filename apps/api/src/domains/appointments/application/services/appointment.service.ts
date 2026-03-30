@@ -8,13 +8,18 @@ import {
   IAppointmentRepository,
   AppointmentSearchParams,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { Prisma, VitalSign } from '@workspace/db';
+import { Prisma, Role, VitalSign } from '@workspace/db';
 import {
   CreateAppointmentUseCase,
   CreateAppointmentCommand,
 } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { PrismaService } from '@/prisma/prisma.service';
+
+type AppointmentAccessContext = {
+  role?: Role;
+  userId?: string;
+};
 
 @Injectable()
 export class AppointmentService {
@@ -31,11 +36,30 @@ export class AppointmentService {
     return this.createAppointmentUseCase.execute(command);
   }
 
-  async getAppointment(id: string): Promise<Appointment> {
+  async getAppointment(
+    id: string,
+    clinicId?: string,
+    accessContext?: AppointmentAccessContext,
+  ): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findById(id);
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
+
+    if (clinicId && appointment.clinicId !== clinicId) {
+      throw new ForbiddenException('Access denied for this appointment');
+    }
+
+    if (
+      accessContext?.role === Role.DOCTOR &&
+      accessContext.userId &&
+      appointment.doctorId !== accessContext.userId
+    ) {
+      throw new ForbiddenException(
+        'Doctors can only access their appointments',
+      );
+    }
+
     return appointment;
   }
 
@@ -43,8 +67,13 @@ export class AppointmentService {
     return this.appointmentRepository.findAll(params);
   }
 
-  async cancelAppointment(id: string, reason: string): Promise<void> {
-    const appointment = await this.getAppointment(id);
+  async cancelAppointment(
+    id: string,
+    reason: string,
+    clinicId?: string,
+    accessContext?: AppointmentAccessContext,
+  ): Promise<void> {
+    const appointment = await this.getAppointment(id, clinicId, accessContext);
     appointment.cancel(reason);
     await this.appointmentRepository.update(appointment);
   }
@@ -53,8 +82,10 @@ export class AppointmentService {
     id: string,
     startTime: Date,
     endTime: Date,
+    clinicId?: string,
+    accessContext?: AppointmentAccessContext,
   ): Promise<void> {
-    const appointment = await this.getAppointment(id);
+    const appointment = await this.getAppointment(id, clinicId, accessContext);
     appointment.reschedule(startTime, endTime);
     await this.appointmentRepository.update(appointment);
   }
@@ -63,10 +94,11 @@ export class AppointmentService {
     id: string,
     clinicId: string,
     data: Prisma.AppointmentUpdateInput,
+    accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
-      select: { id: true, clinicId: true, patientId: true },
+      select: { id: true, clinicId: true, patientId: true, doctorId: true },
     });
 
     if (!appointment) {
@@ -75,6 +107,16 @@ export class AppointmentService {
 
     if (appointment.clinicId !== clinicId) {
       throw new ForbiddenException('Access denied for this appointment');
+    }
+
+    if (
+      accessContext?.role === Role.DOCTOR &&
+      accessContext.userId &&
+      appointment.doctorId !== accessContext.userId
+    ) {
+      throw new ForbiddenException(
+        'Doctors can only access their appointments',
+      );
     }
 
     await this.prisma.appointment.update({
@@ -113,13 +155,14 @@ export class AppointmentService {
       });
     }
 
-    return this.getAppointment(id);
+    return this.getAppointment(id, clinicId, accessContext);
   }
 
   async createVitals(
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
+    accessContext?: AppointmentAccessContext,
   ): Promise<VitalSign> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
@@ -127,6 +170,7 @@ export class AppointmentService {
         id: true,
         clinicId: true,
         patientId: true,
+        doctorId: true,
       },
     });
 
@@ -138,6 +182,16 @@ export class AppointmentService {
 
     if (appointment.clinicId !== clinicId) {
       throw new ForbiddenException('Access denied for this appointment');
+    }
+
+    if (
+      accessContext?.role === Role.DOCTOR &&
+      accessContext.userId &&
+      appointment.doctorId !== accessContext.userId
+    ) {
+      throw new ForbiddenException(
+        'Doctors can only access their appointments',
+      );
     }
 
     const payload = this.cleanVitalsPayload(data);
@@ -165,8 +219,9 @@ export class AppointmentService {
     appointmentId: string,
     clinicId: string,
     data: Partial<VitalSign>,
+    accessContext?: AppointmentAccessContext,
   ): Promise<VitalSign> {
-    return this.createVitals(appointmentId, clinicId, data);
+    return this.createVitals(appointmentId, clinicId, data, accessContext);
   }
 
   private cleanVitalsPayload(data: Partial<VitalSign>) {

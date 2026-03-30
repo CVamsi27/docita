@@ -9,6 +9,7 @@ import {
   Request,
   Query,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
@@ -32,6 +33,7 @@ import {
 import {
   appointmentDomainCreateSchema,
   appointmentRescheduleRequestSchema,
+  resolveDoctorScopedAppointmentFilter,
 } from '@workspace/types';
 
 const parseAppointmentStatus = (
@@ -67,6 +69,16 @@ const parseAppointmentStatus = (
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class AppointmentsController {
   constructor(private readonly appointmentService: AppointmentService) {}
+
+  private getAccessContext(req: RequestWithUser): {
+    role?: Role;
+    userId?: string;
+  } {
+    return {
+      role: req.user?.role,
+      userId: req.user?.id,
+    };
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create new appointment' })
@@ -115,12 +127,23 @@ export class AppointmentsController {
       .map(parseAppointmentStatus)
       .filter((value): value is AppointmentStatusEnum => value !== undefined);
 
+    const doctorScope = resolveDoctorScopedAppointmentFilter({
+      role: req.user?.role,
+      userId: req.user?.id,
+      requestedDoctorId: doctorId,
+    });
+    if (doctorScope.denied) {
+      throw new ForbiddenException(
+        'Doctors can only access their appointments',
+      );
+    }
+
     return this.appointmentService.listAppointments({
       clinicId: req.user!.clinicId!,
       startDate: effectiveStartDate ? new Date(effectiveStartDate) : undefined,
       endDate: effectiveEndDate ? new Date(effectiveEndDate) : undefined,
       patientId,
-      doctorId,
+      doctorId: doctorScope.scopedDoctorId,
       search,
       status: statuses,
       cursor,
@@ -130,8 +153,12 @@ export class AppointmentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get appointment by ID' })
-  async findOne(@Param('id') id: string) {
-    return this.appointmentService.getAppointment(id);
+  async findOne(@Param('id') id: string, @Request() req: RequestWithUser) {
+    return this.appointmentService.getAppointment(
+      id,
+      req.user!.clinicId!,
+      this.getAccessContext(req),
+    );
   }
 
   @Patch(':id')
@@ -145,6 +172,7 @@ export class AppointmentsController {
       id,
       req.user!.clinicId!,
       body as never,
+      this.getAccessContext(req),
     );
   }
 
@@ -159,6 +187,7 @@ export class AppointmentsController {
       id,
       req.user!.clinicId!,
       body as never,
+      this.getAccessContext(req),
     );
   }
 
@@ -173,23 +202,34 @@ export class AppointmentsController {
       id,
       req.user!.clinicId!,
       body as never,
+      this.getAccessContext(req),
     );
   }
 
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel appointment' })
-  async cancel(@Param('id') id: string, @Body() body: CancelAppointmentDto) {
+  async cancel(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() body: CancelAppointmentDto,
+  ) {
     const reason = body.reason;
     if (!reason) {
       throw new BadRequestException('Cancellation reason is required');
     }
-    return this.appointmentService.cancelAppointment(id, reason);
+    return this.appointmentService.cancelAppointment(
+      id,
+      reason,
+      req.user!.clinicId!,
+      this.getAccessContext(req),
+    );
   }
 
   @Patch(':id/reschedule')
   @ApiOperation({ summary: 'Reschedule appointment' })
   async reschedule(
     @Param('id') id: string,
+    @Request() req: RequestWithUser,
     @Body() body: RescheduleAppointmentDto,
   ) {
     const payload = appointmentRescheduleRequestSchema.parse(body);
@@ -197,6 +237,8 @@ export class AppointmentsController {
       id,
       payload.startTime,
       payload.endTime,
+      req.user!.clinicId!,
+      this.getAccessContext(req),
     );
   }
 }

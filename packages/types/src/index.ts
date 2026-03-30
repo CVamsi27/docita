@@ -13,3 +13,4 @@ export * from "./pdf";
 export * from "./test";
 export * from "./medical-documents";
 export * from "./leave";
+export * from "./access";

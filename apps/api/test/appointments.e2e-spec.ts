@@ -111,5 +111,41 @@ describe('AppointmentsController (e2e)', () => {
       expect(response.body.items.length).toBeGreaterThanOrEqual(1);
       expect(response.body.items[0]).toHaveProperty('patient');
     });
+
+    it('should reject doctor query for another doctor id', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/appointments?doctorId=another-doctor-id')
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .expect(403);
+
+      expect(response.body.message).toContain(
+        'Doctors can only access their appointments',
+      );
+    });
+
+    it('should block doctor from fetching another doctor appointment by id', async () => {
+      const { user: secondDoctor } = await factories.user({
+        clinicId: clinic.id,
+        role: 'DOCTOR',
+      });
+      const appointmentForSecondDoctor = await factories.appointment(
+        patient.id,
+        secondDoctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 3600000),
+          endTime: new Date(Date.now() + 5400000),
+        },
+      );
+
+      const response = await request(app.getHttpServer())
+        .get(`/appointments/${appointmentForSecondDoctor.id}`)
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .expect(403);
+
+      expect(response.body.message).toContain(
+        'Doctors can only access their appointments',
+      );
+    });
   });
 });

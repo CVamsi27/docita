@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { ForbiddenException } from '@nestjs/common';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentService as AppointmentsService } from '@/domains/appointments/application/services/appointment.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
@@ -33,7 +34,9 @@ describe('AppointmentsController', () => {
 
   const mockAuthRequest = {
     user: {
+      id: 'doctor-123',
       clinicId: 'clinic-123',
+      role: 'DOCTOR',
     },
   };
 
@@ -91,17 +94,34 @@ describe('AppointmentsController', () => {
 
       expect(mockAppointmentsService.listAppointments).toHaveBeenCalled();
     });
+
+    it('should reject doctor access when requesting another doctor appointments', async () => {
+      await expect(
+        controller.findAll(
+          mockAuthRequest as never,
+          { doctorId: 'doctor-999' } as never,
+        ),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
   });
 
   describe('findOne', () => {
     it('should return a single appointment', async () => {
       mockAppointmentsService.getAppointment.mockResolvedValue(mockAppointment);
 
-      const result = await controller.findOne('apt-123');
+      const result = await controller.findOne(
+        'apt-123',
+        mockAuthRequest as never,
+      );
 
       expect(result).toEqual(mockAppointment);
       expect(mockAppointmentsService.getAppointment).toHaveBeenCalledWith(
         'apt-123',
+        mockAuthRequest.user.clinicId,
+        {
+          role: mockAuthRequest.user.role,
+          userId: mockAuthRequest.user.id,
+        },
       );
     });
   });
@@ -191,6 +211,28 @@ describe('AppointmentsController', () => {
 
       expect(result).toEqual(mockVitals);
       expect(mockAppointmentsService.updateVitals).toHaveBeenCalled();
+    });
+  });
+
+  describe('cancel', () => {
+    it('should cancel appointment with clinic-scoped access context', async () => {
+      mockAppointmentsService.cancelAppointment.mockResolvedValue(undefined);
+
+      await controller.cancel(
+        'apt-123',
+        mockAuthRequest as never,
+        { reason: 'Patient unavailable' } as never,
+      );
+
+      expect(mockAppointmentsService.cancelAppointment).toHaveBeenCalledWith(
+        'apt-123',
+        'Patient unavailable',
+        mockAuthRequest.user.clinicId,
+        {
+          role: mockAuthRequest.user.role,
+          userId: mockAuthRequest.user.id,
+        },
+      );
     });
   });
 });

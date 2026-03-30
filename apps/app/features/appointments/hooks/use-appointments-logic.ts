@@ -10,7 +10,10 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useClinic } from "@/lib/clinic-context";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import { Appointment } from "@workspace/types";
+import {
+  Appointment,
+  resolveDoctorScopedAppointmentFilter,
+} from "@workspace/types";
 
 export const generateTimeSlots = () => {
   const slots = [];
@@ -63,9 +66,19 @@ export const useAppointmentsLogic = () => {
     [user?.role],
   );
 
+  const doctorScope = useMemo(
+    () =>
+      resolveDoctorScopedAppointmentFilter({
+        role: user?.role,
+        userId: user?.id,
+        requestedDoctorId: selectedDoctorId,
+      }),
+    [selectedDoctorId, user?.id, user?.role],
+  );
+
   const { data: doctors = [] } = useDoctors();
   const { data: doctorSchedules = [] } = useDoctorSchedules(
-    selectedDoctorId || undefined,
+    doctorScope.scopedDoctorId || undefined,
   );
 
   const doctorsList = doctors;
@@ -117,8 +130,8 @@ export const useAppointmentsLogic = () => {
     refetch,
   } = useAppointments({
     ...(selectedDateStr ? { date: selectedDateStr } : {}),
-    ...(canViewAllDoctors && selectedDoctorId
-      ? { doctorId: selectedDoctorId }
+    ...(doctorScope.scopedDoctorId
+      ? { doctorId: doctorScope.scopedDoctorId }
       : {}),
     search: debouncedSearch,
   });
