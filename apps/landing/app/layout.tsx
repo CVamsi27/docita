@@ -3,6 +3,10 @@ import { Providers } from "./providers";
 
 export const metadata = {
   metadataBase: new URL("https://docita.work"),
+  icons: {
+    icon: "/icon",
+    apple: "/apple-icon",
+  },
   title: {
     default: "Docita - Clinic Management Software | 14-Day Free Trial",
     template: "%s | Docita",

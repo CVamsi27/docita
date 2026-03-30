@@ -49,6 +49,18 @@ const COUNTRY_CURRENCY_MAP: Readonly<Record<string, string>> = {
 
 const DEFAULT_CURRENCY = 'INR';
 
+type ManagedDatabaseProvider =
+  | 'AWS RDS'
+  | 'Supabase'
+  | 'Neon'
+  | 'PlanetScale'
+  | 'Google Cloud SQL'
+  | 'Azure Database'
+  | 'Azure PostgreSQL'
+  | 'CockroachDB Cloud'
+  | 'Railway'
+  | 'Render';
+
 function resolveCurrencyFromLocale(acceptLanguage?: string): string {
   if (!acceptLanguage) return DEFAULT_CURRENCY;
 
@@ -68,10 +80,12 @@ function resolveCurrencyFromLocale(acceptLanguage?: string): string {
   return DEFAULT_CURRENCY;
 }
 
-function detectManagedDatabaseProvider(databaseUrl: string): string | null {
+function detectManagedDatabaseProvider(
+  databaseUrl: string,
+): ManagedDatabaseProvider | null {
   const url = databaseUrl.toLowerCase();
 
-  const providers: Array<{ pattern: string; name: string }> = [
+  const providers: Array<{ pattern: string; name: ManagedDatabaseProvider }> = [
     { pattern: 'rds.amazonaws.com', name: 'AWS RDS' },
     { pattern: 'supabase.co', name: 'Supabase' },
     { pattern: 'neon.tech', name: 'Neon' },
@@ -257,7 +271,7 @@ export class AppConfigService {
     };
   }
 
-  detectManagedDatabaseProvider(): string | null {
+  detectManagedDatabaseProvider(): ManagedDatabaseProvider | null {
     return detectManagedDatabaseProvider(this.getDatabaseUrl());
   }
 

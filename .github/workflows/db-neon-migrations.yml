@@ -1,16 +1,11 @@
-name: Neon DB Migrations
+name: Disabled Neon DB Migrations
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "packages/db/prisma/migrations/**"
-      - "packages/db/prisma/schema.prisma"
-      - ".github/workflows/db-neon-migrations.yml"
 
 jobs:
   migrate-neon:
+    if: ${{ false }}
     name: Apply Prisma Migrations to Neon
     runs-on: ubuntu-latest
     env:

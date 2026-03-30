@@ -5,6 +5,10 @@ import { SentryInitializer } from "@/components/sentry-initializer";
 export const metadata = {
   title: "Docita Admin - Super Admin Console",
   description: "Manage clinics, users, and system settings",
+  icons: {
+    icon: "/icon",
+    apple: "/apple-icon",
+  },
 };
 
 export default function RootLayout({

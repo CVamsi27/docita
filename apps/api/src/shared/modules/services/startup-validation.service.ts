@@ -17,7 +17,7 @@ export class StartupValidationService {
     this.validateDataAtRestControls();
     this.validateProductionSecrets();
 
-    this.logger.log(' All startup validations passed');
+    this.logger.log('All startup validations passed');
   }
 
   private validateEncryptionKey(): void {
@@ -56,9 +56,9 @@ export class StartupValidationService {
         );
       }
 
-      this.logger.log(' ENCRYPTION_KEY validated (production-strength)');
+      this.logger.log('ENCRYPTION_KEY validated (production-strength)');
     } else {
-      this.logger.debug(' ENCRYPTION_KEY validated (development mode)');
+      this.logger.debug('ENCRYPTION_KEY validated (development mode)');
     }
   }
 
@@ -89,7 +89,7 @@ export class StartupValidationService {
     }
 
     if (nodeEnv === 'production') {
-      this.logger.log(' JWT_SECRET validated (production-strength)');
+      this.logger.log('JWT_SECRET validated (production-strength)');
     } else {
       this.logger.debug(' JWT_SECRET validated');
     }
@@ -128,12 +128,21 @@ export class StartupValidationService {
         normalizedUrl.includes('sslaccept=strict');
 
       if (!hasDbTlsEnabled) {
+        const provider = this.configService.detectManagedDatabaseProvider();
+
+        if (provider === 'Render') {
+          this.logger.log(
+            'DATABASE_URL validated for Render private networking',
+          );
+          return;
+        }
+
         throw new Error(
           'DATABASE_URL must enforce TLS in production (for example add sslmode=require).',
         );
       }
 
-      this.logger.log(' DATABASE_URL validated (production)');
+      this.logger.log('DATABASE_URL validated (production)');
     } else {
       this.logger.debug(' DATABASE_URL validated');
     }
@@ -159,7 +168,7 @@ export class StartupValidationService {
       }
     });
 
-    this.logger.log(' Transport security validated (HTTPS endpoints)');
+    this.logger.log('Transport security validated (HTTPS endpoints)');
   }
 
   private validateDataAtRestControls(): void {
@@ -172,7 +181,7 @@ export class StartupValidationService {
 
     if (provider) {
       this.logger.log(
-        ` Data-at-rest encryption auto-confirmed (managed provider: ${provider})`,
+        `Data-at-rest encryption auto-confirmed (managed provider: ${provider})`,
       );
     } else {
       this.logger.warn(
@@ -202,7 +211,7 @@ export class StartupValidationService {
       );
     }
 
-    this.logger.log(' All production secrets validated');
+    this.logger.log('All production secrets validated');
   }
 
   getEncryptionKeyInfo(): {

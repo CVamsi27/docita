@@ -28,12 +28,12 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 ```
 Frontend                    Backend
 ---------                   -------
-Cloudflare (apps/app)  -->  Railway (NestJS API)
-Vercel (admin/landing) -->  Neon PostgreSQL
+Cloudflare (apps/app)  -->  Render (NestJS API)
+Vercel (admin/landing) -->  Render PostgreSQL
 ```
 
-- **Database**: Neon Serverless PostgreSQL
-- **Backend**: Railway (Docker / NestJS)
+- **Database**: Render PostgreSQL
+- **Backend**: Render Web Service (NestJS)
 - **Frontend**: Cloudflare Pages (`apps/app`) + Vercel (`apps/landing`, `apps/admin`)
 
 ## Tech Stack
@@ -50,8 +50,8 @@ Vercel (admin/landing) -->  Neon PostgreSQL
 
 - **Framework**: NestJS
 - **ORM**: Prisma
-- **Database**: Neon PostgreSQL
-- **Hosting**: Railway (Docker)
+- **Database**: Render PostgreSQL
+- **Hosting**: Render Web Service
 
 ### Infrastructure
 
@@ -83,7 +83,7 @@ Vercel (admin/landing) -->  Neon PostgreSQL
    ```
 
 3. **Setup Environment**
-   Copy `.env.example` to `.env` in `apps/api` and configure your database URL.
+   Copy `apps/api/.env.example` to `apps/api/.env` and configure your database URL.
 
 4. **Database Setup**
 
@@ -103,7 +103,7 @@ Vercel (admin/landing) -->  Neon PostgreSQL
 
 ## Documentation
 
-- [Deployment Guide](docs/DEPLOYMENT.md) - Complete production deployment guide
+- [Render Deployment Guide](docs/DEPLOYMENT_RENDER.md) - Render API and PostgreSQL deployment
 - [API Documentation](docs/API_DOCUMENTATION.md) - API reference
 - [Testing Guide](docs/TESTING.md) - Testing strategies and best practices
 - [Zod Architecture](docs/zod-first-architecture.md) - Type system guide
@@ -111,11 +111,11 @@ Vercel (admin/landing) -->  Neon PostgreSQL
 
 ## Deployment
 
-1. **Database**: Create Neon project and get connection string
-2. **Backend**: Deploy to Railway with Docker
+1. **Database**: Create Render PostgreSQL in Singapore
+2. **Backend**: Deploy `apps/api` as a Render Web Service
 3. **Frontend**: Deploy `apps/app` to Cloudflare Pages; `apps/landing` and `apps/admin` to Vercel
 
-See [Deployment Guide](docs/DEPLOYMENT.md) for step-by-step instructions.
+See [Render Deployment Guide](docs/DEPLOYMENT_RENDER.md) for step-by-step instructions.
 
 ## License
 

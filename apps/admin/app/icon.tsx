@@ -23,7 +23,7 @@ export default function Icon() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect width="32" height="32" rx="8" fill="url(#g)" />
+        <rect width="32" height="32" rx="8" fill="#0f172a" />
         <path
           d={ECG_PATH}
           stroke="white"
@@ -31,12 +31,6 @@ export default function Icon() {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#4F46E5" />
-            <stop offset="1" stopColor="#06B6D4" />
-          </linearGradient>
-        </defs>
       </svg>
     </div>,
     { ...size },

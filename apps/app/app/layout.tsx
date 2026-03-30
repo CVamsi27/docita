@@ -10,6 +10,10 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Docita - Clinic OS",
   description: "The operating system for modern clinics",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon",
+  },
 };
 
 export const viewport = {
