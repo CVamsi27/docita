@@ -45,7 +45,7 @@ model User {
   mfaEnabled     Boolean  @default(false)
   mfaSecret      String?
   mfaTempSecret  String?
-  mfaBackupCodes String[]
+  mfaBackupCodes String[] @default([])
 
   // Password expiry and history enforcement
   passwordChangedAt  DateTime?
@@ -3458,7 +3458,7 @@ model ApiKey {
   name        String
   keyHash     String    @unique
   keyPrefix   String
-  scopes      String[]
+  scopes      String[] @default([])
   expiresAt   DateTime?
   lastUsedAt  DateTime?
   revokedAt   DateTime?
@@ -3467,7 +3467,7 @@ model ApiKey {
   updatedAt   DateTime  @updatedAt
 
   clinic    Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-  createdBy User   @relation("ApiKeyCreator", fields: [createdById], references: [id])
+  createdBy User   @relation("ApiKeyCreator", fields: [createdById], references: [id], onDelete: Restrict)
 
   @@index([clinicId])
   @@index([createdById])

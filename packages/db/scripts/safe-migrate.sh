@@ -57,6 +57,13 @@ is_production() {
     return 1
 }
 
+is_ci() {
+    if [[ "$CI" == "true" ]] || [[ "$GITHUB_ACTIONS" == "true" ]]; then
+        return 0
+    fi
+    return 1
+}
+
 # Function to create a backup
 create_backup() {
     local db_url=$(get_db_url)
@@ -108,6 +115,11 @@ validate_migration() {
     if [ $warnings -gt 0 ]; then
         warn "Found $warnings potentially dangerous operations"
         if is_production; then
+            if is_ci; then
+                error "Production migrations with dangerous operations are blocked in CI. Review the migration before deploying."
+                return 1
+            fi
+
             error "Production migrations with dangerous operations require manual approval"
             read -p "Do you want to continue? (yes/no): " confirm
             if [ "$confirm" != "yes" ]; then
@@ -308,7 +320,7 @@ main() {
             check_data_integrity
             ;;
         "deploy")
-            if is_production; then
+            if is_production && ! is_ci; then
                 warn "PRODUCTION DEPLOYMENT DETECTED"
                 read -p "Are you sure you want to deploy to production? (yes/no): " confirm
                 if [ "$confirm" != "yes" ]; then
