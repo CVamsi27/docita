@@ -35,12 +35,28 @@ warn() {
     echo -e "${YELLOW}[WARNING]${NC} $1" | tee -a "$LOG_FILE"
 }
 
+# Function to normalize database URL values from env files or direct secrets.
+normalize_db_url() {
+    local value="${1:-}"
+    value="${value#DATABASE_URL=}"
+
+    if [[ "$value" == \"*\" && "$value" == *\" ]]; then
+        value="${value#\"}"
+        value="${value%\"}"
+    elif [[ "$value" == \'*\' && "$value" == *\' ]]; then
+        value="${value#\'}"
+        value="${value%\'}"
+    fi
+
+    printf '%s\n' "$value"
+}
+
 # Function to get database URL
 get_db_url() {
     if [ -f ".env" ]; then
         source .env
     fi
-    echo "${DATABASE_URL:-}"
+    normalize_db_url "${DATABASE_URL:-}"
 }
 
 # Function to extract database name from URL
@@ -73,7 +89,7 @@ create_backup() {
     log "Creating database backup..."
     
     if command -v pg_dump &> /dev/null; then
-        pg_dump "$db_url" > "$backup_file"
+        pg_dump --dbname="$db_url" > "$backup_file"
         success "Backup created: $backup_file"
         echo "$backup_file"
     else
@@ -255,7 +271,7 @@ rollback() {
     fi
     
     local db_url=$(get_db_url)
-    psql "$db_url" < "$backup_file"
+    psql --dbname="$db_url" < "$backup_file"
     
     if [ $? -eq 0 ]; then
         success "Rollback completed"
