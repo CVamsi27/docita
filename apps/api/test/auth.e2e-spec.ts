@@ -62,7 +62,6 @@ describe('Auth (e2e)', () => {
           password: 'Test@123456',
           firstName: 'Dr.',
           lastName: 'Smith',
-          clinicName: 'Test Clinic',
         })
         .expect(201);
 
@@ -83,7 +82,6 @@ describe('Auth (e2e)', () => {
           password: 'Test@123456',
           firstName: 'Dr.',
           lastName: 'Duplicate',
-          clinicName: 'Duplicate Clinic',
         })
         .expect(409);
 
@@ -98,7 +96,6 @@ describe('Auth (e2e)', () => {
           password: '123',
           firstName: 'Dr.',
           lastName: 'Test',
-          clinicName: 'Weak Password Clinic',
         })
         .expect(400);
 

@@ -25,6 +25,8 @@
     "^@workspace/utils$": "<rootDir>/../../../packages/utils/src/index.ts",
     "^@workspace/utils/(.*)$": "<rootDir>/../../../packages/utils/src/$1",
     "^@workspace/(.*)$": "<rootDir>/../../../packages/$1/src/index.ts",
+    "^@scure/base$": "<rootDir>/mocks/scure-base.ts",
+    "^@otplib/plugin-crypto-noble$": "<rootDir>/mocks/otplib-crypto.ts",
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
   "setupFiles": ["./setup-env.ts"],

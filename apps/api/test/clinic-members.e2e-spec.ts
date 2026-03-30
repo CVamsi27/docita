@@ -64,6 +64,15 @@ describe('Clinic Members Lifecycle (e2e)', () => {
     const onboardingId = initResponse.body?.onboardingId;
     expect(onboardingId).toBeDefined();
 
+    const signatureSession = await getPrismaInstance().uploadSession.create({
+      data: {
+        status: 'uploaded',
+        fileUrl: `https://storage.example.com/signatures/sla-${now}.png`,
+        purpose: 'GENERAL',
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      },
+    });
+
     const completeResponse = await request(app.getHttpServer())
       .post(`/onboarding/${onboardingId}/complete`)
       .send({
@@ -83,7 +92,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
           phoneNumber: '+919111111111',
         },
         planSelection: {
-          tier: 'CAPTURE',
+          tier: 'ESSENTIAL',
           billingCycle: 'MONTHLY',
           whatsappAddon: false,
           intelligenceAddon: false,
@@ -100,6 +109,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
           acceptedSLA: true,
           slaVersion: '1.0',
           acceptedBy: 'E2E Admin',
+          signatureSessionId: signatureSession.id,
           acceptedDataProcessingTerms: true,
           acceptedPrivacyPolicy: true,
         },
