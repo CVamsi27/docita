@@ -1,32 +1,15 @@
 #!/usr/bin/env node
-/**
- * db-check.mjs
- *
- * Dev:  checks if postgres is reachable AND authenticates. If the port is
- *       not open, starts the Docker postgres container and retries. If the
- *       port is open but auth fails, prints a clear diagnostic and exits.
- *
- * Prod: pings the Neon compute with TCP + real auth, retries with
- *       exponential backoff to warm cold-start compute.
- *
- * Usage:
- *   node scripts/db-check.mjs             # auto-detects NODE_ENV
- *   NODE_ENV=production node scripts/db-check.mjs
- *   pnpm db:check / pnpm db:up
- */
-
 import net from 'net';
 import { readFileSync, existsSync } from 'fs';
 import { spawnSync } from 'child_process';
 import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
+const require = createRequire(import.meta.url);
 
-// ---------------------------------------------------------------------------
-// Load DATABASE_URL from root .env if not already in the environment
-// ---------------------------------------------------------------------------
 function loadEnv() {
   if (process.env.DATABASE_URL) return;
   const envPath = resolve(ROOT, '.env');
@@ -40,9 +23,6 @@ function loadEnv() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Parse host and port from a postgres connection string
-// ---------------------------------------------------------------------------
 function parseUrl(connectionString) {
   try {
     const url = new URL(connectionString);
@@ -53,9 +33,6 @@ function parseUrl(connectionString) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// TCP ping — checks the port is open (and wakes Neon cold-start compute)
-// ---------------------------------------------------------------------------
 function tcpPing(host, port, timeoutMs = 4000) {
   return new Promise((resolve) => {
     const socket = new net.Socket();
@@ -74,48 +51,41 @@ function tcpPing(host, port, timeoutMs = 4000) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Real auth ping — uses pg from apps/api/node_modules to run SELECT 1
-// Falls back gracefully if pg cannot be resolved (non-blocking).
-// Returns 'ok' | 'auth_error' | 'unavailable' | 'skipped'
-// ---------------------------------------------------------------------------
 async function authPing(connectionString) {
-  // Resolve pg from the API package where it is installed
   const pgPath = join(ROOT, 'apps/api/node_modules/pg');
   if (!existsSync(pgPath)) return 'skipped';
 
-  let Client;
   try {
-    const pgModule = await import(pgPath);
-    Client = pgModule.default?.Client ?? pgModule.Client;
+    const pgModule = require(pgPath);
+    const Client = pgModule.Client ?? pgModule.default?.Client;
+    if (!Client) return 'skipped';
+
+    let url = connectionString;
+    try {
+      const parsed = new URL(connectionString);
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        parsed.searchParams.delete('sslmode');
+        parsed.searchParams.delete('ssl');
+        url = parsed.toString();
+      }
+    } catch {}
+
+    const client = new Client({ connectionString: url });
+    try {
+      await client.connect();
+      await client.query('SELECT 1');
+      return 'ok';
+    } catch (err) {
+      const msg = err?.message ?? '';
+      if (msg.includes('password authentication') || msg.includes('28P01')) {
+        return 'auth_error';
+      }
+      return 'unavailable';
+    } finally {
+      await client.end().catch(() => {});
+    }
   } catch {
     return 'skipped';
-  }
-
-  // Strip sslmode for local connections — Docker postgres has no SSL
-  let url = connectionString;
-  try {
-    const parsed = new URL(connectionString);
-    if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
-      parsed.searchParams.delete('sslmode');
-      parsed.searchParams.delete('ssl');
-      url = parsed.toString();
-    }
-  } catch {}
-
-  const client = new Client({ connectionString: url });
-  try {
-    await client.connect();
-    await client.query('SELECT 1');
-    return 'ok';
-  } catch (err) {
-    const msg = err?.message ?? '';
-    if (msg.includes('password authentication') || msg.includes('28P01')) {
-      return 'auth_error';
-    }
-    return 'unavailable';
-  } finally {
-    await client.end().catch(() => {});
   }
 }
 
@@ -123,9 +93,6 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-// ---------------------------------------------------------------------------
-// Dev mode
-// ---------------------------------------------------------------------------
 async function devCheck(connectionString, host, port) {
   console.log(`[db-check] mode=dev  Checking ${host}:${port}...`);
 
@@ -170,7 +137,6 @@ async function devCheck(connectionString, host, port) {
     process.stdout.write('\n');
   }
 
-  // Port is open — verify actual auth
   const auth = await authPing(connectionString);
   if (auth === 'ok' || auth === 'skipped') {
     console.log('[db-check] Database is UP.');
@@ -179,10 +145,11 @@ async function devCheck(connectionString, host, port) {
 
   if (auth === 'auth_error') {
     console.error('[db-check] Database port is open but authentication failed.');
-    console.error('[db-check] Check that DATABASE_URL credentials match docker-compose.yml.');
+    console.error('[db-check] Check that DATABASE_URL credentials match the running database.');
     console.error(`[db-check]   docker-compose user/pass : docita / docita`);
     console.error(`[db-check]   Expected URL format      : postgresql://docita:docita@localhost:5434/docita`);
-    console.error('[db-check] Also remove sslmode=require for local Docker (no SSL).');
+    console.error('[db-check] Another Postgres instance may already be bound to localhost:5434.');
+    console.error('[db-check] Stop the conflicting container or update DATABASE_URL to the active database.');
     process.exit(1);
   }
 
@@ -190,9 +157,6 @@ async function devCheck(connectionString, host, port) {
   process.exit(1);
 }
 
-// ---------------------------------------------------------------------------
-// Prod mode — TCP + auth retries to warm Neon cold-start compute
-// ---------------------------------------------------------------------------
 async function prodCheck(connectionString, host, port) {
   console.log(`[db-check] mode=prod  Pinging Neon at ${host}:${port}...`);
 
@@ -200,7 +164,6 @@ async function prodCheck(connectionString, host, port) {
   const BASE_DELAY_MS = 500;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    // TCP ping wakes Neon compute; then verify auth
     const portOpen = await tcpPing(host, port);
     if (portOpen) {
       const auth = await authPing(connectionString);
@@ -224,9 +187,6 @@ async function prodCheck(connectionString, host, port) {
   process.exit(1);
 }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
 loadEnv();
 
 const databaseUrl = process.env.DATABASE_URL;

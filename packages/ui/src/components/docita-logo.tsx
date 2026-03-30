@@ -1,8 +1,5 @@
 import { cn } from "@workspace/ui/lib/utils";
 
-// ECG / heartbeat waveform path — center baseline at y=16.
-// P wave (small bump), QRS complex (dominant spike), T wave (medium bump).
-// Round caps + joins for a smooth, continuous trace.
 const ECG_PATH = "M4 16H8L10 13L12 7L14 24L16 16H20L21 11L22 16H28";
 
 interface DocitaLogoProps {
@@ -20,9 +17,6 @@ interface DocitaLogoFullProps {
   taglineClassName?: string;
 }
 
-// Theme-adaptive icon.
-// Light mode: white ECG waveform on dark (slate-900) rounded-square — high contrast on light app bg.
-// Dark mode: dark (slate-900) ECG waveform on white rounded-square — high contrast on dark app bg.
 export function DocitaIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -52,7 +46,6 @@ export function DocitaIcon({ className }: { className?: string }) {
   );
 }
 
-// No background — inherits text colour from parent via currentColor.
 export function DocitaIconMonochrome({ className }: { className?: string }) {
   return (
     <svg
@@ -75,7 +68,6 @@ export function DocitaIconMonochrome({ className }: { className?: string }) {
   );
 }
 
-// Horizontal lock-up: icon + wordmark.
 export function DocitaLogo({
   className,
   iconClassName,
@@ -99,8 +91,6 @@ export function DocitaLogo({
   );
 }
 
-// Vertical lock-up for auth pages, onboarding, and hero sections.
-// Defaults to the "Modern Healthcare OS" tagline when none is provided.
 export function DocitaLogoFull({
   className,
   iconClassName,
@@ -135,7 +125,6 @@ export function DocitaLogoFull({
   );
 }
 
-// Text-only wordmark for footer and minimal contexts.
 export function DocitaWordmark({
   className,
   textClassName,

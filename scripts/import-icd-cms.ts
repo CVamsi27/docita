@@ -1,18 +1,3 @@
-/**
- * Import ICD-10-CM codes from the official CMS (Centers for Medicare & Medicaid Services) data file.
- *
- * Data source: https://www.cms.gov/medicare/coding-billing/icd-10-codes
- * Download: ICD-10-CM Tabular List of Diseases and Injuries (flat text file)
- *
- * Usage:
- *   1. Download the official CMS ICD-10-CM codes file (e.g., icd10cm_codes_YYYY.txt)
- *   2. Run: pnpm ts-node scripts/import-icd-cms.ts <path-to-file>
- *
- * File format (space-separated, fixed-width):
- *   <code> <description>
- *   A001 Cholera due to Vibrio cholerae 01, biovar cholerae
- */
-
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
@@ -20,7 +5,6 @@ import { PrismaClient } from '@workspace/db';
 
 const BATCH_SIZE = 500;
 
-// CMS ICD-10-CM category descriptions — maps first letter/chapter prefix to category name
 const CATEGORY_MAP: Record<string, string> = {
   A: 'Infectious and Parasitic Diseases',
   B: 'Infectious and Parasitic Diseases',
@@ -66,7 +50,6 @@ async function parseCmsFile(filePath: string): Promise<Array<{ code: string; des
     const trimmed = line.trim();
     if (!trimmed) continue;
 
-    // CMS format: code and description separated by whitespace
     const spaceIdx = trimmed.indexOf(' ');
     if (spaceIdx === -1) continue;
 
