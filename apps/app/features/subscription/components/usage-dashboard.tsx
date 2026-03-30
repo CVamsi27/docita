@@ -6,6 +6,7 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   PRICING_CURRENCY_SYMBOLS,
 } from "@workspace/types";
+import type { SupportedCurrency } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { getTierName } from "@workspace/types";
 import type { TierName } from "@workspace/types";
@@ -14,6 +15,75 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@work
 import { Progress } from "@workspace/ui/components/progress";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
+
+const WHATSAPP_OVERAGE_RATES: Record<
+  SupportedCurrency,
+  Record<TierName, number>
+> = {
+  INR: {
+    STARTER: 0,
+    ESSENTIAL: 0.75,
+    PROFESSIONAL: 0.5,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  USD: {
+    STARTER: 0,
+    ESSENTIAL: 0.02,
+    PROFESSIONAL: 0.01,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  EUR: {
+    STARTER: 0,
+    ESSENTIAL: 0.02,
+    PROFESSIONAL: 0.01,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  GBP: {
+    STARTER: 0,
+    ESSENTIAL: 0.015,
+    PROFESSIONAL: 0.008,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  AUD: {
+    STARTER: 0,
+    ESSENTIAL: 0.03,
+    PROFESSIONAL: 0.015,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  CAD: {
+    STARTER: 0,
+    ESSENTIAL: 0.025,
+    PROFESSIONAL: 0.013,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  SGD: {
+    STARTER: 0,
+    ESSENTIAL: 0.025,
+    PROFESSIONAL: 0.013,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  AED: {
+    STARTER: 0,
+    ESSENTIAL: 0.07,
+    PROFESSIONAL: 0.04,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+  ZAR: {
+    STARTER: 0,
+    ESSENTIAL: 0.35,
+    PROFESSIONAL: 0.2,
+    ENTERPRISE: 0,
+    INTELLIGENCE: 0,
+  },
+};
 
 interface UsageMeterProps {
   label: string;
@@ -98,13 +168,24 @@ export function UsageDashboard() {
 
   if (!usage) return null;
 
-  const { activePatients, appointments, users, whatsappMessages } = usage.usage;
+  const {
+    activePatients,
+    appointments,
+    users,
+    prescriptions,
+    invoices,
+    whatsappMessages,
+  } = usage.usage;
 
   const totalOverageCost =
     activePatients.overage * (rates?.patientRate ?? 0) +
     appointments.overage * (rates?.appointmentRate ?? 0) +
     users.overage * (rates?.userRate ?? 0) +
-    whatsappMessages.overage * 0.5;
+    prescriptions.overage * (rates?.prescriptionRate ?? 0) +
+    invoices.overage * (rates?.invoiceRate ?? 0) +
+    whatsappMessages.overage *
+      (WHATSAPP_OVERAGE_RATES[currency as SupportedCurrency]?.[tierName] ??
+        WHATSAPP_OVERAGE_RATES.INR[tierName]);
 
   const periodStart = new Date(usage.period.start).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -148,12 +229,28 @@ export function UsageDashboard() {
           currencySymbol={symbol}
         />
         <UsageMeter
-          label="Appointments"
+          label="Consultations"
           current={appointments.current}
           included={appointments.included}
           overage={appointments.overage}
-          unit="appts"
+          unit="consults"
           overageRate={rates?.appointmentRate}
+          currencySymbol={symbol}
+        />
+        <UsageMeter
+          label="Prescriptions"
+          current={prescriptions.current}
+          included={prescriptions.included}
+          overage={prescriptions.overage}
+          unit="scripts"
+          currencySymbol={symbol}
+        />
+        <UsageMeter
+          label="Invoices"
+          current={invoices.current}
+          included={invoices.included}
+          overage={invoices.overage}
+          unit="invoices"
           currencySymbol={symbol}
         />
         <UsageMeter
@@ -166,15 +263,18 @@ export function UsageDashboard() {
           currencySymbol={symbol}
         />
         {whatsappMessages.addOnActive && (
-          <UsageMeter
-            label="WhatsApp Messages"
-            current={whatsappMessages.current}
-            included={whatsappMessages.included}
-            overage={whatsappMessages.overage}
-            unit="msgs"
-            overageRate={0.5}
-            currencySymbol={symbol}
-          />
+            <UsageMeter
+              label="WhatsApp Messages"
+              current={whatsappMessages.current}
+              included={whatsappMessages.included}
+              overage={whatsappMessages.overage}
+              unit="msgs"
+              overageRate={
+                WHATSAPP_OVERAGE_RATES[currency as SupportedCurrency]?.[tierName] ??
+                WHATSAPP_OVERAGE_RATES.INR[tierName]
+              }
+              currencySymbol={symbol}
+            />
         )}
         {totalOverageCost === 0 && (
           <p className="text-xs text-center text-muted-foreground pt-1">

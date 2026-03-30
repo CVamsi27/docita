@@ -180,7 +180,7 @@ export function PricingDialog({
             </Label>
             {isYearly && (
               <Badge className="badge-success border">
-                Save {pricingConfig?.discounts?.annualPercent ?? 10}%
+                2 months free
               </Badge>
             )}
           </div>
@@ -325,7 +325,7 @@ export function PricingDialog({
                         {limits.appointments === 999999
                           ? "Unlimited"
                           : limits.appointments.toLocaleString()}{" "}
-                        appointments/mo
+                        consultations/mo
                       </span>
                     </div>
                   )}

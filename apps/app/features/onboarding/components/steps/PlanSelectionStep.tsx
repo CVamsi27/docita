@@ -51,8 +51,8 @@ interface PlanSelectionProps {
 const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
 
 const PLAN_AUDIENCE: Record<string, string> = {
-  STARTER: "Best for solo doctors wanting to digitize their practice",
-  ESSENTIAL: "Best for small clinics needing professional billing and analytics",
+  STARTER: "Best for solo doctors wanting to start free",
+  ESSENTIAL: "Best for small clinics needing clear limits and simple billing",
   PROFESSIONAL: "Best for multi-doctor clinics and growing practices",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
@@ -151,7 +151,6 @@ export function PlanSelectionStep({
     );
   }
 
-  const { discounts } = pricingConfig;
   const pricingRegionLabel =
     resolvedCurrency === "INR"
       ? "India-competitive pricing"
@@ -196,7 +195,7 @@ Please contact me with deployment and commercial details.`;
             >
               Yearly{" "}
               <Badge variant="secondary" className="ml-1">
-                Save {discounts.annualPercent}%
+                2 months free
               </Badge>
             </Button>
           </div>

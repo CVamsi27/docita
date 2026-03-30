@@ -199,7 +199,7 @@ export function DynamicPricingEstimator({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="yearly">Yearly (save 10%)</SelectItem>
+                  <SelectItem value="yearly">Yearly (2 months free)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -251,7 +251,7 @@ export function DynamicPricingEstimator({
             />
           </div>
           <div className="space-y-2">
-            <Label>Appointments / Month</Label>
+            <Label>Consultations / Month</Label>
             <Input
               type="number"
               min={0}
@@ -327,7 +327,7 @@ export function DynamicPricingEstimator({
               )}
               {estimate.breakdown.overages.appointments.charge > 0 && (
                 <EstimateRow
-                  label="Appointments overage"
+                  label="Consultations overage"
                   value={`${estimate.currency.symbol}${estimate.breakdown.overages.appointments.charge.toLocaleString()}`}
                   indent
                 />
@@ -348,7 +348,7 @@ export function DynamicPricingEstimator({
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1.5">
-                  <span className="text-muted-foreground">Yearly total (10% off)</span>
+                  <span className="text-muted-foreground">Yearly total (2 months free)</span>
                   <span className="font-semibold">
                     {estimate.currency.symbol}
                     {estimate.totalYearly.toLocaleString()}

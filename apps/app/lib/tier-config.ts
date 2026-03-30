@@ -49,6 +49,10 @@ export interface PlanLimits {
   doctors: number;
   storageGB: number;
   branches: number;
+  appointments?: number;
+  users?: number;
+  prescriptions?: number;
+  invoices?: number;
 }
 
 export const PLAN_LIMITS = TIER_LIMITS;
@@ -62,12 +66,12 @@ export const PLAN_DESCRIPTIONS: Record<
     description: "Basic clinical workflow for free",
   },
   [Tier.ESSENTIAL]: {
-    tagline: "Solo Clinic Pro",
-    description: "Professional practice management for solo clinics",
+    tagline: "For solo clinics",
+    description: "Clear limits, WhatsApp messaging, and simple billing",
   },
   [Tier.PROFESSIONAL]: {
-    tagline: "Multi-Doctor Clinics",
-    description: "Full-featured solution for multi-doctor clinics",
+    tagline: "Built for growing clinics",
+    description: "Multi-doctor clinics with advanced workflows",
   },
   [Tier.ENTERPRISE]: {
     tagline: "Hospital-Grade System",
@@ -135,6 +139,46 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
           PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].branches === 999
             ? "Unlimited"
             : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].branches,
+        ]),
+      ) as Record<Tier, string | number>,
+    },
+    {
+      name: "Consultations",
+      category: "limit",
+      values: Object.fromEntries(
+        tiers.map((t) => [
+          t,
+          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].appointments ===
+          999999
+            ? "Unlimited"
+            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].appointments,
+        ]),
+      ) as Record<Tier, string | number>,
+    },
+    {
+      name: "Prescriptions",
+      category: "limit",
+      values: Object.fromEntries(
+        tiers.map((t) => [
+          t,
+          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].prescriptions ===
+          999999
+            ? "Unlimited"
+            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].prescriptions ??
+              "—",
+        ]),
+      ) as Record<Tier, string | number>,
+    },
+    {
+      name: "Invoices",
+      category: "limit",
+      values: Object.fromEntries(
+        tiers.map((t) => [
+          t,
+          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].invoices === 999999
+            ? "Unlimited"
+            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].invoices ??
+              "—",
         ]),
       ) as Record<Tier, string | number>,
     },

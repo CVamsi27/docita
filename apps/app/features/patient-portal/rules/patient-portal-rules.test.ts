@@ -19,7 +19,7 @@ describe("patient portal rules", () => {
       upcomingAppointments: [
         {
           id: "apt_1",
-          clinicName: "Docita Clinic",
+          clinicName: "Sunrise Clinic",
           doctorName: "Dr. Rao",
           scheduledAt: "2026-02-22T10:30:00.000Z",
           status: "CONFIRMED",

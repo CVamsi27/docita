@@ -26,7 +26,7 @@ interface PaymentSuccessModalProps {
 export function PaymentSuccessModal({
   open,
   onOpenChange,
-  planName = "Pro Plan",
+  planName = "Essential",
   amount,
   transactionId,
 }: PaymentSuccessModalProps) {

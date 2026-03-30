@@ -199,8 +199,8 @@ export default function UpgradePage() {
                   currency as keyof typeof PRICING_CURRENCY_SYMBOLS
                 ] ?? PRICING_CURRENCY_SYMBOLS.INR;
                 const overageHint =
-                  overageRates?.patientRate > 0
-                    ? `then ${currencySymbol}${overageRates.patientRate}/extra patient`
+                  overageRates?.appointmentRate > 0
+                    ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
                     : undefined;
                 return (
                   <TierCard

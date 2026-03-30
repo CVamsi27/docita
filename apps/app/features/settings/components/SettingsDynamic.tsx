@@ -23,12 +23,12 @@ const formatPrice = (amount: number) =>
 export const SubscriptionSettingsDynamic: FC<{ clinicId?: string }> = () => {
   const plans = [
     {
-      name: "Basic",
+      name: "Free",
       price: `${formatPrice(999)}/mo`,
-      features: ["Up to 100 patients", "Basic reports", "Email support"],
+      features: ["Up to 50 patients", "Basic reports", "Email support"],
     },
     {
-      name: "Pro",
+      name: "Essential",
       price: `${formatPrice(2499)}/mo`,
       features: [
         "Unlimited patients",
@@ -55,12 +55,12 @@ export const SubscriptionSettingsDynamic: FC<{ clinicId?: string }> = () => {
       <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle>Current Plan</CardTitle>
-          <CardDescription>You are currently on the Pro plan</CardDescription>
+          <CardDescription>You are currently on the Essential plan</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
             <div>
-              <p className="font-bold text-lg">Pro Plan</p>
+              <p className="font-bold text-lg">Essential</p>
               <p className="text-sm text-muted-foreground">
                 {formatPrice(2499)}/month • Billed monthly
               </p>

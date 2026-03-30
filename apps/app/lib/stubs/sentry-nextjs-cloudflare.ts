@@ -6,6 +6,8 @@ export type SeverityLevel =
   | "info"
   | "debug";
 
+export function init(_options: Record<string, unknown>) {}
+
 export function setUser(_user: unknown) {}
 
 export function setTag(_key: string, _value: unknown) {}

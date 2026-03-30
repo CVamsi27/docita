@@ -31,9 +31,13 @@ interface TierPricing {
   };
   limits: {
     patients: number;
+    doctors: number;
+    branches: number;
     appointments: number;
     storage: number;
     users: number;
+    prescriptions?: number;
+    invoices?: number;
   };
   features?: string[];
 }
@@ -77,6 +81,9 @@ interface EstimateResponse {
       patients: { count: number; charge: number };
       appointments: { count: number; charge: number };
       users: { count: number; charge: number };
+      prescriptions?: { count: number; charge: number };
+      invoices?: { count: number; charge: number };
+      whatsappMessages?: { count: number; charge: number };
     };
     overageTotal: number;
   };

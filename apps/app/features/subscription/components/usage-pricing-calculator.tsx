@@ -31,6 +31,21 @@ interface UsageInput {
   whatsappMessages: number;
 }
 
+const WHATSAPP_OVERAGE_RATES: Record<
+  SupportedCurrency,
+  { ESSENTIAL: number; PROFESSIONAL: number }
+> = {
+  INR: { ESSENTIAL: 0.75, PROFESSIONAL: 0.5 },
+  USD: { ESSENTIAL: 0.02, PROFESSIONAL: 0.01 },
+  EUR: { ESSENTIAL: 0.02, PROFESSIONAL: 0.01 },
+  GBP: { ESSENTIAL: 0.015, PROFESSIONAL: 0.008 },
+  AUD: { ESSENTIAL: 0.03, PROFESSIONAL: 0.015 },
+  CAD: { ESSENTIAL: 0.025, PROFESSIONAL: 0.013 },
+  SGD: { ESSENTIAL: 0.025, PROFESSIONAL: 0.013 },
+  AED: { ESSENTIAL: 0.07, PROFESSIONAL: 0.04 },
+  ZAR: { ESSENTIAL: 0.35, PROFESSIONAL: 0.2 },
+};
+
 const DEFAULT_USAGE: UsageInput = {
   patients: 500,
   appointments: 800,
@@ -42,7 +57,7 @@ const DEFAULT_USAGE: UsageInput = {
 
 const SLIDERS = [
   { key: "patients" as const, label: "Active Patients", min: 0, max: 10000, step: 100, unit: "patients" },
-  { key: "appointments" as const, label: "Appointments / month", min: 0, max: 20000, step: 100, unit: "appts" },
+  { key: "appointments" as const, label: "Consultations / month", min: 0, max: 20000, step: 100, unit: "consults" },
   { key: "users" as const, label: "Team Members", min: 1, max: 50, step: 1, unit: "users" },
   { key: "invoices" as const, label: "Invoices / month", min: 0, max: 5000, step: 50, unit: "invoices" },
   { key: "prescriptions" as const, label: "Prescriptions / month", min: 0, max: 10000, step: 50, unit: "scripts" },
@@ -67,7 +82,9 @@ function calculateBill(
   const rates = TIER_OVERAGE_RATES_BY_CURRENCY[currency]?.[tierKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierKey];
   const limits = TIER_LIMITS[tierKey];
   const whatsappIncluded = tierKey === "PROFESSIONAL" ? 2000 : 500;
-  const whatsappOverageRate = tierKey === "PROFESSIONAL" ? 0.3 : 0.5;
+  const whatsappOverageRate =
+    WHATSAPP_OVERAGE_RATES[currency]?.[tierKey] ??
+    WHATSAPP_OVERAGE_RATES.INR[tierKey];
 
   const overageBreakdown: { label: string; units: number; rate: number; cost: number }[] = [];
 
@@ -77,7 +94,7 @@ function calculateBill(
   };
 
   addOverage("Patients", usage.patients, limits.patients, rates.patientRate);
-  addOverage("Appointments", usage.appointments, limits.appointments ?? 2000, rates.appointmentRate);
+  addOverage("Consultations", usage.appointments, limits.appointments ?? 2000, rates.appointmentRate);
   addOverage("Users", usage.users, limits.users ?? 5, rates.userRate);
   addOverage("Invoices", usage.invoices, limits.invoices ?? 500, rates.invoiceRate);
   addOverage("Prescriptions", usage.prescriptions, limits.prescriptions ?? 1000, rates.prescriptionRate);
@@ -196,10 +213,10 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
           <div className="space-y-4">
             {showClinicSuggestion ? (
               <>
-                {renderBreakdown(proBill, "Docita Pro", false)}
-                {renderBreakdown(clinicBill, "Docita Clinic", true)}
+                {renderBreakdown(proBill, "Essential", false)}
+                {renderBreakdown(clinicBill, "Professional", true)}
                 <p className="text-xs text-muted-foreground text-center">
-                  Docita Clinic has higher quotas and lower per-unit overage rates — saving you{" "}
+                  Professional has higher quotas and lower per-unit overage rates - saving you{" "}
                   <span className="font-medium text-foreground">
                     {symbol}{Math.max(0, Math.round(proBill.total - clinicBill.total)).toLocaleString()}/mo
                   </span>{" "}
@@ -210,11 +227,11 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                   className="w-full gap-2"
                   onClick={() => router.push("/upgrade?tier=PROFESSIONAL")}
                 >
-                  Upgrade to Clinic <ArrowRight className="h-3.5 w-3.5" />
+                  Upgrade to Professional <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </>
             ) : (
-              renderBreakdown(proBill, "Docita Pro", false)
+              renderBreakdown(proBill, "Essential", false)
             )}
           </div>
         </div>
