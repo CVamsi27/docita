@@ -35,7 +35,7 @@ jobs:
 
       - name: Generate Prisma client
         env:
-          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [ -n "$DATABASE_URL" ]; then
             pnpm --filter @workspace/db run db:generate
@@ -43,7 +43,7 @@ jobs:
 
       - name: Run Safe Prisma Migrations
         env:
-          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [ -n "$DATABASE_URL" ]; then
             pnpm --filter @workspace/db run db:migrate:safe

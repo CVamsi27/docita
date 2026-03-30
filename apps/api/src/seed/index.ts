@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@workspace/db';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -10,8 +11,6 @@ import { seedSchedulesAndLabTests } from './seed-schedules-lab-tests';
 import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
 
 async function assertSeedSchemaReady(pool: Pool): Promise<void> {
-  // Check that the latest baseline migration has been applied. Update this
-  // name whenever a new migration is added that changes tables used by seeding.
   const LATEST_MIGRATION = '20260316000000_fix_schema_drift_post_reset';
 
   const result = await pool.query<{ count: string }>(
@@ -86,8 +85,6 @@ async function main() {
       doctor3Id: doctor3.id,
       patients,
     });
-  } catch (error) {
-    throw error;
   } finally {
     await prisma.$disconnect();
     await pool.end();
