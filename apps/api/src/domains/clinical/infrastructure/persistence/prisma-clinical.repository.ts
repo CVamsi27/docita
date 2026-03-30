@@ -225,6 +225,14 @@ export class PrismaClinicalRepository
     return favorites.map((f) => f.icdCode).filter((c): c is IcdCode => !!c);
   }
 
+  async getCommonIcdCodes(limit = 50): Promise<IcdCode[]> {
+    return this.prisma.icdCode.findMany({
+      where: { isCommon: true },
+      orderBy: [{ category: 'asc' }, { code: 'asc' }],
+      take: limit,
+    });
+  }
+
   async addFavorite(
     userId: string,
     code: string,
@@ -253,6 +261,14 @@ export class PrismaClinicalRepository
       include: { cptCode: true },
     });
     return favorites.map((f) => f.cptCode).filter((c): c is CptCode => !!c);
+  }
+
+  async getCommonCptCodes(limit = 50): Promise<CptCode[]> {
+    return this.prisma.cptCode.findMany({
+      where: { isCommon: true },
+      orderBy: [{ category: 'asc' }, { code: 'asc' }],
+      take: limit,
+    });
   }
 
   async addCptFavorite(

@@ -31,6 +31,13 @@ export class MedicalCodingController {
     return await this.clinicalService.getFavorites(userId);
   }
 
+  @Get('icd/common')
+  async getCommonIcdCodes(@Query('limit') limit?: string): Promise<IcdCode[]> {
+    return await this.clinicalService.getCommonIcdCodes(
+      limit ? Number(limit) : 50,
+    );
+  }
+
   @Post('icd/favorites')
   async addFavorite(
     @Body('userId') userId: string,
@@ -64,6 +71,13 @@ export class MedicalCodingController {
     @Query('userId') userId: string,
   ): Promise<(CptCode | null)[]> {
     return await this.clinicalService.getCptFavorites(userId);
+  }
+
+  @Get('cpt/common')
+  async getCommonCptCodes(@Query('limit') limit?: string): Promise<CptCode[]> {
+    return await this.clinicalService.getCommonCptCodes(
+      limit ? Number(limit) : 50,
+    );
   }
 
   @Post('cpt/favorites')

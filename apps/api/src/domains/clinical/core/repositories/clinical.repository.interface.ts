@@ -35,6 +35,7 @@ export interface ILabRepository {
 
 export interface IMedicalCodingRepository {
   getFavorites(userId: string): Promise<IcdCode[]>;
+  getCommonIcdCodes(limit?: number): Promise<IcdCode[]>;
   addFavorite(
     userId: string,
     code: string,
@@ -43,6 +44,7 @@ export interface IMedicalCodingRepository {
   ): Promise<DoctorFavoriteCode>;
   removeFavorite(userId: string, icdCodeId: string): Promise<void>;
   getCptFavorites(userId: string): Promise<CptCode[]>;
+  getCommonCptCodes(limit?: number): Promise<CptCode[]>;
   addCptFavorite(
     userId: string,
     code: string,

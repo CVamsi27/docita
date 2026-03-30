@@ -641,7 +641,7 @@ describe('WhatsappClientService', () => {
  *
  * Template Approval Process:
  *   1. Go to WhatsApp > Message Templates in the Meta Business Suite
- *   2. Create templates matching the names in seed-clinic-config-templates.ts:
+ *   2. Create templates matching your approved production template names:
  *      - appointment_reminder_24hr (UTILITY category)
  *      - appointment_reminder_30min (UTILITY category)
  *      - prescription_sent (UTILITY category)

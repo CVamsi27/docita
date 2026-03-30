@@ -1,7 +1,15 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as Sentry from '@sentry/nestjs';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
+
+let nodeProfilingIntegration: (() => unknown) | undefined;
+try {
+  // The native profiler is optional in local/dev environments where the
+  // prebuilt binding may not be available.
+  ({ nodeProfilingIntegration } = require('@sentry/profiling-node'));
+} catch {
+  nodeProfilingIntegration = undefined;
+}
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
@@ -10,7 +18,9 @@ dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   environment: process.env.NODE_ENV ?? 'development',
-  integrations: [nodeProfilingIntegration()],
+  integrations: nodeProfilingIntegration
+    ? ([nodeProfilingIntegration()] as any)
+    : [],
   tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
   profilesSampleRate:
     process.env.NODE_ENV === 'production'

@@ -96,8 +96,8 @@ export class PricingService {
           }),
         ),
         tiers: canonicalTiers.map((tier) => {
-          const canonicalTier =
-            (DB_TIER_TO_CANONICAL[tier.tier as string] ?? tier.tier) as keyof typeof TIER_LIMITS;
+          const canonicalTier = (DB_TIER_TO_CANONICAL[tier.tier as string] ??
+            tier.tier) as keyof typeof TIER_LIMITS;
           const tierDefaults = TIER_LIMITS[canonicalTier];
           const tierRateDefaults =
             TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency][canonicalTier];
@@ -123,11 +123,11 @@ export class PricingService {
               prescriptions: tierDefaults.prescriptions,
               invoices: tierDefaults.invoices,
             },
-          overageRates: {
-            patient: tier.overagePatientCents / 100,
-            appointment: tier.overageAppointmentCents / 100,
-            storage: tier.overageStorageCents / 100,
-            user: tier.overageUserCents / 100,
+            overageRates: {
+              patient: tier.overagePatientCents / 100,
+              appointment: tier.overageAppointmentCents / 100,
+              storage: tier.overageStorageCents / 100,
+              user: tier.overageUserCents / 100,
               prescription: tierRateDefaults.prescriptionRate,
               invoice: tierRateDefaults.invoiceRate,
             },
@@ -184,8 +184,7 @@ export class PricingService {
         {
           id: 'ESSENTIAL',
           name: 'Essential',
-          description:
-            'Clear limits, WhatsApp messaging, and simple billing.',
+          description: 'Clear limits, WhatsApp messaging, and simple billing.',
           tagline: 'For solo clinics',
           color: 'blue',
           pricing: {
@@ -213,8 +212,7 @@ export class PricingService {
         {
           id: 'PROFESSIONAL',
           name: 'Professional',
-          description:
-            'Multi-doctor clinics with advanced workflows.',
+          description: 'Multi-doctor clinics with advanced workflows.',
           tagline: 'Built for growing clinics',
           color: 'purple',
           pricing: {
@@ -352,14 +350,10 @@ export class PricingService {
       Math.max(0, prescriptions - (limits.prescriptions || 0)) *
       overageRates.prescriptionRate;
     const invoiceOverage =
-      Math.max(0, invoices - (limits.invoices || 0)) *
-      overageRates.invoiceRate;
+      Math.max(0, invoices - (limits.invoices || 0)) * overageRates.invoiceRate;
     const whatsappPricing =
       tierKey === 'ESSENTIAL' || tierKey === 'PROFESSIONAL'
-        ? getWhatsAppAddonPricingByCurrency(
-            tierKey,
-            validCurrency,
-          )
+        ? getWhatsAppAddonPricingByCurrency(tierKey, validCurrency)
         : null;
     const whatsappOverage =
       whatsappPricing && whatsappMessages > whatsappPricing.includedQuota
@@ -397,8 +391,7 @@ export class PricingService {
     const roundFactor = Math.pow(10, currencyConfig.decimalPlaces);
     const roundedTotal = Math.round(totalMonthly * roundFactor) / roundFactor;
     const roundedYearly =
-      Math.round((annualBase + totalOverage * 12) * roundFactor) /
-      roundFactor;
+      Math.round((annualBase + totalOverage * 12) * roundFactor) / roundFactor;
 
     return {
       tier: tierKey,
@@ -437,7 +430,8 @@ export class PricingService {
           },
           whatsappMessages: {
             count:
-              whatsappPricing && whatsappMessages > whatsappPricing.includedQuota
+              whatsappPricing &&
+              whatsappMessages > whatsappPricing.includedQuota
                 ? whatsappMessages - whatsappPricing.includedQuota
                 : 0,
             charge: whatsappOverage,

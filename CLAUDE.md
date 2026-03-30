@@ -115,7 +115,7 @@ pnpm db:push
 pnpm db:migrate
 
 # Seed sample data
-pnpm db:seed:sample
+Use the API's medical-code sync job to refresh common ICD/CPT data instead of seed commands.
 
 # Prisma Studio (database GUI)
 cd packages/db && pnpm db:studio

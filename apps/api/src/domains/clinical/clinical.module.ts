@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { LabTestsController } from './presentation/controllers/lab-tests.controller';
 import { MedicalCodingController } from './presentation/controllers/medical-coding.controller';
 import { ClinicalService } from './application/services/clinical.service';
+import { MedicalCodeSyncService } from './application/services/medical-code-sync.service';
 import { PrismaClinicalRepository } from './infrastructure/persistence/prisma-clinical.repository';
 import { NlmCodingService } from './infrastructure/external/nlm-coding.service';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -12,6 +13,7 @@ import { ClinicalFactory } from './application/factories/clinical.factory';
   controllers: [LabTestsController, MedicalCodingController],
   providers: [
     ClinicalService,
+    MedicalCodeSyncService,
     ClinicalFactory,
     NlmCodingService,
     {

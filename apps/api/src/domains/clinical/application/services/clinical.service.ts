@@ -120,6 +120,10 @@ export class ClinicalService {
     return await this.codingRepository.getFavorites(userId);
   }
 
+  async getCommonIcdCodes(limit = 50): Promise<IcdCode[]> {
+    return await this.codingRepository.getCommonIcdCodes(limit);
+  }
+
   async addFavorite(
     userId: string,
     code: string,
@@ -140,6 +144,10 @@ export class ClinicalService {
 
   async getCptFavorites(userId: string): Promise<(CptCode | null)[]> {
     return await this.codingRepository.getCptFavorites(userId);
+  }
+
+  async getCommonCptCodes(limit = 50): Promise<CptCode[]> {
+    return await this.codingRepository.getCommonCptCodes(limit);
   }
 
   async addCptFavorite(

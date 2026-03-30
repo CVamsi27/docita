@@ -245,10 +245,7 @@ export class ReminderNotificationService {
         /\{\{appointmentTime\}\}|\{\{time\}\}|\{appointmentTime\}|\{time\}/g,
         formattedTime,
       )
-      .replace(
-        /\{\{appointmentType\}\}|\{appointmentType\}/g,
-        appointment.type,
-      )
+      .replace(/\{\{appointmentType\}\}|\{appointmentType\}/g, appointment.type)
       .replace(/\{\{clinicName\}\}|\{clinicName\}/g, clinicName);
   }
 }

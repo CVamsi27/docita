@@ -27,10 +27,7 @@ export class OnboardingDataService implements OnModuleDestroy {
   private cleanupTimer: NodeJS.Timeout;
 
   constructor() {
-    this.cleanupTimer = setInterval(
-      () => this.cleanExpiredSessions(),
-      3600000,
-    );
+    this.cleanupTimer = setInterval(() => this.cleanExpiredSessions(), 3600000);
   }
 
   initializeOnboarding(): { onboardingId: string } {

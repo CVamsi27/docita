@@ -182,7 +182,8 @@ export class UsageTrackingService {
     const intelligenceAddOn = addOns.find(
       (a) => a.addOnType === 'INTELLIGENCE',
     );
-    const tierKey = (subscription?.plan as keyof typeof TIER_LIMITS) || 'STARTER';
+    const tierKey =
+      (subscription?.plan as keyof typeof TIER_LIMITS) || 'STARTER';
     const tierLimits = TIER_LIMITS[tierKey];
 
     const getQuota = (
@@ -200,7 +201,8 @@ export class UsageTrackingService {
     const whatsappQuota = getQuota(whatsappAddOn, subscription?.plan || 'CORE');
     const aiQuota = getQuota(intelligenceAddOn, subscription?.plan || 'CORE');
     const includedPatients = subscription?.includedPatients ?? 50;
-    const includedAppointments = subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
+    const includedAppointments =
+      subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
     const includedUsers = subscription?.includedUsers ?? 1;
     const includedPrescriptions = tierLimits.prescriptions ?? 0;
     const includedInvoices = tierLimits.invoices ?? 0;
@@ -229,12 +231,18 @@ export class UsageTrackingService {
         prescriptions: {
           current: prescriptions._sum.quantity || 0,
           included: includedPrescriptions,
-          overage: Math.max(0, (prescriptions._sum.quantity || 0) - includedPrescriptions),
+          overage: Math.max(
+            0,
+            (prescriptions._sum.quantity || 0) - includedPrescriptions,
+          ),
         },
         invoices: {
           current: invoices._sum.quantity || 0,
           included: includedInvoices,
-          overage: Math.max(0, (invoices._sum.quantity || 0) - includedInvoices),
+          overage: Math.max(
+            0,
+            (invoices._sum.quantity || 0) - includedInvoices,
+          ),
         },
         whatsappMessages: {
           current: whatsappMessages._sum.quantity || 0,
