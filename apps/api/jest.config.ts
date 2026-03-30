@@ -25,9 +25,6 @@ const config: Config = {
     '^@workspace/(.*)$': '<rootDir>/../../packages/$1/src/index.ts',
     '^otplib$': '<rootDir>/test/mocks/otplib.mock.ts',
   },
-  // TODO: Raise thresholds progressively as more domain services gain test coverage.
-  // Current coverage reflects unit tests for shared/messaging, auth, ai, analytics, and key factories.
-  // Many domain controllers and services (super-admin, billing, clinical) are not yet unit-tested.
   coverageThreshold: {
     global: {
       branches: 15,

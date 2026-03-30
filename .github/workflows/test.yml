@@ -12,11 +12,8 @@ concurrency:
 
 jobs:
   frontend-tests:
-    name: Frontend Playwright Tests
+    name: Frontend Playwright Smoke
     runs-on: ubuntu-latest
-    # Skip frontend tests in CI as they require a running API server
-    # Frontend E2E tests are best run locally or in a dedicated environment with full stack
-    if: false
 
     steps:
       - name: Checkout code
@@ -39,12 +36,12 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter @docita/app exec playwright install --with-deps
 
-      - name: Run frontend E2E tests
+      - name: Run frontend E2E smoke test
         env:
           API_URL: http://localhost:3001/api
           APP_URL: http://localhost:3000
           NODE_ENV: test
-        run: pnpm --filter @docita/app test:e2e
+        run: pnpm --filter @docita/app exec playwright test e2e/health.spec.ts
 
       - name: Upload Playwright report
         if: always()

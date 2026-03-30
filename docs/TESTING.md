@@ -26,6 +26,7 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 - ✅ Automatic database cleanup and reset
 - ✅ JWT token generation and validation
 - ✅ Multi-clinic data isolation testing
+- ✅ Doctor-scope authorization checks for appointments
 - ✅ Error handling and edge cases
 - ✅ Mocked external services (Razorpay, Twilio)
 
@@ -86,7 +87,7 @@ pnpm --filter @docita/app exec playwright install --with-deps
 
 ```bash
 # Option 1: Using existing PostgreSQL
-export DATABASE_URL=postgresql://postgres:postgres@localhost:5433/docita_test
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/docita_test
 pnpm --filter db exec npx prisma migrate deploy
 
 # Option 2: Using Docker
@@ -94,7 +95,7 @@ docker run -d \
   --name docita_test_db \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=docita_test \
-  -p 5433:5432 \
+  -p 5434:5432 \
   postgres:16-alpine
 ```
 
@@ -307,7 +308,7 @@ ngrok http 3001
 ### Backend (.env.test)
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/docita_test
+DATABASE_URL=postgresql://postgres:postgres@localhost:5434/docita_test
 JWT_SECRET=test-secret-key-change-in-prod
 NODE_ENV=test
 REDIS_URL=redis://localhost:6379/1
@@ -330,22 +331,21 @@ Tests run automatically on:
 
 ### Workflow Steps
 
-1. **Backend Tests**
+1. **Backend Quality + E2E (`.github/workflows/ci.yml`)**
    - Start PostgreSQL service container
    - Install dependencies
    - Run database migrations
-   - Execute Jest E2E tests
+   - Execute API E2E tests
    - Upload coverage reports
 
-2. **Frontend Tests**
+2. **Frontend Playwright Smoke (`.github/workflows/test.yml`)**
    - Install dependencies
    - Install Playwright browsers
-   - Execute Playwright tests
+   - Execute Playwright smoke test (`apps/app/e2e/health.spec.ts`)
    - Upload test report
 
-3. **Test Summary**
-   - Aggregate results
-   - Fail if any tests failed
+3. **Local Full-Stack E2E**
+   - Run full frontend Playwright suites locally or in dedicated preview environments with app + API runtime
 
 ## Troubleshooting
 
@@ -353,7 +353,7 @@ Tests run automatically on:
 
 ```bash
 # Check PostgreSQL is running
-psql -U postgres -d docita_test
+psql -h localhost -p 5434 -U postgres -d docita_test
 
 # Verify environment variable
 echo $DATABASE_URL
@@ -428,7 +428,7 @@ lsof -ti:3001 | xargs kill -9
 1. **Start services**:
 
    ```bash
-   docker run -d --name docita_test_db -e POSTGRES_PASSWORD=postgres -p 5433:5432 postgres:16
+   docker run -d --name docita_test_db -e POSTGRES_PASSWORD=postgres -p 5434:5432 postgres:16
    ```
 
 2. **Run tests**:
