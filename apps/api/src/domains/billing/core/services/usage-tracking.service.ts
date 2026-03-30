@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, ClinicTier, Prisma } from '@workspace/db';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { TIER_LIMITS } from '@workspace/types';
 
 @Injectable()
 export class UsageTrackingService {
@@ -107,6 +108,8 @@ export class UsageTrackingService {
     const [
       activePatients,
       appointments,
+      prescriptions,
+      invoices,
       whatsappMessages,
       aiCredits,
       users,
@@ -137,6 +140,22 @@ export class UsageTrackingService {
       this.prisma.usageEvent.aggregate({
         where: {
           clinicId,
+          type: 'PRESCRIPTION',
+          timestamp: { gte: periodStart, lte: periodEnd },
+        },
+        _sum: { quantity: true },
+      }),
+      this.prisma.usageEvent.aggregate({
+        where: {
+          clinicId,
+          type: 'INVOICE',
+          timestamp: { gte: periodStart, lte: periodEnd },
+        },
+        _sum: { quantity: true },
+      }),
+      this.prisma.usageEvent.aggregate({
+        where: {
+          clinicId,
           type: 'WHATSAPP_MESSAGES',
           timestamp: { gte: periodStart, lte: periodEnd },
         },
@@ -163,6 +182,8 @@ export class UsageTrackingService {
     const intelligenceAddOn = addOns.find(
       (a) => a.addOnType === 'INTELLIGENCE',
     );
+    const tierKey = (subscription?.plan as keyof typeof TIER_LIMITS) || 'STARTER';
+    const tierLimits = TIER_LIMITS[tierKey];
 
     const getQuota = (
       addOn:
@@ -178,6 +199,11 @@ export class UsageTrackingService {
 
     const whatsappQuota = getQuota(whatsappAddOn, subscription?.plan || 'CORE');
     const aiQuota = getQuota(intelligenceAddOn, subscription?.plan || 'CORE');
+    const includedPatients = subscription?.includedPatients ?? 50;
+    const includedAppointments = subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
+    const includedUsers = subscription?.includedUsers ?? 1;
+    const includedPrescriptions = tierLimits.prescriptions ?? 0;
+    const includedInvoices = tierLimits.invoices ?? 0;
 
     return {
       period: {
@@ -187,24 +213,28 @@ export class UsageTrackingService {
       usage: {
         activePatients: {
           current: activePatients,
-          included: subscription?.includedPatients || 50,
-          overage: Math.max(
-            0,
-            activePatients - (subscription?.includedPatients || 50),
-          ),
+          included: includedPatients,
+          overage: Math.max(0, activePatients - includedPatients),
         },
         appointments: {
           current: appointments,
-          included: subscription?.includedAppointments || 100,
-          overage: Math.max(
-            0,
-            appointments - (subscription?.includedAppointments || 100),
-          ),
+          included: includedAppointments,
+          overage: Math.max(0, appointments - includedAppointments),
         },
         users: {
           current: users,
-          included: subscription?.includedUsers || 1,
-          overage: Math.max(0, users - (subscription?.includedUsers || 1)),
+          included: includedUsers,
+          overage: Math.max(0, users - includedUsers),
+        },
+        prescriptions: {
+          current: prescriptions._sum.quantity || 0,
+          included: includedPrescriptions,
+          overage: Math.max(0, (prescriptions._sum.quantity || 0) - includedPrescriptions),
+        },
+        invoices: {
+          current: invoices._sum.quantity || 0,
+          included: includedInvoices,
+          overage: Math.max(0, (invoices._sum.quantity || 0) - includedInvoices),
         },
         whatsappMessages: {
           current: whatsappMessages._sum.quantity || 0,

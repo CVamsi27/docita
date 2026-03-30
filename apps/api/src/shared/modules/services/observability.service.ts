@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 import { ErrorSeverity } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -37,10 +37,11 @@ function getRecordString(
 }
 
 @Injectable()
-export class ObservabilityService {
+export class ObservabilityService implements OnModuleDestroy {
   private readonly logger = new Logger(ObservabilityService.name);
   private metricsBuffer: Map<string, MetricEntry> = new Map();
   private readonly METRICS_FLUSH_INTERVAL = 60000;
+  private metricsFlushTimer: NodeJS.Timeout | null = null;
 
   constructor(
     private prisma: PrismaService,
@@ -338,12 +339,19 @@ export class ObservabilityService {
   }
 
   private startMetricsFlushing(): void {
-    setInterval(() => {
+    this.metricsFlushTimer = setInterval(() => {
       this.clearOldMetrics();
       this.logStructured('debug', 'Metrics buffer size', {
         size: this.metricsBuffer.size,
       });
     }, this.METRICS_FLUSH_INTERVAL);
+  }
+
+  onModuleDestroy(): void {
+    if (this.metricsFlushTimer) {
+      clearInterval(this.metricsFlushTimer);
+      this.metricsFlushTimer = null;
+    }
   }
 
   sendHeartbeat(): void {

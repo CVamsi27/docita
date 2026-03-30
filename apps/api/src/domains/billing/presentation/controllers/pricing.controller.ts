@@ -19,7 +19,7 @@ export class PricingController {
   @ApiQuery({
     name: 'currency',
     required: false,
-    enum: ['INR', 'USD', 'EUR', 'GBP', 'AUD'],
+    enum: ['INR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED', 'ZAR'],
   })
   async getPricingConfig(@Query() query?: PricingConfigQueryDto) {
     return await this.pricingService.getPricingConfig(query?.currency);
@@ -35,7 +35,7 @@ export class PricingController {
   @ApiQuery({
     name: 'currency',
     required: false,
-    enum: ['INR', 'USD', 'EUR', 'GBP', 'AUD'],
+    enum: ['INR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED', 'ZAR'],
   })
   @ApiQuery({
     name: 'billingCycle',

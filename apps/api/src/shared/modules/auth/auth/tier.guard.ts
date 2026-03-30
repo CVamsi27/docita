@@ -92,7 +92,7 @@ export class TierGuard implements CanActivate {
       if (featureTier === Tier.INTELLIGENCE) {
         if (!hasIntelligence) {
           throw new ForbiddenException(
-            `This feature requires the Docita Intelligence add-on.`,
+            `This feature requires the Intelligence add-on.`,
           );
         }
         return true;
@@ -110,7 +110,7 @@ export class TierGuard implements CanActivate {
     if (requiredTier !== undefined) {
       if (requiredTier === Tier.INTELLIGENCE && !hasIntelligence) {
         throw new ForbiddenException(
-          'This feature requires the Docita Intelligence add-on.',
+          'This feature requires the Intelligence add-on.',
         );
       }
 
@@ -137,11 +137,11 @@ export class TierGuard implements CanActivate {
 
   private getTierName(tier: Tier): string {
     const names: Record<Tier, string> = {
-      [Tier.STARTER]: 'Docita Starter',
-      [Tier.ESSENTIAL]: 'Docita Essential',
-      [Tier.PROFESSIONAL]: 'Docita Professional',
-      [Tier.ENTERPRISE]: 'Docita Enterprise',
-      [Tier.INTELLIGENCE]: 'Docita Intelligence',
+      [Tier.STARTER]: 'Free',
+      [Tier.ESSENTIAL]: 'Essential',
+      [Tier.PROFESSIONAL]: 'Professional',
+      [Tier.ENTERPRISE]: 'Enterprise',
+      [Tier.INTELLIGENCE]: 'Intelligence',
     };
     return names[tier] || 'Unknown';
   }

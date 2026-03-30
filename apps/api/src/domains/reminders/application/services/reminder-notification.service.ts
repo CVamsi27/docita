@@ -232,12 +232,23 @@ export class ReminderNotificationService {
       { timezone },
     );
 
+    const clinicName = appointment.clinic?.name ?? '';
+
     return template
-      .replace(/\{\{patientName\}\}/g, patientName)
-      .replace(/\{\{doctorName\}\}/g, appointment.doctor.name)
-      .replace(/\{\{appointmentDate\}\}|\{\{date\}\}/g, formattedDate)
-      .replace(/\{\{appointmentTime\}\}|\{\{time\}\}/g, formattedTime)
-      .replace(/\{\{appointmentType\}\}/g, appointment.type)
-      .replace(/\{\{clinicName\}\}/g, appointment.clinic?.name ?? '');
+      .replace(/\{\{patientName\}\}|\{patientName\}/g, patientName)
+      .replace(/\{\{doctorName\}\}|\{doctorName\}/g, appointment.doctor.name)
+      .replace(
+        /\{\{appointmentDate\}\}|\{\{date\}\}|\{appointmentDate\}|\{date\}/g,
+        formattedDate,
+      )
+      .replace(
+        /\{\{appointmentTime\}\}|\{\{time\}\}|\{appointmentTime\}|\{time\}/g,
+        formattedTime,
+      )
+      .replace(
+        /\{\{appointmentType\}\}|\{appointmentType\}/g,
+        appointment.type,
+      )
+      .replace(/\{\{clinicName\}\}|\{clinicName\}/g, clinicName);
   }
 }

@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import {
   OnboardingStep,
   OnboardingProgressDto,
@@ -16,12 +21,16 @@ interface OnboardingSession {
 }
 
 @Injectable()
-export class OnboardingDataService {
+export class OnboardingDataService implements OnModuleDestroy {
   private readonly logger = new Logger(OnboardingDataService.name);
   private onboardingSessions = new Map<string, OnboardingSession>();
+  private cleanupTimer: NodeJS.Timeout;
 
   constructor() {
-    setInterval(() => this.cleanExpiredSessions(), 3600000);
+    this.cleanupTimer = setInterval(
+      () => this.cleanExpiredSessions(),
+      3600000,
+    );
   }
 
   initializeOnboarding(): { onboardingId: string } {
@@ -98,6 +107,12 @@ export class OnboardingDataService {
   clearSession(onboardingId: string): void {
     this.onboardingSessions.delete(onboardingId);
     this.logger.log(`Cleared onboarding session: ${onboardingId}`);
+  }
+
+  onModuleDestroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
   }
 
   private generateOnboardingId(): string {

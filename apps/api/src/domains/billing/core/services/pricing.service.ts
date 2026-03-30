@@ -3,10 +3,13 @@ import { PrismaService } from '@/prisma/prisma.service';
 import {
   TIER_PRICING,
   TIER_LIMITS,
+  TIER_INFO,
   ANNUAL_DISCOUNT_PERCENT,
   SEMI_ANNUAL_DISCOUNT_PERCENT,
+  deriveAnnualPrice,
   TIER_PRICING_BY_CURRENCY,
   TIER_OVERAGE_RATES_BY_CURRENCY,
+  getWhatsAppAddonPricingByCurrency,
   REFERRAL_REWARDS_BY_CURRENCY,
   PRICING_CURRENCY_CONFIG,
   SupportedCurrency,
@@ -92,35 +95,45 @@ export class PricingService {
             name: cfg.name,
           }),
         ),
-        tiers: canonicalTiers.map((tier) => ({
-          id: DB_TIER_TO_CANONICAL[tier.tier as string] ?? tier.tier,
-          name: tier.name,
-          description: tier.description,
-          tagline: tier.tagline,
-          color: tier.color,
-          pricing: {
-            monthly: tier.monthlyBasePriceCents / 100,
-            yearly: Math.round(
-              (tier.monthlyBasePriceCents / 100) *
-                12 *
-                (1 - ANNUAL_DISCOUNT_PERCENT / 100),
-            ),
-            currency: currencyConfig.symbol,
-          },
-          limits: {
-            patients: tier.includedPatients,
-            appointments: tier.includedAppointments,
-            storage: tier.includedStorageGB,
-            users: tier.includedUsers,
-          },
+        tiers: canonicalTiers.map((tier) => {
+          const canonicalTier =
+            (DB_TIER_TO_CANONICAL[tier.tier as string] ?? tier.tier) as keyof typeof TIER_LIMITS;
+          const tierDefaults = TIER_LIMITS[canonicalTier];
+          const tierRateDefaults =
+            TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency][canonicalTier];
+
+          return {
+            id: canonicalTier,
+            name: TIER_INFO[canonicalTier].name,
+            description: TIER_INFO[canonicalTier].description,
+            tagline: TIER_INFO[canonicalTier].tagline,
+            color: TIER_INFO[canonicalTier].color,
+            pricing: {
+              monthly: tier.monthlyBasePriceCents / 100,
+              yearly: deriveAnnualPrice(tier.monthlyBasePriceCents / 100),
+              currency: currencyConfig.symbol,
+            },
+            limits: {
+              patients: tier.includedPatients,
+              appointments: tier.includedAppointments,
+              storage: tier.includedStorageGB,
+              users: tier.includedUsers,
+              doctors: tierDefaults.doctors,
+              branches: tierDefaults.branches,
+              prescriptions: tierDefaults.prescriptions,
+              invoices: tierDefaults.invoices,
+            },
           overageRates: {
             patient: tier.overagePatientCents / 100,
             appointment: tier.overageAppointmentCents / 100,
             storage: tier.overageStorageCents / 100,
             user: tier.overageUserCents / 100,
-          },
-          features: this.parseJsonValue(tier.features),
-        })),
+              prescription: tierRateDefaults.prescriptionRate,
+              invoice: tierRateDefaults.invoiceRate,
+            },
+            features: this.parseJsonValue(tier.features),
+          };
+        }),
         discounts: {
           annualPercent: ANNUAL_DISCOUNT_PERCENT,
           semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
@@ -146,7 +159,7 @@ export class PricingService {
       tiers: [
         {
           id: 'STARTER',
-          name: 'Docita Starter',
+          name: 'Free',
           description: 'Basic clinical workflow for free',
           tagline: 'Free forever',
           color: 'gray',
@@ -159,7 +172,7 @@ export class PricingService {
           overageRates: overageRates.STARTER,
           features: [
             'Up to 50 patients',
-            'Calendar & appointment scheduling',
+            'Consultation scheduling',
             'Digital prescriptions with PDF',
             'Patient profiles & visit history',
             'Paper record scanning & archival',
@@ -170,10 +183,10 @@ export class PricingService {
         },
         {
           id: 'ESSENTIAL',
-          name: 'Docita Pro',
+          name: 'Essential',
           description:
-            'All features included. Pay only for what you use beyond your base quota.',
-          tagline: 'Scale with your clinic',
+            'Clear limits, WhatsApp messaging, and simple billing.',
+          tagline: 'For solo clinics',
           color: 'blue',
           pricing: {
             monthly: tierPricing.ESSENTIAL.monthly,
@@ -183,25 +196,25 @@ export class PricingService {
           limits: TIER_LIMITS.ESSENTIAL,
           overageRates: overageRates.ESSENTIAL,
           features: [
-            '1,000 patients included',
-            '2,000 appointments/month',
-            '5 users included',
+            'Unlimited patients',
+            '500 consultations/month included',
+            '1 doctor included',
             'WhatsApp messaging (500 msgs/mo)',
-            'Multi-doctor & multi-branch',
             'Lab tests & inventory',
             'Queue management',
             'Advanced analytics',
             'Audit logs & compliance',
             'Insurance billing',
             'Digital intake forms',
+            'Prescription templates',
             'AI features — Coming Soon',
           ],
         },
         {
           id: 'PROFESSIONAL',
-          name: 'Docita Clinic',
+          name: 'Professional',
           description:
-            'Full EHR, API access, custom branding, and broadcast campaigns for scaling practices.',
+            'Multi-doctor clinics with advanced workflows.',
           tagline: 'Built for growing clinics',
           color: 'purple',
           pricing: {
@@ -212,9 +225,9 @@ export class PricingService {
           limits: TIER_LIMITS.PROFESSIONAL,
           overageRates: overageRates.PROFESSIONAL,
           features: [
-            '5,000 patients included',
-            '10,000 appointments/month',
-            '20 users included',
+            'Unlimited patients',
+            '2,000 consultations/month included',
+            'Up to 5 doctors',
             'WhatsApp messaging (2,000 msgs/mo)',
             'Broadcast campaigns',
             'Patient segmentation',
@@ -224,12 +237,13 @@ export class PricingService {
             'Bulk data import suite',
             'REST API access (10k calls/day)',
             'SSO (Google / Azure AD)',
+            'Custom letterhead',
             'Priority support with SLA',
           ],
         },
         {
           id: 'ENTERPRISE',
-          name: 'Docita Enterprise',
+          name: 'Enterprise',
           description:
             'Hospital-grade solution with custom contracts and unlimited scale.',
           tagline: 'Hospital-Grade System',
@@ -243,7 +257,7 @@ export class PricingService {
           overageRates: overageRates.ENTERPRISE,
           features: [
             'Unlimited patients, users & branches',
-            'Everything in Clinic',
+            'Everything in Professional',
             'Data warehouse export (BI tools)',
             'Custom contract & invoicing',
             'Dedicated account manager',
@@ -267,6 +281,8 @@ export class PricingService {
     patients?: number;
     appointments?: number;
     users?: number;
+    prescriptions?: number;
+    invoices?: number;
     whatsappMessages?: number;
     intelligence?: boolean;
     aiCredits?: number;
@@ -278,6 +294,9 @@ export class PricingService {
       patients = 0,
       appointments = 0,
       users = 1,
+      prescriptions = 0,
+      invoices = 0,
+      whatsappMessages = 0,
     } = params;
 
     const validCurrency = this.resolveCurrency(currency);
@@ -329,24 +348,57 @@ export class PricingService {
       overageRates.appointmentRate;
     const userOverage =
       Math.max(0, users - (limits.users || 1)) * overageRates.userRate;
+    const prescriptionOverage =
+      Math.max(0, prescriptions - (limits.prescriptions || 0)) *
+      overageRates.prescriptionRate;
+    const invoiceOverage =
+      Math.max(0, invoices - (limits.invoices || 0)) *
+      overageRates.invoiceRate;
+    const whatsappPricing =
+      tierKey === 'ESSENTIAL' || tierKey === 'PROFESSIONAL'
+        ? getWhatsAppAddonPricingByCurrency(
+            tierKey,
+            validCurrency,
+          )
+        : null;
+    const whatsappOverage =
+      whatsappPricing && whatsappMessages > whatsappPricing.includedQuota
+        ? (whatsappMessages - whatsappPricing.includedQuota) *
+          whatsappPricing.overageRate
+        : 0;
 
-    const totalOverage = patientOverage + appointmentOverage + userOverage;
+    const totalOverage =
+      patientOverage +
+      appointmentOverage +
+      userOverage +
+      prescriptionOverage +
+      invoiceOverage +
+      whatsappOverage;
 
-    let discount = 0;
-    if (billingCycle === 'yearly') {
-      discount = ANNUAL_DISCOUNT_PERCENT;
-    } else if (billingCycle === 'semi_annual') {
-      discount = SEMI_ANNUAL_DISCOUNT_PERCENT;
-    }
-
-    const subtotal = basePrice;
-    const discountAmount = subtotal * (discount / 100);
-    const totalMonthly = subtotal - discountAmount + totalOverage;
+    const annualBase = deriveAnnualPrice(basePrice);
+    const annualEquivalent = annualBase / 12;
+    const selectedBase =
+      billingCycle === 'yearly' ? annualEquivalent : basePrice;
+    const subtotal = selectedBase;
+    const discount =
+      billingCycle === 'yearly'
+        ? ANNUAL_DISCOUNT_PERCENT
+        : billingCycle === 'semi_annual'
+          ? SEMI_ANNUAL_DISCOUNT_PERCENT
+          : 0;
+    const discountAmount =
+      billingCycle === 'yearly'
+        ? basePrice - annualEquivalent
+        : billingCycle === 'semi_annual'
+          ? basePrice * (SEMI_ANNUAL_DISCOUNT_PERCENT / 100)
+          : 0;
+    const totalMonthly = subtotal + totalOverage;
 
     const roundFactor = Math.pow(10, currencyConfig.decimalPlaces);
     const roundedTotal = Math.round(totalMonthly * roundFactor) / roundFactor;
     const roundedYearly =
-      Math.round(totalMonthly * 12 * roundFactor) / roundFactor;
+      Math.round((annualBase + totalOverage * 12) * roundFactor) /
+      roundFactor;
 
     return {
       tier: tierKey,
@@ -374,6 +426,21 @@ export class PricingService {
           users: {
             count: Math.max(0, users - (limits.users || 1)),
             charge: userOverage,
+          },
+          prescriptions: {
+            count: Math.max(0, prescriptions - (limits.prescriptions || 0)),
+            charge: prescriptionOverage,
+          },
+          invoices: {
+            count: Math.max(0, invoices - (limits.invoices || 0)),
+            charge: invoiceOverage,
+          },
+          whatsappMessages: {
+            count:
+              whatsappPricing && whatsappMessages > whatsappPricing.includedQuota
+                ? whatsappMessages - whatsappPricing.includedQuota
+                : 0,
+            charge: whatsappOverage,
           },
         },
         overageTotal: totalOverage,

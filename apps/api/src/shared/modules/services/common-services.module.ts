@@ -36,6 +36,7 @@ import { UsersModule } from '@/domains/users/users.module';
     UserRateLimitGuard,
   ],
   exports: [
+    FeatureFlagService,
     WhatsAppNotificationService,
     ClinicScopedGuard,
     EncryptionService,
