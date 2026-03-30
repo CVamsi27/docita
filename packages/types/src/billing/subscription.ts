@@ -17,6 +17,10 @@ export const SubscriptionTierConfigSchema = z.object({
     doctors: z.number(),
     storageGB: z.number(),
     branches: z.number(),
+    appointments: z.number().optional(),
+    users: z.number().optional(),
+    prescriptions: z.number().optional(),
+    invoices: z.number().optional(),
   }),
   features: z.array(z.string()),
 });
