@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { IcdCode, CptCode } from '@workspace/db';
+import { getAllCPTCodes } from '@workspace/types';
 
 type NlmSearchResponse = [number, string[], null, string[][]];
 
@@ -31,19 +32,7 @@ const ICD_CATEGORY_MAP: Record<string, string> = {
   Z: 'Health Factors',
 };
 
-function cptCategory(code: string): string {
-  const num = parseInt(code, 10);
-  if (num >= 99202 && num <= 99499) return 'Evaluation and Management';
-  if (num >= 10004 && num <= 69990) return 'Surgery';
-  if (num >= 70010 && num <= 79999) return 'Radiology';
-  if (num >= 80047 && num <= 89398) return 'Laboratory';
-  if (num >= 90281 && num <= 99199) return 'Medicine';
-  if (num >= 100 && num <= 1999) return 'Anesthesia';
-  return 'Other';
-}
-
 const NLM_ICD_URL = 'https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search';
-const NLM_CPT_URL = 'https://clinicaltables.nlm.nih.gov/api/cpt/v3/search';
 
 const SYNTHETIC_DATE = new Date(0).toISOString();
 
@@ -86,34 +75,23 @@ export class NlmCodingService {
 
   async searchCptCodes(query: string): Promise<CptCode[]> {
     if (!query?.trim()) return [];
-    try {
-      const url = new URL(NLM_CPT_URL);
-      url.searchParams.set('terms', query.trim());
-      url.searchParams.set('maxList', '20');
-      url.searchParams.set('df', 'code,name');
-      const res = await fetch(url.toString());
-      if (!res.ok) {
-        this.logger.warn(`NLM CPT search returned ${res.status}`);
-        return [];
-      }
-      const data = (await res.json()) as NlmSearchResponse;
-      const displayStrings = data[3] ?? [];
-      return displayStrings.map(([code, name]) => ({
-        id: code,
-        code,
-        description: name,
-        category: cptCategory(code),
+    const lowerQuery = query.trim().toLowerCase();
+    return getAllCPTCodes()
+      .filter(
+        (code) =>
+          code.code.toLowerCase().includes(lowerQuery) ||
+          code.description.toLowerCase().includes(lowerQuery) ||
+          code.category.toLowerCase().includes(lowerQuery),
+      )
+      .map((code) => ({
+        id: code.code,
+        code: code.code,
+        description: code.description,
+        category: code.category,
         isCommon: false,
         price: 0,
         createdAt: SYNTHETIC_DATE,
         updatedAt: SYNTHETIC_DATE,
       })) as unknown as CptCode[];
-    } catch (err) {
-      this.logger.error(
-        'NLM CPT search failed',
-        err instanceof Error ? err.stack : String(err),
-      );
-      return [];
-    }
   }
 }
