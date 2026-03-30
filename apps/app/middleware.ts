@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-
+// Keep the legacy middleware filename for now.
+// Next.js 16 prefers `proxy.ts`, but the Cloudflare/OpenNext build path in this
+// repo still requires the Edge runtime convention.
 const ACCESS_TOKEN_COOKIE = "access_token";
 
 const PROTECTED_ROUTE_PREFIXES = [
@@ -121,7 +123,7 @@ function isAuthPath(pathname: string): boolean {
   );
 }
 
-export default async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   const isProtectedRoute = isProtectedPath(pathname);
