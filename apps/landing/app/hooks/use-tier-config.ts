@@ -3,6 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+function deriveAnnualPrice(monthly: number): number {
+  return Math.round(monthly * 10);
+}
+
 export interface PlanPricing {
   monthly: number | "custom";
   yearly: number | "custom";
@@ -91,13 +95,21 @@ const DEFAULT_CONFIG: TierConfigData = {
               ? "Euro"
               : code === "AUD"
                 ? "Australian Dollar"
+                : code === "CAD"
+                  ? "Canadian Dollar"
+                  : code === "SGD"
+                    ? "Singapore Dollar"
+                    : code === "AED"
+                      ? "UAE Dirham"
+                      : code === "ZAR"
+                        ? "South African Rand"
                 : code,
   })),
   tiers: [
     {
       id: "STARTER",
       tier: 0,
-      name: "Docita Starter",
+      name: "Free",
       description: "Basic clinical workflow for free",
       tagline: "Free forever",
       color: "gray",
@@ -105,7 +117,7 @@ const DEFAULT_CONFIG: TierConfigData = {
       limits: { patients: 50, doctors: 1, storageGB: 1, branches: 1 },
       features: [
         "Up to 50 patients",
-        "Calendar & appointment scheduling",
+        "Up to 50 consultations/month",
         "Digital prescriptions with PDF",
         "Patient profiles & visit history",
         "Paper record scanning & archival",
@@ -116,40 +128,40 @@ const DEFAULT_CONFIG: TierConfigData = {
     {
       id: "ESSENTIAL",
       tier: 1,
-      name: "Docita Pro",
-      description: "All features included. Pay only for what you use beyond your base quota.",
-      tagline: "Scale with your clinic",
+      name: "Essential",
+      description: "Clear limits, WhatsApp messaging, and simple billing.",
+      tagline: "For solo clinics",
       color: "blue",
       pricing: { monthly: 999, yearly: 9990, currency: CURRENCY_SYMBOLS.INR },
-      limits: { patients: 1000, doctors: 999, storageGB: 20, branches: 999 },
+      limits: { patients: 999999, doctors: 1, storageGB: 10, branches: 1 },
       features: [
-        "1,000 patients included",
-        "2,000 appointments/month",
-        "5 users included",
+        "Unlimited patients",
+        "500 consultations/month included",
+        "1 doctor included",
         "WhatsApp messaging (500 msgs/mo)",
-        "Multi-doctor & multi-branch",
         "Lab tests & inventory",
         "Queue management",
         "Advanced analytics",
         "Audit logs & compliance",
         "Insurance billing",
         "Digital intake forms",
+        "Prescription templates",
         "AI features — Coming Soon",
       ],
     },
     {
       id: "PROFESSIONAL",
       tier: 2,
-      name: "Docita Clinic",
-      description: "Full EHR, API access, custom branding, and broadcast campaigns for scaling practices.",
+      name: "Professional",
+      description: "Multi-doctor clinics with advanced workflows.",
       tagline: "Built for growing clinics",
       color: "purple",
       pricing: { monthly: 2499, yearly: 24990, currency: CURRENCY_SYMBOLS.INR },
-      limits: { patients: 5000, doctors: 999, storageGB: 50, branches: 999 },
+      limits: { patients: 999999, doctors: 5, storageGB: 50, branches: 1 },
       features: [
-        "5,000 patients included",
-        "10,000 appointments/month",
-        "20 users included",
+        "Unlimited patients",
+        "2,000 consultations/month included",
+        "Up to 5 doctors",
         "WhatsApp messaging (2,000 msgs/mo)",
         "Broadcast campaigns",
         "Patient segmentation",
@@ -159,13 +171,14 @@ const DEFAULT_CONFIG: TierConfigData = {
         "Bulk data import suite",
         "REST API access (10k calls/day)",
         "SSO (Google / Azure AD)",
+        "Custom letterhead",
         "Priority support with SLA",
       ],
     },
     {
       id: "ENTERPRISE",
       tier: 3,
-      name: "Docita Enterprise",
+      name: "Enterprise",
       description: "Hospital-grade solution with custom contracts and unlimited scale.",
       tagline: "Hospital-Grade System",
       color: "orange",
@@ -174,10 +187,10 @@ const DEFAULT_CONFIG: TierConfigData = {
         yearly: "custom",
         currency: CURRENCY_SYMBOLS.INR,
       },
-      limits: { patients: 999999, doctors: 999, storageGB: 500, branches: 999 },
+      limits: { patients: 999999, doctors: 999999, storageGB: 500, branches: 999999 },
       features: [
         "Unlimited patients, users & branches",
-        "Everything in Docita Clinic",
+        "Everything in Professional",
         "Data warehouse export (BI tools)",
         "Custom contract & invoicing",
         "Dedicated account manager",
@@ -188,13 +201,13 @@ const DEFAULT_CONFIG: TierConfigData = {
   featureTierMap: {},
   featureDisplay: {},
   discounts: {
-    annualPercent: 10,
+    annualPercent: 17,
     semiAnnualPercent: 8,
     referralCredits: 0,
   },
   intelligenceInfo: {
-    name: "Docita Intelligence",
-    description: "AI-powered clinical assistant — Coming Soon in Docita Pro and above",
+    name: "Intelligence",
+    description: "AI-powered clinical assistant — Coming Soon in Essential and above",
     tagline: "Coming Soon",
     color: "blue",
     pricing: { monthly: 0, yearly: 0, currency: CURRENCY_SYMBOLS.INR },
@@ -215,42 +228,66 @@ const DEFAULT_CONFIG: TierConfigData = {
 const TIER_PRICING: Record<string, Record<string, { monthly: number | "custom"; yearly: number | "custom" }>> = {
   INR: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 999, yearly: 9990 },
-    PROFESSIONAL: { monthly: 2499, yearly: 24990 },
+    ESSENTIAL: { monthly: 999, yearly: deriveAnnualPrice(999) },
+    PROFESSIONAL: { monthly: 2499, yearly: deriveAnnualPrice(2499) },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
   },
   USD: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 39, yearly: 390 },
-    PROFESSIONAL: { monthly: 79, yearly: 790 },
+    ESSENTIAL: { monthly: 19, yearly: deriveAnnualPrice(19) },
+    PROFESSIONAL: { monthly: 49, yearly: deriveAnnualPrice(49) },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
   },
   EUR: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 35, yearly: 350 },
-    PROFESSIONAL: { monthly: 72, yearly: 720 },
+    ESSENTIAL: { monthly: 17, yearly: deriveAnnualPrice(17) },
+    PROFESSIONAL: { monthly: 45, yearly: deriveAnnualPrice(45) },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
   },
   GBP: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 29, yearly: 290 },
-    PROFESSIONAL: { monthly: 59, yearly: 590 },
+    ESSENTIAL: { monthly: 15, yearly: deriveAnnualPrice(15) },
+    PROFESSIONAL: { monthly: 39, yearly: deriveAnnualPrice(39) },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
   },
   AUD: {
     STARTER: { monthly: 0, yearly: 0 },
-    ESSENTIAL: { monthly: 59, yearly: 590 },
-    PROFESSIONAL: { monthly: 119, yearly: 1190 },
+    ESSENTIAL: { monthly: 29, yearly: deriveAnnualPrice(29) },
+    PROFESSIONAL: { monthly: 75, yearly: deriveAnnualPrice(75) },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+  },
+  CAD: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 25, yearly: deriveAnnualPrice(25) },
+    PROFESSIONAL: { monthly: 65, yearly: deriveAnnualPrice(65) },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+  },
+  SGD: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 25, yearly: deriveAnnualPrice(25) },
+    PROFESSIONAL: { monthly: 65, yearly: deriveAnnualPrice(65) },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+  },
+  AED: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 69, yearly: deriveAnnualPrice(69) },
+    PROFESSIONAL: { monthly: 179, yearly: deriveAnnualPrice(179) },
+    ENTERPRISE: { monthly: "custom", yearly: "custom" },
+  },
+  ZAR: {
+    STARTER: { monthly: 0, yearly: 0 },
+    ESSENTIAL: { monthly: 349, yearly: deriveAnnualPrice(349) },
+    PROFESSIONAL: { monthly: 899, yearly: deriveAnnualPrice(899) },
     ENTERPRISE: { monthly: "custom", yearly: "custom" },
   },
 };
 
 // Fallback multipliers for currencies not in TIER_PRICING
 const CURRENCY_MULTIPLIERS: Record<string, number> = {
-  CAD: 0.048,
-  SGD: 0.045,
-  AED: 0.13,
-  ZAR: 0.6,
+  CAD: 0.05,
+  SGD: 0.05,
+  AED: 0.14,
+  ZAR: 0.35,
 };
 
 // Numeric overage rates per currency (matches TIER_OVERAGE_RATES_BY_CURRENCY in @workspace/types)
@@ -262,10 +299,14 @@ const OVERAGE_RATES_NUMERIC: Record<
   }
 > = {
   INR: { pro: { patient: 1.5,   appt: 0.75,  user: 399, wa: 0.5   }, clinic: { patient: 1.2,   appt: 0.6,   user: 299, wa: 0.3   } },
-  USD: { pro: { patient: 0.04,  appt: 0.02,  user: 12,  wa: 0.015 }, clinic: { patient: 0.03,  appt: 0.015, user: 9,   wa: 0.008 } },
-  EUR: { pro: { patient: 0.035, appt: 0.018, user: 10,  wa: 0.013 }, clinic: { patient: 0.027, appt: 0.014, user: 8,   wa: 0.007 } },
-  GBP: { pro: { patient: 0.03,  appt: 0.015, user: 9,   wa: 0.012 }, clinic: { patient: 0.023, appt: 0.012, user: 7,   wa: 0.006 } },
-  AUD: { pro: { patient: 0.06,  appt: 0.03,  user: 18,  wa: 0.022 }, clinic: { patient: 0.048, appt: 0.024, user: 14,  wa: 0.012 } },
+  USD: { pro: { patient: 0.04,  appt: 0.05,  user: 5,   wa: 0.02  }, clinic: { patient: 0.02,  appt: 0.03,  user: 4,   wa: 0.01  } },
+  EUR: { pro: { patient: 0.03,  appt: 0.05,  user: 4,   wa: 0.02  }, clinic: { patient: 0.02,  appt: 0.03,  user: 3,   wa: 0.01  } },
+  GBP: { pro: { patient: 0.03,  appt: 0.04,  user: 4,   wa: 0.015 }, clinic: { patient: 0.02,  appt: 0.025, user: 3,   wa: 0.008 } },
+  AUD: { pro: { patient: 0.05,  appt: 0.07,  user: 7,   wa: 0.03  }, clinic: { patient: 0.03,  appt: 0.05,  user: 5,   wa: 0.015 } },
+  CAD: { pro: { patient: 0.05,  appt: 0.07,  user: 7,   wa: 0.03  }, clinic: { patient: 0.03,  appt: 0.04,  user: 5,   wa: 0.013 } },
+  SGD: { pro: { patient: 0.05,  appt: 0.07,  user: 7,   wa: 0.03  }, clinic: { patient: 0.03,  appt: 0.04,  user: 5,   wa: 0.013 } },
+  AED: { pro: { patient: 0.14,  appt: 0.18,  user: 18,  wa: 0.07  }, clinic: { patient: 0.08,  appt: 0.11,  user: 14,  wa: 0.04  } },
+  ZAR: { pro: { patient: 0.7,   appt: 0.9,   user: 90,  wa: 0.35  }, clinic: { patient: 0.45, appt: 0.6,   user: 70,  wa: 0.2   } },
 };
 
 export interface OverageRateRow {

@@ -62,7 +62,7 @@ export function PricingSection() {
 
   const starterFeatures = [
     "Up to 50 patients",
-    "Calendar & appointment scheduling",
+    "Up to 50 consultations/month",
     "Digital prescriptions with PDF",
     "Patient profiles & visit history",
     "Paper record scanning & archival",
@@ -71,24 +71,24 @@ export function PricingSection() {
   ];
 
   const essentialFeatures = [
-    "1,000 patients included",
-    "2,000 appointments/month",
-    "5 users included",
+    "Unlimited patients",
+    "500 consultations/month included",
+    "1 doctor included",
     "WhatsApp messaging (500 msgs/mo)",
-    "Multi-doctor & multi-branch",
     "Lab tests & inventory",
     "Queue management",
     "Advanced analytics",
     "Audit logs & compliance",
     "Insurance billing",
     "Digital intake forms",
+    "Prescription templates",
     "AI features — Coming Soon",
   ];
 
   const professionalFeatures = [
-    "5,000 patients included",
-    "10,000 appointments/month",
-    "20 users included",
+    "Unlimited patients",
+    "2,000 consultations/month included",
+    "Up to 5 doctors",
     "WhatsApp messaging (2,000 msgs/mo)",
     "Broadcast campaigns",
     "Patient segmentation",
@@ -98,12 +98,13 @@ export function PricingSection() {
     "Bulk data import suite",
     "REST API access (10k calls/day)",
     "SSO (Google / Azure AD)",
+    "Custom letterhead",
     "Priority support with SLA",
   ];
 
   const enterpriseFeatures = [
     "Unlimited patients, users & branches",
-    "Everything in Docita Clinic",
+    "Everything in Professional",
     "Data warehouse export (BI tools)",
     "Custom contract & invoicing",
     "Dedicated account manager",
@@ -147,7 +148,7 @@ export function PricingSection() {
             >
               Annual
               <span className="text-xs bg-success text-success dark:text-success px-2 py-0.5 rounded-full font-semibold">
-                Save 10%
+                2 months free
               </span>
             </button>
           </div>
@@ -155,9 +156,9 @@ export function PricingSection() {
 
         <div className="grid gap-6 lg:grid-cols-4 items-start">
           <PricingTierCard
-            tier="Starter"
-            title="Docita Starter"
-            description="Free forever — run your practice digitally"
+            tier="Free"
+            title="Free"
+            description="Run your practice digitally with a simple free tier"
             price={formatPrice("STARTER")}
             badgeColor="slate"
             features={starterFeatures}
@@ -166,8 +167,8 @@ export function PricingSection() {
 
           <PricingTierCard
             tier="Essential"
-            title="Docita Pro"
-            description="All features included. Pay only for what you use beyond your base quota."
+            title="Essential"
+            description="For solo clinics that want clear limits and simple billing."
             price={formatPrice("ESSENTIAL")}
             pricePerMonth="/mo"
             billingNote={
@@ -185,8 +186,8 @@ export function PricingSection() {
 
           <PricingTierCard
             tier="Professional"
-            title="Docita Clinic"
-            description="Full EHR, API access, custom branding, and broadcast campaigns."
+            title="Professional"
+            description="For growing clinics with advanced workflows and scale."
             price={formatPrice("PROFESSIONAL")}
             pricePerMonth="/mo"
             billingNote={
@@ -201,7 +202,7 @@ export function PricingSection() {
 
           <PricingTierCard
             tier="Enterprise"
-            title="Docita Enterprise"
+            title="Enterprise"
             description="Hospital-grade with full customization"
             price="Custom"
             badgeColor="amber"
@@ -220,7 +221,7 @@ export function PricingSection() {
             <div>
               <p className="font-semibold">WhatsApp Messaging — Included</p>
               <p className="text-sm text-muted-foreground mt-1">
-                500 msgs/mo on Docita Pro, 2,000 msgs/mo on Docita Clinic.
+                500 msgs/mo on Essential, 2,000 msgs/mo on Professional.
                 Additional messages billed per use.
               </p>
             </div>
@@ -233,7 +234,7 @@ export function PricingSection() {
               <p className="font-semibold">AI Features — Coming Soon</p>
               <p className="text-sm text-muted-foreground mt-1">
                 AI-assisted notes, smart prescriptions, voice dictation, and
-                predictive analytics — bundled into Docita Pro and above.
+                predictive analytics — bundled into Essential and above.
               </p>
             </div>
           </div>
@@ -251,7 +252,7 @@ export function PricingSection() {
             <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">1</div>
             <p className="font-semibold mb-1">Pick a plan</p>
             <p className="text-sm text-muted-foreground">
-              Your base monthly fee covers the included quota — patients, appointments, users, and WhatsApp messages.
+              Your base monthly fee covers the included quota - consultations, patients, users, and WhatsApp messages.
             </p>
           </div>
           <div className="rounded-xl border bg-background p-6 text-center">
@@ -274,10 +275,10 @@ export function PricingSection() {
         <div className="rounded-2xl border bg-muted/30 overflow-hidden">
           <div className="p-6 border-b">
             <h3 className="font-bold text-lg">Usage overage rates</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Charged only when you exceed the included quota on your plan.
+            <p className="text-sm text-muted-foreground mt-1">
+              Charged only when you exceed the included quota on your plan.
               {isHydrated && ` Rates shown in ${sym}.`}
-              </p>
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -287,13 +288,13 @@ export function PricingSection() {
                   <th className="px-6 py-3 text-center font-medium">
                     <span className="inline-flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-primary inline-block" />
-                      Docita Pro
+                      Essential
                     </span>
                   </th>
                   <th className="px-6 py-3 text-center font-medium">
                     <span className="inline-flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-purple-500 inline-block" />
-                      Docita Clinic
+                      Professional
                     </span>
                   </th>
                 </tr>
@@ -317,7 +318,7 @@ export function PricingSection() {
                         <td className="px-6 py-4">
                           <span className="flex items-center gap-2">
                             <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
-                            Extra appointment
+                            Extra consultation
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center font-medium">{rates.pro.appt}</td>
@@ -350,7 +351,10 @@ export function PricingSection() {
             </table>
           </div>
           <div className="px-6 py-4 bg-muted/20 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm text-muted-foreground">
-            <span>Docita Clinic rates are ~20% lower — the larger your plan, the less you pay per extra unit.</span>
+            <span>
+              Professional rates are lower than Essential rates. The larger
+              your plan, the less you pay per extra unit.
+            </span>
             <a href="#pricing" className="inline-flex items-center gap-1 text-primary font-medium hover:underline whitespace-nowrap">
               See plans <ArrowRight className="h-3.5 w-3.5" />
             </a>
@@ -359,10 +363,7 @@ export function PricingSection() {
 
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
           <p>All paid plans include a 14-day free trial. No credit card required.</p>
-          <p>
-            Save 10% with annual billing. Loyalty discounts up to 10% after 3
-            years.
-          </p>
+          <p>Annual billing gives you 2 months free. Loyalty discounts apply after 3 years.</p>
         </div>
       </div>
 

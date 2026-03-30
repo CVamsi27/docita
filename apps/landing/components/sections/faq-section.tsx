@@ -29,12 +29,12 @@ const faqs = [
   {
     question: "How does the pricing work?",
     answer:
-      "Each paid plan includes a base quota of patients, appointments, users, and WhatsApp messages. Your flat monthly fee covers that quota. If you go beyond — say you register more patients or book more appointments than your plan includes — the extra usage is billed at a per-unit rate at the start of the next month. Annual subscribers also get overage billed monthly, not at year-end. No hard limits, no service interruptions. Every plan starts with a 14-day free trial, no credit card required.",
+      "Each paid plan includes a base quota of consultations, users, WhatsApp messages, and plan-specific limits. Your flat monthly fee covers that quota. If you go beyond it, extra usage is billed at a per-unit rate at the start of the next month. Annual subscribers still get overage billed monthly, not at year-end. No hard limits, no service interruptions. Every plan starts with a 14-day free trial, no credit card required.",
   },
   {
     question: "What happens if I exceed my plan limits?",
     answer:
-      "Nothing stops — Docita keeps working. We meter your usage automatically. At the start of each month we calculate any overage from the prior month and add it to your next invoice. Docita Clinic rates are roughly 20% lower than Docita Pro per unit. You can see the exact rates for your currency in the pricing section above, or upgrade to a higher tier to reduce per-unit costs.",
+      "Nothing stops — Docita keeps working. We meter your usage automatically. At the start of each month we calculate any overage from the prior month and add it to your next invoice. Higher tiers have lower per-unit rates. You can see the exact rates for your currency in the pricing section above, or upgrade to a higher tier to reduce per-unit costs.",
   },
   {
     question: "What if I need help?",

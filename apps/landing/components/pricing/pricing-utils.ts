@@ -11,6 +11,10 @@ export const CURRENCY_RATES: Record<
   GBP: { symbol: "£", rate: 0.0094, country: "UK" },
   EUR: { symbol: "€", rate: 0.011, country: "Europe" },
   AUD: { symbol: "A$", rate: 0.018, country: "Australia" },
+  CAD: { symbol: "C$", rate: 0.016, country: "Canada" },
+  SGD: { symbol: "S$", rate: 0.016, country: "Singapore" },
+  AED: { symbol: "AED", rate: 0.044, country: "UAE" },
+  ZAR: { symbol: "R", rate: 0.23, country: "South Africa" },
 };
 
 // Country code → currency (ISO 3166-1 alpha-2)
@@ -23,6 +27,7 @@ const COUNTRY_CURRENCY: Record<string, string> = {
   IT: "EUR", LV: "EUR", LT: "EUR", LU: "EUR", MT: "EUR",
   NL: "EUR", PT: "EUR", SK: "EUR", SI: "EUR", ES: "EUR",
   US: "USD", CA: "USD", MX: "USD",
+  SG: "SGD", AE: "AED", ZA: "ZAR",
 };
 
 export function detectCurrencyFromTimezone(): string {
@@ -32,6 +37,9 @@ export function detectCurrencyFromTimezone(): string {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     if (tz.startsWith("Asia/Kolkata") || tz.startsWith("Asia/Calcutta")) return "INR";
     if (tz.startsWith("Australia/") || tz.startsWith("Pacific/Auckland")) return "AUD";
+    if (tz.startsWith("Asia/Singapore")) return "SGD";
+    if (tz.startsWith("Asia/Dubai")) return "AED";
+    if (tz.startsWith("Africa/Johannesburg")) return "ZAR";
     if (tz.startsWith("Europe/London") || tz === "GB") return "GBP";
     if (tz.startsWith("Europe/")) return "EUR";
     if (tz.startsWith("America/")) return "USD";
