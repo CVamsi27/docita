@@ -5,6 +5,8 @@ import { DashboardHeaderUI } from "./dashboard-header-ui";
 export function DashboardHeaderContainer() {
   const { user } = useAuth();
   const { clinic } = useClinic();
+  const canQuickShareClinicCode =
+    user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -33,6 +35,8 @@ export function DashboardHeaderContainer() {
       greeting={getGreeting()}
       onSearchClick={handleSearchClick}
       clinicCode={clinic?.referralCode}
+      clinicName={clinic?.name}
+      canQuickShareClinicCode={canQuickShareClinicCode}
     />
   );
 }

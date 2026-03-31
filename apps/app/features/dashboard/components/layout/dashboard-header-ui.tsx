@@ -1,4 +1,4 @@
-import { Check, Copy, Search, Stethoscope } from "lucide-react";
+import { Check, Copy, Search, Share2, Stethoscope } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -8,6 +8,8 @@ export interface DashboardHeaderUIProps {
   greeting: string;
   onSearchClick: () => void;
   clinicCode?: string | null;
+  clinicName?: string;
+  canQuickShareClinicCode?: boolean;
 }
 
 export function DashboardHeaderUI({
@@ -15,14 +17,47 @@ export function DashboardHeaderUI({
   greeting,
   onSearchClick,
   clinicCode,
+  clinicName,
+  canQuickShareClinicCode = false,
 }: DashboardHeaderUIProps) {
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
 
   const handleCopyCode = async () => {
     if (!clinicCode) return;
     await navigator.clipboard.writeText(clinicCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleQuickShare = async () => {
+    if (!clinicCode) return;
+
+    const shareText = `Join ${clinicName || "our clinic"} on Docita using clinic code: ${clinicCode}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Clinic Join Code",
+          text: shareText,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+      }
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(shareText);
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+      } catch {
+        // no-op
+      }
+    }
   };
 
   return (
@@ -44,6 +79,25 @@ export function DashboardHeaderUI({
       </div>
 
       <div className="flex items-center gap-2">
+        {canQuickShareClinicCode && (
+          <button
+            onClick={handleQuickShare}
+            disabled={!clinicCode}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-md border bg-background/50 backdrop-blur-sm text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors touch-manipulation disabled:opacity-60 disabled:cursor-not-allowed"
+            title={
+              clinicCode
+                ? "Quick share clinic join code"
+                : "Clinic code not available"
+            }
+          >
+            {shared ? (
+              <Check className="h-3.5 w-3.5 text-success shrink-0" />
+            ) : (
+              <Share2 className="h-3.5 w-3.5 shrink-0" />
+            )}
+            <span>{shared ? "Shared" : "Quick Share"}</span>
+          </button>
+        )}
         {clinicCode && (
           <button
             onClick={handleCopyCode}

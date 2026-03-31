@@ -103,8 +103,7 @@ Vercel (admin/landing) -->  Render PostgreSQL
 
 ## Documentation
 
-- [Deployment Strategy (Canonical)](docs/deployment/DEPLOYMENT.md) - Current production path and future AWS migration target
-- [Render Deployment Guide](docs/DEPLOYMENT_RENDER.md) - Render API and PostgreSQL quick guide
+- [Deployment Strategy](docs/DEPLOYMENT.md) - Current production path, Render runbook, and future AWS migration target
 - [API Documentation](docs/API_DOCUMENTATION.md) - API reference
 - [Testing Guide](docs/TESTING.md) - Testing strategies and best practices
 - [Zod Architecture](docs/zod-first-architecture.md) - Type system guide
@@ -116,7 +115,7 @@ Vercel (admin/landing) -->  Render PostgreSQL
 2. **Backend**: Deploy `apps/api` as a Render Web Service
 3. **Frontend**: Deploy `apps/app` to Cloudflare Pages; `apps/landing` and `apps/admin` to Vercel
 
-See [Deployment Strategy (Canonical)](docs/deployment/DEPLOYMENT.md) for current and future deployment direction.
+See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment direction.
 
 ## License
 

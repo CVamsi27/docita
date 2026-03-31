@@ -11,8 +11,9 @@ export const metadata = {
   title: "Docita - Clinic OS",
   description: "The operating system for modern clinics",
   icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon",
+    icon: "/icon?v=2",
+    shortcut: "/icon?v=2",
+    apple: "/apple-icon?v=2",
   },
 };
 
