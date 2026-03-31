@@ -17,10 +17,10 @@ import {
   VitalSign,
 } from "@workspace/types";
 import {
-  API_URL,
   useAPIMutation,
   useAPIQuery,
 } from "@/lib/api-core";
+import { fetchWithSession } from "@/lib/fetch-with-session";
 import { withQueryString } from "@/lib/http/query-string";
 
 export const useVitalSigns = (patientId: string) =>
@@ -97,14 +97,8 @@ export const useDeletePrescription = (id: string) =>
 export const useDownloadPrescriptionPDF = () => {
   return useMutation({
     mutationFn: async (prescriptionId: string) => {
-      const token = localStorage.getItem("docita_token");
-      const response = await fetch(
-        `${API_URL}/prescriptions/${prescriptionId}/pdf`,
-        {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        },
+      const response = await fetchWithSession(
+        `/prescriptions/${prescriptionId}/pdf`,
       );
       if (!response.ok) {
         throw new Error(`Failed to download PDF: ${response.statusText}`);

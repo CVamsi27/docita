@@ -1,43 +1,33 @@
-import { API_URL } from "@/lib/api";
+import { client } from "@/lib/api-client";
 import type { Clinic, User } from "./types";
 
-export async function fetchClinics(token: string): Promise<Clinic[]> {
-  const response = await fetch(`${API_URL}/super-admin/clinics`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to load clinics");
-  }
-
-  const data = await response.json();
+export async function fetchClinics(): Promise<Clinic[]> {
+  const data = await client.get<Clinic[] | { items?: Clinic[] }>(
+    "/super-admin/clinics",
+  );
   return Array.isArray(data) ? data : (data.items ?? []);
 }
 
-export async function fetchClinicUsers(
-  token: string,
-  clinicId: string,
-): Promise<User[]> {
+export async function fetchClinicUsers(clinicId: string): Promise<User[]> {
   const [doctorsResponse, adminsResponse] = await Promise.all([
-    fetch(`${API_URL}/super-admin/clinics/${clinicId}/doctors`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
-    fetch(`${API_URL}/super-admin/clinics/${clinicId}/admins`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
+    client
+      .get<User[] | null>(`/super-admin/clinics/${clinicId}/doctors`)
+      .catch(() => []),
+    client
+      .get<User[] | null>(`/super-admin/clinics/${clinicId}/admins`)
+      .catch(() => []),
   ]);
 
-  const doctors = doctorsResponse.ok ? await doctorsResponse.json() : [];
-  const admins = adminsResponse.ok ? await adminsResponse.json() : [];
+  const doctors = Array.isArray(doctorsResponse) ? doctorsResponse : [];
+  const admins = Array.isArray(adminsResponse) ? adminsResponse : [];
 
   return [
-    ...(Array.isArray(doctors) ? doctors : []),
-    ...(Array.isArray(admins) ? admins : []),
+    ...doctors,
+    ...admins,
   ];
 }
 
 export async function fetchUsersForSelection(
-  token: string,
   selectedClinic: string,
   clinics: Clinic[],
 ): Promise<User[]> {
@@ -47,11 +37,11 @@ export async function fetchUsersForSelection(
     }
 
     const allUsers = await Promise.all(
-      clinics.map((clinic) => fetchClinicUsers(token, clinic.id)),
+      clinics.map((clinic) => fetchClinicUsers(clinic.id)),
     );
 
     return allUsers.flat();
   }
 
-  return fetchClinicUsers(token, selectedClinic);
+  return fetchClinicUsers(selectedClinic);
 }

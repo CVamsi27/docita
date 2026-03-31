@@ -3,9 +3,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { type RazorpayResponse, useRazorpay } from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth-context";
+import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import type { TierName } from "@workspace/types";
-import { API_URL } from "@/lib/api-config";
 
 export interface CheckoutSuccessData {
   planName: string;
@@ -44,23 +44,21 @@ export function useSubscriptionCheckout(
       setProcessingId(`tier-${tier}`);
 
       try {
-        const createRes = await fetch(
-          `${API_URL}/subscription/billing/checkout`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ tier, billingCycle }),
-          },
-        );
-        const createData = await createRes.json();
-        if (!createRes.ok) {
-          throw new Error(createData.message || "Failed to initiate checkout");
-        }
-
+        const createData = await fetchJsonWithSession<{
+          orderId: string;
+          amountCents: number;
+          currency: string;
+          razorpayKeyId: string;
+          message?: string;
+        }>("/subscription/billing/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tier, billingCycle }),
+        });
         const { orderId, amountCents, currency, razorpayKeyId } = createData;
+        if (!orderId || !amountCents || !currency || !razorpayKeyId) {
+          throw new Error("Failed to initiate checkout");
+        }
 
         await openCheckout({
           key: razorpayKeyId as string,
@@ -70,13 +68,12 @@ export function useSubscriptionCheckout(
           description: `Upgrade to ${tier} Plan`,
           order_id: orderId as string,
           handler: async (response: RazorpayResponse) => {
-            const activateRes = await fetch(
-              `${API_URL}/subscription/billing/activate`,
+            await fetchJsonWithSession<{ success: boolean }>(
+              "/subscription/billing/activate",
               {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                   razorpayPaymentId: response.razorpay_payment_id,
@@ -87,10 +84,6 @@ export function useSubscriptionCheckout(
                 }),
               },
             );
-            const activateData = await activateRes.json();
-            if (!activateRes.ok) {
-              throw new Error(activateData.message || "Activation failed");
-            }
 
             setTier(tier);
             await invalidateSubscriptionQueries();

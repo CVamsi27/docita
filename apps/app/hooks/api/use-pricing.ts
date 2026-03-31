@@ -5,6 +5,7 @@ import type { CurrentUsage, PricingEstimateRequest } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { API_URL } from "@/lib/api-config";
 import { useAuth } from "@/lib/auth-context";
+import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 
 function getVersionedApiBaseUrl(baseUrl: string): string {
   const normalized = baseUrl.replace(/\/+$/, "");
@@ -213,13 +214,7 @@ export function useCurrentUsage() {
 
   const { data, isLoading, error, refetch } = useQuery<CurrentUsage>({
     queryKey: ["subscription-usage"],
-    queryFn: async () => {
-      const res = await fetch(`${PRICING_API_BASE_URL}/subscriptions/usage`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch usage");
-      return res.json();
-    },
+    queryFn: () => fetchJsonWithSession<CurrentUsage>("/subscriptions/usage"),
     enabled: !!token,
     staleTime: 60000,
     refetchOnWindowFocus: false,

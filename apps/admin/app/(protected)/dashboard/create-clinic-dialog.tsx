@@ -6,8 +6,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Eye, EyeOff, Plus, Shield, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { API_URL } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
 import {
   Select,
   SelectContent,
@@ -88,7 +87,6 @@ export function CreateClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { logout } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -156,55 +154,28 @@ export function CreateClinicDialog({
     setLoading(true);
     (async () => {
       try {
-        const token = localStorage.getItem("docita_admin_token");
-        const res = await fetch(`${API_URL}/super-admin/clinics`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
+        await client.post("/super-admin/clinics", formData);
+
+        setOpen(false);
+        onClinicCreated();
+        setFieldErrors({});
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          tier: "CAPTURE",
+          type: "GENERAL",
+          adminName: "",
+          adminEmail: "",
+          adminPassword: "",
+          adminType: "admin",
         });
-
-        if (res.status === 401) {
-          logout("Your session has expired. Please log in again.");
-          return;
-        }
-
-        if (res.status === 404) {
-          logout("Your account has been deleted. Please contact support.");
-          return;
-        }
-
-        if (res.status === 403) {
-          logout("You no longer have permission to create clinics.");
-          return;
-        }
-
-        if (res.ok) {
-          setOpen(false);
-          onClinicCreated();
-          setFieldErrors({});
-          setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            address: "",
-            tier: "CAPTURE",
-            type: "GENERAL",
-            adminName: "",
-            adminEmail: "",
-            adminPassword: "",
-            adminType: "admin",
-          });
-          toast.success("Clinic created successfully");
-        } else {
-          const error = await res.json();
-          toast.error(error.message || "Failed to create clinic");
-        }
-      } catch {
-
-        toast.error("Error creating clinic");
+        toast.success("Clinic created successfully");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to create clinic",
+        );
       } finally {
         setLoading(false);
       }

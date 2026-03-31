@@ -6,8 +6,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Pencil } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { API_URL } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
 import {
   Select,
   SelectContent,
@@ -136,7 +135,6 @@ export function EditClinicDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { logout } = useAuth();
   const [formData, setFormData] = useState(() => getInitialFormData(clinic));
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
@@ -183,42 +181,14 @@ export function EditClinicDialog({
     setLoading(true);
     (async () => {
       try {
-        const token = localStorage.getItem("docita_admin_token");
-        const res = await fetch(`${API_URL}/super-admin/clinics/${clinic.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(formData),
-        });
-
-        if (res.status === 401) {
-          logout("Your session has expired. Please log in again.");
-          return;
-        }
-
-        if (res.status === 404) {
-          logout("Your account has been deleted. Please contact support.");
-          return;
-        }
-
-        if (res.status === 403) {
-          logout("You no longer have permission to update clinics.");
-          return;
-        }
-
-        if (res.ok) {
-          setOpen(false);
-          onClinicUpdated();
-          toast.success("Clinic updated successfully");
-        } else {
-          const error = await res.json();
-          toast.error(error.message || "Failed to update clinic");
-        }
-      } catch {
-
-        toast.error("Error updating clinic");
+        await client.patch(`/super-admin/clinics/${clinic.id}`, formData);
+        setOpen(false);
+        onClinicUpdated();
+        toast.success("Clinic updated successfully");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to update clinic",
+        );
       } finally {
         setLoading(false);
       }

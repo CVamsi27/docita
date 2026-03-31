@@ -145,7 +145,7 @@ export default function PricingPage() {
 
     setIsLoadingClinics(true);
     try {
-      const data = await fetchClinics(token);
+      const data = await fetchClinics();
       setClinics(data);
     } catch {
       setClinics([]);

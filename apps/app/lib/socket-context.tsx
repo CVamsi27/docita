@@ -1,6 +1,14 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./auth-context";
+import { appSession } from "./session";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -20,19 +28,44 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const authRecoveryInFlightRef = useRef(false);
 
-  const reconnectSocket = (newToken: string) => {
+  const reconnectSocket = useCallback((newToken: string) => {
     if (socketRef.current) {
       socketRef.current.auth = { token: newToken };
       socketRef.current.connect();
     }
-  };
+  }, []);
 
-  const reconnect = () => {
+  const reconnect = useCallback(() => {
     if (token && socketRef.current) {
       reconnectSocket(token);
     }
-  };
+  }, [reconnectSocket, token]);
+
+  const recoverSocketAuth = useCallback(async () => {
+    if (authRecoveryInFlightRef.current) return false;
+    authRecoveryInFlightRef.current = true;
+
+    try {
+      const refreshed = await appSession.refreshAccessToken();
+      if (!refreshed) {
+        return false;
+      }
+
+      const refreshedToken = appSession.getToken();
+      if (!refreshedToken) {
+        return false;
+      }
+
+      reconnectSocket(refreshedToken);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      authRecoveryInFlightRef.current = false;
+    }
+  }, [reconnectSocket]);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
@@ -86,14 +119,24 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         err.message === "Unauthorized" ||
         errorPayload?.content?.message === "Unauthorized"
       ) {
-        logout();
-        socketInstance.disconnect();
+        void (async () => {
+          const recovered = await recoverSocketAuth();
+          if (!recovered) {
+            logout();
+            socketInstance.disconnect();
+          }
+        })();
       }
     });
 
     socketInstance.on("unauthorized", () => {
-      logout();
-      socketInstance.disconnect();
+      void (async () => {
+        const recovered = await recoverSocketAuth();
+        if (!recovered) {
+          logout();
+          socketInstance.disconnect();
+        }
+      })();
     });
 
     socketInstance.on("token_refresh", () => {
@@ -110,7 +153,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [token, isAuthenticated, logout]);
+  }, [token, isAuthenticated, logout, reconnectSocket, recoverSocketAuth]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, reconnect }}>

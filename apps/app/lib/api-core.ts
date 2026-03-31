@@ -5,7 +5,9 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
+import { APIRequestError } from "@workspace/data-access";
 import { API_URL } from "./api-config";
+import { apiFetch } from "./api-client";
 import { ApiError } from "./errors";
 
 export { API_URL };
@@ -111,23 +113,6 @@ export interface MedicalHistoryTimelineItem {
   yearMonth: string;
 }
 
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("docita_token");
-}
-
-export function handleAuthError() {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("docita_token");
-    localStorage.removeItem("docita_user");
-    const currentPath = window.location.pathname;
-    if (currentPath !== "/login") {
-      sessionStorage.setItem("redirectAfterLogin", currentPath);
-      window.location.href = "/login";
-    }
-  }
-}
-
 function toRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
@@ -140,83 +125,17 @@ export async function fetchAPI<T>(
   endpoint: string,
   options?: RequestInit,
 ): Promise<T> {
-  const token = getAuthToken();
-
-  const headers: HeadersInit = {
-    ...(!(options?.body instanceof FormData) && {
-      "Content-Type": "application/json",
-    }),
-    ...options?.headers,
-  };
-
-  if (token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-  }
-
-  // Add CSRF token from cookie for cookie-based CSRF protection
-  const csrfToken =
-    typeof document !== "undefined"
-      ? document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("XSRF-TOKEN="))
-          ?.split("=")[1]
-      : null;
-
-  if (csrfToken) {
-    (headers as Record<string, string>)["X-XSRF-TOKEN"] = decodeURIComponent(
-      csrfToken,
-    );
-  }
-
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers,
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        handleAuthError();
-        throw new ApiError(
-          "Session expired. Please log in again.",
-          401,
-          "UNAUTHORIZED",
-        );
-      }
-
-      let errorData: unknown;
-      try {
-        errorData = await response.json();
-      } catch {
-        errorData = { message: `HTTP error! status: ${response.status}` };
-      }
-
-      const errObj = toRecord(errorData) ?? {};
-      const message = typeof errObj.message === "string"
-        ? errObj.message
-        : `HTTP error! status: ${response.status}`;
-      const code = typeof errObj.code === "string" ? errObj.code : undefined;
-      const details = toRecord(errObj.details) ?? undefined;
-
-      if (response.status === 403 && typeof window !== "undefined") {
-        if (code === "SUBSCRIPTION_INACTIVE" || code === "INSUFFICIENT_TIER") {
-          window.location.href = "/settings/billing";
-        } else if (code === "NO_CLINIC") {
-          window.location.href = "/choose-path";
-        }
-      }
-
+    return await apiFetch<T>(endpoint, options);
+  } catch (error) {
+    if (error instanceof APIRequestError) {
       throw new ApiError(
-        message,
-        response.status,
-        code || "API_ERROR",
-        details,
+        error.message,
+        error.status ?? 500,
+        error.code ?? "API_ERROR",
+        toRecord(error.data ?? undefined) ?? undefined,
       );
     }
-
-    return response.json();
-  } catch (error) {
     if (error instanceof ApiError) {
       throw error;
     }

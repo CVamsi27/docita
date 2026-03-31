@@ -19,8 +19,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Download, FileText, Loader2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/lib/auth-context";
+import { useBillingHistory } from "@/hooks/api/use-billing-history";
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 
@@ -29,35 +28,11 @@ interface InvoiceHistoryDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface Invoice {
-  id: string;
-  amountCents: number;
-  currency: string;
-  status: string;
-  createdAt: string;
-  invoiceUrl?: string | null;
-  description?: string;
-}
-
 export function InvoiceHistoryDialog({
   open,
   onOpenChange,
 }: InvoiceHistoryDialogProps) {
-  const { token } = useAuth();
-
-  const { data: invoices, isLoading } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: async () => {
-      const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-      const res = await fetch(`${apiUrl}/subscription/billing/payments`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch invoices");
-      return res.json() as Promise<Invoice[]>;
-    },
-    enabled: open && !!token,
-  });
+  const { data: invoices, isLoading } = useBillingHistory(open);
 
   const handleDownload = (invoiceUrl: string) => {
     window.open(invoiceUrl, "_blank");

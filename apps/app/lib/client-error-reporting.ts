@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/api-config";
+import { appSession } from "@/lib/session";
 
 export interface ClientErrorPayload {
   type: string;
@@ -39,7 +40,7 @@ export const reportClientError = async (
     return;
   }
 
-  const token = localStorage.getItem("docita_token");
+  const token = appSession.getToken();
   if (!token) {
     return;
   }

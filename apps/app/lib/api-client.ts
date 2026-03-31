@@ -2,6 +2,7 @@ import { toast } from "sonner";
 import { API_URL } from "./api-config";
 import { getAPIClient } from "@workspace/data-access";
 import { API_ROUTES, AppErrorCode, ERROR_MESSAGES } from "@workspace/types";
+import { appSession } from "./session";
 
 function toRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object") {
@@ -18,12 +19,6 @@ function extractErrorCode(value: unknown): string | undefined {
   const nestedError = toRecord(data?.error);
   const code = nestedError?.code;
   return typeof code === "string" ? code : undefined;
-}
-
-function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
 }
 
 function shouldSuppressDevToast(message: string): boolean {
@@ -45,23 +40,33 @@ function shouldSuppressDevToast(message: string): boolean {
 
 const client = getAPIClient({
   baseURL: API_URL.endsWith("/") ? API_URL : `${API_URL}/`,
-  getToken: () => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("docita_token");
-  },
+  getToken: () => appSession.getToken(),
   timeout: 30000,
   retries: 3,
   onRequest: (config) => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
     if (mutating.includes((config.method ?? "GET").toUpperCase())) {
-      const csrfToken = getCsrfToken();
+      const csrfToken = appSession.getCsrfToken();
       if (csrfToken) {
         config.headers = { ...config.headers, "x-xsrf-token": csrfToken };
       }
     }
     return config;
   },
-  onError: (error) => {
+  onError: async (error) => {
+    if (error.status === 401) {
+      if (typeof window !== "undefined") {
+        const refreshed = await appSession.refreshAccessToken();
+        if (refreshed) {
+          return;
+        }
+
+        appSession.clearSession();
+        appSession.redirectToLogin();
+      }
+      return;
+    }
+
     const errorCode = extractErrorCode(error.data);
     const message =
       (errorCode && ERROR_MESSAGES[errorCode as AppErrorCode]) ||
@@ -70,19 +75,6 @@ const client = getAPIClient({
 
     if (!shouldSuppressDevToast(message)) {
       toast.error(message);
-    }
-
-    if (error.status === 401) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("docita_token");
-        localStorage.removeItem("docita_user");
-        const publicPaths = ["/login", "/register", "/forgot-password", "/reset-password"];
-        const isPublic = publicPaths.some((p) => window.location.pathname.startsWith(p));
-        if (!isPublic) {
-          sessionStorage.setItem("redirectAfterLogin", window.location.pathname);
-          window.location.href = "/login";
-        }
-      }
     }
 
     if (error.status === 403 && typeof window !== "undefined") {
