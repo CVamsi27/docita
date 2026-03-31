@@ -13,6 +13,17 @@ export interface SeedClinicUsersResult {
 export async function seedClinicUsers(
   prisma: PrismaClient,
 ): Promise<SeedClinicUsersResult> {
+  const seededSignatureUploadedAt = new Date('2026-01-01T00:00:00.000Z');
+  const seededSignatures = {
+    superAdmin:
+      'https://placehold.co/300x100/000000/FFFFFF?text=Super+Admin+Signature',
+    clinicAdmin:
+      'https://placehold.co/300x100/000000/FFFFFF?text=Clinic+Admin+Signature',
+    adminDoctor:
+      'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Admin+Doctor',
+    doctor: 'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Vamsi+Krishna',
+  } as const;
+
   const defaultClinic = await prisma.clinic.upsert({
     where: { id: 'default-clinic-id' },
     update: {},
@@ -31,31 +42,44 @@ export async function seedClinicUsers(
 
   await prisma.user.upsert({
     where: { email: 'admin@docita.work' },
-    update: {},
+    update: {
+      signatureUrl: seededSignatures.superAdmin,
+      signatureUploadedAt: seededSignatureUploadedAt,
+    },
     create: {
       email: 'admin@docita.work',
       password: hashedPassword,
       name: 'Super Admin',
       role: 'SUPER_ADMIN',
       clinicId: null,
+      signatureUrl: seededSignatures.superAdmin,
+      signatureUploadedAt: seededSignatureUploadedAt,
     },
   });
 
   await prisma.user.upsert({
     where: { email: 'clinic.admin@docita.work' },
-    update: {},
+    update: {
+      signatureUrl: seededSignatures.clinicAdmin,
+      signatureUploadedAt: seededSignatureUploadedAt,
+    },
     create: {
       email: 'clinic.admin@docita.work',
       password: hashedPassword,
       name: 'Clinic Administrator',
       role: 'ADMIN',
       clinicId: defaultClinic.id,
+      signatureUrl: seededSignatures.clinicAdmin,
+      signatureUploadedAt: seededSignatureUploadedAt,
     },
   });
 
   const adminDoctor = await prisma.user.upsert({
     where: { email: 'admin.doctor@docita.work' },
-    update: {},
+    update: {
+      signatureUrl: seededSignatures.adminDoctor,
+      signatureUploadedAt: seededSignatureUploadedAt,
+    },
     create: {
       email: 'admin.doctor@docita.work',
       password: hashedPassword,
@@ -71,14 +95,16 @@ export async function seedClinicUsers(
       bio: 'Medical Director with extensive experience in hospital administration and general practice.',
       yearsOfExperience: 15,
       consultationFee: 2000,
+      signatureUrl: seededSignatures.adminDoctor,
+      signatureUploadedAt: seededSignatureUploadedAt,
     },
   });
 
   const doctor1 = await prisma.user.upsert({
     where: { email: 'doctor@docita.work' },
     update: {
-      signatureUrl:
-        'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Vamsi+Krishna',
+      signatureUrl: seededSignatures.doctor,
+      signatureUploadedAt: seededSignatureUploadedAt,
     },
     create: {
       email: 'doctor@docita.work',
@@ -95,8 +121,8 @@ export async function seedClinicUsers(
       bio: 'Senior Cardiologist with over 10 years of experience in interventional cardiology. Specializes in complex cardiac procedures and heart failure management.',
       yearsOfExperience: 10,
       consultationFee: 1500,
-      signatureUrl:
-        'https://placehold.co/300x100/000000/FFFFFF?text=Dr+Vamsi+Krishna',
+      signatureUrl: seededSignatures.doctor,
+      signatureUploadedAt: seededSignatureUploadedAt,
     },
   });
 

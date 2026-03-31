@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import prisma from "./prisma-script-client";
 
 interface IntegrityCheck {
   name: string;
@@ -21,15 +22,17 @@ export async function runIntegrityChecks(
 ): Promise<IntegrityReport> {
   const checks: IntegrityCheck[] = [];
 
-  const orphanedAppointments = await prisma.appointment.count({
-    where: {
-      OR: [
-        { patientId: { not: undefined }, patient: { is: null } },
-        { doctorId: { not: undefined }, doctor: { is: null } },
-        { clinicId: { not: undefined }, clinic: { is: null } },
-      ],
-    },
-  });
+  const orphanedAppointmentRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Appointment" a
+    LEFT JOIN "Patient" p ON p.id = a."patientId"
+    LEFT JOIN "User" d ON d.id = a."doctorId"
+    LEFT JOIN "Clinic" c ON c.id = a."clinicId"
+    WHERE (a."patientId" IS NOT NULL AND p.id IS NULL)
+       OR (a."doctorId" IS NOT NULL AND d.id IS NULL)
+       OR (a."clinicId" IS NOT NULL AND c.id IS NULL)
+  `;
+  const orphanedAppointments = Number(orphanedAppointmentRows[0]?.count ?? 0n);
   checks.push({
     name: "No Orphaned Appointments",
     description:
@@ -42,14 +45,17 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  const orphanedPrescriptions = await prisma.prescription.count({
-    where: {
-      OR: [
-        { patientId: { not: undefined }, patient: { is: null } },
-        { doctorId: { not: undefined }, doctor: { is: null } },
-      ],
-    },
-  });
+  const orphanedPrescriptionRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Prescription" p
+    LEFT JOIN "Patient" pa ON pa.id = p."patientId"
+    LEFT JOIN "User" d ON d.id = p."doctorId"
+    WHERE (p."patientId" IS NOT NULL AND pa.id IS NULL)
+       OR (p."doctorId" IS NOT NULL AND d.id IS NULL)
+  `;
+  const orphanedPrescriptions = Number(
+    orphanedPrescriptionRows[0]?.count ?? 0n,
+  );
   checks.push({
     name: "No Orphaned Prescriptions",
     description: "All prescriptions have valid patient and doctor references",
@@ -61,12 +67,14 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  const orphanedInvoices = await prisma.invoice.count({
-    where: {
-      patientId: { not: undefined },
-      patient: { is: null },
-    },
-  });
+  const orphanedInvoiceRows = await prisma.$queryRaw<Array<{ count: bigint }>>`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Invoice" i
+    LEFT JOIN "Patient" p ON p.id = i."patientId"
+    WHERE i."patientId" IS NOT NULL
+      AND p.id IS NULL
+  `;
+  const orphanedInvoices = Number(orphanedInvoiceRows[0]?.count ?? 0n);
   checks.push({
     name: "No Orphaned Invoices",
     description: "All invoices have valid patient references",
@@ -78,12 +86,18 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  const patientsWithoutClinic = await prisma.patient.count({
-    where: {
-      clinicId: { not: undefined },
-      clinic: { is: null },
-    },
-  });
+  const patientsWithoutClinicRows = await prisma.$queryRaw<
+    Array<{ count: bigint }>
+  >`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Patient" p
+    LEFT JOIN "Clinic" c ON c.id = p."clinicId"
+    WHERE p."clinicId" IS NOT NULL
+      AND c.id IS NULL
+  `;
+  const patientsWithoutClinic = Number(
+    patientsWithoutClinicRows[0]?.count ?? 0n,
+  );
   checks.push({
     name: "All Patients Have Valid Clinic",
     description: "Every patient belongs to an existing clinic",
@@ -95,12 +109,18 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  const usersWithInvalidClinic = await prisma.user.count({
-    where: {
-      clinicId: { not: null },
-      clinic: { is: null },
-    },
-  });
+  const usersWithInvalidClinicRows = await prisma.$queryRaw<
+    Array<{ count: bigint }>
+  >`
+    SELECT COUNT(*)::bigint AS count
+    FROM "User" u
+    LEFT JOIN "Clinic" c ON c.id = u."clinicId"
+    WHERE u."clinicId" IS NOT NULL
+      AND c.id IS NULL
+  `;
+  const usersWithInvalidClinic = Number(
+    usersWithInvalidClinicRows[0]?.count ?? 0n,
+  );
   checks.push({
     name: "All Users Have Valid Clinic",
     description: "Every user with a clinic ID has a valid clinic reference",
@@ -146,11 +166,16 @@ export async function runIntegrityChecks(
         : undefined,
   });
 
-  const invalidAppointmentTimes = await prisma.appointment.count({
-    where: {
-      endTime: { lt: prisma.appointment.fields.startTime },
-    },
-  });
+  const invalidAppointmentTimeRows = await prisma.$queryRaw<
+    Array<{ count: bigint }>
+  >`
+    SELECT COUNT(*)::bigint AS count
+    FROM "Appointment"
+    WHERE "endTime" < "startTime"
+  `;
+  const invalidAppointmentTimes = Number(
+    invalidAppointmentTimeRows[0]?.count ?? 0n,
+  );
   checks.push({
     name: "Valid Appointment Times",
     description: "All appointments have end time after start time",
@@ -163,12 +188,18 @@ export async function runIntegrityChecks(
   });
 
   try {
-    const subscriptionsWithoutClinic = await prisma.subscription.count({
-      where: {
-        clinicId: { not: undefined },
-        clinic: { is: null },
-      },
-    });
+    const subscriptionsWithoutClinicRows = await prisma.$queryRaw<
+      Array<{ count: bigint }>
+    >`
+      SELECT COUNT(*)::bigint AS count
+      FROM "Subscription" s
+      LEFT JOIN "Clinic" c ON c.id = s."clinicId"
+      WHERE s."clinicId" IS NOT NULL
+        AND c.id IS NULL
+    `;
+    const subscriptionsWithoutClinic = Number(
+      subscriptionsWithoutClinicRows[0]?.count ?? 0n,
+    );
     checks.push({
       name: "All Subscriptions Have Valid Clinic",
       description: "Every subscription belongs to an existing clinic",
@@ -246,15 +277,15 @@ export function formatIntegrityReport(report: IntegrityReport): string {
 }
 
 if (require.main === module) {
-  const prisma = new PrismaClient();
-
   runIntegrityChecks(prisma)
     .then((report) => {
-
+      process.stdout.write(`${formatIntegrityReport(report)}\n`);
       process.exit(report.status === "FAILED" ? 1 : 0);
     })
     .catch((error) => {
-
+      const message =
+        error instanceof Error ? error.message : "Unknown integrity check error";
+      process.stderr.write(`${message}\n`);
       process.exit(1);
     })
     .finally(() => {

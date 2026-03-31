@@ -975,6 +975,7 @@ model Clinic {
   doctorSchedules       DoctorSchedule[]
   doctorTimeOffs        DoctorTimeOff[]
   feedbacks             Feedback[]
+  feedbackFeatures      FeedbackFeature[]
   featureFlags          FeatureFlag[]
   importJobs            ImportJob[]
   patients              Patient[]
@@ -2275,14 +2276,38 @@ model Feedback {
   updatedAt DateTime @updatedAt
 
   // Relations
-  clinic Clinic @relation(fields: [clinicId], references: [id])
-  user   User   @relation(fields: [userId], references: [id])
+  clinic            Clinic             @relation(fields: [clinicId], references: [id])
+  user              User               @relation(fields: [userId], references: [id])
+  feedbackFeatures  FeedbackFeature[]
 
   @@index([clinicId])
   @@index([userId])
   @@index([status])
   @@index([category])
   @@index([createdAt])
+}
+
+model FeedbackFeature {
+  id          String              @id @default(cuid())
+  feedbackId  String
+  clinicId    String
+  featureType FeedbackFeatureType
+  feature     String
+  createdAt   DateTime            @default(now())
+
+  feedback Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  clinic   Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([feedbackId, featureType, feature])
+  @@index([clinicId, featureType])
+  @@index([featureType, feature])
+  @@index([feedbackId])
+}
+
+enum FeedbackFeatureType {
+  GOOD
+  BAD
+  IMPROVEMENT
 }
 
 enum FeedbackCategory {

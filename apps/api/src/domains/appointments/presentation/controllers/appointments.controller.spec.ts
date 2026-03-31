@@ -103,6 +103,67 @@ describe('AppointmentsController', () => {
         ),
       ).rejects.toBeInstanceOf(ForbiddenException);
     });
+
+    it('should scope doctor access to their own appointments when doctorId is not provided', async () => {
+      mockAppointmentsService.listAppointments.mockResolvedValue([
+        mockAppointment,
+      ]);
+
+      await controller.findAll(mockAuthRequest as never, {} as never);
+
+      expect(mockAppointmentsService.listAppointments).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clinicId: mockAuthRequest.user.clinicId,
+          doctorId: mockAuthRequest.user.id,
+        }),
+      );
+    });
+
+    it('should allow admin-doctor to request appointments for any doctor', async () => {
+      mockAppointmentsService.listAppointments.mockResolvedValue([
+        mockAppointment,
+      ]);
+
+      await controller.findAll(
+        {
+          user: {
+            id: 'admin-doctor-123',
+            clinicId: 'clinic-123',
+            role: 'ADMIN_DOCTOR',
+          },
+        } as never,
+        { doctorId: 'doctor-999' } as never,
+      );
+
+      expect(mockAppointmentsService.listAppointments).toHaveBeenCalledWith(
+        expect.objectContaining({
+          doctorId: 'doctor-999',
+        }),
+      );
+    });
+
+    it('should allow receptionist to request appointments for any doctor', async () => {
+      mockAppointmentsService.listAppointments.mockResolvedValue([
+        mockAppointment,
+      ]);
+
+      await controller.findAll(
+        {
+          user: {
+            id: 'receptionist-123',
+            clinicId: 'clinic-123',
+            role: 'RECEPTIONIST',
+          },
+        } as never,
+        { doctorId: 'doctor-999' } as never,
+      );
+
+      expect(mockAppointmentsService.listAppointments).toHaveBeenCalledWith(
+        expect.objectContaining({
+          doctorId: 'doctor-999',
+        }),
+      );
+    });
   });
 
   describe('findOne', () => {
