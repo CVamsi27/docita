@@ -13,6 +13,8 @@ export default function AppleIcon() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        color: "white",
+        background: "#0f172a",
       }}
     >
       <DocitaBrandMark width="180" height="180" />
