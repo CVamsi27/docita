@@ -1,9 +1,11 @@
 import {
   Injectable,
   Inject,
+  BadRequestException,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   IAppointmentRepository,
   AppointmentSearchParams,
@@ -13,6 +15,7 @@ import {
   CreateAppointmentUseCase,
   CreateAppointmentCommand,
 } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
+import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -21,6 +24,12 @@ type AppointmentAccessContext = {
   userId?: string;
 };
 
+const CONSULTATION_START_ALLOWED_STATUSES = new Set([
+  'SCHEDULED',
+  'CONFIRMED',
+  'IN_PROGRESS',
+]);
+
 @Injectable()
 export class AppointmentService {
   constructor(
@@ -28,12 +37,25 @@ export class AppointmentService {
     private readonly appointmentRepository: IAppointmentRepository,
     private readonly createAppointmentUseCase: CreateAppointmentUseCase,
     private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async createAppointment(
     command: CreateAppointmentCommand,
   ): Promise<Appointment> {
-    return this.createAppointmentUseCase.execute(command);
+    const appointment = await this.createAppointmentUseCase.execute(command);
+
+    this.eventEmitter.emit(
+      'appointment.created',
+      new AppointmentCreatedEvent(
+        appointment.id,
+        appointment.clinicId,
+        appointment.patientId,
+        appointment,
+      ),
+    );
+
+    return appointment;
   }
 
   async getAppointment(
@@ -65,6 +87,89 @@ export class AppointmentService {
 
   async listAppointments(params: AppointmentSearchParams) {
     return this.appointmentRepository.findAll(params);
+  }
+
+  async startConsultation(
+    id: string,
+    clinicId: string,
+    accessContext?: AppointmentAccessContext,
+  ): Promise<{ appointmentId: string; status: string }> {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        clinicId: true,
+        doctorId: true,
+        status: true,
+        queueToken: {
+          select: {
+            id: true,
+            status: true,
+            calledAt: true,
+            consultationStart: true,
+          },
+        },
+      },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+
+    if (appointment.clinicId !== clinicId) {
+      throw new ForbiddenException('Access denied for this appointment');
+    }
+
+    if (
+      !accessContext?.userId ||
+      (accessContext.role !== Role.DOCTOR &&
+        accessContext.role !== Role.ADMIN_DOCTOR)
+    ) {
+      throw new ForbiddenException(
+        'Only the assigned doctor can start this consultation',
+      );
+    }
+
+    if (appointment.doctorId !== accessContext.userId) {
+      throw new ForbiddenException(
+        'Only the assigned doctor can start this consultation',
+      );
+    }
+
+    if (!CONSULTATION_START_ALLOWED_STATUSES.has(appointment.status)) {
+      throw new BadRequestException(
+        'This consultation cannot be started from its current appointment status',
+      );
+    }
+
+    if (appointment.status !== 'IN_PROGRESS') {
+      await this.prisma.appointment.update({
+        where: { id },
+        data: {
+          status: 'IN_PROGRESS',
+          version: { increment: 1 },
+        },
+      });
+    }
+
+    if (appointment.queueToken) {
+      const startTime = appointment.queueToken.consultationStart ?? new Date();
+      const calledAt = appointment.queueToken.calledAt ?? new Date();
+
+      await this.prisma.queueToken.update({
+        where: { id: appointment.queueToken.id },
+        data: {
+          status: 'IN_PROGRESS',
+          calledAt,
+          consultationStart: startTime,
+        },
+      });
+    }
+
+    return {
+      appointmentId: appointment.id,
+      status: 'in-progress',
+    };
   }
 
   async cancelAppointment(

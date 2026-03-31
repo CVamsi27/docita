@@ -115,17 +115,18 @@ export class DefaultTemplatesService {
     appointment_reminder_30min: {
       name: 'appointment_reminder_30min',
       category: 'APPOINTMENT',
-      content: `*Reminder* - {{clinicName}}\n\nHi {{patientName}}, your appointment is in 30 minutes!`,
+      content: `*Reminder* - {{clinicName}}\n\nHi {{patientName}}, your appointment is in 30 minutes.\n\nPlease tell us your status:`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
       ],
       buttonType: 'QUICK_REPLY',
       buttons: [
-        { id: 'confirm', text: 'I am on my way' },
-        { id: 'cancel', text: 'Cancel' },
+        { id: 'on_time', text: 'On time' },
+        { id: 'delayed', text: 'Delayed' },
+        { id: 'cancelled', text: 'Cancelled' },
       ],
-      textFallback: `*Reminder* - {{clinicName}}\n\nHi {{patientName}}, your appointment is in 30 minutes!\n\nReply:\n1. I am on my way\n2. Cancel`,
+      textFallback: `*Reminder* - {{clinicName}}\n\nHi {{patientName}}, your appointment is in 30 minutes.\n\nReply with one word:\nOn time / Delayed / Cancelled`,
     },
 
     prescription_shared: {

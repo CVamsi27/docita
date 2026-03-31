@@ -6,7 +6,6 @@ import { DocumentsModule } from '@/domains/documents/documents.module';
 import { PrescriptionsController } from './presentation/controllers/prescription.controller';
 import { PrescriptionsService } from './application/services/prescription.service';
 import { PrescriptionPdfService } from './application/services/prescription-pdf.service';
-import { PrescriptionEventsListener } from './infrastructure/listeners/prescription-events.listener';
 import { PrescriptionValidationRulesService } from './core/services/prescription-validation-rules.service';
 import { PrismaPrescriptionRepository } from './infrastructure/repositories/prescription.repository';
 
@@ -21,7 +20,6 @@ import { PrismaPrescriptionRepository } from './infrastructure/repositories/pres
   providers: [
     PrescriptionsService,
     PrescriptionPdfService,
-    PrescriptionEventsListener,
     PrescriptionValidationRulesService,
     {
       provide: 'IPrescriptionRepository',

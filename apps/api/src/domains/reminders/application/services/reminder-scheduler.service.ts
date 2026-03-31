@@ -5,7 +5,6 @@ import {
   AppointmentStatus,
   ReminderSettings as _ReminderSettings,
 } from '@workspace/db';
-import { ReminderSettingsService } from './reminder-settings.service';
 import { ReminderNotificationService } from './reminder-notification.service';
 
 interface AppointmentForReminder {
@@ -36,7 +35,6 @@ export class ReminderSchedulerService {
 
   constructor(
     private prisma: PrismaService,
-    private settingsService: ReminderSettingsService,
     @Inject(forwardRef(() => ReminderNotificationService))
     private notificationService: ReminderNotificationService,
   ) {}
@@ -197,13 +195,19 @@ export class ReminderSchedulerService {
 
     try {
       return await this.prisma.runUnrestricted(async () => {
-        const settings = await this.settingsService.getSettings();
+        const allSettings = await this.prisma.reminderSettings.findMany({
+          where: {
+            enabled: true,
+            minutesBefore30: true,
+            whatsappEnabled: true,
+            clinicId: { not: null },
+          },
+        });
 
-        if (
-          !settings?.enabled ||
-          !settings?.minutesBefore30 ||
-          !settings?.whatsappEnabled
-        ) {
+        if (allSettings.length === 0) {
+          this.logger.debug(
+            'No clinic settings found for 30-min WhatsApp reminders',
+          );
           return;
         }
 
@@ -211,68 +215,75 @@ export class ReminderSchedulerService {
         const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
         const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
 
-        const appointments = await this.prisma.appointment.findMany({
-          where: {
-            startTime: {
-              gte: thirtyMinFromNow,
-              lt: thirtyFiveMinFromNow,
-            },
-            status: {
-              in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
-            },
-          },
-          include: {
-            patient: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,
-                email: true,
-              },
-            },
-            doctor: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            clinic: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        });
-
-        if (appointments.length > 0) {
-          this.logger.log(
-            `Found ${appointments.length} appointments needing 30-min reminders`,
-          );
-        }
-
-        for (const appointment of appointments) {
-          const existingReminder =
-            await this.prisma.appointmentReminder.findFirst({
-              where: {
-                appointmentId: appointment.id,
-                type: 'whatsapp_30min',
-                status: 'sent',
-              },
-            });
-
-          if (existingReminder) {
+        for (const settings of allSettings) {
+          if (!settings.clinicId) {
             continue;
           }
 
-          if (appointment.patient.phoneNumber) {
-            await this.notificationService.sendWhatsappReminder(
-              appointment as AppointmentForReminder,
-              settings,
-              'appointment_reminder_30min',
-              'whatsapp_30min',
+          const appointments = await this.prisma.appointment.findMany({
+            where: {
+              clinicId: settings.clinicId,
+              startTime: {
+                gte: thirtyMinFromNow,
+                lt: thirtyFiveMinFromNow,
+              },
+              status: {
+                in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+              },
+            },
+            include: {
+              patient: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  phoneNumber: true,
+                  email: true,
+                },
+              },
+              doctor: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              clinic: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          });
+
+          if (appointments.length > 0) {
+            this.logger.log(
+              `Found ${appointments.length} appointments needing 30-min reminders for clinic ${settings.clinicId}`,
             );
+          }
+
+          for (const appointment of appointments) {
+            const existingReminder =
+              await this.prisma.appointmentReminder.findFirst({
+                where: {
+                  appointmentId: appointment.id,
+                  type: 'whatsapp_30min',
+                  status: 'sent',
+                },
+              });
+
+            if (existingReminder) {
+              continue;
+            }
+
+            if (appointment.patient.phoneNumber) {
+              await this.notificationService.sendWhatsappReminder(
+                appointment as AppointmentForReminder,
+                settings,
+                'appointment_reminder_30min',
+                'whatsapp_30min',
+              );
+            }
           }
         }
       });

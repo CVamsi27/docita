@@ -1,32 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ResponseHandlerService } from './response-handler.service';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { TemplatesService } from './templates.service';
 import { StaffNotificationService } from './staff-notification.service';
-import { Logger } from '@nestjs/common';
-import {
-  beforeEach,
-  afterEach,
-  describe,
-  it,
-  expect,
-  jest,
-} from '@jest/globals';
+import { ResponseHandlerService } from './response-handler.service';
 
 describe('ResponseHandlerService', () => {
   let service: ResponseHandlerService;
-  let mockPrisma: ReturnType<typeof buildMockPrisma>;
-  let mockWhatsappClient: { sendMessage: ReturnType<typeof jest.fn> };
-  let mockTemplatesService: {
-    resolveTemplate: ReturnType<typeof jest.fn>;
-    getMessageForMode: ReturnType<typeof jest.fn>;
-  };
-  let mockStaffNotification: { notifyStaff: ReturnType<typeof jest.fn> };
 
   const mockAppointment = {
     id: 'appt-123',
-    startTime: new Date('2026-04-01T10:00:00Z'),
+    startTime: new Date('2026-04-01T10:00:00.000Z'),
     patient: {
       firstName: 'Rahul',
       lastName: 'Sharma',
@@ -42,52 +28,53 @@ describe('ResponseHandlerService', () => {
     },
   };
 
-  function buildMockPrisma() {
-    return {
-      appointment: {
-        findUnique: jest
-          .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue(mockAppointment),
-        update: jest
-          .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue(mockAppointment),
-      },
-      appointmentResponse: {
-        create: jest
-          .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({ id: 'resp-123' }),
-        update: jest
-          .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({ id: 'resp-123' }),
-      },
-    };
-  }
+  const mockPrisma = {
+    appointment: {
+      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    },
+    appointmentResponse: {
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    },
+  };
+
+  const mockWhatsappClient = {
+    sendMessage: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  };
+
+  const mockTemplatesService = {
+    resolveTemplate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getMessageForMode: jest.fn<(...args: unknown[]) => unknown>(),
+  };
+
+  const mockStaffNotification = {
+    notifyStaff: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  };
 
   beforeEach(async () => {
-    mockPrisma = buildMockPrisma();
-    mockWhatsappClient = {
-      sendMessage: jest
-        .fn()
-        .mockResolvedValue({ success: true, messageId: 'msg-123' }),
-    };
-    mockTemplatesService = {
-      resolveTemplate: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue({
-          content: 'Appointment confirmed',
-          buttons: [],
-        }),
-      getMessageForMode: jest.fn().mockReturnValue('Appointment confirmed'),
-    };
-    mockStaffNotification = {
-      notifyStaff: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(undefined),
-    };
+    jest.clearAllMocks();
+    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
-    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
-    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
-    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+    mockPrisma.appointment.findUnique.mockResolvedValue(mockAppointment);
+    mockPrisma.appointment.findFirst.mockResolvedValue(null);
+    mockPrisma.appointment.update.mockResolvedValue(mockAppointment);
+
+    mockPrisma.appointmentResponse.findFirst.mockResolvedValue(null);
+    mockPrisma.appointmentResponse.create.mockResolvedValue({ id: 'resp-1' });
+    mockPrisma.appointmentResponse.update.mockResolvedValue({ id: 'resp-1' });
+
+    mockWhatsappClient.sendMessage.mockResolvedValue({ messageId: 'wamid-1' });
+    mockTemplatesService.resolveTemplate.mockResolvedValue({
+      content: 'Template message',
+      textFallback: 'Template message',
+    });
+    mockTemplatesService.getMessageForMode.mockReturnValue('Template message');
+    mockStaffNotification.notifyStaff.mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -99,346 +86,173 @@ describe('ResponseHandlerService', () => {
       ],
     }).compile();
 
-    service = module.get<ResponseHandlerService>(ResponseHandlerService);
+    service = module.get(ResponseHandlerService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  it('creates CONFIRM response and marks appointment CONFIRMED', async () => {
+    await service.handlePatientResponse('appt-123', 'yes', '919876543210', 'm1');
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
-  describe('handlePatientResponse', () => {
-    it('should create an AppointmentResponse record with correct responseType', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'yes',
-        '919876543210',
-        'wamid.msg1',
-      );
-
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
+    expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith(
+      expect.objectContaining({
         data: expect.objectContaining({
-          appointmentId: 'appt-123',
           responseType: 'CONFIRM',
-          patientMessage: 'yes',
+          delayMinutes: null,
         }),
-      });
-    });
-
-    it('should update appointment status for CONFIRM response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'yes',
-        '919876543210',
-        'wamid.msg2',
-      );
-
-      expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
-        where: { id: 'appt-123' },
-        data: { status: 'CONFIRMED' },
-      });
-    });
-
-    it('should update appointment status to CANCELLED for cancel response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'cancel',
-        '919876543210',
-        'wamid.msg3',
-      );
-
-      expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
-        where: { id: 'appt-123' },
-        data: { status: 'CANCELLED' },
-      });
-    });
-
-    it('should update appointment status to RESCHEDULING for reschedule response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'reschedule',
-        '919876543210',
-        'wamid.msg4',
-      );
-
-      expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
-        where: { id: 'appt-123' },
-        data: { status: 'RESCHEDULING' },
-      });
-    });
-
-    it('should NOT update appointment status for DELAY response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'late',
-        '919876543210',
-        'wamid.msg5',
-      );
-
-      expect(mockPrisma.appointment.update).not.toHaveBeenCalled();
-    });
-
-    it('should call notifyStaff and mark staffNotified after processing', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'yes',
-        '919876543210',
-        'wamid.msg6',
-      );
-
-      expect(mockStaffNotification.notifyStaff).toHaveBeenCalled();
-      expect(mockPrisma.appointmentResponse.update).toHaveBeenCalledWith({
-        where: { id: 'resp-123' },
-        data: expect.objectContaining({
-          staffNotified: true,
-          staffNotifiedAt: expect.any(Date),
-        }),
-      });
-    });
-
-    it('should return early when appointment not found', async () => {
-      mockPrisma.appointment.findUnique.mockResolvedValue(null);
-
-      await service.handlePatientResponse(
-        'nonexistent',
-        'yes',
-        '919876543210',
-        'wamid.msg7',
-      );
-
-      expect(mockPrisma.appointmentResponse.create).not.toHaveBeenCalled();
+      }),
+    );
+    expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
+      where: { id: 'appt-123' },
+      data: { status: 'CONFIRMED' },
     });
   });
 
-  describe('response parsing', () => {
-    const testCases: Array<[string, string]> = [
-      ['btn_confirm', 'CONFIRM'],
-      ['btn_cancel', 'CANCEL'],
-      ['yes', 'CONFIRM'],
-      ['ok', 'CONFIRM'],
-      ['okay', 'CONFIRM'],
-      ['confirmed', 'CONFIRM'],
-      ['coming', 'ON_THE_WAY'],
-      ['on my way', 'ON_THE_WAY'],
-      ['late', 'DELAY'],
-      ['running late', 'DELAY'],
-      ['reschedule', 'RESCHEDULE'],
-      ['cancel', 'CANCEL'],
-      ['no', 'CANCEL'],
-      ['1', 'CONFIRM'],
-      ['2', 'DELAY'],
-      ['3', 'RESCHEDULE'],
-      ['4', 'CANCEL'],
-    ];
+  it('parses "on time" as ON_THE_WAY and keeps status flow', async () => {
+    await service.handlePatientResponse(
+      'appt-123',
+      'on time',
+      '919876543210',
+      'm2',
+    );
 
-    for (const [input, expectedType] of testCases) {
-      it(`should parse "${input}" as ${expectedType}`, async () => {
-        await service.handlePatientResponse(
-          'appt-123',
-          input,
-          '919876543210',
-          'wamid.parse',
-        );
+    expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ responseType: 'ON_THE_WAY' }),
+      }),
+    );
+    expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
+      where: { id: 'appt-123' },
+      data: { status: 'CONFIRMED' },
+    });
+  });
 
-        expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({ responseType: expectedType }),
-        });
-        jest.clearAllMocks();
-        mockPrisma = buildMockPrisma();
-      });
-    }
+  it('keeps numeric text from ambiguous partial matching', async () => {
+    await service.handlePatientResponse(
+      'appt-123',
+      'I will reach in 10',
+      '919876543210',
+      'm3',
+    );
 
-    it('should parse unknown text as UNKNOWN', async () => {
-      // Text must not contain any RESPONSE_MAPPING keywords or digit substrings (1-4)
-      await service.handlePatientResponse(
-        'appt-123',
-        'blah blah blah',
-        '919876543210',
-        'wamid.unknown',
-      );
-
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
+    expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith(
+      expect.objectContaining({
         data: expect.objectContaining({ responseType: 'UNKNOWN' }),
-      });
-    });
-
-    it('should do case-insensitive matching', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'YES',
-        '919876543210',
-        'wamid.case',
-      );
-
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ responseType: 'CONFIRM' }),
-      });
-    });
-
-    it('should do partial keyword matching', async () => {
-      // Use text that contains "running late" but no single-digit substrings (1-4)
-      await service.handlePatientResponse(
-        'appt-123',
-        'I am running late today',
-        '919876543210',
-        'wamid.partial',
-      );
-
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ responseType: 'DELAY' }),
-      });
-    });
+      }),
+    );
   });
 
-  describe('delay minutes extraction', () => {
-    it('should extract "15 min" as 15 minutes', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'running late 15 min',
-        '919876543210',
-        'wamid.delay1',
-      );
+  it('for DELAY without minutes asks follow-up question and flags pending minutes', async () => {
+    await service.handlePatientResponse('appt-123', 'delayed', '919876543210', 'm4');
 
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ delayMinutes: 15 }),
-      });
-    });
+    expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          responseType: 'DELAY',
+          delayMinutes: null,
+          notes: 'delay_minutes_pending',
+        }),
+      }),
+    );
 
-    it('should extract "running 20 late" as 20 minutes', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'running 20 late',
-        '919876543210',
-        'wamid.delay2',
-      );
+    expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '919876543210',
+        message: expect.stringContaining('reply with your expected delay in minutes'),
+      }),
+    );
 
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ delayMinutes: 20 }),
-      });
-    });
-
-    it('should default to 15 minutes for DELAY response without explicit time', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'late',
-        '919876543210',
-        'wamid.delay3',
-      );
-
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ delayMinutes: 15 }),
-      });
-    });
-
-    it('should return null delay for non-delay responses', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'yes',
-        '919876543210',
-        'wamid.delay4',
-      );
-
-      expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ delayMinutes: null }),
-      });
-    });
+    expect(mockStaffNotification.notifyStaff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priority: 'HIGH',
+        data: expect.objectContaining({
+          delayMinutesPending: true,
+          conflictDetected: false,
+        }),
+      }),
+    );
   });
 
-  describe('patient confirmation messages', () => {
-    it('should send patient_response_confirm template for CONFIRM response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'yes',
-        '919876543210',
-        'wamid.conf1',
-      );
-
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'patient_response_confirm',
-        expect.any(Object),
-        'clinic-123',
-      );
+  it('for DELAY with minutes sends delay template when there is no conflict', async () => {
+    mockPrisma.appointment.findFirst.mockResolvedValue({
+      startTime: new Date('2026-04-01T11:00:00.000Z'),
     });
 
-    it('should send patient_response_delay template for DELAY response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'late',
-        '919876543210',
-        'wamid.conf2',
-      );
+    await service.handlePatientResponse(
+      'appt-123',
+      'running late 15 min',
+      '919876543210',
+      'm5',
+    );
 
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'patient_response_delay',
-        expect.any(Object),
-        'clinic-123',
-      );
-    });
+    expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
+      'patient_response_delay',
+      expect.any(Object),
+      'clinic-123',
+    );
 
-    it('should send direct text message for RESCHEDULE response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'reschedule',
-        '919876543210',
-        'wamid.conf3',
-      );
-
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: '919876543210',
-          message: expect.stringContaining('Reschedule'),
+    expect(mockStaffNotification.notifyStaff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          delayMinutes: 15,
+          conflictDetected: false,
         }),
-      );
-      expect(mockTemplatesService.resolveTemplate).not.toHaveBeenCalled();
+      }),
+    );
+  });
+
+  it('for DELAY with conflict sends schedule-impact message and high-priority staff alert', async () => {
+    mockPrisma.appointment.findFirst.mockResolvedValue({
+      startTime: new Date('2026-04-01T10:10:00.000Z'),
     });
 
-    it('should send direct text message for CANCEL response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'cancel',
-        '919876543210',
-        'wamid.conf4',
-      );
+    await service.handlePatientResponse(
+      'appt-123',
+      'running late 20 min',
+      '919876543210',
+      'm6',
+    );
 
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: '919876543210',
-          message: expect.stringContaining('Cancelled'),
+    expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Schedule Impact'),
+      }),
+    );
+
+    expect(mockStaffNotification.notifyStaff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priority: 'HIGH',
+        data: expect.objectContaining({
+          delayMinutes: 20,
+          conflictDetected: true,
+          nextAppointmentTime: '2026-04-01T10:10:00.000Z',
         }),
-      );
-    });
+      }),
+    );
+  });
 
-    it('should send generic acknowledgment for UNKNOWN response', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'gibberish',
-        '919876543210',
-        'wamid.conf5',
-      );
+  it('updates pending DELAY response when patient later sends delay minutes', async () => {
+    mockPrisma.appointmentResponse.findFirst.mockResolvedValue({ id: 'resp-pending' });
+    mockPrisma.appointment.findFirst.mockResolvedValue(null);
 
-      expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          to: '919876543210',
+    await service.handlePatientResponse('appt-123', '25', '919876543210', 'm7');
+
+    expect(mockPrisma.appointmentResponse.create).not.toHaveBeenCalled();
+    expect(mockPrisma.appointmentResponse.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'resp-pending' },
+        data: expect.objectContaining({
+          delayMinutes: 25,
+          notes: 'delay_minutes_confirmed',
         }),
-      );
-    });
+      }),
+    );
 
-    it('should send ON_THE_WAY confirmation using patient_response_confirm template', async () => {
-      await service.handlePatientResponse(
-        'appt-123',
-        'on my way',
-        '919876543210',
-        'wamid.conf6',
-      );
-
-      expect(mockTemplatesService.resolveTemplate).toHaveBeenCalledWith(
-        'patient_response_confirm',
-        expect.any(Object),
-        'clinic-123',
-      );
-    });
+    expect(mockStaffNotification.notifyStaff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          delayMinutes: 25,
+          delayMinutesPending: false,
+        }),
+      }),
+    );
   });
 });

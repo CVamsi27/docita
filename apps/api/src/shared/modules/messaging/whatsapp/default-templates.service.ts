@@ -178,23 +178,25 @@ Doctor: Dr. {{doctorName}}`,
       category: 'APPOINTMENT',
       content: `*Reminder* - {{clinicName}}
 
-Hi {{patientName}}, your appointment is in 30 minutes!`,
+Hi {{patientName}}, your appointment is in 30 minutes.
+
+Please tell us your status:`,
       variables: [
         { name: 'patientName', required: true },
         { name: 'clinicName', required: true },
       ],
       buttonType: 'QUICK_REPLY',
       buttons: [
-        { id: 'confirm', text: 'I am on my way' },
-        { id: 'cancel', text: 'Cancel' },
+        { id: 'on_time', text: 'On time' },
+        { id: 'delayed', text: 'Delayed' },
+        { id: 'cancelled', text: 'Cancelled' },
       ],
       textFallback: `*Reminder* - {{clinicName}}
 
-Hi {{patientName}}, your appointment is in 30 minutes!
+Hi {{patientName}}, your appointment is in 30 minutes.
 
-Reply:
-1. I am on my way
-2. Cancel`,
+Reply with one word:
+On time / Delayed / Cancelled`,
     },
 
     prescription_shared: {
