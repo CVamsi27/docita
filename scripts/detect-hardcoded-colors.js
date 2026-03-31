@@ -45,6 +45,11 @@ const filesToScan = getAllFiles(process.cwd());
 const violations = [];
 
 filesToScan.forEach(file => {
+  const relativeFile = path.relative(process.cwd(), file);
+  if (relativeFile === 'scripts/detect-hardcoded-colors.js') {
+    return;
+  }
+
   const content = fs.readFileSync(file, 'utf-8');
   const lines = content.split('\n');
 
@@ -53,7 +58,7 @@ filesToScan.forEach(file => {
       const matches = line.match(pattern);
       if (matches) {
         violations.push({
-          file: path.relative(process.cwd(), file),
+          file: relativeFile,
           line: index + 1,
           content: line.trim(),
           matches: [...new Set(matches)],

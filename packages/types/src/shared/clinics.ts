@@ -48,6 +48,8 @@ export const clinicSchema = z.object({
   referralCode: z.string().nullable().optional(),
   domain: z.string().nullable().optional(),
   referralCreditsMonths: z.number(),
+  slaSignatureUrl: z.string().nullable().optional(),
+  slaSignatureAcceptedAt: z.date().or(z.string()).nullable().optional(),
 });
 
 export type Clinic = z.infer<typeof clinicSchema>;

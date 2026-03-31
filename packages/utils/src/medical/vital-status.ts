@@ -5,10 +5,10 @@ export type VitalStatusType = "normal" | "elevated" | "low" | "critical";
 export type VitalType = "bp" | "pulse" | "temp" | "spo2" | "weight" | "height";
 
 export const VITAL_STATUS_COLORS: Record<VitalStatusType, string> = {
-  normal: "text-green-600",
-  elevated: "text-orange-500",
-  low: "text-blue-500",
-  critical: "text-red-600 font-bold animate-pulse",
+  normal: "text-success",
+  elevated: "text-warning",
+  low: "text-info",
+  critical: "text-destructive font-bold animate-pulse",
 };
 
 export const VITAL_RANGES = {

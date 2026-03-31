@@ -101,7 +101,6 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.LEAVE_MANAGEMENT]: Tier.ESSENTIAL,
   [Feature.WHATSAPP_MESSAGING]: Tier.ESSENTIAL,
 
-  // Clinical operations — all in Pro (ESSENTIAL)
   [Feature.MULTI_DOCTOR]: Tier.ESSENTIAL,
   [Feature.MULTI_CLINIC]: Tier.ESSENTIAL,
   [Feature.LAB_TESTS]: Tier.ESSENTIAL,
@@ -112,14 +111,12 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.DIGITAL_INTAKE_FORMS]: Tier.ESSENTIAL,
   [Feature.OCR_ADVANCED]: Tier.ESSENTIAL,
   [Feature.ADVANCED_ANALYTICS]: Tier.ESSENTIAL,
-  // AI features bundled in Pro (Coming Soon in UI)
   [Feature.AI_PRESCRIPTION_ASSISTANT]: Tier.ESSENTIAL,
   [Feature.AI_DIAGNOSIS_HINTS]: Tier.ESSENTIAL,
   [Feature.SMART_TASK_ENGINE]: Tier.ESSENTIAL,
   [Feature.PREDICTIVE_NO_SHOW]: Tier.ESSENTIAL,
   [Feature.ANOMALY_DETECTION]: Tier.ESSENTIAL,
 
-  // Clinic tier (PROFESSIONAL) — advanced scale & integrations
   [Feature.BROADCAST_CAMPAIGNS]: Tier.PROFESSIONAL,
   [Feature.PATIENT_SEGMENTATION]: Tier.PROFESSIONAL,
   [Feature.FULL_EHR]: Tier.PROFESSIONAL,
@@ -129,7 +126,6 @@ export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   [Feature.SSO]: Tier.PROFESSIONAL,
   [Feature.BULK_IMPORT_SUITE]: Tier.PROFESSIONAL,
 
-  // Enterprise only
   [Feature.DATA_WAREHOUSE_EXPORT]: Tier.ENTERPRISE,
 };
 
@@ -385,7 +381,6 @@ export const TIER_LIMITS: Record<TierName, TierLimits> = {
     ocrPages: 10000,
     apiCallsPerDay: 10000,
   },
-  // INTELLIGENCE is an add-on, not a standalone tier — these limits are placeholder values and are not applied
   INTELLIGENCE: {
     patients: 999999,
     doctors: 999,
@@ -722,7 +717,6 @@ export interface AddOnPricing {
   overageRate: number;
 }
 
-// WhatsApp is now bundled in each tier — these quotas reflect what's included per tier
 export const WHATSAPP_ADDON_PRICING: Record<
   Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
@@ -732,7 +726,6 @@ export const WHATSAPP_ADDON_PRICING: Record<
   ENTERPRISE: { basePrice: 0, includedQuota: 15000, overageRate: 0.2 },
 };
 
-// INTELLIGENCE add-on is coming soon — prices set to 0 until launch
 export const INTELLIGENCE_ADDON_PRICING: Record<
   Exclude<TierName, "STARTER" | "INTELLIGENCE">,
   AddOnPricing
@@ -789,7 +782,6 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   },
 };
 
-// INTELLIGENCE add-on is coming soon — all values set to 0 until launch
 const INTELLIGENCE_ZERO_PRICING: Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing> = {
   ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
@@ -1031,6 +1023,7 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
 export const featureDisplaySchema = z.object({
   name: z.string(),
   description: z.string(),
+  comingSoon: z.boolean().optional(),
 });
 export type FeatureDisplay = z.infer<typeof featureDisplaySchema>;
 
@@ -1207,26 +1200,32 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.AI_PRESCRIPTION_ASSISTANT]: {
     name: "AI Prescription Assistant",
     description: "AI-powered prescription suggestions",
+    comingSoon: true,
   },
   [Feature.AI_DIAGNOSIS_HINTS]: {
     name: "AI Diagnosis Hints",
     description: "AI-powered diagnosis suggestions",
+    comingSoon: true,
   },
   [Feature.SMART_TASK_ENGINE]: {
     name: "Smart Tasks",
     description: "AI-powered task automation",
+    comingSoon: true,
   },
   [Feature.PREDICTIVE_NO_SHOW]: {
     name: "No-Show Prediction",
     description: "Predict appointment no-shows",
+    comingSoon: true,
   },
   [Feature.PATIENT_SEGMENTATION]: {
     name: "Patient Segmentation",
     description: "AI-powered patient grouping",
+    comingSoon: true,
   },
   [Feature.ANOMALY_DETECTION]: {
     name: "Anomaly Detection",
     description: "Detect unusual patterns",
+    comingSoon: true,
   },
 };
 
@@ -1387,77 +1386,100 @@ export function getTierFeaturesList(tier: Tier | TierName): string[] {
   return TIER_FEATURES[tierName];
 }
 
-// ── Usage-based pricing types ─────────────────────────────────────────────────
 
 export const usageMetricsSchema = z.object({
-  patients: z.number().int().min(0),
-  appointmentsPerMonth: z.number().int().min(0),
+  consultations: z.number().int().min(0),
   users: z.number().int().min(0),
-  prescriptionsPerMonth: z.number().int().min(0),
-  invoicesPerMonth: z.number().int().min(0),
-  whatsappMessagesPerMonth: z.number().int().min(0),
-  storageGB: z.number().min(0),
+  whatsappMessages: z.number().int().min(0),
 });
 export type UsageMetrics = z.infer<typeof usageMetricsSchema>;
+
+const usageMeterSchema = z
+  .object({
+    current: z.number().int().min(0),
+    included: z.number().int().min(0),
+    overage: z.number().int().min(0),
+  })
+  .strict();
+
+const usageChargeSchema = z
+  .object({
+    quantity: z.number().int().min(0),
+    rate: z.number().min(0),
+    charge: z.number().min(0),
+  })
+  .strict();
+
+const usageWarningSchema = z
+  .object({
+    percentUsed: z.number().min(0),
+    threshold: z.union([z.literal(80), z.literal(100)]).nullable(),
+  })
+  .strict();
 
 export const currentUsageSchema = z.object({
   period: z.object({
     start: z.string(),
     end: z.string(),
   }),
-  usage: z.object({
-    activePatients: z.object({
-      current: z.number(),
-      included: z.number(),
-      overage: z.number(),
-    }),
-    appointments: z.object({
-      current: z.number(),
-      included: z.number(),
-      overage: z.number(),
-    }),
-    users: z.object({
-      current: z.number(),
-      included: z.number(),
-      overage: z.number(),
-    }),
-    prescriptions: z.object({
-      current: z.number(),
-      included: z.number(),
-      overage: z.number(),
-    }),
-    invoices: z.object({
-      current: z.number(),
-      included: z.number(),
-      overage: z.number(),
-    }),
-    whatsappMessages: z.object({
-      current: z.number(),
-      included: z.number(),
-      overage: z.number(),
-      addOnActive: z.boolean(),
-    }),
-    aiCredits: z.object({
-      current: z.number(),
-      included: z.number(),
-      overage: z.number(),
-      addOnActive: z.boolean(),
-    }),
-  }),
+  usage: z
+    .object({
+      consultations: z.number().int().min(0),
+      users: z.number().int().min(0),
+      whatsappMessages: z.number().int().min(0),
+    })
+    .strict(),
+  included: z
+    .object({
+      consultations: z.number().int().min(0),
+      users: z.number().int().min(0),
+      whatsappMessages: z.number().int().min(0),
+    })
+    .strict(),
+  overages: z
+    .object({
+      consultations: z.number().int().min(0),
+      users: z.number().int().min(0),
+      whatsappMessages: z.number().int().min(0),
+    })
+    .strict(),
+  rates: z
+    .object({
+      consultations: z.number().min(0),
+      users: z.number().min(0),
+      whatsappMessages: z.number().min(0),
+    })
+    .strict(),
+  breakdown: z
+    .object({
+      consultations: usageChargeSchema,
+      users: usageChargeSchema,
+      whatsappMessages: usageChargeSchema,
+    })
+    .strict(),
+  total: z.number().min(0),
+  meters: z
+    .object({
+      consultations: usageMeterSchema,
+      users: usageMeterSchema,
+      whatsappMessages: usageMeterSchema,
+    })
+    .strict(),
+  warnings: z
+    .object({
+      consultations: usageWarningSchema,
+      users: usageWarningSchema,
+      whatsappMessages: usageWarningSchema,
+    })
+    .strict(),
   tier: z.string(),
-});
+}).strict();
 export type CurrentUsage = z.infer<typeof currentUsageSchema>;
 
-// Included WhatsApp messages in the Pro base plan (no add-on required)
 export const WHATSAPP_INCLUDED_IN_PRO = 500;
 
-// The Pro plan (ESSENTIAL) overage rates per unit — matches TIER_OVERAGE_RATES.ESSENTIAL
 export const PRO_OVERAGE_RATES_INR = {
-  patient: 1.5,
-  appointment: 2,
+  consultation: 2,
   user: 249,
-  prescription: 0.75,
-  invoice: 0.4,
   whatsappMessage: 0.75,
-  storageGB: 40,
 } as const;

@@ -28,13 +28,12 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 ```
 Frontend                    Backend
 ---------                   -------
-Cloudflare (apps/app)  -->  Render (NestJS API)
-Vercel (admin/landing) -->  Render PostgreSQL
+Cloudflare Workers (app/admin/landing) --> Render (NestJS API)
 ```
 
 - **Database**: Render PostgreSQL
 - **Backend**: Render Web Service (NestJS)
-- **Frontend**: Cloudflare Pages (`apps/app`) + Vercel (`apps/landing`, `apps/admin`)
+- **Frontend**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/admin`)
 
 ## Tech Stack
 
@@ -44,7 +43,7 @@ Vercel (admin/landing) -->  Render PostgreSQL
 - **UI**: React 19, Tailwind CSS 4, Shadcn UI
 - **Icons**: Lucide Icons
 - **Data Fetching**: TanStack React Query
-- **Hosting**: Cloudflare Pages (`apps/app`) and Vercel (`apps/landing`, `apps/admin`)
+- **Hosting**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/admin`)
 
 ### Backend
 
@@ -113,7 +112,7 @@ Vercel (admin/landing) -->  Render PostgreSQL
 
 1. **Database**: Create Render PostgreSQL in Singapore
 2. **Backend**: Deploy `apps/api` as a Render Web Service
-3. **Frontend**: Deploy `apps/app` to Cloudflare Pages; `apps/landing` and `apps/admin` to Vercel
+3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/admin` to Cloudflare Workers with OpenNext
 
 See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment direction.
 

@@ -31,9 +31,9 @@ export const APPOINTMENT_PRIORITY_LABELS: Record<AppointmentPriority, string> =
 
 export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
   {
-    ROUTINE: "bg-blue-100 text-blue-800 border-blue-300",
-    URGENT: "bg-orange-100 text-orange-800 border-orange-300",
-    EMERGENCY: "bg-red-100 text-red-800 border-red-300",
+    ROUTINE: "badge-info",
+    URGENT: "badge-warning",
+    EMERGENCY: "badge-danger",
   };
 
 export const appointmentSchema = z.object({

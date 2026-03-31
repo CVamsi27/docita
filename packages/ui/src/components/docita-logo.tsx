@@ -1,6 +1,5 @@
 import { cn } from "@workspace/ui/lib/utils";
-
-const ECG_PATH = "M4 16H8L10 13L12 7L14 24L16 16H20L21 11L22 16H28";
+import { DocitaBrandMark } from "@workspace/ui/lib/docita-brand";
 
 interface DocitaLogoProps {
   className?: string;
@@ -17,55 +16,17 @@ interface DocitaLogoFullProps {
   taglineClassName?: string;
 }
 
-export function DocitaIcon({ className }: { className?: string }) {
+export function DocitaIcon({ className }: { className?: string | undefined }) {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <DocitaBrandMark
       className={cn("h-8 w-8", className)}
-      aria-hidden="true"
       suppressHydrationWarning
-    >
-      <rect
-        width="32"
-        height="32"
-        rx="8"
-        className="fill-slate-900 dark:fill-white"
-        suppressHydrationWarning
-      />
-      <path
-        d={ECG_PATH}
-        className="stroke-white dark:stroke-slate-900"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        suppressHydrationWarning
-      />
-    </svg>
+    />
   );
 }
 
-export function DocitaIconMonochrome({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 32 32"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={cn("h-8 w-8", className)}
-      aria-hidden="true"
-      suppressHydrationWarning
-    >
-      <path
-        d={ECG_PATH}
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        suppressHydrationWarning
-      />
-    </svg>
-  );
+export function DocitaIconMonochrome({ className }: { className?: string | undefined }) {
+  return <DocitaIcon className={className} />;
 }
 
 export function DocitaLogo({
@@ -75,16 +36,16 @@ export function DocitaLogo({
   showText = true,
 }: DocitaLogoProps) {
   return (
-    <div className={cn("flex items-center gap-2.5", className)}>
-      <DocitaIcon className={cn("h-8 w-8 shrink-0", iconClassName)} />
+    <div className={cn("flex items-center gap-1.5", className)}>
+      <DocitaIcon className={cn("h-6 w-6 shrink-0", iconClassName)} />
       {showText && (
         <span
           className={cn(
-            "text-xl font-bold tracking-tight text-foreground",
+            "text-2xl font-medium tracking-tight text-foreground lowercase",
             textClassName,
           )}
         >
-          Docita
+          docita
         </span>
       )}
     </div>
@@ -95,7 +56,7 @@ export function DocitaLogoFull({
   className,
   iconClassName,
   textClassName,
-  tagline = "Modern Healthcare OS",
+  tagline = "Modern Healthcare Solutions",
   taglineClassName,
 }: DocitaLogoFullProps) {
   return (
@@ -104,16 +65,16 @@ export function DocitaLogoFull({
       <div className="flex flex-col items-center gap-1.5">
         <span
           className={cn(
-            "text-3xl font-bold tracking-tight text-foreground",
+            "text-3xl font-medium tracking-tight text-foreground lowercase",
             textClassName,
           )}
         >
-          Docita
+          docita
         </span>
         {tagline && (
           <span
             className={cn(
-              "text-xs font-medium tracking-widest uppercase text-muted-foreground",
+              "text-xs font-semibold tracking-widest uppercase text-muted-foreground",
               taglineClassName,
             )}
           >
@@ -135,12 +96,12 @@ export function DocitaWordmark({
   return (
     <span
       className={cn(
-        "text-xl font-bold tracking-tight text-foreground",
+        "text-xl font-medium tracking-tight text-foreground lowercase",
         className,
         textClassName,
       )}
     >
-      Docita
+      docita
     </span>
   );
 }

@@ -28,28 +28,28 @@ export function getInteractionSeverityStyles(
   switch (severity) {
     case "major":
       return {
-        border: "border-red-500/30",
-        bg: "bg-red-500/5",
-        badge: "bg-red-500/20 text-red-700 dark:text-red-400",
+        border: "border-destructive/30",
+        bg: "bg-destructive/5",
+        badge: "badge-danger",
         iconName: "AlertTriangle",
-        textColor: "text-red-700 dark:text-red-400",
+        textColor: "text-destructive",
       };
     case "moderate":
       return {
-        border: "border-yellow-500/30",
-        bg: "bg-yellow-500/5",
-        badge: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400",
+        border: "border-warning/30",
+        bg: "bg-warning/5",
+        badge: "badge-warning",
         iconName: "AlertCircle",
-        textColor: "text-yellow-700 dark:text-yellow-400",
+        textColor: "text-warning",
       };
     case "minor":
     default:
       return {
-        border: "border-blue-500/30",
-        bg: "bg-blue-500/5",
-        badge: "bg-blue-500/20 text-blue-700 dark:text-blue-400",
+        border: "border-info/30",
+        bg: "bg-info/5",
+        badge: "badge-info",
         iconName: "Info",
-        textColor: "text-blue-700 dark:text-blue-400",
+        textColor: "text-info",
       };
   }
 }
@@ -59,15 +59,15 @@ export function getConditionSeverityStyles(
 ): string {
   switch (severity) {
     case "CRITICAL":
-      return "bg-red-100 text-red-800 border-red-300";
+      return "badge-danger";
     case "SEVERE":
-      return "bg-orange-100 text-orange-800 border-orange-300";
+      return "bg-warning/20 text-warning border-warning/40";
     case "MODERATE":
-      return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      return "badge-warning";
     case "MILD":
-      return "bg-green-100 text-green-800 border-green-300";
+      return "badge-success";
     default:
-      return "bg-gray-100 text-gray-800 border-gray-300";
+      return "badge-muted";
   }
 }
 
@@ -76,22 +76,22 @@ export const ALLERGY_SEVERITY_CONFIG: Record<
   { color: string; iconName: SeverityIconName; priority: number }
 > = {
   LIFE_THREATENING: {
-    color: "bg-red-200 text-red-900 border-red-500",
+    color: "badge-danger animate-pulse",
     iconName: "ShieldAlert",
     priority: 1,
   },
   SEVERE: {
-    color: "bg-red-100 text-red-800 border-red-300",
+    color: "badge-danger",
     iconName: "ShieldAlert",
     priority: 2,
   },
   MODERATE: {
-    color: "bg-orange-100 text-orange-800 border-orange-300",
+    color: "bg-warning/20 text-warning border-warning/40",
     iconName: "AlertTriangle",
     priority: 3,
   },
   MILD: {
-    color: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    color: "badge-warning",
     iconName: "AlertCircle",
     priority: 4,
   },

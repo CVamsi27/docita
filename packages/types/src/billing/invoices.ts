@@ -13,6 +13,16 @@ export const invoiceItemSchema = z.object({
 export type InvoiceItem = z.infer<typeof invoiceItemSchema>;
 export type LineItem = InvoiceItem;
 
+const invoiceClinicSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  slaSignatureUrl: z.string().nullable().optional(),
+});
+
+const invoicePatientSchema = patientSchema.extend({
+  clinic: invoiceClinicSchema.optional(),
+});
+
 export const invoiceSchema = z.object({
   id: z.string().optional(),
   appointmentId: z.string().optional(),
@@ -27,7 +37,7 @@ export const invoiceSchema = z.object({
   paidAt: z.string().or(z.date()).optional(),
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()).optional(),
-  patient: patientSchema.optional(),
+  patient: invoicePatientSchema.optional(),
   appointment: z.object({ doctor: z.object({ name: z.string() }) }).optional(),
 
   doctorName: z.string().optional(),

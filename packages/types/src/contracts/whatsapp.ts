@@ -11,7 +11,7 @@ export const sendWhatsAppMessageRequestSchema = z.object({
   templateName: z.string(),
   variables: z.record(z.string()),
   metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
-});
+}).strict();
 
 export const sendTemplateRequestSchema = z.object({
   templateId: z.string(),
@@ -21,7 +21,7 @@ export const sendTemplateRequestSchema = z.object({
   appointmentId: z.string().optional(),
   prescriptionId: z.string().optional(),
   invoiceId: z.string().optional(),
-});
+}).strict();
 
 export const whatsappWebhookVerifyQuerySchema = z.object({
   "hub.mode": z.string(),
@@ -190,7 +190,7 @@ export const createMedicineReminderRequestSchema = z.object({
   frequency: z.string(),
   reminderTime: z.string(),
   patientPhone: z.string(),
-});
+}).strict();
 
 export const createWhatsAppBroadcastRequestSchema = z.object({
   campaignName: z.string(),
@@ -198,7 +198,7 @@ export const createWhatsAppBroadcastRequestSchema = z.object({
   sendToAllPatients: z.boolean(),
   sendToSpecificPatients: z.boolean(),
   scheduleTime: z.string().optional(),
-});
+}).strict();
 
 export const successResponseSchema = z.object({
   success: z.boolean(),

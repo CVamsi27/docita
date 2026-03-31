@@ -175,10 +175,10 @@ export const CONDITION_SEVERITY_LABELS: Record<ConditionSeverity, string> = {
 };
 
 export const CONDITION_SEVERITY_COLORS: Record<ConditionSeverity, string> = {
-  MILD: "bg-green-100 text-green-800 border-green-300",
-  MODERATE: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  SEVERE: "bg-orange-100 text-orange-800 border-orange-300",
-  CRITICAL: "bg-red-100 text-red-800 border-red-300",
+  MILD: "badge-success",
+  MODERATE: "badge-warning",
+  SEVERE: "bg-warning/20 text-warning border-warning/40",
+  CRITICAL: "badge-danger",
 };
 
 export const conditionSourceTypeSchema = z.enum([
@@ -246,10 +246,10 @@ export const ALLERGY_SEVERITY_LABELS: Record<AllergySeverity, string> = {
 };
 
 export const ALLERGY_SEVERITY_COLORS: Record<AllergySeverity, string> = {
-  MILD: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  MODERATE: "bg-orange-100 text-orange-800 border-orange-300",
-  SEVERE: "bg-red-100 text-red-800 border-red-300",
-  LIFE_THREATENING: "bg-red-200 text-red-900 border-red-500 animate-pulse",
+  MILD: "badge-warning",
+  MODERATE: "bg-warning/20 text-warning border-warning/40",
+  SEVERE: "badge-danger",
+  LIFE_THREATENING: "badge-danger animate-pulse",
 };
 
 export const patientAllergySchema = z.object({

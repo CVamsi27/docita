@@ -129,7 +129,15 @@ export const prescriptionSchema = z.object({
   createdAt: z.string().or(z.date()),
   updatedAt: z.string().or(z.date()).optional(),
   patient: patientSchema.optional(),
-  doctor: z.object({ name: z.string().max(100) }).optional(),
+  doctor: z
+    .object({
+      id: z.string().optional(),
+      name: z.string().max(100),
+      qualification: z.string().nullable().optional(),
+      registrationNumber: z.string().nullable().optional(),
+      signatureUrl: z.string().nullable().optional(),
+    })
+    .optional(),
 
   doctorName: z.string().max(100).optional(),
   doctorEmail: z.string().max(255).optional(),

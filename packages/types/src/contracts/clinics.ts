@@ -125,6 +125,8 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   createdAt: z.union([z.string(), z.date()]).optional(),
   referralCode: z.string().optional(),
   gstin: z.union([z.string(), z.null()]).optional(),
+  slaSignatureUrl: z.union([z.string(), z.null()]).optional(),
+  slaSignatureAcceptedAt: z.union([z.string(), z.date(), z.null()]).optional(),
 });
 
 export const listClinicsResponseSchema = z.array(clinicResponseSchema);
@@ -145,7 +147,6 @@ export type UpdateClinicMemberRequest = z.infer<
   typeof updateClinicMemberRequestSchema
 >;
 
-// Join Request schemas
 export const createJoinRequestSchema = z.object({
   clinicId: z.string().cuid(),
   requestedRole: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]),

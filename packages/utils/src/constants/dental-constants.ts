@@ -8,23 +8,23 @@ export const TEETH_QUADRANTS = {
 } as const;
 
 export const TOOTH_CONDITIONS = [
-  { value: "HEALTHY", label: "Healthy", color: "bg-white border-slate-200" },
-  { value: "CARIES", label: "Caries", color: "bg-red-100 border-red-300" },
-  { value: "FILLED", label: "Filled", color: "bg-blue-100 border-blue-300" },
+  { value: "HEALTHY", label: "Healthy", color: "bg-background border-border" },
+  { value: "CARIES", label: "Caries", color: "badge-danger" },
+  { value: "FILLED", label: "Filled", color: "badge-info" },
   {
     value: "MISSING",
     label: "Missing",
-    color: "bg-slate-100 border-slate-200 opacity-50",
+    color: "bg-muted border-border opacity-50",
   },
-  { value: "CROWN", label: "Crown", color: "bg-yellow-100 border-yellow-300" },
+  { value: "CROWN", label: "Crown", color: "badge-warning" },
   {
     value: "ROOT_CANAL",
     label: "Root Canal",
-    color: "bg-purple-100 border-purple-300",
+    color: "tier-pro",
   },
   {
     value: "IMPLANT",
     label: "Implant",
-    color: "bg-green-100 border-green-300",
+    color: "badge-success",
   },
 ] as const;
