@@ -68,6 +68,7 @@ export function AuthLoginStepUI({
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => onChangePassword(e.target.value)}
+            autoComplete="current-password"
             required
             className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
             placeholder="••••••••"
@@ -111,7 +112,7 @@ export function AuthLoginStepUI({
       <Button
         type="submit"
         className="w-full h-11 text-base shadow-md hover:shadow-lg transition-shadow"
-        disabled={loading}
+        disabled={loading || password.trim().length === 0}
       >
         {loading ? (
           <>

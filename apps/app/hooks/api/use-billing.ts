@@ -10,7 +10,8 @@ import {
   SubscriptionBillingPreviewQuery,
   UpdateInvoiceRequest,
 } from "@workspace/types";
-import { API_URL, useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { fetchWithSession } from "@/lib/fetch-with-session";
 import { withQueryString } from "@/lib/http/query-string";
 
 export const useInvoices = (filters?: ListInvoicesContractQuery) =>
@@ -167,20 +168,15 @@ export const useInfiniteInvoices = (options?: {
   return useInfiniteQuery({
     queryKey: ["invoices", "infinite", options],
     queryFn: async ({ pageParam }) => {
-      const response = await fetch(
-        `${API_URL}${withQueryString("/invoices", {
+      const response = await fetchWithSession(
+        withQueryString("/invoices", {
           limit: options?.limit || 50,
           cursor: pageParam,
           patientId: options?.patientId,
           status: options?.status,
           date: options?.date,
           search: options?.search,
-        })}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
+        }),
       );
 
       if (!response.ok) throw new Error("Failed to fetch invoices");

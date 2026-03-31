@@ -1,4 +1,5 @@
 import { client } from "./api-client";
+import { API_URL } from "./api-config";
 import {
   Appointment,
   Patient,
@@ -6,8 +7,7 @@ import {
   SuperAdminBillingSubscriptionsQuery,
 } from "@workspace/types";
 
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:3001/api/v1";
+export { API_URL };
 
 export interface HealthCheckResult {
   status: "healthy" | "unhealthy" | "degraded";

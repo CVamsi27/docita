@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import {
   Feature,
   FEATURE_TIER_MAP,
@@ -40,9 +41,6 @@ interface ClinicSubscription {
   features?: Record<string, boolean>;
 }
 
-const API_URL =
-  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-
 export function useTierAccess() {
   const { user, token } = useAuth();
 
@@ -57,19 +55,17 @@ export function useTierAccess() {
         };
       }
 
-      const response = await fetch(`${API_URL}/subscription/current`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
+      try {
+        return await fetchJsonWithSession<ClinicSubscription>(
+          "/subscription/current",
+        );
+      } catch {
         return {
           tier: "STARTER" as TierName,
           subscriptionStatus: "INACTIVE",
           hasIntelligence: false,
         };
       }
-
-      return response.json();
     },
     enabled: !!user?.clinicId && !!token,
     staleTime: 5 * 60 * 1000,

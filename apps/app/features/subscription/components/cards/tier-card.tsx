@@ -68,19 +68,28 @@ const TIER_GRADIENTS: Record<
 };
 
 function formatTierPrice(
+  tier: Tier,
   pricing: { monthly: number | "custom"; yearly: number | "custom" },
   billingCycle: "MONTHLY" | "YEARLY",
   sym = "₹",
 ): string {
-  if (pricing.monthly === 0) return "Free forever";
-  if (pricing.monthly === "custom") return "Custom pricing";
+  if (
+    tier === Tier.ENTERPRISE ||
+    pricing.monthly === "custom" ||
+    pricing.yearly === "custom"
+  ) {
+    return "Custom";
+  }
+  if (tier === Tier.STARTER && pricing.monthly === 0 && pricing.yearly === 0) {
+    return "Free forever";
+  }
   if (billingCycle === "YEARLY" && typeof pricing.yearly === "number") {
     return `${sym}${pricing.yearly.toLocaleString()}/yr`;
   }
   if (typeof pricing.monthly === "number") {
     return `From ${sym}${pricing.monthly.toLocaleString()}/mo`;
   }
-  return "Custom pricing";
+  return "Custom";
 }
 
 export function TierCard({
@@ -145,7 +154,7 @@ export function TierCard({
         {pricing && (
           <div className="mt-2">
             <p className="text-sm font-semibold text-foreground">
-              {formatTierPrice(pricing, billingCycle, currencySymbol)}
+              {formatTierPrice(tier, pricing, billingCycle, currencySymbol)}
             </p>
             {pricing.monthly !== 0 && pricing.monthly !== "custom" && (
               <p className="text-xs text-muted-foreground">Incl. 18% GST</p>

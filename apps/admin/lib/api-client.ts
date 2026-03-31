@@ -1,27 +1,22 @@
 import { getAPIClient } from "@workspace/data-access";
-
-function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
+import { API_URL } from "@/lib/api-config";
+import { adminSession } from "@/lib/session";
 
 let authLogoutCallback: ((reason: string) => void) | null = null;
 
-export function setAuthLogoutCallback(callback: (reason: string) => void) {
+export function setAuthLogoutCallback(
+  callback: ((reason: string) => void) | null,
+) {
   authLogoutCallback = callback;
 }
 
 export const client = getAPIClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1",
-  getToken: () => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("docita_admin_token");
-  },
+  baseURL: API_URL,
+  getToken: () => adminSession.getToken(),
   onRequest: (config) => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
     if (mutating.includes((config.method ?? "GET").toUpperCase())) {
-      const csrfToken = getCsrfToken();
+      const csrfToken = adminSession.getCsrfToken();
       if (csrfToken) {
         config.headers = { ...config.headers, "x-xsrf-token": csrfToken };
       }
@@ -29,9 +24,15 @@ export const client = getAPIClient({
     return config;
   },
   onError: async (error) => {
+    if (error.status === 401) {
+      const refreshed = await adminSession.refreshAccessToken();
+      if (refreshed) {
+        return;
+      }
+    }
+
     if (error.status === 401 || error.status === 403) {
-      localStorage.removeItem("docita_admin_token");
-      localStorage.removeItem("docita_admin_user");
+      adminSession.clearSession();
 
       const reason =
         error.status === 401
@@ -47,8 +48,7 @@ export const client = getAPIClient({
         data?.message?.toLowerCase().includes("user") ||
         data?.message?.toLowerCase().includes("not found")
       ) {
-        localStorage.removeItem("docita_admin_token");
-        localStorage.removeItem("docita_admin_user");
+        adminSession.clearSession();
         authLogoutCallback?.(
           "Your account has been deleted. Please contact support.",
         );

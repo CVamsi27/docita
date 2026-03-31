@@ -10,6 +10,21 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     css: true,
     exclude: ["e2e*", "node_modules*"],
+    coverage: {
+      reporter: ["text", "html"],
+      include: [
+        "app/page.tsx",
+        "app/(protected)/dashboard/page.tsx",
+        "features/users/users.utils.ts",
+      ],
+      exclude: ["e2e/**", "**/*.d.ts", "**/*.config.*", "**/.next/**"],
+      thresholds: {
+        lines: 30,
+        statements: 30,
+        functions: 30,
+        branches: 25,
+      },
+    },
   },
   resolve: {
     alias: {
@@ -18,6 +33,10 @@ export default defineConfig({
       "@workspace/types": path.resolve(__dirname, "../../packages/types/src"),
       "@workspace/utils": path.resolve(__dirname, "../../packages/utils/src"),
       "@workspace/hooks": path.resolve(__dirname, "../../packages/hooks/src"),
+      "@workspace/data-access": path.resolve(
+        __dirname,
+        "../../packages/data-access/src",
+      ),
       "@workspace/auth": path.resolve(__dirname, "../../packages/auth/src"),
     },
   },

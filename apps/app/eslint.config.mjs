@@ -8,6 +8,7 @@ export default [
       ".wrangler/**",
       "out/**",
       "build/**",
+      "coverage/**",
       "next-env.d.ts",
     ],
   },

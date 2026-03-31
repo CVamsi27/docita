@@ -4,7 +4,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma, FeedbackCategory, FeedbackStatus } from '@workspace/db';
+import {
+  Prisma,
+  FeedbackCategory,
+  FeedbackFeatureType,
+  FeedbackStatus,
+} from '@workspace/db';
 
 interface CreateFeedbackDto {
   overallRating: number;
@@ -40,21 +45,51 @@ export class FeedbackService {
   constructor(private prisma: PrismaService) {}
 
   async create(clinicId: string, userId: string, data: CreateFeedbackDto) {
+    const goodFeatures = data.goodFeatures || [];
+    const badFeatures = data.badFeatures || [];
+    const improvementAreas = data.improvementAreas || [];
+    const feedbackFeatures = [
+      ...goodFeatures.map((feature) => ({
+        clinicId,
+        featureType: FeedbackFeatureType.GOOD,
+        feature,
+      })),
+      ...badFeatures.map((feature) => ({
+        clinicId,
+        featureType: FeedbackFeatureType.BAD,
+        feature,
+      })),
+      ...improvementAreas.map((feature) => ({
+        clinicId,
+        featureType: FeedbackFeatureType.IMPROVEMENT,
+        feature,
+      })),
+    ].filter((entry) => entry.feature.trim().length > 0);
+
     return this.prisma.feedback.create({
       data: {
         clinicId,
         userId,
         overallRating: data.overallRating,
-        goodFeatures: data.goodFeatures || [],
+        goodFeatures,
         goodFeaturesReason: data.goodFeaturesReason,
-        badFeatures: data.badFeatures || [],
+        badFeatures,
         badFeaturesReason: data.badFeaturesReason,
-        improvementAreas: data.improvementAreas || [],
+        improvementAreas,
         improvementReason: data.improvementReason,
         featureRequests: data.featureRequests,
         generalComments: data.generalComments,
         category: (data.category as FeedbackCategory) || 'GENERAL',
         status: 'NEW',
+        ...(feedbackFeatures.length > 0
+          ? {
+              feedbackFeatures: {
+                createMany: {
+                  data: feedbackFeatures,
+                },
+              },
+            }
+          : {}),
       },
       include: {
         user: {
@@ -296,31 +331,51 @@ export class FeedbackService {
         },
       }),
 
-      this.prisma.feedback.findMany({
-        where,
-        select: { goodFeatures: true },
+      this.prisma.feedbackFeature.groupBy({
+        by: ['feature'],
+        where: {
+          featureType: FeedbackFeatureType.GOOD,
+          ...(clinicId ? { clinicId } : {}),
+        },
+        _count: { feature: true },
+        orderBy: {
+          _count: {
+            feature: 'desc',
+          },
+        },
+        take: 10,
       }),
 
-      this.prisma.feedback.findMany({
-        where,
-        select: { badFeatures: true },
+      this.prisma.feedbackFeature.groupBy({
+        by: ['feature'],
+        where: {
+          featureType: FeedbackFeatureType.BAD,
+          ...(clinicId ? { clinicId } : {}),
+        },
+        _count: { feature: true },
+        orderBy: {
+          _count: {
+            feature: 'desc',
+          },
+        },
+        take: 10,
       }),
 
-      this.prisma.feedback.findMany({
-        where,
-        select: { improvementAreas: true },
+      this.prisma.feedbackFeature.groupBy({
+        by: ['feature'],
+        where: {
+          featureType: FeedbackFeatureType.IMPROVEMENT,
+          ...(clinicId ? { clinicId } : {}),
+        },
+        _count: { feature: true },
+        orderBy: {
+          _count: {
+            feature: 'desc',
+          },
+        },
+        take: 10,
       }),
     ]);
-
-    const goodFeaturesCounts = this.countFeatures(
-      topGoodFeatures.flatMap((f) => f.goodFeatures),
-    );
-    const badFeaturesCounts = this.countFeatures(
-      topBadFeatures.flatMap((f) => f.badFeatures),
-    );
-    const improvementCounts = this.countFeatures(
-      topImprovementAreas.flatMap((f) => f.improvementAreas),
-    );
 
     return {
       total,
@@ -340,25 +395,19 @@ export class FeedbackService {
       ),
       averageRating: avgRating._avg.overallRating || 0,
       recentFeedback,
-      topGoodFeatures: goodFeaturesCounts.slice(0, 10),
-      topBadFeatures: badFeaturesCounts.slice(0, 10),
-      topImprovementAreas: improvementCounts.slice(0, 10),
+      topGoodFeatures: topGoodFeatures.map((item) => ({
+        feature: item.feature,
+        count: item._count.feature,
+      })),
+      topBadFeatures: topBadFeatures.map((item) => ({
+        feature: item.feature,
+        count: item._count.feature,
+      })),
+      topImprovementAreas: topImprovementAreas.map((item) => ({
+        feature: item.feature,
+        count: item._count.feature,
+      })),
     };
-  }
-
-  private countFeatures(
-    features: string[],
-  ): { feature: string; count: number }[] {
-    const counts: Record<string, number> = {};
-    features.forEach((feature) => {
-      if (feature) {
-        counts[feature] = (counts[feature] || 0) + 1;
-      }
-    });
-
-    return Object.entries(counts)
-      .map(([feature, count]) => ({ feature, count }))
-      .sort((a, b) => b.count - a.count);
   }
 
   async delete(id: string, clinicId?: string) {

@@ -90,6 +90,31 @@ export function createAPIClient(config: APIClientConfig) {
     onError,
   } = config;
 
+  function toHeaderRecord(headers?: HeadersInit): Record<string, string> {
+    if (!headers) {
+      return {};
+    }
+
+    if (headers instanceof Headers) {
+      return Object.fromEntries(headers.entries());
+    }
+
+    if (Array.isArray(headers)) {
+      return Object.fromEntries(headers);
+    }
+
+    return Object.fromEntries(
+      Object.entries(headers).map(([key, value]) => [key, String(value)]),
+    );
+  }
+
+  function hasHeader(headers: HeadersInit | undefined, name: string): boolean {
+    const target = name.toLowerCase();
+    return Object.keys(toHeaderRecord(headers)).some(
+      (key) => key.toLowerCase() === target,
+    );
+  }
+
   
   function buildURL(
     endpoint: string,
@@ -145,12 +170,19 @@ export function createAPIClient(config: APIClientConfig) {
     endpoint: string,
     options: RequestConfig = {},
   ): Promise<T> {
+    const shouldAttachJsonContentType =
+      !(options.body instanceof FormData) &&
+      !hasHeader(defaultHeaders, "content-type") &&
+      !hasHeader(options.headers, "content-type");
+
     let requestConfig: RequestConfig = {
       ...options,
       headers: {
-        "Content-Type": "application/json",
-        ...defaultHeaders,
-        ...options.headers,
+        ...toHeaderRecord(defaultHeaders),
+        ...toHeaderRecord(options.headers),
+        ...(shouldAttachJsonContentType
+          ? { "Content-Type": "application/json" }
+          : {}),
       },
     };
 

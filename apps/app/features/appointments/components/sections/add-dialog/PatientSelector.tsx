@@ -61,6 +61,8 @@ export function PatientSelector<T extends FieldValues>({
                 <Button
                   variant="outline"
                   role="combobox"
+                  type="button"
+                  aria-expanded={patientComboboxOpen}
                   className={cn(
                     "w-full justify-between",
                     !field.value && "text-muted-foreground",
@@ -103,7 +105,6 @@ export function PatientSelector<T extends FieldValues>({
                       <CommandItem
                         key={patient.id}
                         value={patient.id}
-                        onPointerDown={(e) => e.preventDefault()}
                         onSelect={() => {
                           if (patient.id) {
                             form.setValue(

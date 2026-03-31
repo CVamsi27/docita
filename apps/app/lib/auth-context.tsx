@@ -12,8 +12,9 @@ import React, {
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { parseApiErrorResponse } from "@/lib/api-error";
-import { API_URL } from "@/lib/api-config";
 import { isNetworkError } from "@/lib/network-error";
+import { API_URL } from "@/lib/api-config";
+import { appSession } from "@/lib/session";
 import {
   checkEmailResponseSchema,
   checkEmailSchema,
@@ -26,8 +27,6 @@ import {
 
 const AUTH_RESPONSE_ERROR_MESSAGE =
   "We could not process the sign-in response. Please try again.";
-const CLINIC_SELECTION_ROUTE = "/clinic-selection";
-
 export interface User {
   id: string;
   name: string;
@@ -72,15 +71,6 @@ interface AuthPayload {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("XSRF-TOKEN="))
-    ?.split("=")[1];
-  return token ? decodeURIComponent(token) : null;
-}
 
 function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
@@ -136,12 +126,35 @@ function extractAuthPayload(raw: unknown): AuthPayload | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => {
+    return appSession.getToken();
+  });
   const [isLoading, setIsLoading] = useState(true);
   const isAuthenticated = !!user;
   const router = useRouter();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
+
+  const persistToken = useCallback((nextToken: string | null) => {
+    setToken(nextToken);
+    appSession.setToken(nextToken);
+  }, []);
+
+  const clearSession = useCallback(() => {
+    setUser(null);
+    persistToken(null);
+    appSession.clearSession();
+    setUserRole("");
+    hasSetRoleRef.current = false;
+  }, [persistToken, setUserRole]);
+
+  const refreshAccessToken = useCallback(async () => {
+    const refreshed = await appSession.refreshAccessToken();
+    if (refreshed) {
+      persistToken(appSession.getToken());
+    }
+    return refreshed;
+  }, [persistToken]);
 
   useEffect(() => {
     const cachedUser = getStoredUser();
@@ -166,18 +179,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserRole(data.user.role);
           hasSetRoleRef.current = true;
           localStorage.setItem("docita_user", JSON.stringify(data.user));
+          if (!appSession.getToken()) {
+            await refreshAccessToken();
+          }
           return;
         }
 
-        // Access token expired — try refreshing with the refresh token cookie
-        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        });
-
-        if (refreshRes.ok) {
+        // Access token expired — refresh and then revalidate.
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
           const retryRes = await fetch(`${API_URL}/auth/validate`, {
             credentials: "include",
           });
@@ -192,9 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // Both validate and refresh failed — clear session
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem("docita_user");
+        clearSession();
       } catch {
         // Network error — keep user logged in from cache
       } finally {
@@ -203,7 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     validateSession();
-  }, [setUserRole]);
+  }, [clearSession, refreshAccessToken, setUserRole]);
 
   // Listen for auth changes in other tabs/windows and update in-memory state
   useEffect(() => {
@@ -236,7 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const csrfToken = getCsrfToken();
+      const csrfToken = appSession.getCsrfToken();
       const headers = {
         "Content-Type": "application/json",
         ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
@@ -256,15 +264,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Try refreshing the access token before giving up
-      const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-
-      if (refreshRes.ok) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
         const retryRes = await fetch(`${API_URL}/auth/validate`, {
           method: "GET",
           credentials: "include",
@@ -279,9 +280,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem("docita_user");
+      clearSession();
     } catch {
       // ignore network errors
     }
@@ -290,7 +289,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const payload = loginSchema.parse({ email, password });
-      const csrfToken = getCsrfToken();
+      const csrfToken = appSession.getCsrfToken();
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
@@ -337,7 +336,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      setToken(accessToken);
+      if (accessToken) {
+        persistToken(accessToken);
+      } else {
+        await refreshAccessToken();
+      }
       setUser(userData);
       setUserRole(userData.role);
       localStorage.setItem("docita_user", JSON.stringify(userData));
@@ -371,7 +374,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkEmail = async (email: string): Promise<boolean> => {
     try {
       const payload = checkEmailSchema.parse({ email });
-      const csrfToken = getCsrfToken();
+      const csrfToken = appSession.getCsrfToken();
       const response = await fetch(`${API_URL}/auth/check-email`, {
         method: "POST",
         headers: {
@@ -414,7 +417,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role,
         clinicName,
       });
-      const csrfToken = getCsrfToken();
+      const csrfToken = appSession.getCsrfToken();
       const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
@@ -457,7 +460,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      setToken(accessToken);
+      if (accessToken) {
+        persistToken(accessToken);
+      } else {
+        await refreshAccessToken();
+      }
       setUser(userData);
       setUserRole(userData.role);
       localStorage.setItem("docita_user", JSON.stringify(userData));
@@ -486,11 +493,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = useCallback(async () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("docita_user");
+    clearSession();
 
-    const csrfToken = getCsrfToken();
+    const csrfToken = appSession.getCsrfToken();
     try {
       await fetch(`${API_URL}/auth/logout`, {
         method: "POST",
@@ -504,7 +509,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {}
 
     router.push("/login");
-  }, [router]);
+  }, [clearSession, router]);
 
   useEffect(() => {
     if (!isAuthenticated) return;

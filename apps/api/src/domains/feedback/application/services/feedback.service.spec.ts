@@ -18,6 +18,9 @@ describe('FeedbackService', () => {
       groupBy: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       aggregate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
+    feedbackFeature: {
+      groupBy: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    },
   };
 
   const mockFeedback = {
@@ -403,6 +406,41 @@ describe('FeedbackService', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('getStats', () => {
+    it('should aggregate feature stats from normalized feedback features', async () => {
+      mockPrismaService.feedback.count
+        .mockResolvedValueOnce(12)
+        .mockResolvedValueOnce(3);
+      mockPrismaService.feedback.groupBy
+        .mockResolvedValueOnce([{ status: 'NEW', _count: 10 }])
+        .mockResolvedValueOnce([{ category: 'GENERAL', _count: 9 }]);
+      mockPrismaService.feedback.aggregate.mockResolvedValue({
+        _avg: { overallRating: 4.2 },
+      });
+      mockPrismaService.feedbackFeature.groupBy
+        .mockResolvedValueOnce([
+          { feature: 'Ease of use', _count: { feature: 4 } },
+        ])
+        .mockResolvedValueOnce([{ feature: 'Reports', _count: { feature: 2 } }])
+        .mockResolvedValueOnce([
+          { feature: 'Mobile app', _count: { feature: 3 } },
+        ]);
+
+      const result = await service.getStats('clinic-1');
+
+      expect(result.total).toBe(12);
+      expect(result.recentFeedback).toBe(3);
+      expect(result.averageRating).toBe(4.2);
+      expect(result.topGoodFeatures).toEqual([
+        { feature: 'Ease of use', count: 4 },
+      ]);
+      expect(result.topBadFeatures).toEqual([{ feature: 'Reports', count: 2 }]);
+      expect(result.topImprovementAreas).toEqual([
+        { feature: 'Mobile app', count: 3 },
+      ]);
     });
   });
 

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "check-types": "tsc --noEmit",
     "test": "vitest run",
+    "test:cov": "vitest run --coverage",
     "audit:accessibility": "playwright test e2e/accessibility.spec.ts",
     "test:critical-flows": "playwright test e2e/critical-flows.spec.ts"
   },

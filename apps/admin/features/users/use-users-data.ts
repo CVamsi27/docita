@@ -17,7 +17,7 @@ export function useUsersData() {
 
   const clinicsQuery = useQuery({
     queryKey: ["super-admin", "users", "clinics", token],
-    queryFn: () => fetchClinics(token!),
+    queryFn: fetchClinics,
     enabled: Boolean(token),
   });
 
@@ -30,7 +30,7 @@ export function useUsersData() {
       clinicsQuery.data?.length ?? 0,
     ],
     queryFn: () =>
-      fetchUsersForSelection(token!, selectedClinic, clinicsQuery.data ?? []),
+      fetchUsersForSelection(selectedClinic, clinicsQuery.data ?? []),
     enabled:
       Boolean(token) &&
       Boolean(selectedClinic) &&

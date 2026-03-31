@@ -1,4 +1,5 @@
 import { LogOut, Search, Settings } from "lucide-react";
+import dynamic from "next/dynamic";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -13,13 +14,9 @@ import { RoleGuard } from "@/features/_shared/components";
 import {
   AppearanceSettings,
   ClinicGeneralSettings,
-  DoctorAvailabilitySettings,
-  LeaveManagementSettings,
-  MemberManagementSettings,
   NotificationSettings,
   ReminderSettings,
   SecuritySettings,
-  SubscriptionSettings,
   WhatsAppAutomationSettings,
 } from ".";
 import {
@@ -48,6 +45,54 @@ interface SettingsPageUIProps {
 }
 
 import { useAuth } from "@/lib/auth-context";
+
+const lazyPanelFallback = (
+  <div className="h-24 rounded-md bg-muted/30 animate-pulse" />
+);
+
+const SubscriptionSettingsLazy = dynamic(
+  () =>
+    import("./billing/SubscriptionSettings").then(
+      (mod) => mod.SubscriptionSettings,
+    ),
+  {
+    ssr: false,
+    loading: () => lazyPanelFallback,
+  },
+);
+
+const MemberManagementSettingsLazy = dynamic(
+  () =>
+    import("./management/MemberManagementSettings").then(
+      (mod) => mod.MemberManagementSettings,
+    ),
+  {
+    ssr: false,
+    loading: () => lazyPanelFallback,
+  },
+);
+
+const DoctorAvailabilitySettingsLazy = dynamic(
+  () =>
+    import("./management/DoctorAvailabilitySettings").then(
+      (mod) => mod.DoctorAvailabilitySettings,
+    ),
+  {
+    ssr: false,
+    loading: () => lazyPanelFallback,
+  },
+);
+
+const LeaveManagementSettingsLazy = dynamic(
+  () =>
+    import("./leave/LeaveManagementSettings").then(
+      (mod) => mod.LeaveManagementSettings,
+    ),
+  {
+    ssr: false,
+    loading: () => lazyPanelFallback,
+  },
+);
 
 export function SettingsPageUI({
   filteredTabs,
@@ -149,19 +194,19 @@ export function SettingsPageUI({
 
           <TabsContent value="subscription" className="mt-0 space-y-6">
             <RoleGuard requiredPermission="manageBilling">
-              <SubscriptionSettings />
+              <SubscriptionSettingsLazy />
             </RoleGuard>
           </TabsContent>
 
           <TabsContent value="members" className="mt-0 space-y-6">
             <RoleGuard requiredPermission="manageStaff">
-              <MemberManagementSettings />
+              <MemberManagementSettingsLazy />
             </RoleGuard>
           </TabsContent>
 
           <TabsContent value="availability" className="mt-0 space-y-6">
             <RoleGuard requiredRole="DOCTOR">
-              <DoctorAvailabilitySettings />
+              <DoctorAvailabilitySettingsLazy />
             </RoleGuard>
           </TabsContent>
 
@@ -207,7 +252,7 @@ export function SettingsPageUI({
 
           <TabsContent value="leave" className="mt-0 space-y-6">
             <RoleGuard requiredRole="DOCTOR">
-              <LeaveManagementSettings />
+              <LeaveManagementSettingsLazy />
             </RoleGuard>
           </TabsContent>
         </div>

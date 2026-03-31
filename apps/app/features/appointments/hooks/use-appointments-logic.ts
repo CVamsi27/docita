@@ -12,6 +12,7 @@ import { useClinic } from "@/lib/clinic-context";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   Appointment,
+  isClinicWideAppointmentRole,
   resolveDoctorScopedAppointmentFilter,
 } from "@workspace/types";
 
@@ -60,9 +61,7 @@ export const useAppointmentsLogic = () => {
   const selectedDateStr = date ? date.toISOString().split("T")[0] : undefined;
 
   const canViewAllDoctors = useMemo(
-    () =>
-      user?.role &&
-      ["ADMIN", "ADMIN_DOCTOR", "RECEPTIONIST"].includes(user.role),
+    () => isClinicWideAppointmentRole(user?.role),
     [user?.role],
   );
 

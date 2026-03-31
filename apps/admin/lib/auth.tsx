@@ -10,7 +10,14 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { API_URL } from "./api";
+import { setAuthLogoutCallback } from "./api-client";
+import { API_URL } from "./api-config";
+import {
+  ADMIN_COOKIE_KEY,
+  ADMIN_TOKEN_KEY,
+  ADMIN_USER_KEY,
+  adminSession,
+} from "./session";
 
 interface User {
   id: string;
@@ -33,10 +40,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const TOKEN_KEY = "docita_admin_token";
-const USER_KEY = "docita_admin_user";
-const COOKIE_KEY = "docita_admin_cookie";
 function setCookie(name: string, value: string, days: number) {
   const expires = new Date(Date.now() + days * 864e5).toUTCString();
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
@@ -47,14 +50,15 @@ function deleteCookie(name: string) {
 }
 
 function clearAuthStorage() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  deleteCookie(COOKIE_KEY);
+  adminSession.clearSession();
+  deleteCookie(ADMIN_COOKIE_KEY);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() =>
+    adminSession.getToken(),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -82,7 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return true;
       } catch {
-
         return false;
       }
     },
@@ -94,39 +97,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsMounted(true);
 
       try {
-        const storedToken = localStorage.getItem(TOKEN_KEY);
-        const storedUser = localStorage.getItem(USER_KEY);
+        const storedToken = adminSession.getToken();
+        const storedUser = localStorage.getItem(ADMIN_USER_KEY);
 
         if (storedToken && storedUser) {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser.role === "SUPER_ADMIN") {
-
             const isValid = await validateToken(storedToken);
 
             if (isValid) {
               setToken(storedToken);
               setUser(parsedUser);
-              setCookie(COOKIE_KEY, storedToken, 7);
+              setCookie(ADMIN_COOKIE_KEY, storedToken, 7);
             } else {
-
-              localStorage.removeItem(TOKEN_KEY);
-              localStorage.removeItem(USER_KEY);
-              deleteCookie(COOKIE_KEY);
+              clearAuthStorage();
               setToken(null);
               setUser(null);
               toast.error("Session expired. Please log in again.");
             }
           } else {
-            localStorage.removeItem(TOKEN_KEY);
-            localStorage.removeItem(USER_KEY);
-            deleteCookie(COOKIE_KEY);
+            clearAuthStorage();
           }
         }
       } catch {
-
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
-        deleteCookie(COOKIE_KEY);
+        clearAuthStorage();
       }
 
       setIsLoading(false);
@@ -144,13 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       !!token && !!user && user.role === "SUPER_ADMIN";
 
     if (isProtectedRoute && isAuthenticatedSuperAdmin) {
-
       validateToken(token).then((isValid) => {
         if (!isValid) {
-
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-          deleteCookie(COOKIE_KEY);
+          clearAuthStorage();
           setToken(null);
           setUser(null);
           toast.error("Your session has expired. Please log in again.");
@@ -158,24 +148,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       });
     } else if (isProtectedRoute && !isAuthenticatedSuperAdmin) {
-
       router.replace("/");
     }
   }, [isLoading, isMounted, pathname, token, user, router, validateToken]);
 
   const login = useCallback((newToken: string, newUser: User) => {
-    localStorage.setItem(TOKEN_KEY, newToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(newUser));
-    setCookie(COOKIE_KEY, newToken, 7);
+    adminSession.setToken(newToken);
+    localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(newUser));
+    setCookie(ADMIN_COOKIE_KEY, newToken, 7);
     setToken(newToken);
     setUser(newUser);
   }, []);
 
   const logout = useCallback(
     (reason?: string) => {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      deleteCookie(COOKIE_KEY);
+      clearAuthStorage();
       setToken(null);
       setUser(null);
 
@@ -187,6 +174,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [router],
   );
+
+  useEffect(() => {
+    setAuthLogoutCallback((reason) => logout(reason));
+    return () => setAuthLogoutCallback(null);
+  }, [logout]);
 
   if (!isMounted || isLoading) {
     return (

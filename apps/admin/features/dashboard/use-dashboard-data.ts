@@ -8,17 +8,17 @@ import {
 } from "./types";
 
 export function useDashboardData() {
-  const { token, logout } = useAuth();
+  const { token } = useAuth();
 
   const clinicsQuery = useQuery({
     queryKey: ["super-admin", "dashboard", "clinics", token],
-    queryFn: () => fetchDashboardClinics(token!, logout),
+    queryFn: fetchDashboardClinics,
     enabled: Boolean(token),
   });
 
   const statsQuery = useQuery({
     queryKey: ["super-admin", "dashboard", "stats", token],
-    queryFn: () => fetchDashboardStats(token!, logout),
+    queryFn: fetchDashboardStats,
     enabled: Boolean(token),
   });
 

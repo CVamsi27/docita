@@ -21,10 +21,15 @@
     "db:check-integrity": "npx ts-node scripts/check-integrity.ts",
     "db:backup": "bash scripts/safe-migrate.sh backup",
     "db:studio": "prisma studio",
-    "db:analyze-indexes": "npx ts-node scripts/analyze-indexes.ts"
+    "db:analyze-indexes": "npx ts-node scripts/analyze-indexes.ts",
+    "db:profile-queries": "npx ts-node scripts/profile-queries.ts",
+    "db:check-query-plans": "npx ts-node scripts/check-query-plans.ts",
+    "db:validate-feedback-backfill": "npx ts-node scripts/validate-feedback-feature-backfill.ts",
+    "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:check-query-plans"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "dotenv": "^16.6.1",
     "prisma": "^7.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"

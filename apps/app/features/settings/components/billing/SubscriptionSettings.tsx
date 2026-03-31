@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useBillingHistory } from "@/hooks/api/use-billing-history";
 import {
   Feature,
   FEATURE_TIER_MAP,
@@ -35,7 +36,6 @@ import {
   PaymentSuccessModal,
 } from "@/features/subscription/components";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
-import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -63,32 +63,8 @@ import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 
-interface Invoice {
-  id: string;
-  amountCents: number;
-  currency: string;
-  status: string;
-  createdAt: string;
-  invoiceUrl?: string | null;
-  description?: string;
-}
-
 function BillingHistory() {
-  const { token } = useAuth();
-
-  const { data: invoices, isLoading } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: async () => {
-      const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-      const res = await fetch(`${apiUrl}/subscription/billing/payments`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch billing history");
-      return res.json() as Promise<Invoice[]>;
-    },
-    enabled: !!token,
-  });
+  const { data: invoices, isLoading } = useBillingHistory();
 
   const handleDownload = (invoiceUrl: string) => {
     window.open(invoiceUrl, "_blank");

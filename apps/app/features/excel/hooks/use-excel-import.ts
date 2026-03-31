@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
 import { useAppConfig } from "@/lib/app-config-context";
+import { fetchWithSession } from "@/lib/fetch-with-session";
 
 export interface ColumnMapping {
   excelColumn: string;
@@ -33,7 +33,6 @@ export interface ImportResult {
 export type Step = "upload" | "mapping" | "importing" | "results";
 
 export const useExcelImport = () => {
-  const { token } = useAuth();
   const { config } = useAppConfig();
 
   const DB_FIELDS =
@@ -103,9 +102,6 @@ export const useExcelImport = () => {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [importProgress, setImportProgress] = useState(0);
 
-  const apiUrl =
-    process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -126,11 +122,8 @@ export const useExcelImport = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(`${apiUrl}/imports/preview`, {
+      const response = await fetchWithSession("/imports/preview", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
 
@@ -183,13 +176,12 @@ export const useExcelImport = () => {
         setImportProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
 
-      const response = await fetch(
-        `${apiUrl}/imports/patients/${preview.sessionId}`,
+      const response = await fetchWithSession(
+        `/imports/patients/${preview.sessionId}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ columnMapping: columnMappings }),
         },

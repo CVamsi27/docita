@@ -26,7 +26,7 @@ export default function AppleIcon() {
         <rect width="32" height="32" rx="8" fill="#ffffff" />
         <path
           d={ECG_PATH}
-          stroke="#050505"
+          stroke="#0f172a"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
