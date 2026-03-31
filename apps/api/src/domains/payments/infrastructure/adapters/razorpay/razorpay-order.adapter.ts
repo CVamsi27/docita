@@ -78,7 +78,57 @@ export class RazorpayOrderAdapter
   }
 
   async capturePayment(orderId: string): Promise<PaymentGatewayPayment> {
-    throw new Error('Manual capture not implemented for Razorpay orders');
+    try {
+      const razorpay = this.getClient();
+      const paymentsResponse = await razorpay.orders.fetchPayments(orderId);
+      const payments = Array.isArray(paymentsResponse.items)
+        ? paymentsResponse.items
+        : [];
+
+      if (!payments.length) {
+        throw new BadRequestException('No payments found for the given order');
+      }
+
+      const existingCapturedPayment = payments.find(
+        (payment) => payment.status === 'captured',
+      );
+      if (existingCapturedPayment) {
+        return this.toPaymentGatewayPayment(existingCapturedPayment);
+      }
+
+      const authorizedPayment = payments.find(
+        (payment) => payment.status === 'authorized',
+      );
+
+      if (!authorizedPayment) {
+        throw new BadRequestException(
+          'No capturable payment found for the given order',
+        );
+      }
+
+      const amountInCents =
+        typeof authorizedPayment.amount === 'number'
+          ? authorizedPayment.amount
+          : parseInt(authorizedPayment.amount, 10);
+
+      const capturedPayment = await razorpay.payments.capture(
+        authorizedPayment.id,
+        amountInCents,
+        authorizedPayment.currency,
+      );
+
+      return this.toPaymentGatewayPayment(capturedPayment);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      this.logger.error(
+        `Failed to capture payment for order ${orderId}`,
+        error,
+      );
+      throw new BadRequestException('Failed to capture payment');
+    }
   }
 
   async verifyPayment(
@@ -110,22 +160,7 @@ export class RazorpayOrderAdapter
 
       return {
         verified: true,
-        payment: {
-          id: payment.id,
-          orderId: payment.order_id,
-          amount: Money.fromCents(
-            typeof payment.amount === 'number'
-              ? payment.amount
-              : parseInt(payment.amount, 10),
-            payment.currency,
-          ),
-          status: payment.status,
-          method: payment.method,
-          capturedAt: payment.captured
-            ? new Date(payment.created_at * 1000)
-            : undefined,
-          metadata: payment.notes,
-        },
+        payment: this.toPaymentGatewayPayment(payment),
       };
     } catch (error) {
       this.logger.error('Failed to verify payment', error);
@@ -138,5 +173,34 @@ export class RazorpayOrderAdapter
       return false;
     }
     return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  }
+
+  private toPaymentGatewayPayment(payment: {
+    id: string;
+    order_id: string;
+    amount: number | string;
+    currency: string;
+    status: string;
+    method: string;
+    captured?: boolean;
+    created_at: number;
+    notes?: Record<string, unknown>;
+  }): PaymentGatewayPayment {
+    return {
+      id: payment.id,
+      orderId: payment.order_id,
+      amount: Money.fromCents(
+        typeof payment.amount === 'number'
+          ? payment.amount
+          : parseInt(payment.amount, 10),
+        payment.currency,
+      ),
+      status: payment.status,
+      method: payment.method,
+      capturedAt: payment.captured
+        ? new Date(payment.created_at * 1000)
+        : undefined,
+      metadata: payment.notes,
+    };
   }
 }

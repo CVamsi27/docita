@@ -10,7 +10,8 @@ import {
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { Role } from '@workspace/db';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { WhatsAppQueryService } from '@/domains/whatsapp/application/services/whatsapp-query.service';
 import { RequestWithUser } from '@/common/types/common.types';
@@ -19,10 +20,16 @@ import {
   SendWhatsAppMessageResponseDto,
 } from '@/domains/whatsapp/application/dto/whatsapp.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
 
 @Controller('whatsapp-v2')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR, Role.RECEPTIONIST)
+@UseGuards(JwtAuthGuard, RolesGuard, TierGuard)
+@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
 export class WhatsAppController {
   constructor(
     private readonly sendMessageUseCase: SendMessageUseCase,

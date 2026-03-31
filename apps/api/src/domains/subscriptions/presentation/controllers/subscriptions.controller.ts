@@ -9,6 +9,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   CreateSubscriptionUseCase,
   UpgradeSubscriptionUseCase,
@@ -33,8 +34,18 @@ import {
   SubscriptionCancelRequestDto,
   SubscriptionCheckoutRequestDto,
 } from '@/domains/subscriptions/application/dto/subscriptions-controller.dto';
+import {
+  SubscriptionBillingActivateRequestDto,
+  SubscriptionBillingCancelRequestDto,
+  SubscriptionBillingCheckoutRequestDto,
+  SubscriptionBillingPaymentHistoryResponseDto,
+  SubscriptionBillingPreviewQueryDto,
+} from '@/domains/subscriptions/application/dto/subscriptions-billing.dto';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
+import { APP_ACCESS_TARGETS, currentUsageSchema } from '@workspace/types';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
+import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller(['subscriptions', 'subscription'])
 @SkipSubscriptionCheck()
@@ -73,7 +84,12 @@ export class SubscriptionsController {
     if (!req.user?.clinicId) {
       throw new Error('Clinic ID not found');
     }
-    return this.usageTrackingService.getCurrentUsage(req.user.clinicId);
+    const usage = await this.usageTrackingService.getCurrentUsage(
+      req.user.clinicId,
+    );
+    return currentUsageSchema.parse(
+      JSON.parse(JSON.stringify(usage)) as unknown,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -130,6 +146,7 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('billing')
   async getBillingStatus(@Request() req: RequestWithUser) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
@@ -137,7 +154,9 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('billing/payments')
+  @ZodSerializerDto(SubscriptionBillingPaymentHistoryResponseDto)
   async getPaymentHistory(@Request() req: RequestWithUser) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     const payments = (await this.queryService.getPaymentHistory(
@@ -146,26 +165,37 @@ export class SubscriptionsController {
       id?: string;
       amountCents: number;
       currency: string;
+      status?: string;
+      invoiceUrl?: string | null;
+      invoiceNumber?: string | null;
+      description?: string | null;
+      paidAt?: Date | null;
       createdAt: Date;
-      getStatus: () => unknown;
+      getStatus?: () => unknown;
     }>;
     return payments.map((p) => ({
       id: p.id,
-      amount: p.amountCents / 100,
+      amountCents: p.amountCents,
+      amount: p.amountCents / 100, // legacy alias
       currency: p.currency,
-      status: String(p.getStatus()),
+      status: p.status ?? String(p.getStatus?.() ?? 'pending'),
+      description: p.description ?? undefined,
+      invoiceUrl: p.invoiceUrl ?? undefined,
+      invoiceNumber: p.invoiceNumber ?? undefined,
+      paidAt: p.paidAt ? p.paidAt.toISOString() : undefined,
       createdAt: p.createdAt.toISOString(),
     }));
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Get('billing/preview')
   async getBillingPreview(
     @Request() req: RequestWithUser,
-    @Query('tier') tier: string,
-    @Query('cycle') cycle: string,
+    @Query() query: SubscriptionBillingPreviewQueryDto,
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
+    const { tier, cycle } = query;
     const subscription = await this.queryService.getSubscriptionDetails(
       req.user.clinicId,
     );
@@ -224,15 +254,11 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Post('billing/checkout')
   async billingCheckout(
     @Request() req: RequestWithUser,
-    @Body()
-    body: {
-      tier: string;
-      billingCycle: string;
-      referralCode?: string;
-    },
+    @Body() body: SubscriptionBillingCheckoutRequestDto,
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     try {
@@ -253,17 +279,11 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Post('billing/activate')
   async billingActivate(
     @Request() req: RequestWithUser,
-    @Body()
-    body: {
-      razorpayPaymentId: string;
-      razorpayOrderId: string;
-      razorpaySignature: string;
-      tier: string;
-      billingCycle: string;
-    },
+    @Body() body: SubscriptionBillingActivateRequestDto,
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     await this.activateSubscriptionUseCase.execute({
@@ -278,10 +298,11 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Post('billing/cancel')
   async billingCancel(
     @Request() req: RequestWithUser,
-    @Body() body: { immediate?: boolean },
+    @Body() body: SubscriptionBillingCancelRequestDto,
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     return this.cancelSubscriptionUseCase.execute({

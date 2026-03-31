@@ -127,9 +127,8 @@ export class ResponseHandlerService {
 
     const responseType = this.parseResponse(responseText);
     const delayMinutes = this.extractDelayMinutes(responseText);
-    const pendingDelayResponse = await this.findPendingDelayResponse(
-      appointmentId,
-    );
+    const pendingDelayResponse =
+      await this.findPendingDelayResponse(appointmentId);
 
     if (
       pendingDelayResponse &&
@@ -302,18 +301,12 @@ export class ResponseHandlerService {
       conflict.conflictDetected,
     );
 
-    await this.notifyStaff(
-      appointment,
-      'DELAY',
-      responseText,
-      responseId,
-      {
-        delayMinutes,
-        delayMinutesPending: false,
-        conflictDetected: conflict.conflictDetected,
-        nextAppointmentTime: conflict.nextAppointmentTime,
-      },
-    );
+    await this.notifyStaff(appointment, 'DELAY', responseText, responseId, {
+      delayMinutes,
+      delayMinutesPending: false,
+      conflictDetected: conflict.conflictDetected,
+      nextAppointmentTime: conflict.nextAppointmentTime,
+    });
   }
 
   private async evaluateDelayConflict(

@@ -39,7 +39,26 @@ export function setupTestDatabase() {
       },
       stdio: 'pipe',
     });
-  } catch (_e) {}
+  } catch (error) {
+    const execError = error as {
+      message?: string;
+      stderr?: Buffer;
+      stdout?: Buffer;
+    };
+    const stderr = execError.stderr?.toString().trim();
+    const stdout = execError.stdout?.toString().trim();
+    throw new Error(
+      [
+        'Failed to prepare test database with `prisma db push --force-reset`.',
+        `DATABASE_URL=${testDbUrl}`,
+        stderr ? `stderr: ${stderr}` : undefined,
+        stdout ? `stdout: ${stdout}` : undefined,
+        execError.message ? `error: ${execError.message}` : undefined,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    );
+  }
 
   return prisma;
 }

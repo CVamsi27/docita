@@ -5,18 +5,24 @@ import { ReminderHistoryService } from './reminder-history.service';
 
 describe('RemindersService (Facade)', () => {
   let service: RemindersService;
-  let settingsService: jest.Mocked<ReminderSettingsService>;
-  let historyService: jest.Mocked<ReminderHistoryService>;
+  let settingsService: {
+    getSettings: jest.Mock;
+    updateSettings: jest.Mock;
+  };
+  let historyService: {
+    sendManualReminder: jest.Mock;
+    getReminderHistory: jest.Mock;
+  };
 
   beforeEach(async () => {
     const settingsServiceMock = {
-      getSettings: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      updateSettings: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      getSettings: jest.fn(),
+      updateSettings: jest.fn(),
     };
 
     const historyServiceMock = {
-      sendManualReminder: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      getReminderHistory: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      sendManualReminder: jest.fn(),
+      getReminderHistory: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -34,18 +40,25 @@ describe('RemindersService (Facade)', () => {
     }).compile();
 
     service = module.get<RemindersService>(RemindersService);
-    settingsService = module.get(ReminderSettingsService);
-    historyService = module.get(ReminderHistoryService);
+    settingsService = module.get(ReminderSettingsService) as {
+      getSettings: jest.Mock;
+      updateSettings: jest.Mock;
+    };
+    historyService = module.get(ReminderHistoryService) as {
+      sendManualReminder: jest.Mock;
+      getReminderHistory: jest.Mock;
+    };
   });
 
   describe('getSettings', () => {
     it('should delegate to ReminderSettingsService and return settings', async () => {
       const mockSettings = {
         id: 'clinic-1',
-        enableSMS: true,
-        enableEmail: true,
-        enableWhatsApp: true,
-        reminderTiming: [1440, 60, 0],
+        enabled: true,
+        smsEnabled: true,
+        emailEnabled: true,
+        whatsappEnabled: true,
+        hoursBeforeAppt: 24,
       };
 
       settingsService.getSettings.mockResolvedValue(mockSettings);
@@ -68,8 +81,8 @@ describe('RemindersService (Facade)', () => {
   describe('updateSettings', () => {
     it('should delegate to ReminderSettingsService with provided data', async () => {
       const updateData = {
-        enableSMS: false,
-        reminderTiming: [1440, 120, 30],
+        smsEnabled: false,
+        hoursBeforeAppt: 12,
       };
 
       const mockResponse = {
@@ -94,7 +107,7 @@ describe('RemindersService (Facade)', () => {
       );
 
       await expect(
-        service.updateSettings({ reminderTiming: [-1, 0] }),
+        service.updateSettings({ hoursBeforeAppt: 0 }),
       ).rejects.toThrow('Invalid reminder timing');
     });
   });
@@ -104,7 +117,10 @@ describe('RemindersService (Facade)', () => {
       const appointmentId = 'appt-123';
       const reminderType = 'email';
 
-      historyService.sendManualReminder.mockResolvedValue(undefined);
+      historyService.sendManualReminder.mockResolvedValue({
+        success: true,
+        message: 'email reminder sent',
+      });
 
       await service.sendManualReminder(appointmentId, reminderType as never);
 
@@ -125,7 +141,10 @@ describe('RemindersService (Facade)', () => {
     });
 
     it('should support email reminder type', async () => {
-      historyService.sendManualReminder.mockResolvedValue(undefined);
+      historyService.sendManualReminder.mockResolvedValue({
+        success: true,
+        message: 'email reminder sent',
+      });
 
       await service.sendManualReminder('appt-1', 'email' as never);
 
@@ -136,7 +155,10 @@ describe('RemindersService (Facade)', () => {
     });
 
     it('should support SMS reminder type', async () => {
-      historyService.sendManualReminder.mockResolvedValue(undefined);
+      historyService.sendManualReminder.mockResolvedValue({
+        success: true,
+        message: 'sms reminder sent',
+      });
 
       await service.sendManualReminder('appt-1', 'sms' as never);
 
@@ -147,7 +169,10 @@ describe('RemindersService (Facade)', () => {
     });
 
     it('should support WhatsApp reminder type', async () => {
-      historyService.sendManualReminder.mockResolvedValue(undefined);
+      historyService.sendManualReminder.mockResolvedValue({
+        success: true,
+        message: 'whatsapp reminder sent',
+      });
 
       await service.sendManualReminder('appt-1', 'whatsapp' as never);
 
@@ -168,6 +193,13 @@ describe('RemindersService (Facade)', () => {
           sentAt: new Date('2024-01-01'),
           type: 'sms',
           status: 'sent',
+          appointment: {
+            id: 'appt-1',
+            patient: {
+              firstName: 'John',
+              lastName: 'Doe',
+            },
+          },
         },
         {
           id: 'reminder-2',
@@ -175,6 +207,13 @@ describe('RemindersService (Facade)', () => {
           sentAt: new Date('2024-01-02'),
           type: 'email',
           status: 'failed',
+          appointment: {
+            id: 'appt-2',
+            patient: {
+              firstName: 'Jane',
+              lastName: 'Doe',
+            },
+          },
         },
       ];
 

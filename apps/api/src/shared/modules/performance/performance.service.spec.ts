@@ -5,7 +5,9 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('PerformanceService', () => {
   let service: PerformanceService;
-  let prismaService: PrismaService;
+  let prismaService: {
+    $queryRaw: ReturnType<typeof jest.fn>;
+  };
 
   const mockPrismaService = {
     $queryRaw: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -23,7 +25,7 @@ describe('PerformanceService', () => {
     }).compile();
 
     service = module.get<PerformanceService>(PerformanceService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get(PrismaService) as typeof prismaService;
 
     jest.clearAllMocks();
   });
@@ -143,59 +145,43 @@ describe('PerformanceService', () => {
     });
 
     it('should format uptime with days when uptime is high', () => {
-      const _originalUptime = process.uptime;
-      jest.spyOn(process, 'uptime').mockReturnValue(90000);
+      const uptimeSpy = jest.spyOn(process, 'uptime').mockReturnValue(90000);
 
       const result = service.getMetrics();
 
       expect(result.uptime.formatted).toContain('d');
-
-      (
-        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
-      ).mockRestore();
+      uptimeSpy.mockRestore();
     });
 
     it('should format uptime with hours and minutes', () => {
-      const _originalUptime = process.uptime;
-      jest.spyOn(process, 'uptime').mockReturnValue(3665);
+      const uptimeSpy = jest.spyOn(process, 'uptime').mockReturnValue(3665);
 
       const result = service.getMetrics();
 
       expect(result.uptime.formatted).toContain('h');
       expect(result.uptime.formatted).toContain('m');
       expect(result.uptime.formatted).toContain('s');
-
-      (
-        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
-      ).mockRestore();
+      uptimeSpy.mockRestore();
     });
 
     it('should format uptime with only seconds when uptime is low', () => {
-      const _originalUptime = process.uptime;
-      jest.spyOn(process, 'uptime').mockReturnValue(30);
+      const uptimeSpy = jest.spyOn(process, 'uptime').mockReturnValue(30);
 
       const result = service.getMetrics();
 
       expect(result.uptime.formatted).toBe('30s');
       expect(result.uptime.formatted).not.toContain('m');
       expect(result.uptime.formatted).not.toContain('h');
-
-      (
-        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
-      ).mockRestore();
+      uptimeSpy.mockRestore();
     });
 
     it('should show 0s for zero uptime', () => {
-      const _originalUptime = process.uptime;
-      jest.spyOn(process, 'uptime').mockReturnValue(0);
+      const uptimeSpy = jest.spyOn(process, 'uptime').mockReturnValue(0);
 
       const result = service.getMetrics();
 
       expect(result.uptime.formatted).toBe('0s');
-
-      (
-        process.uptime as jest.Mock<(...args: unknown[]) => Promise<unknown>>
-      ).mockRestore();
+      uptimeSpy.mockRestore();
     });
   });
 

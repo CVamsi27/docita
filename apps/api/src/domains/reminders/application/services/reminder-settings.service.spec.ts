@@ -3,17 +3,26 @@ import { ReminderSettingsService } from './reminder-settings.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
+type PrismaReminderSettingsMock = {
+  reminderSettings: {
+    findUnique: ReturnType<typeof jest.fn>;
+    findFirst: ReturnType<typeof jest.fn>;
+    create: ReturnType<typeof jest.fn>;
+    update: ReturnType<typeof jest.fn>;
+  };
+};
+
 describe('ReminderSettingsService', () => {
   let service: ReminderSettingsService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: PrismaReminderSettingsMock;
 
   beforeEach(async () => {
-    const prismaMock = {
+    const prismaMock: PrismaReminderSettingsMock = {
       reminderSettings: {
-        findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
       },
     };
 
@@ -28,7 +37,7 @@ describe('ReminderSettingsService', () => {
     }).compile();
 
     service = module.get<ReminderSettingsService>(ReminderSettingsService);
-    prisma = module.get(PrismaService);
+    prisma = module.get(PrismaService) as PrismaReminderSettingsMock;
   });
 
   describe('getSettings', () => {

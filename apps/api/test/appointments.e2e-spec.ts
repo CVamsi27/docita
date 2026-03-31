@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
+import { Clinic, Patient, PrismaClient, User } from '@workspace/db';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
@@ -14,11 +15,11 @@ import { factories, setPrismaInstance } from './factories';
 
 describe('AppointmentsController (e2e)', () => {
   let app: INestApplication;
-  let prisma;
-  let clinic;
-  let doctor;
-  let patient;
-  let jwtToken;
+  let prisma: PrismaClient;
+  let clinic: Clinic;
+  let doctor: User;
+  let patient: Patient;
+  let jwtToken: string;
 
   beforeAll(async () => {
     prisma = setupTestDatabase();
@@ -146,6 +147,108 @@ describe('AppointmentsController (e2e)', () => {
       expect(response.body.message).toContain(
         'Doctors can only access their appointments',
       );
+    });
+  });
+
+  describe('/appointments/:id/start-consultation (POST)', () => {
+    it('should start consultation for the assigned doctor and update queue token', async () => {
+      const appointment = await factories.appointment(
+        patient.id,
+        doctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 7200000),
+          endTime: new Date(Date.now() + 9000000),
+        },
+      );
+
+      await prisma.queueToken.create({
+        data: {
+          clinicId: clinic.id,
+          appointmentId: appointment.id,
+          patientId: patient.id,
+          doctorId: doctor.id,
+          tokenNumber: 1,
+          tokenType: 'scheduled',
+          status: 'WAITING',
+          scheduledTime: appointment.startTime,
+          estimatedDuration: 15,
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`/appointments/${appointment.id}/start-consultation`)
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .expect(201);
+
+      expect(response.body).toEqual({
+        appointmentId: appointment.id,
+        status: 'in-progress',
+      });
+
+      const updatedAppointment = await prisma.appointment.findUnique({
+        where: { id: appointment.id },
+      });
+      expect(updatedAppointment?.status).toBe('IN_PROGRESS');
+
+      const updatedQueueToken = await prisma.queueToken.findUnique({
+        where: { appointmentId: appointment.id },
+      });
+      expect(updatedQueueToken?.status).toBe('IN_PROGRESS');
+      expect(updatedQueueToken?.consultationStart).toBeTruthy();
+    });
+
+    it('should reject another clinician starting someone else’s consultation', async () => {
+      const { user: secondDoctor } = await factories.user({
+        clinicId: clinic.id,
+        role: 'DOCTOR',
+      });
+
+      const appointment = await factories.appointment(
+        patient.id,
+        secondDoctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 10800000),
+          endTime: new Date(Date.now() + 12600000),
+        },
+      );
+
+      const response = await request(app.getHttpServer())
+        .post(`/appointments/${appointment.id}/start-consultation`)
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .expect(403);
+
+      expect(response.body.message).toContain(
+        'Only the assigned doctor can start this consultation',
+      );
+    });
+
+    it('should reject non-clinical roles from starting consultations', async () => {
+      const { user: receptionist, plainPassword } = await factories.user({
+        clinicId: clinic.id,
+        role: 'RECEPTIONIST',
+      });
+
+      const loginRes = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: receptionist.email, password: plainPassword })
+        .expect(201);
+
+      const appointment = await factories.appointment(
+        patient.id,
+        doctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 14400000),
+          endTime: new Date(Date.now() + 16200000),
+        },
+      );
+
+      await request(app.getHttpServer())
+        .post(`/appointments/${appointment.id}/start-consultation`)
+        .set('Authorization', `Bearer ${loginRes.body.access_token}`)
+        .expect(403);
     });
   });
 });

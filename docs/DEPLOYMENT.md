@@ -4,8 +4,8 @@
 
 - Frontend
   - `apps/app`: Cloudflare (OpenNext)
-  - `apps/admin`: Vercel
-  - `apps/landing`: Vercel
+  - `apps/admin`: Cloudflare Workers (OpenNext)
+  - `apps/landing`: Cloudflare Workers (OpenNext)
 - Backend
   - `apps/api`: Render Web Service
 - Database
@@ -19,11 +19,23 @@ This is the active production strategy.
 - Use Render database `DATABASE_URL` for API runtime.
 - Keep API health checks on `GET /api/health/live`.
 - Keep frontend API URLs pointed to the deployed Render API URL.
+- Keep each Worker entry bundle under Cloudflare's 3 MB limit. Use
+  `node scripts/check-worker-size.mjs` after OpenNext builds.
+- Deploy order: API first, then `apps/app`, `apps/admin`, and `apps/landing`.
+- Keep `open-next.config.ts` and `wrangler.toml` in sync for each frontend app.
+
+## Release Gates
+
+- `pnpm lint`
+- `pnpm build`
+- `pnpm test`
+- `pnpm --filter @docita/api run test:e2e`
+- `pnpm build:app:cloudflare && pnpm build:admin:cloudflare && pnpm build:landing:cloudflare`
 
 ## Migration Target (Planned)
 
 - Frontend
-  - Vercel + Cloudflare (as needed per app/runtime)
+  - Cloudflare Workers (frontend)
 - Backend
   - AWS App Runner (intermediate)
   - AWS ECS in Hyderabad (target steady state)
@@ -39,6 +51,14 @@ This is the active production strategy.
 3. Keep migration steps idempotent (`prisma migrate deploy`).
 4. Keep health/readiness probes stable across platforms.
 5. Keep infrastructure docs split by current and future states.
+
+## Frontend Quick Guide
+
+- Build `apps/app` with `pnpm build:app:cloudflare`.
+- Build `apps/admin` with `pnpm build:admin:cloudflare`.
+- Build `apps/landing` with `pnpm build:landing:cloudflare`.
+- Preview each Worker locally with the matching `preview:*:cloudflare` script.
+- Deploy each Worker with the matching `deploy:*:cloudflare` script.
 
 ## Render Quick Guide
 

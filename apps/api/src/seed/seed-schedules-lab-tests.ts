@@ -26,6 +26,10 @@ export async function seedSchedulesAndLabTests(
     where: { doctorId: { in: [doctor1Id, doctor2Id, doctor3Id] } },
   });
 
+  await prisma.labTest.deleteMany({
+    where: { clinicId },
+  });
+
   await prisma.doctorSchedule.createMany({
     data: [
       ...daysOfWeek.map((day) => ({

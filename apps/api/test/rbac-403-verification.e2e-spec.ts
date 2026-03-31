@@ -80,7 +80,9 @@ describe.skip('RBAC 403 Forbidden Responses (e2e)', () => {
         firstName: 'Test',
         lastName: 'Patient',
         email: 'patient@test.com',
-        phone: '1234567890',
+        phoneNumber: '1234567890',
+        dateOfBirth: new Date('1990-01-01'),
+        gender: 'MALE',
       },
     });
 
@@ -92,9 +94,11 @@ describe.skip('RBAC 403 Forbidden Responses (e2e)', () => {
       data: {
         clinicId: testClinic.id,
         patientId: testPatient.id,
+        doctorId: doctorUser.id,
         startTime,
         endTime,
         status: 'SCHEDULED',
+        type: 'consultation',
       },
     });
   });
@@ -209,16 +213,19 @@ describe.skip('RBAC 403 Forbidden Responses (e2e)', () => {
     it('should return 403 when STAFF tries to update prescription', async () => {
       const prescription = await prisma.prescription.create({
         data: {
-          clinicId: testClinic.id,
+          appointmentId: testAppointment.id,
           patientId: testPatient.id,
-          medications: [
-            {
-              name: 'Aspirin',
-              dosage: '500mg',
-              frequency: 'twice daily',
-              duration: '7 days',
-            },
-          ],
+          doctorId: doctorUser.id,
+          medications: {
+            create: [
+              {
+                name: 'Aspirin',
+                dosage: '500mg',
+                frequency: 'twice daily',
+                duration: '7 days',
+              },
+            ],
+          },
         },
       });
 
@@ -265,7 +272,6 @@ describe.skip('RBAC 403 Forbidden Responses (e2e)', () => {
     it('should return 403 when STAFF tries to mark invoice as paid', async () => {
       const invoice = await prisma.invoice.create({
         data: {
-          clinicId: testClinic.id,
           patientId: testPatient.id,
           items: [
             {

@@ -6,6 +6,7 @@ import {
   PricingConfigQueryDto,
   PricingEstimateQueryDto,
 } from '@/domains/billing/application/dto/pricing.dto';
+import { pricingEstimateResponseSchema } from '@workspace/types';
 
 @ApiTags('pricing')
 @Controller('pricing')
@@ -30,7 +31,7 @@ export class PricingController {
   @ApiQuery({
     name: 'tier',
     required: true,
-    description: 'Tier ID (CAPTURE, CORE, PLUS, PRO, ENTERPRISE)',
+    description: 'Tier ID (STARTER, ESSENTIAL, PROFESSIONAL, ENTERPRISE)',
   })
   @ApiQuery({
     name: 'currency',
@@ -40,17 +41,17 @@ export class PricingController {
   @ApiQuery({
     name: 'billingCycle',
     required: false,
-    description: 'monthly, quarterly, semi_annual, or yearly',
+    description: 'monthly or yearly',
   })
   @ApiQuery({
-    name: 'patients',
+    name: 'consultations',
     required: false,
-    description: 'Expected active patients',
+    description: 'Expected completed consultations per month',
   })
   @ApiQuery({
     name: 'appointments',
     required: false,
-    description: 'Expected appointments per month',
+    description: 'Legacy alias for consultations',
   })
   @ApiQuery({ name: 'users', required: false, description: 'Number of users' })
   @ApiQuery({
@@ -64,28 +65,24 @@ export class PricingController {
     required: false,
     description: 'Expected WhatsApp messages per month for overage estimate',
   })
-  @ApiQuery({
-    name: 'intelligence',
-    required: false,
-    description: 'Include AI features in the estimate (true/false)',
+  @ApiResponse({
+    status: 200,
+    description:
+      'Price estimate with billable meters: consultations, users, WhatsApp messages',
   })
-  @ApiQuery({
-    name: 'aiCredits',
-    required: false,
-    description: 'Expected AI credits per month',
-  })
-  @ApiResponse({ status: 200, description: 'Price estimate' })
   calculateEstimate(@Query() query: PricingEstimateQueryDto) {
-    return this.pricingService.calculateEstimate({
+    const result = this.pricingService.calculateEstimate({
       tier: query.tier,
       currency: query.currency,
       billingCycle: query.billingCycle || 'monthly',
-      patients: query.patients,
+      consultations: query.consultations,
       appointments: query.appointments,
       users: query.users,
       whatsappMessages: query.whatsappMessages,
-      intelligence: query.intelligence === 'true',
-      aiCredits: query.aiCredits,
     });
+    if ('breakdown' in result) {
+      return pricingEstimateResponseSchema.parse(result);
+    }
+    return result;
   }
 }

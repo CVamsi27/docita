@@ -369,6 +369,7 @@ export const INVOICE_DETAIL_SELECT = {
           address: true,
           phone: true,
           email: true,
+          slaSignatureUrl: true,
           settings: true,
         },
       },

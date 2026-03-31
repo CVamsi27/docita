@@ -14,8 +14,10 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { LeaveService } from '@/domains/leave/application/services/leave.service';
+import { Feature } from '@workspace/types';
 import {
   ALL_STAFF_ROLES,
   CLINIC_ADMIN_ROLES as ADMIN_ROLES,
@@ -24,6 +26,7 @@ import {
 @ApiTags('leaves')
 @Controller('leaves')
 @UseGuards(TierGuard)
+@RequireFeature(Feature.LEAVE_MANAGEMENT)
 @Roles(...ALL_STAFF_ROLES)
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}

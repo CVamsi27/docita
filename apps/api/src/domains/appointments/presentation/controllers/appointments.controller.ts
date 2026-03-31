@@ -15,12 +15,14 @@ import { AppointmentService } from '@/domains/appointments/application/services/
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   Feature,
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
 import {
   CreateAppointmentDto,
@@ -66,7 +68,7 @@ const parseAppointmentStatus = (
 @Controller('appointments')
 @UseGuards(TierGuard)
 @RequireFeature(Feature.CALENDAR_SLOTS)
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
 export class AppointmentsController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
@@ -172,6 +174,20 @@ export class AppointmentsController {
       id,
       req.user!.clinicId!,
       body as never,
+      this.getAccessContext(req),
+    );
+  }
+
+  @Post(':id/start-consultation')
+  @Roles(Role.DOCTOR, Role.ADMIN_DOCTOR)
+  @ApiOperation({ summary: 'Start a consultation for the assigned doctor' })
+  async startConsultation(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.appointmentService.startConsultation(
+      id,
+      req.user!.clinicId!,
       this.getAccessContext(req),
     );
   }

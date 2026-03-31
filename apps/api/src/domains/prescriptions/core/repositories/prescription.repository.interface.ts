@@ -41,6 +41,13 @@ export interface PrescriptionDetail extends Prescription {
       address: string | null;
     };
   };
+  doctor?: {
+    id: string;
+    name: string;
+    qualification: string | null;
+    registrationNumber: string | null;
+    signatureUrl: string | null;
+  };
 }
 
 export interface PatientWithAllergies {

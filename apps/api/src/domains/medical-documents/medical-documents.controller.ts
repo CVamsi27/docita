@@ -8,11 +8,25 @@ import {
   Body,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { MedicalDocumentsService } from './medical-documents.service';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
 
 @Controller('medical-documents')
+@UseGuards(TierGuard)
+@RequireFeature(
+  requireFeatureForTarget(APP_ACCESS_TARGETS.API_MEDICAL_DOCUMENTS),
+)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_MEDICAL_DOCUMENTS))
 export class MedicalDocumentsController {
   constructor(private readonly service: MedicalDocumentsService) {}
 

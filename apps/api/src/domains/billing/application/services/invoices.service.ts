@@ -283,6 +283,8 @@ export class InvoicesService {
             qualification: invoice.doctorSpecialization || undefined,
             registrationNumber: invoice.doctorRegistrationNumber || undefined,
           },
+      authorizedSignatureUrl: clinic.slaSignatureUrl || undefined,
+      authorizedSignatureLabel: 'Authorized Signature',
       items: items.map((item) => ({
         description: item.description,
         quantity: item.quantity,

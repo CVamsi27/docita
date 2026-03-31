@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": "(app|appointments|auth|clinic-members|compliance|csrf|dashboard|idempotency|rbac)\\.e2e-spec\\.ts$",
+  "testRegex": ".*\\.e2e-spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": [
       "ts-jest",
@@ -39,15 +39,7 @@
   "testTimeout": 30000,
   "testPathIgnorePatterns": [
     "/node_modules/",
-    "/dist/",
-    "critical-user-flow\\.e2e-spec\\.ts$",
-    "rbac-authorization\\.e2e-spec\\.ts$",
-    "rbac-403-verification\\.e2e-spec\\.ts$",
-    "patients\\.e2e-spec\\.ts$",
-    "invoices\\.e2e-spec\\.ts$",
-    "prescriptions\\.e2e-spec\\.ts$",
-    "subscription\\.e2e-spec\\.ts$"
+    "/dist/"
   ],
-  "maxWorkers": 1,
-  "forceExit": true
+  "maxWorkers": 1
 }

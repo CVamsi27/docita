@@ -271,9 +271,9 @@ export class PrescriptionsService {
       },
       doctor: {
         name: prescription.doctorName,
-        qualification: undefined,
+        qualification: prescription.doctor?.qualification || undefined,
         registrationNumber: prescription.doctorRegistrationNumber || undefined,
-        signatureUrl: undefined,
+        signatureUrl: prescription.doctor?.signatureUrl || undefined,
       },
       patient: {
         name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,

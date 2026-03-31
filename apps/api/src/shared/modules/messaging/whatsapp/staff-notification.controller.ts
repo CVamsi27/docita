@@ -10,11 +10,21 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { StaffNotificationService } from './staff-notification.service';
 import { RequestWithUser } from '@/common/types/common.types';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
 
 @Controller('staff-notifications')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, TierGuard)
+@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
 export class StaffNotificationController {
   constructor(private readonly notificationService: StaffNotificationService) {}
 

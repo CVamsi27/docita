@@ -10,9 +10,194 @@ import { tap } from 'rxjs/operators';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { Request } from 'express';
 
+type HttpMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
 interface AuthUser {
-  id: string;
-  clinicId: string;
+  id?: string;
+  sub?: string;
+  role?: string;
+  clinicId?: string | null;
+}
+
+interface ClassifiedAuditEvent {
+  actionType: string;
+  resourceType: string;
+  resourceId: string;
+  immediate: boolean;
+}
+
+const WRITE_METHODS: HttpMethod[] = ['POST', 'PUT', 'PATCH', 'DELETE'];
+const REDACTED_KEYS = new Set([
+  'password',
+  'currentPassword',
+  'newPassword',
+  'token',
+  'refresh_token',
+  'access_token',
+  'mfa_challenge_token',
+  'code',
+  'secret',
+  'signature',
+]);
+const RESOURCE_ID_KEYS = [
+  'patientId',
+  'appointmentId',
+  'prescriptionId',
+  'invoiceId',
+  'documentId',
+  'subscriptionId',
+  'paymentId',
+  'userId',
+  'id',
+  'clinicId',
+];
+
+function valueFromRecord(
+  record: Record<string, unknown> | undefined,
+  key: string,
+): string | undefined {
+  const candidate = record?.[key];
+  if (typeof candidate === 'string' && candidate.trim().length > 0) {
+    return candidate.trim();
+  }
+  return undefined;
+}
+
+function extractResourceId(args: {
+  params?: Record<string, unknown>;
+  query?: Record<string, unknown>;
+  body?: Record<string, unknown>;
+}): string {
+  for (const key of RESOURCE_ID_KEYS) {
+    const fromParams = valueFromRecord(args.params, key);
+    if (fromParams) return fromParams;
+
+    const fromQuery = valueFromRecord(args.query, key);
+    if (fromQuery) return fromQuery;
+
+    const fromBody = valueFromRecord(args.body, key);
+    if (fromBody) return fromBody;
+  }
+
+  return 'unknown';
+}
+
+export function sanitizeAuditPayload(
+  value: unknown,
+  visited: WeakSet<object> = new WeakSet(),
+): unknown {
+  if (value === null || value === undefined) return value;
+  if (typeof value !== 'object') return value;
+
+  if (visited.has(value as object)) {
+    return '[Circular]';
+  }
+  visited.add(value as object);
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => sanitizeAuditPayload(entry, visited));
+  }
+
+  const record = value as Record<string, unknown>;
+  const sanitized: Record<string, unknown> = {};
+
+  for (const [key, entry] of Object.entries(record)) {
+    if (REDACTED_KEYS.has(key)) {
+      sanitized[key] = '[REDACTED]';
+      continue;
+    }
+    sanitized[key] = sanitizeAuditPayload(entry, visited);
+  }
+
+  return sanitized;
+}
+
+export function classifySensitiveWrite(args: {
+  method: string;
+  url: string;
+  params?: Record<string, unknown>;
+  query?: Record<string, unknown>;
+  body?: Record<string, unknown>;
+}): ClassifiedAuditEvent | null {
+  const method = args.method.toUpperCase();
+  if (!WRITE_METHODS.includes(method as HttpMethod)) {
+    return null;
+  }
+
+  const path = args.url.split('?')[0].toLowerCase();
+  const resourceId = extractResourceId(args);
+
+  if (path.startsWith('/auth/api-keys')) {
+    return {
+      actionType: `API_KEY_${method}`,
+      resourceType: 'API_KEY',
+      resourceId,
+      immediate: true,
+    };
+  }
+  if (path.startsWith('/auth/sessions')) {
+    return {
+      actionType: `SESSION_${method}`,
+      resourceType: 'SESSION',
+      resourceId,
+      immediate: true,
+    };
+  }
+  if (
+    path.startsWith('/auth/mfa') ||
+    path.startsWith('/auth/change-password')
+  ) {
+    return {
+      actionType: `AUTH_${method}`,
+      resourceType: 'AUTH_ACCOUNT',
+      resourceId,
+      immediate: true,
+    };
+  }
+  if (path.startsWith('/users') || path.startsWith('/clinics')) {
+    return {
+      actionType: `ACCESS_CONTROL_${method}`,
+      resourceType: path.startsWith('/users') ? 'USER' : 'CLINIC',
+      resourceId,
+      immediate: true,
+    };
+  }
+
+  if (
+    path.startsWith('/subscription') ||
+    path.startsWith('/subscriptions') ||
+    path.startsWith('/billing') ||
+    path.startsWith('/payments') ||
+    path.startsWith('/invoices')
+  ) {
+    return {
+      actionType: `BILLING_${method}`,
+      resourceType: 'BILLING',
+      resourceId,
+      immediate: false,
+    };
+  }
+
+  if (
+    path.startsWith('/patients') ||
+    path.startsWith('/appointments') ||
+    path.startsWith('/prescriptions') ||
+    path.startsWith('/documents') ||
+    path.startsWith('/medical-documents') ||
+    path.startsWith('/lab-tests') ||
+    path.startsWith('/clinical') ||
+    path.startsWith('/inventory') ||
+    path.startsWith('/queue')
+  ) {
+    return {
+      actionType: `CLINICAL_${method}`,
+      resourceType: 'CLINICAL_DATA',
+      resourceId,
+      immediate: false,
+    };
+  }
+
+  return null;
 }
 
 @Injectable()
@@ -23,7 +208,7 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();
-    const { user, method, url, params, query, body, ip } = request;
+    const { user, method, url, params, query, body } = request;
 
     if (!user) {
       return next.handle();
@@ -34,47 +219,61 @@ export class PatientDataAuditInterceptor implements NestInterceptor {
         next: () => {
           (async () => {
             try {
-              const patientId =
-                params.patientId ||
-                params.id ||
-                query.patientId ||
-                body?.patientId;
+              const actor = user as AuthUser;
+              const userId = actor.id ?? actor.sub;
+              const clinicId = actor.clinicId ?? null;
 
-              if (!patientId || typeof patientId !== 'string') {
+              if (!userId || !clinicId) {
                 return;
               }
 
-              if (
-                url.includes('/patients') ||
-                url.includes('/appointments') ||
-                url.includes('/prescriptions') ||
-                url.includes('/invoices') ||
-                url.includes('/documents') ||
-                url.includes('/records')
-              ) {
-                const userId = (user as AuthUser).id;
-                const clinicId = (user as AuthUser).clinicId;
+              const classification = classifySensitiveWrite({
+                method,
+                url,
+                params: params as Record<string, unknown>,
+                query: query as Record<string, unknown>,
+                body: body as Record<string, unknown>,
+              });
 
-                let actionType = 'VIEW_RECORD';
-                if (method === 'POST') actionType = 'CREATE_RECORD';
-                if (method === 'PUT' || method === 'PATCH')
-                  actionType = 'UPDATE_RECORD';
-                if (method === 'DELETE') actionType = 'DELETE_RECORD';
+              if (!classification) {
+                return;
+              }
 
-                await this.auditService.logAction({
+              const changes =
+                method === 'DELETE'
+                  ? { before: null, after: null }
+                  : {
+                      before: null,
+                      after: sanitizeAuditPayload(body ?? {}),
+                    };
+
+              await this.auditService.logAction(
+                {
                   userId,
                   clinicId,
-                  actionType,
-                  resourceType: 'PATIENT_DATA',
-                  resourceId: patientId,
-                  ipAddress: ip || request.connection.remoteAddress,
+                  actionType: classification.actionType,
+                  resourceType: classification.resourceType,
+                  resourceId: classification.resourceId,
+                  changes,
+                  ipAddress: request.ip || request.socket?.remoteAddress,
+                  userAgent: request.headers['user-agent'],
                   metadata: {
-                    method,
-                    endpoint: url,
-                    params,
+                    actor: {
+                      id: userId,
+                      role: actor.role ?? null,
+                      clinicId,
+                    },
+                    request: {
+                      method,
+                      endpoint: url,
+                      params: sanitizeAuditPayload(params),
+                      query: sanitizeAuditPayload(query),
+                    },
+                    source: 'sensitive-write-audit-v1',
                   },
-                });
-              }
+                },
+                classification.immediate,
+              );
             } catch (error) {
               this.logger.error('Failed to log patient audit event', error);
             }

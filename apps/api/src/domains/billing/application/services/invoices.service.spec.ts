@@ -147,4 +147,101 @@ describe('InvoicesService', () => {
     expect(result.claimReady).toBe(true);
     expect(result.status).toBe(InvoiceStatus.PENDING);
   });
+
+  it('includes clinic SLA signature in invoice PDF payload when present', async () => {
+    repository.findById.mockResolvedValue({
+      id: 'inv-4',
+      patientId: 'pat-4',
+      total: 100,
+      status: InvoiceStatus.PENDING,
+      items: [{ description: 'Consultation', quantity: 1, price: 100 }],
+      doctorName: 'Dr. Asha',
+      doctorEmail: null,
+      doctorPhone: null,
+      doctorSpecialization: null,
+      doctorRegistrationNumber: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      pdfUrl: null,
+      pdfGeneratedAt: null,
+      pdfTemplateVersion: 1,
+      patient: {
+        id: 'pat-4',
+        firstName: 'Asha',
+        lastName: 'Rao',
+        phoneNumber: '9999999999',
+        email: null,
+        address: null,
+        clinic: {
+          id: 'clinic-1',
+          name: 'Docita Clinic',
+          address: 'Main Road',
+          phone: '1234567890',
+          email: 'clinic@test.com',
+          slaSignatureUrl: 'https://example.com/admin-signature.png',
+          settings: null,
+        },
+      },
+      appointment: null,
+    } as never);
+
+    pdfService.generate.mockResolvedValue(Buffer.from('pdf') as never);
+
+    await service.generatePDF('inv-4');
+
+    expect(pdfService.generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorizedSignatureUrl: 'https://example.com/admin-signature.png',
+        authorizedSignatureLabel: 'Authorized Signature',
+      }),
+    );
+  });
+
+  it('keeps invoice PDF generation working when clinic SLA signature is missing', async () => {
+    repository.findById.mockResolvedValue({
+      id: 'inv-5',
+      patientId: 'pat-5',
+      total: 100,
+      status: InvoiceStatus.PENDING,
+      items: [{ description: 'Consultation', quantity: 1, price: 100 }],
+      doctorName: 'Dr. Asha',
+      doctorEmail: null,
+      doctorPhone: null,
+      doctorSpecialization: null,
+      doctorRegistrationNumber: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      pdfUrl: null,
+      pdfGeneratedAt: null,
+      pdfTemplateVersion: 1,
+      patient: {
+        id: 'pat-5',
+        firstName: 'Asha',
+        lastName: 'Rao',
+        phoneNumber: '9999999999',
+        email: null,
+        address: null,
+        clinic: {
+          id: 'clinic-1',
+          name: 'Docita Clinic',
+          address: 'Main Road',
+          phone: '1234567890',
+          email: 'clinic@test.com',
+          slaSignatureUrl: null,
+          settings: null,
+        },
+      },
+      appointment: null,
+    } as never);
+
+    pdfService.generate.mockResolvedValue(Buffer.from('pdf') as never);
+
+    await service.generatePDF('inv-5');
+
+    expect(pdfService.generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorizedSignatureUrl: undefined,
+      }),
+    );
+  });
 });

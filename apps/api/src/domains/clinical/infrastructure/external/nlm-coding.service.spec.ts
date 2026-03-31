@@ -4,19 +4,21 @@ import { NlmCodingService } from './nlm-coding.service';
 
 describe('NlmCodingService', () => {
   let service: NlmCodingService;
+  let fetchMock: jest.MockedFunction<typeof fetch>;
   const originalFetch = global.fetch;
 
   beforeEach(() => {
     service = new NlmCodingService();
-    global.fetch = jest.fn();
+    fetchMock = jest.fn<typeof fetch>();
+    global.fetch = fetchMock;
   });
 
   it('searches CPT/HCPCS codes from NLM first when available', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: jest
         .fn()
-        .mockResolvedValue([
+        .mockImplementation(async () => [
           1,
           ['99213'],
           null,
@@ -39,9 +41,7 @@ describe('NlmCodingService', () => {
     const warnSpy = jest
       .spyOn(Logger.prototype, 'warn')
       .mockImplementation(() => undefined);
-    (global.fetch as jest.Mock).mockRejectedValue(
-      new TypeError('fetch failed'),
-    );
+    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
 
     const first = await service.searchCptCodes('office');
     const second = await service.searchCptCodes('office');
@@ -54,9 +54,7 @@ describe('NlmCodingService', () => {
   });
 
   it('returns local CPT matches for queries even when API fallback is used', async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(
-      new TypeError('fetch failed'),
-    );
+    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
 
     const results = await service.searchCptCodes('office');
 
@@ -69,9 +67,7 @@ describe('NlmCodingService', () => {
   });
 
   it('returns no CPT results for unmatched queries', async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(
-      new TypeError('fetch failed'),
-    );
+    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
 
     const results = await service.searchCptCodes('nonexistent procedure');
 
@@ -79,11 +75,11 @@ describe('NlmCodingService', () => {
   });
 
   it('maps ICD search results from NLM response', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: jest
         .fn()
-        .mockResolvedValue([
+        .mockImplementation(async () => [
           1,
           ['E11.9'],
           null,
@@ -109,9 +105,7 @@ describe('NlmCodingService', () => {
     const warnSpy = jest
       .spyOn(Logger.prototype, 'warn')
       .mockImplementation(() => undefined);
-    (global.fetch as jest.Mock).mockRejectedValue(
-      new TypeError('fetch failed'),
-    );
+    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
 
     await service.searchIcdCodes('diabetes');
     await service.searchIcdCodes('hypertension');
@@ -130,8 +124,8 @@ describe('NlmCodingService', () => {
     ]);
     const secondPageRows = [['A500', 'Condition 500']];
 
-    (global.fetch as jest.Mock).mockImplementation((url: string) => {
-      const parsed = new URL(url);
+    fetchMock.mockImplementation((url: unknown) => {
+      const parsed = new URL(String(url));
       const terms = parsed.searchParams.get('terms');
       const offset = parsed.searchParams.get('offset');
 
@@ -140,7 +134,7 @@ describe('NlmCodingService', () => {
           ok: true,
           json: jest
             .fn()
-            .mockResolvedValue([
+            .mockImplementation(async () => [
               501,
               firstPageRows.map((row) => row[0]),
               null,
@@ -154,7 +148,7 @@ describe('NlmCodingService', () => {
           ok: true,
           json: jest
             .fn()
-            .mockResolvedValue([
+            .mockImplementation(async () => [
               501,
               secondPageRows.map((row) => row[0]),
               null,
@@ -165,7 +159,7 @@ describe('NlmCodingService', () => {
 
       return Promise.resolve({
         ok: true,
-        json: jest.fn().mockResolvedValue([0, [], null, []]),
+        json: jest.fn().mockImplementation(async () => [0, [], null, []]),
       } as unknown as Response);
     });
 
@@ -185,8 +179,8 @@ describe('NlmCodingService', () => {
   });
 
   it('fetches CPT/HCPCS sync data from API', async () => {
-    (global.fetch as jest.Mock).mockImplementation((url: string) => {
-      const parsed = new URL(url);
+    fetchMock.mockImplementation((url: unknown) => {
+      const parsed = new URL(String(url));
       const terms = parsed.searchParams.get('terms');
 
       if (terms === 'A') {
@@ -194,7 +188,7 @@ describe('NlmCodingService', () => {
           ok: true,
           json: jest
             .fn()
-            .mockResolvedValue([
+            .mockImplementation(async () => [
               1,
               ['A4550'],
               null,
@@ -205,7 +199,7 @@ describe('NlmCodingService', () => {
 
       return Promise.resolve({
         ok: true,
-        json: jest.fn().mockResolvedValue([0, [], null, []]),
+        json: jest.fn().mockImplementation(async () => [0, [], null, []]),
       } as unknown as Response);
     });
 

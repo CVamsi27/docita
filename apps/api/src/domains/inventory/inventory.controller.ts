@@ -12,12 +12,21 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { InventoryService } from './inventory.service';
 import { RequestWithUser } from '@/common/types/common.types';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
 
 @ApiTags('Inventory')
 @Controller('inventory')
 @UseGuards(TierGuard)
+@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_INVENTORY))
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_INVENTORY))
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 

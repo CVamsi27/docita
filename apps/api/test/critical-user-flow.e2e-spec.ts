@@ -23,7 +23,7 @@ describe.skip('Critical User Flow (e2e)', () => {
   let clinicId: string;
   let doctorId: string;
   let patientId: string;
-  let _appointmentId: string;
+  let appointmentId: string;
 
   beforeAll(async () => {
     setupTestDatabase();
@@ -57,6 +57,15 @@ describe.skip('Critical User Flow (e2e)', () => {
     await closeDatabase();
   });
 
+  const createAppointmentFixture = async (targetClinicId: string) => {
+    const { user: doctor } = await factories.user({
+      clinicId: targetClinicId,
+      role: 'DOCTOR',
+    });
+    const patient = await factories.patient({ clinicId: targetClinicId });
+    return factories.appointment(patient.id, doctor.id, targetClinicId);
+  };
+
   describe('Step 1: Authentication', () => {
     it('should register doctor and create clinic', async () => {
       const response = await request(app.getHttpServer())
@@ -77,12 +86,8 @@ describe.skip('Critical User Flow (e2e)', () => {
       authToken = response.body.access_token;
       doctorId = response.body.user.id;
 
-      const clinics = await prisma.clinic.findMany({
-        where: { createdBy: doctorId },
-      });
-
-      expect(clinics.length).toBeGreaterThan(0);
-      clinicId = clinics[0].id;
+      clinicId = response.body.user.clinicId;
+      expect(clinicId).toBeDefined();
     });
 
     it('should login with valid credentials', async () => {
@@ -128,10 +133,7 @@ describe.skip('Critical User Flow (e2e)', () => {
         .expect(201);
 
       authToken = authResponse.body.access_token;
-      const clinic = await prisma.clinic.findFirst({
-        where: { createdBy: authResponse.body.user.id },
-      });
-      clinicId = clinic.id;
+      clinicId = authResponse.body.user.clinicId;
 
       const response = await request(app.getHttpServer())
         .post(`/api/patients`)
@@ -159,7 +161,7 @@ describe.skip('Critical User Flow (e2e)', () => {
     });
 
     it('should retrieve patient details', async () => {
-      const { patient } = await factories.patient({ clinicId });
+      const patient = await factories.patient({ clinicId });
       patientId = patient.id;
 
       const response = await request(app.getHttpServer())
@@ -187,10 +189,7 @@ describe.skip('Critical User Flow (e2e)', () => {
 
       authToken = authResponse.body.access_token;
       const doctorUser = authResponse.body.user;
-      const clinic = await prisma.clinic.findFirst({
-        where: { createdBy: doctorUser.id },
-      });
-      clinicId = clinic.id;
+      clinicId = doctorUser.clinicId;
 
       const patientResponse = await request(app.getHttpServer())
         .post(`/api/patients`)
@@ -238,9 +237,9 @@ describe.skip('Critical User Flow (e2e)', () => {
     });
 
     it('should prevent double-booking appointments', async () => {
-      const { clinic } = await factories.clinic();
+      const clinic = await factories.clinic();
       const { user: doctor } = await factories.user();
-      const { patient } = await factories.patient({ clinicId: clinic.id });
+      const patient = await factories.patient({ clinicId: clinic.id });
 
       const startTime = new Date();
       startTime.setHours(14, 0, 0);
@@ -279,10 +278,8 @@ describe.skip('Critical User Flow (e2e)', () => {
 
   describe('Step 4: Consultation & Vital Signs', () => {
     it('should record vitals during consultation', async () => {
-      const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({
-        clinicId: clinic.id,
-      });
+      const clinic = await factories.clinic();
+      const appointment = await createAppointmentFixture(clinic.id);
 
       const vitalResponse = await request(app.getHttpServer())
         .post(`/api/vital-signs`)
@@ -306,10 +303,8 @@ describe.skip('Critical User Flow (e2e)', () => {
 
   describe('Step 5: Create Prescription', () => {
     it('should create prescription for appointment', async () => {
-      const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({
-        clinicId: clinic.id,
-      });
+      const clinic = await factories.clinic();
+      const appointment = await createAppointmentFixture(clinic.id);
 
       const response = await request(app.getHttpServer())
         .post(`/api/prescriptions`)
@@ -337,10 +332,8 @@ describe.skip('Critical User Flow (e2e)', () => {
 
   describe('Step 6: Generate Invoice', () => {
     it('should create invoice for consultation', async () => {
-      const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({
-        clinicId: clinic.id,
-      });
+      const clinic = await factories.clinic();
+      const appointment = await createAppointmentFixture(clinic.id);
 
       const response = await request(app.getHttpServer())
         .post(`/api/invoices`)
@@ -367,10 +360,8 @@ describe.skip('Critical User Flow (e2e)', () => {
     });
 
     it('should process payment for invoice', async () => {
-      const { clinic } = await factories.clinic();
-      const { appointment } = await factories.appointment({
-        clinicId: clinic.id,
-      });
+      const clinic = await factories.clinic();
+      const appointment = await createAppointmentFixture(clinic.id);
 
       const invoiceResponse = await request(app.getHttpServer())
         .post(`/api/invoices`)
@@ -407,12 +398,12 @@ describe.skip('Critical User Flow (e2e)', () => {
 
   describe('Tenant Isolation', () => {
     it('should not allow access to other clinic patient data', async () => {
-      const { clinic: clinic1 } = await factories.clinic();
-      const { clinic: clinic2 } = await factories.clinic();
-      const { patient: patient1 } = await factories.patient({
+      const clinic1 = await factories.clinic();
+      const clinic2 = await factories.clinic();
+      const patient1 = await factories.patient({
         clinicId: clinic1.id,
       });
-      const { patient: patient2 } = await factories.patient({
+      const patient2 = await factories.patient({
         clinicId: clinic2.id,
       });
 
@@ -442,8 +433,8 @@ describe.skip('Critical User Flow (e2e)', () => {
   describe('RBAC Enforcement', () => {
     it('staff should not be able to create appointments', async () => {
       const { user: staff } = await factories.user({ role: 'STAFF' });
-      const { clinic } = await factories.clinic();
-      const { patient } = await factories.patient({ clinicId: clinic.id });
+      const clinic = await factories.clinic();
+      const patient = await factories.patient({ clinicId: clinic.id });
 
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')

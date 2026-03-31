@@ -13,37 +13,36 @@ describe('MonitoringService', () => {
   let healthCheckService: HealthCheckService;
 
   const mockRequestLogService = {
-    logRequest: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    getRequestStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    cleanupOldRequests: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    logRequest: jest.fn(),
+    getRequestStats: jest.fn(),
+    cleanupOldRequests: jest.fn(),
   };
 
   const mockErrorTrackingService = {
-    logError: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    getErrorStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    resolveError: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    resolveMultipleErrors: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    cleanupOldErrors: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    logError: jest.fn(),
+    getErrorStats: jest.fn(),
+    resolveError: jest.fn(),
+    resolveMultipleErrors: jest.fn(),
+    cleanupOldErrors: jest.fn(),
   };
 
   const mockMetricsService = {
-    recordMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    recordSystemMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    recordFeatureUsage: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    recordCacheMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    recordDatabaseMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    getSystemMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    getPerformanceMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    aggregateHourlyMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    getAggregatedPerformance:
-      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    recordWebVital: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    getWebVitals: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    cleanupOldMetrics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    recordMetric: jest.fn(),
+    recordSystemMetrics: jest.fn(),
+    recordFeatureUsage: jest.fn(),
+    recordCacheMetric: jest.fn(),
+    recordDatabaseMetric: jest.fn(),
+    getSystemMetrics: jest.fn(),
+    getPerformanceMetrics: jest.fn(),
+    aggregateHourlyMetrics: jest.fn(),
+    getAggregatedPerformance: jest.fn(),
+    recordWebVital: jest.fn(),
+    getWebVitals: jest.fn(),
+    cleanupOldMetrics: jest.fn(),
   };
 
   const mockHealthCheckService = {
-    getSystemHealth: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getSystemHealth: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -73,13 +72,18 @@ describe('MonitoringService', () => {
 
   describe('Delegation Tests', () => {
     it('logRequest should delegate to RequestLogService', () => {
-      const data: Record<string, unknown> = { method: 'GET', path: '/test' };
+      const data = {
+        method: 'GET',
+        path: '/test',
+        statusCode: 200,
+        duration: 42,
+      };
       service.logRequest(data);
       expect(requestLogService.logRequest).toHaveBeenCalledWith(data);
     });
 
     it('logError should delegate to ErrorTrackingService', () => {
-      const data: Record<string, unknown> = { message: 'Error' };
+      const data = { type: 'TEST', message: 'Error' };
       service.logError(data);
       expect(errorTrackingService.logError).toHaveBeenCalledWith(data);
     });

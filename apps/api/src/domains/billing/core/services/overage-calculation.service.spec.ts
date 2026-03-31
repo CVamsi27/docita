@@ -2,6 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OverageCalculationService } from './overage-calculation.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicTier } from '@workspace/db';
+import {
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+  getWhatsAppAddonPricingByCurrency,
+} from '@workspace/types';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('OverageCalculationService', () => {
@@ -10,39 +14,22 @@ describe('OverageCalculationService', () => {
     tierPricing: {
       findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
     };
-    clinicAddOn: {
-      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
-    };
   };
 
   const mockTierPricing = {
-    tier: 'PRO' as ClinicTier,
-    overagePatientCents: 500,
+    tier: 'PROFESSIONAL' as ClinicTier,
     overageAppointmentCents: 200,
     overageUserCents: 10000,
   };
 
-  const mockAddOns = [
-    {
-      id: 'addon-1',
-      addOnType: 'WHATSAPP',
-      status: 'ACTIVE',
-      addOn: {
-        overageRateByTier: JSON.stringify({ PRO: 50 }),
-      },
-    },
-  ];
-
   const baseUsageData = {
     period: { start: new Date(), end: new Date() },
     usage: {
-      activePatients: { current: 100, included: 200, overage: 0 },
-      appointments: { current: 50, included: 100, overage: 0 },
+      consultations: { current: 50, included: 100, overage: 0 },
       users: { current: 3, included: 5, overage: 0 },
       whatsappMessages: { current: 100, included: 200, overage: 0 },
-      aiCredits: { current: 0, included: 0, overage: 0 },
     },
-    tier: 'PRO' as ClinicTier,
+    tier: 'PROFESSIONAL' as ClinicTier,
   };
 
   beforeEach(async () => {
@@ -56,11 +43,6 @@ describe('OverageCalculationService', () => {
               findUnique: jest
                 .fn<(...args: unknown[]) => Promise<unknown>>()
                 .mockResolvedValue(mockTierPricing),
-            },
-            clinicAddOn: {
-              findMany: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue(mockAddOns),
             },
           },
         },
@@ -82,12 +64,12 @@ describe('OverageCalculationService', () => {
       expect(Object.keys(result.breakdown)).toHaveLength(0);
     });
 
-    it('should calculate patient overage correctly', async () => {
+    it('should calculate consultation overage correctly', async () => {
       const usageWithOverage = {
         ...baseUsageData,
         usage: {
           ...baseUsageData.usage,
-          activePatients: { current: 250, included: 200, overage: 50 },
+          consultations: { current: 150, included: 100, overage: 50 },
         },
       };
 
@@ -96,11 +78,11 @@ describe('OverageCalculationService', () => {
         usageWithOverage,
       );
 
-      expect(result.breakdown.activePatients).toBeDefined();
-      expect(result.breakdown.activePatients.quantity).toBe(50);
-      expect(result.breakdown.activePatients.rate).toBe(5);
-      expect(result.breakdown.activePatients.charge).toBe(250);
-      expect(result.totalOverageCharges).toBe(250);
+      expect(result.breakdown.consultations).toBeDefined();
+      expect(result.breakdown.consultations.quantity).toBe(50);
+      expect(result.breakdown.consultations.rate).toBe(2);
+      expect(result.breakdown.consultations.charge).toBe(100);
+      expect(result.totalOverageCharges).toBe(100);
     });
 
     it('should calculate multiple overages', async () => {
@@ -108,8 +90,7 @@ describe('OverageCalculationService', () => {
         ...baseUsageData,
         usage: {
           ...baseUsageData.usage,
-          activePatients: { current: 250, included: 200, overage: 50 },
-          appointments: { current: 120, included: 100, overage: 20 },
+          consultations: { current: 150, included: 100, overage: 50 },
         },
       };
 
@@ -118,9 +99,8 @@ describe('OverageCalculationService', () => {
         usageWithMultipleOverages,
       );
 
-      expect(result.breakdown.activePatients).toBeDefined();
-      expect(result.breakdown.appointments).toBeDefined();
-      expect(result.totalOverageCharges).toBe(250 + 40);
+      expect(result.breakdown.consultations).toBeDefined();
+      expect(result.totalOverageCharges).toBe(100);
     });
 
     it('should calculate WhatsApp overage', async () => {
@@ -148,7 +128,7 @@ describe('OverageCalculationService', () => {
         ...baseUsageData,
         usage: {
           ...baseUsageData.usage,
-          activePatients: { current: 250, included: 200, overage: 50 },
+          consultations: { current: 150, included: 100, overage: 50 },
         },
       };
 
@@ -157,7 +137,7 @@ describe('OverageCalculationService', () => {
         usageWithOverage,
       );
 
-      expect(result.breakdown.activePatients).toBeUndefined();
+      expect(result.breakdown.consultations).toBeDefined();
     });
 
     it('should return INR as currency', async () => {
@@ -168,11 +148,44 @@ describe('OverageCalculationService', () => {
       expect(result.currency).toBe('INR');
     });
 
-    it('should fetch data in parallel', async () => {
+    it('should calculate using requested non-INR currency rates', async () => {
+      const usdRates = TIER_OVERAGE_RATES_BY_CURRENCY.USD.PROFESSIONAL;
+      const usdWhatsapp = getWhatsAppAddonPricingByCurrency(
+        'PROFESSIONAL',
+        'USD',
+      ).overageRate;
+      const usageWithCurrency = {
+        ...baseUsageData,
+        currency: 'USD',
+        usage: {
+          consultations: { current: 510, included: 500, overage: 10 },
+          users: { current: 7, included: 5, overage: 2 },
+          whatsappMessages: { current: 620, included: 500, overage: 120 },
+        },
+      };
+
+      const result = await service.calculateOverageCharges(
+        'clinic-1',
+        usageWithCurrency,
+      );
+
+      expect(result.currency).toBe('USD');
+      expect(result.breakdown.consultations.rate).toBe(
+        usdRates.appointmentRate,
+      );
+      expect(result.breakdown.users.rate).toBe(usdRates.userRate);
+      expect(result.breakdown.whatsappMessages.rate).toBe(usdWhatsapp);
+      expect(result.totalOverageCharges).toBeCloseTo(
+        10 * usdRates.appointmentRate +
+          2 * usdRates.userRate +
+          120 * usdWhatsapp,
+      );
+    });
+
+    it('should fetch tier pricing once per calculation', async () => {
       await service.calculateOverageCharges('clinic-1', baseUsageData);
 
       expect(prisma.tierPricing.findUnique).toHaveBeenCalledTimes(1);
-      expect(prisma.clinicAddOn.findMany).toHaveBeenCalledTimes(1);
     });
   });
 });

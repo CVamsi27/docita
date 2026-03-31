@@ -1,33 +1,49 @@
-import { PrismaClient, AppointmentStatus, InvoiceStatus } from '@workspace/db';
+import {
+  PrismaClient,
+  AppointmentStatus,
+  InvoiceStatus,
+  Role,
+  ClinicTier,
+} from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 
 let prisma: PrismaClient;
 
-function normalizeRole(role: unknown): string {
+function normalizeRole(role: unknown): Role {
   if (role === 'STAFF') {
-    return 'RECEPTIONIST';
+    return Role.RECEPTIONIST;
   }
 
-  return typeof role === 'string' ? role : 'DOCTOR';
+  switch (role) {
+    case Role.DOCTOR:
+    case Role.RECEPTIONIST:
+    case Role.ADMIN:
+    case Role.SUPER_ADMIN:
+    case Role.ADMIN_DOCTOR:
+    case Role.PATIENT:
+      return role;
+    default:
+      return Role.DOCTOR;
+  }
 }
 
-function normalizeClinicTier(tier: unknown): string {
+function normalizeClinicTier(tier: unknown): ClinicTier {
   switch (tier) {
     case 'CAPTURE':
-      return 'STARTER';
+      return ClinicTier.STARTER;
     case 'CORE':
     case 'PLUS':
-      return 'ESSENTIAL';
+      return ClinicTier.ESSENTIAL;
     case 'PRO':
     case 'CLINIC':
-      return 'PROFESSIONAL';
-    case 'ENTERPRISE':
-    case 'STARTER':
-    case 'ESSENTIAL':
-    case 'PROFESSIONAL':
+      return ClinicTier.PROFESSIONAL;
+    case ClinicTier.STARTER:
+    case ClinicTier.ESSENTIAL:
+    case ClinicTier.PROFESSIONAL:
+    case ClinicTier.ENTERPRISE:
       return tier;
     default:
-      return 'ESSENTIAL';
+      return ClinicTier.ESSENTIAL;
   }
 }
 
@@ -173,18 +189,14 @@ export const factories = {
 
   appointmentReminder: async (
     appointmentId: string,
-    clinicId: string,
+    _clinicId: string,
     overrides = {},
   ) => {
-    const scheduledFor = new Date();
-    scheduledFor.setHours(scheduledFor.getHours() + 1);
     return prisma.appointmentReminder.create({
       data: {
         appointmentId,
-        clinicId,
         type: 'whatsapp',
         status: 'pending',
-        scheduledFor,
         ...overrides,
       },
     });

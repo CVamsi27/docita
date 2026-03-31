@@ -7,11 +7,23 @@ import {
   Body,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { RequestWithUser } from '@/common/types/common.types';
 import { FollowUpService } from '@/domains/appointments/application/services/follow-up.service';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
 
 @Controller()
+@UseGuards(TierGuard)
+@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
 export class FollowUpController {
   constructor(private readonly followUpService: FollowUpService) {}
 

@@ -5,12 +5,21 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ConfigService', () => {
   let service: ConfigService;
-  let prismaService: PrismaService;
+  let prismaService: PrismaService & Record<string, unknown>;
 
   const mockPrismaService = {
     clinic: {
       findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
+  };
+  type AppConfigWithClinicSettings = {
+    clinicSettings?: {
+      consultationFee?: number;
+      currency?: string;
+      timezone?: string;
+      appointmentDuration?: number;
+    };
+    [key: string]: unknown;
   };
 
   const mockClinic = {
@@ -37,7 +46,8 @@ describe('ConfigService', () => {
     }).compile();
 
     service = module.get<ConfigService>(ConfigService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get(PrismaService) as PrismaService &
+      Record<string, unknown>;
 
     jest.clearAllMocks();
   });
@@ -221,7 +231,9 @@ describe('ConfigService', () => {
     it('should include clinic settings when clinicId provided', async () => {
       mockPrismaService.clinic.findUnique.mockResolvedValue(mockClinic);
 
-      const result = await service.getAppConfig('clinic-1');
+      const result = (await service.getAppConfig(
+        'clinic-1',
+      )) as AppConfigWithClinicSettings;
 
       expect(result).toHaveProperty('formOptions');
       expect(result).toHaveProperty('patientImportFields');
@@ -239,12 +251,14 @@ describe('ConfigService', () => {
         settings: null,
       });
 
-      const result = await service.getAppConfig('clinic-1');
+      const result = (await service.getAppConfig(
+        'clinic-1',
+      )) as AppConfigWithClinicSettings;
 
       expect(result.clinicSettings).toBeDefined();
-      expect(result.clinicSettings.consultationFee).toBeDefined();
-      expect(result.clinicSettings.currency).toBeDefined();
-      expect(result.clinicSettings.timezone).toBeDefined();
+      expect(result.clinicSettings?.consultationFee).toBeDefined();
+      expect(result.clinicSettings?.currency).toBeDefined();
+      expect(result.clinicSettings?.timezone).toBeDefined();
     });
 
     it('should use default values for missing clinic settings', async () => {
@@ -253,11 +267,13 @@ describe('ConfigService', () => {
         settings: { consultationFee: 1000 },
       });
 
-      const result = await service.getAppConfig('clinic-1');
+      const result = (await service.getAppConfig(
+        'clinic-1',
+      )) as AppConfigWithClinicSettings;
 
-      expect(result.clinicSettings.consultationFee).toBe(1000);
-      expect(result.clinicSettings.currency).toBeDefined();
-      expect(result.clinicSettings.timezone).toBeDefined();
+      expect(result.clinicSettings?.consultationFee).toBe(1000);
+      expect(result.clinicSettings?.currency).toBeDefined();
+      expect(result.clinicSettings?.timezone).toBeDefined();
     });
 
     it('should return base config when clinic not found', async () => {
@@ -367,7 +383,9 @@ describe('ConfigService', () => {
     it('should provide comprehensive configuration for app initialization', async () => {
       mockPrismaService.clinic.findUnique.mockResolvedValue(mockClinic);
 
-      const config = await service.getAppConfig('clinic-1');
+      const config = (await service.getAppConfig(
+        'clinic-1',
+      )) as AppConfigWithClinicSettings;
       const constants = service.getConstants();
 
       expect(config.formOptions).toBeDefined();

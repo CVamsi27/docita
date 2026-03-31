@@ -55,6 +55,92 @@ export class PricingService {
       : fallback;
   }
 
+  private getWhatsappBillableConfig(
+    tier: keyof typeof TIER_LIMITS,
+    currency: SupportedCurrency,
+  ): { includedQuota: number; overageRate: number } {
+    if (
+      tier === 'ESSENTIAL' ||
+      tier === 'PROFESSIONAL' ||
+      tier === 'ENTERPRISE'
+    ) {
+      const pricing = getWhatsAppAddonPricingByCurrency(tier, currency);
+      return {
+        includedQuota: pricing.includedQuota,
+        overageRate: pricing.overageRate,
+      };
+    }
+    return { includedQuota: 0, overageRate: 0 };
+  }
+
+  private toPricingTierPayload(args: {
+    tier: keyof typeof TIER_LIMITS;
+    validCurrency: SupportedCurrency;
+    monthly: number | 'custom';
+    yearly: number | 'custom';
+    includedAppointments: number;
+    includedUsers: number;
+    overageAppointmentRate: number;
+    overageUserRate: number;
+    features: unknown;
+  }) {
+    const {
+      tier,
+      validCurrency,
+      monthly,
+      yearly,
+      includedAppointments,
+      includedUsers,
+      overageAppointmentRate,
+      overageUserRate,
+      features,
+    } = args;
+    const tierDefaults = TIER_LIMITS[tier];
+    const whatsapp = this.getWhatsappBillableConfig(tier, validCurrency);
+
+    return {
+      id: tier,
+      name: TIER_INFO[tier].name,
+      description: TIER_INFO[tier].description,
+      tagline: TIER_INFO[tier].tagline,
+      color: TIER_INFO[tier].color,
+      pricing: {
+        monthly,
+        yearly,
+        currency: PRICING_CURRENCY_CONFIG[validCurrency].symbol,
+      },
+      limits: {
+        patients: tierDefaults.patients,
+        appointments: includedAppointments,
+        storage: tierDefaults.storageGB,
+        users: includedUsers,
+        doctors: tierDefaults.doctors,
+        branches: tierDefaults.branches,
+        prescriptions: tierDefaults.prescriptions,
+        invoices: tierDefaults.invoices,
+        billable: {
+          consultations: includedAppointments,
+          users: includedUsers,
+          whatsappMessages: whatsapp.includedQuota,
+        },
+      },
+      overageRates: {
+        consultations: overageAppointmentRate,
+        users: overageUserRate,
+        whatsappMessages: whatsapp.overageRate,
+        appointment: overageAppointmentRate,
+        user: overageUserRate,
+        patient: 0,
+        storage: 0,
+        prescription: 0,
+        invoice: 0,
+        apiCall: 0,
+        ocrPage: 0,
+      },
+      features: this.parseJsonValue(features),
+    };
+  }
+
   async getPricingConfig(currency?: string) {
     const validCurrency = this.resolveCurrency(currency);
 
@@ -98,41 +184,17 @@ export class PricingService {
         tiers: canonicalTiers.map((tier) => {
           const canonicalTier = (DB_TIER_TO_CANONICAL[tier.tier as string] ??
             tier.tier) as keyof typeof TIER_LIMITS;
-          const tierDefaults = TIER_LIMITS[canonicalTier];
-          const tierRateDefaults =
-            TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency][canonicalTier];
-
-          return {
-            id: canonicalTier,
-            name: TIER_INFO[canonicalTier].name,
-            description: TIER_INFO[canonicalTier].description,
-            tagline: TIER_INFO[canonicalTier].tagline,
-            color: TIER_INFO[canonicalTier].color,
-            pricing: {
-              monthly: tier.monthlyBasePriceCents / 100,
-              yearly: deriveAnnualPrice(tier.monthlyBasePriceCents / 100),
-              currency: currencyConfig.symbol,
-            },
-            limits: {
-              patients: tier.includedPatients,
-              appointments: tier.includedAppointments,
-              storage: tier.includedStorageGB,
-              users: tier.includedUsers,
-              doctors: tierDefaults.doctors,
-              branches: tierDefaults.branches,
-              prescriptions: tierDefaults.prescriptions,
-              invoices: tierDefaults.invoices,
-            },
-            overageRates: {
-              patient: tier.overagePatientCents / 100,
-              appointment: tier.overageAppointmentCents / 100,
-              storage: tier.overageStorageCents / 100,
-              user: tier.overageUserCents / 100,
-              prescription: tierRateDefaults.prescriptionRate,
-              invoice: tierRateDefaults.invoiceRate,
-            },
-            features: this.parseJsonValue(tier.features),
-          };
+          return this.toPricingTierPayload({
+            tier: canonicalTier,
+            validCurrency,
+            monthly: tier.monthlyBasePriceCents / 100,
+            yearly: deriveAnnualPrice(tier.monthlyBasePriceCents / 100),
+            includedAppointments: tier.includedAppointments,
+            includedUsers: tier.includedUsers,
+            overageAppointmentRate: tier.overageAppointmentCents / 100,
+            overageUserRate: tier.overageUserCents / 100,
+            features: tier.features,
+          });
         }),
         discounts: {
           annualPercent: ANNUAL_DISCOUNT_PERCENT,
@@ -158,109 +220,100 @@ export class PricingService {
       ),
       tiers: [
         {
-          id: 'STARTER',
-          name: 'Free',
-          description: 'Basic clinical workflow for free',
-          tagline: 'Free forever',
-          color: 'gray',
-          pricing: {
+          ...this.toPricingTierPayload({
+            tier: 'STARTER',
+            validCurrency,
             monthly: tierPricing.STARTER.monthly,
             yearly: tierPricing.STARTER.yearly,
-            currency: currencyConfig.symbol,
-          },
-          limits: TIER_LIMITS.STARTER,
-          overageRates: overageRates.STARTER,
-          features: [
-            'Up to 50 patients',
-            'Consultation scheduling',
-            'Digital prescriptions with PDF',
-            'Patient profiles & visit history',
-            'Paper record scanning & archival',
-            'Excel import',
-            'Export to CSV',
-            'Single doctor',
-          ],
+            includedAppointments: TIER_LIMITS.STARTER.appointments ?? 0,
+            includedUsers: TIER_LIMITS.STARTER.users ?? 1,
+            overageAppointmentRate: overageRates.STARTER.appointmentRate,
+            overageUserRate: overageRates.STARTER.userRate,
+            features: [
+              'Up to 50 patients',
+              'Consultation scheduling',
+              'Digital prescriptions with PDF',
+              'Patient profiles & visit history',
+              'Paper record scanning & archival',
+              'Excel import',
+              'Export to CSV',
+              'Single doctor',
+            ],
+          }),
         },
         {
-          id: 'ESSENTIAL',
-          name: 'Essential',
-          description: 'Clear limits, WhatsApp messaging, and simple billing.',
-          tagline: 'For solo clinics',
-          color: 'blue',
-          pricing: {
+          ...this.toPricingTierPayload({
+            tier: 'ESSENTIAL',
+            validCurrency,
             monthly: tierPricing.ESSENTIAL.monthly,
             yearly: tierPricing.ESSENTIAL.yearly,
-            currency: currencyConfig.symbol,
-          },
-          limits: TIER_LIMITS.ESSENTIAL,
-          overageRates: overageRates.ESSENTIAL,
-          features: [
-            'Unlimited patients',
-            '500 consultations/month included',
-            '1 doctor included',
-            'WhatsApp messaging (500 msgs/mo)',
-            'Lab tests & inventory',
-            'Queue management',
-            'Advanced analytics',
-            'Audit logs & compliance',
-            'Insurance billing',
-            'Digital intake forms',
-            'Prescription templates',
-            'AI features — Coming Soon',
-          ],
+            includedAppointments: TIER_LIMITS.ESSENTIAL.appointments ?? 0,
+            includedUsers: TIER_LIMITS.ESSENTIAL.users ?? 1,
+            overageAppointmentRate: overageRates.ESSENTIAL.appointmentRate,
+            overageUserRate: overageRates.ESSENTIAL.userRate,
+            features: [
+              'Unlimited patients',
+              '500 consultations/month included',
+              '1 doctor included',
+              'WhatsApp messaging (500 msgs/mo)',
+              'Lab tests & inventory',
+              'Queue management',
+              'Advanced analytics',
+              'Audit logs & compliance',
+              'Insurance billing',
+              'Digital intake forms',
+              'Prescription templates',
+              'AI features — Coming Soon',
+            ],
+          }),
         },
         {
-          id: 'PROFESSIONAL',
-          name: 'Professional',
-          description: 'Multi-doctor clinics with advanced workflows.',
-          tagline: 'Built for growing clinics',
-          color: 'purple',
-          pricing: {
+          ...this.toPricingTierPayload({
+            tier: 'PROFESSIONAL',
+            validCurrency,
             monthly: tierPricing.PROFESSIONAL.monthly,
             yearly: tierPricing.PROFESSIONAL.yearly,
-            currency: currencyConfig.symbol,
-          },
-          limits: TIER_LIMITS.PROFESSIONAL,
-          overageRates: overageRates.PROFESSIONAL,
-          features: [
-            'Unlimited patients',
-            '2,000 consultations/month included',
-            'Up to 5 doctors',
-            'WhatsApp messaging (2,000 msgs/mo)',
-            'Broadcast campaigns',
-            'Patient segmentation',
-            'Full EHR (IPD, vitals, clinical notes)',
-            'Custom branding on reports',
-            'Multi-location analytics',
-            'Bulk data import suite',
-            'REST API access (10k calls/day)',
-            'SSO (Google / Azure AD)',
-            'Custom letterhead',
-            'Priority support with SLA',
-          ],
+            includedAppointments: TIER_LIMITS.PROFESSIONAL.appointments ?? 0,
+            includedUsers: TIER_LIMITS.PROFESSIONAL.users ?? 1,
+            overageAppointmentRate: overageRates.PROFESSIONAL.appointmentRate,
+            overageUserRate: overageRates.PROFESSIONAL.userRate,
+            features: [
+              'Unlimited patients',
+              '2,000 consultations/month included',
+              'Up to 5 doctors',
+              'WhatsApp messaging (2,000 msgs/mo)',
+              'Broadcast campaigns',
+              'Patient segmentation',
+              'Full EHR (IPD, vitals, clinical notes)',
+              'Custom branding on reports',
+              'Multi-location analytics',
+              'Bulk data import suite',
+              'REST API access (10k calls/day)',
+              'SSO (Google / Azure AD)',
+              'Custom letterhead',
+              'Priority support with SLA',
+            ],
+          }),
         },
         {
-          id: 'ENTERPRISE',
-          name: 'Enterprise',
-          description:
-            'Hospital-grade solution with custom contracts and unlimited scale.',
-          tagline: 'Hospital-Grade System',
-          color: 'orange',
-          pricing: {
+          ...this.toPricingTierPayload({
+            tier: 'ENTERPRISE',
+            validCurrency,
             monthly: tierPricing.ENTERPRISE.monthly,
             yearly: tierPricing.ENTERPRISE.yearly,
-            currency: currencyConfig.symbol,
-          },
-          limits: TIER_LIMITS.ENTERPRISE,
-          overageRates: overageRates.ENTERPRISE,
-          features: [
-            'Unlimited patients, users & branches',
-            'Everything in Professional',
-            'Data warehouse export (BI tools)',
-            'Custom contract & invoicing',
-            'Dedicated account manager',
-            'Custom SLA guarantee',
-          ],
+            includedAppointments: TIER_LIMITS.ENTERPRISE.appointments ?? 0,
+            includedUsers: TIER_LIMITS.ENTERPRISE.users ?? 1,
+            overageAppointmentRate: overageRates.ENTERPRISE.appointmentRate,
+            overageUserRate: overageRates.ENTERPRISE.userRate,
+            features: [
+              'Unlimited patients, users & branches',
+              'Everything in Professional',
+              'Data warehouse export (BI tools)',
+              'Custom contract & invoicing',
+              'Dedicated account manager',
+              'Custom SLA guarantee',
+            ],
+          }),
         },
       ],
       discounts: {
@@ -276,26 +329,21 @@ export class PricingService {
     tier: string;
     currency?: string;
     billingCycle?: string;
-    patients?: number;
+    consultations?: number;
     appointments?: number;
     users?: number;
-    prescriptions?: number;
-    invoices?: number;
     whatsappMessages?: number;
-    intelligence?: boolean;
-    aiCredits?: number;
   }) {
     const {
       tier,
       currency,
       billingCycle = 'monthly',
-      patients = 0,
-      appointments = 0,
+      consultations,
+      appointments,
       users = 1,
-      prescriptions = 0,
-      invoices = 0,
       whatsappMessages = 0,
     } = params;
+    const resolvedConsultations = consultations ?? appointments ?? 0;
 
     const validCurrency = this.resolveCurrency(currency);
 
@@ -339,18 +387,11 @@ export class PricingService {
 
     const basePrice = this.readNumber(pricing.monthly);
 
-    const patientOverage =
-      Math.max(0, patients - limits.patients) * overageRates.patientRate;
-    const appointmentOverage =
-      Math.max(0, appointments - (limits.appointments || 999999)) *
+    const consultationOverage =
+      Math.max(0, resolvedConsultations - (limits.appointments || 999999)) *
       overageRates.appointmentRate;
     const userOverage =
       Math.max(0, users - (limits.users || 1)) * overageRates.userRate;
-    const prescriptionOverage =
-      Math.max(0, prescriptions - (limits.prescriptions || 0)) *
-      overageRates.prescriptionRate;
-    const invoiceOverage =
-      Math.max(0, invoices - (limits.invoices || 0)) * overageRates.invoiceRate;
     const whatsappPricing =
       tierKey === 'ESSENTIAL' || tierKey === 'PROFESSIONAL'
         ? getWhatsAppAddonPricingByCurrency(tierKey, validCurrency)
@@ -361,13 +402,7 @@ export class PricingService {
           whatsappPricing.overageRate
         : 0;
 
-    const totalOverage =
-      patientOverage +
-      appointmentOverage +
-      userOverage +
-      prescriptionOverage +
-      invoiceOverage +
-      whatsappOverage;
+    const totalOverage = consultationOverage + userOverage + whatsappOverage;
 
     const annualBase = deriveAnnualPrice(basePrice);
     const annualEquivalent = annualBase / 12;
@@ -408,25 +443,16 @@ export class PricingService {
           amount: discountAmount,
         },
         overages: {
-          patients: {
-            count: Math.max(0, patients - limits.patients),
-            charge: patientOverage,
-          },
-          appointments: {
-            count: Math.max(0, appointments - (limits.appointments || 999999)),
-            charge: appointmentOverage,
+          consultations: {
+            count: Math.max(
+              0,
+              resolvedConsultations - (limits.appointments || 999999),
+            ),
+            charge: consultationOverage,
           },
           users: {
             count: Math.max(0, users - (limits.users || 1)),
             charge: userOverage,
-          },
-          prescriptions: {
-            count: Math.max(0, prescriptions - (limits.prescriptions || 0)),
-            charge: prescriptionOverage,
-          },
-          invoices: {
-            count: Math.max(0, invoices - (limits.invoices || 0)),
-            charge: invoiceOverage,
           },
           whatsappMessages: {
             count:

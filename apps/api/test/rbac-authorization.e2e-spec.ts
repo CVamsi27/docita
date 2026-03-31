@@ -21,39 +21,39 @@ describe.skip('RBAC Authorization (e2e)', () => {
   let prisma: PrismaService;
 
   let adminClinic: { id: string; name: string };
-  let _adminUser: {
+  let adminUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let _adminToken: string;
+  let adminToken: string;
 
   let doctorClinic: { id: string; name: string };
-  let _doctorUser: {
+  let doctorUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let _doctorToken: string;
+  let doctorToken: string;
 
   let _staffClinic: { id: string; name: string };
-  let _staffUser: {
+  let staffUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let _staffToken: string;
+  let staffToken: string;
 
-  let _otherClinicUser: {
+  let otherClinicUser: {
     id: string;
     email: string;
     role: string;
     accessToken?: string;
   };
-  let _otherClinicToken: string;
+  let otherClinicToken: string;
 
   beforeAll(async () => {
     setupTestDatabase();

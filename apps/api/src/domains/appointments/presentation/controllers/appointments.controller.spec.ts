@@ -10,9 +10,10 @@ describe('AppointmentsController', () => {
   let controller: AppointmentsController;
 
   const mockAppointmentsService = {
-    listAppointments: jest.fn<(query?: unknown) => Promise<unknown>>(),
-    getAppointment: jest.fn<(id: string) => Promise<unknown>>(),
-    createAppointment: jest.fn<(dto: unknown) => Promise<unknown>>(),
+    listAppointments: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    createAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    startConsultation: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     updateAppointmentDetails:
       jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     cancelAppointment: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -288,6 +289,33 @@ describe('AppointmentsController', () => {
       expect(mockAppointmentsService.cancelAppointment).toHaveBeenCalledWith(
         'apt-123',
         'Patient unavailable',
+        mockAuthRequest.user.clinicId,
+        {
+          role: mockAuthRequest.user.role,
+          userId: mockAuthRequest.user.id,
+        },
+      );
+    });
+  });
+
+  describe('startConsultation', () => {
+    it('should start consultation for the assigned clinician', async () => {
+      mockAppointmentsService.startConsultation.mockResolvedValue({
+        appointmentId: 'apt-123',
+        status: 'in-progress',
+      });
+
+      const result = await controller.startConsultation(
+        'apt-123',
+        mockAuthRequest as never,
+      );
+
+      expect(result).toEqual({
+        appointmentId: 'apt-123',
+        status: 'in-progress',
+      });
+      expect(mockAppointmentsService.startConsultation).toHaveBeenCalledWith(
+        'apt-123',
         mockAuthRequest.user.clinicId,
         {
           role: mockAuthRequest.user.role,

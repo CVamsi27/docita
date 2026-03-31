@@ -250,15 +250,10 @@ describe('ContactService', () => {
       });
 
       it('should handle optional clinic field as null', () => {
-        const inquiry: {
-          name: string;
-          email: string;
-          clinic: string | null;
-          message: string;
-        } = {
+        const inquiry = {
           name: 'Test User',
           email: 'test@example.com',
-          clinic: null,
+          clinic: undefined,
           message: 'Test message',
         };
 

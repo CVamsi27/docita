@@ -14,26 +14,25 @@ import {
 
 describe('RequestLogService', () => {
   let service: RequestLogService;
-  let prismaService: PrismaService;
+  let prismaService: {
+    apiRequest: {
+      createMany: ReturnType<typeof jest.fn>;
+      count: ReturnType<typeof jest.fn>;
+      aggregate: ReturnType<typeof jest.fn>;
+      groupBy: ReturnType<typeof jest.fn>;
+      findMany: ReturnType<typeof jest.fn>;
+      deleteMany: ReturnType<typeof jest.fn>;
+    };
+  };
 
   const mockPrismaService = {
     apiRequest: {
       createMany: jest.fn(),
-      count: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(100),
-      aggregate: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue({ _avg: { duration: 50 } }),
-      groupBy: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue([]),
-      findMany: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue([]),
-      deleteMany: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue({ count: 10 }),
+      count: jest.fn(async () => 100),
+      aggregate: jest.fn(async () => ({ _avg: { duration: 50 } })),
+      groupBy: jest.fn(async () => []),
+      findMany: jest.fn(async () => []),
+      deleteMany: jest.fn(async () => ({ count: 10 })),
     },
   };
 
@@ -51,7 +50,7 @@ describe('RequestLogService', () => {
     }).compile();
 
     service = module.get<RequestLogService>(RequestLogService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get(PrismaService) as typeof prismaService;
   });
 
   afterEach(() => {
@@ -132,11 +131,15 @@ describe('RequestLogService', () => {
         responseSize: 0,
       };
 
-      prismaService.apiRequest.createMany = jest.fn().mockRejectedValueOnce({
-        code: 'P1000',
-        message:
-          'Authentication failed against the database server, the provided database credentials are not valid',
-      });
+      prismaService.apiRequest.createMany = jest
+        .fn()
+        .mockImplementationOnce(async () => {
+          throw {
+            code: 'P1000',
+            message:
+              'Authentication failed against the database server, the provided database credentials are not valid',
+          };
+        });
 
       service.logRequest(request);
       await service.flushBuffer();

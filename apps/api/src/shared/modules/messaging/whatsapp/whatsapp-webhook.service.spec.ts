@@ -29,20 +29,20 @@ describe('WhatsappWebhookService', () => {
   function buildMockPrisma() {
     return {
       whatsappLog: {
-        findFirst: jest.fn(),
+        findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
         update: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({ id: 'log-123' }),
+          .mockImplementation(async () => ({ id: 'log-123' })),
       },
       patient: {
         findFirst: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue(null),
+          .mockImplementation(async () => null),
       },
       appointment: {
         findFirst: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue(null),
+          .mockImplementation(async () => null),
       },
     };
   }
@@ -55,8 +55,8 @@ describe('WhatsappWebhookService', () => {
     };
     mockResponseHandler = {
       handlePatientResponse: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(undefined),
+        .fn()
+        .mockImplementation(async () => undefined),
     };
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});

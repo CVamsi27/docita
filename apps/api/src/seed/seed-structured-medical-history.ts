@@ -6,6 +6,29 @@ export async function seedStructuredMedicalHistory(
   prisma: PrismaClient,
   patients: SeedEntityRef[],
 ): Promise<void> {
+  const patientIds = patients.map((patient) => patient.id);
+
+  await Promise.all([
+    prisma.patientMedicalCondition.deleteMany({
+      where: { patientId: { in: patientIds } },
+    }),
+    prisma.patientAllergy.deleteMany({
+      where: { patientId: { in: patientIds } },
+    }),
+    prisma.patientFamilyHistory.deleteMany({
+      where: { patientId: { in: patientIds } },
+    }),
+    prisma.patientSocialHistory.deleteMany({
+      where: { patientId: { in: patientIds } },
+    }),
+    prisma.patientSurgicalHistory.deleteMany({
+      where: { patientId: { in: patientIds } },
+    }),
+    prisma.immunization.deleteMany({
+      where: { patientId: { in: patientIds } },
+    }),
+  ]);
+
   await prisma.patientMedicalCondition.createMany({
     data: [
       {

@@ -102,11 +102,9 @@ describe('WhatsappClientService', () => {
     });
 
     it('should throw ServiceUnavailableException when fetch fails (network error)', async () => {
-      global.fetch = jest
-        .fn()
-        .mockRejectedValue(
-          new Error('Network Error'),
-        ) as unknown as typeof fetch;
+      global.fetch = jest.fn().mockImplementation(async () => {
+        throw new Error('Network Error');
+      }) as unknown as typeof fetch;
 
       await expect(
         service.sendMessage({ to: '1234567890', message: 'test' }),
@@ -352,11 +350,9 @@ describe('WhatsappClientService', () => {
     });
 
     it('should throw ServiceUnavailableException on network error', async () => {
-      global.fetch = jest
-        .fn()
-        .mockRejectedValue(
-          new Error('Network timeout'),
-        ) as unknown as typeof fetch;
+      global.fetch = jest.fn().mockImplementation(async () => {
+        throw new Error('Network timeout');
+      }) as unknown as typeof fetch;
 
       await expect(
         service.sendTemplate({
@@ -621,37 +617,3 @@ describe('WhatsappClientService', () => {
     });
   });
 });
-
-/**
- * WhatsApp Testing Setup Guide
- * ----------------------------
- *
- * Required .env variables:
- *   META_BUSINESS_ACCOUNT_ID=<Meta Business Account ID>
- *   META_PHONE_NUMBER_ID=<Phone Number ID from Meta App Dashboard>
- *   META_ACCESS_TOKEN=<Permanent or Temporary Access Token from Meta>
- *   META_VERIFY_TOKEN=<Any random string you choose for webhook verification>
- *
- * Meta Business API Sandbox Setup:
- *   1. Go to https://developers.facebook.com and create an App (Business type)
- *   2. Add "WhatsApp" product to the app
- *   3. In WhatsApp > Getting Started, note your Test phone number ID and temporary token
- *   4. Add a recipient number in the "To" field (must be verified for sandbox)
- *   5. Send test messages using the "Send Message" panel
- *
- * Template Approval Process:
- *   1. Go to WhatsApp > Message Templates in the Meta Business Suite
- *   2. Create templates matching your approved production template names:
- *      - appointment_reminder_24hr (UTILITY category)
- *      - appointment_reminder_30min (UTILITY category)
- *      - prescription_sent (UTILITY category)
- *      - invoice_payment (UTILITY category)
- *   3. Submit for approval (typically 24-48 hours for production accounts)
- *   4. For testing, use pre-approved Meta sample templates (hello_world)
- *
- * Webhook Configuration:
- *   - Expose local server: ngrok http 3001
- *   - Set webhook URL: https://<ngrok-url>/api/whatsapp/webhook
- *   - Set Verify Token to match WHATSAPP_VERIFY_TOKEN in .env
- *   - Subscribe to: messages, message_deliveries, message_reads
- */

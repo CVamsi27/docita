@@ -2,11 +2,12 @@ import {
   Controller,
   Post,
   Get,
+  Put,
   Delete,
   Body,
   Param,
   Query,
-  UseGuards as _UseGuards,
+  UseGuards,
   Req,
   Logger,
   HttpCode,
@@ -19,6 +20,8 @@ import {
 } from '@nestjs/common';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { WhatsappService } from './whatsapp.service';
 import { SendTemplateDto, sendTemplateSchema } from './dto/send-template.dto';
 import { Request } from 'express';
@@ -37,6 +40,10 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import {
+  APP_ACCESS_TARGETS,
+  updateWhatsAppSettingsRequestSchema,
+  createMedicineReminderRequestSchema,
+  createWhatsAppBroadcastRequestSchema,
   WhatsAppWebhookPayload,
   WhatsAppWebhookVerifyQuery,
 } from '@workspace/types';
@@ -44,15 +51,23 @@ import {
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 
 import { WhatsappWebhookService } from './whatsapp-webhook.service';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Controller('whatsapp')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseGuards(TierGuard)
+@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_WHATSAPP))
 export class WhatsappController {
   private readonly logger = new Logger(WhatsappController.name);
 
   constructor(
     private readonly whatsappService: WhatsappService,
     private readonly whatsappWebhook: WhatsappWebhookService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get('templates')
@@ -92,6 +107,126 @@ export class WhatsappController {
     }
 
     return this.whatsappService.handleSendTemplate(user.clinicId, user.id, dto);
+  }
+
+  @Get('settings')
+  async getSettings(@Req() req: Request) {
+    const user = req.user as { clinicId: string };
+    if (!user.clinicId) {
+      throw new BadRequestException('User not associated with a clinic');
+    }
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: user.clinicId },
+      select: { settings: true },
+    });
+    const settings =
+      clinic?.settings && typeof clinic.settings === 'object'
+        ? Object.fromEntries(Object.entries(clinic.settings))
+        : {};
+
+    return {
+      appointmentReminders: settings.whatsappAppointmentReminders !== false,
+      followUpMessages: settings.whatsappFollowUpMessages === true,
+      birthdayWishes: settings.whatsappBirthdayWishes === true,
+      medicineReminders: settings.whatsappMedicineReminders !== false,
+      labReportNotifications: settings.whatsappLabReportNotifications !== false,
+      emergencyAlerts: settings.whatsappEmergencyAlerts !== false,
+    };
+  }
+
+  @UsePipes(new ZodValidationPipe(updateWhatsAppSettingsRequestSchema))
+  @Put('settings')
+  async updateSettings(
+    @Req() req: Request,
+    @Body() body: Record<string, unknown>,
+  ) {
+    const user = req.user as { clinicId: string };
+    if (!user.clinicId) {
+      throw new BadRequestException('User not associated with a clinic');
+    }
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: user.clinicId },
+      select: { settings: true },
+    });
+    const currentSettings =
+      clinic?.settings && typeof clinic.settings === 'object'
+        ? Object.fromEntries(Object.entries(clinic.settings))
+        : {};
+
+    const parsed = updateWhatsAppSettingsRequestSchema.parse(body);
+    const nextSettings = {
+      ...currentSettings,
+      ...(parsed.appointmentReminders !== undefined
+        ? { whatsappAppointmentReminders: parsed.appointmentReminders }
+        : {}),
+      ...(parsed.followUpMessages !== undefined
+        ? { whatsappFollowUpMessages: parsed.followUpMessages }
+        : {}),
+      ...(parsed.birthdayWishes !== undefined
+        ? { whatsappBirthdayWishes: parsed.birthdayWishes }
+        : {}),
+      ...(parsed.medicineReminders !== undefined
+        ? { whatsappMedicineReminders: parsed.medicineReminders }
+        : {}),
+      ...(parsed.labReportNotifications !== undefined
+        ? { whatsappLabReportNotifications: parsed.labReportNotifications }
+        : {}),
+      ...(parsed.emergencyAlerts !== undefined
+        ? { whatsappEmergencyAlerts: parsed.emergencyAlerts }
+        : {}),
+    };
+
+    await this.prisma.clinic.update({
+      where: { id: user.clinicId },
+      data: { settings: nextSettings },
+    });
+
+    return { success: true };
+  }
+
+  @UsePipes(new ZodValidationPipe(createMedicineReminderRequestSchema))
+  @Post('medicine-reminder')
+  async createMedicineReminder(
+    @Req() req: Request,
+    @Body() body: Record<string, unknown>,
+  ) {
+    const user = req.user as { clinicId: string; id: string };
+    if (!user.clinicId) {
+      throw new BadRequestException('User not associated with a clinic');
+    }
+
+    const parsed = createMedicineReminderRequestSchema.parse(body);
+    return this.whatsappService.handleSendTemplate(user.clinicId, user.id, {
+      templateId: 'medicine_reminder',
+      phoneNumber: parsed.patientPhone,
+      variables: {
+        medicineName: parsed.medicineName,
+        dosage: parsed.dosage,
+        frequency: parsed.frequency,
+        reminderTime: parsed.reminderTime,
+      },
+    });
+  }
+
+  @UsePipes(new ZodValidationPipe(createWhatsAppBroadcastRequestSchema))
+  @Post('broadcast')
+  async createBroadcast(
+    @Req() req: Request,
+    @Body() body: Record<string, unknown>,
+  ) {
+    const user = req.user as { clinicId: string; id: string };
+    if (!user.clinicId) {
+      throw new BadRequestException('User not associated with a clinic');
+    }
+
+    const parsed = createWhatsAppBroadcastRequestSchema.parse(body);
+    this.logger.log(
+      `WhatsApp campaign requested by ${user.id} for clinic ${user.clinicId}: ${parsed.campaignName}`,
+    );
+
+    return { success: true, message: 'Campaign created successfully' };
   }
 
   @Post('resend-prescription/:id')

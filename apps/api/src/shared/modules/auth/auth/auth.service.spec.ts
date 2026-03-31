@@ -114,34 +114,34 @@ describe('AuthService', () => {
           provide: PrismaService,
           useValue: {
             user: {
-              findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-              update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              findUnique: jest.fn(),
+              create: jest.fn(),
+              update: jest.fn(),
             },
             clinic: {
-              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-              findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              create: jest.fn(),
+              findUnique: jest.fn(),
             },
             refreshToken: {
-              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-              findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-              update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              create: jest.fn(),
+              findUnique: jest.fn(),
+              update: jest.fn(),
             },
             passwordHistory: {
-              create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              create: jest.fn(),
               findMany: jest
                 .fn<(...args: unknown[]) => Promise<unknown>>()
                 .mockResolvedValue([]),
-              deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+              deleteMany: jest.fn(),
             },
             $transaction: jest.fn().mockImplementation(async (ops: unknown) => {
               if (typeof ops === 'function') {
                 return (ops as (tx: unknown) => Promise<unknown>)({
                   user: {
-                    update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+                    update: jest.fn(),
                   },
                   passwordHistory: {
-                    create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+                    create: jest.fn(),
                   },
                 });
               }
@@ -163,7 +163,7 @@ describe('AuthService', () => {
         {
           provide: 'IPasswordPolicy',
           useValue: {
-            validate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            validate: jest.fn(),
           },
         },
         {
@@ -201,25 +201,23 @@ describe('AuthService', () => {
         {
           provide: MonitoringService,
           useValue: {
-            logError: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            trackMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            logError: jest.fn(),
+            trackMetric: jest.fn(),
           },
         },
         {
           provide: ObservabilityService,
           useValue: {
-            logStructured: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            captureMessage: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            recordMetric: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            logStructured: jest.fn(),
+            captureMessage: jest.fn(),
+            recordMetric: jest.fn(),
           },
         },
         {
           provide: MfaService,
           useValue: {
-            issueMfaChallenge:
-              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            verifyMfaChallenge:
-              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            issueMfaChallenge: jest.fn(),
+            verifyMfaChallenge: jest.fn(),
           },
         },
         {
@@ -227,7 +225,7 @@ describe('AuthService', () => {
           useValue: {
             sendVerificationEmail: jest
               .fn()
-              .mockResolvedValue({ messageId: 'test' }),
+              .mockImplementation(async () => ({ messageId: 'test' })),
           },
         },
       ],

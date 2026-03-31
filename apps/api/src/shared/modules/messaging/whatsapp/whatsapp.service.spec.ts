@@ -24,16 +24,14 @@ describe('WhatsappService', () => {
   let originalMetaPhoneId: string | undefined;
   let originalMetaAccessToken: string | undefined;
   let originalFetch: typeof global.fetch;
-  let mockWhatsappClient: {
-    sendMessage: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
-  };
+  let mockWhatsappClient: { sendMessage: ReturnType<typeof jest.fn> };
   let mockTemplatesService: {
-    resolveTemplate: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
-    getMessageForMode: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    resolveTemplate: ReturnType<typeof jest.fn>;
+    getMessageForMode: ReturnType<typeof jest.fn>;
   };
   let mockTemplateMessageService: {
-    sendTemplate: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
-    handleSendTemplate: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    sendTemplate: ReturnType<typeof jest.fn>;
+    handleSendTemplate: ReturnType<typeof jest.fn>;
   };
 
   const asyncMock = <T>(value: T) =>
@@ -99,18 +97,9 @@ describe('WhatsappService', () => {
         .fn()
         .mockImplementation(async () => ({ success: true })),
       handleSendTemplate: jest
-        .fn<
-          (
-            clinicId: string,
-            userId: string,
-            dto: { phoneNumber: string; templateId: string },
-          ) => Promise<{
-            success: boolean;
-            messageId: string;
-            templateId: string;
-          }>
-        >()
-        .mockImplementation(async (_clinicId, _userId, dto) => {
+        .fn()
+        .mockImplementation(async (...args: unknown[]) => {
+          const dto = args[2] as { phoneNumber: string; templateId?: string };
           await mockWhatsappClient.sendMessage({
             to: dto.phoneNumber,
             message: 'Template message',

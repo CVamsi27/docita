@@ -6,12 +6,16 @@ import {
   Param,
   Query,
   Put,
+  Request,
+  UseGuards,
   Delete as _Delete,
 } from '@nestjs/common';
 import { ClinicalService } from '@/domains/clinical/application/services/clinical.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
 import { LabTestOrderStatus } from '@workspace/db';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   CreateLabTestDto,
   CreateLabTestOrderDto,
@@ -20,32 +24,40 @@ import {
   UpdateLabTestOrderDto,
 } from '@/domains/clinical/application/dto/lab-tests.dto';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
-import { Feature } from '@workspace/types';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('clinical/lab-tests')
-@RequireFeature(Feature.LAB_TESTS)
+@UseGuards(TierGuard)
+@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_LAB_TESTS))
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_LAB_TESTS))
 export class LabTestsController {
   constructor(private readonly clinicalService: ClinicalService) {}
 
   @Get()
-  async getAllTests(@Query('clinicId') clinicId: string): Promise<LabTest[]> {
-    return await this.clinicalService.getAllTests(clinicId);
+  async getAllTests(@Request() req: RequestWithUser): Promise<LabTest[]> {
+    return await this.clinicalService.getAllTests(req.user!.clinicId!);
   }
 
   @Get('stats')
   async getStats(
-    @Query() query: LabStatsQueryDto,
+    @Request() req: RequestWithUser,
+    @Query() _query: LabStatsQueryDto,
   ): Promise<Record<string, number>> {
-    const { clinicId } = query;
-    return await this.clinicalService.getStats(clinicId || '');
+    return await this.clinicalService.getStats(req.user!.clinicId!);
   }
 
   @Get('orders')
   async getAllOrders(
+    @Request() req: RequestWithUser,
     @Query() query: ListLabTestOrdersQueryDto,
   ): Promise<LabOrder[]> {
-    const { clinicId, ...params } = query;
-    return await this.clinicalService.getAllOrders(clinicId || '', params);
+    const { clinicId: _clinicId, ...params } = query;
+    return await this.clinicalService.getAllOrders(req.user!.clinicId!, params);
   }
 
   @Get('orders/:id')
@@ -54,8 +66,14 @@ export class LabTestsController {
   }
 
   @Post('orders')
-  async createOrder(@Body() data: CreateLabTestOrderDto): Promise<LabOrder> {
-    return await this.clinicalService.createOrder({ ...data });
+  async createOrder(
+    @Request() req: RequestWithUser,
+    @Body() data: CreateLabTestOrderDto,
+  ): Promise<LabOrder> {
+    return await this.clinicalService.createOrder({
+      ...data,
+      clinicId: req.user!.clinicId!,
+    });
   }
 
   @Put('orders/:id/status')
@@ -73,7 +91,13 @@ export class LabTestsController {
   }
 
   @Post()
-  async createTest(@Body() data: CreateLabTestDto): Promise<LabTest> {
-    return await this.clinicalService.createTest({ ...data });
+  async createTest(
+    @Request() req: RequestWithUser,
+    @Body() data: CreateLabTestDto,
+  ): Promise<LabTest> {
+    return await this.clinicalService.createTest({
+      ...data,
+      clinicId: req.user!.clinicId!,
+    });
   }
 }

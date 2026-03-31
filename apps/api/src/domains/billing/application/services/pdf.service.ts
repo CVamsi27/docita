@@ -17,6 +17,8 @@ export interface InvoiceData {
   clinic: PDFClinicInfo;
   patient: PDFPatientInfo;
   doctor?: PDFDoctorInfo;
+  authorizedSignatureUrl?: string;
+  authorizedSignatureLabel?: string;
   items: PDFInvoiceItem[];
   date?: Date;
   dueDate?: Date;
@@ -80,6 +82,12 @@ export class PDFService extends BasePdfService {
     currentY = this.renderItemsTable(doc, data.items, context, currentY);
 
     currentY = this.renderTotals(doc, data.items, context, currentY);
+    currentY = await this.renderAuthorizedSignature(
+      doc,
+      data,
+      context,
+      currentY,
+    );
 
     this.renderFooter(doc, config.footerText, context);
 
@@ -207,5 +215,62 @@ export class PDFService extends BasePdfService {
     });
 
     return currentY + 30;
+  }
+
+  private async renderAuthorizedSignature(
+    doc: typeof PDFDocument.prototype,
+    data: InvoiceData,
+    context: PDFContext,
+    startY: number,
+  ): Promise<number> {
+    let currentY = this.checkPageBreak(doc, startY + 10, 95, context);
+    const signatureX = context.margin + context.contentWidth - 190;
+    const label = data.authorizedSignatureLabel || 'Authorized Signature';
+
+    doc.font('Helvetica-Bold').fontSize(10).text(label, signatureX, currentY);
+    currentY += 12;
+
+    if (data.authorizedSignatureUrl) {
+      try {
+        const signatureBuffer = await this.fetchSignatureImage(
+          data.authorizedSignatureUrl,
+        );
+        doc.image(signatureBuffer, signatureX, currentY, {
+          fit: [170, 45],
+          align: 'left',
+        });
+        currentY += 50;
+      } catch {
+        doc
+          .font('Helvetica-Oblique')
+          .fontSize(8)
+          .text('[Signature on file]', signatureX, currentY);
+        currentY += 16;
+      }
+    } else {
+      doc
+        .font('Helvetica-Oblique')
+        .fontSize(8)
+        .text('[No signature uploaded]', signatureX, currentY);
+      currentY += 16;
+    }
+
+    doc
+      .strokeColor('#666666')
+      .moveTo(signatureX, currentY + 8)
+      .lineTo(signatureX + 170, currentY + 8)
+      .stroke()
+      .strokeColor('#000000');
+
+    return currentY + 20;
+  }
+
+  private async fetchSignatureImage(url: string): Promise<Buffer> {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch signature: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
   }
 }

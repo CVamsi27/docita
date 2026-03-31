@@ -21,7 +21,7 @@ describe('JwtStrategy', () => {
   const mockPrisma = {
     user: {
       findUnique: jest.fn() as jest.MockedFunction<
-        () => Promise<MockUser | null>
+        (...args: unknown[]) => Promise<MockUser | null>
       >,
     },
     runUnrestricted: jest.fn(<T>(callback: () => T): T => callback()),

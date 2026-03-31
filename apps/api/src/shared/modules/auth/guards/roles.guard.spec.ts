@@ -9,7 +9,7 @@ describe('RolesGuard', () => {
   let _reflector: Reflector;
 
   const mockReflector = {
-    getAllAndOverride: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getAllAndOverride: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -34,14 +34,14 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(undefined);
 
       const mockExecutionContext = {
-        getHandler: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        getClass: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'DOCTOR' },
           }),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const result = guard.canActivate(mockExecutionContext);
 
@@ -54,14 +54,14 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(['DOCTOR', 'ADMIN']);
 
       const mockExecutionContext = {
-        getHandler: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        getClass: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'DOCTOR', clinicId: 'clinic-1' },
           }),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const result = guard.canActivate(mockExecutionContext);
 
@@ -74,14 +74,14 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(['ADMIN']);
 
       const mockExecutionContext = {
-        getHandler: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        getClass: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'PATIENT', clinicId: 'clinic-1' },
           }),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });
@@ -92,33 +92,33 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(['DOCTOR']);
 
       const mockExecutionContext = {
-        getHandler: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        getClass: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: undefined,
           }),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });
 
     it('should handle multiple required roles', () => {
-      const requiredRoles = ['DOCTOR', 'NURSE', 'ADMIN'];
+      const requiredRoles = ['DOCTOR', 'RECEPTIONIST', 'ADMIN'];
       mockReflector.getAllAndOverride
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(requiredRoles);
 
       const mockExecutionContext = {
-        getHandler: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        getClass: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
-            user: { id: 'user-1', role: 'NURSE', clinicId: 'clinic-1' },
+            user: { id: 'user-1', role: 'RECEPTIONIST', clinicId: 'clinic-1' },
           }),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       const result = guard.canActivate(mockExecutionContext);
 
@@ -131,14 +131,14 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(['DOCTOR']);
 
       const mockExecutionContext = {
-        getHandler: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-        getClass: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
         switchToHttp: jest.fn().mockReturnValue({
           getRequest: jest.fn().mockReturnValue({
             user: { id: 'user-1', role: 'SUPER_ADMIN', clinicId: 'clinic-1' },
           }),
         }),
-      } as ExecutionContext;
+      } as unknown as ExecutionContext;
 
       expect(() => guard.canActivate(mockExecutionContext)).toThrow();
     });

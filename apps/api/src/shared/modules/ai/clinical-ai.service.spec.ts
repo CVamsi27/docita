@@ -5,7 +5,7 @@ import { OpenaiService } from './openai.service';
 
 describe('ClinicalAiService', () => {
   let service: ClinicalAiService;
-  let _openaiService: OpenaiService;
+  let openaiService: OpenaiService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -14,9 +14,7 @@ describe('ClinicalAiService', () => {
         {
           provide: OpenaiService,
           useValue: {
-            callChatCompletion: jest
-              .fn<() => Promise<Record<string, unknown>>>()
-              .mockResolvedValue({}),
+            callChatCompletion: jest.fn().mockImplementation(async () => ({})),
           },
         },
       ],

@@ -43,6 +43,7 @@ export interface InvoiceDetail {
       address: string | null;
       phone: string | null;
       email: string | null;
+      slaSignatureUrl?: string | null;
       gstin?: string | null;
       settings?: Prisma.JsonValue | null;
     };

@@ -23,6 +23,7 @@ import {
 import { Response } from 'express';
 import { Public } from './public.decorator';
 import { Roles } from './roles.decorator';
+import { AllowNoClinic } from './allow-no-clinic.decorator';
 import { AuthService } from './auth.service';
 import { MfaService } from './mfa.service';
 import { ApiKeyService } from './api-key.service';
@@ -231,6 +232,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -266,6 +268,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -346,8 +349,6 @@ export class AuthController {
     return { message: 'Logged out successfully' };
   }
 
-  // ── MFA Endpoints ──────────────────────────────────────────────────────────
-
   @Public()
   @UseGuards(IpRateLimitGuard)
   @Throttle({ short: { ttl: 60000, limit: 5 } })
@@ -373,6 +374,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -385,6 +387,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -400,6 +403,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -416,6 +420,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -430,9 +435,8 @@ export class AuthController {
     return this.mfaService.regenerateBackupCodes(req.user.sub, body.code);
   }
 
-  // ── Session Management Endpoints ───────────────────────────────────────────
-
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -444,6 +448,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -459,6 +464,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -478,8 +484,6 @@ export class AuthController {
     return { message: 'All other sessions revoked' };
   }
 
-  // ── Email Verification Endpoints ───────────────────────────────────────────
-
   @Public()
   @Throttle({ short: { ttl: 60000, limit: 5 } })
   @Post('verify-email')
@@ -491,6 +495,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
   @SkipEmailVerification()
@@ -502,8 +507,6 @@ export class AuthController {
   async resendVerification(@Request() req: AuthenticatedRequest) {
     return this.authService.sendVerificationEmail(req.user.sub);
   }
-
-  // ── API Key Endpoints ──────────────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard)
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)

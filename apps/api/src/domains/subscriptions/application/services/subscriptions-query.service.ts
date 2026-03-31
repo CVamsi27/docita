@@ -100,6 +100,10 @@ export class SubscriptionsQueryService {
       clinicId: subscription.clinicId,
       plan: subscription.getPlan().value,
       status: subscription.getStatus().value,
+      billingCycle: subscription.getBillingCycle().value,
+      basePriceCents: subscription.getBasePrice().paise,
+      currency: DEFAULT_CURRENCY,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
       currentPeriodStart: subscription.currentPeriodStart,
       currentPeriodEnd: subscription.currentPeriodEnd,
       daysRemaining: subscription.getDaysRemaining(),
@@ -124,8 +128,9 @@ export class SubscriptionsQueryService {
         )) as Array<{
           amountCents: number;
           currency: string;
+          status?: string;
           createdAt: Date;
-          getStatus: () => unknown;
+          getStatus?: () => unknown;
         }>)
       : [];
     const lastPayment = payments[0];
@@ -150,7 +155,8 @@ export class SubscriptionsQueryService {
             amount: lastPayment.amountCents / 100,
             currency: lastPayment.currency,
             date: lastPayment.createdAt,
-            status: String(lastPayment.getStatus()),
+            status:
+              lastPayment.status ?? String(lastPayment.getStatus?.() ?? ''),
           }
         : undefined,
     };

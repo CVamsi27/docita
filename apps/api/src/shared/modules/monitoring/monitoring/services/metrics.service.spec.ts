@@ -37,7 +37,7 @@ describe('MetricsService', () => {
   };
 
   beforeEach(async () => {
-    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

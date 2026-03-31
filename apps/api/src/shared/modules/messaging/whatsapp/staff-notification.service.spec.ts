@@ -29,15 +29,15 @@ describe('StaffNotificationService', () => {
       clinic: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({
+          .mockImplementation(async () => ({
             id: 'clinic-123',
             whatsappAutomation: { enabled: true },
-          }),
+          })),
       },
       user: {
         findMany: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue([
+          .mockImplementation(async () => [
             { id: 'user-1', phoneNumber: '+919876543210' },
             { id: 'user-2', phoneNumber: null },
           ]),
@@ -45,7 +45,7 @@ describe('StaffNotificationService', () => {
       staffNotification: {
         create: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({
+          .mockImplementation(async () => ({
             id: 'notif-123',
             clinicId: 'clinic-123',
             userId: 'user-1',
@@ -58,17 +58,17 @@ describe('StaffNotificationService', () => {
             readAt: null,
             deletedAt: null,
             createdAt: new Date(),
-          }),
-        findFirst: jest.fn(),
+          })),
+        findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
         findMany: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue([]),
+          .mockImplementation(async () => []),
         updateMany: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({ count: 1 }),
+          .mockImplementation(async () => ({ count: 1 })),
         count: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue(5),
+          .mockImplementation(async () => 5),
       },
     };
   }
@@ -76,14 +76,13 @@ describe('StaffNotificationService', () => {
   beforeEach(async () => {
     mockPrisma = buildMockPrisma();
     mockWhatsappClient = {
-      sendMessage: jest
-        .fn()
-        .mockResolvedValue({ success: true, messageId: 'msg-123' }),
+      sendMessage: jest.fn().mockImplementation(async () => ({
+        success: true,
+        messageId: 'msg-123',
+      })),
     };
     mockTemplatesService = {
-      resolveTemplate: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(null),
+      resolveTemplate: jest.fn().mockImplementation(async () => null),
       getMessageForMode: jest.fn().mockReturnValue('Formatted message'),
     };
     mockEventEmitter = {

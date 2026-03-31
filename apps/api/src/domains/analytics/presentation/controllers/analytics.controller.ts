@@ -1,12 +1,16 @@
 import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { AnalyticsService } from '@/domains/analytics/application/services/analytics.service';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
-import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   RequireFeature,
   Feature,
 } from '@/shared/modules/auth/auth/tier.decorator';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  getDbRolesForTarget,
+  requireFeatureForTarget,
+} from '@/shared/modules/auth/auth/access-matrix.util';
 import { RateLimit } from '@/common/interceptors/rate-limit.interceptor';
 import {
   AnalyticsDateRangeQueryDto,
@@ -38,9 +42,9 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('analytics')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_ANALYTICS))
 @UseGuards(TierGuard)
-@RequireFeature(Feature.BASIC_ANALYTICS)
+@RequireFeature(requireFeatureForTarget(APP_ACCESS_TARGETS.API_ANALYTICS))
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 

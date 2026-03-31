@@ -5,6 +5,10 @@ type SeedEntityRef = { id: string };
 
 export interface SeedClinicUsersResult {
   defaultClinic: SeedEntityRef;
+  clinicAdmin: SeedEntityRef;
+  adminDoctor: SeedEntityRef;
+  receptionist: SeedEntityRef;
+  pendingNoClinicUser: SeedEntityRef;
   doctor1: SeedEntityRef;
   doctor2: SeedEntityRef;
   doctor3: SeedEntityRef;
@@ -45,6 +49,7 @@ export async function seedClinicUsers(
     update: {
       signatureUrl: seededSignatures.superAdmin,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
     create: {
       email: 'admin@docita.work',
@@ -54,14 +59,16 @@ export async function seedClinicUsers(
       clinicId: null,
       signatureUrl: seededSignatures.superAdmin,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
   });
 
-  await prisma.user.upsert({
+  const clinicAdmin = await prisma.user.upsert({
     where: { email: 'clinic.admin@docita.work' },
     update: {
       signatureUrl: seededSignatures.clinicAdmin,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
     create: {
       email: 'clinic.admin@docita.work',
@@ -71,6 +78,7 @@ export async function seedClinicUsers(
       clinicId: defaultClinic.id,
       signatureUrl: seededSignatures.clinicAdmin,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
   });
 
@@ -79,6 +87,7 @@ export async function seedClinicUsers(
     update: {
       signatureUrl: seededSignatures.adminDoctor,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
     create: {
       email: 'admin.doctor@docita.work',
@@ -97,6 +106,7 @@ export async function seedClinicUsers(
       consultationFee: 2000,
       signatureUrl: seededSignatures.adminDoctor,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
   });
 
@@ -105,6 +115,7 @@ export async function seedClinicUsers(
     update: {
       signatureUrl: seededSignatures.doctor,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
     create: {
       email: 'doctor@docita.work',
@@ -123,12 +134,13 @@ export async function seedClinicUsers(
       consultationFee: 1500,
       signatureUrl: seededSignatures.doctor,
       signatureUploadedAt: seededSignatureUploadedAt,
+      emailVerified: true,
     },
   });
 
   const doctor2 = await prisma.user.upsert({
     where: { email: 'dr.sharma@docita.work' },
-    update: {},
+    update: { emailVerified: true },
     create: {
       email: 'dr.sharma@docita.work',
       password: hashedPassword,
@@ -144,12 +156,13 @@ export async function seedClinicUsers(
       bio: 'Pediatrician specializing in newborn care, childhood vaccinations, and developmental pediatrics. Committed to providing compassionate care for children.',
       yearsOfExperience: 6,
       consultationFee: 1000,
+      emailVerified: true,
     },
   });
 
   const doctor3 = await prisma.user.upsert({
     where: { email: 'dr.dental@docita.work' },
-    update: {},
+    update: { emailVerified: true },
     create: {
       email: 'dr.dental@docita.work',
       password: hashedPassword,
@@ -165,6 +178,7 @@ export async function seedClinicUsers(
       bio: 'Dental specialist with expertise in orthodontics, dental implants, and cosmetic dentistry. Uses latest technology for painless treatments.',
       yearsOfExperience: 8,
       consultationFee: 800,
+      emailVerified: true,
     },
   });
 
@@ -387,20 +401,48 @@ export async function seedClinicUsers(
     ],
   });
 
-  await prisma.user.upsert({
+  const receptionist = await prisma.user.upsert({
     where: { email: 'reception@docita.work' },
-    update: {},
+    update: {
+      clinicId: defaultClinic.id,
+      emailVerified: true,
+    },
     create: {
       email: 'reception@docita.work',
       password: hashedPassword,
       name: 'Anjali Reddy',
       role: 'RECEPTIONIST',
       clinicId: defaultClinic.id,
+      emailVerified: true,
+    },
+  });
+
+  const pendingNoClinicUser = await prisma.user.upsert({
+    where: { email: 'pending.user@docita.work' },
+    update: {
+      clinicId: null,
+      role: 'DOCTOR',
+      emailVerified: true,
+      onboardingStep: 'CHOOSE_PATH',
+    },
+    create: {
+      email: 'pending.user@docita.work',
+      password: hashedPassword,
+      name: 'Pending Clinic User',
+      role: 'DOCTOR',
+      clinicId: null,
+      emailVerified: true,
+      onboardingStep: 'CHOOSE_PATH',
+      onboardingStartedAt: new Date('2026-02-01T09:00:00.000Z'),
     },
   });
 
   return {
     defaultClinic: { id: defaultClinic.id },
+    clinicAdmin: { id: clinicAdmin.id },
+    adminDoctor: { id: adminDoctor.id },
+    receptionist: { id: receptionist.id },
+    pendingNoClinicUser: { id: pendingNoClinicUser.id },
     doctor1: { id: doctor1.id },
     doctor2: { id: doctor2.id },
     doctor3: { id: doctor3.id },

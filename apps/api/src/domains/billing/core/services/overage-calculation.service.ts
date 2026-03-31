@@ -1,13 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ClinicTier, Prisma } from '@workspace/db';
+import { ClinicTier } from '@workspace/db';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
-import { WHATSAPP_ADDON_PRICING, TIER_OVERAGE_RATES } from '@workspace/types';
+import {
+  PRICING_CURRENCY_CONFIG,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+  getWhatsAppAddonPricingByCurrency,
+  type TierName,
+  type SupportedCurrency,
+} from '@workspace/types';
 
 interface UsageData {
   period: { start: Date; end: Date };
   usage: Record<string, { current: number; included: number; overage: number }>;
   tier: ClinicTier;
+  currency?: string;
 }
 
 interface OverageBreakdown {
@@ -25,91 +32,77 @@ interface OverageResult {
 
 @Injectable()
 export class OverageCalculationService {
-  private readonly logger = new Logger(OverageCalculationService.name);
-
   constructor(private readonly prisma: PrismaService) {}
 
+  private resolveCurrency(currency?: string): SupportedCurrency {
+    const selected = currency?.toUpperCase() as SupportedCurrency | undefined;
+    if (
+      selected &&
+      Object.prototype.hasOwnProperty.call(PRICING_CURRENCY_CONFIG, selected)
+    ) {
+      return selected;
+    }
+    return DEFAULT_CURRENCY as SupportedCurrency;
+  }
+
   async calculateOverageCharges(
-    clinicId: string,
+    _clinicId: string,
     usageData: UsageData,
   ): Promise<OverageResult> {
     const tier = usageData.tier;
-
-    const [tierPricing, addOns] = await Promise.all([
-      this.prisma.tierPricing.findUnique({ where: { tier } }),
-      this.prisma.clinicAddOn.findMany({
-        where: { clinicId, status: 'ACTIVE' },
-        include: { addOn: true },
-      }),
-    ]);
+    const tierPricing = await this.prisma.tierPricing.findUnique({
+      where: { tier },
+    });
 
     let totalOverageCharges = 0;
     const breakdown: Record<string, OverageBreakdown> = {};
+    const tierKey = tier as TierName;
+    const resolvedCurrency = this.resolveCurrency(usageData.currency);
+    const baseRates = TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey];
+    const whatsappRate =
+      tierKey === 'ESSENTIAL' ||
+      tierKey === 'PROFESSIONAL' ||
+      tierKey === 'ENTERPRISE'
+        ? getWhatsAppAddonPricingByCurrency(tierKey, resolvedCurrency)
+            .overageRate
+        : 0;
+    const canUseTierPricingTable = tierPricing && resolvedCurrency === 'INR';
 
-    if (tierPricing) {
+    if (canUseTierPricingTable) {
       this.addOverage(
         breakdown,
-        'activePatients',
-        usageData.usage.activePatients?.overage || 0,
-        tierPricing.overagePatientCents,
-      );
-      this.addOverage(
-        breakdown,
-        'appointments',
-        usageData.usage.appointments?.overage || 0,
-        tierPricing.overageAppointmentCents,
+        'consultations',
+        usageData.usage.consultations?.overage || 0,
+        tierPricing!.overageAppointmentCents,
       );
       this.addOverage(
         breakdown,
         'users',
         usageData.usage.users?.overage || 0,
-        tierPricing.overageUserCents,
+        tierPricing!.overageUserCents,
+      );
+    } else {
+      this.addOverage(
+        breakdown,
+        'consultations',
+        usageData.usage.consultations?.overage || 0,
+        baseRates.appointmentRate * 100,
+      );
+      this.addOverage(
+        breakdown,
+        'users',
+        usageData.usage.users?.overage || 0,
+        baseRates.userRate * 100,
       );
     }
 
-    // WhatsApp is bundled into ESSENTIAL and PROFESSIONAL tiers — use tier-based rate
     const whatsappUsage = usageData.usage.whatsappMessages;
-    if (whatsappUsage && whatsappUsage.overage > 0) {
-      const tierKey = tier as keyof typeof TIER_OVERAGE_RATES;
-      const bundledWhatsapp =
-        WHATSAPP_ADDON_PRICING[tierKey as keyof typeof WHATSAPP_ADDON_PRICING];
-      if (bundledWhatsapp) {
-        const rateCents = Math.round(bundledWhatsapp.overageRate * 100);
-        this.addOverage(
-          breakdown,
-          'whatsappMessages',
-          whatsappUsage.overage,
-          rateCents,
-        );
-      } else {
-        // Fallback to legacy add-on lookup for older subscriptions
-        const whatsappAddOn = addOns.find((a) => a.addOnType === 'WHATSAPP');
-        if (whatsappAddOn) {
-          const rate = this.getAddOnOverageRate(whatsappAddOn, tier);
-          this.addOverage(
-            breakdown,
-            'whatsappMessages',
-            whatsappUsage.overage,
-            rate * 100,
-          );
-        }
-      }
-    }
-
-    const intelligenceAddOn = addOns.find(
-      (a) => a.addOnType === 'INTELLIGENCE',
-    );
-    if (
-      intelligenceAddOn &&
-      usageData.usage.aiCredits &&
-      usageData.usage.aiCredits.overage > 0
-    ) {
-      const rate = this.getAddOnOverageRate(intelligenceAddOn, tier);
+    if (whatsappUsage && whatsappUsage.overage > 0 && whatsappRate > 0) {
       this.addOverage(
         breakdown,
-        'aiCredits',
-        usageData.usage.aiCredits.overage,
-        rate * 100,
+        'whatsappMessages',
+        whatsappUsage.overage,
+        whatsappRate * 100,
       );
     }
 
@@ -121,7 +114,7 @@ export class OverageCalculationService {
       period: usageData.period,
       totalOverageCharges,
       breakdown,
-      currency: DEFAULT_CURRENCY,
+      currency: resolvedCurrency,
     };
   }
 
@@ -138,22 +131,6 @@ export class OverageCalculationService {
         rate: rateCents / 100,
         charge,
       };
-    }
-  }
-
-  private getAddOnOverageRate(
-    addOn: { addOn: { overageRateByTier: Prisma.JsonValue } },
-    tier: ClinicTier,
-  ): number {
-    try {
-      const overageRates =
-        typeof addOn.addOn.overageRateByTier === 'string'
-          ? JSON.parse(addOn.addOn.overageRateByTier)
-          : (addOn.addOn.overageRateByTier as Record<string, number>);
-      return (overageRates[tier] || 0) / 100;
-    } catch (error) {
-      this.logger.error(`Failed to get overage rate`, error);
-      return 0;
     }
   }
 }

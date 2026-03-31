@@ -46,14 +46,14 @@ describe('StartupValidationService', () => {
       detectManagedDatabaseProvider: jest.fn().mockReturnValue('Render'),
     });
 
-    const service = new StartupValidationService(config);
+    const service = new StartupValidationService(config as AppConfigService);
 
     expect(() => service.validate()).not.toThrow();
   });
 
   it('rejects production database URLs without tls flags when not on Render', () => {
     const config = createConfig();
-    const service = new StartupValidationService(config);
+    const service = new StartupValidationService(config as AppConfigService);
 
     expect(() => service.validate()).toThrow(
       'DATABASE_URL must enforce TLS in production',

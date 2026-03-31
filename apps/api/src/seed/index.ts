@@ -9,6 +9,7 @@ import { seedPatientsAndEncounters } from './seed-patients-encounters';
 import { seedStructuredMedicalHistory } from './seed-structured-medical-history';
 import { seedSchedulesAndLabTests } from './seed-schedules-lab-tests';
 import { seedClinicConfigTemplates } from './seed-clinic-config-templates';
+import { seedBillingAndUsage } from './seed-billing-subscriptions';
 
 async function assertSeedSchemaReady(pool: Pool): Promise<void> {
   const LATEST_MIGRATION = '20260316000000_fix_schema_drift_post_reset';
@@ -76,6 +77,10 @@ async function main() {
       doctor1Id: doctor1.id,
       doctor2Id: doctor2.id,
       doctor3Id: doctor3.id,
+    });
+
+    await seedBillingAndUsage(prisma, {
+      clinicId: defaultClinic.id,
     });
 
     await seedClinicConfigTemplates(prisma, {

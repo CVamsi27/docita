@@ -27,15 +27,15 @@ describe('SystemEventsService', () => {
       clinic: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({
+          .mockImplementation(async () => ({
             id: 'clinic-123',
             whatsappAutomation: { enabled: true },
-          }),
+          })),
       },
       prescription: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({
+          .mockImplementation(async () => ({
             id: 'rx-123',
             patient: {
               firstName: 'Rahul',
@@ -44,12 +44,12 @@ describe('SystemEventsService', () => {
             },
             doctor: { name: 'Dr. Patel' },
             appointment: { clinic: { name: 'Test Clinic' } },
-          }),
+          })),
       },
       invoice: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({
+          .mockImplementation(async () => ({
             id: 'inv-123',
             total: 1500,
             patient: {
@@ -58,12 +58,12 @@ describe('SystemEventsService', () => {
               phoneNumber: '919876543211',
             },
             appointment: { clinic: { name: 'Test Clinic' } },
-          }),
+          })),
       },
       appointment: {
         findUnique: jest
           .fn<(...args: unknown[]) => Promise<unknown>>()
-          .mockResolvedValue({
+          .mockImplementation(async () => ({
             id: 'appt-123',
             startTime: new Date('2026-04-01T10:00:00Z'),
             patient: {
@@ -73,7 +73,7 @@ describe('SystemEventsService', () => {
             },
             doctor: { name: 'Dr. Sharma' },
             clinic: { name: 'Test Clinic' },
-          }),
+          })),
       },
     };
   }
@@ -81,18 +81,17 @@ describe('SystemEventsService', () => {
   beforeEach(async () => {
     mockPrisma = buildMockPrisma();
     mockTemplatesService = {
-      resolveTemplate: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue({
-          content: 'Resolved template message',
-          buttons: [],
-        }),
+      resolveTemplate: jest.fn().mockImplementation(async () => ({
+        content: 'Resolved template message',
+        buttons: [],
+      })),
       getMessageForMode: jest.fn().mockReturnValue('Formatted message'),
     };
     mockWhatsappClient = {
-      sendMessage: jest
-        .fn()
-        .mockResolvedValue({ success: true, messageId: 'msg-123' }),
+      sendMessage: jest.fn().mockImplementation(async () => ({
+        success: true,
+        messageId: 'msg-123',
+      })),
     };
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});

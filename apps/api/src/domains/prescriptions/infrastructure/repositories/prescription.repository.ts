@@ -74,6 +74,9 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
           select: {
             id: true,
             name: true,
+            qualification: true,
+            registrationNumber: true,
+            signatureUrl: true,
           },
         },
       },
@@ -111,6 +114,9 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
           select: {
             id: true,
             name: true,
+            qualification: true,
+            registrationNumber: true,
+            signatureUrl: true,
           },
         },
       },

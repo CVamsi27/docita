@@ -7,9 +7,7 @@ import { AuthService } from '@/shared/modules/auth/auth/auth.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 jest.mock('bcrypt', () => ({
-  hash: jest
-    .fn<(...args: unknown[]) => Promise<unknown>>()
-    .mockResolvedValue('hashed'),
+  hash: jest.fn().mockImplementation(async () => 'hashed'),
   compare: jest.fn(),
 }));
 
@@ -18,13 +16,16 @@ jest.mock('nanoid', () => ({
 }));
 
 jest.mock('crypto', () => ({
-  ...jest.requireActual('crypto'),
+  ...(jest.requireActual('crypto') as Record<string, unknown>),
   randomInt: jest.fn().mockReturnValue(123456),
 }));
 
 describe('PatientPortalAuthService', () => {
   let service: PatientPortalAuthService;
-  let repository: Record<string, jest.Mock>;
+  let repository: Record<
+    string,
+    jest.Mock<(...args: unknown[]) => Promise<unknown>>
+  >;
 
   beforeEach(async () => {
     repository = {
@@ -66,8 +67,8 @@ describe('PatientPortalAuthService', () => {
           provide: AuthService,
           useValue: {
             login: jest
-              .fn<(...args: unknown[]) => Promise<unknown>>()
-              .mockResolvedValue({ access_token: 'jwt-token' }),
+              .fn()
+              .mockImplementation(async () => ({ access_token: 'jwt-token' })),
           },
         },
       ],

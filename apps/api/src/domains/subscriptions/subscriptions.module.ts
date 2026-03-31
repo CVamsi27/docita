@@ -32,9 +32,10 @@ import { SubscriptionsWebhookController } from './presentation/controllers/subsc
 import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
+import { EmailModule } from '@/shared/modules/messaging/email/email.module';
 
 @Module({
-  imports: [PrismaModule, BillingModule, PaymentsModule],
+  imports: [PrismaModule, BillingModule, PaymentsModule, EmailModule],
   controllers: [SubscriptionsController, SubscriptionsWebhookController],
   providers: [
     SubscriptionPricingService,

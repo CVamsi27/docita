@@ -90,7 +90,12 @@ describe('ResponseHandlerService', () => {
   });
 
   it('creates CONFIRM response and marks appointment CONFIRMED', async () => {
-    await service.handlePatientResponse('appt-123', 'yes', '919876543210', 'm1');
+    await service.handlePatientResponse(
+      'appt-123',
+      'yes',
+      '919876543210',
+      'm1',
+    );
 
     expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -141,7 +146,12 @@ describe('ResponseHandlerService', () => {
   });
 
   it('for DELAY without minutes asks follow-up question and flags pending minutes', async () => {
-    await service.handlePatientResponse('appt-123', 'delayed', '919876543210', 'm4');
+    await service.handlePatientResponse(
+      'appt-123',
+      'delayed',
+      '919876543210',
+      'm4',
+    );
 
     expect(mockPrisma.appointmentResponse.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -156,7 +166,9 @@ describe('ResponseHandlerService', () => {
     expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         to: '919876543210',
-        message: expect.stringContaining('reply with your expected delay in minutes'),
+        message: expect.stringContaining(
+          'reply with your expected delay in minutes',
+        ),
       }),
     );
 
@@ -230,7 +242,9 @@ describe('ResponseHandlerService', () => {
   });
 
   it('updates pending DELAY response when patient later sends delay minutes', async () => {
-    mockPrisma.appointmentResponse.findFirst.mockResolvedValue({ id: 'resp-pending' });
+    mockPrisma.appointmentResponse.findFirst.mockResolvedValue({
+      id: 'resp-pending',
+    });
     mockPrisma.appointment.findFirst.mockResolvedValue(null);
 
     await service.handlePatientResponse('appt-123', '25', '919876543210', 'm7');

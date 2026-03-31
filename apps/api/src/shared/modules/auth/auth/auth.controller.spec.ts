@@ -31,7 +31,7 @@ describe('AuthController', () => {
   };
 
   beforeEach(async () => {
-    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -43,20 +43,18 @@ describe('AuthController', () => {
         {
           provide: MfaService,
           useValue: {
-            generateSetupSecret:
-              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            enableMfa: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            disableMfa: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            regenerateBackupCodes:
-              jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            generateSetupSecret: jest.fn(),
+            enableMfa: jest.fn(),
+            disableMfa: jest.fn(),
+            regenerateBackupCodes: jest.fn(),
           },
         },
         {
           provide: ApiKeyService,
           useValue: {
-            createApiKey: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            listApiKeys: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-            revokeApiKey: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+            createApiKey: jest.fn(),
+            listApiKeys: jest.fn(),
+            revokeApiKey: jest.fn(),
           },
         },
         {
@@ -95,7 +93,7 @@ describe('AuthController', () => {
       const user = { id: '1', email: 'test@example.com', mfaEnabled: false };
       const token = { access_token: 'token', refresh_token: 'refresh', user };
       const response = {
-        cookie: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        cookie: jest.fn(),
       } as never;
       const request = { ip: '127.0.0.1', headers: {} } as never;
       mockAuthService.validateUser.mockResolvedValue(user);
@@ -111,7 +109,7 @@ describe('AuthController', () => {
 
     it('should throw UnauthorizedException on invalid credentials', async () => {
       const response = {
-        cookie: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        cookie: jest.fn(),
       } as never;
       const request = { ip: '127.0.0.1', headers: {} } as never;
       mockAuthService.validateUser.mockResolvedValue(null);
@@ -143,7 +141,7 @@ describe('AuthController', () => {
       };
 
       const response = {
-        cookie: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+        cookie: jest.fn(),
       } as never;
       mockAuthService.register.mockResolvedValue({
         id: '1',

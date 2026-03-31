@@ -6,14 +6,29 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('AuditService', () => {
   let service: AuditService;
-  let prismaService: PrismaService;
-  let mockQueue: { add: jest.Mock; process: jest.Mock; on: jest.Mock };
+  let prismaService: {
+    auditLog: {
+      create: ReturnType<typeof jest.fn>;
+      findMany: ReturnType<typeof jest.fn>;
+      count: ReturnType<typeof jest.fn>;
+    };
+    clinic: {
+      findUnique: ReturnType<typeof jest.fn>;
+    };
+    user: {
+      findUnique: ReturnType<typeof jest.fn>;
+    };
+    runUnrestricted: ReturnType<typeof jest.fn>;
+  };
+  let mockQueue: {
+    add: ReturnType<typeof jest.fn>;
+    process: ReturnType<typeof jest.fn>;
+    on: ReturnType<typeof jest.fn>;
+  };
 
   beforeEach(async () => {
     mockQueue = {
-      add: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue({ id: 'job-1' }),
+      add: jest.fn(async () => ({ id: 'job-1' })),
       process: jest.fn(),
       on: jest.fn(),
     };
@@ -25,29 +40,23 @@ describe('AuditService', () => {
           provide: PrismaService,
           useValue: {
             auditLog: {
-              create: jest
-                .fn()
-                .mockImplementation(({ data }) => Promise.resolve(data)),
-              findMany: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue([]),
-              count: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue(0),
+              create: jest.fn(
+                async (payload: { data: Record<string, unknown> }) =>
+                  payload.data,
+              ),
+              findMany: jest.fn(async () => []),
+              count: jest.fn(async () => 0),
             },
             clinic: {
-              findUnique: jest
-                .fn<(...args: unknown[]) => Promise<unknown>>()
-                .mockResolvedValue({ id: 'clinic-1' }),
+              findUnique: jest.fn(async () => ({ id: 'clinic-1' })),
             },
             user: {
-              findUnique: jest
-                .fn()
-                .mockResolvedValue({ id: 'user-1', role: 'ADMIN' }),
+              findUnique: jest.fn(async () => ({
+                id: 'user-1',
+                role: 'ADMIN',
+              })),
             },
-            runUnrestricted: jest
-              .fn()
-              .mockImplementation((callback) => callback()),
+            runUnrestricted: jest.fn((callback: () => unknown) => callback()),
           },
         },
         {
@@ -58,7 +67,7 @@ describe('AuditService', () => {
     }).compile();
 
     service = module.get<AuditService>(AuditService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get(PrismaService) as typeof prismaService;
 
     jest.spyOn(service['logger'], 'error').mockImplementation(() => {});
   });
@@ -114,7 +123,9 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      mockQueue.add = jest.fn().mockRejectedValue(new Error('Queue error'));
+      mockQueue.add = jest.fn(async () => {
+        throw new Error('Queue error');
+      });
 
       await expect(service.logAction(logData)).resolves.toBeUndefined();
     });
@@ -130,7 +141,10 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      const result = await service.createAuditLog(logData);
+      const result = (await service.createAuditLog(logData)) as Record<
+        string,
+        unknown
+      >;
 
       expect(result).toBeDefined();
       expect(result.clinicId).toBe('clinic-1');
@@ -147,7 +161,9 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      jest.spyOn(prismaService.clinic, 'findUnique').mockResolvedValue(null);
+      jest
+        .spyOn(prismaService.clinic, 'findUnique')
+        .mockImplementation(async () => null);
 
       await expect(service.createAuditLog(logData)).rejects.toThrow(
         'Clinic invalid-clinic not found',
@@ -163,7 +179,9 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
+      jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockImplementation(async () => null);
 
       await expect(service.createAuditLog(logData)).rejects.toThrow(
         'User invalid-user not found',
@@ -227,7 +245,7 @@ describe('AuditService', () => {
 
       jest
         .spyOn(prismaService.auditLog, 'findMany')
-        .mockResolvedValue(mockLogs);
+        .mockResolvedValue(mockLogs as never);
 
       const result = await service.getAuditLogs(
         {
@@ -282,7 +300,9 @@ describe('AuditService', () => {
     });
 
     it('should allow access to SUPER_ADMIN users', async () => {
-      jest.spyOn(prismaService.auditLog, 'findMany').mockResolvedValue([]);
+      jest
+        .spyOn(prismaService.auditLog, 'findMany')
+        .mockImplementation(async () => []);
 
       const result = await service.getAuditLogs(
         {
@@ -317,7 +337,7 @@ describe('AuditService', () => {
 
       jest
         .spyOn(
-          service as {
+          service as unknown as {
             archiveOldLogs: (days?: number) => Promise<void>;
           },
           'archiveOldLogs',
@@ -340,7 +360,9 @@ describe('AuditService', () => {
     });
 
     it('should allow access for ADMIN and SUPER_ADMIN', async () => {
-      jest.spyOn(prismaService.auditLog, 'findMany').mockResolvedValue([]);
+      jest
+        .spyOn(prismaService.auditLog, 'findMany')
+        .mockImplementation(async () => []);
 
       const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
 

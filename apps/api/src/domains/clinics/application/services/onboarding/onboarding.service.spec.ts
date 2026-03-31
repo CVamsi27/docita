@@ -246,44 +246,45 @@ describe('OnboardingService', () => {
   });
 
   describe('completeOnboarding', () => {
-    const completeData = {
-      clinicDetails: {
-        name: 'Test Clinic',
-        email: 'test@clinic.com',
-        phone: '1234567890',
-        address: '123 Test St',
-      },
-      adminAccount: {
-        name: 'Admin User',
-        email: 'admin@clinic.com',
-        password: 'Password123',
-        phoneNumber: '1234567890',
-        role: 'ADMIN',
-        qualification: 'MBBS',
-        registrationNumber: 'REG123',
-        specialization: 'General Physician',
-      },
-      planSelection: {
-        tier: ClinicTier.ESSENTIAL,
-        billingCycle: BillingCycle.MONTHLY,
-      },
-      slaAgreement: {
-        acceptedSLA: true,
-        acceptedDataProcessingTerms: true,
-        acceptedPrivacyPolicy: true,
-        slaVersion: '1.0',
-        acceptedBy: 'Admin User',
-        ipAddress: '127.0.0.1',
-        signatureSessionId: 'sig-session-test',
-      },
-      consentManagement: {
-        enableWhatsAppCommunication: true,
-        patientConsentRequiredBeforeWhatsApp: true,
-        enableMarketingCommunications: false,
-        logAllConsentChanges: true,
-        dataProcessingPurposes: ['TREATMENT'],
-      },
-    };
+    const completeData: Parameters<OnboardingService['completeOnboarding']>[1] =
+      {
+        clinicDetails: {
+          name: 'Test Clinic',
+          email: 'test@clinic.com',
+          phone: '1234567890',
+          address: '123 Test St',
+        },
+        adminAccount: {
+          name: 'Admin User',
+          email: 'admin@clinic.com',
+          password: 'Password123',
+          phoneNumber: '1234567890',
+          role: 'ADMIN',
+          qualification: 'MBBS',
+          registrationNumber: 'REG123',
+          specialization: 'General Physician',
+        },
+        planSelection: {
+          tier: ClinicTier.ESSENTIAL,
+          billingCycle: BillingCycle.MONTHLY,
+        },
+        slaAgreement: {
+          acceptedSLA: true,
+          acceptedDataProcessingTerms: true,
+          acceptedPrivacyPolicy: true,
+          slaVersion: '1.0',
+          acceptedBy: 'Admin User',
+          ipAddress: '127.0.0.1',
+          signatureSessionId: 'sig-session-test',
+        },
+        consentManagement: {
+          enableWhatsAppCommunication: true,
+          patientConsentRequiredBeforeWhatsApp: true,
+          enableMarketingCommunications: false,
+          logAllConsentChanges: true,
+          dataProcessingPurposes: ['TREATMENT'],
+        },
+      };
 
     it('should successfully complete onboarding', async () => {
       const { onboardingId } = service.initializeOnboarding();

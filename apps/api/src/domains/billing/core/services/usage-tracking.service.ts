@@ -3,7 +3,14 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsageType, ClinicTier, Prisma } from '@workspace/db';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
-import { TIER_LIMITS } from '@workspace/types';
+import {
+  PRICING_CURRENCY_CONFIG,
+  TIER_LIMITS,
+  TIER_OVERAGE_RATES_BY_CURRENCY,
+  getWhatsAppAddonPricingByCurrency,
+  type TierName,
+  type SupportedCurrency,
+} from '@workspace/types';
 
 @Injectable()
 export class UsageTrackingService {
@@ -11,33 +18,15 @@ export class UsageTrackingService {
 
   constructor(private prisma: PrismaService) {}
 
-  private parseTierRates(value: unknown): Record<string, number> {
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value);
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          return Object.fromEntries(
-            Object.entries(parsed).map(([key, entry]) => [
-              key,
-              typeof entry === 'number' ? entry : 0,
-            ]),
-          );
-        }
-      } catch {
-        return {};
-      }
+  private resolveCurrency(currency?: string): SupportedCurrency {
+    const selected = currency?.toUpperCase() as SupportedCurrency | undefined;
+    if (
+      selected &&
+      Object.prototype.hasOwnProperty.call(PRICING_CURRENCY_CONFIG, selected)
+    ) {
+      return selected;
     }
-
-    if (value && typeof value === 'object' && !Array.isArray(value)) {
-      return Object.fromEntries(
-        Object.entries(value).map(([key, entry]) => [
-          key,
-          typeof entry === 'number' ? entry : 0,
-        ]),
-      );
-    }
-
-    return {};
+    return DEFAULT_CURRENCY as SupportedCurrency;
   }
 
   async recordUsageEvent(params: {
@@ -98,60 +87,25 @@ export class UsageTrackingService {
       where: { clinicId },
       select: {
         plan: true,
-        includedPatients: true,
         includedAppointments: true,
-        includedStorageGB: true,
         includedUsers: true,
+        currency: true,
       },
     });
 
     const [
-      activePatients,
-      appointments,
-      prescriptions,
-      invoices,
+      consultations,
       whatsappMessages,
-      aiCredits,
-      users,
-      addOns,
+      activeUsers,
+      maxUsersEvent,
+      maxUsersRecord,
     ] = await Promise.all([
-      this.prisma.patient.count({
-        where: {
-          clinicId,
-          OR: [
-            { createdAt: { gte: periodStart } },
-            { updatedAt: { gte: periodStart } },
-            {
-              appointments: {
-                some: {
-                  startTime: { gte: periodStart, lte: periodEnd },
-                },
-              },
-            },
-          ],
-        },
-      }),
       this.prisma.appointment.count({
         where: {
           clinicId,
-          startTime: { gte: periodStart, lte: periodEnd },
+          status: 'COMPLETED',
+          updatedAt: { gte: periodStart, lte: periodEnd },
         },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'PRESCRIPTION',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { quantity: true },
-      }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'INVOICE',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { quantity: true },
       }),
       this.prisma.usageEvent.aggregate({
         where: {
@@ -161,51 +115,107 @@ export class UsageTrackingService {
         },
         _sum: { quantity: true },
       }),
-      this.prisma.usageEvent.aggregate({
-        where: {
-          clinicId,
-          type: 'AI_CREDITS',
-          timestamp: { gte: periodStart, lte: periodEnd },
-        },
-        _sum: { quantity: true },
-      }),
       this.prisma.user.count({
         where: { clinicId },
       }),
-      this.prisma.clinicAddOn.findMany({
-        where: { clinicId, status: 'ACTIVE' },
-        include: { addOn: true },
+      this.prisma.usageEvent.aggregate({
+        where: {
+          clinicId,
+          type: 'USERS',
+          timestamp: { gte: periodStart, lte: periodEnd },
+        },
+        _max: { quantity: true },
+      }),
+      this.prisma.usageRecord.findFirst({
+        where: {
+          clinicId,
+          type: UsageType.USERS,
+          periodStart: { gte: periodStart, lte: periodEnd },
+        },
+        orderBy: { quantity: 'desc' },
+        select: { quantity: true },
       }),
     ]);
 
-    const whatsappAddOn = addOns.find((a) => a.addOnType === 'WHATSAPP');
-    const intelligenceAddOn = addOns.find(
-      (a) => a.addOnType === 'INTELLIGENCE',
-    );
     const tierKey =
-      (subscription?.plan as keyof typeof TIER_LIMITS) || 'STARTER';
+      (subscription?.plan as keyof typeof TIER_LIMITS) ?? 'STARTER';
+    const resolvedCurrency = this.resolveCurrency(subscription?.currency);
     const tierLimits = TIER_LIMITS[tierKey];
-
-    const getQuota = (
-      addOn:
-        | Prisma.ClinicAddOnGetPayload<{ include: { addOn: true } }>
-        | undefined,
-      plan: string,
-    ) => {
-      if (!addOn?.addOn?.includedQuotaByTier) return 0;
-      const quotaMap =
-        (addOn.addOn.includedQuotaByTier as Record<string, number>) || {};
-      return quotaMap[plan] || 0;
-    };
-
-    const whatsappQuota = getQuota(whatsappAddOn, subscription?.plan || 'CORE');
-    const aiQuota = getQuota(intelligenceAddOn, subscription?.plan || 'CORE');
-    const includedPatients = subscription?.includedPatients ?? 50;
-    const includedAppointments =
+    const includedConsultations =
       subscription?.includedAppointments ?? tierLimits.appointments ?? 0;
-    const includedUsers = subscription?.includedUsers ?? 1;
-    const includedPrescriptions = tierLimits.prescriptions ?? 0;
-    const includedInvoices = tierLimits.invoices ?? 0;
+    const includedUsers = subscription?.includedUsers ?? tierLimits.users ?? 1;
+    const tierRates =
+      TIER_OVERAGE_RATES_BY_CURRENCY[resolvedCurrency][tierKey as TierName];
+    const whatsappPlan =
+      tierKey === 'ESSENTIAL' ||
+      tierKey === 'PROFESSIONAL' ||
+      tierKey === 'ENTERPRISE'
+        ? getWhatsAppAddonPricingByCurrency(tierKey, resolvedCurrency)
+        : null;
+    const includedWhatsapp = whatsappPlan?.includedQuota ?? 0;
+    const consultationOverage = Math.max(
+      0,
+      consultations - includedConsultations,
+    );
+    const whatsappCurrent = whatsappMessages._sum.quantity ?? 0;
+    const whatsappOverage = Math.max(0, whatsappCurrent - includedWhatsapp);
+    const peakUsersInCycle = Math.max(
+      activeUsers,
+      maxUsersEvent._max.quantity ?? 0,
+      maxUsersRecord?.quantity ?? 0,
+    );
+    const usersOverage = Math.max(0, peakUsersInCycle - includedUsers);
+    const rates = {
+      consultations: tierRates.appointmentRate,
+      users: tierRates.userRate,
+      whatsappMessages: whatsappPlan?.overageRate ?? 0,
+    };
+    const breakdown = {
+      consultations: {
+        quantity: consultationOverage,
+        rate: rates.consultations,
+        charge: consultationOverage * rates.consultations,
+      },
+      users: {
+        quantity: usersOverage,
+        rate: rates.users,
+        charge: usersOverage * rates.users,
+      },
+      whatsappMessages: {
+        quantity: whatsappOverage,
+        rate: rates.whatsappMessages,
+        charge: whatsappOverage * rates.whatsappMessages,
+      },
+    };
+    const total = Object.values(breakdown).reduce(
+      (sum, item) => sum + item.charge,
+      0,
+    );
+    const buildWarning = (current: number, included: number) => {
+      if (included <= 0)
+        return { percentUsed: 0, threshold: null as 80 | 100 | null };
+      const percentUsed = (current / included) * 100;
+      if (percentUsed >= 100) return { percentUsed, threshold: 100 as const };
+      if (percentUsed >= 80) return { percentUsed, threshold: 80 as const };
+      return { percentUsed, threshold: null as 80 | 100 | null };
+    };
+    const meters = {
+      consultations: {
+        current: consultations,
+        included: includedConsultations,
+        overage: consultationOverage,
+      },
+      users: {
+        current: peakUsersInCycle,
+        included: includedUsers,
+        overage: usersOverage,
+      },
+      whatsappMessages: {
+        current: whatsappCurrent,
+        included: includedWhatsapp,
+        overage: whatsappOverage,
+      },
+    };
 
     return {
       period: {
@@ -213,52 +223,28 @@ export class UsageTrackingService {
         end: periodEnd,
       },
       usage: {
-        activePatients: {
-          current: activePatients,
-          included: includedPatients,
-          overage: Math.max(0, activePatients - includedPatients),
-        },
-        appointments: {
-          current: appointments,
-          included: includedAppointments,
-          overage: Math.max(0, appointments - includedAppointments),
-        },
-        users: {
-          current: users,
-          included: includedUsers,
-          overage: Math.max(0, users - includedUsers),
-        },
-        prescriptions: {
-          current: prescriptions._sum.quantity || 0,
-          included: includedPrescriptions,
-          overage: Math.max(
-            0,
-            (prescriptions._sum.quantity || 0) - includedPrescriptions,
-          ),
-        },
-        invoices: {
-          current: invoices._sum.quantity || 0,
-          included: includedInvoices,
-          overage: Math.max(
-            0,
-            (invoices._sum.quantity || 0) - includedInvoices,
-          ),
-        },
-        whatsappMessages: {
-          current: whatsappMessages._sum.quantity || 0,
-          included: whatsappQuota,
-          overage: Math.max(
-            0,
-            (whatsappMessages._sum.quantity || 0) - whatsappQuota,
-          ),
-          addOnActive: !!whatsappAddOn,
-        },
-        aiCredits: {
-          current: aiCredits._sum.quantity || 0,
-          included: aiQuota,
-          overage: Math.max(0, (aiCredits._sum.quantity || 0) - aiQuota),
-          addOnActive: !!intelligenceAddOn,
-        },
+        consultations,
+        users: peakUsersInCycle,
+        whatsappMessages: whatsappCurrent,
+      },
+      included: {
+        consultations: includedConsultations,
+        users: includedUsers,
+        whatsappMessages: includedWhatsapp,
+      },
+      overages: {
+        consultations: consultationOverage,
+        users: usersOverage,
+        whatsappMessages: whatsappOverage,
+      },
+      rates,
+      breakdown,
+      total,
+      meters,
+      warnings: {
+        consultations: buildWarning(consultations, includedConsultations),
+        users: buildWarning(peakUsersInCycle, includedUsers),
+        whatsappMessages: buildWarning(whatsappCurrent, includedWhatsapp),
       },
       tier: (subscription?.plan as ClinicTier) || ClinicTier.STARTER,
     };
@@ -266,99 +252,16 @@ export class UsageTrackingService {
 
   async calculateOverageCharges(clinicId: string) {
     const usage = await this.getCurrentUsage(clinicId);
-
-    const tier = usage.tier;
-
-    const [tierPricing, addOns] = await Promise.all([
-      this.prisma.tierPricing.findUnique({ where: { tier } }),
-      this.prisma.clinicAddOn.findMany({
-        where: { clinicId, status: 'ACTIVE' },
-        include: { addOn: true },
-      }),
-    ]);
-
-    let totalOverageCharges = 0;
-    const breakdown: Record<
-      string,
-      { quantity: number; rate: number; charge: number }
-    > = {};
-
-    if (tierPricing) {
-      if (usage.usage.activePatients.overage > 0) {
-        const charge =
-          (usage.usage.activePatients.overage *
-            tierPricing.overagePatientCents) /
-          100;
-        breakdown.activePatients = {
-          quantity: usage.usage.activePatients.overage,
-          rate: tierPricing.overagePatientCents / 100,
-          charge,
-        };
-        totalOverageCharges += charge;
-      }
-
-      if (usage.usage.appointments.overage > 0) {
-        const charge =
-          (usage.usage.appointments.overage *
-            tierPricing.overageAppointmentCents) /
-          100;
-        breakdown.appointments = {
-          quantity: usage.usage.appointments.overage,
-          rate: tierPricing.overageAppointmentCents / 100,
-          charge,
-        };
-        totalOverageCharges += charge;
-      }
-
-      if (usage.usage.users.overage > 0) {
-        const charge =
-          (usage.usage.users.overage * tierPricing.overageUserCents) / 100;
-        breakdown.users = {
-          quantity: usage.usage.users.overage,
-          rate: tierPricing.overageUserCents / 100,
-          charge,
-        };
-        totalOverageCharges += charge;
-      }
-    }
-
-    const whatsappAddOn = addOns.find((a) => a.addOnType === 'WHATSAPP');
-    if (whatsappAddOn && usage.usage.whatsappMessages.overage > 0) {
-      const whatsappRates = this.parseTierRates(
-        whatsappAddOn.addOn.overageRateByTier,
-      );
-      const overageRate = (whatsappRates[tier] || 0) / 100;
-      const charge = usage.usage.whatsappMessages.overage * overageRate;
-      breakdown.whatsappMessages = {
-        quantity: usage.usage.whatsappMessages.overage,
-        rate: overageRate,
-        charge,
-      };
-      totalOverageCharges += charge;
-    }
-
-    const intelligenceAddOn = addOns.find(
-      (a) => a.addOnType === 'INTELLIGENCE',
-    );
-    if (intelligenceAddOn && usage.usage.aiCredits.overage > 0) {
-      const intelligenceRates = this.parseTierRates(
-        intelligenceAddOn.addOn.overageRateByTier,
-      );
-      const overageRate = (intelligenceRates[tier] || 0) / 100;
-      const charge = usage.usage.aiCredits.overage * overageRate;
-      breakdown.aiCredits = {
-        quantity: usage.usage.aiCredits.overage,
-        rate: overageRate,
-        charge,
-      };
-      totalOverageCharges += charge;
-    }
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { clinicId },
+      select: { currency: true },
+    });
 
     return {
       period: usage.period,
-      totalOverageCharges,
-      breakdown,
-      currency: DEFAULT_CURRENCY,
+      totalOverageCharges: usage.total,
+      breakdown: usage.breakdown,
+      currency: this.resolveCurrency(subscription?.currency),
     };
   }
 

@@ -7,9 +7,9 @@ describe('AppointmentService - appointment.created event', () => {
   const mockRepository = {};
   const mockPrisma = {};
 
-  const mockCreateAppointmentUseCase = {
-    execute: jest.fn<(...args: unknown[]) => Promise<Appointment>>(),
-  } as unknown as CreateAppointmentUseCase;
+  const mockCreateAppointmentUseCase: { execute: jest.Mock } = {
+    execute: jest.fn(),
+  };
 
   const mockEventEmitter = {
     emit: jest.fn<(...args: unknown[]) => unknown>(),
@@ -21,7 +21,7 @@ describe('AppointmentService - appointment.created event', () => {
     jest.clearAllMocks();
     service = new AppointmentService(
       mockRepository as never,
-      mockCreateAppointmentUseCase,
+      mockCreateAppointmentUseCase as unknown as CreateAppointmentUseCase,
       mockPrisma as never,
       mockEventEmitter as never,
     );
@@ -35,7 +35,9 @@ describe('AppointmentService - appointment.created event', () => {
       doctorId: 'doctor-1',
     } as Appointment;
 
-    mockCreateAppointmentUseCase.execute.mockResolvedValue(created);
+    mockCreateAppointmentUseCase.execute.mockImplementation(
+      async () => created,
+    );
 
     const command = {
       clinicId: 'clinic-1',

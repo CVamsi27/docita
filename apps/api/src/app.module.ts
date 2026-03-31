@@ -54,6 +54,7 @@ import { RequestIdInterceptor } from './common/interceptors/request-id.intercept
 import { RequestContextInterceptor } from './common/interceptors/request-context.interceptor';
 import { JwtAuthGuard } from './shared/modules/auth/auth/jwt-auth.guard';
 import { RolesGuard } from './shared/modules/auth/auth/roles.guard';
+import { TenantGuard } from './shared/modules/auth/guards/tenant.guard';
 import { SubscriptionStatusGuard } from './shared/modules/auth/guards/subscription-status.guard';
 import { PasswordExpiredGuard } from './shared/modules/auth/guards/password-expired.guard';
 import { EmailVerifiedGuard } from './shared/modules/auth/guards/email-verified.guard';
@@ -189,6 +190,10 @@ const BullModule = MockBullModule;
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TenantGuard,
     },
     {
       provide: APP_GUARD,

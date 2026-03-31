@@ -17,33 +17,33 @@ describe('SuperAdminController - Authorization', () => {
   let rolesGuard: RolesGuard;
 
   const mockClinicManagementService = {
-    getAllClinics: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    createClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    updateClinic: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getAllClinics: jest.fn(),
+    createClinic: jest.fn(),
+    updateClinic: jest.fn(),
   };
 
   const mockAnalyticsService = {
-    getGlobalStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getGlobalStats: jest.fn(),
   };
 
   const mockLogService = {
-    getRecentLogs: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getRecentLogs: jest.fn(),
   };
 
   const mockAiService = {
-    getFeatureCatalog: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getFeatureCatalog: jest.fn(),
   };
 
   const mockBillingService = {
-    getTierPricing: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    getTierPricing: jest.fn(),
   };
 
   const mockFeedbackService = {
-    findAll: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    getStats: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    findOne: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    updateStatus: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    findAll: jest.fn(),
+    getStats: jest.fn(),
+    findOne: jest.fn(),
+    updateStatus: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -91,7 +91,7 @@ describe('SuperAdminController - Authorization', () => {
           user: { role: userRole, clinicId: 'clinic-123' },
         }),
       }),
-    } as ExecutionContext;
+    } as unknown as ExecutionContext;
   };
 
   describe('RolesGuard - SuperAdminController', () => {
@@ -120,13 +120,8 @@ describe('SuperAdminController - Authorization', () => {
       expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
-    it('should deny PHARMACIST access to super-admin endpoints', () => {
-      const context = createMockExecutionContext(Role.PHARMACIST);
-      expect(() => rolesGuard.canActivate(context)).toThrow();
-    });
-
-    it('should deny NURSE access to super-admin endpoints', () => {
-      const context = createMockExecutionContext(Role.NURSE);
+    it('should deny PATIENT access to super-admin endpoints', () => {
+      const context = createMockExecutionContext(Role.PATIENT);
       expect(() => rolesGuard.canActivate(context)).toThrow();
     });
   });

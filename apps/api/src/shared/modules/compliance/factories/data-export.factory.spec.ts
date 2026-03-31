@@ -5,11 +5,15 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('DataExportFactory', () => {
   let factory: DataExportFactory;
-  let prisma: PrismaService;
+  let prisma: {
+    patient: {
+      findUnique: ReturnType<typeof jest.fn>;
+    };
+  };
 
   const mockPrismaService = {
     patient: {
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findUnique: jest.fn(),
     },
   };
 
@@ -22,7 +26,7 @@ describe('DataExportFactory', () => {
     }).compile();
 
     factory = module.get<DataExportFactory>(DataExportFactory);
-    prisma = module.get<PrismaService>(PrismaService);
+    prisma = module.get(PrismaService) as typeof prisma;
   });
 
   it('should be defined', () => {
@@ -31,11 +35,7 @@ describe('DataExportFactory', () => {
 
   it('should export patient data', async () => {
     const mockPatient = { id: 'patient-1', firstName: 'John' };
-    (
-      prisma.patient.findUnique as jest.Mock<
-        (...args: unknown[]) => Promise<unknown>
-      >
-    ).mockResolvedValue(mockPatient);
+    prisma.patient.findUnique.mockImplementation(async () => mockPatient);
 
     const result = await factory.exportPatientData('patient-1');
 
