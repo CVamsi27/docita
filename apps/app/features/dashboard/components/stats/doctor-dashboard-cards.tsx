@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   Card,
@@ -13,8 +15,10 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { ChevronRight, Clock, Play, Stethoscope, Users } from "lucide-react";
+import { toast } from "sonner";
 
 import { DashboardAppointment } from "@workspace/types";
+import { useStartConsultation } from "@/hooks/api/use-appointments";
 
 interface QueueStats {
   waiting: number;
@@ -36,6 +40,28 @@ export function DoctorDashboardCardsUI({
   queueStats,
   estimatedWaitTime,
 }: DoctorDashboardCardsProps) {
+  const router = useRouter();
+  const startConsultation = useStartConsultation();
+  const [startingAppointmentId, setStartingAppointmentId] = useState<
+    string | null
+  >(null);
+
+  const handleStartAppointment = async (appointmentId: string) => {
+    try {
+      setStartingAppointmentId(appointmentId);
+      const result = await startConsultation.mutateAsync({ appointmentId });
+      router.push(`/consultation/${result.appointmentId}`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to start this consultation",
+      );
+    } finally {
+      setStartingAppointmentId(null);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {}
@@ -84,14 +110,12 @@ export function DoctorDashboardCardsUI({
                 </p>
               </div>
               <Button
-                asChild
                 size="lg"
                 className="gap-2 shadow-lg shadow-primary/20"
+                onClick={() => router.push(`/consultation/${currentPatient.id}`)}
               >
-                <Link href={`/consultation/${currentPatient.id}`}>
-                  <Play className="h-4 w-4" />
-                  Continue
-                </Link>
+                <Play className="h-4 w-4" />
+                Continue
               </Button>
             </div>
           ) : (
@@ -102,11 +126,16 @@ export function DoctorDashboardCardsUI({
                   : "No patients in queue"}
               </p>
               {nextPatients.length > 0 && nextPatients[0] && (
-                <Button asChild variant="default" className="gap-2">
-                  <Link href={`/consultation/${nextPatients[0].id}`}>
-                    Start Next Patient
-                    <ChevronRight className="h-4 w-4" />
-                  </Link>
+                <Button
+                  variant="default"
+                  className="gap-2"
+                  disabled={startConsultation.isPending}
+                  onClick={() => void handleStartAppointment(nextPatients[0].id)}
+                >
+                  {startingAppointmentId === nextPatients[0].id
+                    ? "Starting..."
+                    : "Start Next Patient"}
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               )}
             </div>

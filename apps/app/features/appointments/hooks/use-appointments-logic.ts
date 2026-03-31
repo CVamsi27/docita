@@ -5,6 +5,7 @@ import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
 import {
   useAppointments,
   useCheckInAppointment,
+  useStartConsultation,
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useAuth } from "@/lib/auth-context";
@@ -46,6 +47,9 @@ export const useAppointmentsLogic = () => {
   const [noShowDialogOpen, setNoShowDialogOpen] = useState(false);
   const [noShowAptId, setNoShowAptId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [startingConsultationId, setStartingConsultationId] = useState<
+    string | null
+  >(null);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | undefined>(
     undefined,
   );
@@ -140,6 +144,7 @@ export const useAppointmentsLogic = () => {
   }, [appointmentsResponse]);
 
   const checkInMutation = useCheckInAppointment();
+  const startConsultationMutation = useStartConsultation();
 
   const updateAppointmentMutation = useUpdateAppointment(
     cancellingAptId || noShowAptId || "",
@@ -213,10 +218,24 @@ export const useAppointmentsLogic = () => {
   );
 
   const handleStartConsultation = useCallback(
-    (appointmentId: string) => {
-      router.push(`/consultation/${appointmentId}`);
+    async (appointmentId: string) => {
+      setStartingConsultationId(appointmentId);
+      try {
+        const result = await startConsultationMutation.mutateAsync({
+          appointmentId,
+        });
+        router.push(`/consultation/${result.appointmentId}`);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Unable to start this consultation",
+        );
+      } finally {
+        setStartingConsultationId(null);
+      }
     },
-    [router],
+    [router, startConsultationMutation],
   );
 
   const handleCheckIn = useCallback(
@@ -268,6 +287,7 @@ export const useAppointmentsLogic = () => {
       date,
       setDate,
       checkingIn,
+      startingConsultationId,
       cancelDialogOpen,
       setCancelDialogOpen,
       noShowDialogOpen,

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
@@ -8,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
 import { MicButton } from "@workspace/ui/components/mic-button";
 import { useSpeechToText } from "@workspace/hooks";
 import { Activity, Plus, Trash2 } from "lucide-react";
@@ -56,10 +58,11 @@ export function ChiefComplaintInput({
     if (isListening) {
       stop();
       setListeningIndex(null);
-    } else {
-      setListeningIndex(index);
-      start();
+      return;
     }
+
+    setListeningIndex(index);
+    start();
   };
 
   const addItem = () => {
@@ -93,104 +96,183 @@ export function ChiefComplaintInput({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
-        {items.map((item, index) => (
-          <div
-            key={item.id || index}
-            className="p-3 bg-muted/20 border rounded-lg space-y-3 transition-colors hover:bg-muted/30"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="badge-warning p-1.5 rounded-full">
-                  <Activity className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium">
-                  Complaint #{index + 1}
-                </span>
-              </div>
-              {!readOnly && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => removeItem(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+      {!readOnly && (
+        <div className="rounded-2xl border border-border bg-muted/20 p-4">
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-primary/10 p-2 text-primary">
+              <Activity className="h-4 w-4" />
             </div>
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold">
+                Capture the patient concern clearly
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Start with the main symptom, then add duration, severity, and
+                any useful clinical context.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-              <div className="col-span-1 md:col-span-5 flex items-center gap-1">
+      <div className="space-y-3">
+        {items.map((item, index) => {
+          const isPrimary = index === 0;
+          const hasComplaint = item.complaint.trim().length > 0;
+
+          return (
+            <div
+              key={item.id || index}
+              className={`space-y-4 rounded-2xl border p-4 transition-colors ${
+                isPrimary
+                  ? "border-primary/30 bg-primary/5"
+                  : "border-border bg-card hover:bg-muted/20"
+              }`}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-full bg-background p-1.5 text-primary shadow-sm">
+                      <Activity className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm font-semibold">
+                      {isPrimary
+                        ? "Primary complaint"
+                        : `Additional complaint ${index}`}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {isPrimary
+                      ? "What is the main reason for this consultation?"
+                      : "Add another symptom or concern if it is clinically relevant."}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                      hasComplaint ? "badge-success" : "badge-warning"
+                    }`}
+                  >
+                    {hasComplaint ? "Recorded" : "Needs symptom"}
+                  </span>
+                  {!readOnly && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => removeItem(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor={`chief-complaint-${index}`}>
+                    Symptom or concern
+                  </Label>
+                  {!readOnly && (
+                    <MicButton
+                      isListening={isListening && listeningIndex === index}
+                      isSupported={isSupported}
+                      onClick={() => handleMicToggle(index)}
+                    />
+                  )}
+                </div>
                 <Input
-                  placeholder="Symptom (e.g. Fever, Headache)"
+                  id={`chief-complaint-${index}`}
+                  placeholder="e.g. Fever with chills, headache, abdominal pain"
                   value={item.complaint}
                   onChange={(e) =>
                     updateItem(index, "complaint", e.target.value)
                   }
                   readOnly={readOnly}
-                  className="bg-background flex-1"
+                  className="h-11 bg-background"
                 />
-                {!readOnly && (
-                  <MicButton
-                    isListening={isListening && listeningIndex === index}
-                    isSupported={isSupported}
-                    onClick={() => handleMicToggle(index)}
-                  />
+                {!readOnly && !hasComplaint && (
+                  <p className="text-sm text-warning">
+                    Enter the main symptom or reason for visit.
+                  </p>
                 )}
               </div>
-              <div className="col-span-1 md:col-span-2">
-                <Input
-                  type="number"
-                  placeholder="Duration"
-                  value={item.durationValue}
-                  onChange={(e) =>
-                    updateItem(index, "durationValue", e.target.value)
-                  }
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor={`duration-value-${index}`}>Duration</Label>
+                  <Input
+                    id={`duration-value-${index}`}
+                    type="number"
+                    placeholder="How long?"
+                    value={item.durationValue}
+                    onChange={(e) =>
+                      updateItem(index, "durationValue", e.target.value)
+                    }
+                    readOnly={readOnly}
+                    className="h-11 bg-background"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Unit</Label>
+                  <Select
+                    value={item.durationUnit}
+                    onValueChange={(val) =>
+                      updateItem(index, "durationUnit", val)
+                    }
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger className="h-11 bg-background">
+                      <SelectValue placeholder="Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hours">Hours</SelectItem>
+                      <SelectItem value="days">Days</SelectItem>
+                      <SelectItem value="weeks">Weeks</SelectItem>
+                      <SelectItem value="months">Months</SelectItem>
+                      <SelectItem value="years">Years</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Severity</Label>
+                  <Select
+                    value={item.severity}
+                    onValueChange={(val) => updateItem(index, "severity", val)}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger className="h-11 bg-background">
+                      <SelectValue placeholder="Severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mild">Mild</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="severe">Severe</SelectItem>
+                      <SelectItem value="critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor={`complaint-notes-${index}`}>
+                  Clinical notes
+                </Label>
+                <Textarea
+                  id={`complaint-notes-${index}`}
+                  placeholder="Optional context: progression, triggers, associated symptoms, or patient wording"
+                  value={item.notes || ""}
+                  onChange={(e) => updateItem(index, "notes", e.target.value)}
                   readOnly={readOnly}
-                  className="bg-background"
+                  className="min-h-[96px] bg-background"
                 />
               </div>
-              <div className="col-span-1 md:col-span-2">
-                <Select
-                  value={item.durationUnit}
-                  onValueChange={(val) =>
-                    updateItem(index, "durationUnit", val)
-                  }
-                  disabled={readOnly}
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hours">Hours</SelectItem>
-                    <SelectItem value="days">Days</SelectItem>
-                    <SelectItem value="weeks">Weeks</SelectItem>
-                    <SelectItem value="months">Months</SelectItem>
-                    <SelectItem value="years">Years</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-1 md:col-span-3">
-                <Select
-                  value={item.severity}
-                  onValueChange={(val) => updateItem(index, "severity", val)}
-                  disabled={readOnly}
-                >
-                  <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Severity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mild">Mild</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="severe">Severe</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {!readOnly && (
@@ -200,13 +282,22 @@ export function ChiefComplaintInput({
           className="w-full border-dashed py-6 text-muted-foreground hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Complaint
+          Add Another Complaint
         </Button>
       )}
 
       {items.length === 0 && readOnly && (
-        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
-          No chief complaints recorded.
+        <div className="rounded-2xl border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <Activity className="h-4 w-4" />
+          </div>
+          <p className="font-medium text-foreground">
+            No chief complaints recorded
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This consultation does not have a documented presenting complaint
+            yet.
+          </p>
         </div>
       )}
     </div>

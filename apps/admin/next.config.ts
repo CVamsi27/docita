@@ -1,13 +1,15 @@
+import path from "path";
 import type { NextConfig } from "next";
 import { createRequire } from "module";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const require = createRequire(import.meta.url);
+const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 
 let nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/types"],
 
-  compress: true,
+  compress: !isCloudflareBuild,
 
   images: {
     formats: ["image/avif", "image/webp"],
@@ -29,7 +31,16 @@ let nextConfig: NextConfig = {
 
   turbopack: {},
 
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
+    if (isCloudflareBuild) {
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        "@sentry/nextjs$": path.resolve(
+          process.cwd(),
+          "lib/stubs/sentry-nextjs-cloudflare.ts",
+        ),
+      };
+    }
 
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
@@ -50,11 +61,26 @@ let nextConfig: NextConfig = {
       );
     }
 
+    if (isServer && isCloudflareBuild) {
+      const STUB = path.resolve(process.cwd(), "lib/stubs/empty-module.cjs");
+      const otelPatterns = [
+        /^@opentelemetry\/instrumentation/,
+        /^@sentry\/opentelemetry/,
+        /^import-in-the-middle/,
+        /^require-in-the-middle/,
+      ];
+      for (const pattern of otelPatterns) {
+        config.plugins.push(
+          new webpack.NormalModuleReplacementPlugin(pattern, STUB),
+        );
+      }
+    }
+
     return config;
   },
 };
 
-if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+if (process.env.NEXT_PUBLIC_SENTRY_DSN && !isCloudflareBuild) {
   nextConfig = withSentryConfig(nextConfig, {
     org: process.env.SENTRY_ORG || "docita",
     project: process.env.SENTRY_PROJECT || "admin",

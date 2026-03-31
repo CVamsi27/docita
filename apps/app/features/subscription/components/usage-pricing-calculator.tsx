@@ -12,6 +12,7 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   PRICING_CURRENCY_SYMBOLS,
   TIER_LIMITS,
+  getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
 import type { SupportedCurrency } from "@workspace/types";
 import { Calculator, ArrowRight } from "lucide-react";
@@ -23,44 +24,20 @@ interface UsagePricingCalculatorProps {
 }
 
 interface UsageInput {
-  patients: number;
-  appointments: number;
+  consultations: number;
   users: number;
-  invoices: number;
-  prescriptions: number;
   whatsappMessages: number;
 }
 
-const WHATSAPP_OVERAGE_RATES: Record<
-  SupportedCurrency,
-  { ESSENTIAL: number; PROFESSIONAL: number }
-> = {
-  INR: { ESSENTIAL: 0.75, PROFESSIONAL: 0.5 },
-  USD: { ESSENTIAL: 0.02, PROFESSIONAL: 0.01 },
-  EUR: { ESSENTIAL: 0.02, PROFESSIONAL: 0.01 },
-  GBP: { ESSENTIAL: 0.015, PROFESSIONAL: 0.008 },
-  AUD: { ESSENTIAL: 0.03, PROFESSIONAL: 0.015 },
-  CAD: { ESSENTIAL: 0.025, PROFESSIONAL: 0.013 },
-  SGD: { ESSENTIAL: 0.025, PROFESSIONAL: 0.013 },
-  AED: { ESSENTIAL: 0.07, PROFESSIONAL: 0.04 },
-  ZAR: { ESSENTIAL: 0.35, PROFESSIONAL: 0.2 },
-};
-
 const DEFAULT_USAGE: UsageInput = {
-  patients: 500,
-  appointments: 800,
+  consultations: 800,
   users: 2,
-  invoices: 100,
-  prescriptions: 200,
   whatsappMessages: 200,
 };
 
 const SLIDERS = [
-  { key: "patients" as const, label: "Active Patients", min: 0, max: 10000, step: 100, unit: "patients" },
-  { key: "appointments" as const, label: "Consultations / month", min: 0, max: 20000, step: 100, unit: "consults" },
+  { key: "consultations" as const, label: "Consultations / month", min: 0, max: 20000, step: 100, unit: "consults" },
   { key: "users" as const, label: "Team Members", min: 1, max: 50, step: 1, unit: "users" },
-  { key: "invoices" as const, label: "Invoices / month", min: 0, max: 5000, step: 50, unit: "invoices" },
-  { key: "prescriptions" as const, label: "Prescriptions / month", min: 0, max: 10000, step: 50, unit: "scripts" },
   { key: "whatsappMessages" as const, label: "WhatsApp Messages / month", min: 0, max: 10000, step: 100, unit: "msgs" },
 ];
 
@@ -81,10 +58,9 @@ function calculateBill(
   const base = (TIER_PRICING_BY_CURRENCY[currency]?.[tierKey]?.monthly as number) ?? 0;
   const rates = TIER_OVERAGE_RATES_BY_CURRENCY[currency]?.[tierKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierKey];
   const limits = TIER_LIMITS[tierKey];
-  const whatsappIncluded = tierKey === "PROFESSIONAL" ? 2000 : 500;
-  const whatsappOverageRate =
-    WHATSAPP_OVERAGE_RATES[currency]?.[tierKey] ??
-    WHATSAPP_OVERAGE_RATES.INR[tierKey];
+  const whatsappPricing = getWhatsAppAddonPricingByCurrency(tierKey, currency);
+  const whatsappIncluded = whatsappPricing.includedQuota;
+  const whatsappOverageRate = whatsappPricing.overageRate;
 
   const overageBreakdown: { label: string; units: number; rate: number; cost: number }[] = [];
 
@@ -93,24 +69,24 @@ function calculateBill(
     if (units > 0) overageBreakdown.push({ label, units, rate, cost: units * rate });
   };
 
-  addOverage("Patients", usage.patients, limits.patients, rates.patientRate);
-  addOverage("Consultations", usage.appointments, limits.appointments ?? 2000, rates.appointmentRate);
+  addOverage("Consultations", usage.consultations, limits.appointments ?? 2000, rates.appointmentRate);
   addOverage("Users", usage.users, limits.users ?? 5, rates.userRate);
-  addOverage("Invoices", usage.invoices, limits.invoices ?? 500, rates.invoiceRate);
-  addOverage("Prescriptions", usage.prescriptions, limits.prescriptions ?? 1000, rates.prescriptionRate);
   addOverage("WhatsApp", usage.whatsappMessages, whatsappIncluded, whatsappOverageRate);
 
   const overageTotal = overageBreakdown.reduce((sum, o) => sum + o.cost, 0);
   return { base, overageBreakdown, overageTotal, total: base + overageTotal, whatsappIncluded, whatsappOverageRate };
 }
 
-function exceedsProLimits(usage: UsageInput): boolean {
+function exceedsProLimits(usage: UsageInput, currency: SupportedCurrency): boolean {
   const limits = TIER_LIMITS.ESSENTIAL;
+  const whatsappIncluded = getWhatsAppAddonPricingByCurrency(
+    "ESSENTIAL",
+    currency,
+  ).includedQuota;
   return (
-    usage.patients > limits.patients ||
-    usage.appointments > (limits.appointments ?? 2000) ||
+    usage.consultations > (limits.appointments ?? 2000) ||
     usage.users > (limits.users ?? 5) ||
-    usage.whatsappMessages > 500
+    usage.whatsappMessages > whatsappIncluded
   );
 }
 
@@ -122,7 +98,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
   const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? "₹";
   const proBill = calculateBill(usage, "ESSENTIAL", resolvedCurrency);
   const clinicBill = calculateBill(usage, "PROFESSIONAL", resolvedCurrency);
-  const showClinicSuggestion = exceedsProLimits(usage);
+  const showClinicSuggestion = exceedsProLimits(usage, resolvedCurrency);
 
   const setField = (key: keyof UsageInput, value: number) =>
     setUsage((prev) => ({ ...prev, [key]: value }));
@@ -187,7 +163,6 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Sliders */}
           <div className="space-y-5">
             {SLIDERS.map(({ key, label, min, max, step, unit }) => (
               <div key={key} className="space-y-2">
@@ -209,7 +184,6 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
             ))}
           </div>
 
-          {/* Bill breakdown(s) */}
           <div className="space-y-4">
             {showClinicSuggestion ? (
               <>

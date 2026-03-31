@@ -1,17 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { SubscriptionBillingPaymentHistoryItem } from "@workspace/types";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 
-export interface BillingHistoryItem {
-  id: string;
-  amountCents: number;
-  currency: string;
-  status: string;
-  createdAt: string;
-  invoiceUrl?: string | null;
-  description?: string;
-}
+export type BillingHistoryItem = SubscriptionBillingPaymentHistoryItem;
 
 export function useBillingHistory(enabled = true) {
   return useQuery<BillingHistoryItem[]>({

@@ -5,9 +5,9 @@ import type { Medication, Patient } from "@workspace/types";
 
 interface DoctorInfo {
   name?: string;
-  qualification?: string;
-  registrationNumber?: string;
-  signatureUrl?: string;
+  qualification?: string | null;
+  registrationNumber?: string | null;
+  signatureUrl?: string | null;
 }
 
 interface ClinicInfo {

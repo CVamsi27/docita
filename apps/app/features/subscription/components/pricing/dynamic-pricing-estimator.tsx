@@ -83,9 +83,13 @@ export function DynamicPricingEstimator({
   const [localBillingCycle, setLocalBillingCycle] = useState<
     "monthly" | "yearly"
   >("monthly");
-  const [patients, setPatients] = useState(DEFAULT_PRICING_USAGE_INPUTS.patients);
-  const [appointments, setAppointments] = useState(DEFAULT_PRICING_USAGE_INPUTS.appointments);
+  const [consultations, setConsultations] = useState(
+    DEFAULT_PRICING_USAGE_INPUTS.consultations,
+  );
   const [users, setUsers] = useState(DEFAULT_PRICING_USAGE_INPUTS.users);
+  const [whatsappMessages, setWhatsappMessages] = useState(
+    DEFAULT_PRICING_USAGE_INPUTS.whatsappMessages,
+  );
 
   const { pricingConfig } = usePricingConfig(selectedCurrency);
 
@@ -107,30 +111,22 @@ export function DynamicPricingEstimator({
 
   useEffect(() => {
     onUsageChange?.({
-      patients,
-      appointments,
+      consultations,
       users,
-      whatsapp: false,
-      whatsappMessages: 0,
-      intelligence: false,
-      aiCredits: 0,
+      whatsappMessages,
     });
-  }, [patients, appointments, users, onUsageChange]);
+  }, [consultations, users, whatsappMessages, onUsageChange]);
 
   const estimateParams = useMemo(
     () => ({
       tier,
       currency: selectedCurrency,
       billingCycle: effectiveBillingCycle,
-      patients,
-      appointments,
+      consultations,
       users,
-      whatsapp: false,
-      whatsappMessages: 0,
-      intelligence: false,
-      aiCredits: 0,
+      whatsappMessages,
     }),
-    [tier, selectedCurrency, effectiveBillingCycle, patients, appointments, users],
+    [tier, selectedCurrency, effectiveBillingCycle, consultations, users, whatsappMessages],
   );
 
   const debouncedEstimateParams = useDebounce(
@@ -240,23 +236,14 @@ export function DynamicPricingEstimator({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label>Expected Patients</Label>
-            <Input
-              type="number"
-              min={0}
-              value={patients}
-              onChange={(e) => setPatients(Number(e.target.value) || 0)}
-            />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label>Consultations / Month</Label>
             <Input
               type="number"
               min={0}
-              value={appointments}
-              onChange={(e) => setAppointments(Number(e.target.value) || 0)}
+              value={consultations}
+              onChange={(e) => setConsultations(Number(e.target.value) || 0)}
             />
           </div>
           <div className="space-y-2">
@@ -268,12 +255,20 @@ export function DynamicPricingEstimator({
               onChange={(e) => setUsers(Number(e.target.value) || 1)}
             />
           </div>
+          <div className="space-y-2">
+            <Label>WhatsApp Messages / Month</Label>
+            <Input
+              type="number"
+              min={0}
+              value={whatsappMessages}
+              onChange={(e) => setWhatsappMessages(Number(e.target.value) || 0)}
+            />
+          </div>
         </div>
 
         <div className="rounded-lg border bg-muted/20 p-4 text-sm text-muted-foreground">
-          WhatsApp and AI are now included in the plan experience. This
-          estimator focuses on tier price plus usage overage for patients,
-          appointments, and team size.
+          This estimator uses only billable meters from the live contract:
+          consultations, team users, and WhatsApp messages.
         </div>
 
         <div className="rounded-xl border overflow-hidden">
@@ -318,17 +313,10 @@ export function DynamicPricingEstimator({
                   sublabel
                 />
               )}
-              {estimate.breakdown.overages.patients.charge > 0 && (
-                <EstimateRow
-                  label="Patients overage"
-                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.patients.charge.toLocaleString()}`}
-                  indent
-                />
-              )}
-              {estimate.breakdown.overages.appointments.charge > 0 && (
+              {estimate.breakdown.overages.consultations.charge > 0 && (
                 <EstimateRow
                   label="Consultations overage"
-                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.appointments.charge.toLocaleString()}`}
+                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.consultations.charge.toLocaleString()}`}
                   indent
                 />
               )}
@@ -336,6 +324,13 @@ export function DynamicPricingEstimator({
                 <EstimateRow
                   label="Team overage"
                   value={`${estimate.currency.symbol}${estimate.breakdown.overages.users.charge.toLocaleString()}`}
+                  indent
+                />
+              )}
+              {estimate.breakdown.overages.whatsappMessages.charge > 0 && (
+                <EstimateRow
+                  label="WhatsApp overage"
+                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.whatsappMessages.charge.toLocaleString()}`}
                   indent
                 />
               )}

@@ -2,6 +2,12 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { settingsTabs } from "@/features/settings/constants";
 import { useAuth } from "@/lib/auth-context";
+import { canAccessTarget } from "@/lib/access-policy";
+import { APP_ACCESS_TARGETS, type AppAccessTarget } from "@workspace/types";
+
+const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
+  subscription: APP_ACCESS_TARGETS.PAGE_SETTINGS_SUBSCRIPTION,
+};
 
 export const useSettingsLogic = () => {
   const searchParams = useSearchParams();
@@ -15,6 +21,11 @@ export const useSettingsLogic = () => {
       .map((category) => ({
         ...category,
         items: category.items.filter((item) => {
+          const accessTarget = SETTINGS_TAB_ACCESS_TARGETS[item.value];
+          if (accessTarget) {
+            return canAccessTarget(accessTarget, { role: user?.role });
+          }
+
           if (!("roles" in item) || !item.roles) return true;
           return userRole && (item.roles as readonly string[]).includes(userRole);
         }),

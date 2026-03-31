@@ -32,6 +32,8 @@ export const ConsultationDashboardUI: FC = () => {
     stats,
     isLoading,
     handleStartConsultation,
+    canStartConsultation,
+    isStartingConsultation,
     router,
   } = useConsultationDashboard();
 
@@ -139,15 +141,21 @@ export const ConsultationDashboardUI: FC = () => {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      onClick={() =>
-
-                        handleStartConsultation(item.appointmentId || item.id)
-                      }
-                    >
-                      Resume
-                    </Button>
+                    {canStartConsultation ? (
+                      <Button
+                        size="sm"
+                        disabled={isStartingConsultation}
+                        onClick={() =>
+                          void handleStartConsultation(
+                            item.appointmentId || item.id,
+                          )
+                        }
+                      >
+                        Resume
+                      </Button>
+                    ) : (
+                      <Badge variant="outline">View only</Badge>
+                    )}
                   </div>
                 ))}
               </div>
@@ -191,17 +199,23 @@ export const ConsultationDashboardUI: FC = () => {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() =>
-
-                        handleStartConsultation(item.appointmentId || item.id)
-                      }
-                    >
-                      <Play className="mr-2 h-3 w-3" />
-                      Start
-                    </Button>
+                    {canStartConsultation ? (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        disabled={isStartingConsultation}
+                        onClick={() =>
+                          void handleStartConsultation(
+                            item.appointmentId || item.id,
+                          )
+                        }
+                      >
+                        <Play className="mr-2 h-3 w-3" />
+                        Start
+                      </Button>
+                    ) : (
+                      <Badge variant="outline">View only</Badge>
+                    )}
                   </div>
                 ))}
               </div>

@@ -46,11 +46,12 @@ interface TimeSlotRowProps {
   selectedDate: Date;
   isCurrentSlot: boolean;
   checkingIn: string | null;
+  startingConsultationId: string | null;
   onCheckIn: (id: string) => void;
   onStartConsultation: (id: string) => void;
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
-  userRole?: string;
+  currentUserId?: string;
 }
 
 export const TimeSlotRow = memo<TimeSlotRowProps>(
@@ -60,12 +61,12 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     selectedDate,
     isCurrentSlot,
     checkingIn,
+    startingConsultationId,
     onCheckIn,
     onStartConsultation,
     onCancelClick,
     onNoShowClick,
-
-    userRole: _userRole,
+    currentUserId,
   }) => {
     const slotAppointments = useMemo(
       () =>
@@ -99,6 +100,10 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
               {slotAppointments.map((apt) => {
                 const aptStart = new Date(apt.startTime);
                 const aptEnd = new Date(apt.endTime);
+                const canAccessConsultation =
+                  canStartConsultation &&
+                  !!currentUserId &&
+                  apt.doctorId === currentUserId;
                 const isFirstSlot =
                   isAppointmentInSlot(apt, slotTime, selectedDate) &&
                   (TIME_SLOTS.indexOf(slotTime) === 0 ||
@@ -173,17 +178,22 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                           In Queue
                         </Badge>
                       )}
-                      {canStartConsultation && (
+                      {canAccessConsultation && (
                         <Button
                           size="sm"
                           variant={
                             apt.status === "completed" ? "outline" : "default"
                           }
                           onClick={() => onStartConsultation(apt.id!)}
+                          disabled={startingConsultationId === apt.id}
                           className="h-8 text-xs"
                         >
                           <Stethoscope className="mr-1 h-3.5 w-3.5" />
-                          {apt.status === "completed" ? "View" : "Start"}
+                          {apt.status === "completed"
+                            ? "View"
+                            : apt.status === "in-progress"
+                              ? "Resume"
+                              : "Start"}
                         </Button>
                       )}
                       <DropdownMenu>

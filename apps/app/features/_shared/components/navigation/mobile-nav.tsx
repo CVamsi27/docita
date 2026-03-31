@@ -9,6 +9,8 @@ import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { useUnreadNotificationCount } from "@/hooks/api/use-notifications";
+import { useAuth } from "@/lib/auth-context";
+import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   navItems,
@@ -19,14 +21,27 @@ import {
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
   const { data: unreadNotificationCount } = useUnreadNotificationCount();
   const { canAccess } = usePermissionStore();
   const notificationCount = unreadNotificationCount?.count ?? 0;
 
   const filteredNavItems = navItems.filter((item: NavItem) => {
+    if (item.accessTarget) {
+      return canAccessTarget(
+        item.accessTarget,
+        {
+          role: user?.role,
+          canAccessFeature: canAccess,
+        },
+        "read",
+      );
+    }
+
     if (item.feature && !canAccess(item.feature)) {
       return false;
     }
+
     return true;
   });
 

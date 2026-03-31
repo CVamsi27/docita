@@ -12,8 +12,10 @@ import {
   Tier,
 } from "@/lib/tier-config";
 import {
+  getWhatsAppAddonPricingByCurrency,
   PRICING_CURRENCY_SYMBOLS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
+  type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -288,7 +290,8 @@ export function SubscriptionSettings() {
       feature: feature as Feature,
       requiredTier,
       details: getFeatureDetails(feature as Feature),
-    }));
+    }))
+    .filter((item) => !item.details.comingSoon);
 
   const nextTier = currentTier < Tier.ENTERPRISE ? currentTier + 1 : null;
   const featuresByTier = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE].map(
@@ -299,7 +302,8 @@ export function SubscriptionSettings() {
         .map(([feature]) => ({
           feature: feature as Feature,
           details: getFeatureDetails(feature as Feature),
-        })),
+        }))
+        .filter((item) => !item.details.comingSoon),
     }),
   );
 
@@ -307,8 +311,14 @@ export function SubscriptionSettings() {
   const currencySymbol = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
   const overageRates =
     (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[currentTierName];
+  const whatsappOverageRate =
+    currentTierName === "ESSENTIAL" || currentTierName === "PROFESSIONAL"
+      ? getWhatsAppAddonPricingByCurrency(
+          currentTierName,
+          currencyKey as SupportedCurrency,
+        ).overageRate
+      : 0;
 
-  // Mini plan grid: current tier + next two tiers
   const allTiers = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE];
   const currentTierIndex = allTiers.indexOf(currentTier);
   const miniGridTiers = allTiers.slice(
@@ -472,36 +482,39 @@ export function SubscriptionSettings() {
         />
       )}
 
-      {overageRates && (overageRates.patientRate > 0 || overageRates.userRate > 0) && (
+      {overageRates && (overageRates.appointmentRate > 0 || overageRates.userRate > 0 || whatsappOverageRate > 0) && (
         <Card className="border-none shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Overage Rates</CardTitle>
             <CardDescription>Charges applied when you exceed plan limits</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {overageRates.patientRate > 0 && (
-                <div className="text-center p-3 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.patientRate}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">per extra patient</p>
-                </div>
-              )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {overageRates.appointmentRate > 0 && (
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.appointmentRate}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">per extra appointment</p>
+                  <p className="text-lg font-semibold">
+                    {currencySymbol}
+                    {overageRates.appointmentRate}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">per extra consultation</p>
                 </div>
               )}
               {overageRates.userRate > 0 && (
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.userRate}</p>
+                  <p className="text-lg font-semibold">
+                    {currencySymbol}
+                    {overageRates.userRate}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-0.5">per extra user/mo</p>
                 </div>
               )}
-              {overageRates.storageRate > 0 && (
+              {whatsappOverageRate > 0 && (
                 <div className="text-center p-3 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-semibold">{currencySymbol}{overageRates.storageRate}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">per extra GB/mo</p>
+                  <p className="text-lg font-semibold">
+                    {currencySymbol}
+                    {whatsappOverageRate}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">per extra WhatsApp msg</p>
                 </div>
               )}
             </div>
@@ -534,7 +547,8 @@ export function SubscriptionSettings() {
                 feature: feature as Feature,
                 details: getFeatureDetails(feature as Feature),
                 hasAccess: tier <= currentTier,
-              }));
+              }))
+              .filter((item) => !item.details.comingSoon);
             const sym = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
             return (
               <TierCard

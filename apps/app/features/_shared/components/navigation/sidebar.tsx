@@ -27,8 +27,9 @@ import {
 } from "@/hooks/api/use-notifications";
 import { useAuth } from "@/lib/auth-context";
 import { useAppConfig } from "@/lib/app-config-context";
+import { canAccessTarget } from "@/lib/access-policy";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
-import { type ClinicType } from "@workspace/types";
+import { APP_ACCESS_TARGETS, type ClinicType } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 import { useClinic } from "@/lib/clinic-context";
@@ -70,13 +71,12 @@ export function Sidebar({
   const notificationCount = unreadNotificationCount?.count ?? 0;
   const pendingJoinRequestCount = pendingJoinRequestData?.count ?? 0;
 
-  // Permission store is populated from localStorage immediately; AppConfig is a fallback
   const clinicType = (storeClinicType ||
     getClinicSetting("clinicType")) as ClinicType | undefined;
 
   const specialtySections = ClinicFeatureService.getSpecialtySections(clinicType);
 
-  const specialtyNavItems = specialtySections.map((section) => ({
+  const specialtyNavItems: NavItem[] = specialtySections.map((section) => ({
     href: SPECIALTY_URLS[section.id] || `/specialty/${section.id}`,
     icon: SPECIALTY_ICONS[section.icon] || SPECIALTY_ICONS["Brain"]!,
     label: section.label,
@@ -90,12 +90,21 @@ export function Sidebar({
 
   const allNavItems = [...navItems, ...specialtyNavItems, ...hospitalNavItems];
 
-  // Items that pass the feature gate
-  const accessibleNavItems = allNavItems.filter(
-    (item) => !item.feature || canAccess(item.feature),
-  );
+  const accessibleNavItems = allNavItems.filter((item) => {
+    if (item.accessTarget) {
+      return canAccessTarget(
+        item.accessTarget,
+        {
+          role: user?.role,
+          canAccessFeature: canAccess,
+        },
+        "read",
+      );
+    }
 
-  // Items shown in the sidebar (respecting admin hide preferences), Settings always last
+    return !item.feature || canAccess(item.feature);
+  });
+
   const visibleNavItems = [
     ...accessibleNavItems.filter(
       (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
@@ -103,7 +112,6 @@ export function Sidebar({
     SETTINGS_NAV_ITEM,
   ];
 
-  // Items that admins can toggle (accessible, non-fixed)
   const customizableNavItems = accessibleNavItems.filter(
     (item) => !FIXED_NAV_HREFS.has(item.href),
   );
@@ -252,16 +260,21 @@ export function Sidebar({
               )}
             </div>
             <div className={cn("flex gap-2", isCollapsed && "flex-col items-center")}>
-              <Button
-                className="flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-                size="sm"
-                asChild
-              >
-                <Link href="/upgrade">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  {!isCollapsed && "Upgrade"}
-                </Link>
-              </Button>
+              {canAccessTarget(APP_ACCESS_TARGETS.PAGE_UPGRADE, {
+                role: user?.role,
+                canAccessFeature: canAccess,
+              }) && (
+                <Button
+                  className="flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  size="sm"
+                  asChild
+                >
+                  <Link href="/upgrade">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {!isCollapsed && "Upgrade"}
+                  </Link>
+                </Button>
+              )}
               {!isCollapsed && (
                 <Button
                   variant="ghost"

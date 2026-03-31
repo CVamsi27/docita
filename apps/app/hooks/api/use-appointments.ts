@@ -46,6 +46,11 @@ export interface QueueItem {
   appointment?: { id: string; doctor: { id: string; name: string } };
 }
 
+export interface StartConsultationResponse {
+  appointmentId: string;
+  status: string;
+}
+
 export const useAppointments = (
   options?: {
     date?: string;
@@ -117,6 +122,15 @@ export const useUpdateAppointment = (id: string) =>
     },
   );
 
+export const useStartConsultation = () =>
+  useAPIMutation<StartConsultationResponse, { appointmentId: string }>(
+    ({ appointmentId }) => `/appointments/${appointmentId}/start-consultation`,
+    "POST",
+    {
+      invalidateKeys: [["appointments"], ["queue"]],
+    },
+  );
+
 export const useInfiniteAppointments = (options?: {
   limit?: number;
   date?: string;
@@ -167,10 +181,15 @@ export const useQueue = (options?: { search?: string }) => {
   );
 };
 
-export const useQueueByDoctor = (doctorId?: string, search?: string) => {
+export const useQueueByDoctor = (
+  doctorId?: string,
+  search?: string,
+  enabled: boolean = true,
+) => {
   return useAPIQuery<QueueItem[]>(
     ["queue", doctorId ?? "all", search ?? ""],
     withQueryString("/queue", { doctorId, search }),
+    { enabled },
   );
 };
 

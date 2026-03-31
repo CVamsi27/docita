@@ -6,6 +6,8 @@ import { Button } from "@workspace/ui/components/button";
 import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useStartConsultation } from "@/hooks/api/use-appointments";
+import { toast } from "sonner";
 
 interface FloatingStartConsultationProps {
   patientId?: string;
@@ -22,11 +24,21 @@ export function FloatingStartConsultation({
 }: FloatingStartConsultationProps) {
   const router = useRouter();
   const { canStartConsultation } = usePermissions();
+  const startConsultation = useStartConsultation();
   const [isMinimized, setIsMinimized] = useState(minimized);
 
-  const handleStartConsultation = () => {
+  const handleStartConsultation = async () => {
     if (appointmentId) {
-      router.push(`/consultation/${appointmentId}`);
+      try {
+        const result = await startConsultation.mutateAsync({ appointmentId });
+        router.push(`/consultation/${result.appointmentId}`);
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Unable to start this consultation",
+        );
+      }
     } else if (patientId) {
       router.push(`/consultation/new?patientId=${patientId}`);
     } else {
@@ -79,7 +91,8 @@ export function FloatingStartConsultation({
           <Button
             variant="secondary"
             className="w-full"
-            onClick={handleStartConsultation}
+            disabled={startConsultation.isPending}
+            onClick={() => void handleStartConsultation()}
           >
             Begin Now
           </Button>

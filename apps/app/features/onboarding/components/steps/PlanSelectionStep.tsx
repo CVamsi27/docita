@@ -214,8 +214,8 @@ Please contact me with deployment and commercial details.`;
               const overageRates =
                 (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
               const overageHint =
-                overageRates?.patientRate > 0
-                  ? `then ${currencySymbol}${overageRates.patientRate}/extra patient`
+                overageRates?.appointmentRate > 0
+                  ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
                   : undefined;
 
               return (

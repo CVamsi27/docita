@@ -3,20 +3,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useAppointment,
+  useStartConsultation,
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
+import { useAuth } from "@/lib/auth-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { UpdateAppointmentInput } from "@workspace/types";
-
-const TAB_MAPPING: Record<string, string> = {
-  observations: "chief-complaint",
-  vitals: "vitals",
-  prescription: "prescription",
-  invoice: "invoice",
-  diagnosis: "diagnosis",
-};
+import { normalizeConsultationTab } from "@/features/consultation/rules/consultationTabRouting";
 
 export const useConsultationLogic = (appointmentId: string) => {
   const router = useRouter();
@@ -24,6 +20,8 @@ export const useConsultationLogic = (appointmentId: string) => {
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { canGoBack } = useNavigationStore();
+  const { user, isLoading: authLoading } = useAuth();
+  const { canStartConsultation } = usePermissions();
 
   const {
     data: appointmentData,
@@ -56,25 +54,67 @@ export const useConsultationLogic = (appointmentId: string) => {
   }, [canGoBack, goBack, router, fallbackRoute]);
 
   const updateAppointment = useUpdateAppointment(appointmentId);
+  const startConsultation = useStartConsultation();
+
+  const canAccessConsultationWorkspace = useMemo(() => {
+    if (!appointmentData || !user) return false;
+    if (!canStartConsultation) return false;
+    return appointmentData.doctorId === user.id;
+  }, [appointmentData, canStartConsultation, user]);
 
   const markedInProgressRef = useRef(false);
   useEffect(() => {
     if (
-      !markedInProgressRef.current &&
-      appointmentData &&
-      ["scheduled", "confirmed", "checked-in"].includes(appointmentData.status)
+      authLoading ||
+      !canAccessConsultationWorkspace ||
+      markedInProgressRef.current ||
+      !appointmentData ||
+      !["scheduled", "confirmed", "checked-in", "in-progress"].includes(
+        appointmentData.status,
+      )
     ) {
-      markedInProgressRef.current = true;
-      updateAppointment.mutate(
-        { status: "in-progress" },
-        {
-          onError: () => {
-            markedInProgressRef.current = false;
-          },
-        },
-      );
+      return;
     }
-  }, [appointmentData, updateAppointment]);
+
+    markedInProgressRef.current = true;
+    startConsultation.mutate(
+      { appointmentId },
+      {
+        onError: () => {
+          markedInProgressRef.current = false;
+        },
+      },
+    );
+  }, [
+    appointmentData,
+    appointmentId,
+    authLoading,
+    canAccessConsultationWorkspace,
+    startConsultation,
+  ]);
+
+  useEffect(() => {
+    if (loading || authLoading || !appointmentData) {
+      return;
+    }
+
+    if (canAccessConsultationWorkspace) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      router.replace(fallbackRoute);
+    }, 1600);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    appointmentData,
+    authLoading,
+    canAccessConsultationWorkspace,
+    fallbackRoute,
+    loading,
+    router,
+  ]);
 
   const handleSave = useCallback(
     async (data: UpdateAppointmentInput) => {
@@ -96,19 +136,18 @@ export const useConsultationLogic = (appointmentId: string) => {
     [queryClient, appointmentId, updateAppointment],
   );
 
-  const rawTab = searchParams.get("tab") || "chief-complaint";
-  const defaultTab = (TAB_MAPPING[rawTab] || rawTab) as
-    | "chief-complaint"
-    | "history"
-    | "examination"
-    | "diagnosis"
-    | "treatment";
+  const defaultTab = normalizeConsultationTab(
+    searchParams.get("tab"),
+    clinic?.type,
+  );
 
   return {
     state: {
       appointmentData,
       loading,
       isError,
+      isAccessDenied:
+        !loading && !authLoading && !!appointmentData && !canAccessConsultationWorkspace,
       clinic,
       clinicType: clinic?.type,
       isSidebarOpen,

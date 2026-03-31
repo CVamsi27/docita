@@ -54,7 +54,7 @@ export function PatientSelector<T extends FieldValues>({
           <Popover
             open={patientComboboxOpen}
             onOpenChange={setPatientComboboxOpen}
-            modal={true}
+            modal={false}
           >
             <PopoverTrigger asChild>
               <FormControl>
@@ -82,7 +82,7 @@ export function PatientSelector<T extends FieldValues>({
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0" align="start">
+            <PopoverContent className="w-[300px] p-0 z-[100]" align="start">
               <Command shouldFilter={false}>
                 <CommandInput
                   placeholder="Search patients..."
@@ -105,10 +105,10 @@ export function PatientSelector<T extends FieldValues>({
                       <CommandItem
                         key={patient.id}
                         value={patient.id}
+                        className="cursor-pointer"
                         onSelect={() => {
                           if (patient.id) {
-                            form.setValue(
-                              "patientId" as Path<T>,
+                            field.onChange(
                               patient.id as PathValue<T, Path<T>>,
                             );
                           }

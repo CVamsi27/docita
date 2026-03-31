@@ -82,6 +82,7 @@ export function getFeatureDetails(feature: Feature) {
   return {
     name: display?.name || feature,
     description: display?.description || "",
+    comingSoon: display?.comingSoon === true,
     icon: FEATURE_ICONS[feature] || Lock,
   };
 }

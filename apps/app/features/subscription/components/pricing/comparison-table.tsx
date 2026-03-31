@@ -207,7 +207,9 @@ export function ComparisonTable({
 
               {categories.map((category) => {
                 const validFeatures = category.features.filter(
-                  (f) => f in FEATURE_TIER_MAP,
+                  (f) =>
+                    f in FEATURE_TIER_MAP &&
+                    getFeatureDetails(f).comingSoon !== true,
                 );
                 if (validFeatures.length === 0) return null;
                 return (

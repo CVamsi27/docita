@@ -61,12 +61,12 @@ interface BillingMetrics {
 }
 
 const tierColors: Record<string, string> = {
-  CAPTURE: "bg-slate-400",
-  CORE: "bg-blue-500",
-  PLUS: "bg-green-500",
-  PRO: "bg-purple-500",
-  CLINIC: "bg-violet-500",
-  ENTERPRISE: "bg-amber-500",
+  CAPTURE: "bg-muted",
+  CORE: "bg-info",
+  PLUS: "bg-success",
+  PRO: "bg-primary",
+  CLINIC: "bg-processing",
+  ENTERPRISE: "bg-warning",
 };
 
 export function AnalyticsDashboard() {

@@ -21,6 +21,7 @@ export default function ConsultationPage() {
     appointmentData,
     loading,
     isError,
+    isAccessDenied,
     clinic,
     isSidebarOpen,
     defaultTab,
@@ -45,6 +46,17 @@ export default function ConsultationPage() {
         <ErrorState
           message="Failed to load consultation data."
           onRetry={() => window.location.reload()}
+        />
+      </div>
+    );
+  }
+
+  if (isAccessDenied) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <ErrorState
+          message="Only the assigned doctor can open this consultation."
+          onRetry={handleBack}
         />
       </div>
     );

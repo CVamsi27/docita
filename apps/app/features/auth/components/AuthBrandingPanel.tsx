@@ -1,5 +1,6 @@
 import { Lock, Server, Shield } from "lucide-react";
 import { DocitaIconMonochrome } from "@workspace/ui/components/docita-logo";
+import { DocitaBrandPattern } from "@workspace/ui/lib/docita-brand";
 
 export function AuthBrandingPanel() {
   return (
@@ -29,22 +30,23 @@ export function AuthBrandingPanel() {
           place built for Indian clinics.
         </p>
 
-        <svg
-          viewBox="0 0 400 80"
-          className="w-full mt-8 text-primary-foreground/20"
-          aria-hidden="true"
-          suppressHydrationWarning
-        >
-          <polyline
-            points="0,40 40,40 60,10 80,70 100,40 140,40 160,20 180,60 200,40 240,40 260,15 280,65 300,40 340,40 360,25 380,55 400,40"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinejoin="round"
-            strokeLinecap="round"
+        <div className="relative mt-8 h-32 overflow-hidden rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5">
+          <DocitaBrandPattern
+            className="absolute inset-0 h-full w-full text-primary-foreground"
             suppressHydrationWarning
           />
-        </svg>
+          <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-primary-foreground/8 px-4 py-3 backdrop-blur-sm">
+            <DocitaIconMonochrome className="h-8 w-8 shrink-0 text-primary-foreground" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold tracking-tight text-primary-foreground">
+                Docita for modern clinics
+              </p>
+              <p className="text-xs text-primary-foreground/70">
+                Simple, clear clinic operations from one modern workspace.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="relative z-10 flex flex-col gap-3">

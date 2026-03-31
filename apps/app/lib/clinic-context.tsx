@@ -45,6 +45,8 @@ export interface Clinic {
   closingTime?: string;
   slotDuration?: number;
   referralCode?: string | null;
+  slaSignatureUrl?: string | null;
+  slaSignatureAcceptedAt?: string | null;
 }
 
 interface ClinicContextType {

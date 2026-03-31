@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth-context";
 import type { Medication } from "@workspace/types";
 import { PrescriptionHeader } from "@/features/prescriptions/components/view/PrescriptionHeader";
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
+import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
 
 interface DoctorInfo {
   name?: string;
@@ -60,7 +61,10 @@ export default function PrescriptionViewPage() {
   const handleEdit = () => {
     if (prescription?.appointmentId) {
       router.push(
-        `/consultation/${prescription.appointmentId}?tab=prescription`,
+        buildConsultationRoute(prescription.appointmentId, {
+          tab: "treatment",
+          from: "prescription",
+        }),
       );
     }
   };

@@ -7,7 +7,7 @@ export async function register() {
   }
 
   try {
-    await import("./lib/sentry.server.config");
+    await import("./sentry.server.config");
   } catch {
   }
 }

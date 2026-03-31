@@ -25,11 +25,12 @@ interface AppointmentsListUIProps {
   currentTimeSlot: string;
   currentTimeSlotRef: React.RefObject<HTMLDivElement | null>;
   checkingIn: string | null;
+  startingConsultationId: string | null;
   onCheckIn: (id: string) => void;
   onStartConsultation: (id: string) => void;
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
-  userRole?: string;
+  currentUserId?: string;
   activeStartHour?: number;
   activeEndHour?: number;
 }
@@ -46,11 +47,12 @@ export function AppointmentsListUI({
   currentTimeSlot,
   currentTimeSlotRef,
   checkingIn,
+  startingConsultationId,
   onCheckIn,
   onStartConsultation,
   onCancelClick,
   onNoShowClick,
-  userRole,
+  currentUserId,
   activeStartHour = 9,
   activeEndHour = 18,
 }: AppointmentsListUIProps) {
@@ -82,11 +84,12 @@ export function AppointmentsListUI({
           selectedDate={date || new Date()}
           isCurrentSlot={isCurrentSlot}
           checkingIn={checkingIn}
+          startingConsultationId={startingConsultationId}
           onCheckIn={onCheckIn}
           onStartConsultation={onStartConsultation}
           onCancelClick={onCancelClick}
           onNoShowClick={onNoShowClick}
-          {...(userRole && { userRole: userRole })}
+          currentUserId={currentUserId}
         />
       </div>
     );

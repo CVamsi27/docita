@@ -34,7 +34,7 @@ const badgeColorMap = {
   blue: "badge-info",
   green: "badge-success",
   purple: "tier-pro",
-  violet: "bg-violet-500/20 text-violet-700 dark:text-violet-300",
+  violet: "tier-pro",
   amber: "tier-enterprise",
 };
 

@@ -48,11 +48,7 @@ export const PRICING_DIALOG_TIER_BORDERS: Record<TierName, string> = {
 };
 
 export const DEFAULT_PRICING_USAGE_INPUTS = {
-	patients: 200,
-	appointments: 400,
+	consultations: 400,
 	users: 2,
-	whatsapp: false,
 	whatsappMessages: 500,
-	intelligence: false,
-	aiCredits: 100,
 };

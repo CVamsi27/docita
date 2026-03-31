@@ -1,43 +1,85 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
-
 type WindowWithSentryReady = Window & { __sentryReady?: boolean };
+type SentryModule = typeof import("@sentry/nextjs");
+type SentrySeverityLevel =
+  | "fatal"
+  | "error"
+  | "warning"
+  | "log"
+  | "info"
+  | "debug";
 
 const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 const isDev = process.env.NODE_ENV === "development";
 
+let sentryModule: SentryModule | null = null;
+let sentryModulePromise: Promise<SentryModule | null> | null = null;
+
+const isSentryEnabled = () =>
+  typeof window !== "undefined" && Boolean(SENTRY_DSN) && !isDev;
+
+async function loadSentryModule(): Promise<SentryModule | null> {
+  if (!isSentryEnabled()) {
+    return null;
+  }
+
+  if (sentryModule) {
+    return sentryModule;
+  }
+
+  if (!sentryModulePromise) {
+    sentryModulePromise = import("@sentry/nextjs")
+      .then((module) => {
+        sentryModule = module;
+        return module;
+      })
+      .catch(() => null);
+  }
+
+  return sentryModulePromise;
+}
+
 export function initializeSentryClient() {
-  if (!SENTRY_DSN || isDev) {
+  if (!isSentryEnabled()) {
     return;
   }
 
-  try {
+  if ((window as WindowWithSentryReady).__sentryReady) {
+    return;
+  }
 
-    const userInfo = getUserContextFromStorage();
-    if (userInfo) {
-      Sentry.setUser({
-        id: userInfo.userId,
-        email: userInfo.email,
-        username: userInfo.role,
-      });
-
-      Sentry.setTag("clinic_id", userInfo.clinicId);
-      Sentry.setTag("role", userInfo.role);
+  void loadSentryModule().then((Sentry) => {
+    if (!Sentry) {
+      return;
     }
 
-    window.addEventListener("unhandledrejection", (event) => {
-      Sentry.captureException(
-        new Error(
-          `Unhandled Promise Rejection: ${event.reason?.message || event.reason}`,
-        ),
-      );
-    });
+    try {
+      const userInfo = getUserContextFromStorage();
+      if (userInfo) {
+        Sentry.setUser({
+          id: userInfo.userId,
+          email: userInfo.email,
+          username: userInfo.role,
+        });
 
-    (window as WindowWithSentryReady).__sentryReady = true;
-  } catch {
+        Sentry.setTag("clinic_id", userInfo.clinicId);
+        Sentry.setTag("role", userInfo.role);
+      }
 
-  }
+      window.addEventListener("unhandledrejection", (event) => {
+        Sentry.captureException(
+          new Error(
+            `Unhandled Promise Rejection: ${event.reason?.message || event.reason}`,
+          ),
+        );
+      });
+
+      (window as WindowWithSentryReady).__sentryReady = true;
+    } catch {
+
+    }
+  });
 }
 
 function getUserContextFromStorage(): {
@@ -64,17 +106,30 @@ export function captureException(
   error: Error | string,
   context?: Record<string, unknown>,
 ) {
-  if (isDev) {
+  if (!isSentryEnabled()) {
     return;
   }
 
+  const normalizedError = typeof error === "string" ? new Error(error) : error;
+
   try {
-    return Sentry.captureException(
-      typeof error === "string" ? new Error(error) : error,
-      {
+    if (sentryModule) {
+      return sentryModule.captureException(normalizedError, {
         contexts: context ? { custom: context } : undefined,
-      },
-    );
+      });
+    }
+
+    void loadSentryModule().then((Sentry) => {
+      if (!Sentry) {
+        return;
+      }
+
+      Sentry.captureException(normalizedError, {
+        contexts: context ? { custom: context } : undefined,
+      });
+    });
+
+    return;
   } catch {
     return;
   }
@@ -82,15 +137,22 @@ export function captureException(
 
 export function captureMessage(
   message: string,
-  level: Sentry.SeverityLevel = "info",
+  level: SentrySeverityLevel = "info",
 ) {
-  if (isDev) {
+  if (!isSentryEnabled()) {
 
     return;
   }
 
   try {
-    Sentry.captureMessage(message, level);
+    if (sentryModule) {
+      sentryModule.captureMessage(message, level);
+      return;
+    }
+
+    void loadSentryModule().then((Sentry) => {
+      Sentry?.captureMessage(message, level);
+    });
   } catch {
 
   }
@@ -101,17 +163,32 @@ export function addBreadcrumb(
   data?: Record<string, unknown>,
   category: string = "user-action",
 ) {
+  if (!isSentryEnabled()) {
+    return;
+  }
+
   try {
-    Sentry.addBreadcrumb({
-      message,
-      level: "info",
-      category,
-      data,
-      timestamp: Date.now() / 1000,
+    if (sentryModule) {
+      sentryModule.addBreadcrumb({
+        message,
+        level: "info",
+        category,
+        data,
+        timestamp: Date.now() / 1000,
+      });
+      return;
+    }
+
+    void loadSentryModule().then((Sentry) => {
+      Sentry?.addBreadcrumb({
+        message,
+        level: "info",
+        category,
+        data,
+        timestamp: Date.now() / 1000,
+      });
     });
   } catch {
 
   }
 }
-
-export { Sentry };

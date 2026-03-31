@@ -4,6 +4,7 @@ import {
   Invoice,
   ListInvoicesContractQuery,
   Patient,
+  SubscriptionBillingPaymentHistoryResponse,
   SubscriptionBillingActivateRequest,
   SubscriptionBillingCancelRequest,
   SubscriptionBillingCheckoutRequest,
@@ -26,7 +27,16 @@ export const useInvoices = (filters?: ListInvoicesContractQuery) =>
   );
 
 export const useInvoice = (id: string) =>
-  useAPIQuery<Invoice & { patient: Patient }>(
+  useAPIQuery<
+    Invoice & {
+      patient: Patient & {
+        clinic?: {
+          name?: string;
+          slaSignatureUrl?: string | null;
+        };
+      };
+    }
+  >(
     ["invoices", id],
     `/invoices/${id}`,
   );
@@ -79,19 +89,7 @@ export const useBillingStatus = () =>
   });
 
 export const usePaymentHistory = () =>
-  useAPIQuery<
-    {
-      id: string;
-      amount: number;
-      currency: string;
-      status: string;
-      paymentMethod?: string;
-      tier: string;
-      billingCycle: string;
-      invoiceUrl?: string;
-      createdAt: string;
-    }[]
-  >(["payment-history"], "/subscription/billing/payments", {
+  useAPIQuery<SubscriptionBillingPaymentHistoryResponse>(["payment-history"], "/subscription/billing/payments", {
     staleTime: 1000 * 60 * 5,
   });
 

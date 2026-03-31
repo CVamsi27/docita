@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   Feature,
@@ -10,6 +11,7 @@ import {
   Tier,
 } from "@/lib/tier-config";
 import { Card, CardContent } from "@workspace/ui/components/card";
+import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
   Tabs,
@@ -39,12 +41,12 @@ import {
 } from "@/hooks/use-subscription-checkout";
 import { usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import type { TierName } from "@workspace/types";
+import { APP_ACCESS_TARGETS, type TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
-import { BILLING_ROLES } from "@/lib/permissions";
 import {
   PRICING_CURRENCY_SYMBOLS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
+  getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
 import { Loader2 } from "lucide-react";
 
@@ -74,7 +76,14 @@ export default function UpgradePage() {
     },
   );
 
-  const canAccessPage = !!user && BILLING_ROLES.has(user.role);
+  const canAccessPage = canAccessTarget(
+    APP_ACCESS_TARGETS.PAGE_UPGRADE,
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+    },
+    "read",
+  );
   const { currency } = useLocaleCurrency();
   const { pricingConfig } = usePricingConfig(currency);
 
@@ -112,7 +121,8 @@ export default function UpgradePage() {
           feature: feature as Feature,
           details: getFeatureDetails(feature as Feature),
           hasAccess: canAccess(feature as Feature),
-        })),
+        }))
+        .filter((entry) => !entry.details.comingSoon),
     }));
 
   const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
@@ -121,7 +131,17 @@ export default function UpgradePage() {
       feature: feature as Feature,
       requiredTier,
       details: getFeatureDetails(feature as Feature),
-    }));
+    }))
+    .filter((entry) => !entry.details.comingSoon);
+
+  const comingSoonFeatures = Object.entries(FEATURE_TIER_MAP)
+    .map(([feature, requiredTier]) => ({
+      feature: feature as Feature,
+      requiredTier,
+      details: getFeatureDetails(feature as Feature),
+    }))
+    .filter((entry) => entry.details.comingSoon)
+    .sort((a, b) => a.requiredTier - b.requiredTier);
 
   const nextTier = currentTier < Tier.ENTERPRISE ? currentTier + 1 : null;
 
@@ -152,7 +172,6 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {/* Hero zone */}
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={currentTier}
@@ -162,7 +181,6 @@ export default function UpgradePage() {
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
         />
 
-        {/* All Plans grid */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
@@ -198,9 +216,31 @@ export default function UpgradePage() {
                 const currencySymbol = PRICING_CURRENCY_SYMBOLS[
                   currency as keyof typeof PRICING_CURRENCY_SYMBOLS
                 ] ?? PRICING_CURRENCY_SYMBOLS.INR;
-                const overageHint =
+                const whatsappRate =
+                  tierName === "ESSENTIAL" ||
+                  tierName === "PROFESSIONAL" ||
+                  tierName === "ENTERPRISE"
+                    ? getWhatsAppAddonPricingByCurrency(
+                        tierName,
+                        currency as Parameters<
+                          typeof getWhatsAppAddonPricingByCurrency
+                        >[1],
+                      ).overageRate
+                    : 0;
+                const overageParts = [
                   overageRates?.appointmentRate > 0
-                    ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
+                    ? `${currencySymbol}${overageRates.appointmentRate}/consult`
+                    : null,
+                  overageRates?.userRate > 0
+                    ? `${currencySymbol}${overageRates.userRate}/user`
+                    : null,
+                  whatsappRate > 0
+                    ? `${currencySymbol}${whatsappRate}/WA msg`
+                    : null,
+                ].filter(Boolean);
+                const overageHint =
+                  overageParts.length > 0
+                    ? `Overage meters: ${overageParts.join(" | ")}`
                     : undefined;
                 return (
                   <TierCard
@@ -226,7 +266,24 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {/* Detail zone – tabbed */}
+        {comingSoonFeatures.length > 0 && (
+          <Card className="border-dashed">
+            <CardContent className="py-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold">Coming Soon</h2>
+                <Badge variant="outline">Not included in today&apos;s access</Badge>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {comingSoonFeatures.map((entry) => (
+                  <Badge key={entry.feature} variant="secondary">
+                    {entry.details.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="compare" className="w-full">
           <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1">
             <TabsTrigger

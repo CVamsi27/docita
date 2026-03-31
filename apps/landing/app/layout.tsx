@@ -1,11 +1,12 @@
 import "./globals.css";
 import { Providers } from "./providers";
+import { DOCITA_ICON_CACHE_BUST } from "@workspace/ui/lib/docita-brand";
 
 export const metadata = {
   metadataBase: new URL("https://docita.work"),
   icons: {
-    icon: "/icon",
-    apple: "/apple-icon",
+    icon: `/icon?${DOCITA_ICON_CACHE_BUST}`,
+    apple: `/apple-icon?${DOCITA_ICON_CACHE_BUST}`,
   },
   title: {
     default: "Docita - Clinic Management Software | 14-Day Free Trial",

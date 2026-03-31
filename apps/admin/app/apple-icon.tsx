@@ -1,9 +1,8 @@
 import { ImageResponse } from "next/og";
+import { DocitaBrandMark } from "@workspace/ui/lib/docita-brand";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
-
-const ECG_PATH = "M4 16H8L10 13L12 7L14 24L16 16H20L21 11L22 16H28";
 
 export default function AppleIcon() {
   return new ImageResponse(
@@ -16,22 +15,7 @@ export default function AppleIcon() {
         justifyContent: "center",
       }}
     >
-      <svg
-        width="180"
-        height="180"
-        viewBox="0 0 32 32"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <rect width="32" height="32" rx="8" fill="#0f172a" />
-        <path
-          d={ECG_PATH}
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <DocitaBrandMark width="180" height="180" />
     </div>,
     { ...size },
   );

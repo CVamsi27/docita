@@ -215,8 +215,8 @@ export function PricingSection() {
 
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border bg-muted/30 p-6 flex items-start gap-4">
-            <div className="rounded-lg bg-green-500/10 p-2 mt-0.5">
-              <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="rounded-lg bg-success/10 p-2 mt-0.5">
+              <MessageSquare className="h-5 w-5 text-success" />
             </div>
             <div>
               <p className="font-semibold">WhatsApp Messaging — Included</p>
@@ -240,7 +240,6 @@ export function PricingSection() {
           </div>
         </div>
 
-        {/* How billing works */}
         <div className="mt-16 text-center mb-8">
           <h3 className="text-xl font-bold">How billing works</h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -271,7 +270,6 @@ export function PricingSection() {
           </div>
         </div>
 
-        {/* Overage rates table */}
         <div className="rounded-2xl border bg-muted/30 overflow-hidden">
           <div className="p-6 border-b">
             <h3 className="font-bold text-lg">Usage overage rates</h3>
@@ -293,7 +291,7 @@ export function PricingSection() {
                   </th>
                   <th className="px-6 py-3 text-center font-medium">
                     <span className="inline-flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-purple-500 inline-block" />
+                      <span className="h-2 w-2 rounded-full bg-primary inline-block" />
                       Professional
                     </span>
                   </th>
@@ -312,7 +310,7 @@ export function PricingSection() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center font-medium">{rates.pro.patient}</td>
-                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.patient}</td>
+                        <td className="px-6 py-4 text-center font-medium text-primary">{rates.clinic.patient}</td>
                       </tr>
                       <tr className="bg-background hover:bg-muted/20 transition-colors">
                         <td className="px-6 py-4">
@@ -322,7 +320,7 @@ export function PricingSection() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center font-medium">{rates.pro.appt}</td>
-                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.appt}</td>
+                        <td className="px-6 py-4 text-center font-medium text-primary">{rates.clinic.appt}</td>
                       </tr>
                       <tr className="bg-background hover:bg-muted/20 transition-colors">
                         <td className="px-6 py-4">
@@ -332,7 +330,7 @@ export function PricingSection() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center font-medium">{rates.pro.user}</td>
-                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.user}</td>
+                        <td className="px-6 py-4 text-center font-medium text-primary">{rates.clinic.user}</td>
                       </tr>
                       <tr className="bg-background hover:bg-muted/20 transition-colors">
                         <td className="px-6 py-4">
@@ -342,7 +340,7 @@ export function PricingSection() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center font-medium">{rates.pro.wa}</td>
-                        <td className="px-6 py-4 text-center font-medium text-purple-600 dark:text-purple-400">{rates.clinic.wa}</td>
+                        <td className="px-6 py-4 text-center font-medium text-primary">{rates.clinic.wa}</td>
                       </tr>
                     </>
                   );

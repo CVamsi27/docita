@@ -39,6 +39,10 @@ import {
   ConsultationProgressUI,
   ConsultationStep,
 } from "./ConsultationProgressUI";
+import {
+  normalizeConsultationTab,
+  getConsultationTabIds,
+} from "@/features/consultation/rules/consultationTabRouting";
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") {
@@ -145,7 +149,9 @@ export const ClinicalDocumentationDynamic: FC<
   onToggleFocus: _onToggleFocus,
   clinicType = "GENERAL",
 }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState<string>(() =>
+    normalizeConsultationTab(defaultTab, clinicType),
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const [chiefComplaint, setChiefComplaint] = useState<ChiefComplaintItem[]>([
@@ -181,7 +187,7 @@ export const ClinicalDocumentationDynamic: FC<
   const [diagnosis, setDiagnosis] = useState<DiagnosisItem[]>([]);
   const [treatment, setTreatment] = useState("");
   const [prescriptions, setPrescriptions] = useState<Medication[]>([]);
-  const [sendToWhatsapp, setSendToWhatsapp] = useState(false);
+  const [sendToWhatsapp, setSendToWhatsapp] = useState(true);
 
   const [dentalChart, setDentalChart] = useState<DentalChartValue>({});
   const [eyeExam, setEyeExam] = useState<OphthalmologyExamData>({});
@@ -344,47 +350,87 @@ export const ClinicalDocumentationDynamic: FC<
     }
   };
 
-  const tabs = [
-    {
-      id: "chief-complaint",
-      label: "Chief Complaint",
-      shortLabel: "Complaint",
-      icon: <Activity className="h-4 w-4" />,
-    },
-    {
-      id: "history",
-      label: "History",
-      shortLabel: "History",
-      icon: <FileText className="h-4 w-4" />,
-    },
-    {
-      id: "examination",
-      label: "Examination",
-      shortLabel: "Exam",
-      icon: <Stethoscope className="h-4 w-4" />,
-    },
-    ...(clinicType === "DENTAL"
-      ? [{ id: "dental-chart", label: "Dental Chart", shortLabel: "Dental", icon: <Smile className="h-4 w-4" /> }]
-      : []),
-    ...(clinicType === "OPHTHALMOLOGY"
-      ? [{ id: "vision-exam", label: "Vision Exam", shortLabel: "Vision", icon: <Eye className="h-4 w-4" /> }]
-      : []),
-    ...(clinicType === "PEDIATRIC"
-      ? [{ id: "growth-chart", label: "Growth Chart", shortLabel: "Growth", icon: <Baby className="h-4 w-4" /> }]
-      : []),
-    {
-      id: "diagnosis",
-      label: "Diagnosis",
-      shortLabel: "Diagnosis",
-      icon: <FileText className="h-4 w-4" />,
-    },
-    {
-      id: "treatment",
-      label: "Treatment",
-      shortLabel: "Treatment",
-      icon: <Pill className="h-4 w-4" />,
-    },
-  ];
+  const tabs = useMemo(
+    () => [
+      {
+        id: "chief-complaint",
+        label: "Chief Complaint",
+        shortLabel: "Complaint",
+        icon: <Activity className="h-4 w-4" />,
+      },
+      {
+        id: "history",
+        label: "History",
+        shortLabel: "History",
+        icon: <FileText className="h-4 w-4" />,
+      },
+      {
+        id: "examination",
+        label: "Examination",
+        shortLabel: "Exam",
+        icon: <Stethoscope className="h-4 w-4" />,
+      },
+      ...(clinicType === "DENTAL"
+        ? [
+            {
+              id: "dental-chart",
+              label: "Dental Chart",
+              shortLabel: "Dental",
+              icon: <Smile className="h-4 w-4" />,
+            },
+          ]
+        : []),
+      ...(clinicType === "OPHTHALMOLOGY"
+        ? [
+            {
+              id: "vision-exam",
+              label: "Vision Exam",
+              shortLabel: "Vision",
+              icon: <Eye className="h-4 w-4" />,
+            },
+          ]
+        : []),
+      ...(clinicType === "PEDIATRIC"
+        ? [
+            {
+              id: "growth-chart",
+              label: "Growth Chart",
+              shortLabel: "Growth",
+              icon: <Baby className="h-4 w-4" />,
+            },
+          ]
+        : []),
+      {
+        id: "diagnosis",
+        label: "Diagnosis",
+        shortLabel: "Diagnosis",
+        icon: <FileText className="h-4 w-4" />,
+      },
+      {
+        id: "treatment",
+        label: "Treatment",
+        shortLabel: "Treatment",
+        icon: <Pill className="h-4 w-4" />,
+      },
+    ],
+    [clinicType],
+  );
+
+  const availableTabIds = useMemo(
+    () => getConsultationTabIds(clinicType),
+    [clinicType],
+  );
+
+  useEffect(() => {
+    const normalized = normalizeConsultationTab(defaultTab, clinicType);
+    setActiveTab((current) => (current === normalized ? current : normalized));
+  }, [defaultTab, clinicType]);
+
+  useEffect(() => {
+    if (!availableTabIds.includes(activeTab)) {
+      setActiveTab("chief-complaint");
+    }
+  }, [activeTab, availableTabIds]);
 
   const steps: ConsultationStep[] = useMemo(() => [
     {

@@ -39,6 +39,7 @@ function AppointmentsContent() {
     isToday,
     currentTimeSlotRef,
     preselectedPatientId,
+    startingConsultationId,
     user,
     isPendingMutation,
     activeStartHour,
@@ -107,6 +108,7 @@ function AppointmentsContent() {
             currentTimeSlot={currentTimeSlot}
             currentTimeSlotRef={currentTimeSlotRef}
             checkingIn={checkingIn}
+            startingConsultationId={startingConsultationId}
             onCheckIn={handleCheckIn}
             onStartConsultation={handleStartConsultation}
             onCancelClick={(id) => {
@@ -117,7 +119,7 @@ function AppointmentsContent() {
               setNoShowAptId(id);
               setNoShowDialogOpen(true);
             }}
-            userRole={user?.role}
+            currentUserId={user?.id}
             activeStartHour={activeStartHour}
             activeEndHour={activeEndHour}
           />

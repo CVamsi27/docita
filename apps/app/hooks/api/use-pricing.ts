@@ -1,7 +1,11 @@
 "use client";
 
 import { useQueries, useQuery } from "@tanstack/react-query";
-import type { CurrentUsage, PricingEstimateRequest } from "@workspace/types";
+import type {
+  CurrentUsage,
+  PricingEstimateRequest,
+  PricingEstimateResponse,
+} from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { API_URL } from "@/lib/api-config";
 import { useAuth } from "@/lib/auth-context";
@@ -39,6 +43,11 @@ interface TierPricing {
     users: number;
     prescriptions?: number;
     invoices?: number;
+    billable?: {
+      consultations: number;
+      users: number;
+      whatsappMessages: number;
+    };
   };
   features?: string[];
 }
@@ -61,36 +70,12 @@ interface PricingConfig {
 type EstimateRequest = PricingEstimateRequest;
 
 export interface EstimateUsageInputs {
-  patients: number;
-  appointments: number;
+  consultations: number;
   users: number;
-  whatsapp: boolean;
   whatsappMessages: number;
-  intelligence: boolean;
-  aiCredits: number;
 }
 
-interface EstimateResponse {
-  tier: string;
-  billingCycle: string;
-  currency: { code: string; symbol: string };
-  breakdown: {
-    basePrice: number;
-    discount: { percent: number; amount: number };
-    subtotal: number;
-    overages: {
-      patients: { count: number; charge: number };
-      appointments: { count: number; charge: number };
-      users: { count: number; charge: number };
-      prescriptions?: { count: number; charge: number };
-      invoices?: { count: number; charge: number };
-      whatsappMessages?: { count: number; charge: number };
-    };
-    overageTotal: number;
-  };
-  totalMonthly: number;
-  totalYearly: number;
-}
+type EstimateResponse = PricingEstimateResponse;
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -126,22 +111,12 @@ export function useEstimate(params: EstimateRequest | null) {
         tier: params.tier,
         ...(params.currency && { currency: params.currency }),
         billingCycle: params.billingCycle || "monthly",
-        ...(params.patients !== undefined && {
-          patients: String(params.patients),
-        }),
-        ...(params.appointments !== undefined && {
-          appointments: String(params.appointments),
+        ...(params.consultations !== undefined && {
+          consultations: String(params.consultations),
         }),
         ...(params.users !== undefined && { users: String(params.users) }),
-        ...(params.whatsapp && { whatsapp: String(params.whatsapp) }),
         ...(params.whatsappMessages !== undefined && {
           whatsappMessages: String(params.whatsappMessages),
-        }),
-        ...(params.intelligence && {
-          intelligence: String(params.intelligence),
-        }),
-        ...(params.aiCredits !== undefined && {
-          aiCredits: String(params.aiCredits),
         }),
       }).toString()
     : null;
@@ -175,13 +150,9 @@ export function useTierEstimates(params: {
         tier,
         currency,
         billingCycle,
-        patients: String(usage.patients),
-        appointments: String(usage.appointments),
+        consultations: String(usage.consultations),
         users: String(usage.users),
-        whatsapp: String(usage.whatsapp),
         whatsappMessages: String(usage.whatsappMessages),
-        intelligence: String(usage.intelligence),
-        aiCredits: String(usage.aiCredits),
       }).toString();
 
       return {

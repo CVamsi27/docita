@@ -22,8 +22,12 @@ import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
 import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
 import type { User } from "@workspace/types";
+import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Skeleton } from "@workspace/ui/components/skeleton";
+import { canAccessTarget } from "@/lib/access-policy";
+import { getAccessTargetForPath } from "@/lib/access-routes";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/upgrade", "/settings", "/login"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
@@ -77,6 +81,43 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function PageAccessGuard({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const { clinic } = useClinic();
+  const { canAccess } = usePermissionStore();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user?.role || !clinic || !pathname) return;
+
+    const target = getAccessTargetForPath(pathname);
+    if (!target) return;
+
+    if (
+      target === APP_ACCESS_TARGETS.PAGE_UPGRADE &&
+      clinic.subscriptionStatus === "EXPIRED"
+    ) {
+      return;
+    }
+
+    const hasAccess = canAccessTarget(
+      target,
+      {
+        role: user.role,
+        canAccessFeature: canAccess,
+      },
+      "read",
+    );
+
+    if (!hasAccess) {
+      router.replace("/dashboard");
+    }
+  }, [canAccess, clinic, pathname, router, user?.role]);
+
+  return <>{children}</>;
+}
+
 function MobileHeader() {
   const { canGoBack } = useNavigationStore();
   return (
@@ -124,7 +165,6 @@ export default function ProtectedLayout({
     }
   }, [isLoading, user, router]);
 
-  // Show skeleton while auth is loading to prevent blank screen flash
   if (isLoading) {
     return (
       <div className="flex h-screen overflow-hidden bg-background">
@@ -155,56 +195,57 @@ export default function ProtectedLayout({
     );
   }
 
-  // Redirect is pending — render nothing to avoid sidebar mounting
   if (!user || !user.clinicId) return null;
 
   return (
     <NavigationHistoryProvider>
       <ClinicProvider>
         <DoctorVerificationGuard>
-        <SubscriptionGuard>
-        <div className="flex h-screen overflow-hidden bg-background">
-          <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel
-              ref={sidebarPanelRef}
-              defaultSize={18}
-              minSize={15}
-              maxSize={25}
-              className="hidden md:block"
-              collapsible={true}
-              collapsedSize={4}
-              onCollapse={() => setIsCollapsed(true)}
-              onExpand={() => setIsCollapsed(false)}
-            >
-              <Sidebar
-                isCollapsed={isCollapsed}
-                onCollapsedChange={(collapsed) => {
-                  setIsCollapsed(collapsed);
-                  if (collapsed) {
-                    sidebarPanelRef.current?.collapse();
-                  } else {
-                    sidebarPanelRef.current?.expand();
-                  }
-                }}
-              />
-            </ResizablePanel>
-            <ResizableHandle withHandle className="hidden md:flex" />
-            <ResizablePanel defaultSize={82}>
-              <div className="flex h-full flex-col overflow-hidden">
-                <MobileHeader />
-                <main
-                  className="flex-1 overflow-y-auto p-4 md:p-6"
-                  aria-label="Main content"
-                >
-                  <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
-                </main>
+          <SubscriptionGuard>
+            <PageAccessGuard>
+              <div className="flex h-screen overflow-hidden bg-background">
+                <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanel
+                    ref={sidebarPanelRef}
+                    defaultSize={18}
+                    minSize={15}
+                    maxSize={25}
+                    className="hidden md:block"
+                    collapsible={true}
+                    collapsedSize={4}
+                    onCollapse={() => setIsCollapsed(true)}
+                    onExpand={() => setIsCollapsed(false)}
+                  >
+                    <Sidebar
+                      isCollapsed={isCollapsed}
+                      onCollapsedChange={(collapsed) => {
+                        setIsCollapsed(collapsed);
+                        if (collapsed) {
+                          sidebarPanelRef.current?.collapse();
+                        } else {
+                          sidebarPanelRef.current?.expand();
+                        }
+                      }}
+                    />
+                  </ResizablePanel>
+                  <ResizableHandle withHandle className="hidden md:flex" />
+                  <ResizablePanel defaultSize={82}>
+                    <div className="flex h-full flex-col overflow-hidden">
+                      <MobileHeader />
+                      <main
+                        className="flex-1 overflow-y-auto p-4 md:p-6"
+                        aria-label="Main content"
+                      >
+                        <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
+                      </main>
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
               </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </div>
-        <FloatingStartConsultation />
-        <CommandPalette />
-        </SubscriptionGuard>
+              <FloatingStartConsultation />
+              <CommandPalette />
+            </PageAccessGuard>
+          </SubscriptionGuard>
         </DoctorVerificationGuard>
       </ClinicProvider>
     </NavigationHistoryProvider>

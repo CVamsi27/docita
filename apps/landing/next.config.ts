@@ -2,10 +2,10 @@ import type { NextConfig } from "next";
 import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
+const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 
 const nextConfig: NextConfig = {
-
-  compress: true,
+  compress: !isCloudflareBuild,
 
   images: {
     formats: ["image/avif", "image/webp"],
