@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
@@ -30,7 +30,6 @@ import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
 
 export default function UploadSignaturePage() {
   const params = useParams();
-  const router = useRouter();
   const token = params.token as string;
 
   const [validating, setValidating] = useState(true);

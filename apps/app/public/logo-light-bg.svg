@@ -1,8 +1,0 @@
-<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-  <!-- Brand icon tuned for light backgrounds. -->
-  <rect x="2" y="2" width="28" height="28" rx="9" fill="#0f172a"/>
-  <rect x="2" y="2" width="28" height="28" rx="9" fill="none" stroke="#ffffff" stroke-opacity="0.06"/>
-  <path d="M10 7.5V24.5H15.35C19.46 24.5 22.25 21.7 22.25 17.6V14.4C22.25 10.3 19.46 7.5 15.35 7.5H10Z" fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="20.5" cy="20.5" r="3.5" fill="#2563eb"/>
-  <path d="M20.5 18.8V22.2M18.8 20.5H22.2" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
-</svg>

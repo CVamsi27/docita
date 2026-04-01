@@ -25,6 +25,7 @@ import type { User } from "@workspace/types";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Skeleton } from "@workspace/ui/components/skeleton";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { canAccessTarget } from "@/lib/access-policy";
 import { getAccessTargetForPath } from "@/lib/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -129,7 +130,11 @@ function MobileHeader() {
       {canGoBack() ? (
         <SmartBackButton fallback="/dashboard" label="" className="px-2" />
       ) : (
-        <span className="font-bold text-lg">Docita</span>
+        <DocitaLogo
+          iconClassName="h-5 w-5"
+          textClassName="h-6 w-24"
+          className="gap-1.5"
+        />
       )}
       <div className="ml-auto">
         <ThemeToggle />

@@ -2,18 +2,16 @@
 
 import Link from "next/link";
 import { Button } from "@workspace/ui/components/button";
-import { ArrowLeft, Stethoscope } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 
 export default function CookiePolicyPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Stethoscope className="h-6 w-6 text-primary" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Docita</span>
+          <Link href="/" className="flex items-center">
+            <DocitaLogo iconClassName="h-7 w-7" textClassName="h-7 w-28" />
           </Link>
           <Link href="/">
             <Button variant="ghost" className="gap-2">
@@ -287,10 +285,7 @@ export default function CookiePolicyPage() {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <Stethoscope className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-lg font-bold">Docita</span>
+              <DocitaLogo iconClassName="h-6 w-6" textClassName="h-6 w-24" />
             </div>
             <div className="flex gap-8 text-sm text-muted-foreground">
               <Link

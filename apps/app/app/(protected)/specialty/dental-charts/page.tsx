@@ -47,9 +47,6 @@ export default function DentalChartsPage() {
     useUpdateAppointment(selectedAppointmentId ?? "");
 
   const appointments = patientAppointments?.items ?? [];
-  const selectedAppointment = appointments.find(
-    (a) => a.id === selectedAppointmentId,
-  );
 
   const handleSelectAppointment = (appointmentId: string) => {
     const appt = appointments.find((a) => a.id === appointmentId);

@@ -18,7 +18,7 @@ import {
 } from '@workspace/ui/components/dialog';
 import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 interface JoinRequest {
   id: string;

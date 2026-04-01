@@ -178,7 +178,7 @@ export function useClinicRegistrationFlow() {
         billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
 
       const isCoreTrial =
-        tier === "ESSENTIAL" && options?.isCoreTrial === true;
+        tier === "ESSENTIAL" && options?.isCoreTrial !== false;
       const resolvedCurrency = options?.currency || DEFAULT_CURRENCY;
 
       setFormData((prev) => ({

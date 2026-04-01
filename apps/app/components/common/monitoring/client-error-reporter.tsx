@@ -116,9 +116,10 @@ export function ClientErrorReporter() {
       });
     };
 
-    const originalConsoleLog = console.log.bind(console);
-    const originalConsoleWarn = console.warn.bind(console);
-    const originalConsoleError = console.error.bind(console);
+    const consoleRef = globalThis.console;
+    const originalConsoleLog = consoleRef.log.bind(consoleRef);
+    const originalConsoleWarn = consoleRef.warn.bind(consoleRef);
+    const originalConsoleError = consoleRef.error.bind(consoleRef);
 
     const patchedConsoleLog = (...args: unknown[]) => {
       if (shouldPrintToConsole) {
@@ -184,16 +185,16 @@ export function ClientErrorReporter() {
 
     window.addEventListener("error", handleError);
     window.addEventListener("unhandledrejection", handleRejection);
-    console.log = patchedConsoleLog;
-    console.warn = patchedConsoleWarn;
-    console.error = patchedConsoleError;
+    consoleRef.log = patchedConsoleLog;
+    consoleRef.warn = patchedConsoleWarn;
+    consoleRef.error = patchedConsoleError;
 
     return () => {
       window.removeEventListener("error", handleError);
       window.removeEventListener("unhandledrejection", handleRejection);
-      console.log = originalConsoleLog;
-      console.warn = originalConsoleWarn;
-      console.error = originalConsoleError;
+      consoleRef.log = originalConsoleLog;
+      consoleRef.warn = originalConsoleWarn;
+      consoleRef.error = originalConsoleError;
     };
   }, []);
 

@@ -204,11 +204,13 @@ export function TierCard({
               isDowngrade && "bg-muted/50 text-muted-foreground border-muted hover:bg-muted/70",
             )}
             variant={isDowngrade ? "outline" : "default"}
-            disabled={isCurrentTier}
+            disabled={isCurrentTier || isLocked}
             onClick={onSelect}
           >
             {buttonLabel
               ? buttonLabel
+              : isLocked
+                ? "Locked"
               : isCurrentTier
                 ? "Current Plan"
                 : isUpgrade

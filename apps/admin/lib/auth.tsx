@@ -14,7 +14,6 @@ import { setAuthLogoutCallback } from "./api-client";
 import { API_URL } from "./api-config";
 import {
   ADMIN_COOKIE_KEY,
-  ADMIN_TOKEN_KEY,
   ADMIN_USER_KEY,
   adminSession,
 } from "./session";

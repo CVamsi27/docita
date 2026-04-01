@@ -287,88 +287,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      const payload = loginSchema.parse({ email, password });
-      const csrfToken = appSession.getCsrfToken();
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
+    const payload = loginSchema.parse({ email, password });
+    const csrfToken = appSession.getCsrfToken();
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw await parseApiErrorResponse(response, "Login failed");
+    }
+
+    const authPayload = extractAuthPayload(await response.json());
+    const accessToken = authPayload?.access_token ?? null;
+    let userData = authPayload?.user ?? null;
+
+    if (!userData) {
+      const validateResponse = await fetch(`${API_URL}/auth/validate`, {
+        method: "GET",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
         },
-        credentials: "include",
-        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw await parseApiErrorResponse(response, "Login failed");
+      if (validateResponse.ok) {
+        const validateData = (await validateResponse.json()) as {
+          user?: User;
+        };
+        userData = validateData.user ?? null;
       }
-
-      const authPayload = extractAuthPayload(await response.json());
-      const accessToken = authPayload?.access_token ?? null;
-      let userData = authPayload?.user ?? null;
-
-      if (!userData) {
-        const validateResponse = await fetch(`${API_URL}/auth/validate`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-          },
-        });
-
-        if (validateResponse.ok) {
-          const validateData = (await validateResponse.json()) as {
-            user?: User;
-          };
-          userData = validateData.user ?? null;
-        }
-      }
-
-      if (!userData) {
-        throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
-      }
-
-      if (userData.role === "SUPER_ADMIN") {
-        throw new Error(
-          "Super Admin accounts should use the Admin Console at /admin",
-        );
-      }
-
-      if (accessToken) {
-        persistToken(accessToken);
-      } else {
-        await refreshAccessToken();
-      }
-      setUser(userData);
-      setUserRole(userData.role);
-      localStorage.setItem("docita_user", JSON.stringify(userData));
-
-      if (!userData.clinicId) {
-        switch (userData.onboardingStep) {
-          case 'JOINING_CLINIC':
-            router.push('/join-request-status');
-            break;
-          case 'CREATING_CLINIC':
-            router.push('/onboarding');
-            break;
-          case 'CHOOSE_PATH':
-          case 'NOT_STARTED':
-          default:
-            router.push('/choose-path');
-        }
-        return;
-      }
-
-      const redirectUrl =
-        sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
-      sessionStorage.removeItem("redirectAfterLogin");
-      router.push(redirectUrl);
-    } catch (error) {
-
-      throw error;
     }
+
+    if (!userData) {
+      throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
+    }
+
+    if (userData.role === "SUPER_ADMIN") {
+      throw new Error(
+        "Super Admin accounts should use the Admin Console at /admin",
+      );
+    }
+
+    if (accessToken) {
+      persistToken(accessToken);
+    } else {
+      await refreshAccessToken();
+    }
+    setUser(userData);
+    setUserRole(userData.role);
+    localStorage.setItem("docita_user", JSON.stringify(userData));
+
+    if (!userData.clinicId) {
+      switch (userData.onboardingStep) {
+        case 'JOINING_CLINIC':
+          router.push('/join-request-status');
+          break;
+        case 'CREATING_CLINIC':
+          router.push('/onboarding');
+          break;
+        case 'CHOOSE_PATH':
+        case 'NOT_STARTED':
+        default:
+          router.push('/choose-path');
+      }
+      return;
+    }
+
+    const redirectUrl =
+      sessionStorage.getItem("redirectAfterLogin") || "/dashboard";
+    sessionStorage.removeItem("redirectAfterLogin");
+    router.push(redirectUrl);
   };
 
   const checkEmail = async (email: string): Promise<boolean> => {
@@ -408,88 +403,83 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     role: "ADMIN" | "ADMIN_DOCTOR" = "ADMIN",
     clinicName?: string,
   ) => {
-    try {
-      const payload = registerSchema.parse({
-        email,
-        password,
-        firstName,
-        lastName,
-        role,
-        clinicName,
-      });
-      const csrfToken = appSession.getCsrfToken();
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
+    const payload = registerSchema.parse({
+      email,
+      password,
+      firstName,
+      lastName,
+      role,
+      clinicName,
+    });
+    const csrfToken = appSession.getCsrfToken();
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+      },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw await parseApiErrorResponse(response, "Registration failed");
+    }
+
+    const authPayload = extractAuthPayload(await response.json());
+    const accessToken = authPayload?.access_token ?? null;
+    let userData = authPayload?.user ?? null;
+
+    if (!userData) {
+      const validateResponse = await fetch(`${API_URL}/auth/validate`, {
+        method: "GET",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
         },
-        credentials: "include",
-        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw await parseApiErrorResponse(response, "Registration failed");
+      if (validateResponse.ok) {
+        const validateData = (await validateResponse.json()) as {
+          user?: User;
+        };
+        userData = validateData.user ?? null;
       }
-
-      const authPayload = extractAuthPayload(await response.json());
-      const accessToken = authPayload?.access_token ?? null;
-      let userData = authPayload?.user ?? null;
-
-      if (!userData) {
-        const validateResponse = await fetch(`${API_URL}/auth/validate`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-          },
-        });
-
-        if (validateResponse.ok) {
-          const validateData = (await validateResponse.json()) as {
-            user?: User;
-          };
-          userData = validateData.user ?? null;
-        }
-      }
-
-      if (!userData) {
-        throw new Error(
-          "We could not process the registration response. Please try again.",
-        );
-      }
-
-      if (accessToken) {
-        persistToken(accessToken);
-      } else {
-        await refreshAccessToken();
-      }
-      setUser(userData);
-      setUserRole(userData.role);
-      localStorage.setItem("docita_user", JSON.stringify(userData));
-
-      if (!userData.clinicId) {
-        switch (userData.onboardingStep) {
-          case 'JOINING_CLINIC':
-            router.push('/join-request-status');
-            break;
-          case 'CREATING_CLINIC':
-            router.push('/onboarding');
-            break;
-          case 'CHOOSE_PATH':
-          case 'NOT_STARTED':
-          default:
-            router.push('/choose-path');
-        }
-        return;
-      }
-
-      router.push('/dashboard');
-    } catch (error) {
-
-      throw error;
     }
+
+    if (!userData) {
+      throw new Error(
+        "We could not process the registration response. Please try again.",
+      );
+    }
+
+    if (accessToken) {
+      persistToken(accessToken);
+    } else {
+      await refreshAccessToken();
+    }
+    setUser(userData);
+    setUserRole(userData.role);
+    localStorage.setItem("docita_user", JSON.stringify(userData));
+
+    if (!userData.clinicId) {
+      switch (userData.onboardingStep) {
+        case 'JOINING_CLINIC':
+          router.push('/join-request-status');
+          break;
+        case 'CREATING_CLINIC':
+          router.push('/onboarding');
+          break;
+        case 'CHOOSE_PATH':
+        case 'NOT_STARTED':
+        default:
+          router.push('/choose-path');
+      }
+      return;
+    }
+
+    router.push('/dashboard');
   };
 
   const logout = useCallback(async () => {

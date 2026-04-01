@@ -1,6 +1,6 @@
 import { Lock, Server, Shield } from "lucide-react";
-import { DocitaIconMonochrome } from "@workspace/ui/components/docita-logo";
-import { DocitaBrandPattern } from "@workspace/ui/lib/docita-brand";
+import Image from "next/image";
+import { DocitaIconMonochrome, DocitaLogo } from "@workspace/ui/components/docita-logo";
 
 export function AuthBrandingPanel() {
   return (
@@ -14,10 +14,12 @@ export function AuthBrandingPanel() {
         aria-hidden="true"
       />
 
-      <div className="flex items-center gap-2.5">
-        <DocitaIconMonochrome className="h-8 w-8 text-primary-foreground" />
-        <span className="text-xl font-bold tracking-tight text-primary-foreground">Docita</span>
-      </div>
+      <DocitaLogo
+        iconClassName="h-8 w-8"
+        textClassName="h-8 w-28"
+        className="gap-2.5"
+        tone="dark"
+      />
 
       <div className="relative z-10 space-y-4">
         <h2 className="text-4xl font-bold text-primary-foreground leading-tight">
@@ -31,9 +33,13 @@ export function AuthBrandingPanel() {
         </p>
 
         <div className="relative mt-8 h-32 overflow-hidden rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5">
-          <DocitaBrandPattern
-            className="absolute inset-0 h-full w-full text-primary-foreground"
-            suppressHydrationWarning
+          <Image
+            src="/branding/Dark-background.png"
+            alt=""
+            aria-hidden="true"
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
           />
           <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-primary-foreground/8 px-4 py-3 backdrop-blur-sm">
             <DocitaIconMonochrome className="h-8 w-8 shrink-0 text-primary-foreground" />

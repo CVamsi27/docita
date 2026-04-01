@@ -21,6 +21,17 @@ export interface ContactSalesModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function getLandingApiBaseUrl(): string {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+  const normalized = baseUrl.replace(/\/+$/, "");
+
+  if (/\/api$/i.test(normalized)) {
+    return `${normalized}/v1`;
+  }
+
+  return normalized;
+}
+
 export function ContactSalesModal({
   open,
   onOpenChange,
@@ -77,10 +88,7 @@ export function ContactSalesModal({
 
     setIsSubmitting(true);
     try {
-
-      const contactUrl = process.env.NEXT_PUBLIC_API_URL
-        ? `${process.env.NEXT_PUBLIC_API_URL}/contact/inquiry`
-        : "http://localhost:3001/api/contact/inquiry";
+      const contactUrl = `${getLandingApiBaseUrl()}/contact/inquiry`;
 
       const response = await fetch(contactUrl, {
         method: "POST",

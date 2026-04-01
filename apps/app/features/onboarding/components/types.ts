@@ -88,10 +88,11 @@ export const defaultClinicRegistrationData: ClinicRegistrationData = {
   clinicDetails: {},
   compliance: {},
   planSelection: {
-    tier: "CORE",
+    tier: "ESSENTIAL",
     billingCycle: "MONTHLY",
     price: 0,
     currency: DEFAULT_CURRENCY,
+    isCoreTrial: true,
   },
   paymentDetails: {},
   teamMembers: [],

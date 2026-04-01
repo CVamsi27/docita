@@ -64,7 +64,7 @@ export const settingsTabs = [
         label: "Queue",
         icon: Users,
         description: "Patient queue settings",
-        roles: ADMIN_ROLES,
+        roles: QUEUE_ROLES,
       },
       {
         value: "prescriptions",

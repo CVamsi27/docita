@@ -75,6 +75,32 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   ZAR: "R",
 };
 
+function resolveCurrencyName(code: string): string {
+  if (code === "INR") return "Indian Rupee";
+  if (code === "USD") return "US Dollar";
+  if (code === "GBP") return "British Pound";
+  if (code === "EUR") return "Euro";
+  if (code === "AUD") return "Australian Dollar";
+  if (code === "CAD") return "Canadian Dollar";
+  if (code === "SGD") return "Singapore Dollar";
+  if (code === "AED") return "UAE Dirham";
+  if (code === "ZAR") return "South African Rand";
+  return code;
+}
+
+function normalizeApiBaseUrl(baseUrl: string): string {
+  const normalized = baseUrl.replace(/\/+$/, "");
+  if (/\/api$/i.test(normalized)) {
+    return `${normalized}/v1`;
+  }
+  return normalized;
+}
+
+function resolveCurrencyCode(currency?: string): string {
+  const normalized = (currency ?? "INR").toUpperCase();
+  return CURRENCY_SYMBOLS[normalized] ? normalized : "INR";
+}
+
 const DEFAULT_CONFIG: TierConfigData = {
   currency: {
     code: "INR",
@@ -84,26 +110,7 @@ const DEFAULT_CONFIG: TierConfigData = {
   supportedCurrencies: Object.entries(CURRENCY_SYMBOLS).map(([code, symbol]) => ({
     code,
     symbol,
-    name:
-      code === "INR"
-        ? "Indian Rupee"
-        : code === "USD"
-          ? "US Dollar"
-          : code === "GBP"
-            ? "British Pound"
-            : code === "EUR"
-              ? "Euro"
-              : code === "AUD"
-                ? "Australian Dollar"
-                : code === "CAD"
-                  ? "Canadian Dollar"
-                  : code === "SGD"
-                    ? "Singapore Dollar"
-                    : code === "AED"
-                      ? "UAE Dirham"
-                      : code === "ZAR"
-                        ? "South African Rand"
-                : code,
+    name: resolveCurrencyName(code),
   })),
   tiers: [
     {
@@ -351,25 +358,74 @@ function computeOverageRates(currency: string): OverageRatesResult {
   };
 }
 
+function buildLocalTierConfig(currency?: string): TierConfigData {
+  const currencyCode = resolveCurrencyCode(currency);
+  const currencySymbol = CURRENCY_SYMBOLS[currencyCode] ?? CURRENCY_SYMBOLS.INR;
+  const tierPricingByCurrency = TIER_PRICING[currencyCode] ?? TIER_PRICING.INR;
+
+  return {
+    ...DEFAULT_CONFIG,
+    currency: {
+      code: currencyCode,
+      symbol: currencySymbol,
+      name: resolveCurrencyName(currencyCode),
+    },
+    tiers: DEFAULT_CONFIG.tiers.map((tier) => {
+      const pricingForTier = tierPricingByCurrency[tier.id];
+      if (!pricingForTier) {
+        return {
+          ...tier,
+          pricing: {
+            ...tier.pricing,
+            currency: currencySymbol,
+          },
+        };
+      }
+
+      return {
+        ...tier,
+        pricing: {
+          monthly: pricingForTier.monthly,
+          yearly: pricingForTier.yearly,
+          currency: currencySymbol,
+        },
+      };
+    }),
+    intelligenceInfo: {
+      ...DEFAULT_CONFIG.intelligenceInfo,
+      pricing: {
+        ...DEFAULT_CONFIG.intelligenceInfo.pricing,
+        currency: currencySymbol,
+      },
+    },
+  };
+}
+
 async function fetchTierConfig(currency?: string): Promise<TierConfigData> {
-  let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
-  if (apiUrl.endsWith('/api')) {
-    apiUrl = `${apiUrl}/v1`;
-  }
-  const query = currency ? `?currency=${currency}` : "";
-  const response = await fetch(`${apiUrl}/pricing/config${query}`);
+  const resolvedCurrency = resolveCurrencyCode(currency);
+  const apiUrl = normalizeApiBaseUrl(
+    process.env.NEXT_PUBLIC_API_URL || "/api/v1",
+  );
+  const query = `?currency=${encodeURIComponent(resolvedCurrency)}`;
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch tier configuration");
-  }
+  try {
+    const response = await fetch(`${apiUrl}/pricing/config${query}`);
 
-  return response.json();
+    if (!response.ok) {
+      throw new Error("Failed to fetch tier configuration");
+    }
+
+    return (await response.json()) as TierConfigData;
+  } catch {
+    return buildLocalTierConfig(resolvedCurrency);
+  }
 }
 
 export function useTierConfig(currency?: string) {
-  const resolvedCurrency = currency ?? "INR";
+  const resolvedCurrency = resolveCurrencyCode(currency);
+  const fallbackConfig = buildLocalTierConfig(resolvedCurrency);
   const {
-    data: config = DEFAULT_CONFIG,
+    data: config = fallbackConfig,
     isLoading,
     error,
     refetch,
@@ -379,7 +435,7 @@ export function useTierConfig(currency?: string) {
     staleTime: 5 * 60 * 1000, 
     gcTime: 30 * 60 * 1000, 
     retry: 2,
-    placeholderData: DEFAULT_CONFIG,
+    placeholderData: fallbackConfig,
   });
 
   const getTier = useCallback(

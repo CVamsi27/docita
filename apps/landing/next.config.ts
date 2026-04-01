@@ -3,6 +3,7 @@ import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
+const API_PROXY_TARGET = process.env.API_PROXY_TARGET || "http://localhost:3001";
 
 const nextConfig: NextConfig = {
   compress: !isCloudflareBuild,
@@ -37,6 +38,15 @@ const nextConfig: NextConfig = {
     }
 
     return config;
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${API_PROXY_TARGET}/api/:path*`,
+      },
+    ];
   },
 };
 

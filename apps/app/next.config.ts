@@ -82,6 +82,14 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/branding/docita-icon-round.png",
+        destination: "/branding/Round_Logo.png",
+      },
+      {
+        source: "/branding/docita-logo-master.jpg",
+        destination: "/branding/Dark-background.png",
+      },
+      {
         source: "/api/:path*",
         destination: `${API_PROXY_TARGET}/api/:path*`,
       },

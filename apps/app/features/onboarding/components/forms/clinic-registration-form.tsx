@@ -138,7 +138,7 @@ export function ClinicRegistrationForm({
   ) => {
     setStepError(null);
 
-    // For paid CORE plans without trial, show PaymentStep before Razorpay
+    // For paid Essential plans without trial, show PaymentStep before Razorpay
     const price = billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
     const clinicGstin = clinicForm.getValues("gstin");
     const isIndianCurrency = currency === "INR";
@@ -152,7 +152,7 @@ export function ClinicRegistrationForm({
     }
 
     if (
-      tier === "CORE" &&
+      tier === "ESSENTIAL" &&
       !options?.isCoreTrial &&
       isPaidPlan
     ) {

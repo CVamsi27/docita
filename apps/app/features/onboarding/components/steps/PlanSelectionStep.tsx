@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Loader2, Sparkles } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -59,9 +59,9 @@ const PLAN_AUDIENCE: Record<string, string> = {
 
 export function PlanSelectionStep({
   onSelect,
-  defaultTier = "STARTER",
+  defaultTier = "ESSENTIAL",
   defaultBillingCycle = "MONTHLY",
-  defaultIsCoreTrial = false,
+  defaultIsCoreTrial: _defaultIsCoreTrial = false,
   currency,
 }: PlanSelectionProps) {
   const { currency: detectedCurrency } = useLocaleCurrency();
@@ -104,23 +104,7 @@ export function PlanSelectionStep({
     setIsSubmitting(true);
     try {
       await onSelect(tier, billingCycle, tierPricingData.pricing, {
-        currency: resolvedCurrency,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleStartEssentialTrial = async () => {
-    const tierPricingData = pricingConfig?.tiers.find(
-      (t: TierPricing) => t.id === "ESSENTIAL",
-    );
-    if (!tierPricingData) return;
-
-    setIsSubmitting(true);
-    try {
-      await onSelect("ESSENTIAL", billingCycle, tierPricingData.pricing, {
-        isCoreTrial: true,
+        isCoreTrial: tier === "ESSENTIAL",
         currency: resolvedCurrency,
       });
     } finally {
@@ -241,8 +225,16 @@ Please contact me with deployment and commercial details.`;
                     pricing={tierPricingData?.pricing}
                     billingCycle={billingCycle}
                     currencySymbol={currencySymbol}
-                    overageHint={overageHint}
-                    buttonLabel="Select Plan"
+                    overageHint={
+                      tierName === "ESSENTIAL"
+                        ? "₹0 for first 14 days, then regular billing."
+                        : overageHint
+                    }
+                    buttonLabel={
+                      tierName === "ESSENTIAL"
+                        ? "Start Free 14-Day Trial"
+                        : "Select Plan"
+                    }
                     maxDisplay={8}
                     usageHints={PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS] ? {
                       patients: PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS].patients,
@@ -260,34 +252,6 @@ Please contact me with deployment and commercial details.`;
                 </div>
               );
             })}
-        </div>
-
-        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
-          <div className="flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-            <div className="flex-1">
-              <p className="font-medium text-sm">
-                Not ready to pay yet? Try Essential free for 14 days
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                No payment required. Get full Essential access and add a payment method later.
-              </p>
-            </div>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="shrink-0"
-              disabled={isSubmitting}
-              onClick={handleStartEssentialTrial}
-            >
-              {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Skip – Start Free Trial"
-              )}
-            </Button>
-          </div>
         </div>
 
         <Collapsible open={comparisonOpen} onOpenChange={setComparisonOpen}>

@@ -66,22 +66,18 @@ interface ComplianceStepProps {
 
 // Reusable legal agreement card with scroll-to-enable
 function LegalCard({
-  id,
   title,
   summary,
   accepted,
   error,
   onOpenDocument,
-  onAccept,
   onUnaccept,
 }: {
-  id: string;
   title: string;
   summary: string;
   accepted: boolean;
   error?: string;
   onOpenDocument: () => void;
-  onAccept: () => void;
   onUnaccept: () => void;
 }) {
   return (
@@ -610,7 +606,6 @@ export function ComplianceStep({
               {legalDocs.map((doc) => (
                 <LegalCard
                   key={doc.key}
-                  id={doc.key}
                   title={doc.title}
                   summary={doc.summary}
                   accepted={doc.accepted}
@@ -618,13 +613,6 @@ export function ComplianceStep({
                     complianceForm.formState.errors[doc.fieldKey]?.message
                   }
                   onOpenDocument={() => setActiveLegalDoc(doc.key)}
-                  onAccept={() =>
-                    complianceForm.setValue(doc.fieldKey, true, {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: true,
-                    })
-                  }
                   onUnaccept={() =>
                     complianceForm.setValue(doc.fieldKey, false, {
                       shouldDirty: true,

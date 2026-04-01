@@ -9,6 +9,10 @@ compatibility_flags = ["nodejs_compat"]
 # Update this file with your Cloudflare account/project specific settings
 # if your deployment process requires additional bindings.
 
+[[routes]]
+pattern = "app.docita.work"
+custom_domain = true
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"

@@ -5,8 +5,8 @@ import { DOCITA_ICON_CACHE_BUST } from "@workspace/ui/lib/docita-brand";
 export const metadata = {
   metadataBase: new URL("https://docita.work"),
   icons: {
-    icon: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    apple: `/apple-icon?${DOCITA_ICON_CACHE_BUST}`,
+    icon: `/branding/Round_Logo.png?${DOCITA_ICON_CACHE_BUST}`,
+    apple: `/branding/Round_Logo.png?${DOCITA_ICON_CACHE_BUST}`,
   },
   title: {
     default: "Docita - Clinic Management Software | 14-Day Free Trial",
@@ -58,10 +58,10 @@ export const metadata = {
       "The complete operating system for modern Indian clinics. Appointments, digital prescriptions, billing, analytics, and AI assistance — all in one place. Start free for 14 days.",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Docita - Modern Clinic Management Software",
+        url: `/branding/Dark-background.png?${DOCITA_ICON_CACHE_BUST}`,
+        width: 1024,
+        height: 1024,
+        alt: "Docita Logo",
       },
     ],
   },
@@ -70,7 +70,7 @@ export const metadata = {
     title: "Docita - Clinic Management Software | 14-Day Free Trial",
     description:
       "The complete operating system for modern Indian clinics. Start your free 14-day trial today — no credit card required.",
-    images: ["/og-image.png"],
+    images: [`/branding/Dark-background.png?${DOCITA_ICON_CACHE_BUST}`],
   },
   alternates: {
     canonical: "https://docita.work",

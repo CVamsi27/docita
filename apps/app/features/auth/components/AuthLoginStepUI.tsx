@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { ErrorBanner } from "@/components/common/error-banner";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -103,6 +103,13 @@ export function AuthLoginStepUI({
             message={getFieldError(fieldErrors, "password")}
           />
         )}
+      </div>
+
+      <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <p>
+          Secure workspace sign-in with encrypted sessions and account lockout protection.
+        </p>
       </div>
 
       {!Object.keys(fieldErrors).length && error && (

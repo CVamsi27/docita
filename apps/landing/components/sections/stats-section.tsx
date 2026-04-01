@@ -17,6 +17,17 @@ const FALLBACK: PlatformStats = {
   prescriptions: 25000,
 };
 
+function getLandingApiBaseUrl(): string {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
+  const normalized = baseUrl.replace(/\/+$/, "");
+
+  if (/\/api$/i.test(normalized)) {
+    return `${normalized}/v1`;
+  }
+
+  return normalized;
+}
+
 function formatStatValue(value: number): string {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M+`;
   if (value >= 1000) return `${(value / 1000).toFixed(0)}K+`;
@@ -27,8 +38,7 @@ export function StatsSection() {
   const [platformStats, setPlatformStats] = useState<PlatformStats>(FALLBACK);
 
   useEffect(() => {
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+    const apiUrl = getLandingApiBaseUrl();
     fetch(`${apiUrl}/public/platform-stats`)
       .then((res) => {
         if (!res.ok) return null;

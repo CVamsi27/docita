@@ -118,20 +118,15 @@ export const useConsultationLogic = (appointmentId: string) => {
 
   const handleSave = useCallback(
     async (data: UpdateAppointmentInput) => {
-      try {
-        await updateAppointment.mutateAsync(data);
+      await updateAppointment.mutateAsync(data);
 
-        await queryClient.invalidateQueries({
-          queryKey: ["appointments", appointmentId],
-        });
-        await queryClient.refetchQueries({
-          queryKey: ["appointments", appointmentId],
-          type: "active",
-        });
-      } catch (error) {
-
-        throw error;
-      }
+      await queryClient.invalidateQueries({
+        queryKey: ["appointments", appointmentId],
+      });
+      await queryClient.refetchQueries({
+        queryKey: ["appointments", appointmentId],
+        type: "active",
+      });
     },
     [queryClient, appointmentId, updateAppointment],
   );

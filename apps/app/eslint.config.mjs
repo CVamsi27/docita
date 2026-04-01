@@ -15,12 +15,25 @@ export default [
   ...nextJsConfig,
   {
     rules: {
-      "@typescript-eslint/no-unused-vars": "off",
-      "no-empty": "off",
-      "no-useless-catch": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-useless-catch": "warn",
+      "no-console": ["error", { allow: ["warn", "error", "info"] }],
       "sort-imports": "off",
       "no-duplicate-imports": "off",
-      "react-hooks/rules-of-hooks": "off",
+      "no-restricted-imports": [
+        "warn",
+        {
+          patterns: ["../*", "../../*", "../../../*", "../../../../*"],
+        },
+      ],
       "no-restricted-syntax": [
         "warn",
         {
@@ -36,6 +49,19 @@ export default [
           message: "Avoid hardcoded Tailwind border colors. Use semantic design tokens instead (e.g., border-success, border-destructive, border-info). See packages/ui/docs/color-system.md",
         },
       ],
+    },
+  },
+  {
+    files: [
+      "e2e/**/*.ts",
+      "**/*.spec.ts",
+      "**/*.spec.tsx",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+    ],
+    rules: {
+      "no-empty": "off",
+      "no-useless-catch": "off",
     },
   },
 ];

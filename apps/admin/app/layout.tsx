@@ -7,8 +7,9 @@ export const metadata = {
   title: "Docita Admin - Super Admin Console",
   description: "Manage clinics, users, and system settings",
   icons: {
-    icon: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    apple: `/apple-icon?${DOCITA_ICON_CACHE_BUST}`,
+    icon: `/branding/Round_Logo.png?${DOCITA_ICON_CACHE_BUST}`,
+    shortcut: `/branding/Round_Logo.png?${DOCITA_ICON_CACHE_BUST}`,
+    apple: `/branding/Round_Logo.png?${DOCITA_ICON_CACHE_BUST}`,
   },
 };
 

@@ -80,7 +80,6 @@ export function PricingDialog({
 
   const tiers: TierName[] = PRICING_DIALOG_TIERS;
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
-  const currentTierName = Tier[currentTier] as TierName;
   const { estimateByTier, isLoadingAny } = useTierEstimates({
     tiers,
     currency,

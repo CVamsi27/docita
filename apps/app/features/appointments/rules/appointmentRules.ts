@@ -1,5 +1,12 @@
 import type { Appointment } from "@workspace/types";
-import { differenceInMinutes, isAfter, isBefore, isToday } from "date-fns";
+import {
+  addMinutes,
+  differenceInMinutes,
+  isAfter,
+  isBefore,
+  isToday,
+  subMinutes,
+} from "date-fns";
 
 export const isAppointmentPast = (appointment: Appointment): boolean => {
   const appointmentDate = new Date(appointment.startTime);
@@ -47,9 +54,10 @@ export const canCheckIn = (appointment: Appointment): boolean => {
 
   const appointmentDate = new Date(appointment.startTime);
   const now = new Date();
-  const minutesDiff = differenceInMinutes(appointmentDate, now);
+  const earliestAllowedCheckInTime = subMinutes(appointmentDate, 60);
+  const latestAllowedCheckInTime = addMinutes(appointmentDate, 15);
 
-  return minutesDiff >= -15 && minutesDiff <= 60;
+  return now >= earliestAllowedCheckInTime && now <= latestAllowedCheckInTime;
 };
 
 export const canCancel = (appointment: Appointment): boolean => {
@@ -65,7 +73,7 @@ export const canReschedule = (appointment: Appointment): boolean => {
 };
 
 export const getAppointmentDuration = (appointment: Appointment): number => {
-  if (!appointment.endTime) return 30; 
+  if (!appointment.endTime) return 30;
 
   const start = new Date(appointment.startTime);
   const end = new Date(appointment.endTime);

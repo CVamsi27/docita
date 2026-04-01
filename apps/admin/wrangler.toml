@@ -3,6 +3,10 @@ compatibility_date = "2026-03-31"
 main = ".open-next/worker.js"
 compatibility_flags = ["nodejs_compat"]
 
+[[routes]]
+pattern = "admin.docita.work"
+custom_domain = true
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"

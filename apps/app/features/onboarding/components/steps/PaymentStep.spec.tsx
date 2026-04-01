@@ -63,7 +63,7 @@ describe("PaymentStep", () => {
     expect(onBack).toHaveBeenCalled();
   });
 
-  it("shows and triggers the free trial button for CORE tier", () => {
+  it("shows and triggers the free trial button for ESSENTIAL tier", () => {
     const onStartTrial = vi.fn();
 
     render(
@@ -73,7 +73,7 @@ describe("PaymentStep", () => {
         selectedPlanPrice={1000}
         billingCycle="MONTHLY"
         currencySymbol="₹"
-        tier="CORE"
+        tier="ESSENTIAL"
         onStartTrial={onStartTrial}
       />,
     );

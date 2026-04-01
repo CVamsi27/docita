@@ -262,7 +262,7 @@ export function PaymentStep({
             </Button>
           </div>
 
-          {tier === "CORE" && onStartTrial && (
+          {tier === "ESSENTIAL" && onStartTrial && (
             <div className="text-center">
               <p className="text-xs text-muted-foreground mb-1">
                 Not ready to pay?
