@@ -31,6 +31,8 @@ test-results/
 **/test-results
 playwright-report/
 **/playwright-report
+accessibility-reports/
+**/accessibility-reports
 
 # Build Outputs
 dist
@@ -79,6 +81,10 @@ apps/api/src/seed-admin.ts
 # Misc logs
 *.log
 *.js.map
+logs/performance/*.json
+
+# Security scan outputs (generated)
+.gitleaks-report.json
 
 # Large binary files
 *.traineddata

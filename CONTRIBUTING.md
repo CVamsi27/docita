@@ -87,10 +87,17 @@ This is a Monorepo managed by **Turborepo**.
     Before pushing, ensure your code passes standard checks:
 
     ```bash
+    pnpm check:hygiene # Ensure generated/runtime artifacts are not tracked
     pnpm lint    # Check for linting errors
     pnpm build   # Verify build consistency
     pnpm test    # Run tests
     ```
+
+### Repository Hygiene
+
+- Do not commit generated runtime artifacts (e.g. `playwright-report/`, `test-results/`, `accessibility-reports/*.json`, `logs/performance/*.json`).
+- CI enforces this via `pnpm check:hygiene`.
+- Keep these files as local/CI outputs only.
 
 5.  **Push and PR**:
     - Push your branch to the repository.
