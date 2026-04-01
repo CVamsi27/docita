@@ -38,7 +38,6 @@ import {
   LoginDto,
   RegisterDto,
   ChangePasswordDto,
-  LoginResponseDto,
   RegisterResponseDto,
   ValidateSessionResponseDto,
   ChangePasswordResponseDto,
@@ -471,10 +470,7 @@ export class AuthController {
   @Delete('sessions')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Revoke all sessions except current' })
-  async revokeAllSessions(
-    @Request() req: AuthenticatedRequest,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async revokeAllSessions(@Request() req: AuthenticatedRequest) {
     const currentRefreshToken = (req as unknown as RequestWithUser).cookies
       ?.refresh_token;
     await this.authService.revokeAllSessions(

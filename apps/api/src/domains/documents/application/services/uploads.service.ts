@@ -6,6 +6,15 @@ import {
 } from '@/domains/documents/infrastructure/storage.provider';
 import { UploadSessionPurpose } from '@workspace/db';
 
+interface UploadSessionContext {
+  onboardingId?: string;
+  modifiedBy?: string;
+  modifiedByRole?: string;
+  authMethod?: string;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
 @Injectable()
 export class UploadsService {
   constructor(
@@ -36,7 +45,11 @@ export class UploadsService {
     return session;
   }
 
-  async updateSession(id: string, file: StorageFile) {
+  async updateSession(
+    id: string,
+    file: StorageFile,
+    context?: UploadSessionContext,
+  ) {
     const session = await this.prisma.uploadSession.findUnique({
       where: { id },
     });
@@ -45,7 +58,22 @@ export class UploadsService {
       throw new NotFoundException('Session not found');
     }
 
-    const fileUrl = await this.storageProvider.upload(file, 'documents');
+    const modifiedAt = new Date().toISOString();
+    const fileUrl = await this.storageProvider.upload(file, 'documents', {
+      metadata: {
+        asset_type: file.mimetype === 'application/pdf' ? 'pdf' : 'signature',
+        upload_session_id: session.id,
+        upload_purpose: session.purpose,
+        onboarding_id: context?.onboardingId,
+        doctor_id: session.doctorId,
+        modified_at: modifiedAt,
+        modified_by: context?.modifiedBy || session.doctorId || 'anonymous',
+        modified_by_role: context?.modifiedByRole,
+        auth_method: context?.authMethod || 'upload-session',
+        auth_ip: context?.ipAddress,
+        auth_user_agent: context?.userAgent,
+      },
+    });
 
     const updated = await this.prisma.uploadSession.update({
       where: { id },

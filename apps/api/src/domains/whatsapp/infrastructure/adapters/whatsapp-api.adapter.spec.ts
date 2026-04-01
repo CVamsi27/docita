@@ -3,10 +3,12 @@ import {
   it,
   expect,
   jest,
+  beforeAll,
   beforeEach,
+  afterAll,
   afterEach,
 } from '@jest/globals';
-import { ServiceUnavailableException } from '@nestjs/common';
+import { Logger, ServiceUnavailableException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { WhatsAppApiAdapter } from './whatsapp-api.adapter';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -30,6 +32,17 @@ describe('WhatsAppApiAdapter', () => {
   let adapter: WhatsAppApiAdapter;
   let mockConfigService: jest.Mocked<AppConfigService>;
   let originalFetch: typeof global.fetch;
+  let loggerErrorSpy: ReturnType<typeof jest.spyOn>;
+
+  beforeAll(() => {
+    loggerErrorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+  });
+
+  afterAll(() => {
+    loggerErrorSpy.mockRestore();
+  });
 
   beforeEach(async () => {
     originalFetch = global.fetch;

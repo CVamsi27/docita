@@ -68,7 +68,7 @@ export class RazorpayPaymentLinkAdapter
         shortUrl: link.short_url,
         status: this.mapStatus(link.status),
       };
-    } catch (error) {
+    } catch {
       this.logger.warn(`Payment link ${linkId} not found`);
       return null;
     }

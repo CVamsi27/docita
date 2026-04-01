@@ -16,11 +16,35 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   async save(subscription: Subscription): Promise<void> {
     try {
       const data = SubscriptionMapper.toPersistence(subscription);
+      const existing = await this.prisma.subscription.findUnique({
+        where: { id: subscription.id },
+        select: { version: true },
+      });
+
+      if (existing) {
+        if (existing.version !== subscription.version) {
+          throw new BadRequestException(
+            'Subscription was modified by another user. Please refresh and try again.',
+          );
+        }
+
+        await this.prisma.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            ...(data as Prisma.SubscriptionUncheckedUpdateInput),
+            version: { increment: 1 },
+          },
+        });
+        return;
+      }
 
       await this.prisma.subscription.create({
         data: data,
       });
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new BadRequestException(
         `Failed to save subscription: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );

@@ -214,6 +214,12 @@ export class OnboardingController {
       onboardingId,
       sessionId,
       file,
+      {
+        modifiedBy: req?.user?.id,
+        modifiedByRole: req?.user?.role,
+        ipAddress: req?.ip || req?.socket?.remoteAddress,
+        userAgent: req?.headers?.['user-agent'],
+      },
     );
   }
 

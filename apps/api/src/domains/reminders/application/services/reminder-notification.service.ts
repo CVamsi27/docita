@@ -65,10 +65,7 @@ export class ReminderNotificationService {
     settings: ReminderSettings,
   ): Promise<void> {
     try {
-      const message = this.replacePlaceholders(
-        settings.emailTemplate || '',
-        appointment,
-      );
+      this.replacePlaceholders(settings.emailTemplate || '', appointment);
       const subject = this.replacePlaceholders(
         settings.emailSubject || 'Appointment Reminder',
         appointment,
@@ -107,10 +104,7 @@ export class ReminderNotificationService {
     settings: ReminderSettings,
   ): Promise<void> {
     try {
-      const message = this.replacePlaceholders(
-        settings.smsTemplate || '',
-        appointment,
-      );
+      this.replacePlaceholders(settings.smsTemplate || '', appointment);
 
       this.logger.debug(`[SMS] To: ${appointment.patient.phoneNumber}`);
 

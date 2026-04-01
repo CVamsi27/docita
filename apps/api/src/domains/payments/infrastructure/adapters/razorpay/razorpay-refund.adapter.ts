@@ -49,7 +49,7 @@ export class RazorpayRefundAdapter
         status: this.mapRefundStatus(refund.status),
         createdAt: new Date(refund.created_at * 1000),
       };
-    } catch (error) {
+    } catch {
       this.logger.warn(`Refund ${refundId} not found`);
       return null;
     }

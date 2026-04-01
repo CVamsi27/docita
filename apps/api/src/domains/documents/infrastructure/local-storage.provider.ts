@@ -1,5 +1,9 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { StorageProvider, StorageFile } from './storage.provider';
+import {
+  StorageProvider,
+  StorageFile,
+  StorageUploadOptions,
+} from './storage.provider';
 import * as fs from 'fs';
 import * as path from 'path';
 import sharp from 'sharp';
@@ -19,7 +23,11 @@ export class LocalStorageProvider extends StorageProvider {
     }
   }
 
-  async upload(file: StorageFile, folder: string = 'general'): Promise<string> {
+  async upload(
+    file: StorageFile,
+    folder: string = 'general',
+    _options?: StorageUploadOptions,
+  ): Promise<string> {
     const destDir = path.join(this.uploadDir, folder);
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
@@ -65,6 +73,7 @@ export class LocalStorageProvider extends StorageProvider {
     _buffer: Buffer,
     _objectKey: string,
     _contentType: string,
+    _options?: StorageUploadOptions,
   ): Promise<string> {
     throw new Error(
       'uploadBuffer is not supported by local storage. Set STORAGE_PROVIDER=r2 to enable PDF storage.',

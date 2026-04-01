@@ -315,15 +315,28 @@ export class PrescriptionsService {
 
       const buffer = await this.generatePDF(id, clinicId);
       const objectKey = `pdfs/prescriptions/${id}.pdf`;
+      const generatedAt = new Date();
       const storedKey = await this.storageProvider.uploadBuffer(
         buffer,
         objectKey,
         'application/pdf',
+        {
+          metadata: {
+            asset_type: 'prescription-pdf',
+            resource_type: 'Prescription',
+            resource_id: id,
+            clinic_id: prescription.patient?.clinic?.id,
+            doctor_id: prescription.doctor?.id,
+            modified_at: generatedAt.toISOString(),
+            modified_by: prescription.doctor?.id || 'system',
+            auth_method: 'prescription-service',
+          },
+        },
       );
 
       await this.repository.update(id, {
         pdfUrl: storedKey,
-        pdfGeneratedAt: new Date(),
+        pdfGeneratedAt: generatedAt,
         pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
       });
 

@@ -6,7 +6,12 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { StorageProvider, StorageFile } from './storage.provider';
+import {
+  StorageProvider,
+  StorageFile,
+  StorageUploadOptions,
+  StorageMetadataValue,
+} from './storage.provider';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nanoid } from 'nanoid';
@@ -18,6 +23,58 @@ export class R2StorageProvider extends StorageProvider {
   private readonly logger = new Logger(R2StorageProvider.name);
   private readonly client: S3Client;
   private readonly bucket: string;
+
+  private normalizeMetadataValue(value: StorageMetadataValue): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    const resolved =
+      value instanceof Date ? value.toISOString() : String(value).trim();
+    if (!resolved) {
+      return null;
+    }
+
+    return resolved.slice(0, 512);
+  }
+
+  private normalizeMetadataKey(key: string): string {
+    const normalized = key.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+    return normalized.slice(0, 128);
+  }
+
+  private toObjectMetadata(
+    options?: StorageUploadOptions,
+  ): Record<string, string> {
+    const uploadedAt = new Date().toISOString();
+    const metadata: Record<string, string> = {
+      uploaded_at: uploadedAt,
+    };
+
+    const source = options?.metadata ?? {};
+    for (const [key, value] of Object.entries(source)) {
+      const normalizedKey = this.normalizeMetadataKey(key);
+      if (!normalizedKey) {
+        continue;
+      }
+
+      const normalizedValue = this.normalizeMetadataValue(value);
+      if (normalizedValue === null) {
+        continue;
+      }
+
+      metadata[normalizedKey] = normalizedValue;
+    }
+
+    if (!metadata.modified_at) {
+      metadata.modified_at = uploadedAt;
+    }
+    if (!metadata.modified_by) {
+      metadata.modified_by = 'system';
+    }
+
+    return metadata;
+  }
 
   constructor() {
     super();
@@ -40,7 +97,11 @@ export class R2StorageProvider extends StorageProvider {
     });
   }
 
-  async upload(file: StorageFile, folder: string = 'general'): Promise<string> {
+  async upload(
+    file: StorageFile,
+    folder: string = 'general',
+    options?: StorageUploadOptions,
+  ): Promise<string> {
     const ext = path.extname(file.originalname).toLowerCase();
     const filename = `${nanoid()}${ext}`;
     const objectKey = `${folder}/${filename}`;
@@ -54,6 +115,7 @@ export class R2StorageProvider extends StorageProvider {
         Key: objectKey,
         Body: buffer,
         ContentType: file.mimetype,
+        Metadata: this.toObjectMetadata(options),
       }),
     );
 
@@ -70,6 +132,7 @@ export class R2StorageProvider extends StorageProvider {
     buffer: Buffer,
     objectKey: string,
     contentType: string,
+    options?: StorageUploadOptions,
   ): Promise<string> {
     await this.client.send(
       new PutObjectCommand({
@@ -77,6 +140,7 @@ export class R2StorageProvider extends StorageProvider {
         Key: objectKey,
         Body: buffer,
         ContentType: contentType,
+        Metadata: this.toObjectMetadata(options),
       }),
     );
 

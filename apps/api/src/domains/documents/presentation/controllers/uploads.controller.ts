@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Param,
+  Request,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -15,6 +16,7 @@ import { UploadSessionResponseDto } from '@/domains/documents/application/dto/up
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('uploads')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -65,6 +67,7 @@ export class UploadsController {
   async uploadFile(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
+    @Request() req: RequestWithUser,
   ) {
     if (!file) {
       throw new BadRequestException('File is required');
@@ -94,6 +97,12 @@ export class UploadsController {
       );
     }
 
-    return this.uploadsService.updateSession(id, file);
+    return this.uploadsService.updateSession(id, file, {
+      modifiedBy: req.user?.id,
+      modifiedByRole: req.user?.role,
+      authMethod: req.user ? 'session-auth' : 'anonymous-upload',
+      ipAddress: req.ip || req.socket?.remoteAddress,
+      userAgent: req.headers?.['user-agent'],
+    });
   }
 }

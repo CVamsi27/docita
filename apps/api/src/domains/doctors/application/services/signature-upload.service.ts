@@ -127,7 +127,19 @@ export class SignatureUploadService {
       throw new BadRequestException('File size must not exceed 5MB');
     }
 
-    const fileUrl = await this.storageProvider.upload(file, 'signatures');
+    const modifiedAt = new Date().toISOString();
+    const fileUrl = await this.storageProvider.upload(file, 'signatures', {
+      metadata: {
+        asset_type: 'signature',
+        signature_purpose: validation.purpose,
+        signature_token_id: validation.tokenId,
+        doctor_id: validation.doctor?.id,
+        clinic_id: validation.clinic?.id,
+        modified_at: modifiedAt,
+        modified_by: validation.doctor?.id || 'token-holder',
+        auth_method: 'signed-upload-token',
+      },
+    });
 
     if (
       validation.purpose === SignaturePurpose.SLA_ACCEPTANCE &&

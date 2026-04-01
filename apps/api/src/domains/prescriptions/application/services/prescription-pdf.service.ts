@@ -160,7 +160,7 @@ export class PrescriptionPdfService extends BasePdfService {
           align: 'left',
         });
         currentY += 65;
-      } catch (error) {
+      } catch {
         currentY += 25;
         doc
           .font('Helvetica-Oblique')

@@ -136,13 +136,26 @@ export class OnboardingService {
     onboardingId: string,
     sessionId: string,
     file: Express.Multer.File,
+    context?: {
+      modifiedBy?: string;
+      modifiedByRole?: string;
+      ipAddress?: string;
+      userAgent?: string;
+    },
   ) {
     const sessionData = this.dataService.getSessionData(onboardingId);
     if (!sessionData) {
       throw new BadRequestException('Onboarding session not found or expired');
     }
 
-    return this.uploadsService.updateSession(sessionId, file);
+    return this.uploadsService.updateSession(sessionId, file, {
+      onboardingId,
+      modifiedBy: context?.modifiedBy,
+      modifiedByRole: context?.modifiedByRole,
+      authMethod: context?.modifiedBy ? 'session-auth' : 'onboarding-session',
+      ipAddress: context?.ipAddress,
+      userAgent: context?.userAgent,
+    });
   }
 
   async getSlaSignatureSessionStatus(

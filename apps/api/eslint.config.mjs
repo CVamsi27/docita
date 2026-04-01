@@ -19,7 +19,7 @@ export default tseslint.config(
       sourceType: "commonjs",
     },
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-floating-promises": "off",
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/await-thenable": "off",
@@ -31,10 +31,17 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-return": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-      "no-console": "off",
-      "no-empty": "off",
-      "no-useless-catch": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "no-console": ["error", { allow: ["warn", "error", "info"] }],
+      "no-empty": ["warn", { allowEmptyCatch: true }],
+      "no-useless-catch": "warn",
       "no-restricted-globals": "off",
     },
   },
@@ -42,6 +49,10 @@ export default tseslint.config(
     files: ["src/**/*.spec.ts", "src/**/*.test.ts", "test/**/*.ts"],
     rules: {
       "@typescript-eslint/unbound-method": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "no-empty": "off",
+      "no-useless-catch": "off",
     },
   },
 );

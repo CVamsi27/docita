@@ -171,6 +171,21 @@ export class OnboardingComplianceService {
         buffer: pdfBuffer,
       },
       'legal',
+      {
+        metadata: {
+          asset_type: 'sla-proof-pdf',
+          clinic_id: clinicId,
+          signature_session_id: slaData.signatureSessionId,
+          signature_url: signatureSession.fileUrl,
+          signature_auth_hash: signatureAuthHash,
+          modified_at: acceptedAtIso,
+          modified_by: userId,
+          accepted_by: slaData.acceptedBy,
+          auth_method: 'onboarding-sla-acceptance',
+          auth_ip: ipAddress || slaData.ipAddress,
+          auth_user_agent: slaData.userAgent,
+        },
+      },
     );
 
     await tx.auditLog.create({

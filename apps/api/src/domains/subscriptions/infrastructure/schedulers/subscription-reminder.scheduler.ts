@@ -40,6 +40,20 @@ export class SubscriptionReminderScheduler {
     );
   }
 
+  private logCronError(message: string, error: unknown): void {
+    if (error instanceof Error) {
+      this.logger.error(`${message}: ${error.message}`, error.stack);
+      return;
+    }
+
+    let serializedError = String(error);
+    try {
+      serializedError = JSON.stringify(error);
+    } catch {}
+
+    this.logger.error(`${message}: ${serializedError}`);
+  }
+
   @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async handleReminders() {
     if (this.databaseAccessDisabled) {
@@ -75,7 +89,7 @@ export class SubscriptionReminderScheduler {
         return;
       }
 
-      this.logger.error('Subscription reminder cron failed', error);
+      this.logCronError('Subscription reminder cron failed', error);
     }
   }
 
@@ -93,7 +107,7 @@ export class SubscriptionReminderScheduler {
         const lapsed = await this.prisma.subscription.findMany({
           where: {
             currentPeriodEnd: { lt: now },
-            status: { in: ['ACTIVE', 'TRIALING'] },
+            status: { in: ['ACTIVE', 'PAST_DUE'] },
           },
         });
 
@@ -106,7 +120,7 @@ export class SubscriptionReminderScheduler {
             currentPeriodEnd: {
               lt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
             },
-            status: 'PAST_DUE',
+            status: 'GRACE',
           },
         });
 
@@ -123,7 +137,7 @@ export class SubscriptionReminderScheduler {
         return;
       }
 
-      this.logger.error('Lapsed subscription cron failed', error);
+      this.logCronError('Lapsed subscription cron failed', error);
     }
   }
 }

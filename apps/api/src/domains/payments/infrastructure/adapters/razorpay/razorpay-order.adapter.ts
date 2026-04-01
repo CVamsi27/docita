@@ -71,7 +71,7 @@ export class RazorpayOrderAdapter
         status: order.status,
         metadata: order.notes,
       };
-    } catch (error) {
+    } catch {
       this.logger.warn(`Order ${orderId} not found`);
       return null;
     }

@@ -315,15 +315,28 @@ export class InvoicesService {
 
       const buffer = await this.generatePDF(id, clinicId);
       const objectKey = `pdfs/invoices/${id}.pdf`;
+      const generatedAt = new Date();
       const storedKey = await this.storageProvider.uploadBuffer(
         buffer,
         objectKey,
         'application/pdf',
+        {
+          metadata: {
+            asset_type: 'invoice-pdf',
+            resource_type: 'Invoice',
+            resource_id: id,
+            clinic_id: invoice.patient?.clinic?.id,
+            doctor_id: invoice.appointment?.doctor?.id,
+            modified_at: generatedAt.toISOString(),
+            modified_by: invoice.appointment?.doctor?.id || 'system',
+            auth_method: 'invoice-service',
+          },
+        },
       );
 
       await this.repository.update(id, {
         pdfUrl: storedKey,
-        pdfGeneratedAt: new Date(),
+        pdfGeneratedAt: generatedAt,
         pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
       });
 

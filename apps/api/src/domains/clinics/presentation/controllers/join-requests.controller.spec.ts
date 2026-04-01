@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
   ConflictException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { JoinRequestsController } from './join-requests.controller';
@@ -59,6 +60,17 @@ const mockStaffNotificationService = {
 
 describe('JoinRequestsController', () => {
   let controller: JoinRequestsController;
+  let loggerErrorSpy: ReturnType<typeof jest.spyOn>;
+
+  beforeAll(() => {
+    loggerErrorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+  });
+
+  afterAll(() => {
+    loggerErrorSpy.mockRestore();
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

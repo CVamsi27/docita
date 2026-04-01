@@ -3,13 +3,16 @@ import { MedicalCodeSyncService } from './medical-code-sync.service';
 
 describe('MedicalCodeSyncService', () => {
   const prisma = {
+    $transaction: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     icdCode: {
-      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     cptCode: {
-      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      createMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
   };
 
@@ -26,6 +29,10 @@ describe('MedicalCodeSyncService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.$transaction.mockImplementation(async (...args: unknown[]) => {
+      const operations = args[0] as Promise<unknown>[];
+      return Promise.all(operations) as never;
+    });
     service = new MedicalCodeSyncService(
       prisma as unknown as never,
       nlmCodingService as unknown as never,
@@ -50,27 +57,50 @@ describe('MedicalCodeSyncService', () => {
         category: 'Endocrine',
       },
     ]);
-
-    prisma.icdCode.upsert.mockResolvedValue({} as never);
+    prisma.icdCode.findMany.mockResolvedValue([
+      {
+        code: 'I10',
+        description: 'Old hypertension description',
+        category: 'Circulatory',
+        isCommon: false,
+      },
+    ]);
+    prisma.icdCode.createMany.mockResolvedValue({ count: 1 } as never);
+    prisma.icdCode.update.mockResolvedValue({} as never);
 
     const synced = await service.syncCommonIcdCodes();
 
     expect(synced).toBe(2);
-    expect(prisma.icdCode.upsert).toHaveBeenCalledTimes(2);
-    expect(prisma.icdCode.upsert).toHaveBeenCalledWith(
+    expect(prisma.icdCode.findMany).toHaveBeenCalledWith({
+      where: { code: { in: ['E11.9', 'I10'] } },
+      select: {
+        code: true,
+        description: true,
+        category: true,
+        isCommon: true,
+      },
+    });
+    expect(prisma.icdCode.createMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { code: 'E11.9' },
-        create: expect.objectContaining({
-          code: 'E11.9',
-          isCommon: true,
-          version: 'ICD-10',
-        }),
-        update: expect.objectContaining({
-          description: 'Type 2 diabetes mellitus without complications',
-          isCommon: true,
-        }),
+        data: [
+          expect.objectContaining({
+            code: 'E11.9',
+            isCommon: true,
+            version: 'ICD-10',
+          }),
+        ],
+        skipDuplicates: true,
       }),
     );
+    expect(prisma.icdCode.update).toHaveBeenCalledTimes(1);
+    expect(prisma.icdCode.update).toHaveBeenCalledWith({
+      where: { code: 'I10' },
+      data: {
+        description: 'Essential hypertension',
+        category: 'Circulatory',
+        isCommon: true,
+      },
+    });
   });
 
   it('syncs unique CPT codes into the database as common codes', async () => {
@@ -91,27 +121,41 @@ describe('MedicalCodeSyncService', () => {
         category: 'Evaluation and Management',
       },
     ]);
-
-    prisma.cptCode.upsert.mockResolvedValue({} as never);
+    prisma.cptCode.findMany.mockResolvedValue([
+      {
+        code: '93000',
+        description: 'Electrocardiogram',
+        category: 'Medicine',
+        isCommon: true,
+      },
+    ]);
+    prisma.cptCode.createMany.mockResolvedValue({ count: 1 } as never);
 
     const synced = await service.syncCommonCptCodes();
 
     expect(synced).toBe(2);
-    expect(prisma.cptCode.upsert).toHaveBeenCalledTimes(2);
-    expect(prisma.cptCode.upsert).toHaveBeenCalledWith(
+    expect(prisma.cptCode.findMany).toHaveBeenCalledWith({
+      where: { code: { in: ['99213', '93000'] } },
+      select: {
+        code: true,
+        description: true,
+        category: true,
+        isCommon: true,
+      },
+    });
+    expect(prisma.cptCode.createMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { code: '99213' },
-        create: expect.objectContaining({
-          code: '99213',
-          isCommon: true,
-          price: 0,
-        }),
-        update: expect.objectContaining({
-          description: 'Office or other outpatient visit',
-          isCommon: true,
-        }),
+        data: [
+          expect.objectContaining({
+            code: '99213',
+            isCommon: true,
+            price: 0,
+          }),
+        ],
+        skipDuplicates: true,
       }),
     );
+    expect(prisma.cptCode.update).not.toHaveBeenCalled();
   });
 
   it('syncs both ICD and CPT code sets together', async () => {
@@ -129,8 +173,10 @@ describe('MedicalCodeSyncService', () => {
         category: 'Laboratory',
       },
     ]);
-    prisma.icdCode.upsert.mockResolvedValue({} as never);
-    prisma.cptCode.upsert.mockResolvedValue({} as never);
+    prisma.icdCode.findMany.mockResolvedValue([]);
+    prisma.cptCode.findMany.mockResolvedValue([]);
+    prisma.icdCode.createMany.mockResolvedValue({ count: 1 } as never);
+    prisma.cptCode.createMany.mockResolvedValue({ count: 1 } as never);
 
     await expect(service.syncCommonCodes()).resolves.toEqual({
       icd: 1,

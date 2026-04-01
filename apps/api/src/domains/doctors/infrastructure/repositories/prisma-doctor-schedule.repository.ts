@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IDoctorScheduleRepository } from '@/domains/doctors/core/repositories/doctor-schedule.repository.interface';
 import { Prisma, DayOfWeek } from '@workspace/db';

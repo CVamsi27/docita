@@ -69,12 +69,6 @@ export class FhirImmunizationFactory {
         };
       }
 
-      if (imm.doseNumber) {
-      }
-
-      if (imm.notes) {
-      }
-
       return fhirImmunization;
     });
   }

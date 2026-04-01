@@ -10,10 +10,26 @@ export interface StorageFile {
   path?: string;
 }
 
+export type StorageMetadataValue =
+  | string
+  | number
+  | boolean
+  | Date
+  | null
+  | undefined;
+
+export interface StorageUploadOptions {
+  metadata?: Record<string, StorageMetadataValue>;
+}
+
 export abstract class StorageProvider {
   abstract readonly supportsSignedUrls: boolean;
 
-  abstract upload(file: StorageFile, folder?: string): Promise<string>;
+  abstract upload(
+    file: StorageFile,
+    folder?: string,
+    options?: StorageUploadOptions,
+  ): Promise<string>;
 
   abstract delete(url: string): Promise<void>;
 
@@ -25,6 +41,7 @@ export abstract class StorageProvider {
     buffer: Buffer,
     objectKey: string,
     contentType: string,
+    options?: StorageUploadOptions,
   ): Promise<string>;
 
   /**

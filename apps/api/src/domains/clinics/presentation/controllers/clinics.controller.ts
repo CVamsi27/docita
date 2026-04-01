@@ -280,8 +280,8 @@ export class ClinicSettingsController {
   @Post('join')
   @UsePipes(new ZodValidationPipe(JoinClinicSchema))
   async joinClinic(
-    @Request() req: RequestWithUser,
-    @Body() dto: JoinClinicDto,
+    @Request() _req: RequestWithUser,
+    @Body() _dto: JoinClinicDto,
   ) {
     throw new BadRequestException(
       'Direct joining is no longer supported. Please submit a join request through the app.',

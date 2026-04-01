@@ -28,7 +28,6 @@ export class PrismaService
     private configService: AppConfigService,
   ) {
     const databaseUrl = configService.getDatabaseUrl();
-    const databaseReadUrl: string | undefined = undefined;
     const isProduction = configService.isProduction();
 
     let connectionString = databaseUrl;

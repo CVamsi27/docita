@@ -65,7 +65,7 @@ export class RazorpaySubscriptionAdapter
         phone: customer.contact ? String(customer.contact) : undefined,
         metadata: customer.notes as Record<string, string> | undefined,
       };
-    } catch (error) {
+    } catch {
       this.logger.warn(`Customer ${customerId} not found`);
       return null;
     }
@@ -123,7 +123,7 @@ export class RazorpaySubscriptionAdapter
     try {
       const razorpay = this.getClient();
       return await razorpay.plans.fetch(planId);
-    } catch (error) {
+    } catch {
       this.logger.warn(`Plan ${planId} not found`);
       return null;
     }
@@ -186,7 +186,7 @@ export class RazorpaySubscriptionAdapter
         cancelAtPeriodEnd: false,
         metadata: subscription.notes as Record<string, unknown> | undefined,
       };
-    } catch (error) {
+    } catch {
       this.logger.warn(`Subscription ${subscriptionId} not found`);
       return null;
     }
