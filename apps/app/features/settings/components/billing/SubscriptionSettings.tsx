@@ -26,7 +26,6 @@ import {
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
-import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
 import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
 import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
@@ -507,12 +506,12 @@ export function SubscriptionSettings() {
         <CardHeader>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle>Full Feature Comparison</CardTitle>
+              <CardTitle>Plan Details</CardTitle>
               <CardDescription>
-                Your current plan is{" "}
+                You are currently on{" "}
                 <span className="font-medium">{currentTierInfo.name}</span>.
-                For plan pricing, upgrade, and downgrade options, use the
-                Upgrade page.
+                For full feature comparison and all upgrade or downgrade options,
+                use the Upgrade page.
               </CardDescription>
             </div>
             <Button
@@ -520,12 +519,15 @@ export function SubscriptionSettings() {
               className="self-start md:self-auto"
               onClick={() => router.push("/upgrade")}
             >
-              Open Upgrade Page
+              View All Plans on Upgrade
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <ComparisonTable currentTier={currentTier} />
+        <CardContent className="pt-0">
+          <p className="text-sm text-muted-foreground">
+            Pricing, plan-by-plan features, and checkout are managed on the
+            Upgrade page to keep billing actions in one place.
+          </p>
         </CardContent>
       </Card>
 

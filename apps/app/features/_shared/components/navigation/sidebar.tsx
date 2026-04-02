@@ -127,7 +127,7 @@ export function Sidebar({
 
   const tierInfo = getTierInfo();
   const tierIndicatorClass = cn(
-    "h-2.5 w-2.5 rounded-full ring-2 ring-background animate-pulse",
+    "h-2.5 w-2.5 rounded-full animate-pulse",
     tierInfo.color === "gray" && "bg-muted-foreground",
     tierInfo.color === "blue" && "bg-info",
     tierInfo.color === "green" && "bg-success",
@@ -136,6 +136,8 @@ export function Sidebar({
     tierInfo.color === "orange" && "bg-warning",
     tierInfo.color === "pink" && "bg-secondary",
   );
+  const controlIconButtonClass =
+    "h-8 w-8 shrink-0 rounded-md border border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground";
 
   return (
     <aside
@@ -172,7 +174,7 @@ export function Sidebar({
         </Button>
       </div>
 
-      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-2 space-y-1 overflow-hidden">
         {canAccessNotifications && (
           <Button
             variant="ghost"
@@ -225,10 +227,10 @@ export function Sidebar({
             >
               <div
                 className={cn(
-                  "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                  "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors ring-1 ring-transparent",
                   isActive
-                    ? "bg-primary/15 text-primary"
-                    : "bg-muted/60 text-muted-foreground group-hover:bg-muted group-hover:text-foreground",
+                    ? "bg-primary/12 text-primary ring-primary/20"
+                    : "bg-muted/60 text-muted-foreground group-hover:bg-muted group-hover:text-foreground group-hover:ring-border/70",
                 )}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
@@ -282,7 +284,9 @@ export function Sidebar({
               ) : (
                 <span className="sr-only">{tierInfo.name} plan</span>
               )}
-              <div className={tierIndicatorClass} />
+              <div className={controlIconButtonClass}>
+                <div className={tierIndicatorClass} />
+              </div>
             </div>
             <div
               className={cn(
@@ -297,7 +301,7 @@ export function Sidebar({
                 <Button
                   className={cn(
                     isCollapsed
-                      ? "h-8 w-8 rounded-md bg-primary/10 p-0 text-primary hover:bg-primary/20"
+                      ? "h-8 w-8 rounded-md border border-primary/30 bg-primary/10 p-0 text-primary hover:bg-primary/20"
                       : "flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
                   )}
                   size="sm"
@@ -313,8 +317,7 @@ export function Sidebar({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-8 w-8 shrink-0",
-                  isCollapsed && "border border-border/60 bg-background hover:bg-muted",
+                  controlIconButtonClass,
                 )}
                 title="Customize sidebar"
                 onClick={() => setCustomizeOpen(true)}
