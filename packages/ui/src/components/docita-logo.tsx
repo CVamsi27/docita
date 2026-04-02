@@ -27,6 +27,10 @@ const brandAsset = (fileName: string) =>
   `/branding/${fileName}.png?${DOCITA_ICON_CACHE_BUST}`;
 
 const ORIGINAL_WORDMARK_ASSET = brandAsset("Dark-background");
+const ICON_FRAME_CLASS =
+  "rounded-[var(--radius-xl)] shadow-[0_14px_30px_-14px_rgba(15,23,42,0.58)] dark:shadow-[0_14px_30px_-14px_rgba(0,0,0,0.82)]";
+const WORDMARK_FRAME_CLASS =
+  "rounded-[var(--radius-xl)] shadow-[0_8px_18px_-16px_rgba(15,23,42,0.5)] dark:shadow-[0_8px_18px_-16px_rgba(0,0,0,0.7)]";
 
 function BrandImage({
   src,
@@ -68,9 +72,9 @@ export function DocitaIcon({
     <BrandImage
       src={src}
       alt={alt}
-      frameClassName="rounded-[var(--radius-xl)] shadow-[0_10px_24px_-12px_rgba(15,23,42,0.5)] dark:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.8)]"
+      frameClassName={ICON_FRAME_CLASS}
       className={cn(
-        "block h-9 w-9 shrink-0 rounded-[var(--radius-xl)] object-contain align-middle ring-1 ring-border/55",
+        "block h-9 w-9 shrink-0 rounded-[var(--radius-xl)] object-contain align-middle ring-1 ring-border/55 drop-shadow-[0_3px_8px_rgba(15,23,42,0.16)] dark:drop-shadow-[0_3px_8px_rgba(0,0,0,0.32)]",
         className,
       )}
     />
@@ -96,9 +100,9 @@ export function DocitaLogo({
     <BrandImage
       src={ORIGINAL_WORDMARK_ASSET}
       alt="Docita"
-      frameClassName="rounded-[var(--radius-xl)] shadow-[0_6px_16px_-14px_rgba(15,23,42,0.5)] dark:shadow-[0_6px_16px_-14px_rgba(0,0,0,0.7)]"
+      frameClassName={WORDMARK_FRAME_CLASS}
       className={cn(
-        "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",
+        "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle drop-shadow-[0_2px_6px_rgba(15,23,42,0.12)] dark:drop-shadow-[0_2px_6px_rgba(0,0,0,0.28)]",
         className,
         textClassName,
       )}
@@ -119,9 +123,9 @@ export function DocitaLogoFull({
       <BrandImage
         src={ORIGINAL_WORDMARK_ASSET}
         alt="Docita"
-        frameClassName="rounded-[var(--radius-xl)] shadow-[0_6px_16px_-14px_rgba(15,23,42,0.5)] dark:shadow-[0_6px_16px_-14px_rgba(0,0,0,0.7)]"
+        frameClassName={WORDMARK_FRAME_CLASS}
         className={cn(
-          "block h-[4.125rem] w-auto max-w-full rounded-[var(--radius-xl)] object-contain",
+          "block h-[4.125rem] w-auto max-w-full rounded-[var(--radius-xl)] object-contain drop-shadow-[0_2px_6px_rgba(15,23,42,0.12)] dark:drop-shadow-[0_2px_6px_rgba(0,0,0,0.28)]",
           iconClassName,
           textClassName,
         )}
@@ -153,9 +157,9 @@ export function DocitaWordmark({
     <BrandImage
       src={ORIGINAL_WORDMARK_ASSET}
       alt="Docita"
-      frameClassName="rounded-[var(--radius-xl)] shadow-[0_6px_16px_-14px_rgba(15,23,42,0.5)] dark:shadow-[0_6px_16px_-14px_rgba(0,0,0,0.7)]"
+      frameClassName={WORDMARK_FRAME_CLASS}
       className={cn(
-        "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",
+        "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle drop-shadow-[0_2px_6px_rgba(15,23,42,0.12)] dark:drop-shadow-[0_2px_6px_rgba(0,0,0,0.28)]",
         className,
         textClassName,
       )}

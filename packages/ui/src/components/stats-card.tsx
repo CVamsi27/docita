@@ -51,7 +51,7 @@ export function GradientStatCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden border-none shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5",
+        "overflow-hidden border-none shadow-sm transition-colors duration-150 hover:shadow-md",
         `bg-linear-to-br ${styles.gradient}`,
         className,
       )}
@@ -124,14 +124,14 @@ export function QuickActionCard({
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden border transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer h-full hover:border-primary/30",
+        "group relative h-full cursor-pointer overflow-hidden border transition-colors duration-150 hover:border-primary/30 hover:bg-muted/20 hover:shadow-md",
         className,
       )}
     >
       <CardContent className="flex flex-col items-center justify-center p-6 text-center">
         <div
           className={cn(
-            "rounded-2xl p-3 mb-3 transition-transform group-hover:scale-110",
+            "mb-3 rounded-2xl p-3 transition-colors duration-150",
             styles.bg,
           )}
         >
@@ -190,7 +190,7 @@ export function ProgressStat({
       <div className="h-2 rounded-full bg-muted overflow-hidden">
         <div
           className={cn(
-            "h-full rounded-full transition-all",
+            "h-full rounded-full transition-colors duration-150",
             progressColors[variant],
           )}
           style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}

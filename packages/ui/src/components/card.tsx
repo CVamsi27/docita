@@ -1,15 +1,33 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@workspace/ui/lib/utils";
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+const cardVariants = cva(
+  "bg-card text-card-foreground flex flex-col gap-4 sm:gap-6 rounded-2xl border py-4 sm:py-6 shadow-sm",
+  {
+    variants: {
+      interaction: {
+        static: "transition-colors duration-150",
+        interactive:
+          "cursor-pointer transition-colors duration-150 hover:bg-muted/20 hover:border-primary/20 hover:shadow-md",
+      },
+    },
+    defaultVariants: {
+      interaction: "static",
+    },
+  },
+);
+
+function Card({
+  className,
+  interaction,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof cardVariants>) {
   return (
     <div
       data-slot="card"
-      className={cn(
-        "bg-card/50 backdrop-blur-sm text-card-foreground flex flex-col gap-4 sm:gap-6 rounded-2xl border py-4 sm:py-6 shadow-sm transition-all hover:shadow-md",
-        className,
-      )}
+      className={cn(cardVariants({ interaction, className }))}
       {...props}
     />
   );
@@ -87,8 +105,14 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+function InteractiveCard({ className, ...props }: React.ComponentProps<"div">) {
+  return <Card interaction="interactive" className={className} {...props} />;
+}
+
 export {
   Card,
+  cardVariants,
+  InteractiveCard,
   CardHeader,
   CardFooter,
   CardTitle,

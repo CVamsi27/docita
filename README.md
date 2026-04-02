@@ -107,6 +107,7 @@ Cloudflare Workers (app/admin/landing) --> Render (NestJS API)
 - [Testing Guide](docs/TESTING.md) - Testing strategies and best practices
 - [Zod Architecture](docs/zod-first-architecture.md) - Type system guide
 - [Turborepo Structure](docs/TURBOREPO_STANDARD_STRUCTURE.md) - Monorepo standards
+- [UI/UX Contract](docs/UI_UX_CONTRACT.md) - Shared page/state/motion standards for doctor app and portal
 
 ## Deployment
 
