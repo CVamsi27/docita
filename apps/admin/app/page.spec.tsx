@@ -1,4 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 const routerPush = vi.fn();
@@ -22,9 +24,22 @@ vi.mock("@/lib/auth", () => ({
 
 import SuperAdminLogin from "./page";
 
+function renderWithQueryClient(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+}
+
 describe("SuperAdminLogin", () => {
   it("shows field-level validation messages on empty submit", () => {
-    render(<SuperAdminLogin />);
+    renderWithQueryClient(<SuperAdminLogin />);
 
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
@@ -42,7 +57,7 @@ describe("SuperAdminLogin", () => {
   });
 
   it("shows email format message for invalid email", () => {
-    render(<SuperAdminLogin />);
+    renderWithQueryClient(<SuperAdminLogin />);
 
     fireEvent.change(screen.getByPlaceholderText("Email"), {
       target: { value: "invalid-email" },
