@@ -38,6 +38,12 @@ interface AuthRequest {
   };
 }
 
+const ALLOWED_IMPORT_EXTENSIONS = new Set(['.xlsx', '.csv']);
+
+function hasSupportedImportExtension(fileName: string): boolean {
+  return ALLOWED_IMPORT_EXTENSIONS.has(extname(fileName).toLowerCase());
+}
+
 @Controller('imports')
 @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
 @UseGuards(TierGuard)
@@ -77,11 +83,9 @@ export class ImportsController {
         },
       }),
       fileFilter: (_req, file, cb) => {
-        if (!file.originalname.match(/\.(xlsx|xls|csv)$/)) {
+        if (!hasSupportedImportExtension(file.originalname)) {
           return cb(
-            new BadRequestException(
-              'Only .xlsx, .xls and .csv files are allowed!',
-            ),
+            new BadRequestException('Only .xlsx and .csv files are allowed!'),
             false,
           );
         }
@@ -94,12 +98,12 @@ export class ImportsController {
     }),
   )
   @ZodSerializerDto(ImportPreviewResponseDto)
-  previewImport(@UploadedFile() file: Express.Multer.File) {
+  async previewImport(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
-    const preview = this.importsService.previewImport(file.path);
+    const preview = await this.importsService.previewImport(file.path);
     const sessionId = this.sessionService.createSession(file.path);
 
     return {
@@ -145,11 +149,9 @@ export class ImportsController {
         },
       }),
       fileFilter: (_req, file, cb) => {
-        if (!file.originalname.match(/\.(xlsx|xls|csv)$/)) {
+        if (!hasSupportedImportExtension(file.originalname)) {
           return cb(
-            new BadRequestException(
-              'Only .xlsx, .xls and .csv files are allowed!',
-            ),
+            new BadRequestException('Only .xlsx and .csv files are allowed!'),
             false,
           );
         }

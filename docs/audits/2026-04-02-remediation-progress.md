@@ -52,27 +52,48 @@ Files:
 - `apps/api/package.json`
 - `pnpm-lock.yaml`
 
+### 5) Dependency backlog burn-down and import parser hardening
+
+- Replaced vulnerable `xlsx` usage with `exceljs` (`.xlsx`) + `papaparse` (`.csv`) parsing in import service.
+- Explicitly deprecated legacy `.xls` uploads and now fail fast with actionable error messaging.
+- Upgraded framework/runtime dependencies across workspaces:
+  - `next` to `16.2.2` for app/admin/landing
+  - `@sentry/nextjs` and `@sentry/nestjs` to `10.47.0`
+  - Prisma stack (`prisma`, `@prisma/client`, `@prisma/adapter-pg`) to `7.6.0`
+  - `socket.io` to `4.8.3`
+- Added root-level pnpm overrides for vulnerable transitives (including `axios`, `jws`, `hono`, `@hono/node-server`, `effect`, `path-to-regexp`, `qs`, `serialize-javascript`, `socket.io-parser`, `lodash`, `rollup`, `webpack`, and scoped `schema-utils>ajv`).
+- Cleared stale `.next` type artifacts after Next.js upgrade to keep typechecking deterministic.
+
+Files:
+- `apps/api/src/shared/modules/imports/imports.service.ts`
+- `apps/api/src/shared/modules/imports/imports.controller.ts`
+- `apps/api/package.json`
+- `apps/app/package.json`
+- `apps/admin/package.json`
+- `apps/landing/package.json`
+- `packages/db/package.json`
+- `package.json`
+- `pnpm-lock.yaml`
+
 ## Verification Run Results
 
 - `pnpm lint`: PASS
 - `pnpm --filter @docita/api run check-types`: PASS
 - `pnpm --filter @docita/app run check-types`: PASS
+- `pnpm --filter @docita/admin run check-types`: PASS
 - `pnpm --filter @docita/api run test -- error-tracking.service.spec.ts email-events.listener.spec.ts`: PASS
 - `pnpm --filter @docita/api run test:e2e -- test/auth.e2e-spec.ts test/rbac.e2e-spec.ts test/csrf.e2e-spec.ts`: PASS
 
 ## Dependency Audit Snapshot (After This Pass)
 
 Artifacts:
-- `docs/audits/evidence/2026-04-02-pnpm-audit-after-remediation.json`
-- `docs/audits/evidence/2026-04-02-pnpm-audit-after-remediation-severity.tsv`
-- `docs/audits/evidence/2026-04-02-pnpm-audit-after-remediation-direct-findings.tsv`
+- `docs/audits/evidence/2026-04-02-pnpm-audit-final.json`
+- `docs/audits/evidence/2026-04-02-pnpm-audit-final-severity.tsv`
+- `docs/audits/evidence/2026-04-02-pnpm-audit-final-findings.tsv`
 
-Current high/moderate/low counts remain non-zero due unresolved direct/transitive items (notably `xlsx`, `next`, and transitive ecosystem packages).
+Current `pnpm audit --prod` count: `0` (`critical/high/moderate/low` all zero).
 
 ## Remaining High-Priority Work
 
-- Replace or isolate `xlsx` usage with a maintained parsing path and strict parser sandboxing/validation.
-- Upgrade Next.js and related transitive toolchain dependencies to versions that clear current advisories.
 - Complete session architecture migration from browser token storage to HttpOnly cookie model.
-- Re-enable skipped tenant isolation e2e suite (`apps/api/test/patients.e2e-spec.ts`).
-
+- Re-enable skipped security/tenant-focused API e2e suites (`apps/api/test/patients.e2e-spec.ts`, `apps/api/test/rbac-authorization.e2e-spec.ts`, and related skipped suites).
