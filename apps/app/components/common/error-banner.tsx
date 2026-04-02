@@ -2,7 +2,7 @@
 
 import React from "react";
 import { AlertCircle, X } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@/components/common/buttons";
 
 interface ErrorBannerProps {
   message?: string;

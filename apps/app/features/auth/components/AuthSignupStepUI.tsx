@@ -1,7 +1,7 @@
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { ErrorBanner } from "@/components/common/error-banner";
 import { FormField } from "@/components/common/form-field";
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@/components/common/buttons";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
