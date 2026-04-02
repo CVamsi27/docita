@@ -82,7 +82,7 @@ export class R2StorageProvider extends StorageProvider {
     const accountId = process.env.R2_ACCOUNT_ID;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-    this.bucket = process.env.R2_BUCKET_NAME ?? 'docita';
+    this.bucket = process.env.R2_BUCKET_NAME ?? 'docita-storage';
 
     if (!accountId || !accessKeyId || !secretAccessKey) {
       throw new Error(
