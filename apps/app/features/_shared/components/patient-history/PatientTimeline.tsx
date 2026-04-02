@@ -117,7 +117,7 @@ export function PatientTimeline({
             onClick={onLoadMore}
             disabled={isLoading}
           >
-            {isLoading ? "Loading..." : "Load More"}
+            {isLoading ? "Loading more..." : "Load More"}
           </Button>
         </div>
       )}

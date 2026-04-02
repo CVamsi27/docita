@@ -65,7 +65,7 @@ export function DoctorDashboardCardsUI({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {}
-      <Card className="border-none shadow-xl bg-card/60 backdrop-blur-xl lg:col-span-2">
+      <Card className="border-none shadow-sm bg-card lg:col-span-2">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -84,7 +84,7 @@ export function DoctorDashboardCardsUI({
               </div>
             </div>
             {currentPatient && (
-              <Badge variant="default" className="bg-primary animate-pulse">
+              <Badge variant="default" className="bg-primary">
                 In Progress
               </Badge>
             )}
@@ -144,7 +144,7 @@ export function DoctorDashboardCardsUI({
       </Card>
 
       {}
-      <Card className="border-none shadow-xl bg-card/60 backdrop-blur-xl">
+      <Card className="border-none shadow-sm bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
@@ -201,7 +201,7 @@ export function DoctorDashboardCardsUI({
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className={cn(
-                  "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-all duration-500",
+                  "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-colors duration-150",
                 )}
                 style={{
                   width: `${queueStats.total > 0 ? (queueStats.completed / queueStats.total) * 100 : 0}%`,

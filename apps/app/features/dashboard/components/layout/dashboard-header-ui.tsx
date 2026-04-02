@@ -83,7 +83,7 @@ export function DashboardHeaderUI({
           <button
             onClick={handleQuickShare}
             disabled={!clinicCode}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-md border bg-background/50 backdrop-blur-sm text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors touch-manipulation disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex h-9 items-center gap-1.5 rounded-md border bg-background px-3 text-xs text-muted-foreground transition-colors duration-150 hover:bg-muted/40 hover:text-foreground touch-manipulation disabled:cursor-not-allowed disabled:opacity-60"
             title={
               clinicCode
                 ? "Quick share clinic join code"
@@ -101,7 +101,7 @@ export function DashboardHeaderUI({
         {clinicCode && (
           <button
             onClick={handleCopyCode}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-md border bg-background/50 backdrop-blur-sm text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors touch-manipulation"
+            className="flex h-9 items-center gap-1.5 rounded-md border bg-background px-3 text-xs text-muted-foreground transition-colors duration-150 hover:bg-muted/40 hover:text-foreground touch-manipulation"
             title="Copy clinic code to share with staff"
           >
             <span className="font-mono font-medium tracking-wider">
@@ -117,7 +117,7 @@ export function DashboardHeaderUI({
         <Button
           variant="outline"
           size="sm"
-          className="h-10 sm:h-9 w-full md:w-56 justify-start text-muted-foreground bg-background/50 backdrop-blur-sm touch-manipulation"
+          className="h-10 sm:h-9 w-full md:w-56 justify-start text-muted-foreground bg-background touch-manipulation"
           onClick={onSearchClick}
         >
           <Search className="mr-2 h-4 w-4" />

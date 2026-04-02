@@ -20,7 +20,7 @@ export function ConsultationLayoutUI({
       {}
       <aside
         className={cn(
-          "hidden md:block border-r overflow-y-auto shrink-0 transition-all duration-300 ease-in-out",
+          "hidden md:block border-r overflow-y-auto shrink-0 transition-[width,opacity] duration-150 ease-out",
           isSidebarOpen ? "w-80 opacity-100" : "w-0 opacity-0 border-none",
         )}
       >

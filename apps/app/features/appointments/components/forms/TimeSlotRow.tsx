@@ -116,14 +116,14 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 return (
                   <div
                     key={apt.id}
-                    className={`flex items-center justify-between p-3 rounded-lg border transition-all hover:shadow-md ${
+                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors duration-150 ${
                       apt.status === "checked-in"
-                        ? "surface-success shadow-sm"
+                        ? "surface-success"
                         : apt.status === "confirmed"
-                          ? "surface-info shadow-sm"
+                          ? "surface-info"
                           : apt.status === "completed"
                             ? "bg-muted/30 border-border"
-                            : "bg-card border-border shadow-sm"
+                            : "bg-card border-border"
                     }`}
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">

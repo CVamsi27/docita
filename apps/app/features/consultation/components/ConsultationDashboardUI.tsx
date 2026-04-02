@@ -8,8 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { DataState } from "@workspace/ui/components/data-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Activity,
   Calendar,
@@ -19,7 +22,6 @@ import {
   Users,
 } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
-import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
   Avatar,
   AvatarFallback,
@@ -38,23 +40,38 @@ export const ConsultationDashboardUI: FC = () => {
   } = useConsultationDashboard();
 
   if (isLoading) {
-    return <LoadingState message="Loading consultation dashboard..." />;
+    return (
+      <AppPageScaffold
+        header={
+          <PageHeader
+            title="Consultation"
+            description="Manage your daily consultations and patient queue."
+          />
+        }
+      >
+        <DataState
+          status="loading"
+          loadingMessage="Loading consultation dashboard..."
+        />
+      </AppPageScaffold>
+    );
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Consultation</h1>
-          <p className="text-muted-foreground">
-            Manage your daily consultations and patient queue
-          </p>
-        </div>
-        <Button onClick={() => router.push("/appointments")}>
-          <Calendar className="mr-2 h-4 w-4" />
-          View Calendar
-        </Button>
-      </div>
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Consultation"
+          description="Manage your daily consultations and patient queue."
+          actions={
+            <Button onClick={() => router.push("/appointments")}>
+              <Calendar className="mr-2 h-4 w-4" />
+              View Calendar
+            </Button>
+          }
+        />
+      }
+    >
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -223,6 +240,6 @@ export const ConsultationDashboardUI: FC = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AppPageScaffold>
   );
 };

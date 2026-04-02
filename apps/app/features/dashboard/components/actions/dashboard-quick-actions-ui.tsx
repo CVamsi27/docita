@@ -24,9 +24,8 @@ export function DashboardQuickActionsUI({
           key={action.href}
           href={action.href}
           className={cn(
-            "flex flex-col items-center justify-center gap-2 min-w-22 sm:min-w-24 p-3 rounded-2xl transition-all duration-300 snap-start group",
-            "bg-card/40 backdrop-blur-md border border-transparent hover:border-primary/20",
-            "hover:bg-card/60 hover:shadow-lg hover:-translate-y-0.5",
+            "group flex min-w-22 snap-start flex-col items-center justify-center gap-2 rounded-2xl border border-transparent p-3 transition-colors duration-150 sm:min-w-24",
+            "bg-card hover:bg-muted/40 hover:border-primary/20",
           )}
         >
           <div
@@ -59,7 +58,7 @@ export function DashboardQuickActionsUI({
 
       <Link
         href="/patients"
-        className="hidden sm:flex flex-col items-center justify-center gap-2 min-w-20 p-3 rounded-2xl hover:bg-card/40 transition-all group"
+        className="group hidden min-w-20 flex-col items-center justify-center gap-2 rounded-2xl p-3 transition-colors duration-150 hover:bg-muted/40 sm:flex"
       >
         <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors">
           <Users className="h-5 w-5" />

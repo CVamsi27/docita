@@ -57,7 +57,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
   } = props;
 
   return (
-    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b -mx-6 px-6 py-4 shadow-sm">
+    <div className="sticky top-0 z-20 border-b bg-background/95 px-4 py-4 shadow-sm md:-mx-6 md:px-6">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div className="flex items-center gap-4">
           {onBack && (

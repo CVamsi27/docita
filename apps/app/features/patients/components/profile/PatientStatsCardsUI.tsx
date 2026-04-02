@@ -31,10 +31,10 @@ export function PatientStatsCardsUI({
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="overflow-hidden border border-border bg-card backdrop-blur-md shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
+      <Card className="overflow-hidden border border-border bg-card shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-info text-info-foreground shadow-lg shadow-info/30">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-info text-info-foreground">
               <Activity className="h-7 w-7" />
             </div>
             <div>
@@ -49,10 +49,10 @@ export function PatientStatsCardsUI({
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border border-border bg-card backdrop-blur-md shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
+      <Card className="overflow-hidden border border-border bg-card shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success text-success-foreground shadow-lg shadow-success/30">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success text-success-foreground">
               <Calendar className="h-7 w-7" />
             </div>
             <div>
@@ -73,10 +73,10 @@ export function PatientStatsCardsUI({
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border border-border bg-card backdrop-blur-md shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
+      <Card className="overflow-hidden border border-border bg-card shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
               <Clock className="h-7 w-7" />
             </div>
             <div>
@@ -97,10 +97,10 @@ export function PatientStatsCardsUI({
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border border-border bg-card backdrop-blur-md shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 duration-300">
+      <Card className="overflow-hidden border border-border bg-card shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning text-warning-foreground shadow-lg shadow-warning/30">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning text-warning-foreground">
               <TrendingUp className="h-7 w-7" />
             </div>
             <div>

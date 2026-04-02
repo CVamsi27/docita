@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { usePatientTimeline } from "@/hooks/api/use-patient-timeline";
 import { UnifiedTimelineUI } from "./UnifiedTimelineUI";
-import { ErrorState } from "@workspace/ui/components/error-state";
+import { DataState } from "@workspace/ui/components/data-state";
+import { Clock3 } from "lucide-react";
 import type { TimelineEventType } from "@workspace/types";
 
 interface UnifiedTimelineContainerProps {
@@ -48,25 +49,29 @@ export function UnifiedTimelineContainer({
   };
 
   if (isLoading && !data) {
-    return (
-      <div className="space-y-2">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
-        ))}
-      </div>
-    );
+    return <DataState status="loading" loadingMessage="Loading timeline..." />;
   }
 
   if (isError) {
     return (
-      <ErrorState
-        message="Failed to load timeline."
+      <DataState
+        status="error"
+        errorMessage="Failed to load timeline."
         onRetry={() => refetch()}
       />
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <DataState
+        status="empty"
+        emptyIcon={Clock3}
+        emptyTitle="No timeline records available"
+        emptyDescription="Patient events will appear here as care activities are recorded."
+      />
+    );
+  }
 
   const hasMore = offset + limit < data.total;
 

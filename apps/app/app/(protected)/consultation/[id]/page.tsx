@@ -1,8 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import { ErrorState } from "@workspace/ui/components/error-state";
+import { DataState } from "@workspace/ui/components/data-state";
 import {
   ClinicalDocumentationDynamic,
 } from "@/features/consultation/components";
@@ -10,6 +9,7 @@ import { ConsultationSidebarContainer } from "@/features/consultation/components
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
 import { ConsultationLayoutUI } from "@/features/consultation/components/ConsultationLayoutUI";
+import { Stethoscope } from "lucide-react";
 
 export default function ConsultationPage() {
   const params = useParams();
@@ -32,10 +32,7 @@ export default function ConsultationPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="flex flex-col items-center gap-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Loading consultation...</p>
-        </div>
+        <DataState status="loading" loadingMessage="Loading consultation..." />
       </div>
     );
   }
@@ -43,8 +40,9 @@ export default function ConsultationPage() {
   if (isError) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <ErrorState
-          message="Failed to load consultation data."
+        <DataState
+          status="error"
+          errorMessage="Failed to load consultation data."
           onRetry={() => window.location.reload()}
         />
       </div>
@@ -54,8 +52,9 @@ export default function ConsultationPage() {
   if (isAccessDenied) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <ErrorState
-          message="Only the assigned doctor can open this consultation."
+        <DataState
+          status="error"
+          errorMessage="Only the assigned doctor can open this consultation."
           onRetry={handleBack}
         />
       </div>
@@ -65,8 +64,16 @@ export default function ConsultationPage() {
   if (!appointmentData) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-4">
-        <p className="text-muted-foreground">Appointment not found</p>
-        <Button onClick={handleBack}>Back to Appointments</Button>
+        <DataState
+          status="empty"
+          emptyIcon={Stethoscope}
+          emptyTitle="Appointment not found"
+          emptyDescription="This consultation is unavailable or has been removed."
+          emptyAction={{
+            label: "Back to Appointments",
+            onClick: handleBack,
+          }}
+        />
       </div>
     );
   }

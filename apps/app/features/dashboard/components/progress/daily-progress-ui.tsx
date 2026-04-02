@@ -34,7 +34,7 @@ export function DailyProgressUI({
             </div>
             <div className="h-1.5 rounded-full bg-muted overflow-hidden">
               <div
-                className="h-full bg-linear-to-r from-primary to-primary/60 rounded-full transition-all"
+                className="h-full rounded-full bg-linear-to-r from-primary to-primary/60 transition-colors duration-150"
                 style={{
                   width: `${
                     totalAppointments > 0

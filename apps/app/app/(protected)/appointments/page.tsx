@@ -4,7 +4,9 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 
@@ -75,7 +77,7 @@ function AppointmentsContent() {
         </div>
       }
     >
-      <div className="flex flex-col gap-6 p-4 md:p-6">
+      <AppPageScaffold>
         <AppointmentsPageHeaderUI
           onAppointmentAdded={() => refetch()}
           selectedDate={date}
@@ -124,7 +126,7 @@ function AppointmentsContent() {
             activeEndHour={activeEndHour}
           />
         </div>
-      </div>
+      </AppPageScaffold>
 
       {}
       <ConfirmationDialog
@@ -156,7 +158,9 @@ function AppointmentsContent() {
 
 export default function AppointmentsPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={<LoadingState message="Loading appointments..." className="py-16" />}
+    >
       <AppointmentsContent />
     </Suspense>
   );

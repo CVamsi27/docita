@@ -49,7 +49,7 @@ export function ConsultationProgressUI({
         <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
           <div
             className={cn(
-              "h-full transition-all duration-300",
+              "h-full transition-colors duration-150",
               progress.isMinimumMet ? "bg-success" : "bg-primary",
             )}
             style={{ width: `${progress.percentage}%` }}
@@ -74,7 +74,7 @@ export function ConsultationProgressUI({
         <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
           <div
             className={cn(
-              "h-full transition-all duration-500 ease-out",
+              "h-full transition-colors duration-150",
               progress.isMinimumMet ? "bg-success" : "bg-primary",
             )}
             style={{ width: `${progress.percentage}%` }}
@@ -103,14 +103,14 @@ export function ConsultationProgressUI({
                     <button
                       onClick={() => onStepClick?.(step.id)}
                       className={cn(
-                        "flex flex-col items-center gap-1 transition-all",
-                        onStepClick && "cursor-pointer hover:scale-105",
+                        "flex flex-col items-center gap-1 transition-colors duration-150",
+                        onStepClick && "cursor-pointer",
                         !onStepClick && "cursor-default",
                       )}
                     >
                       <div
                         className={cn(
-                          "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all",
+                          "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-colors duration-150",
                           step.isComplete &&
                             "bg-success border-success text-success-foreground",
                           !step.isComplete &&

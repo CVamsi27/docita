@@ -85,7 +85,7 @@ export function DentalChartUI({
         type="button"
         onClick={() => handleToothClick(toothId)}
         className={cn(
-          "h-12 w-10 flex flex-col items-center justify-center border rounded-md text-xs font-medium transition-all",
+          "h-12 w-10 flex flex-col items-center justify-center rounded-md border text-xs font-medium transition-colors duration-150",
           condition.color,
           isSelected ? "ring-2 ring-primary ring-offset-2" : "",
           readOnly ? "cursor-default" : "cursor-pointer hover:shadow-sm",

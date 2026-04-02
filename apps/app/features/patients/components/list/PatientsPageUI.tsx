@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { PageContainer } from "@workspace/ui/components/page-container";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   ArrowDown,
@@ -24,6 +25,7 @@ import {
   ArrowUpDown,
   Calendar,
   Pencil,
+  UserPlus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { format } from "date-fns";
@@ -45,6 +47,7 @@ interface PatientsPageUIProps {
   onViewPatient: (patientId: string) => void;
   onSchedulePatient: (patientId: string) => void;
   onEditPatient: (patient: Patient) => void;
+  onAddPatient: () => void;
   totalPatients: number;
   pageSize: number;
   currentPage: number;
@@ -66,6 +69,7 @@ export function PatientsPageUI({
   onViewPatient,
   onSchedulePatient,
   onEditPatient,
+  onAddPatient,
   totalPatients,
   pageSize,
   currentPage,
@@ -94,12 +98,16 @@ export function PatientsPageUI({
 
   return (
     <PageContainer className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
-        <p className="text-muted-foreground">
-          Manage your patient records and history.
-        </p>
-      </div>
+      <PageHeader
+        title="Patients"
+        description="Manage your patient records and history."
+        actions={
+          <Button onClick={onAddPatient} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add Patient
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>

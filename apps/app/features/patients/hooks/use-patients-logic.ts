@@ -158,6 +158,7 @@ export function usePatientsLogic() {
       goToPatient: (patientId: string) => router.push(`/patients/${patientId}`),
       schedulePatient: (patientId: string) =>
         router.push(`/appointments?action=new&patientId=${patientId}`),
+      openAddDialog: () => setIsAddDialogOpen(true),
       clearSearch: () => setSearchQuery(""),
       goToNextPage,
       goToPrevPage,

@@ -33,14 +33,15 @@ const UnifiedTimelineContainer = dynamic(
   { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
 );
 import { Button } from "@workspace/ui/components/button";
-import { ErrorState } from "@workspace/ui/components/error-state";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-state";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { CalendarPlus, Clock, FileText, Pencil } from "lucide-react";
+import { CalendarPlus, Clock, FileText, Pencil, User } from "lucide-react";
 import { Feature } from "@/lib/stores/permission-store";
 import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
@@ -74,48 +75,62 @@ export default function PatientDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="flex flex-col items-center gap-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Loading patient details...</p>
-        </div>
-      </div>
+      <AppPageScaffold>
+        <DataState
+          status="loading"
+          className="min-h-[50vh]"
+          loadingMessage="Loading patient details..."
+        />
+      </AppPageScaffold>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <ErrorState
-          message="Failed to load patient details."
+      <AppPageScaffold>
+        <DataState
+          status="error"
+          className="min-h-[50vh]"
+          errorMessage="Failed to load patient details."
           onRetry={handleRefetch}
         />
-      </div>
+      </AppPageScaffold>
     );
   }
 
   if (!patient || !patient.id) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 gap-4">
-        <p className="text-muted-foreground">Patient not found</p>
-        <Button onClick={handleBackToPatients}>Back to Patients</Button>
-      </div>
+      <AppPageScaffold>
+        <DataState
+          status="empty"
+          className="min-h-[50vh]"
+          emptyIcon={User}
+          emptyTitle="Patient not found"
+          emptyDescription="This patient record is unavailable."
+          emptyAction={{
+            label: "Back to Patients",
+            onClick: handleBackToPatients,
+          }}
+        />
+      </AppPageScaffold>
     );
   }
 
   if (!canAccessPatient) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 gap-4">
-        <p className="text-muted-foreground">
-          You do not have access to this patient
-        </p>
-        <Button onClick={handleBackToPatients}>Back to Patients</Button>
-      </div>
+      <AppPageScaffold>
+        <DataState
+          status="error"
+          className="min-h-[50vh]"
+          errorMessage="You do not have access to this patient."
+          onRetry={handleBackToPatients}
+        />
+      </AppPageScaffold>
     );
   }
 
   return (
-    <div className="flex flex-col max-w-7xl mx-auto w-full">
+    <AppPageScaffold contentClassName="space-y-0">
       <PatientFaceSheetHeader
         patient={patient}
         onBack={handleBackToPatients}
@@ -135,7 +150,7 @@ export default function PatientDetailPage() {
         }
       />
 
-      <div className="px-6 py-6 space-y-6">
+      <div className="space-y-6 px-4 py-6 md:px-6">
         {snapshot && (
           <PatientSnapshotStrip snapshot={snapshot} layout="horizontal" showVitals />
         )}
@@ -186,6 +201,6 @@ export default function PatientDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AppPageScaffold>
   );
 }

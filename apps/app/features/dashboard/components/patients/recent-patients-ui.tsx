@@ -26,7 +26,7 @@ export interface RecentPatientsUIProps {
 
 export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
   return (
-    <Card className="border-none shadow-xl bg-card/60 backdrop-blur-xl">
+    <Card className="border-none shadow-sm bg-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -64,7 +64,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
               <Link
                 key={patient.id}
                 href={`/patients/${patient.id}`}
-                className="flex items-center gap-4 p-3.5 rounded-2xl hover:bg-muted/60 hover:shadow-sm transition-all group border border-transparent hover:border-border/50"
+                className="group flex items-center gap-4 rounded-2xl border border-transparent p-3.5 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/5 text-primary text-xs font-medium">

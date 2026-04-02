@@ -1,7 +1,7 @@
 
 
 import * as React from "react";
-import { Button } from "@/components/common/buttons";
+import { Button } from "@workspace/ui/components/button";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -56,7 +56,7 @@ export function ConfirmDialog({
             onClick={handleConfirm}
             disabled={isLoading}
           >
-            {isLoading ? "Loading..." : confirmText}
+            {isLoading ? "Working..." : confirmText}
           </Button>
         </div>
       </div>

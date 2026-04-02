@@ -23,7 +23,7 @@ export interface TodayScheduleUIProps {
 
 export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
   return (
-    <Card className="lg:col-span-2 border-none shadow-xl bg-card/60 backdrop-blur-xl">
+    <Card className="lg:col-span-2 border-none shadow-sm bg-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -70,12 +70,12 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                   key={apt.id}
                   href={`/consultation/${apt.id}`}
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-2xl transition-all group border border-transparent",
+                    "group flex items-center gap-4 rounded-2xl border border-transparent p-4 transition-colors duration-150",
                     apt.status === "completed" && "opacity-60 bg-muted/30",
                     apt.status === "in-progress" &&
-                      "bg-primary/5 ring-1 ring-primary/20 shadow-lg shadow-primary/5",
+                      "bg-primary/5 ring-1 ring-primary/20",
                     isNext && "bg-muted/40",
-                    "hover:bg-muted/60 hover:border-border/50 hover:shadow-sm",
+                    "hover:bg-muted/60 hover:border-border/50",
                   )}
                 >
                   {}
@@ -97,7 +97,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                   <div className="relative h-10 flex items-center">
                     <div className="w-px h-full bg-border" />
                     {apt.status === "in-progress" && (
-                      <span className="absolute left-1/2 -translate-x-1/2 h-2.5 w-2.5 rounded-full bg-primary animate-pulse" />
+                      <span className="absolute left-1/2 -translate-x-1/2 h-2.5 w-2.5 rounded-full bg-primary" />
                     )}
                     {apt.status === "completed" && (
                       <span className="absolute left-1/2 -translate-x-1/2 h-2.5 w-2.5 rounded-full bg-success" />
@@ -132,9 +132,9 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                           apt.status === "in-progress" ? "default" : "ghost"
                         }
                         className={cn(
-                          "h-8 w-8 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100",
+                          "h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-150",
                           apt.status === "in-progress" &&
-                            "opacity-100 scale-100 shadow-md shadow-primary/20",
+                            "opacity-100 shadow-sm",
                         )}
                       >
                         <Play className="h-3 w-3" />

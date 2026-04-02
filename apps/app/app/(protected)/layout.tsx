@@ -132,11 +132,7 @@ function MobileHeader() {
         <SmartBackButton fallback="/dashboard" label="" className="px-2" />
       ) : (
         <div className="flex h-10 items-center">
-          <DocitaLogo
-            iconClassName="h-5 w-5"
-            textClassName="h-6 w-24"
-            className="gap-1.5"
-          />
+          <DocitaLogo />
         </div>
       )}
       <div className="ml-auto">

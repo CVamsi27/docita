@@ -70,7 +70,7 @@ export function ConsultationPageHeaderUI({
 
   return (
     <>
-      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 shadow-sm">
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-background px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
           <Button
             variant="ghost"

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useStartConsultation } from "@/hooks/api/use-appointments";
+import { useQueueByDoctor, useStartConsultation } from "@/hooks/api/use-appointments";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 
 interface FloatingStartConsultationProps {
   patientId?: string;
@@ -24,13 +25,49 @@ export function FloatingStartConsultation({
 }: FloatingStartConsultationProps) {
   const router = useRouter();
   const { canStartConsultation } = usePermissions();
+  const { user } = useAuth();
   const startConsultation = useStartConsultation();
   const [isMinimized, setIsMinimized] = useState(minimized);
+  const queueEnabled = canStartConsultation && !appointmentId && !patientId && !!user?.id;
+  const { data: doctorQueue } = useQueueByDoctor(
+    user?.id,
+    undefined,
+    queueEnabled,
+  );
+
+  const queueCandidate = useMemo(() => {
+    if (!doctorQueue || doctorQueue.length === 0) {
+      return null;
+    }
+
+    return (
+      doctorQueue.find(
+        (item) =>
+          item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
+      ) ??
+      doctorQueue.find(
+        (item) => item.appointmentId && item.status.toUpperCase() === "WAITING",
+      ) ??
+      doctorQueue.find((item) => item.appointmentId) ??
+      null
+    );
+  }, [doctorQueue]);
+
+  const resolvedAppointmentId = appointmentId ?? queueCandidate?.appointmentId;
+  const resolvedPatientId = patientId ?? queueCandidate?.patientId;
+  const patientName =
+    queueCandidate?.patient
+      ? `${queueCandidate.patient.firstName} ${queueCandidate.patient.lastName}`
+      : null;
+  const isResumeFlow =
+    queueCandidate?.status?.toUpperCase() === "IN_PROGRESS" && !appointmentId;
 
   const handleStartConsultation = async () => {
-    if (appointmentId) {
+    if (resolvedAppointmentId) {
       try {
-        const result = await startConsultation.mutateAsync({ appointmentId });
+        const result = await startConsultation.mutateAsync({
+          appointmentId: resolvedAppointmentId,
+        });
         router.push(`/consultation/${result.appointmentId}`);
       } catch (error) {
         toast.error(
@@ -39,14 +76,14 @@ export function FloatingStartConsultation({
             : "Unable to start this consultation",
         );
       }
-    } else if (patientId) {
-      router.push(`/consultation/new?patientId=${patientId}`);
+    } else if (resolvedPatientId) {
+      router.push(`/consultation?patientId=${resolvedPatientId}`);
     } else {
       router.push("/consultation");
     }
   };
 
-  if (!patientId && !appointmentId) {
+  if (!resolvedPatientId && !resolvedAppointmentId) {
     return null;
   }
 
@@ -57,7 +94,7 @@ export function FloatingStartConsultation({
   return (
     <div
       className={cn(
-        "fixed bottom-6 right-6 z-50 transition-all duration-300",
+        "fixed bottom-6 right-6 z-50 transition-opacity duration-150",
         className,
       )}
     >
@@ -74,7 +111,9 @@ export function FloatingStartConsultation({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />
-              <span className="font-semibold">Start Consultation</span>
+              <span className="font-semibold">
+                {isResumeFlow ? "Resume Consultation" : "Start Consultation"}
+              </span>
             </div>
             <Button
               variant="ghost"
@@ -86,7 +125,9 @@ export function FloatingStartConsultation({
             </Button>
           </div>
           <p className="text-sm text-primary-foreground/80 mb-3">
-            Ready to begin consultation for this patient?
+            {patientName
+              ? `${isResumeFlow ? "Continue" : "Begin"} consult for ${patientName}.`
+              : "Open consultation queue now."}
           </p>
           <Button
             variant="secondary"
@@ -94,7 +135,7 @@ export function FloatingStartConsultation({
             disabled={startConsultation.isPending}
             onClick={() => void handleStartConsultation()}
           >
-            Begin Now
+            {isResumeFlow ? "Resume Now" : "Begin Now"}
           </Button>
         </div>
       )}

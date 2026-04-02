@@ -43,7 +43,7 @@ export function DashboardAlertsUI({
         <div
           key={alert.id}
           className={cn(
-            "flex items-center gap-3 p-3 rounded-lg border transition-all",
+            "flex items-center gap-3 rounded-lg border p-3 transition-colors duration-150",
             alert.type === "urgent" &&
               "bg-destructive/10 border-destructive/30",
             alert.type === "warning" && "bg-warning/10 border-warning/30",
@@ -106,7 +106,7 @@ export function DashboardAlertsUI({
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className={cn(
-                "h-full transition-all duration-500",
+                "h-full transition-colors duration-150",
                 progressPercentage === 100 ? "bg-success" : "bg-primary",
               )}
               style={{ width: `${progressPercentage}%` }}

@@ -1,6 +1,7 @@
 import { usePatient } from "@/features/patients/hooks/usePatients";
 import { getPatientAgeDisplay } from "@/features/patients/rules/patientRules";
 import { getInitials } from "@/features/_shared/utils";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { PatientProfileHeaderUI } from "./PatientProfileHeaderUI";
 
 interface PatientProfileHeaderContainerProps {
@@ -16,15 +17,15 @@ export function PatientProfileHeaderContainer({
 
   if (isLoading || !patient) {
     return (
-      <div className="rounded-2xl border bg-background/60 p-8 animate-pulse">
+      <div className="rounded-2xl border bg-card p-8">
         <div className="flex gap-6">
-          <div className="h-32 w-32 rounded-full bg-muted" />
+          <Skeleton className="h-32 w-32 rounded-full" />
           <div className="space-y-4 flex-1">
-            <div className="h-8 bg-muted rounded w-1/3" />
-            <div className="h-4 bg-muted rounded w-1/4" />
+            <Skeleton className="h-8 w-1/3 rounded" />
+            <Skeleton className="h-4 w-1/4 rounded" />
             <div className="flex gap-2">
-              <div className="h-6 bg-muted rounded w-24" />
-              <div className="h-6 bg-muted rounded w-24" />
+              <Skeleton className="h-6 w-24 rounded" />
+              <Skeleton className="h-6 w-24 rounded" />
             </div>
           </div>
         </div>

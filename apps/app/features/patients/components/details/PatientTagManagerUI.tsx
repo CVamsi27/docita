@@ -255,10 +255,10 @@ export function PatientTagManagerUI({
                                         <TooltipTrigger asChild>
                                           <button
                                             type="button"
-                                            className={`h-6 w-6 rounded-md transition-all ${
+                                            className={`h-6 w-6 rounded-md transition-colors duration-150 ${
                                               editTagColor === color.value
                                                 ? "ring-2 ring-primary ring-offset-2"
-                                                : "hover:scale-110"
+                                                : "hover:opacity-80"
                                             }`}
                                             style={{
                                               backgroundColor: color.value,
@@ -371,10 +371,10 @@ export function PatientTagManagerUI({
                                     color: isAdded ? "#888" : preset.color,
                                     opacity: isAdded ? 0.5 : 1,
                                   }}
-                                  className={`cursor-pointer transition-all ${
+                                  className={`cursor-pointer transition-colors duration-150 ${
                                     isAdded
                                       ? "cursor-not-allowed"
-                                      : "hover:bg-accent hover:scale-105"
+                                      : "hover:bg-accent"
                                   }`}
                                   onClick={() =>
                                     !isAdded &&
@@ -442,10 +442,10 @@ export function PatientTagManagerUI({
                             <TooltipTrigger asChild>
                               <button
                                 type="button"
-                                className={`h-8 w-8 rounded-md transition-all ${
+                                className={`h-8 w-8 rounded-md transition-colors duration-150 ${
                                   newColor === color.value
-                                    ? "ring-2 ring-primary ring-offset-2 scale-110"
-                                    : "hover:scale-110"
+                                    ? "ring-2 ring-primary ring-offset-2"
+                                    : "hover:opacity-80"
                                 }`}
                                 style={{ backgroundColor: color.value }}
                                 onClick={() => {

@@ -121,7 +121,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col h-screen bg-background border-r transition-all duration-300",
+        "hidden lg:flex flex-col h-screen bg-background border-r transition-[width] duration-150",
         isCollapsed ? "w-16" : "w-64",
       )}
     >

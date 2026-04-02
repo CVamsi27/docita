@@ -61,7 +61,7 @@ export function DashboardStatsGridUI({
       {cards.map((card) => (
         <Card
           key={card.title}
-          className="border-none shadow-lg bg-card/60 backdrop-blur-xl hover:shadow-xl transition-all"
+          className="border-none bg-card shadow-sm transition-colors duration-150 hover:shadow-md"
         >
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">

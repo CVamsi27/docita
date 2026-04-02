@@ -1,7 +1,8 @@
 import { format } from "date-fns";
 import { FileText } from "lucide-react";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { CardContent, InteractiveCard } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { DataState } from "@workspace/ui/components/data-state";
 import { Document } from "@workspace/types";
 
 interface PatientDocumentsTabUIProps {
@@ -14,22 +15,29 @@ export function PatientDocumentsTabUI({
   loading,
 }: PatientDocumentsTabUIProps) {
   if (loading) {
+    return <DataState status="loading" loadingMessage="Loading documents..." />;
+  }
+
+  if (documents.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Loading documents...
-      </div>
+      <DataState
+        status="empty"
+        emptyIcon={FileText}
+        emptyTitle="No documents found"
+        emptyDescription="Uploaded reports and attachments will appear here."
+      />
     );
   }
 
   return (
     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
       {documents.map((doc) => (
-        <Card
+        <InteractiveCard
           key={doc.id}
-          className="group cursor-pointer hover:shadow-md transition-all border-none bg-muted/30 hover:bg-background"
+          className="group border-none bg-muted/30"
         >
           <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-            <div className="p-4 bg-primary/10 rounded-full text-primary group-hover:scale-110 transition-transform">
+            <div className="rounded-full bg-primary/10 p-4 text-primary">
               <FileText className="h-8 w-8" />
             </div>
             <div>
@@ -44,14 +52,8 @@ export function PatientDocumentsTabUI({
               {doc.type}
             </Badge>
           </CardContent>
-        </Card>
+        </InteractiveCard>
       ))}
-      {documents.length === 0 && (
-        <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground border-2 border-dashed rounded-xl">
-          <FileText className="h-12 w-12 mb-4 opacity-20" />
-          <p>No documents found</p>
-        </div>
-      )}
     </div>
   );
 }

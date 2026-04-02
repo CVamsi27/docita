@@ -59,7 +59,7 @@ export function PatientFamilyHistory({
                   <button
                     type="button"
                     onClick={() => onRemoveFamilyHistory(history.id!)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
                   >
                     <X className="h-4 w-4" />
                   </button>

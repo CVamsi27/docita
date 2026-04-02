@@ -11,8 +11,8 @@ import {
   TodayScheduleUI,
 } from "@/features/dashboard/components";
 import { DashboardAppointment, DashboardPatient } from "@workspace/types";
-import { ErrorState } from "@workspace/ui/components/error-state";
-import { EmptyState } from "@workspace/ui/components/empty-state";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-state";
 import { LayoutDashboard } from "lucide-react";
 
 interface DashboardUIProps {
@@ -52,18 +52,26 @@ export function DashboardUI({
   onRetry,
   canAccess,
 }: DashboardUIProps) {
+  const header = <DashboardHeaderContainer />;
+
   if (isLoading) {
-    return <DashboardSkeletonUI />;
+    return (
+      <AppPageScaffold header={header}>
+        <DashboardSkeletonUI />
+      </AppPageScaffold>
+    );
   }
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <ErrorState
-          message="Failed to load dashboard. Please try again."
+      <AppPageScaffold header={header}>
+        <DataState
+          status="error"
+          className="min-h-[50vh]"
+          errorMessage="Failed to load dashboard. Please try again."
           onRetry={onRetry}
         />
-      </div>
+      </AppPageScaffold>
     );
   }
 
@@ -74,74 +82,63 @@ export function DashboardUI({
 
   if (isNewClinic) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-muted/30 to-background">
-        <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-          <DashboardHeaderContainer />
-          <div className="flex items-center justify-center h-[50vh]">
-            <EmptyState
-              icon={LayoutDashboard}
-              title="Welcome to Docita"
-              description="Your dashboard will come to life once you start adding patients and scheduling appointments."
-              action={{ label: "Add your first patient", href: "/patients" }}
-            />
-          </div>
-        </div>
-      </div>
+      <AppPageScaffold header={header}>
+        <DataState
+          status="empty"
+          className="min-h-[50vh]"
+          emptyIcon={LayoutDashboard}
+          emptyTitle="Welcome to Docita"
+          emptyDescription="Your dashboard will come to life once you start adding patients and scheduling appointments."
+          emptyAction={{ label: "Add your first patient", href: "/patients" }}
+        />
+      </AppPageScaffold>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-muted/30 to-background">
-      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-        <DashboardHeaderContainer />
+    <AppPageScaffold header={header}>
+      <DoctorDashboardCards
+        currentPatient={currentPatient}
+        nextPatients={nextPatients}
+        queueStats={{
+          waiting: waitingCount,
+          inProgress: inProgressToday,
+          completed: completedToday,
+          total: todayAppointments.length,
+        }}
+        estimatedWaitTime={waitingCount * slotDurationMinutes}
+      />
 
-        {}
-        <DoctorDashboardCards
-          currentPatient={currentPatient}
-          nextPatients={nextPatients}
-          queueStats={{
-            waiting: waitingCount,
-            inProgress: inProgressToday,
-            completed: completedToday,
-            total: todayAppointments.length,
-          }}
-          estimatedWaitTime={waitingCount * slotDurationMinutes}
-        />
+      <DashboardQuickActionsContainer pendingReports={stats.pendingReports} />
 
-        <DashboardQuickActionsContainer pendingReports={stats.pendingReports} />
+      <DashboardStatsGrid
+        stats={stats}
+        completedToday={completedToday}
+        inProgressToday={inProgressToday}
+      />
 
-        <DashboardStatsGrid
-          stats={stats}
-          completedToday={completedToday}
-          inProgressToday={inProgressToday}
-        />
+      <div
+        className={cn(
+          "grid gap-4 sm:gap-6",
+          canAccess(Feature.CALENDAR_SLOTS)
+            ? "lg:grid-cols-3"
+            : "lg:grid-cols-1",
+        )}
+      >
+        {canAccess(Feature.CALENDAR_SLOTS) && (
+          <TodayScheduleUI appointments={todayAppointments} />
+        )}
 
-        {}
-        <div
-          className={cn(
-            "grid gap-4 sm:gap-6",
-            canAccess(Feature.CALENDAR_SLOTS)
-              ? "lg:grid-cols-3"
-              : "lg:grid-cols-1",
-          )}
-        >
-          {}
-          {canAccess(Feature.CALENDAR_SLOTS) && (
-            <TodayScheduleUI appointments={todayAppointments} />
-          )}
+        <div className="space-y-4 sm:space-y-6">
+          <RecentPatientsUI patients={recentPatients} />
 
-          {}
-          <div className="space-y-4 sm:space-y-6">
-            <RecentPatientsUI patients={recentPatients} />
-
-            <DailyProgressUI
-              completedToday={completedToday}
-              totalAppointments={todayAppointments.length}
-              pendingReports={stats.pendingReports}
-            />
-          </div>
+          <DailyProgressUI
+            completedToday={completedToday}
+            totalAppointments={todayAppointments.length}
+            pendingReports={stats.pendingReports}
+          />
         </div>
       </div>
-    </div>
+    </AppPageScaffold>
   );
 }

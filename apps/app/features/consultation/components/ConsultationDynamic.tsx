@@ -532,30 +532,41 @@ export const ClinicalDocumentationDynamic: FC<
 
   return (
     <div className={`space-y-4 ${isFocusMode ? "max-w-4xl mx-auto" : ""}`}>
-      <div className="flex items-center justify-end gap-3">
+      <div className="sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border bg-background/95 p-3 shadow-sm">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MessageSquare className="h-4 w-4 shrink-0" />
-          <Label htmlFor="whatsapp-summary" className="cursor-pointer">
-            Send to WhatsApp
-          </Label>
-          <Switch
-            id="whatsapp-summary"
-            checked={sendToWhatsapp}
-            onCheckedChange={setSendToWhatsapp}
-          />
+          <span className="font-medium text-foreground">
+            {progress.isMinimumMet ? "Ready to complete" : "Draft in progress"}
+          </span>
+          <span className="text-muted-foreground/50">•</span>
+          <span>
+            {progress.completedCount}/{progress.totalCount} sections complete
+          </span>
         </div>
-        <Button
-          size="sm"
-          onClick={handleSaveData}
-          disabled={isSaving}
-          variant={progress.isMinimumMet ? "default" : "outline"}
-        >
-          {saveLabel}
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MessageSquare className="h-4 w-4 shrink-0" />
+            <Label htmlFor="whatsapp-summary" className="cursor-pointer">
+              Send to WhatsApp
+            </Label>
+            <Switch
+              id="whatsapp-summary"
+              checked={sendToWhatsapp}
+              onCheckedChange={setSendToWhatsapp}
+            />
+          </div>
+          <Button
+            size="sm"
+            onClick={handleSaveData}
+            disabled={isSaving}
+            variant={progress.isMinimumMet ? "default" : "outline"}
+          >
+            {saveLabel}
+          </Button>
+        </div>
       </div>
 
-      <Card className="border-none shadow-sm">
-        <CardHeader className="p-4 pb-0 border-b space-y-3">
+      <Card className="shadow-sm">
+        <CardHeader className="sticky top-0 z-10 border-b bg-background p-4 pb-0 space-y-3">
           <ConsultationProgressUI
             steps={steps}
             currentStepId={activeTab}

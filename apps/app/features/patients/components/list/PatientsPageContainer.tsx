@@ -22,6 +22,7 @@ export function PatientsPageContainer() {
         onViewPatient={handlers.goToPatient}
         onSchedulePatient={handlers.schedulePatient}
         onEditPatient={handlers.setEditingPatient}
+        onAddPatient={handlers.openAddDialog}
         totalPatients={state.totalPatients}
         pageSize={state.pageSize}
         currentPage={state.currentPage}
