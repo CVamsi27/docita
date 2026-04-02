@@ -10,6 +10,7 @@ import { UploadsService } from '@/domains/documents/application/services/uploads
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
+import { SubscriptionStatus } from '@workspace/db';
 import {
   beforeEach,
   afterEach,
@@ -379,6 +380,61 @@ describe('OnboardingService', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors?.[0]).toContain('Clinic details are required');
+    });
+
+    it('syncs clinic fields when onboarding completes on STARTER plan', async () => {
+      const { onboardingId } = service.initializeOnboarding();
+      const starterData = {
+        ...completeData,
+        planSelection: {
+          ...completeData.planSelection,
+          tier: ClinicTier.STARTER,
+        },
+      };
+
+      mockPrismaService.subscription.create.mockImplementation(async () => ({
+        id: 'sub_starter',
+      }));
+      mockPrismaService.clinic.update.mockImplementation(async () => ({
+        id: 'clinic_123',
+      }));
+      mockAuthService.login.mockImplementation(async () => ({
+        access_token: 'starter_token',
+        user: {
+          id: 'user_123',
+          email: 'admin@clinic.com',
+          role: 'ADMIN',
+          name: 'Admin User',
+          clinicId: 'clinic_123',
+        },
+      }));
+
+      const result = await service.completeOnboarding(
+        onboardingId,
+        starterData,
+      );
+
+      expect(result.success).toBe(true);
+      expect(workflowService.createSubscription).not.toHaveBeenCalled();
+      expect(mockPrismaService.subscription.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            clinicId: 'clinic_123',
+            plan: 'STARTER',
+            status: SubscriptionStatus.ACTIVE,
+          }),
+        }),
+      );
+      expect(mockPrismaService.clinic.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'clinic_123' },
+          data: {
+            tier: ClinicTier.STARTER,
+            subscriptionStatus: SubscriptionStatus.ACTIVE,
+            trialEndsAt: null,
+          },
+        }),
+      );
     });
   });
 

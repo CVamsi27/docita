@@ -321,6 +321,14 @@ export class OnboardingService {
                 ),
               },
             });
+            await tx.clinic.update({
+              where: { id: clinic.id },
+              data: {
+                tier: ClinicTier.STARTER,
+                subscriptionStatus: SubscriptionStatus.ACTIVE,
+                trialEndsAt: null,
+              },
+            });
             subscriptionId = subscription.id;
           }
 

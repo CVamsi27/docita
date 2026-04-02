@@ -57,6 +57,40 @@ export class OnboardingWorkflowService {
     private validation: OnboardingValidationService,
   ) {}
 
+  private generateReferralCode(clinicName: string): string {
+    const prefix = clinicName
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .toUpperCase()
+      .slice(0, 3)
+      .padEnd(3, 'X');
+    const suffix = Math.random().toString(36).toUpperCase().slice(2, 6);
+    return `${prefix}-${suffix}`;
+  }
+
+  private async generateUniqueReferralCode(
+    tx: Prisma.TransactionClient,
+    clinicName: string,
+  ): Promise<string> {
+    let attempts = 0;
+    let referralCode = this.generateReferralCode(clinicName);
+
+    while (attempts < 8) {
+      const existing = await tx.clinic.findFirst({
+        where: { referralCode },
+        select: { id: true },
+      });
+
+      if (!existing) {
+        return referralCode;
+      }
+
+      attempts += 1;
+      referralCode = this.generateReferralCode(clinicName);
+    }
+
+    throw new BadRequestException('Unable to generate a unique clinic code');
+  }
+
   async createClinic(
     tx: Prisma.TransactionClient,
     clinicData: ClinicDetailsDto,
@@ -70,6 +104,11 @@ export class OnboardingWorkflowService {
       throw new ConflictException('Clinic with this email already exists');
     }
 
+    const referralCode = await this.generateUniqueReferralCode(
+      tx,
+      clinicData.name,
+    );
+
     const clinic = await tx.clinic.create({
       data: {
         name: clinicData.name,
@@ -81,6 +120,7 @@ export class OnboardingWorkflowService {
         mrnPrefix: clinicData.mrnPrefix || 'CLI',
         timezone: clinicData.timezone || 'Asia/Kolkata',
         active: true,
+        referralCode,
         settings: {
           dataResidency: clinicData.dataResidency || 'IN',
           gstin: clinicData.gstin || undefined,
@@ -242,6 +282,17 @@ export class OnboardingWorkflowService {
         },
       });
     }
+
+    await tx.clinic.update({
+      where: { id: clinicId },
+      data: {
+        tier: planData.tier,
+        subscriptionStatus: hasPayment
+          ? SubscriptionStatus.ACTIVE
+          : SubscriptionStatus.TRIALING,
+        trialEndsAt: hasPayment ? null : periodEnd,
+      },
+    });
 
     this.logger.log(
       `Created subscription: ${subscription.id} for clinic: ${clinicId}`,

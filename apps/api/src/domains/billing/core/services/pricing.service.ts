@@ -184,11 +184,19 @@ export class PricingService {
         tiers: canonicalTiers.map((tier) => {
           const canonicalTier = (DB_TIER_TO_CANONICAL[tier.tier as string] ??
             tier.tier) as keyof typeof TIER_LIMITS;
+          const monthlyPrice =
+            canonicalTier === 'ENTERPRISE'
+              ? 'custom'
+              : tier.monthlyBasePriceCents / 100;
+          const yearlyPrice =
+            canonicalTier === 'ENTERPRISE'
+              ? 'custom'
+              : deriveAnnualPrice(tier.monthlyBasePriceCents / 100);
           return this.toPricingTierPayload({
             tier: canonicalTier,
             validCurrency,
-            monthly: tier.monthlyBasePriceCents / 100,
-            yearly: deriveAnnualPrice(tier.monthlyBasePriceCents / 100),
+            monthly: monthlyPrice,
+            yearly: yearlyPrice,
             includedAppointments: tier.includedAppointments,
             includedUsers: tier.includedUsers,
             overageAppointmentRate: tier.overageAppointmentCents / 100,

@@ -4,11 +4,14 @@ import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/appl
 import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
+import { BillingCycle, ClinicTier, SubscriptionStatus } from '@workspace/db';
+import { TIER_LIMITS } from '@workspace/types';
 
 @Injectable()
 export class SubscriptionReminderScheduler {
   private readonly logger = new Logger(SubscriptionReminderScheduler.name);
   private databaseAccessDisabled = false;
+  private readonly starterFallbackPeriodDays = 365;
 
   constructor(
     private readonly notifyUseCase: NotifyExpiringSubscriptionsUseCase,
@@ -104,6 +107,59 @@ export class SubscriptionReminderScheduler {
 
     try {
       await this.prisma.runUnrestricted(async () => {
+        const expiredTrials = await this.prisma.subscription.findMany({
+          where: {
+            currentPeriodEnd: { lt: now },
+            status: SubscriptionStatus.TRIALING,
+          },
+          select: {
+            id: true,
+            clinicId: true,
+          },
+        });
+
+        for (const trial of expiredTrials) {
+          const periodStart = new Date();
+          const periodEnd = new Date(
+            periodStart.getTime() +
+              this.starterFallbackPeriodDays * 24 * 60 * 60 * 1000,
+          );
+
+          await this.prisma.subscription.update({
+            where: { id: trial.id },
+            data: {
+              plan: ClinicTier.STARTER,
+              billingCycle: BillingCycle.MONTHLY,
+              basePriceCents: 0,
+              status: SubscriptionStatus.ACTIVE,
+              currentPeriodStart: periodStart,
+              currentPeriodEnd: periodEnd,
+              trialEnd: null,
+              includedPatients: TIER_LIMITS.STARTER.patients,
+              includedAppointments: TIER_LIMITS.STARTER.appointments,
+              includedStorageGB: TIER_LIMITS.STARTER.storageGB,
+              includedUsers: TIER_LIMITS.STARTER.users,
+              cancelAtPeriodEnd: false,
+              cancelledAt: null,
+            },
+          });
+
+          await this.prisma.clinic.update({
+            where: { id: trial.clinicId },
+            data: {
+              tier: ClinicTier.STARTER,
+              subscriptionStatus: SubscriptionStatus.ACTIVE,
+              trialEndsAt: null,
+            },
+          });
+        }
+
+        if (expiredTrials.length > 0) {
+          this.logger.log(
+            `Converted ${expiredTrials.length} expired trial subscription(s) to STARTER`,
+          );
+        }
+
         const lapsed = await this.prisma.subscription.findMany({
           where: {
             currentPeriodEnd: { lt: now },

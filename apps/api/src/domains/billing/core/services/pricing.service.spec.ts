@@ -47,4 +47,38 @@ describe('PricingService', () => {
       referralCredits: expect.any(Number),
     });
   });
+
+  it('should treat enterprise pricing as custom when DB tier rows are present', async () => {
+    (
+      prismaService.tierPricing.findMany as jest.Mock<
+        (...args: unknown[]) => Promise<unknown>
+      >
+    ).mockResolvedValue([
+      {
+        tier: 'CORE',
+        monthlyBasePriceCents: 99900,
+        includedAppointments: 500,
+        includedUsers: 5,
+        overageAppointmentCents: 1200,
+        overageUserCents: 25000,
+        features: [],
+      },
+      {
+        tier: 'ENTERPRISE',
+        monthlyBasePriceCents: 0,
+        includedAppointments: 999999,
+        includedUsers: 999,
+        overageAppointmentCents: 0,
+        overageUserCents: 0,
+        features: [],
+      },
+    ]);
+
+    const config = await service.getPricingConfig('INR');
+    const enterprise = config.tiers.find((tier) => tier.id === 'ENTERPRISE');
+
+    expect(enterprise).toBeDefined();
+    expect(enterprise?.pricing.monthly).toBe('custom');
+    expect(enterprise?.pricing.yearly).toBe('custom');
+  });
 });
