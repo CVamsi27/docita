@@ -92,11 +92,19 @@ export function CommandPalette() {
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
   const { canAccess } = usePermissionStore();
+  const canAccessQueueApi = canAccessTarget(
+    APP_ACCESS_TARGETS.API_QUEUE,
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+    },
+    "read",
+  );
   const startConsultation = useStartConsultation();
   const doctorQueue = useQueueByDoctor(
-    canStartConsultation ? user?.id : undefined,
+    canStartConsultation && canAccessQueueApi ? user?.id : undefined,
     undefined,
-    open && canStartConsultation && !!user?.id,
+    open && canStartConsultation && canAccessQueueApi && !!user?.id,
   );
 
   useEffect(() => {

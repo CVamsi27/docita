@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,13 +10,6 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
 import { Switch } from "@workspace/ui/components/switch";
 import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
@@ -67,16 +60,10 @@ export function PricingDialog({
   };
 
   const { currency: detectedCurrency } = useLocaleCurrency();
-  const [currency, setCurrency] = useState<SupportedCurrency>(
-    initialCurrency ?? detectedCurrency,
-  );
+  const currency: SupportedCurrency = initialCurrency ?? detectedCurrency;
   const [isYearly, setIsYearly] = useState(false);
 
   const { pricingConfig } = usePricingConfig(currency);
-
-  useEffect(() => {
-    setCurrency(initialCurrency ?? detectedCurrency);
-  }, [initialCurrency, detectedCurrency]);
 
   const tiers: TierName[] = PRICING_DIALOG_TIERS;
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
@@ -128,25 +115,11 @@ export function PricingDialog({
         </DialogHeader>
         {}
         <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-b border-border/50">
-          <div className="flex items-center gap-3">
-            <Label htmlFor="currency" className="text-sm font-medium">
-              Currency:
-            </Label>
-            <Select
-              value={currency}
-              onValueChange={(v) => setCurrency(v as SupportedCurrency)}
-            >
-              <SelectTrigger className="w-32 bg-background/50 backdrop-blur-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(PRICING_CURRENCY_CONFIG).map(([code, cfg]) => (
-                  <SelectItem key={code} value={code}>
-                    {cfg.symbol} {code}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Auto currency:</span>
+            <Badge variant="outline">
+              {currencyConfig.symbol} {currency}
+            </Badge>
           </div>
 
           <div className="flex items-center gap-3">
@@ -186,7 +159,7 @@ export function PricingDialog({
         </div>
 
         {}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 py-4">
+        <div className="flex flex-wrap justify-center gap-4 py-4">
           {tiers.map((tierName, index) => {
             const info = TIER_INFO[tierName];
             const tierPricing = getTierPricing(tierName);
@@ -199,6 +172,7 @@ export function PricingDialog({
             const tierFeatures = getTierFeatures(tierName);
 
             const price = isYearly ? tierPricing.yearly : tierPricing.monthly;
+            const isCustomTier = tierName === "ENTERPRISE" || price === "custom";
             const monthlyEquivalent =
               isYearly && typeof price === "number" ? price / 12 : price;
 
@@ -207,7 +181,7 @@ export function PricingDialog({
                 key={tierName}
                 style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
-                  "relative flex flex-col rounded-xl border-2 p-4",
+                  "relative flex w-full max-w-[280px] flex-col rounded-xl border-2 p-4",
                   "bg-linear-to-br backdrop-blur-sm",
                   "transition-all duration-300 ease-out",
                   "hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4",
@@ -246,7 +220,7 @@ export function PricingDialog({
                   key={isYearly ? "yearly" : "monthly"}
                   className="mb-4 animate-in fade-in slide-in-from-left-2 duration-200"
                 >
-                  {price === "custom" ? (
+                  {isCustomTier ? (
                     <div className="text-2xl font-bold">Custom</div>
                   ) : (
                     <>
@@ -268,6 +242,10 @@ export function PricingDialog({
                 </div>
 
                 {(() => {
+                  if (tierName === "ENTERPRISE") {
+                    return null;
+                  }
+
                   const estimate = estimateByTier[tierName];
                   const estimateValue =
                     estimate && typeof estimate.totalMonthly === "number"

@@ -12,6 +12,7 @@ import { useUnreadNotificationCount } from "@/hooks/api/use-notifications";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { APP_ACCESS_TARGETS } from "@workspace/types";
 import {
   navItems,
   mobileOnlyNavItems,
@@ -22,8 +23,17 @@ export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const { data: unreadNotificationCount } = useUnreadNotificationCount();
   const { canAccess } = usePermissionStore();
+  const canAccessNotifications = canAccessTarget(
+    APP_ACCESS_TARGETS.API_WHATSAPP,
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+    },
+    "read",
+  );
+  const { data: unreadNotificationCount } =
+    useUnreadNotificationCount(canAccessNotifications);
   const notificationCount = unreadNotificationCount?.count ?? 0;
 
   const filteredNavItems = navItems.filter((item: NavItem) => {
@@ -45,7 +55,12 @@ export function MobileNav() {
     return true;
   });
 
-  const allMobileItems = [...filteredNavItems, ...mobileOnlyNavItems];
+  const filteredMobileOnlyItems = canAccessNotifications
+    ? mobileOnlyNavItems
+    : mobileOnlyNavItems.filter(
+        (item) => !item.href.startsWith("/settings?tab=notification-feed"),
+      );
+  const allMobileItems = [...filteredNavItems, ...filteredMobileOnlyItems];
 
   return (
     <div className="lg:hidden">

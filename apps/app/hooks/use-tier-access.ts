@@ -12,7 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 const TIER_NAMES: Record<number, string> = {
-  [Tier.STARTER]: "Starter",
+  [Tier.STARTER]: "Free",
   [Tier.ESSENTIAL]: "Essential",
   [Tier.PROFESSIONAL]: "Professional",
   [Tier.ENTERPRISE]: "Enterprise",
@@ -119,7 +119,7 @@ export function useTierAccess() {
   return {
     currentTier: subscription?.tier ?? ("STARTER" as TierName),
     currentTierValue,
-    currentTierName: TIER_NAMES[currentTierValue] || "Starter",
+    currentTierName: TIER_NAMES[currentTierValue] || "Free",
     hasIntelligence,
     isSubscriptionActive,
     hasTier,

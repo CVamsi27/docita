@@ -185,7 +185,7 @@ Please contact me with deployment and commercial details.`;
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="flex flex-wrap justify-center gap-4">
           {featuresByTier
             .filter((t) => DISPLAY_TIERS.includes(Tier[t.tier] as string))
             .map(({ tier, info, features }) => {
@@ -206,7 +206,7 @@ Please contact me with deployment and commercial details.`;
                 <div
                   key={tier}
                   className={cn(
-                    "relative flex flex-col",
+                    "relative flex w-full max-w-[340px] flex-col",
                     tierName === "ESSENTIAL" && "order-first md:order-none",
                   )}
                 >

@@ -102,6 +102,9 @@ export function SettingsPageUI({
   firstMatchingTab,
 }: SettingsPageUIProps) {
   const { logout } = useAuth();
+  const visibleTabValues = new Set(
+    filteredTabs.flatMap((category) => category.items.map((item) => item.value)),
+  );
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6 pb-24">
@@ -186,75 +189,99 @@ export function SettingsPageUI({
         </aside>
 
         <div className="flex-1 min-w-0">
-          <TabsContent value="general" className="mt-0 space-y-6">
-            <RoleGuard requiredPermission="manageClinic">
-              <ClinicGeneralSettings />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("general") && (
+            <TabsContent value="general" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageClinic">
+                <ClinicGeneralSettings />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="subscription" className="mt-0 space-y-6">
-            <RoleGuard requiredPermission="manageBilling">
-              <SubscriptionSettingsLazy />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("subscription") && (
+            <TabsContent value="subscription" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageBilling">
+                <SubscriptionSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="members" className="mt-0 space-y-6">
-            <RoleGuard requiredPermission="manageStaff">
-              <MemberManagementSettingsLazy />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("members") && (
+            <TabsContent value="members" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageStaff">
+                <MemberManagementSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="availability" className="mt-0 space-y-6">
-            <RoleGuard requiredRole="DOCTOR">
-              <DoctorAvailabilitySettingsLazy />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("availability") && (
+            <TabsContent value="availability" className="mt-0 space-y-6">
+              <RoleGuard requiredRole="DOCTOR">
+                <DoctorAvailabilitySettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="queue" className="mt-0 space-y-6">
-            <RoleGuard requiredPermission="manageClinic">
-              <QueueSettings />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("queue") && (
+            <TabsContent value="queue" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageClinic">
+                <QueueSettings />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="prescriptions" className="mt-0 space-y-6">
-            <RoleGuard requiredPermission="createPrescription">
-              <PrescriptionDefaultsSettingsContainer />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("prescriptions") && (
+            <TabsContent value="prescriptions" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="createPrescription">
+                <PrescriptionDefaultsSettingsContainer />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="reminders" className="mt-0">
-            <RoleGuard requiredPermission="manageClinic">
-              <ReminderSettings />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("reminders") && (
+            <TabsContent value="reminders" className="mt-0">
+              <RoleGuard requiredPermission="manageClinic">
+                <ReminderSettings />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="whatsapp" className="mt-0">
-            <RoleGuard requiredPermission="manageClinic">
-              <WhatsAppAutomationSettings />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("whatsapp") && (
+            <TabsContent value="whatsapp" className="mt-0">
+              <RoleGuard requiredPermission="manageClinic">
+                <WhatsAppAutomationSettings />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="notifications" className="mt-0">
-            <RoleGuard requiredPermission="manageClinic">
-              <NotificationSettings />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("notifications") && (
+            <TabsContent value="notifications" className="mt-0">
+              <RoleGuard requiredPermission="manageClinic">
+                <NotificationSettings />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="security" className="mt-0">
-            <RoleGuard requiredPermission="manageClinic">
-              <SecuritySettings />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("security") && (
+            <TabsContent value="security" className="mt-0">
+              <RoleGuard requiredPermission="manageClinic">
+                <SecuritySettings />
+              </RoleGuard>
+            </TabsContent>
+          )}
 
-          <TabsContent value="appearance" className="mt-0">
-            <AppearanceSettings />
-          </TabsContent>
+          {visibleTabValues.has("appearance") && (
+            <TabsContent value="appearance" className="mt-0">
+              <AppearanceSettings />
+            </TabsContent>
+          )}
 
-          <TabsContent value="leave" className="mt-0 space-y-6">
-            <RoleGuard requiredRole="DOCTOR">
-              <LeaveManagementSettingsLazy />
-            </RoleGuard>
-          </TabsContent>
+          {visibleTabValues.has("leave") && (
+            <TabsContent value="leave" className="mt-0 space-y-6">
+              <RoleGuard requiredRole="DOCTOR">
+                <LeaveManagementSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
         </div>
       </Tabs>
     </div>

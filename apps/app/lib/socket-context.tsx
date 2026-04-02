@@ -27,8 +27,13 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  const logoutRef = useRef(logout);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const authRecoveryInFlightRef = useRef(false);
+
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
 
   const reconnectSocket = useCallback((newToken: string) => {
     if (socketRef.current) {
@@ -71,6 +76,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated || !token) {
       if (socketRef.current) {
         socketRef.current.disconnect();
+        socketRef.current = null;
         setSocket(null);
         setIsConnected(false);
       }
@@ -122,7 +128,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         void (async () => {
           const recovered = await recoverSocketAuth();
           if (!recovered) {
-            logout();
+            await logoutRef.current();
             socketInstance.disconnect();
           }
         })();
@@ -133,7 +139,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       void (async () => {
         const recovered = await recoverSocketAuth();
         if (!recovered) {
-          logout();
+          await logoutRef.current();
           socketInstance.disconnect();
         }
       })();
@@ -149,11 +155,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       socketInstance.disconnect();
+      if (socketRef.current === socketInstance) {
+        socketRef.current = null;
+      }
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
     };
-  }, [token, isAuthenticated, logout, reconnectSocket, recoverSocketAuth]);
+  }, [token, isAuthenticated, reconnectSocket, recoverSocketAuth]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, reconnect }}>

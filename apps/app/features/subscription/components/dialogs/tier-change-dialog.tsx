@@ -96,6 +96,10 @@ export function TierChangeDialog({
   );
   const currentPrice = currentTierData?.pricing?.monthly ?? 0;
   const selectedPrice = selectedTierData?.pricing?.monthly ?? 0;
+  const currentHasCustomPricing =
+    currentTierName === "ENTERPRISE" || currentPrice === "custom";
+  const selectedHasCustomPricing =
+    selectedTier === "ENTERPRISE" || selectedPrice === "custom";
 
   const formatPrice = (price: number | "custom") => {
     if (price === "custom") return "Custom";
@@ -108,7 +112,10 @@ export function TierChangeDialog({
   };
 
   const priceDiff =
-    typeof currentPrice === "number" && typeof selectedPrice === "number"
+    !currentHasCustomPricing &&
+    !selectedHasCustomPricing &&
+    typeof currentPrice === "number" &&
+    typeof selectedPrice === "number"
       ? selectedPrice - currentPrice
       : null;
 
@@ -185,7 +192,7 @@ export function TierChangeDialog({
                 </div>
                 <span className="text-sm font-medium">{currentInfo.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {typeof currentPrice === "number"
+                  {!currentHasCustomPricing && typeof currentPrice === "number"
                     ? `${formatPrice(currentPrice)}/mo`
                     : "Custom"}
                 </span>
@@ -233,7 +240,8 @@ export function TierChangeDialog({
                 </div>
                 <span className="text-sm font-medium">{selectedInfo.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {typeof selectedPrice === "number"
+                  {!selectedHasCustomPricing &&
+                  typeof selectedPrice === "number"
                     ? `${formatPrice(selectedPrice)}/mo`
                     : "Custom"}
                 </span>

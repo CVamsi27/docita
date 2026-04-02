@@ -111,13 +111,16 @@ function categorizeNotifications(
 interface NotificationPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  enabled?: boolean;
 }
 
 export function NotificationPanel({
   open,
   onOpenChange,
+  enabled = true,
 }: NotificationPanelProps) {
-  const { data: notifications = [], refetch } = useNotifications();
+  const queryEnabled = enabled && open;
+  const { data: notifications = [], refetch } = useNotifications(queryEnabled);
   const markRead = useMarkNotificationRead();
   const deleteAll = useDeleteAllNotifications();
   const queryClient = useQueryClient();
@@ -125,7 +128,7 @@ export function NotificationPanel({
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !enabled) return;
 
     const handleNewNotification = (notification: StaffNotification) => {
       queryClient.setQueryData<StaffNotification[]>(
@@ -170,7 +173,7 @@ export function NotificationPanel({
       socket.off("notification:deleted", handleNotificationDeleted);
       socket.off("notification:bulk-delete", handleBulkDelete);
     };
-  }, [socket, queryClient, refetch]);
+  }, [enabled, socket, queryClient, refetch]);
 
   const handleMarkRead = async (id: string) => {
     await markRead.mutateAsync({ id });

@@ -9,6 +9,9 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useQueueByDoctor, useStartConsultation } from "@/hooks/api/use-appointments";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { usePermissionStore } from "@/lib/stores/permission-store";
+import { canAccessTarget } from "@/lib/access-policy";
+import { APP_ACCESS_TARGETS } from "@workspace/types";
 
 interface FloatingStartConsultationProps {
   patientId?: string;
@@ -26,9 +29,23 @@ export function FloatingStartConsultation({
   const router = useRouter();
   const { canStartConsultation } = usePermissions();
   const { user } = useAuth();
+  const { canAccess } = usePermissionStore();
   const startConsultation = useStartConsultation();
   const [isMinimized, setIsMinimized] = useState(minimized);
-  const queueEnabled = canStartConsultation && !appointmentId && !patientId && !!user?.id;
+  const canAccessQueueApi = canAccessTarget(
+    APP_ACCESS_TARGETS.API_QUEUE,
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+    },
+    "read",
+  );
+  const queueEnabled =
+    canStartConsultation &&
+    canAccessQueueApi &&
+    !appointmentId &&
+    !patientId &&
+    !!user?.id;
   const { data: doctorQueue } = useQueueByDoctor(
     user?.id,
     undefined,

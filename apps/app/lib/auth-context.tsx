@@ -134,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
+  const hasInitializedSessionRef = useRef(false);
 
   const persistToken = useCallback((nextToken: string | null) => {
     setToken(nextToken);
@@ -156,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return refreshed;
   }, [persistToken]);
 
-  const validateAuthMutation = useMutation({
+  const { mutateAsync: validateAuth } = useMutation({
     mutationFn: (headers?: HeadersInit) =>
       apiFetch<{ user: User }>("/auth/validate", {
         method: "GET",
@@ -197,6 +198,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    if (hasInitializedSessionRef.current) {
+      return;
+    }
+    hasInitializedSessionRef.current = true;
+
     const cachedUser = getStoredUser();
     if (cachedUser) {
       setUser(cachedUser);
@@ -209,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const validateSession = async () => {
       try {
-        const data = await validateAuthMutation.mutateAsync(undefined);
+        const data = await validateAuth(undefined);
         if (data?.user) {
           setUser(data.user);
           setUserRole(data.user.role);
@@ -224,7 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const refreshed = await refreshAccessToken();
         if (refreshed) {
           try {
-            const retryData = await validateAuthMutation.mutateAsync(undefined);
+            const retryData = await validateAuth(undefined);
             if (retryData?.user) {
               setUser(retryData.user);
               setUserRole(retryData.user.role);
@@ -241,8 +247,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    validateSession();
-  }, [clearSession, refreshAccessToken, setUserRole, validateAuthMutation]);
+    void validateSession();
+  }, [refreshAccessToken, setUserRole, validateAuth]);
 
   // Listen for auth changes in other tabs/windows and update in-memory state
   useEffect(() => {
@@ -278,7 +284,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
       };
 
-      const data = await validateAuthMutation.mutateAsync(headers);
+      const data = await validateAuth(headers);
       if (data?.user) {
         setUser(data.user);
         setUserRole(data.user.role);
@@ -288,7 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const refreshed = await refreshAccessToken();
       if (refreshed) {
-        const retryData = await validateAuthMutation.mutateAsync(headers);
+        const retryData = await validateAuth(headers);
         if (retryData?.user) {
           setUser(retryData.user);
           setUserRole(retryData.user.role);
@@ -310,7 +316,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let userData = authPayload?.user ?? null;
 
     if (!userData) {
-      const validateData = await validateAuthMutation.mutateAsync({
+      const validateData = await validateAuth({
         "Content-Type": "application/json",
       });
       userData = validateData?.user ?? null;
@@ -396,7 +402,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let userData = authPayload?.user ?? null;
 
     if (!userData) {
-      const validateData = await validateAuthMutation.mutateAsync({
+      const validateData = await validateAuth({
         "Content-Type": "application/json",
       });
       userData = validateData?.user ?? null;

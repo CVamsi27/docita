@@ -3,15 +3,22 @@ import { useSearchParams } from "next/navigation";
 import { settingsTabs } from "@/features/settings/constants";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
+import { usePermissionStore } from "@/lib/stores/permission-store";
 import { APP_ACCESS_TARGETS, type AppAccessTarget } from "@workspace/types";
 
 const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
   subscription: APP_ACCESS_TARGETS.PAGE_SETTINGS_SUBSCRIPTION,
+  availability: APP_ACCESS_TARGETS.API_APPOINTMENTS,
+  queue: APP_ACCESS_TARGETS.API_QUEUE,
+  prescriptions: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS,
+  whatsapp: APP_ACCESS_TARGETS.API_WHATSAPP,
 };
 
 export const useSettingsLogic = () => {
   const searchParams = useSearchParams();
   const { user } = useAuth();
+  const canAccessFeature = usePermissionStore((state) => state.canAccess);
+  const canAccessTier = usePermissionStore((state) => state.canAccessTier);
   const requestedTab = searchParams.get("tab") || "general";
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -23,7 +30,15 @@ export const useSettingsLogic = () => {
         items: category.items.filter((item) => {
           const accessTarget = SETTINGS_TAB_ACCESS_TARGETS[item.value];
           if (accessTarget) {
-            return canAccessTarget(accessTarget, { role: user?.role });
+            return canAccessTarget(
+              accessTarget,
+              {
+                role: user?.role,
+                canAccessFeature,
+                canAccessTier,
+              },
+              "read",
+            );
           }
 
           if (!("roles" in item) || !item.roles) return true;
@@ -45,7 +60,7 @@ export const useSettingsLogic = () => {
         ),
       }))
       .filter((category) => category.items.length > 0);
-  }, [searchQuery, user]);
+  }, [canAccessFeature, canAccessTier, searchQuery, user]);
 
   const firstMatchingTab = filteredTabs[0]?.items[0]?.value;
 

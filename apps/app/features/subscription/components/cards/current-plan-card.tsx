@@ -21,6 +21,13 @@ interface CurrentPlanCardProps {
   canChangeTier: boolean;
   onChangePlan: () => void;
   onViewBillingHistory: () => void;
+  statusNotice?: {
+    title: string;
+    description: string;
+    badgeLabel?: string;
+    actionLabel?: string;
+    onAction?: () => void;
+  };
 }
 
 const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
@@ -48,11 +55,12 @@ const TIER_COLOR_MAP: Record<string, { gradient: string; badge: string }> = {
 
 export function CurrentPlanCard({
   tierInfo,
-  currentTier,
+  currentTier: _currentTier,
   hasIntelligence,
   canChangeTier,
   onChangePlan,
   onViewBillingHistory,
+  statusNotice,
 }: CurrentPlanCardProps) {
   const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
 
@@ -79,11 +87,41 @@ export function CurrentPlanCard({
             variant="secondary"
             className={cn("text-sm px-3 py-1", colors.badge)}
           >
-            Tier {currentTier}
+            Current Plan
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {statusNotice && (
+          <div className="rounded-lg border bg-background/70 p-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold">{statusNotice.title}</p>
+                  {statusNotice.badgeLabel && (
+                    <Badge variant="outline" className="text-[11px]">
+                      {statusNotice.badgeLabel}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {statusNotice.description}
+                </p>
+              </div>
+              {statusNotice.actionLabel && statusNotice.onAction && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={statusNotice.onAction}
+                  className="self-start sm:self-auto"
+                >
+                  {statusNotice.actionLabel}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         {hasIntelligence && (
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" />

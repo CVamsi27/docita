@@ -39,25 +39,52 @@ function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isDoctor = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const isVerificationAllowedPath = VERIFICATION_ALLOWED_PATHS.some((p) =>
+    pathname?.startsWith(p),
+  );
 
-  const { data: doctorProfile, isLoading: profileLoading } =
+  const {
+    data: doctorProfile,
+    isLoading: profileLoading,
+    isFetching: profileFetching,
+    isError: profileError,
+  } =
     useAPIQuery<User>(
       ["doctor-profile", user?.id ?? ""],
       `/doctors/${user?.id}`,
       { enabled: !!user?.id && isDoctor, staleTime: 5 * 60 * 1000 },
     );
 
+  const needsVerification =
+    !!doctorProfile &&
+    (!doctorProfile.signatureUrl || !doctorProfile.registrationNumber);
+
+  const shouldRedirectToVerify =
+    !!user && isDoctor && needsVerification && !isVerificationAllowedPath;
+
   useEffect(() => {
     if (!user || !isDoctor || profileLoading) return;
     if (!doctorProfile) return;
-    const needsVerification = !doctorProfile.signatureUrl || !doctorProfile.registrationNumber;
-    if (
-      needsVerification &&
-      !VERIFICATION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
-    ) {
+    if (shouldRedirectToVerify) {
       router.replace("/verify-doctor");
     }
-  }, [user, isDoctor, doctorProfile, profileLoading, pathname, router]);
+  }, [user, isDoctor, doctorProfile, profileLoading, router, shouldRedirectToVerify]);
+
+  const isCheckingVerification =
+    !!user &&
+    isDoctor &&
+    !isVerificationAllowedPath &&
+    !profileError &&
+    (profileLoading || (profileFetching && !doctorProfile));
+
+  if (isCheckingVerification || shouldRedirectToVerify) {
+    return (
+      <PageTransitionLoader
+        title="Checking your profile..."
+        description="Verifying your doctor profile before loading your workspace."
+      />
+    );
+  }
 
   return <>{children}</>;
 }
@@ -147,11 +174,14 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
+  const wasSettingsRouteRef = useRef(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
 
   useEffect(() => {
     if (isLoading) return;
@@ -173,6 +203,16 @@ export default function ProtectedLayout({
       }
     }
   }, [isLoading, user, router]);
+
+  useEffect(() => {
+    const wasSettingsRoute = wasSettingsRouteRef.current;
+    wasSettingsRouteRef.current = isSettingsRoute;
+
+    if (isSettingsRoute && !wasSettingsRoute) {
+      sidebarPanelRef.current?.collapse();
+      setIsCollapsed(true);
+    }
+  }, [isSettingsRoute]);
 
   if (isLoading) {
     return (

@@ -20,7 +20,6 @@ import {
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useSubscription } from "@/hooks/api/use-settings";
-import { usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   type CheckoutSuccessData,
@@ -32,11 +31,7 @@ import { CurrentPlanCard } from "@/features/subscription/components/cards/curren
 import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
 import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
 import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
-import { TierCard } from "@/features/subscription/components/cards/tier-card";
-import {
-  PricingDialog,
-  PaymentSuccessModal,
-} from "@/features/subscription/components";
+import { PaymentSuccessModal } from "@/features/subscription/components";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   Card,
@@ -48,11 +43,6 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible";
-import {
   Table,
   TableBody,
   TableCell,
@@ -60,7 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import { AlertTriangle, ChevronDown, Clock, Download, FileText, Loader2, XCircle } from "lucide-react";
+import { AlertTriangle, Clock, Download, FileText, Loader2, XCircle } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
@@ -221,15 +211,12 @@ export function SubscriptionSettings() {
   const { currentTier } = usePermissionStore();
   const { data: subscription, isLoading } = useSubscription();
   const billingHistoryRef = useRef<HTMLDivElement>(null);
-  const [showPricingDialog, setShowPricingDialog] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successData, setSuccessData] = useState<CheckoutSuccessData>({
     planName: "",
   });
-  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const { currency } = useLocaleCurrency();
-  const { pricingConfig } = usePricingConfig(currency);
   const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
   useSubscriptionCheckout((data) => {
     setSuccessData(data);
@@ -318,13 +305,6 @@ export function SubscriptionSettings() {
           currencyKey as SupportedCurrency,
         ).overageRate
       : 0;
-
-  const allTiers = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE];
-  const currentTierIndex = allTiers.indexOf(currentTier);
-  const miniGridTiers = allTiers.slice(
-    Math.min(currentTierIndex, allTiers.length - 3),
-    Math.min(currentTierIndex, allTiers.length - 3) + 3,
-  );
 
   const trialDaysLeft =
     subscriptionStatus === "TRIALING" && subscription?.currentPeriodEnd
@@ -523,76 +503,31 @@ export function SubscriptionSettings() {
         </Card>
       )}
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold">Compare Plans</h3>
-          <Button
-            variant="link"
-            size="sm"
-            className="text-muted-foreground"
-            onClick={() => setShowPricingDialog(true)}
-          >
-            View all plans →
-          </Button>
-        </div>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-          {miniGridTiers.map((tier) => {
-            const info = getTierInfo(tier);
-            const thisTierName = getTierName(tier) as TierName;
-            const tierPricingData = pricingConfig?.tiers.find(
-              (t) => t.id === thisTierName,
-            );
-            const features = Object.entries(FEATURE_TIER_MAP)
-              .filter(([, requiredTier]) => requiredTier === tier)
-              .map(([feature]) => ({
-                feature: feature as Feature,
-                details: getFeatureDetails(feature as Feature),
-                hasAccess: tier <= currentTier,
-              }))
-              .filter((item) => !item.details.comingSoon);
-            const sym = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
-            return (
-              <TierCard
-                key={tier}
-                tier={tier}
-                info={info}
-                features={features}
-                isCurrentTier={tier === currentTier}
-                isLocked={tier > currentTier}
-                currentTierValue={currentTier}
-                pricing={tierPricingData?.pricing}
-                billingCycle="MONTHLY"
-                currencySymbol={sym}
-                onSelect={
-                  tier !== currentTier
-                    ? () => router.push("/upgrade")
-                    : undefined
-                }
-              />
-            );
-          })}
-        </div>
-
-        <Collapsible open={comparisonOpen} onOpenChange={setComparisonOpen}>
-          <CollapsibleTrigger asChild>
+      <Card className="border-none shadow-lg">
+        <CardHeader>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle>Full Feature Comparison</CardTitle>
+              <CardDescription>
+                Your current plan is{" "}
+                <span className="font-medium">{currentTierInfo.name}</span>.
+                For plan pricing, upgrade, and downgrade options, use the
+                Upgrade page.
+              </CardDescription>
+            </div>
             <Button
-              variant="ghost"
-              className="w-full justify-between border border-border/50 rounded-lg px-4 py-3 h-auto"
+              variant="outline"
+              className="self-start md:self-auto"
+              onClick={() => router.push("/upgrade")}
             >
-              <span className="text-sm font-medium">Show full feature comparison</span>
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
-                  comparisonOpen && "rotate-180",
-                )}
-              />
+              Open Upgrade Page
             </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2">
-            <ComparisonTable currentTier={currentTier} keyFeaturesOnly />
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ComparisonTable currentTier={currentTier} />
+        </CardContent>
+      </Card>
 
       <Card ref={billingHistoryRef} className="border-none shadow-lg">
         <CardHeader>
@@ -608,16 +543,6 @@ export function SubscriptionSettings() {
         </CardContent>
       </Card>
 
-      <PricingDialog
-        open={showPricingDialog}
-        onOpenChange={setShowPricingDialog}
-        currentTier={currentTier}
-        initialCurrency={currency}
-        onSelectTier={(tier, cycle) => {
-          setShowPricingDialog(false);
-          router.push(`/upgrade?tier=${tier}&cycle=${cycle}`);
-        }}
-      />
       <PaymentSuccessModal
         open={showSuccessModal}
         onOpenChange={setShowSuccessModal}

@@ -41,6 +41,7 @@ import {
 } from "@/hooks/use-subscription-checkout";
 import { usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import { useSubscription } from "@/hooks/api/use-settings";
 import { APP_ACCESS_TARGETS, type TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -86,6 +87,28 @@ export default function UpgradePage() {
   );
   const { currency } = useLocaleCurrency();
   const { pricingConfig } = usePricingConfig(currency);
+  const { data: subscription } = useSubscription({ enabled: canAccessPage });
+
+  const subscriptionStatus = subscription?.subscriptionStatus;
+  const subscriptionPeriodEnd = subscription?.currentPeriodEnd
+    ? new Date(subscription.currentPeriodEnd)
+    : null;
+  const daysLeftInPeriod =
+    subscriptionPeriodEnd !== null
+      ? Math.max(
+          0,
+          Math.ceil(
+            (subscriptionPeriodEnd.getTime() - Date.now()) /
+              (1000 * 60 * 60 * 24),
+          ),
+        )
+      : null;
+  const isTrialing = subscriptionStatus === "TRIALING";
+  const isTrialExpired =
+    isTrialing && subscriptionPeriodEnd !== null
+      ? subscriptionPeriodEnd.getTime() <= Date.now()
+      : false;
+  const effectiveCurrentTier = isTrialExpired ? Tier.STARTER : currentTier;
 
   useEffect(() => {
     if (user && !canAccessPage) {
@@ -108,7 +131,7 @@ export default function UpgradePage() {
     await checkoutTier({ tier: selectedTier, billingCycle: selectedCycle });
   }, [selectedTier, selectedCycle, checkoutTier]);
 
-  const currentTierInfo = getTierInfo(currentTier);
+  const currentTierInfo = getTierInfo(effectiveCurrentTier);
 
   const featuresByTier = Object.values(Tier)
     .filter((t): t is Tier => typeof t === "number")
@@ -117,16 +140,16 @@ export default function UpgradePage() {
       info: getTierInfo(tier),
       features: Object.entries(FEATURE_TIER_MAP)
         .filter(([, requiredTier]) => requiredTier === tier)
-        .map(([feature]) => ({
+        .map(([feature, requiredTier]) => ({
           feature: feature as Feature,
           details: getFeatureDetails(feature as Feature),
-          hasAccess: canAccess(feature as Feature),
+          hasAccess: effectiveCurrentTier >= requiredTier,
         }))
         .filter((entry) => !entry.details.comingSoon),
     }));
 
   const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
-    .filter(([feature]) => !canAccess(feature as Feature))
+    .filter(([, requiredTier]) => requiredTier > effectiveCurrentTier)
     .map(([feature, requiredTier]) => ({
       feature: feature as Feature,
       requiredTier,
@@ -143,7 +166,20 @@ export default function UpgradePage() {
     .filter((entry) => entry.details.comingSoon)
     .sort((a, b) => a.requiredTier - b.requiredTier);
 
-  const nextTier = currentTier < Tier.ENTERPRISE ? currentTier + 1 : null;
+  const nextTier =
+    effectiveCurrentTier < Tier.ENTERPRISE ? effectiveCurrentTier + 1 : null;
+  const currentPlanStatusNotice =
+    isTrialing || isTrialExpired
+      ? {
+          title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
+          badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
+          description: isTrialExpired
+            ? "Your trial has ended and your clinic is now on the Free plan. Upgrade to continue paid features."
+            : daysLeftInPeriod !== null && daysLeftInPeriod > 0
+              ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
+              : "Your trial ends today. Upgrade anytime to keep paid features active.",
+        }
+      : undefined;
 
   if (!user || !canAccessPage) {
     return (
@@ -174,11 +210,12 @@ export default function UpgradePage() {
 
         <CurrentPlanCard
           tierInfo={currentTierInfo}
-          currentTier={currentTier}
+          currentTier={effectiveCurrentTier}
           hasIntelligence={false}
           canChangeTier={canAccessPage}
           onChangePlan={() => setShowPricingDialog(true)}
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
+          statusNotice={currentPlanStatusNotice}
         />
 
         <div className="space-y-4">
@@ -248,9 +285,9 @@ export default function UpgradePage() {
                     tier={tier}
                     info={info}
                     features={features}
-                    isCurrentTier={tier === currentTier}
-                    isLocked={tier < currentTier}
-                    currentTierValue={currentTier}
+                    isCurrentTier={tier === effectiveCurrentTier}
+                    isLocked={false}
+                    currentTierValue={effectiveCurrentTier}
                     pricing={tierPricingData?.pricing}
                     billingCycle={selectedCycle}
                     currencySymbol={currencySymbol}
@@ -313,7 +350,7 @@ export default function UpgradePage() {
           </TabsList>
 
           <TabsContent value="compare" className="pt-4">
-            <ComparisonTable currentTier={currentTier} />
+            <ComparisonTable currentTier={effectiveCurrentTier} />
           </TabsContent>
 
           <TabsContent value="calculator" className="pt-4">
@@ -382,14 +419,14 @@ export default function UpgradePage() {
         <PricingDialog
           open={showPricingDialog}
           onOpenChange={setShowPricingDialog}
-          currentTier={currentTier}
+          currentTier={effectiveCurrentTier}
           onSelectTier={handleSelectTier}
           initialCurrency={currency}
         />
         <TierChangeDialog
           open={showTierChangeDialog}
           onOpenChange={setShowTierChangeDialog}
-          currentTier={currentTier}
+          currentTier={effectiveCurrentTier}
           selectedTier={selectedTier}
           onConfirm={handleConfirmTierChange}
         />

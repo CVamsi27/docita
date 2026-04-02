@@ -17,20 +17,22 @@ export interface StaffNotification {
   createdAt: Date;
 }
 
-export const useNotifications = () =>
+export const useNotifications = (enabled: boolean = true) =>
   useAPIQuery<StaffNotification[]>(
     ["notifications"],
     "/staff-notifications",
     {
+      enabled,
       refetchInterval: 30000,
     },
   );
 
-export const useUnreadNotificationCount = () =>
+export const useUnreadNotificationCount = (enabled: boolean = true) =>
   useAPIQuery<{ count: number }>(
     ["notifications", "unread-count"],
     "/staff-notifications/unread-count",
     {
+      enabled,
       refetchInterval: 10000,
     },
   );

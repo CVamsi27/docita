@@ -62,10 +62,19 @@ export function Sidebar({
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   const isAdmin = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
-  const { data: unreadNotificationCount } = useUnreadNotificationCount();
+  const { canAccess, getTierInfo, clinicType: storeClinicType } = usePermissionStore();
+  const canAccessNotifications = canAccessTarget(
+    APP_ACCESS_TARGETS.API_WHATSAPP,
+    {
+      role: user?.role,
+      canAccessFeature: canAccess,
+    },
+    "read",
+  );
+  const { data: unreadNotificationCount } =
+    useUnreadNotificationCount(canAccessNotifications);
   const { data: pendingJoinRequestData } = usePendingJoinRequestCount(isAdmin);
   const { getClinicSetting } = useAppConfig();
-  const { canAccess, getTierInfo, clinicType: storeClinicType } = usePermissionStore();
   const { isHidden, toggleItem } = useSidebarPreferences(clinicId);
 
   const notificationCount = unreadNotificationCount?.count ?? 0;
@@ -117,6 +126,16 @@ export function Sidebar({
   );
 
   const tierInfo = getTierInfo();
+  const tierIndicatorClass = cn(
+    "h-2.5 w-2.5 rounded-full ring-2 ring-background animate-pulse",
+    tierInfo.color === "gray" && "bg-muted-foreground",
+    tierInfo.color === "blue" && "bg-info",
+    tierInfo.color === "green" && "bg-success",
+    tierInfo.color === "purple" && "bg-primary",
+    tierInfo.color === "violet" && "bg-primary",
+    tierInfo.color === "orange" && "bg-warning",
+    tierInfo.color === "pink" && "bg-secondary",
+  );
 
   return (
     <aside
@@ -154,31 +173,33 @@ export function Sidebar({
       </div>
 
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
-            isCollapsed && "justify-center px-2",
-          )}
-          onClick={() => setNotificationPanelOpen(true)}
-          title={isCollapsed ? "Notifications" : undefined}
-        >
-          <div className="relative">
-            <Bell className="h-5 w-5 shrink-0" />
-            {notificationCount > 0 && (
-              <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
+        {canAccessNotifications && (
+          <Button
+            variant="ghost"
+            className={cn(
+              "group w-full justify-start gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
+              isCollapsed && "justify-center px-2",
             )}
-          </div>
-          {!isCollapsed && <span>Notifications</span>}
-          {!isCollapsed && notificationCount > 0 && (
-            <Badge
-              variant="secondary"
-              className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
-            >
-              {notificationCount > 9 ? "9+" : notificationCount}
-            </Badge>
-          )}
-        </Button>
+            onClick={() => setNotificationPanelOpen(true)}
+            title={isCollapsed ? "Notifications" : undefined}
+          >
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-md bg-muted/60 transition-colors group-hover:bg-muted">
+              <Bell className="h-4 w-4 shrink-0" />
+              {notificationCount > 0 && (
+                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
+              )}
+            </div>
+            {!isCollapsed && <span>Notifications</span>}
+            {!isCollapsed && notificationCount > 0 && (
+              <Badge
+                variant="secondary"
+                className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+              >
+                {notificationCount > 9 ? "9+" : notificationCount}
+              </Badge>
+            )}
+          </Button>
+        )}
 
         {visibleNavItems.map((item) => {
           const isSettingsItem = item.href === "/settings";
@@ -194,7 +215,7 @@ export function Sidebar({
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -202,8 +223,15 @@ export function Sidebar({
               )}
               title={isCollapsed ? item.label : undefined}
             >
-              <div className="relative">
-                <item.icon className="h-5 w-5 shrink-0" />
+              <div
+                className={cn(
+                  "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                  isActive
+                    ? "bg-primary/15 text-primary"
+                    : "bg-muted/60 text-muted-foreground group-hover:bg-muted group-hover:text-foreground",
+                )}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
                 {isCollapsed && settingsBadgeCount > 0 && (
                   <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
                 )}
@@ -238,37 +266,40 @@ export function Sidebar({
       {isAdmin && (
         <div className="border-t px-2 py-2">
           <div className="space-y-3 p-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
-                  Plan
-                </p>
-                {!isCollapsed && (
-                  <p className="text-sm font-medium truncate">{tierInfo.name}</p>
-                )}
-              </div>
-              {!isCollapsed && (
-                <div
-                  className={cn(
-                    "h-2 w-2 rounded-full",
-                    tierInfo.color === "gray" && "bg-muted-foreground",
-                    tierInfo.color === "blue" && "bg-info",
-                    tierInfo.color === "green" && "bg-success",
-                    tierInfo.color === "purple" && "bg-primary",
-                    tierInfo.color === "violet" && "bg-primary",
-                    tierInfo.color === "orange" && "bg-warning",
-                    tierInfo.color === "pink" && "bg-secondary",
-                  )}
-                />
+            <div
+              className={cn(
+                "flex items-center",
+                isCollapsed ? "justify-center" : "justify-between",
               )}
+            >
+              {!isCollapsed ? (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                    Plan
+                  </p>
+                  <p className="text-sm font-medium truncate">{tierInfo.name}</p>
+                </div>
+              ) : (
+                <span className="sr-only">{tierInfo.name} plan</span>
+              )}
+              <div className={tierIndicatorClass} />
             </div>
-            <div className={cn("flex gap-2", isCollapsed && "flex-col items-center")}>
+            <div
+              className={cn(
+                "flex items-center gap-2",
+                isCollapsed && "justify-center",
+              )}
+            >
               {canAccessTarget(APP_ACCESS_TARGETS.PAGE_UPGRADE, {
                 role: user?.role,
                 canAccessFeature: canAccess,
               }) && (
                 <Button
-                  className="flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  className={cn(
+                    isCollapsed
+                      ? "h-8 w-8 rounded-md bg-primary/10 p-0 text-primary hover:bg-primary/20"
+                      : "flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+                  )}
                   size="sm"
                   asChild
                 >
@@ -278,26 +309,30 @@ export function Sidebar({
                   </Link>
                 </Button>
               )}
-              {!isCollapsed && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  title="Customize sidebar"
-                  onClick={() => setCustomizeOpen(true)}
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 shrink-0",
+                  isCollapsed && "border border-border/60 bg-background hover:bg-muted",
+                )}
+                title="Customize sidebar"
+                onClick={() => setCustomizeOpen(true)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      <NotificationPanel
-        open={notificationPanelOpen}
-        onOpenChange={setNotificationPanelOpen}
-      />
+      {canAccessNotifications && (
+        <NotificationPanel
+          open={notificationPanelOpen}
+          onOpenChange={setNotificationPanelOpen}
+          enabled={canAccessNotifications}
+        />
+      )}
 
       <Sheet open={customizeOpen} onOpenChange={setCustomizeOpen}>
         <SheetContent side="left" className="w-72">
@@ -314,7 +349,9 @@ export function Sidebar({
                 className="flex items-center justify-between py-2 px-1"
               >
                 <div className="flex items-center gap-3 text-sm">
-                  <item.icon className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60">
+                    <item.icon className="h-4 w-4 text-muted-foreground" />
+                  </div>
                   <span>{item.label}</span>
                 </div>
                 <Switch
