@@ -85,7 +85,7 @@ export default function ContactPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <Link href="/" className="flex h-10 items-center">
-            <DocitaLogo iconClassName="h-7 w-7" textClassName="h-7 w-28" />
+            <DocitaLogo />
           </Link>
           <Link href="/">
             <Button variant="ghost" className="gap-2">
@@ -527,7 +527,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <DocitaLogo iconClassName="h-6 w-6" textClassName="h-6 w-24" />
+              <DocitaLogo />
             </div>
             <div className="flex gap-8 text-sm text-muted-foreground">
               <Link
