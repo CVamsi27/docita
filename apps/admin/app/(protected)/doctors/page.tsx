@@ -121,6 +121,7 @@ interface Clinic {
   id: string;
   name: string;
 }
+const EMPTY_CLINICS: Clinic[] = [];
 
 export default function DoctorsPage() {
   const { doctorSearch, selectedClinic, setDoctorSearch, setSelectedClinic } =
@@ -161,7 +162,10 @@ export default function DoctorsPage() {
     enabled: Boolean(token),
   });
 
-  const clinics = clinicsQuery.data ?? [];
+  const clinics = useMemo(
+    () => clinicsQuery.data ?? EMPTY_CLINICS,
+    [clinicsQuery.data],
+  );
 
   useEffect(() => {
     if (!selectedClinic || selectedClinic === "all") {

@@ -69,6 +69,7 @@ const ADMIN_TYPE_LABELS = {
   admin: "Clinic Admin",
   admin_doctor: "Admin Doctor",
 };
+const EMPTY_CLINICS: Clinic[] = [];
 
 export default function AdminsPage() {
   const queryClient = useQueryClient();
@@ -104,7 +105,10 @@ export default function AdminsPage() {
     enabled: Boolean(token),
   });
 
-  const clinics = clinicsQuery.data ?? [];
+  const clinics = useMemo(
+    () => clinicsQuery.data ?? EMPTY_CLINICS,
+    [clinicsQuery.data],
+  );
 
   useEffect(() => {
     if (!selectedClinic || selectedClinic === "all") {

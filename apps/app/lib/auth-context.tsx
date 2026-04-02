@@ -242,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     validateSession();
-  }, [clearSession, refreshAccessToken, setUserRole]);
+  }, [clearSession, refreshAccessToken, setUserRole, validateAuthMutation]);
 
   // Listen for auth changes in other tabs/windows and update in-memory state
   useEffect(() => {

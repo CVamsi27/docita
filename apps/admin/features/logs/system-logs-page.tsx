@@ -36,6 +36,8 @@ interface SystemLogsPageProps {
   moduleColumnWidthClass: string;
 }
 
+const EMPTY_LOGS: SystemLog[] = [];
+
 export function SystemLogsPage({
   title,
   description,
@@ -177,7 +179,10 @@ export function SystemLogsPage({
     enabled: Boolean(token),
   });
 
-  const logs = logsQuery.data?.logs ?? [];
+  const logs = useMemo(
+    () => logsQuery.data?.logs ?? EMPTY_LOGS,
+    [logsQuery.data],
+  );
   const totalCount = logsQuery.data?.total ?? 0;
   const loading = logsQuery.isLoading;
   const errorMessage = logsQuery.isError ? "Failed to fetch logs" : null;
