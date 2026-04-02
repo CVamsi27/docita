@@ -126,6 +126,9 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter @docita/app exec playwright install --with-deps
 
+      - name: Prepare API workspace packages
+        run: pnpm --filter @docita/api run predev
+
       - name: Start API server
         run: |
           pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
@@ -255,6 +258,9 @@ jobs:
 
       - name: Install Playwright browsers
         run: pnpm --filter @docita/app exec playwright install --with-deps
+
+      - name: Prepare API workspace packages
+        run: pnpm --filter @docita/api run predev
 
       - name: Start API server
         run: |
