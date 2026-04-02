@@ -27,14 +27,14 @@ export default async function Icon() {
         <img
           src={dataUrl}
           style={{
-            width: "80%",
-            height: "80%",
+            width: "88%",
+            height: "88%",
             objectFit: "contain",
             objectPosition: "center",
           }}
         />
       </div>
     ),
-    { ...size }
+    { ...size },
   );
 }

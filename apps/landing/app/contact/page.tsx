@@ -84,7 +84,7 @@ export default function ContactPage() {
       {}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex h-10 items-center">
             <DocitaLogo iconClassName="h-7 w-7" textClassName="h-7 w-28" />
           </Link>
           <Link href="/">

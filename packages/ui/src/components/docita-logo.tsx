@@ -32,31 +32,24 @@ function BrandImage({
   src,
   alt,
   className,
-  blendClassName,
+  frameClassName,
 }: {
   src: string;
   alt: string;
   className?: string;
-  blendClassName?: string;
+  frameClassName?: string;
 }) {
   return (
-    <span className="relative inline-block shrink-0 align-middle leading-none isolate overflow-visible">
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute inset-0 h-full w-full select-none object-contain",
-          blendClassName,
-        )}
-        loading="lazy"
-        decoding="async"
-        draggable={false}
-      />
+    <span
+      className={cn(
+        "relative inline-flex shrink-0 items-center justify-center align-middle leading-none isolate",
+        frameClassName,
+      )}
+    >
       <img
         src={src}
         alt={alt}
-        className={cn("relative z-10", className)}
+        className={cn("relative z-10 block", className)}
         loading="lazy"
         decoding="async"
         draggable={false}
@@ -75,8 +68,11 @@ export function DocitaIcon({
     <BrandImage
       src={src}
       alt={alt}
-      className={cn("block h-8 w-8 shrink-0 object-contain align-middle", className)}
-      blendClassName="scale-[1.025] blur-md opacity-28"
+      frameClassName="rounded-[var(--radius-xl)] shadow-[0_10px_24px_-12px_rgba(15,23,42,0.5)] dark:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.8)]"
+      className={cn(
+        "block h-9 w-9 shrink-0 rounded-[var(--radius-xl)] object-contain align-middle ring-1 ring-border/55",
+        className,
+      )}
     />
   );
 }
@@ -100,12 +96,12 @@ export function DocitaLogo({
     <BrandImage
       src={ORIGINAL_WORDMARK_ASSET}
       alt="Docita"
+      frameClassName="rounded-[var(--radius-xl)] shadow-[0_6px_16px_-14px_rgba(15,23,42,0.5)] dark:shadow-[0_6px_16px_-14px_rgba(0,0,0,0.7)]"
       className={cn(
-        "block h-8 w-auto shrink-0 rounded-xl object-contain align-middle",
+        "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",
         className,
         textClassName,
       )}
-      blendClassName="rounded-[1.15rem] blur-xl opacity-72 scale-[1.04]"
     />
   );
 }
@@ -123,12 +119,12 @@ export function DocitaLogoFull({
       <BrandImage
         src={ORIGINAL_WORDMARK_ASSET}
         alt="Docita"
+        frameClassName="rounded-[var(--radius-xl)] shadow-[0_6px_16px_-14px_rgba(15,23,42,0.5)] dark:shadow-[0_6px_16px_-14px_rgba(0,0,0,0.7)]"
         className={cn(
-          "block h-16 w-auto max-w-full rounded-2xl object-contain",
+          "block h-[4.125rem] w-auto max-w-full rounded-[var(--radius-xl)] object-contain",
           iconClassName,
           textClassName,
         )}
-        blendClassName="rounded-[1.65rem] blur-2xl opacity-72 scale-[1.04]"
       />
       {tagline && (
         <span
@@ -157,12 +153,12 @@ export function DocitaWordmark({
     <BrandImage
       src={ORIGINAL_WORDMARK_ASSET}
       alt="Docita"
+      frameClassName="rounded-[var(--radius-xl)] shadow-[0_6px_16px_-14px_rgba(15,23,42,0.5)] dark:shadow-[0_6px_16px_-14px_rgba(0,0,0,0.7)]"
       className={cn(
-        "block h-8 w-auto shrink-0 rounded-xl object-contain align-middle",
+        "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",
         className,
         textClassName,
       )}
-      blendClassName="rounded-[1.15rem] blur-xl opacity-72 scale-[1.04]"
     />
   );
 }

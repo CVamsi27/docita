@@ -11,7 +11,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-6">
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex h-10 items-center gap-2 flex-1">
           <DocitaLogo />
         </div>
 
@@ -56,7 +56,7 @@ export function SiteHeader() {
             href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`}
             className="hidden sm:inline-flex"
           >
-            <Button>Start 14-Day Free Trial</Button>
+            <Button>Start trial</Button>
           </Link>
 
           <div className="md:hidden flex items-center">
@@ -84,7 +84,7 @@ export function SiteHeader() {
                     <Button variant="outline" className="w-full">Login</Button>
                   </Link>
                   <Link href={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/onboarding`} className="w-full">
-                    <Button className="w-full">Start Free Trial</Button>
+                    <Button className="w-full">Start trial</Button>
                   </Link>
                 </div>
               </SheetContent>

@@ -15,6 +15,7 @@ import { typedApi } from '@/lib/api-client';
 import { logger } from '@/lib/logger';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { useAuth } from '@/lib/auth-context';
+import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 
 interface Clinic {
   id: string;
@@ -36,6 +37,7 @@ export default function JoinClinicPage() {
   const [requestedRole, setRequestedRole] = useState<string>('DOCTOR');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -72,7 +74,8 @@ export default function JoinClinicPage() {
 
       toast.success('Join request submitted successfully!');
       setSelectedClinic(null);
-      router.push('/join-request-status');
+      setIsRedirecting(true);
+      router.replace('/join-request-status');
     } catch (error) {
       toast.error('Failed to submit join request. Please try again.');
       logger.error('Submit error', { error });
@@ -86,6 +89,15 @@ export default function JoinClinicPage() {
       handleSearch();
     }
   };
+
+  if (isRedirecting) {
+    return (
+      <PageTransitionLoader
+        title="Request submitted"
+        description="Taking you to request status..."
+      />
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-muted/30 p-4 md:p-8">

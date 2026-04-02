@@ -127,11 +127,14 @@ export function Sidebar({
     >
       <div className="flex items-center justify-between p-4 border-b">
         {isCollapsed ? (
-          <Link href="/dashboard" className="flex items-center justify-center w-full">
-            <DocitaIcon className="h-7 w-7" />
+          <Link
+            href="/dashboard"
+            className="flex h-10 w-full items-center justify-center"
+          >
+            <DocitaIcon />
           </Link>
         ) : (
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex h-10 items-center gap-2">
             <DocitaLogo />
           </Link>
         )}

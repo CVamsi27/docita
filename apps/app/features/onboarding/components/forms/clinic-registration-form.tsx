@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
 import {
   ClinicDetailsStep,
   ComplianceStep,
@@ -42,6 +43,35 @@ const STEPS = [
 
 const TOTAL_STEPS = 4;
 const DRAFT_KEY = "docita_onboarding_draft";
+const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
+interface OnboardingDraft {
+  clinicDetails: Partial<ClinicDetails>;
+  savedAt: string;
+  onboardingId?: string | null;
+}
+
+function hasMeaningfulClinicDraftData(
+  clinicDetails: Partial<ClinicDetails> | undefined,
+): boolean {
+  if (!clinicDetails) return false;
+
+  return Object.values(clinicDetails).some((value) => {
+    if (typeof value === "string") return value.trim().length > 0;
+    return value !== undefined && value !== null;
+  });
+}
+
+function getMissingClinicDetailsForProgress(
+  clinicDetails: Partial<ClinicDetails> | undefined,
+): string[] {
+  const missing: string[] = [];
+  if (!clinicDetails?.name?.trim()) missing.push("clinic name");
+  if (!clinicDetails?.email?.trim()) missing.push("clinic email");
+  if (!clinicDetails?.phone?.trim()) missing.push("clinic phone");
+  if (!clinicDetails?.address?.trim()) missing.push("clinic address");
+  if (!clinicDetails?.type) missing.push("clinic type");
+  return missing;
+}
 
 export function ClinicRegistrationForm({
   onSuccess,
@@ -50,9 +80,12 @@ export function ClinicRegistrationForm({
 }) {
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
+  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
+  const supportMessage =
+    "Hi Docita team, I need help with clinic onboarding and pricing for my hospital.";
   const [stepError, setStepError] = useState<string | null>(null);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
-  const [savedDraft, setSavedDraft] = useState<{ clinicDetails: Partial<ClinicDetails>; savedAt: string } | null>(null);
+  const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);
   const [pendingPaymentPlan, setPendingPaymentPlan] = useState<{
     tier: string;
     billingCycle: "MONTHLY" | "YEARLY";
@@ -61,15 +94,16 @@ export function ClinicRegistrationForm({
 
   const {
     step,
-    setStep,
     formData,
     onboardingId,
+    restoreOnboardingId,
+    ensureOnboardingId,
+    restartOnboarding,
     setClinicDetails,
     setPlanSelection,
     setTeamMembers,
     goBackFromCompliance,
     submitRegistration,
-    uploadSlaSignature,
   } = useClinicRegistrationFlow();
 
   const clinicForm = useForm<ClinicDetails>({
@@ -78,7 +112,15 @@ export function ClinicRegistrationForm({
     reValidateMode: "onChange",
     criteriaMode: "all",
     shouldFocusError: true,
-    defaultValues: formData.clinicDetails as ClinicDetails,
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      website: "",
+      gstin: "",
+      ...(formData.clinicDetails as Partial<ClinicDetails>),
+    } as ClinicDetails,
   });
 
   const complianceForm = useForm<ComplianceSettings>({
@@ -98,22 +140,54 @@ export function ClinicRegistrationForm({
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
-      const draft = JSON.parse(raw) as { clinicDetails: Partial<ClinicDetails>; savedAt: string };
+      const draft = JSON.parse(raw) as OnboardingDraft;
+      const currentOnboardingId =
+        typeof sessionStorage !== "undefined"
+          ? sessionStorage.getItem(SESSION_ONBOARDING_ID_KEY)
+          : null;
+      const persistedStep =
+        typeof sessionStorage !== "undefined"
+          ? Number(sessionStorage.getItem("docita_onboarding_step") || "1")
+          : 1;
       const ageMs = Date.now() - new Date(draft.savedAt).getTime();
-      if (ageMs < 24 * 60 * 60 * 1000 && draft.clinicDetails) {
+      const hasMeaningfulDraft =
+        hasMeaningfulClinicDraftData(draft.clinicDetails) ||
+        Boolean(draft.onboardingId);
+      const isSameOnboardingSession =
+        Boolean(draft.onboardingId) &&
+        draft.onboardingId === currentOnboardingId;
+      const hasActiveSessionProgress =
+        Boolean(currentOnboardingId) && persistedStep > 1;
+
+      if (
+        ageMs < 24 * 60 * 60 * 1000 &&
+        hasMeaningfulDraft &&
+        !isSameOnboardingSession &&
+        !hasActiveSessionProgress
+      ) {
         setSavedDraft(draft);
         setShowDraftDialog(true);
+      } else if (
+        ageMs < 24 * 60 * 60 * 1000 &&
+        hasMeaningfulDraft &&
+        (isSameOnboardingSession || hasActiveSessionProgress)
+      ) {
+        // Same onboarding session after refresh: restore silently without showing prompt.
+        clinicForm.reset(draft.clinicDetails as ClinicDetails);
       } else {
         localStorage.removeItem(DRAFT_KEY);
       }
     } catch {
       // Ignore parse errors
     }
-  }, []);
+  }, [clinicForm]);
 
   const handleRestoreDraft = () => {
     if (savedDraft?.clinicDetails) {
       clinicForm.reset(savedDraft.clinicDetails as ClinicDetails);
+    }
+    if (savedDraft?.onboardingId) {
+      restoreOnboardingId(savedDraft.onboardingId);
     }
     setShowDraftDialog(false);
     setSavedDraft(null);
@@ -169,8 +243,12 @@ export function ClinicRegistrationForm({
           : never,
         { ...options, currency },
       );
-    } catch {
-      setStepError("Unable to proceed with the selected plan. Please try again.");
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "Unable to proceed with the selected plan.";
+      setStepError(message);
     }
   };
 
@@ -185,7 +263,28 @@ export function ClinicRegistrationForm({
 
   const handleSetTeamMembers = async (members: Parameters<typeof setTeamMembers>[0]) => {
     setStepError(null);
-    await setTeamMembers(members);
+    try {
+      await setTeamMembers(members);
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "Unable to prepare compliance step.";
+      setStepError(message);
+    }
+  };
+
+  const handleSkipTeamStep = async () => {
+    setStepError(null);
+    try {
+      await setTeamMembers([]);
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "Unable to prepare compliance step.";
+      setStepError(message);
+    }
   };
 
   const handleSubmitRegistration = async (
@@ -201,16 +300,57 @@ export function ClinicRegistrationForm({
   };
 
   // Auto-save clinic details to localStorage as user types
-  useEffect(() => {
-    const subscription = clinicForm.watch((values) => {
+  const persistDraft = useCallback(
+    (clinicDetails: Partial<ClinicDetails>) => {
       try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ clinicDetails: values, savedAt: new Date().toISOString() }));
+        const draft: OnboardingDraft = {
+          clinicDetails,
+          savedAt: new Date().toISOString(),
+          onboardingId,
+        };
+
+        const hasMeaningfulDraft =
+          hasMeaningfulClinicDraftData(clinicDetails) || Boolean(onboardingId);
+        if (!hasMeaningfulDraft) {
+          localStorage.removeItem(DRAFT_KEY);
+          return;
+        }
+
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
       } catch {
         // Storage quota exceeded or unavailable
       }
+    },
+    [onboardingId],
+  );
+
+  useEffect(() => {
+    const subscription = clinicForm.watch((values) => {
+      persistDraft(values);
     });
     return () => subscription.unsubscribe();
-  }, [clinicForm]);
+  }, [clinicForm, persistDraft]);
+
+  useEffect(() => {
+    persistDraft(clinicForm.getValues());
+  }, [clinicForm, onboardingId, persistDraft]);
+
+  useEffect(() => {
+    if (step <= 1) return;
+    const missingClinicData = getMissingClinicDetailsForProgress(
+      formData.clinicDetails,
+    );
+    if (missingClinicData.length === 0) return;
+
+    restartOnboarding();
+    setPendingPaymentPlan(null);
+    localStorage.removeItem(DRAFT_KEY);
+    setSavedDraft(null);
+    setShowDraftDialog(false);
+    setStepError(
+      `Onboarding progress was incomplete (${missingClinicData.join(", ")}). Started over from Step 1.`,
+    );
+  }, [formData.clinicDetails, restartOnboarding, step]);
 
   const currentStep = STEPS.find((s) => s.number === step) ?? STEPS[0];
   const progressPercent = Math.round((step / TOTAL_STEPS) * 100);
@@ -351,7 +491,7 @@ export function ClinicRegistrationForm({
 
       {step === 3 && (
         <TeamInviteStep
-          onSkip={() => { setStepError(null); setStep(4); }}
+          onSkip={handleSkipTeamStep}
           onComplete={handleSetTeamMembers}
           ownerName={user?.name}
           ownerEmail={user?.email}
@@ -367,9 +507,26 @@ export function ClinicRegistrationForm({
             handleSubmitRegistration(data, onSuccess),
           )}
           onboardingId={onboardingId ?? undefined}
-          uploadSlaSignature={uploadSlaSignature}
+          ensureOnboardingId={ensureOnboardingId}
         />
       )}
+
+      <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <p className="font-semibold">Need hand-holding?</p>
+          <p className="text-sm text-muted-foreground">
+            We support onboarding, reminders, and follow-up over WhatsApp.
+            Reach us directly if you want a guided setup.
+          </p>
+        </div>
+        <WhatsAppButton
+          phoneNumber={supportPhone}
+          message={supportMessage}
+          label="Message onboarding team"
+          variant="default"
+          allowGenericLink
+        />
+      </div>
     </div>
   );
 }

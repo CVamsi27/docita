@@ -31,7 +31,7 @@ export function HeroSection() {
               size="lg"
               className="h-12 px-8 text-lg gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
             >
-              Start 14-Day Free Trial
+              Start trial
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>

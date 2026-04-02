@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { OnboardingData } from "@/features/onboarding/schemas/onboarding.schemas";
+import { API_URL } from "@/lib/api-config";
 
 interface UseOnboardingReturn {
   step: number;
@@ -66,11 +67,9 @@ export function useOnboarding(): UseOnboardingReturn {
       setIsSubmitting(true);
       setError(null);
 
-      const apiUrl =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-
-      const response = await fetch(`${apiUrl}/onboarding/register`, {
+      const response = await fetch(`${API_URL}/onboarding/register`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
@@ -15,15 +15,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 import { CheckCircle2, AlertCircle, Upload, Loader2, Pencil } from "lucide-react";
 import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
 import { API_URL } from "@/lib/api-config";
-
-function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("XSRF-TOKEN="))
-    ?.split("=")[1];
-  return token ? decodeURIComponent(token) : null;
-}
+import { buildCsrfHeaders } from "@/lib/csrf";
+import {
+  dataUrlToFile,
+  validateSignatureImageFile,
+} from "@/features/_shared/utils/signature-upload";
 
 export default function OnboardingSlaUploadPage() {
   const searchParams = useSearchParams();
@@ -36,24 +32,60 @@ export default function OnboardingSlaUploadPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [alreadyUploaded, setAlreadyUploaded] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  const checkSessionStatus = useCallback(async () => {
     if (!onboardingId || !sessionId) {
       setError("Invalid upload link. Missing required parameters.");
+      setCheckingStatus(false);
+      return;
+    }
+
+    try {
+      setCheckingStatus(true);
+      const res = await fetch(
+        `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
+        {
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
+
+      if (!res.ok) {
+        setCheckingStatus(false);
+        return;
+      }
+
+      const data = (await res.json()) as {
+        status?: string;
+        uploaded?: boolean;
+        fileUrl?: string | null;
+      };
+      const status = data.status?.toLowerCase();
+      const isUploaded = Boolean(
+        data.uploaded ||
+          data.fileUrl ||
+          status === "uploaded" ||
+          status === "completed",
+      );
+
+      if (isUploaded) {
+        setAlreadyUploaded(true);
+        setUploadComplete(true);
+      }
+    } catch {
+      // Ignore status check failures; user may still upload manually.
+    } finally {
+      setCheckingStatus(false);
     }
   }, [onboardingId, sessionId]);
 
-  const dataURLtoFile = (dataUrl: string, filename: string): File => {
-    const arr = dataUrl.split(",");
-    const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) u8arr[n] = bstr.charCodeAt(n);
-    return new File([u8arr], filename, { type: mime });
-  };
+  useEffect(() => {
+    checkSessionStatus();
+  }, [checkSessionStatus]);
 
   const handleUpload = async (file: File) => {
     if (!onboardingId || !sessionId) return;
@@ -62,18 +94,22 @@ export default function OnboardingSlaUploadPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const csrfToken = getCsrfToken();
       const res = await fetch(
         `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${sessionId}`,
         {
           method: "POST",
           credentials: "include",
-          headers: csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {},
+          headers: buildCsrfHeaders(),
           body: formData,
         },
       );
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
+        if (body.message?.toLowerCase().includes("already been used")) {
+          setAlreadyUploaded(true);
+          setUploadComplete(true);
+          return;
+        }
         throw new Error(body.message || "Upload failed");
       }
       setUploadComplete(true);
@@ -86,19 +122,16 @@ export default function OnboardingSlaUploadPage() {
 
   const handleSignatureSave = async (dataUrl: string) => {
     setSignatureDataUrl(dataUrl);
-    const file = dataURLtoFile(dataUrl, "signature.png");
+    const file = dataUrlToFile(dataUrl, "signature.png");
     await handleUpload(file);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File size must not exceed 5MB");
+    const validationError = validateSignatureImageFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setSelectedFile(file);
@@ -118,9 +151,24 @@ export default function OnboardingSlaUploadPage() {
               <CardTitle>Signature Uploaded</CardTitle>
             </div>
             <CardDescription>
-              Your signature has been saved. You can close this page and return to your desktop to complete registration.
+              {alreadyUploaded
+                ? "This signature link is already completed. You can close this page and return to your desktop."
+                : "Your signature has been saved. You can close this page and return to your desktop to complete registration."}
             </CardDescription>
           </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (checkingStatus) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Checking signature link...
+          </CardContent>
         </Card>
       </div>
     );

@@ -127,6 +127,23 @@ const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
 
 const KEY_FEATURE_CATEGORIES = FEATURE_CATEGORIES.slice(0, 4);
 
+const LIMIT_ROW_DESCRIPTIONS: Record<string, string> = {
+  "Patient Limit":
+    "Maximum number of unique patient profiles you can actively manage in the plan.",
+  Doctors:
+    "Maximum number of doctor accounts that can practice under this clinic plan.",
+  Storage:
+    "Total cloud storage included for files like scanned records, prescriptions, and reports.",
+  Branches:
+    "Number of clinic locations/branches you can operate under one subscription.",
+  Consultations:
+    "Number of consultations included in the billing cycle before overage charges apply.",
+  Prescriptions:
+    "Number of digital prescriptions included in the billing cycle.",
+  Invoices:
+    "Number of invoices you can generate in the billing cycle.",
+};
+
 export function ComparisonTable({
   currentTier,
   keyFeaturesOnly,
@@ -187,7 +204,23 @@ export function ComparisonTable({
               {limitRows.map((row: FeatureComparisonRow) => (
                 <TableRow key={row.name} className="hover:bg-muted/50">
                   <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] text-sm font-medium py-2.5 hover:bg-muted/50 transition-colors">
-                    {row.name}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm truncate" title={row.name}>
+                        {row.name}
+                      </span>
+                      {LIMIT_ROW_DESCRIPTIONS[row.name] && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-[280px]" side="right">
+                            <p className="text-xs">
+                              {LIMIT_ROW_DESCRIPTIONS[row.name]}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                   </TableCell>
                   {tiers.map((tier) => (
                     <TableCell
@@ -207,9 +240,7 @@ export function ComparisonTable({
 
               {categories.map((category) => {
                 const validFeatures = category.features.filter(
-                  (f) =>
-                    f in FEATURE_TIER_MAP &&
-                    getFeatureDetails(f).comingSoon !== true,
+                  (f) => f in FEATURE_TIER_MAP,
                 );
                 if (validFeatures.length === 0) return null;
                 return (
@@ -275,10 +306,15 @@ function FeatureCategoryRows({
                 <span className="text-sm truncate" title={details.name}>
                   {details.name}
                 </span>
+                {details.comingSoon && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    Coming Soon
+                  </Badge>
+                )}
                 {details.description && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[280px]" side="right">
                       <p className="text-xs">{details.description}</p>
@@ -288,7 +324,7 @@ function FeatureCategoryRows({
               </div>
             </TableCell>
             {tiers.map((tier) => {
-              const hasAccess = tier >= requiredTier;
+              const hasAccess = !details.comingSoon && tier >= requiredTier;
               return (
                 <TableCell
                   key={tier}
@@ -299,6 +335,13 @@ function FeatureCategoryRows({
                 >
                   {hasAccess ? (
                     <Check className="h-4 w-4 text-success mx-auto" />
+                  ) : details.comingSoon ? (
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] px-1.5 py-0 text-muted-foreground"
+                    >
+                      Coming Soon
+                    </Badge>
                   ) : (
                     <Minus className="h-3.5 w-3.5 text-muted-foreground/20 mx-auto" />
                   )}

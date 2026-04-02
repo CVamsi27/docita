@@ -120,7 +120,7 @@ export const staffMemberSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(['DOCTOR', 'RECEPTIONIST', 'ADMIN_DOCTOR']),
+  role: z.enum(['DOCTOR', 'RECEPTIONIST', 'ADMIN', 'ADMIN_DOCTOR']),
   phoneNumber: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),

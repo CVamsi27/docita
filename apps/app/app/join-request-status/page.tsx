@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Clock, CheckCircle2, XCircle, Building2, ArrowLeft } from 'lucide-react';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
+import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 
 interface JoinRequest {
   id: string;
@@ -29,6 +30,7 @@ interface JoinRequest {
 export default function JoinRequestStatusPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   const { data: request, isLoading } = useQuery<JoinRequest | null>({
     queryKey: ['my-join-request'],
@@ -41,7 +43,8 @@ export default function JoinRequestStatusPage() {
     onSuccess: () => {
       toast.success('Request withdrawn successfully');
       queryClient.invalidateQueries({ queryKey: ['my-join-request'] });
-      router.push('/choose-path');
+      setRedirectMessage('Returning to choose path...');
+      router.replace('/choose-path');
     },
     onError: () => {
       toast.error('Failed to withdraw request');
@@ -50,19 +53,22 @@ export default function JoinRequestStatusPage() {
 
   useEffect(() => {
     if (!isLoading && !request) {
-      router.push('/choose-path');
+      setRedirectMessage('No active request found. Returning to choose path...');
+      router.replace('/choose-path');
     }
   }, [request, isLoading, router]);
 
-  if (isLoading) {
+  if (redirectMessage) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <PageTransitionLoader
+        title="Redirecting..."
+        description={redirectMessage}
+      />
     );
+  }
+
+  if (isLoading) {
+    return <PageTransitionLoader title="Loading request status..." />;
   }
 
   if (!request || request.status !== 'PENDING') {

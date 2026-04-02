@@ -24,7 +24,7 @@ import { cn } from "@workspace/ui/lib/utils";
 
 interface TeamMember {
   email: string;
-  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN_DOCTOR";
+  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
   name?: string;
 }
 
@@ -47,6 +47,11 @@ const ROLE_OPTIONS = [
     value: "RECEPTIONIST",
     label: "Receptionist",
     description: "Can handle appointments, front desk, and patient check-in.",
+  },
+  {
+    value: "ADMIN",
+    label: "Admin",
+    description: "Can manage clinic operations, members, and billing settings.",
   },
   {
     value: "ADMIN_DOCTOR",

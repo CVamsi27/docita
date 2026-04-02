@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
   DialogContent,
@@ -11,12 +10,15 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { CheckCircle2, Clock, Copy, QrCode, Smartphone, X } from "lucide-react";
+import { Clock, QrCode, Smartphone, X } from "lucide-react";
 import {
   type SignatureUploadToken,
   type ActiveToken,
 } from "@/hooks/api/use-signature-upload";
 import { format } from "date-fns";
+import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
+import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
+import { toAbsoluteAppUrl } from "@/lib/url";
 
 interface QrSignatureUploadProps {
   onGenerate: () => Promise<SignatureUploadToken>;
@@ -47,7 +49,6 @@ export function QrSignatureUpload({
 }: QrSignatureUploadProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentToken, setCurrentToken] = useState<SignatureUploadToken | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const handleGenerateToken = async () => {
     const token = await onGenerate();
@@ -55,22 +56,13 @@ export function QrSignatureUpload({
     setDialogOpen(true);
   };
 
-  const handleCopyLink = () => {
-    if (!currentToken) return;
-    const fullUrl = `${window.location.origin}${currentToken.uploadUrl}`;
-    navigator.clipboard.writeText(fullUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setCurrentToken(null);
-    setCopied(false);
   };
 
   const fullUploadUrl = currentToken
-    ? `${window.location.origin}${currentToken.uploadUrl}`
+    ? toAbsoluteAppUrl(currentToken.uploadUrl)
     : "";
 
   return (
@@ -142,33 +134,18 @@ export function QrSignatureUpload({
           </DialogHeader>
 
           <div className="flex flex-col items-center space-y-4 py-4">
-            <div className="rounded-lg border bg-white p-4">
-              {fullUploadUrl && (
-                <QRCodeSVG value={fullUploadUrl} size={200} level="H" />
-              )}
-            </div>
+            {fullUploadUrl ? <QrCodeCard value={fullUploadUrl} size={200} /> : null}
 
-            <div className="w-full min-w-0 space-y-3">
-              <div className="flex min-w-0 items-center gap-2 rounded-md border p-2">
-                <code className="min-w-0 flex-1 truncate text-xs">{fullUploadUrl}</code>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyLink}
-                  className="shrink-0"
-                >
-                  {copied ? (
-                    <CheckCircle2 className="h-4 w-4 text-success" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-
+            {fullUploadUrl ? (
+              <CopyableLinkField
+                value={fullUploadUrl}
+                helperText="Or copy the link above and open it on your phone"
+              />
+            ) : (
               <p className="text-center text-xs text-muted-foreground">
                 Or copy the link above and open it on your phone
               </p>
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

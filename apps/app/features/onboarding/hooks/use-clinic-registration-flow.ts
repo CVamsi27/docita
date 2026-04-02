@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRazorpay, type RazorpayResponse } from "@/hooks/use-razorpay";
 import { API_URL } from "@/lib/api-config";
 import { useAuth } from "@/lib/auth-context";
+import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/csrf";
 import {
   type ClinicDetails,
   type ClinicRegistrationData,
@@ -30,35 +31,36 @@ interface OnboardingCheckoutResponse {
   currency: string;
   razorpayKeyId: string;
 }
-
-function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("XSRF-TOKEN="))
-    ?.split("=")[1];
-
-  return token ? decodeURIComponent(token) : null;
+interface EnsureOnboardingIdOptions {
+  forceRefresh?: boolean;
 }
 
-function buildJsonHeaders(): Record<string, string> {
-  const csrfToken = getCsrfToken();
-  return {
-    "Content-Type": "application/json",
-    ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-  };
+function formatMissingRequirements(missing: string[]): string {
+  const unique = [...new Set(missing)];
+  return unique.join(", ");
 }
 
 const SESSION_KEY = "docita_onboarding_step";
 const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
+const SESSION_FORM_DATA_KEY = "docita_onboarding_form_data";
 
 function getPersistedStep(): number {
   if (typeof sessionStorage === "undefined") return 1;
   try {
     const v = sessionStorage.getItem(SESSION_KEY);
     const n = v ? parseInt(v, 10) : 1;
-    return isNaN(n) ? 1 : Math.max(1, Math.min(n, 4));
+    const clamped = isNaN(n) ? 1 : Math.max(1, Math.min(n, 4));
+    const persistedOnboardingId = sessionStorage.getItem(
+      SESSION_ONBOARDING_ID_KEY,
+    );
+
+    // Step 4 requires an onboarding session ID (used for QR signature flow).
+    // If an older/stale session has step 4 but no ID, recover to step 3.
+    if (clamped >= 4 && !persistedOnboardingId) {
+      return 3;
+    }
+
+    return clamped;
   } catch {
     return 1;
   }
@@ -73,15 +75,58 @@ function getPersistedOnboardingId(): string | null {
   }
 }
 
+function getPersistedFormData(): ClinicRegistrationData {
+  if (typeof sessionStorage === "undefined") return defaultClinicRegistrationData;
+  try {
+    const raw = sessionStorage.getItem(SESSION_FORM_DATA_KEY);
+    if (!raw) return defaultClinicRegistrationData;
+    const parsed = JSON.parse(raw) as Partial<ClinicRegistrationData>;
+    return {
+      ...defaultClinicRegistrationData,
+      ...parsed,
+      clinicDetails: {
+        ...defaultClinicRegistrationData.clinicDetails,
+        ...(parsed.clinicDetails || {}),
+      },
+      compliance: {
+        ...defaultClinicRegistrationData.compliance,
+        ...(parsed.compliance || {}),
+      },
+      planSelection: {
+        ...defaultClinicRegistrationData.planSelection,
+        ...(parsed.planSelection || {}),
+      },
+      paymentDetails: {
+        ...defaultClinicRegistrationData.paymentDetails,
+        ...(parsed.paymentDetails || {}),
+      },
+      teamMembers: Array.isArray(parsed.teamMembers)
+        ? parsed.teamMembers
+        : defaultClinicRegistrationData.teamMembers,
+    };
+  } catch {
+    return defaultClinicRegistrationData;
+  }
+}
+
 export function useClinicRegistrationFlow() {
   const { user, refreshUser } = useAuth();
   const [step, setStepState] = useState<number>(() => getPersistedStep());
   const [onboardingId, setOnboardingIdState] = useState<string | null>(() => getPersistedOnboardingId());
+  const validatedOnboardingIdRef = useRef<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const { openCheckout } = useRazorpay();
   const [formData, setFormData] = useState<ClinicRegistrationData>(
-    defaultClinicRegistrationData,
+    () => getPersistedFormData(),
   );
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SESSION_FORM_DATA_KEY, JSON.stringify(formData));
+    } catch {
+      // ignore storage failures
+    }
+  }, [formData]);
 
   const setStep = useCallback((n: number) => {
     setStepState(n);
@@ -90,17 +135,27 @@ export function useClinicRegistrationFlow() {
 
   const setOnboardingId = useCallback((id: string | null) => {
     setOnboardingIdState(id);
+    validatedOnboardingIdRef.current = null;
     try {
       if (id) sessionStorage.setItem(SESSION_ONBOARDING_ID_KEY, id);
       else sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
     } catch { /* ignore */ }
   }, []);
 
-  const ensureOnboardingId = useCallback(async (): Promise<string> => {
-    if (onboardingId) {
-      return onboardingId;
+  const restartOnboarding = useCallback(() => {
+    setFormData(defaultClinicRegistrationData);
+    setOnboardingId(null);
+    setStep(1);
+    try {
+      sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
+      sessionStorage.removeItem(SESSION_FORM_DATA_KEY);
+      sessionStorage.setItem(SESSION_KEY, "1");
+    } catch {
+      // ignore storage failures
     }
+  }, [setOnboardingId, setStep]);
 
+  const initializeOnboardingId = useCallback(async (): Promise<string> => {
     const initRes = await fetch(`${API_URL}/onboarding/initialize`, {
       method: "POST",
       credentials: "include",
@@ -114,8 +169,66 @@ export function useClinicRegistrationFlow() {
 
     const initData = (await initRes.json()) as { onboardingId: string };
     setOnboardingId(initData.onboardingId);
+    validatedOnboardingIdRef.current = initData.onboardingId;
     return initData.onboardingId;
-  }, [onboardingId, setOnboardingId]);
+  }, [setOnboardingId]);
+
+  const ensureOnboardingId = useCallback(async (
+    options?: EnsureOnboardingIdOptions,
+  ): Promise<string> => {
+    const forceRefresh = options?.forceRefresh === true;
+    if (forceRefresh) {
+      // Force refresh is used on critical transitions (for example QR signature setup)
+      // where stale in-memory backend sessions can break progress. Always mint a new
+      // onboarding session to guarantee server-side consistency.
+      return initializeOnboardingId();
+    }
+
+    if (onboardingId) {
+      if (validatedOnboardingIdRef.current === onboardingId) {
+        return onboardingId;
+      }
+
+      try {
+        const progressRes = await fetch(
+          `${API_URL}/onboarding/${onboardingId}/progress`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: buildJsonHeaders(),
+            cache: "no-store",
+          },
+        );
+
+        if (progressRes.ok) {
+          validatedOnboardingIdRef.current = onboardingId;
+          return onboardingId;
+        }
+
+        if (
+          progressRes.status !== 400 &&
+          progressRes.status !== 404
+        ) {
+          const errData = (await progressRes
+            .json()
+            .catch(() => ({}))) as { message?: string };
+          throw new Error(errData.message || "Unable to validate onboarding session");
+        }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          !error.message.toLowerCase().includes("onboarding")
+        ) {
+          throw error;
+        }
+      }
+
+      // Persisted onboardingId may exist in browser storage while in-memory API session was cleared.
+      setOnboardingId(null);
+    }
+
+    return initializeOnboardingId();
+  }, [initializeOnboardingId, onboardingId, setOnboardingId]);
 
   const uploadSlaSignature = useCallback(
     async (file: File): Promise<string> => {
@@ -139,16 +252,13 @@ export function useClinicRegistrationFlow() {
 
       const uploadData = new FormData();
       uploadData.append("file", file);
-      const csrfToken = getCsrfToken();
 
       const uploadRes = await fetch(
         `${API_URL}/onboarding/${currentOnboardingId}/sla-signature-session/${sessionData.id}`,
         {
           method: "POST",
           credentials: "include",
-          headers: {
-            ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-          },
+          headers: buildCsrfHeaders(),
           body: uploadData,
         },
       );
@@ -211,7 +321,16 @@ export function useClinicRegistrationFlow() {
       }
 
       if (!user?.email) {
-        toast.error("Owner account details are required before payment");
+        const missing: string[] = [];
+        if (!user?.email) missing.push("owner email");
+        if (!user?.name) missing.push("owner name");
+        toast.error(
+          `Missing required data: ${formatMissingRequirements(missing)}.`,
+          {
+            description:
+              "Update your account profile details before starting payment.",
+          },
+        );
         return;
       }
 
@@ -291,11 +410,7 @@ export function useClinicRegistrationFlow() {
 
   const setTeamMembers = useCallback(async (members: TeamMember[]) => {
     setFormData((prev) => ({ ...prev, teamMembers: members }));
-    try {
-      await ensureOnboardingId();
-    } catch {
-      // Non-fatal — QR will fall back to draw mode if initialization fails
-    }
+    await ensureOnboardingId();
     setStep(4);
   }, [setStep, ensureOnboardingId]);
 
@@ -309,17 +424,48 @@ export function useClinicRegistrationFlow() {
       const ownerRole =
         user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
 
-      if (!details.name || !user?.email) {
-        toast.error("Missing previous step data. Please go back.");
+      const missingRequirements: string[] = [];
+      if (!details.name?.trim()) missingRequirements.push("clinic name (Step 1)");
+      if (!details.email?.trim()) missingRequirements.push("clinic email (Step 1)");
+      if (!details.phone?.trim()) missingRequirements.push("clinic phone (Step 1)");
+      if (!details.address?.trim()) missingRequirements.push("clinic address (Step 1)");
+      if (!details.type) missingRequirements.push("clinic type (Step 1)");
+      if (!user?.name?.trim()) missingRequirements.push("owner name");
+      if (!user?.email?.trim()) missingRequirements.push("owner email");
+      if (!complianceData.slaSignatureSessionId?.trim()) {
+        missingRequirements.push("SLA signature upload (Step 4)");
+      }
+      if (!complianceData.acceptedSLA) {
+        missingRequirements.push("SLA agreement acceptance (Step 4)");
+      }
+      if (!complianceData.acceptedPrivacyPolicy) {
+        missingRequirements.push("privacy policy acceptance (Step 4)");
+      }
+      if (!complianceData.acceptedDataProcessing) {
+        missingRequirements.push("data processing agreement acceptance (Step 4)");
+      }
+
+      if (missingRequirements.length > 0) {
+        toast.error(
+          `Missing required data: ${formatMissingRequirements(missingRequirements)}.`,
+          {
+            description:
+              "Progress could not be restored safely. Starting over from Step 1.",
+          },
+        );
+        restartOnboarding();
         return;
       }
+
+      const ownerName = user?.name ?? "";
+      const ownerEmail = user?.email ?? "";
 
       try {
         const payload = {
           clinicDetails: details,
           adminAccount: {
-            name: user.name,
-            email: user.email,
+            name: ownerName,
+            email: ownerEmail,
             role: ownerRole,
           },
           planSelection: {
@@ -332,7 +478,7 @@ export function useClinicRegistrationFlow() {
             acceptedPrivacyPolicy: complianceData.acceptedPrivacyPolicy,
             acceptedDataProcessingTerms: complianceData.acceptedDataProcessing,
             slaVersion: "1.0",
-            acceptedBy: user.name,
+            acceptedBy: ownerName,
             signatureSessionId: complianceData.slaSignatureSessionId,
             ipAddress: "client-ip",
             userAgent: navigator.userAgent,
@@ -370,11 +516,30 @@ export function useClinicRegistrationFlow() {
         );
 
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || "Registration failed");
+          const err = (await res.json().catch(() => ({}))) as {
+            message?: string;
+            errors?: string[];
+          };
+          throw new Error(
+            err.errors?.[0] || err.message || "Registration failed",
+          );
         }
 
-        const responseData = await res.json();
+        const responseData = (await res.json()) as {
+          success?: boolean;
+          message?: string;
+          errors?: string[];
+          access_token?: string;
+          user?: unknown;
+        };
+
+        if (responseData.success === false) {
+          throw new Error(
+            responseData.errors?.[0] ||
+              responseData.message ||
+              "Registration failed",
+          );
+        }
 
         if (responseData.access_token && responseData.user) {
           localStorage.setItem("docita_token", responseData.access_token);
@@ -399,16 +564,31 @@ export function useClinicRegistrationFlow() {
         try {
           sessionStorage.removeItem(SESSION_KEY);
           sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
+          sessionStorage.removeItem(SESSION_FORM_DATA_KEY);
         } catch { /* ignore */ }
 
         onSuccess();
       } catch (error) {
+        const message = (error as Error).message;
+        const shouldRestartOnboarding =
+          /onboarding session not found|expired|validation|missing required/i.test(
+            message,
+          );
+
+        if (shouldRestartOnboarding) {
+          restartOnboarding();
+          toast.error("Registration data became invalid", {
+            description: `${message}. Restarted from Step 1.`,
+          });
+          return;
+        }
+
         toast.error("Registration Failed", {
-          description: (error as Error).message,
+          description: message,
         });
       }
     },
-    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, user?.email, user?.name, user?.role],
+    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, restartOnboarding, user?.email, user?.name, user?.role],
   );
 
   return {
@@ -416,6 +596,7 @@ export function useClinicRegistrationFlow() {
     setStep,
     formData,
     onboardingId,
+    restoreOnboardingId: setOnboardingId,
     setClinicDetails,
     setPlanSelection,
     isProcessingPayment,
@@ -423,5 +604,7 @@ export function useClinicRegistrationFlow() {
     goBackFromCompliance,
     submitRegistration,
     uploadSlaSignature,
+    ensureOnboardingId,
+    restartOnboarding,
   };
 }

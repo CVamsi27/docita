@@ -2,6 +2,7 @@
 
 import { UseFormReturn } from "react-hook-form";
 import { useRef, useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +12,10 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import { Label } from "@workspace/ui/components/label";
+import { Progress } from "@workspace/ui/components/progress";
 import {
   Card,
   CardContent,
@@ -20,52 +23,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
 import { cn } from "@workspace/ui/lib/utils";
-import { CheckCircle2, Circle, Loader2, Pencil, Phone, RefreshCw } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
+import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 import {
   DataProcessingAgreementContent,
   PrivacyPolicyContent,
   SLAContent,
 } from "@/features/legal";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
-import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
 import { API_URL } from "@/lib/api-config";
-import { getAppUrl } from "@/lib/config";
-
-function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("XSRF-TOKEN="))
-    ?.split("=")[1];
-  return token ? decodeURIComponent(token) : null;
-}
-
-function buildJsonHeaders(): Record<string, string> {
-  const csrfToken = getCsrfToken();
-  return {
-    "Content-Type": "application/json",
-    ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-  };
-}
+import { buildJsonHeaders } from "@/lib/csrf";
+import { toAbsoluteAppUrl } from "@/lib/url";
+import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
+import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
 
 type LegalDocumentType = "sla" | "privacy" | "dpa";
-type SignatureMethod = "qr" | "draw";
-
 interface ComplianceStepProps {
   complianceForm: UseFormReturn<ComplianceSettings>;
   onBack: () => void;
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
   onboardingId?: string;
+  ensureOnboardingId?: (options?: { forceRefresh?: boolean }) => Promise<string>;
   clinicId?: string;
-  uploadSlaSignature?: (file: File) => Promise<string>;
+}
+interface QrSessionStatusResponse {
+  status?: string;
+  uploaded?: boolean;
+  fileUrl?: string | null;
 }
 
 // Reusable legal agreement card with scroll-to-enable
 function LegalCard({
+  index,
   title,
   summary,
   accepted,
@@ -73,6 +62,7 @@ function LegalCard({
   onOpenDocument,
   onUnaccept,
 }: {
+  index: number;
   title: string;
   summary: string;
   accepted: boolean;
@@ -83,39 +73,69 @@ function LegalCard({
   return (
     <div
       className={cn(
-        "rounded-lg border p-4 transition-colors",
-        accepted ? "border-primary/40 bg-primary/5" : "border-muted",
+        "rounded-xl border p-4 md:p-5 transition-all",
+        accepted
+          ? "border-primary/40 bg-primary/5 shadow-sm"
+          : "border-border bg-card hover:border-primary/30 hover:bg-muted/20",
       )}
     >
-      <div className="flex items-start gap-3">
-        <button
-          type="button"
-          className="mt-0.5 shrink-0"
-          onClick={accepted ? onUnaccept : onOpenDocument}
-          aria-label={accepted ? `Unaccept ${title}` : `Review and accept ${title}`}
+      <div className="flex items-start gap-3 md:gap-4">
+        <div
+          className={cn(
+            "mt-0.5 shrink-0 rounded-full border p-1.5",
+            accepted
+              ? "border-primary/40 bg-primary/10"
+              : "border-muted-foreground/20 bg-background",
+          )}
         >
           {accepted ? (
-            <CheckCircle2 className="h-5 w-5 text-primary" />
+            <CheckCircle2 className="h-4 w-4 text-primary" />
           ) : (
-            <Circle className="h-5 w-5 text-muted-foreground" />
+            <Circle className="h-4 w-4 text-muted-foreground" />
           )}
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className={cn("text-sm font-medium", accepted && "text-primary")}>{title}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{summary}</p>
-          {error && <p className="text-xs text-destructive mt-1">{error}</p>}
         </div>
-        {!accepted && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0 text-xs h-7"
-            onClick={onOpenDocument}
-          >
-            Review
-          </Button>
-        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className={cn("text-sm font-semibold", accepted && "text-primary")}>
+              {index}. {title}
+            </p>
+            <Badge
+              variant={accepted ? "default" : "outline"}
+              className={cn(
+                "text-[10px] h-5 px-2",
+                accepted ? "bg-primary/90 text-primary-foreground" : "text-muted-foreground",
+              )}
+            >
+              {accepted ? "Accepted" : "Pending review"}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+            {summary}
+          </p>
+          {error && <p className="text-xs text-destructive mt-2">{error}</p>}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 text-xs"
+              variant={accepted ? "outline" : "default"}
+              onClick={onOpenDocument}
+            >
+              {accepted ? "Review again" : "Review & accept"}
+            </Button>
+            {accepted && (
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 text-xs"
+                variant="ghost"
+                onClick={onUnaccept}
+              >
+                Mark as pending
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -140,10 +160,23 @@ function LegalDocumentDialog({
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  const updateScrollProgress = useCallback(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    if (maxScroll <= 0) {
+      setScrollProgress(100);
+      return;
+    }
+    setScrollProgress(Math.min(100, Math.round((container.scrollTop / maxScroll) * 100)));
+  }, []);
 
   useEffect(() => {
     if (!open) {
       setScrolledToBottom(false);
+      setScrollProgress(0);
       return;
     }
     // Wait for dialog animation to complete before observing
@@ -159,33 +192,51 @@ function LegalDocumentDialog({
         { root: container, threshold: 0 },
       );
       observer.observe(sentinel);
+      updateScrollProgress();
     }, 200);
     return () => {
       clearTimeout(timer);
       observer?.disconnect();
     };
-  }, [open]);
+  }, [open, updateScrollProgress]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl flex flex-col max-h-[85vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+      <DialogContent className="max-w-4xl p-0 flex flex-col max-h-[90vh] overflow-hidden">
+        <DialogHeader className="border-b bg-muted/25 px-6 py-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-1">
+              <DialogTitle className="text-base md:text-lg">{title}</DialogTitle>
+              <DialogDescription>{description}</DialogDescription>
+            </div>
+            <Badge variant="outline" className="h-6 px-2.5 text-[10px]">
+              Required
+            </Badge>
+          </div>
+          <div className="pt-1 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>Read progress</span>
+              <span>{scrollProgress}%</span>
+            </div>
+            <Progress value={scrollProgress} className="h-1.5" />
+          </div>
         </DialogHeader>
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto min-h-0 pr-1"
+          className="flex-1 overflow-y-auto min-h-0 px-6 py-5"
+          onScroll={updateScrollProgress}
         >
           {content}
           <div ref={sentinelRef} className="h-px" />
         </div>
         {!scrolledToBottom && (
-          <p className="text-xs text-center text-muted-foreground">
-            Scroll to the bottom to enable the I Agree button
-          </p>
+          <div className="px-6 pb-1">
+            <p className="text-xs text-center text-muted-foreground">
+              Scroll to the bottom to enable the I Agree button
+            </p>
+          </div>
         )}
-        <DialogFooter className="pt-2">
+        <DialogFooter className="border-t px-6 py-4">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
@@ -203,69 +254,42 @@ export function ComplianceStep({
   onBack,
   onSubmit,
   onboardingId,
-  uploadSlaSignature,
+  ensureOnboardingId,
 }: ComplianceStepProps) {
-  const [signatureUploading, setSignatureUploading] = useState(false);
-  const [signatureMethod, setSignatureMethod] = useState<SignatureMethod>(
-    onboardingId ? "qr" : "draw",
-  );
-  const [drawnSignatureDataUrl, setDrawnSignatureDataUrl] = useState<string | null>(null);
   const [activeLegalDoc, setActiveLegalDoc] = useState<LegalDocumentType | null>(null);
+  const signatureSessionId = complianceForm.watch("slaSignatureSessionId");
+  const hasSignatureSession = Boolean(signatureSessionId);
+  const hasOnboardingContext = Boolean(onboardingId || ensureOnboardingId);
 
-  // QR tab state
-  const [qrSessionId, setQrSessionId] = useState<string | null>(null);
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrError, setQrError] = useState<string | null>(null);
-  const [qrPolling, setQrPolling] = useState(false);
-  const [qrUploaded, setQrUploaded] = useState(false);
-  const qrPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
-  const supportMessage =
-    "Hi Docita team, I need help with clinic onboarding and pricing for my hospital.";
+  const fetchQrSessionStatus = useCallback(
+    async (activeOnboardingId: string, sessionId: string): Promise<boolean> => {
+      const res = await fetch(
+        `${API_URL}/onboarding/${activeOnboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
+        {
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
+      if (!res.ok) {
+        throw new Error("Unable to fetch signature status");
+      }
 
-  const stopQrPolling = useCallback(() => {
-    if (qrPollRef.current) {
-      clearInterval(qrPollRef.current);
-      qrPollRef.current = null;
-    }
-    setQrPolling(false);
-  }, []);
-
-  const startQrPolling = useCallback(
-    (onboardingId: string, sessionId: string) => {
-      setQrPolling(true);
-      qrPollRef.current = setInterval(async () => {
-        try {
-          const res = await fetch(
-            `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${sessionId}/status`,
-            { credentials: "include" },
-          );
-          if (!res.ok) return;
-          const data = (await res.json()) as { uploaded: boolean };
-          if (data.uploaded) {
-            stopQrPolling();
-            setQrUploaded(true);
-            complianceForm.setValue("slaSignatureSessionId", sessionId, {
-              shouldDirty: true,
-              shouldTouch: true,
-              shouldValidate: true,
-            });
-          }
-        } catch {
-          // Ignore poll errors — keep trying
-        }
-      }, 3000);
+      const data = (await res.json()) as QrSessionStatusResponse;
+      const status = data.status?.toLowerCase();
+      return Boolean(
+        data.uploaded ||
+          data.fileUrl ||
+          status === "uploaded" ||
+          status === "completed",
+      );
     },
-    [stopQrPolling, complianceForm],
+    [],
   );
 
-  const handleQrTabActivate = async () => {
-    if (!onboardingId || qrSessionId) return;
-    setQrLoading(true);
-    setQrError(null);
-    try {
+  const createQrSession = useCallback(async () => {
+    const createSession = async (resolvedOnboardingId: string) => {
       const res = await fetch(
-        `${API_URL}/onboarding/${onboardingId}/sla-signature-session`,
+        `${API_URL}/onboarding/${resolvedOnboardingId}/sla-signature-session`,
         {
           method: "POST",
           credentials: "include",
@@ -273,100 +297,115 @@ export function ComplianceStep({
           body: JSON.stringify({}),
         },
       );
-      if (!res.ok) throw new Error("Failed to create QR session");
-      const data = (await res.json()) as { id: string };
-      setQrSessionId(data.id);
-      startQrPolling(onboardingId, data.id);
-    } catch (err) {
-      setQrError(err instanceof Error ? err.message : "Failed to generate QR code");
-    } finally {
-      setQrLoading(false);
-    }
-  };
+      return res;
+    };
 
-  // Auto-activate QR on mount when onboardingId is present
-  useEffect(() => {
-    if (onboardingId) {
-      handleQrTabActivate();
+    let activeOnboardingId: string | null = null;
+    if (ensureOnboardingId) {
+      activeOnboardingId = await ensureOnboardingId();
+    } else {
+      activeOnboardingId = onboardingId ?? null;
     }
-    return () => stopQrPolling();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  const handleTabChange = (value: string) => {
-    setSignatureMethod(value as SignatureMethod);
-    if (value === "qr" && !qrSessionId) handleQrTabActivate();
-    else if (value === "draw") stopQrPolling();
-  };
+    if (!activeOnboardingId) {
+      throw new Error("Could not initialize onboarding session for QR signature.");
+    }
 
-  const uploadOnboardingSlaSignature = async (file: File): Promise<string> => {
-    if (!onboardingId) {
-      throw new Error("Onboarding ID is required for signature upload");
-    }
-    const sessionRes = await fetch(
-      `${API_URL}/onboarding/${onboardingId}/sla-signature-session`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: buildJsonHeaders(),
-        body: JSON.stringify({}),
-      },
-    );
-    if (!sessionRes.ok) {
-      throw new Error("Failed to create SLA signature upload session");
-    }
-    const sessionData = (await sessionRes.json()) as { id: string };
-    const uploadData = new FormData();
-    uploadData.append("file", file);
-    const csrfToken = getCsrfToken();
-    const uploadRes = await fetch(
-      `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${sessionData.id}`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: { ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}) },
-        body: uploadData,
-      },
-    );
-    if (!uploadRes.ok) {
-      throw new Error("Failed to upload SLA signature");
-    }
-    return sessionData.id;
-  };
+    let res = await createSession(activeOnboardingId);
+    let errMessage = "Failed to create QR session";
 
-  const uploadSignatureFile = async (file: File) => {
-    setSignatureUploading(true);
+    if (!res.ok) {
+      const errData = (await res.json().catch(() => ({}))) as { message?: string };
+      errMessage = errData.message || errMessage;
+
+      const normalizedError = errMessage.toLowerCase();
+      const isStaleOnboardingSession = (
+        res.status === 400 || res.status === 404
+      ) && (
+        normalizedError.includes("onboarding session not found") ||
+        normalizedError.includes("expired")
+      );
+
+      if (isStaleOnboardingSession && ensureOnboardingId) {
+        const refreshedOnboardingId = await ensureOnboardingId({
+          forceRefresh: true,
+        });
+        res = await createSession(refreshedOnboardingId);
+        if (!res.ok) {
+          const retryErrData = (await res
+            .json()
+            .catch(() => ({}))) as { message?: string };
+          errMessage = retryErrData.message || "Failed to create QR session";
+        } else {
+          activeOnboardingId = refreshedOnboardingId;
+        }
+      }
+    }
+
+    if (!res.ok) {
+      throw new Error(errMessage);
+    }
+
+    const data = (await res.json()) as { id: string };
+    return {
+      sessionId: data.id,
+      contextId: activeOnboardingId,
+      qrUrl: toAbsoluteAppUrl(
+        `/upload-signature/onboarding?onboardingId=${activeOnboardingId}&sessionId=${data.id}`,
+      ),
+    };
+  }, [ensureOnboardingId, onboardingId]);
+
+  const checkQrUploaded = useCallback(
+    async (session: { sessionId: string; contextId?: string }) => {
+      if (!session.contextId) return false;
+      return fetchQrSessionStatus(session.contextId, session.sessionId);
+    },
+    [fetchQrSessionStatus],
+  );
+
+  const qrFlow = usePhoneSignatureQrFlow({
+    createSession: createQrSession,
+    checkUploaded: checkQrUploaded,
+    onUploaded: (session) => {
+      complianceForm.setValue("slaSignatureSessionId", session.sessionId, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+    },
+    persistenceKey: "docita_onboarding_sla_qr_session",
+    autoStart: hasOnboardingContext && !hasSignatureSession,
+    initialUploaded: hasSignatureSession,
+  });
+  const refreshQrStatus = qrFlow.refreshStatus;
+  const copyQrLink = qrFlow.copyLink;
+
+  const handleManualStatusRefresh = useCallback(async () => {
     try {
-      const uploader = uploadSlaSignature ?? uploadOnboardingSlaSignature;
-      const tokenOrSessionId = await uploader(file);
-      complianceForm.setValue("slaSignatureSessionId", tokenOrSessionId, {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-    } catch (error) {
-      complianceForm.setValue("slaSignatureSessionId", "", {
-        shouldDirty: true,
-        shouldTouch: true,
-        shouldValidate: true,
-      });
-      throw error;
-    } finally {
-      setSignatureUploading(false);
+      const isUploaded = await refreshQrStatus();
+      if (isUploaded) {
+        toast.success("Signature synced");
+      } else {
+        toast.message("Still waiting for signature upload");
+      }
+    } catch {
+      toast.error("Unable to refresh signature status");
     }
-  };
+  }, [refreshQrStatus]);
 
-  const handleCanvasSignatureSave = async (dataUrl: string) => {
-    setDrawnSignatureDataUrl(dataUrl);
-    const arr = dataUrl.split(",");
-    const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) u8arr[n] = bstr.charCodeAt(n);
-    const file = new File([u8arr], "signature.png", { type: mime });
-    await uploadSignatureFile(file);
-  };
+  const handleCopyQrLink = useCallback(async () => {
+    try {
+      const copied = await copyQrLink();
+      if (copied) {
+        toast.success("Link clicked");
+      } else {
+        toast.error("Unable to copy link");
+      }
+    } catch {
+      toast.error("Unable to copy link");
+    }
+  }, [copyQrLink]);
 
   const legalDocs: {
     key: LegalDocumentType;
@@ -408,13 +447,6 @@ export function ComplianceStep({
         : { title: "Data Processing Agreement", description: "Review data processing obligations before accepting.", content: <DataProcessingAgreementContent /> }
     : null;
 
-  const qrUrl =
-    qrSessionId && onboardingId
-      ? `${getAppUrl()}/upload-signature/onboarding?onboardingId=${onboardingId}&sessionId=${qrSessionId}`
-      : null;
-
-  const signatureSessionId = complianceForm.watch("slaSignatureSessionId");
-
   return (
     <Card>
       <CardHeader>
@@ -422,23 +454,6 @@ export function ComplianceStep({
       </CardHeader>
       <CardContent>
         <form id="step5" onSubmit={onSubmit} noValidate className="space-y-6">
-          <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-1">
-              <p className="font-semibold">Need hand-holding?</p>
-              <p className="text-sm text-muted-foreground">
-                We support onboarding, reminders, and follow-up over WhatsApp.
-                Reach us directly if you want a guided setup or a 3-month trial
-                offer.
-              </p>
-            </div>
-            <WhatsAppButton
-              phoneNumber={supportPhone}
-              message={supportMessage}
-              label="Message onboarding team"
-              variant="default"
-            />
-          </div>
-
           {/* DPDP Compliance */}
           <div className="space-y-3 border p-4 rounded-md">
             <h3 className="font-semibold text-sm">DPDP Compliance Settings</h3>
@@ -469,124 +484,25 @@ export function ComplianceStep({
           {/* SLA Signature */}
           <div className="space-y-3">
             <h3 className="font-semibold text-sm">SLA Signature</h3>
-            <Tabs value={signatureMethod} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="qr">
-                  <Phone className="h-3.5 w-3.5 mr-1.5" />
-                  Sign via Phone
-                </TabsTrigger>
-                <TabsTrigger value="draw">
-                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                  Draw Here
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="qr" className="space-y-4 pt-2">
-                {!onboardingId ? (
-                  <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-                    QR signing is available once the clinic setup is saved. Use Draw Here to sign immediately.
-                  </div>
-                ) : qrUploaded ? (
-                  <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-primary">
-                    <CheckCircle2 className="h-5 w-5 shrink-0" />
-                    <div>
-                      <p className="font-medium">Signature received from your phone.</p>
-                      <p className="text-xs text-primary/70 mt-0.5">Your signature has been saved successfully.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">How it works</p>
-                      <div className="space-y-2.5">
-                        {[
-                          "Open your phone camera",
-                          "Scan the QR code below",
-                          "Draw your signature on your phone screen",
-                          "This page updates automatically",
-                        ].map((step, i) => (
-                          <div key={i} className="flex items-start gap-3">
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                              {i + 1}
-                            </span>
-                            <p className="text-sm text-muted-foreground pt-0.5">{step}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {qrLoading && (
-                      <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Generating QR code...
-                      </div>
-                    )}
-                    {qrError && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-destructive">{qrError}</p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setQrSessionId(null);
-                            setQrError(null);
-                            handleQrTabActivate();
-                          }}
-                        >
-                          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                          Retry
-                        </Button>
-                      </div>
-                    )}
-                    {qrUrl && (
-                      <div className="flex flex-col items-center gap-3 py-2">
-                        <div className="rounded-xl border bg-white p-4 shadow-sm">
-                          <QRCodeSVG value={qrUrl} size={180} />
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          {qrPolling ? (
-                            <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              Waiting for signature from your phone...
-                            </>
-                          ) : (
-                            <span>Scan the QR code with your phone camera</span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
-                          onClick={() => {
-                            navigator.clipboard?.writeText(qrUrl);
-                          }}
-                        >
-                          Copy link instead
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </TabsContent>
-
-              <TabsContent value="draw" className="space-y-2">
-                {!drawnSignatureDataUrl ? (
-                  <SignaturePad onSave={handleCanvasSignatureSave} />
-                ) : (
-                  <SignaturePreview
-                    dataUrl={drawnSignatureDataUrl}
-                    onEdit={() => {
-                      setDrawnSignatureDataUrl(null);
-                      complianceForm.setValue("slaSignatureSessionId", "");
-                    }}
-                  />
-                )}
-              </TabsContent>
-            </Tabs>
-
-            {signatureUploading && (
-              <p className="text-xs text-muted-foreground">Uploading signature...</p>
-            )}
+            <PhoneSignatureQrPanel
+              loading={qrFlow.isLoading}
+              uploaded={qrFlow.isUploaded}
+              polling={qrFlow.isPolling}
+              error={qrFlow.error}
+              qrUrl={qrFlow.session?.qrUrl ?? null}
+              onRetry={() => {
+                void qrFlow.retrySession();
+              }}
+              onRefreshStatus={handleManualStatusRefresh}
+              onCopyLink={handleCopyQrLink}
+              missingContextMessage={
+                !hasOnboardingContext
+                  ? "Missing onboarding session ID for QR signature. Go back to Step 3 and continue once to re-initialize."
+                  : undefined
+              }
+              successTitle="Signature received from your phone."
+              successDescription="Your signature has been saved successfully."
+            />
             {complianceForm.formState.errors.slaSignatureSessionId && (
               <p className="text-sm text-destructive">
                 {complianceForm.formState.errors.slaSignatureSessionId.message}
@@ -595,17 +511,33 @@ export function ComplianceStep({
           </div>
 
           {/* Legal Agreements */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-sm">Legal Agreements</h3>
-              <span className="text-xs text-muted-foreground">
-                {acceptedCount} of {legalDocs.length} accepted
-              </span>
+          <div className="space-y-4 rounded-xl border p-4 md:p-5 bg-card">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-sm">Legal Agreements</h3>
+                </div>
+                <Badge
+                  variant={acceptedCount === legalDocs.length ? "default" : "secondary"}
+                  className="h-6 px-2.5"
+                >
+                  {acceptedCount}/{legalDocs.length} accepted
+                </Badge>
+              </div>
+              <Progress
+                value={(acceptedCount / legalDocs.length) * 100}
+                className="h-1.5"
+              />
+              <p className="text-xs text-muted-foreground">
+                Review each agreement and accept all documents to continue registration.
+              </p>
             </div>
             <div className="space-y-3">
-              {legalDocs.map((doc) => (
+              {legalDocs.map((doc, index) => (
                 <LegalCard
                   key={doc.key}
+                  index={index + 1}
                   title={doc.title}
                   summary={doc.summary}
                   accepted={doc.accepted}
@@ -636,7 +568,7 @@ export function ComplianceStep({
               done: d.accepted,
             })),
           ];
-          const isReady = checklist.every((c) => c.done) && !signatureUploading;
+          const isReady = checklist.every((c) => c.done);
           const pendingItems = checklist.filter((c) => !c.done);
           return (
             <>

@@ -5,8 +5,9 @@ import { DOCITA_ICON_CACHE_BUST } from "@workspace/ui/lib/docita-brand";
 export const metadata = {
   metadataBase: new URL("https://docita.work"),
   icons: {
-    icon: `/branding/Round_Logo.png?${DOCITA_ICON_CACHE_BUST}`,
-    apple: `/branding/Round_Logo.png?${DOCITA_ICON_CACHE_BUST}`,
+    icon: `/icon?${DOCITA_ICON_CACHE_BUST}`,
+    shortcut: `/icon?${DOCITA_ICON_CACHE_BUST}`,
+    apple: `/apple-icon?${DOCITA_ICON_CACHE_BUST}`,
   },
   title: {
     default: "Docita - Clinic Management Software | 14-Day Free Trial",

@@ -1,19 +1,12 @@
 import { Lock, Server, Shield } from "lucide-react";
-import Image from "next/image";
-import { DocitaIconMonochrome, DocitaLogo } from "@workspace/ui/components/docita-logo";
+import {
+  DocitaIconMonochrome,
+  DocitaLogo,
+} from "@workspace/ui/components/docita-logo";
 
 export function AuthBrandingPanel() {
   return (
     <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden p-12 bg-primary">
-      <div
-        className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary-foreground/5 blur-3xl"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-primary-foreground/5 blur-3xl"
-        aria-hidden="true"
-      />
-
       <DocitaLogo
         iconClassName="h-8 w-8"
         textClassName="h-8 w-28"
@@ -32,16 +25,8 @@ export function AuthBrandingPanel() {
           place built for Indian clinics.
         </p>
 
-        <div className="relative mt-8 h-32 overflow-hidden rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5">
-          <Image
-            src="/branding/Dark-background.png"
-            alt=""
-            aria-hidden="true"
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            className="absolute inset-0 h-full w-full object-contain pointer-events-none select-none"
-          />
-          <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-primary-foreground/8 px-4 py-3 backdrop-blur-sm">
+        <div className="relative mt-8 h-32 rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5">
+          <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-primary-foreground/8 px-4 py-3">
             <DocitaIconMonochrome className="h-8 w-8 shrink-0 text-primary-foreground" />
             <div className="space-y-1">
               <p className="text-sm font-semibold tracking-tight text-primary-foreground">

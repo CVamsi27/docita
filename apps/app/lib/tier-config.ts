@@ -91,6 +91,11 @@ export interface FeatureComparisonRow {
 
 export function getFeatureComparisonData(): FeatureComparisonRow[] {
   const tiers = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE];
+  const formatLimitValue = (value?: number): string => {
+    if (value === undefined) return "—";
+    if (value >= 999999 || value === 999) return "Unlimited";
+    return value.toLocaleString();
+  };
 
   const rows: FeatureComparisonRow[] = [
 
@@ -100,11 +105,9 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       values: Object.fromEntries(
         tiers.map((t) => [
           t,
-          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].patients === 999999
-            ? "Unlimited"
-            : PLAN_LIMITS[
-                Tier[t] as keyof typeof PLAN_LIMITS
-              ].patients.toLocaleString(),
+          formatLimitValue(
+            PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].patients,
+          ),
         ]),
       ) as Record<Tier, string>,
     },
@@ -114,11 +117,9 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       values: Object.fromEntries(
         tiers.map((t) => [
           t,
-          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].doctors === 999
-            ? "Unlimited"
-            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].doctors,
+          formatLimitValue(PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].doctors),
         ]),
-      ) as Record<Tier, string | number>,
+      ) as Record<Tier, string>,
     },
     {
       name: "Storage",
@@ -136,11 +137,9 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       values: Object.fromEntries(
         tiers.map((t) => [
           t,
-          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].branches === 999
-            ? "Unlimited"
-            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].branches,
+          formatLimitValue(PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].branches),
         ]),
-      ) as Record<Tier, string | number>,
+      ) as Record<Tier, string>,
     },
     {
       name: "Consultations",
@@ -148,12 +147,11 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       values: Object.fromEntries(
         tiers.map((t) => [
           t,
-          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].appointments ===
-          999999
-            ? "Unlimited"
-            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].appointments,
+          formatLimitValue(
+            PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].appointments,
+          ),
         ]),
-      ) as Record<Tier, string | number>,
+      ) as Record<Tier, string>,
     },
     {
       name: "Prescriptions",
@@ -161,13 +159,11 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       values: Object.fromEntries(
         tiers.map((t) => [
           t,
-          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].prescriptions ===
-          999999
-            ? "Unlimited"
-            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].prescriptions ??
-              "—",
+          formatLimitValue(
+            PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].prescriptions,
+          ),
         ]),
-      ) as Record<Tier, string | number>,
+      ) as Record<Tier, string>,
     },
     {
       name: "Invoices",
@@ -175,12 +171,9 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
       values: Object.fromEntries(
         tiers.map((t) => [
           t,
-          PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].invoices === 999999
-            ? "Unlimited"
-            : PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].invoices ??
-              "—",
+          formatLimitValue(PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].invoices),
         ]),
-      ) as Record<Tier, string | number>,
+      ) as Record<Tier, string>,
     },
 
     {

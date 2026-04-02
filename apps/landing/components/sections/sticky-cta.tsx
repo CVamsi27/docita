@@ -29,7 +29,7 @@ export function StickyCta() {
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <div>
           <div className="font-bold text-lg hidden sm:block">
-            Start your 14-day free trial today
+            Start trial today
           </div>
           <div className="text-sm opacity-90 hidden sm:block">
             14-day free trial • No credit card required
@@ -45,7 +45,7 @@ export function StickyCta() {
               size="sm"
               className="gap-2 whitespace-nowrap"
             >
-              Start 14-Day Trial
+              Start trial
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>

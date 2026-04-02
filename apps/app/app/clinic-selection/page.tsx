@@ -17,15 +17,8 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Loader2 } from "lucide-react";
-
-function getCsrfToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("XSRF-TOKEN="))
-    ?.split("=")[1];
-  return token ? decodeURIComponent(token) : null;
-}
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { buildCsrfHeaders } from "@/lib/csrf";
 
 export default function ClinicSelectionPage() {
   const { user, isLoading, logout } = useAuth();
@@ -34,6 +27,7 @@ export default function ClinicSelectionPage() {
   const [clinicEmail, setClinicEmail] = useState("");
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   const canJoin = clinicCode.trim().length > 0 || clinicEmail.trim().length > 0;
 
@@ -41,14 +35,25 @@ export default function ClinicSelectionPage() {
     if (isLoading) return;
 
     if (!user) {
+      setRedirectMessage("Taking you to login...");
       router.replace("/login?next=/clinic-selection");
       return;
     }
 
     if (user.clinicId) {
+      setRedirectMessage("Your clinic is already linked. Redirecting to dashboard...");
       router.replace("/dashboard");
     }
   }, [isLoading, router, user]);
+
+  if (redirectMessage) {
+    return (
+      <PageTransitionLoader
+        title="Redirecting..."
+        description={redirectMessage}
+      />
+    );
+  }
 
   if (isLoading || !user) {
     return (
@@ -78,15 +83,12 @@ export default function ClinicSelectionPage() {
     setIsJoining(true);
 
     try {
-      const csrfToken = getCsrfToken();
-
       const joinResponse = await fetch(`${API_URL}/clinic/join`, {
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: buildCsrfHeaders({
           "Content-Type": "application/json",
-          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-        },
+        }),
         body: JSON.stringify({
           ...(normalizedCode ? { clinicCode: normalizedCode } : {}),
           ...(normalizedEmail ? { clinicEmail: normalizedEmail } : {}),
@@ -104,10 +106,9 @@ export default function ClinicSelectionPage() {
       const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
         method: "POST",
         credentials: "include",
-        headers: {
+        headers: buildCsrfHeaders({
           "Content-Type": "application/json",
-          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-        },
+        }),
         body: JSON.stringify({}),
       });
 
@@ -120,7 +121,8 @@ export default function ClinicSelectionPage() {
         }
       }
 
-      router.push("/dashboard");
+      setRedirectMessage("Clinic linked successfully. Taking you to dashboard...");
+      router.replace("/dashboard");
     } catch (error) {
       if (error instanceof Error) {
         setJoinError(error.message);

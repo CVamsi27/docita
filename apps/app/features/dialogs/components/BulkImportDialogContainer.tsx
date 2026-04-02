@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useBulkImport, useBulkImportTemplate } from "@/hooks/api/use-import";
 import {
   BulkImportDialogUI,
@@ -76,8 +77,7 @@ export function BulkImportDialogContainer({
         setStep("result");
       }, 3000);
     } catch (error) {
-
-      alert(error instanceof Error ? error.message : "Import failed");
+      toast.error(error instanceof Error ? error.message : "Import failed");
       setStep("upload");
     }
   };

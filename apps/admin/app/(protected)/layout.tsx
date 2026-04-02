@@ -82,9 +82,9 @@ export default function ProtectedLayout({
         <div className="flex h-14 items-center border-b px-6">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 font-bold text-lg"
+            className="flex h-10 items-center gap-2 font-bold text-lg"
           >
-            <DocitaIcon className="h-6 w-6" />
+            <DocitaIcon />
             <span>Docita Admin</span>
           </Link>
         </div>

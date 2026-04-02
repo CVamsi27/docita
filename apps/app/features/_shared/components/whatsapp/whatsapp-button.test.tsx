@@ -33,4 +33,18 @@ describe("WhatsAppButton", () => {
     const button = screen.getByRole("button");
     expect(button).toBeDisabled();
   });
+
+  it("opens generic WhatsApp composer when allowGenericLink is enabled", () => {
+    render(<WhatsAppButton allowGenericLink message="Need onboarding help" />);
+
+    const button = screen.getByRole("button");
+    expect(button).not.toBeDisabled();
+    fireEvent.click(button);
+
+    expect(openMock).toHaveBeenCalledWith(
+      "https://wa.me/?text=Need%20onboarding%20help",
+      "_blank",
+      "noopener,noreferrer",
+    );
+  });
 });

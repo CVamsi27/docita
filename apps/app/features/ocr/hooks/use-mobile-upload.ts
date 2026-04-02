@@ -1,23 +1,44 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+import { API_URL } from "@/lib/api-config";
+import { toAbsoluteAppUrl } from "@/lib/url";
+
+function resolveUploadedFileUrl(fileUrl: string): string {
+  if (/^https?:\/\//i.test(fileUrl)) {
+    return fileUrl;
+  }
+  return toAbsoluteAppUrl(fileUrl);
+}
 
 export const useMobileUpload = () => {
   const [showQr, setShowQr] = useState(false);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearPolling = useCallback(() => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+  }, []);
 
   const pollSession = useCallback(
     async (id: string, onUploadComplete: (file: File, url: string) => void) => {
-      const API_URL =
-        process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
-
-      const interval = setInterval(async () => {
+      clearPolling();
+      pollIntervalRef.current = setInterval(async () => {
         try {
-
           const cacheBuster = Date.now();
           const response = await fetch(
             `${API_URL}/uploads/session/${id}?t=${cacheBuster}`,
             {
               method: "GET",
+              credentials: "include",
               headers: {
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 Pragma: "no-cache",
@@ -26,43 +47,45 @@ export const useMobileUpload = () => {
           );
 
           if (!response.ok) {
-
             return;
           }
 
           const data = await response.json();
 
           if (data.status === "uploaded" && data.fileUrl) {
-            clearInterval(interval);
+            clearPolling();
             setShowQr(false);
+            const downloadUrl = resolveUploadedFileUrl(data.fileUrl);
+            const downloadResponse = await fetch(downloadUrl, {
+              credentials: "include",
+              cache: "no-store",
+            });
+            if (!downloadResponse.ok) {
+              throw new Error("Uploaded file could not be downloaded");
+            }
 
-            const filename = data.fileUrl.split("/").pop();
+            const fileBlob = await downloadResponse.blob();
+            const parsedUrl = new URL(downloadUrl);
+            const filename =
+              decodeURIComponent(parsedUrl.pathname.split("/").pop() || "") ||
+              "uploaded-file";
 
-            const baseUrl = API_URL.replace(/\/api\/?$/, "");
-            const realUrl = `${baseUrl}/uploads/temp/${filename}`;
-
-            fetch(realUrl)
-              .then((res) => res.blob())
-              .then((blob) => {
-                const file = new File([blob], filename || "uploaded-file", {
-                  type: blob.type,
-                });
-                onUploadComplete(file, realUrl);
-              })
-              .catch(() => {
-                alert("Uploaded file detected but could not be downloaded");
-              });
+            const file = new File([fileBlob], filename, {
+              type: fileBlob.type || "application/octet-stream",
+            });
+            onUploadComplete(file, downloadUrl);
           }
         } catch (_e) {
           return;
         }
       }, 2000);
 
-      setTimeout(() => {
-        clearInterval(interval);
+      pollTimeoutRef.current = setTimeout(() => {
+        clearPolling();
+        toast.message("Mobile upload timed out. Please generate a new QR code.");
       }, 120000);
     },
-    [],
+    [clearPolling],
   );
 
   const startMobileUpload = useCallback(
@@ -72,16 +95,21 @@ export const useMobileUpload = () => {
           method: "POST",
         });
 
-        const origin = window.location.origin;
-        setQrUrl(`${origin}/mobile-upload/${data.id}`);
+        setQrUrl(toAbsoluteAppUrl(`/mobile-upload/${data.id}`));
         setShowQr(true);
         pollSession(data.id, onUploadComplete);
       } catch (_error) {
-        alert("Could not start mobile session");
+        toast.error("Could not start mobile upload session");
       }
     },
     [pollSession],
   );
+
+  useEffect(() => {
+    return () => {
+      clearPolling();
+    };
+  }, [clearPolling]);
 
   return {
     showQr,

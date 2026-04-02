@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 import {
   Sheet,
   SheetContent,
@@ -78,7 +79,7 @@ export function MobileNav() {
       <SheetContent side="left" className="w-72">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-primary" />
+            <DocitaIcon />
             Docita Admin
           </SheetTitle>
         </SheetHeader>

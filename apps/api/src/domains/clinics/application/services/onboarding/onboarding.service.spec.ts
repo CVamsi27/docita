@@ -9,7 +9,7 @@ import { OnboardingComplianceService } from './onboarding-compliance.service';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
-import { BadRequestException, Logger } from '@nestjs/common';
+import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import {
   beforeEach,
   afterEach,
@@ -65,6 +65,11 @@ describe('OnboardingService', () => {
     },
     reminderSettings: {
       create: jest.fn(),
+    },
+    uploadSession: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
     },
   };
 
@@ -374,6 +379,125 @@ describe('OnboardingService', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors?.[0]).toContain('Clinic details are required');
+    });
+  });
+
+  describe('SLA signature sessions', () => {
+    it('createSlaSignatureSession creates a GENERAL upload session', async () => {
+      const { onboardingId } = service.initializeOnboarding();
+      const created = {
+        id: 'sess_123',
+        purpose: 'GENERAL',
+        status: 'pending',
+      };
+
+      mockPrismaService.uploadSession.create.mockImplementation(
+        async () => created,
+      );
+
+      const result = await service.createSlaSignatureSession(onboardingId);
+
+      expect(result).toEqual(created);
+      expect(mockPrismaService.uploadSession.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            purpose: 'GENERAL',
+          }),
+        }),
+      );
+    });
+
+    it('getSlaSignatureSessionStatus marks uploaded when fileUrl exists', async () => {
+      mockPrismaService.uploadSession.findUnique.mockImplementation(
+        async () => ({
+          id: 'sess_1',
+          purpose: 'GENERAL',
+          status: 'pending',
+          fileUrl: 'https://cdn.example/signature.png',
+        }),
+      );
+
+      const result = await service.getSlaSignatureSessionStatus(
+        'onb_any',
+        'sess_1',
+      );
+
+      expect(result).toEqual({
+        status: 'pending',
+        uploaded: true,
+        fileUrl: 'https://cdn.example/signature.png',
+      });
+    });
+
+    it('getSlaSignatureSessionStatus throws for non-onboarding upload purposes', async () => {
+      mockPrismaService.uploadSession.findUnique.mockImplementation(
+        async () => ({
+          id: 'sess_2',
+          purpose: 'DOCTOR_SIGNATURE',
+          status: 'pending',
+          fileUrl: null,
+        }),
+      );
+
+      await expect(
+        service.getSlaSignatureSessionStatus('onb_any', 'sess_2'),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('uploadSlaSignature marks one-time link as expired after successful upload', async () => {
+      mockPrismaService.uploadSession.findUnique.mockImplementation(
+        async () => ({
+          id: 'sess_3',
+          purpose: 'GENERAL',
+          status: 'pending',
+          fileUrl: null,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        }),
+      );
+
+      mockUploadsService.updateSession.mockImplementation(async () => ({
+        id: 'sess_3',
+        status: 'uploaded',
+        fileUrl: 'https://cdn.example/signature.png',
+      }));
+      mockPrismaService.uploadSession.update.mockImplementation(async () => ({
+        id: 'sess_3',
+      }));
+
+      const file = {
+        originalname: 'signature.png',
+        mimetype: 'image/png',
+        buffer: Buffer.from('file-bytes'),
+        size: 10,
+      } as Express.Multer.File;
+
+      const result = await service.uploadSlaSignature(
+        'onb_abc',
+        'sess_3',
+        file,
+      );
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'sess_3',
+          status: 'uploaded',
+        }),
+      );
+      expect(mockUploadsService.updateSession).toHaveBeenCalledWith(
+        'sess_3',
+        file,
+        expect.objectContaining({
+          onboardingId: 'onb_abc',
+        }),
+      );
+      expect(mockPrismaService.uploadSession.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'sess_3' },
+          data: expect.objectContaining({
+            expiresAt: expect.any(Date),
+          }),
+        }),
+      );
     });
   });
 });

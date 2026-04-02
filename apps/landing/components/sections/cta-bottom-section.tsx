@@ -25,7 +25,7 @@ export function CtaBottomSection() {
               variant="secondary"
               className="h-12 px-8 text-lg gap-2"
             >
-              Start 14-Day Free Trial
+              Start trial
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>

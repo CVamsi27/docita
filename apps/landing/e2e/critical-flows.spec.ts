@@ -31,7 +31,7 @@ test.describe("Landing Page - Critical Flows", () => {
     expect(linkCount).toBeGreaterThan(0);
 
     const ctaButtons = await page.locator(
-      "a:has-text('Get Started'), button:has-text('Get Started'), a:has-text('Sign Up'), button:has-text('Sign Up')",
+      "a:has-text('Get Started'), button:has-text('Get Started'), a:has-text('Sign Up'), button:has-text('Sign Up'), a:has-text('Start trial'), button:has-text('Start trial')",
     );
     const ctaCount = await ctaButtons.count();
     if (ctaCount > 0) {
@@ -225,7 +225,7 @@ test.describe("Landing Page - Critical Flows", () => {
 
     const ctaButton = await page
       .locator(
-        "a:has-text('Get Started'), button:has-text('Sign Up'), a:has-text('Start Free Trial')",
+        "a:has-text('Get Started'), button:has-text('Sign Up'), a:has-text('Start trial'), button:has-text('Start trial')",
       )
       .first();
     if ((await ctaButton.count()) > 0) {

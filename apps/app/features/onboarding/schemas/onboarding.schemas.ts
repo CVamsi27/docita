@@ -21,7 +21,7 @@ export const teamInviteSchema = z.object({
     .array(
       z.object({
         email: z.string().email(),
-        role: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]),
+        role: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"]),
         name: z.string().optional(),
       }),
     )

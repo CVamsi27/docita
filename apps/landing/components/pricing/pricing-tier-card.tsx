@@ -49,7 +49,7 @@ export function PricingTierCard({
   isPopular,
   isPrimary,
   badgeColor = "slate",
-  buttonText = "Start 14-Day Free Trial",
+  buttonText = "Start trial",
   buttonVariant = "outline",
   onContactSales,
   isEnterprise,

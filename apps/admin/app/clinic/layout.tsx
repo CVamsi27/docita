@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 import { LayoutDashboard, LogOut, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -52,9 +53,9 @@ export default function ClinicLayout({
         <div className="flex h-14 items-center border-b px-6">
           <Link
             href="/clinic"
-            className="flex items-center gap-2 font-bold text-lg"
+            className="flex h-10 items-center gap-2 font-bold text-lg"
           >
-            <div className="h-6 w-6 rounded-full bg-primary" />
+            <DocitaIcon />
             <span>Docita</span>
           </Link>
         </div>

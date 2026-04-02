@@ -18,10 +18,15 @@ import { R2StorageProvider } from './infrastructure/r2-storage.provider';
       provide: StorageProvider,
       useFactory: () => {
         const provider = process.env.STORAGE_PROVIDER;
+        const isProduction = process.env.NODE_ENV === 'production';
         const hasR2Credentials =
           !!process.env.R2_ACCOUNT_ID &&
           !!process.env.R2_ACCESS_KEY_ID &&
           !!process.env.R2_SECRET_ACCESS_KEY;
+
+        if (!isProduction) {
+          return new LocalStorageProvider();
+        }
 
         if (provider === 'local') {
           return new LocalStorageProvider();

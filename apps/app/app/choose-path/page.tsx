@@ -12,6 +12,7 @@ import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { DocitaLogo } from '@workspace/ui/components/docita-logo';
 import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel';
 import { useAuth } from '@/lib/auth-context';
+import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 
 const CREATE_BULLETS = [
   'Choose subscription plan',
@@ -31,14 +32,17 @@ export default function ChoosePathPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [loadingPath, setLoadingPath] = useState<'CREATE_CLINIC' | 'JOIN_CLINIC' | null>(null);
+  const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
+      setRedirectMessage('Redirecting to login...');
       router.replace('/login');
       return;
     }
     if (user?.clinicId || user?.onboardingStep === 'COMPLETED') {
+      setRedirectMessage('Account already linked. Redirecting to dashboard...');
       router.replace('/dashboard');
     }
   }, [isAuthenticated, isLoading, user, router]);
@@ -60,6 +64,15 @@ export default function ChoosePathPage() {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
+    );
+  }
+
+  if (redirectMessage) {
+    return (
+      <PageTransitionLoader
+        title="Redirecting..."
+        description={redirectMessage}
+      />
     );
   }
 

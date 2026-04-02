@@ -39,8 +39,11 @@ interface OnboardingPaymentInput {
   skipPayment?: boolean;
 }
 
-function toStaffRole(role: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN_DOCTOR'): Role {
+function toStaffRole(
+  role: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR',
+): Role {
   if (role === 'DOCTOR') return Role.DOCTOR;
+  if (role === 'ADMIN') return Role.ADMIN;
   if (role === 'ADMIN_DOCTOR') return Role.ADMIN_DOCTOR;
   return Role.RECEPTIONIST;
 }

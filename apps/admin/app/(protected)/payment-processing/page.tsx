@@ -495,7 +495,7 @@ export default function PaymentProcessingPage() {
                   <FormItem>
                     <FormLabel>Upgrade to Tier</FormLabel>
                     <Select
-                      value={field.value}
+                      value={field.value ?? ""}
                       onValueChange={(value) => {
                         field.onChange(value);
                         const tierData = (
@@ -569,7 +569,10 @@ export default function PaymentProcessingPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Payment Method</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value ?? "razorpay"}
+                      onValueChange={field.onChange}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />

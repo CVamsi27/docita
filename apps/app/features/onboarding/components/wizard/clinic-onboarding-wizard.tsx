@@ -1,40 +1,49 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ClinicRegistrationForm } from "@/features/onboarding/components/forms/clinic-registration-form";
 import { useRouter } from "next/navigation";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent } from "@workspace/ui/components/card";
-import { Loader2 } from "lucide-react";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 
 export function ClinicOnboardingWizard() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const [isFinalizingRedirect, setIsFinalizingRedirect] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
 
     if (!user) {
+      setIsFinalizingRedirect(true);
       router.replace("/login?next=/onboarding");
       return;
     }
 
     if (user.clinicId) {
+      setIsFinalizingRedirect(true);
       router.replace("/dashboard");
     }
   }, [isLoading, router, user]);
 
+  if (isFinalizingRedirect) {
+    return (
+      <PageTransitionLoader
+        title="Finalizing your registration..."
+        description="Taking you to your next step."
+        fullscreen={false}
+      />
+    );
+  }
+
   if (isLoading || !user) {
     return (
-      <div className="mx-auto flex min-h-[50vh] w-full max-w-2xl items-center justify-center px-4 py-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Preparing onboarding...
-          </CardContent>
-        </Card>
-      </div>
+      <PageTransitionLoader
+        title="Preparing onboarding..."
+        description="Checking your account and saved progress."
+        fullscreen={false}
+      />
     );
   }
 
@@ -51,11 +60,12 @@ export function ClinicOnboardingWizard() {
       </div>
 
       <ClinicRegistrationForm
-        onSuccess={() =>
-          user?.role === "ADMIN_DOCTOR"
-            ? router.push("/verify-doctor")
-            : router.push("/dashboard")
-        }
+        onSuccess={() => {
+          setIsFinalizingRedirect(true);
+          const destination =
+            user?.role === "ADMIN_DOCTOR" ? "/verify-doctor" : "/dashboard";
+          router.replace(destination);
+        }}
       />
     </div>
   );

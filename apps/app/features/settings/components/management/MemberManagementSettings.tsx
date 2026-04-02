@@ -58,7 +58,9 @@ import {
 import { User } from "@workspace/types";
 import { useMemberManagementLogic } from "@/features/settings/hooks/use-member-management-logic";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
+import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
+import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
+import { toAbsoluteAppUrl } from "@/lib/url";
 
 const inviteSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -217,7 +219,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       { doctorId },
       {
         onSuccess: (session) => {
-          const uploadUrl = `${window.location.origin}/mobile-upload/${session.id}`;
+          const uploadUrl = toAbsoluteAppUrl(`/mobile-upload/${session.id}`);
           setSignatureUploadUrl(uploadUrl);
           toast.success("Signature upload link created");
         },
@@ -242,11 +244,9 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     );
   };
 
-  const handleCopySignatureLink = async () => {
-    if (!signatureUploadUrl) return;
-
+  const handleCopySignatureLink = async (url: string) => {
     try {
-      await navigator.clipboard.writeText(signatureUploadUrl);
+      await navigator.clipboard.writeText(url);
       toast.success("Upload link copied");
     } catch {
       toast.error("Unable to copy upload link");
@@ -509,7 +509,10 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   render={({ field }) => (
                     <FormItem>
                       <Label>Role</Label>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value ?? "RECEPTIONIST"}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue />
@@ -861,21 +864,16 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-2">
-            <div className="rounded-lg border bg-white p-4">
-              {signatureUploadUrl && <QRCodeSVG value={signatureUploadUrl} size={192} />}
-            </div>
-            <div className="w-full rounded-md border bg-muted/20 px-3 py-2 text-xs text-muted-foreground break-all">
-              {signatureUploadUrl}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleCopySignatureLink}
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              Copy Upload Link
-            </Button>
+            {signatureUploadUrl ? (
+              <>
+                <QrCodeCard value={signatureUploadUrl} size={192} />
+                <CopyableLinkField
+                  value={signatureUploadUrl}
+                  actionLabel="Copy Upload Link"
+                  onCopy={handleCopySignatureLink}
+                />
+              </>
+            ) : null}
           </div>
         </DialogContent>
       </Dialog>

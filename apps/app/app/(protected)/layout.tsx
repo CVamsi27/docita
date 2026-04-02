@@ -29,6 +29,7 @@ import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { canAccessTarget } from "@/lib/access-policy";
 import { getAccessTargetForPath } from "@/lib/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/upgrade", "/settings", "/login"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
@@ -130,11 +131,13 @@ function MobileHeader() {
       {canGoBack() ? (
         <SmartBackButton fallback="/dashboard" label="" className="px-2" />
       ) : (
-        <DocitaLogo
-          iconClassName="h-5 w-5"
-          textClassName="h-6 w-24"
-          className="gap-1.5"
-        />
+        <div className="flex h-10 items-center">
+          <DocitaLogo
+            iconClassName="h-5 w-5"
+            textClassName="h-6 w-24"
+            className="gap-1.5"
+          />
+        </div>
       )}
       <div className="ml-auto">
         <ThemeToggle />
@@ -149,6 +152,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const { user, isLoading } = useAuth();
   const router = useRouter();
@@ -156,15 +160,19 @@ export default function ProtectedLayout({
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
+      setRedirectMessage("Your session is missing. Redirecting to login...");
       router.replace("/login");
       return;
     }
     if (!user.clinicId) {
       if (user.onboardingStep === "JOINING_CLINIC") {
+        setRedirectMessage("Taking you to your join request status...");
         router.replace("/join-request-status");
       } else if (user.onboardingStep === "CREATING_CLINIC") {
+        setRedirectMessage("Taking you back to onboarding...");
         router.replace("/onboarding");
       } else {
+        setRedirectMessage("Taking you to clinic setup...");
         router.replace("/choose-path");
       }
     }
@@ -200,7 +208,14 @@ export default function ProtectedLayout({
     );
   }
 
-  if (!user || !user.clinicId) return null;
+  if (redirectMessage || !user || !user.clinicId) {
+    return (
+      <PageTransitionLoader
+        title="Redirecting..."
+        description={redirectMessage ?? "Preparing your workspace..."}
+      />
+    );
+  }
 
   return (
     <NavigationHistoryProvider>

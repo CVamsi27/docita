@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
+import { toast } from "sonner";
 
 interface AuditLog {
   id: string;
@@ -39,6 +40,7 @@ interface AuditLog {
 export function AuditLogViewer() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedActionType, setSelectedActionType] = useState<string>("");
@@ -64,9 +66,11 @@ export function AuditLogViewer() {
 
       const data = await response.json();
       setLogs(Array.isArray(data) ? data : data.logs || []);
+      setErrorMessage(null);
     } catch {
-
-      alert("Failed to load audit logs");
+      const message = "Failed to load audit logs. Please try again.";
+      setErrorMessage(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +98,7 @@ export function AuditLogViewer() {
 
   const exportToCSV = () => {
     if (logs.length === 0) {
-      alert("No logs to export");
+      toast.message("No audit logs to export");
       return;
     }
 
@@ -120,15 +124,16 @@ export function AuditLogViewer() {
       log.errorMessage || "-",
     ]);
 
+    const escapeCsvCell = (value: unknown) => {
+      const stringCell = String(value ?? "");
+      const escaped = stringCell.replace(/"/g, '""');
+      return /[",\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
+    };
+
     const csv = [
       headers.join(","),
       ...rows.map((row) =>
-        row
-          .map((cell) => {
-            const stringCell = String(cell);
-            return stringCell.includes(",") ? `"${stringCell}"` : stringCell;
-          })
-          .join(","),
+        row.map((cell) => escapeCsvCell(cell)).join(","),
       ),
     ].join("\n");
 
@@ -139,7 +144,7 @@ export function AuditLogViewer() {
     );
     element.setAttribute(
       "download",
-      `audit_logs_${new Date().toISOString()}.csv`,
+      `audit_logs_${new Date().toISOString().replace(/[:.]/g, "-")}.csv`,
     );
     element.style.display = "none";
     document.body.appendChild(element);
@@ -253,6 +258,15 @@ export function AuditLogViewer() {
       )}
 
       <div className="border border-border rounded-lg overflow-hidden">
+        {errorMessage && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            {errorMessage}
+          </div>
+        )}
         {isLoading && logs.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             Loading audit logs...

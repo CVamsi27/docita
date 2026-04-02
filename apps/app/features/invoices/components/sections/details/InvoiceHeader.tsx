@@ -22,7 +22,7 @@ export function InvoiceHeader({
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-3">
           {clinic?.logo ? (
-            <div className="relative h-12 w-12 rounded-lg overflow-hidden border">
+            <div className="relative h-12 w-12 rounded-xl overflow-hidden border">
               <Image
                 src={clinic.logo || ""}
                 alt={clinic.name || "Clinic Logo"}
@@ -31,7 +31,7 @@ export function InvoiceHeader({
               />
             </div>
           ) : (
-            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
               {clinic?.name?.charAt(0) || "D"}
             </div>
           )}

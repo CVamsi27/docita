@@ -72,7 +72,7 @@ export function ClinicDetailsStep({
                     shouldValidate: true,
                   })
                 }
-                value={clinicForm.watch("type")}
+                value={clinicForm.watch("type") ?? ""}
               >
                 <SelectTrigger
                   aria-invalid={!!clinicForm.formState.errors.type}

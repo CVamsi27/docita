@@ -2,14 +2,13 @@
 
 import { useCallback, useState } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2, Upload } from "lucide-react";
 import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
-
-const API_URL =
-  process.env["NEXT_PUBLIC_API_URL"] || "http://localhost:3001/api";
+import { API_URL } from "@/lib/api-config";
 
 export default function MobileUploadPage() {
   const params = useParams();
@@ -18,11 +17,13 @@ export default function MobileUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFileSelect = useCallback(
     (selectedFile: File | null, url: string | null) => {
       setFile(selectedFile);
       setPreviewUrl(url);
+      setErrorMessage(null);
     },
     [],
   );
@@ -31,12 +32,14 @@ export default function MobileUploadPage() {
     if (!file || !sessionId) return;
 
     setUploading(true);
+    setErrorMessage(null);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
       const response = await fetch(`${API_URL}/uploads/session/${sessionId}`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 
@@ -46,10 +49,10 @@ export default function MobileUploadPage() {
           if (data.status === "uploaded" && data.fileUrl) {
             setSuccess(true);
           } else {
-
-            alert(
-              "Upload completed but session update may have failed. Please try again.",
-            );
+            const message =
+              "Upload completed, but we could not confirm session status. Please try again.";
+            setErrorMessage(message);
+            toast.error(message);
           }
         } catch {
           setSuccess(true);
@@ -72,14 +75,18 @@ export default function MobileUploadPage() {
             errorMessage = "Invalid file type. Please upload an image.";
           }
         }
-        alert(errorMessage);
+        setErrorMessage(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (error) {
-
       if (error instanceof TypeError && error.message.includes("fetch")) {
-        alert("Connection failed. Please check your internet and try again.");
+        const message = "Connection failed. Please check your internet and try again.";
+        setErrorMessage(message);
+        toast.error(message);
       } else {
-        alert("Upload failed. Please check your connection.");
+        const message = "Upload failed. Please check your connection.";
+        setErrorMessage(message);
+        toast.error(message);
       }
     } finally {
       setUploading(false);
@@ -112,8 +119,15 @@ export default function MobileUploadPage() {
           previewUrl={previewUrl}
         />
 
-        {}
-        {}
+        {errorMessage && (
+          <p
+            role="alert"
+            aria-live="assertive"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {errorMessage}
+          </p>
+        )}
 
         {}
         <Button

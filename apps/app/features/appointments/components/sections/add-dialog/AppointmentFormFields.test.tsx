@@ -37,6 +37,26 @@ function TestForm() {
   );
 }
 
+function TestFormWithoutInitialType() {
+  const form = useForm<CreateAppointmentInput>({
+    defaultValues: {
+      notes: "",
+    } as CreateAppointmentInput,
+  });
+
+  return (
+    <Form {...form}>
+      <AppointmentFormFields
+        form={form}
+        appointmentTypeOptions={[
+          { label: "Consultation", value: "consultation" },
+          { label: "Follow-up", value: "follow-up" },
+        ]}
+      />
+    </Form>
+  );
+}
+
 describe("AppointmentFormFields", () => {
   it("renders type and notes fields", () => {
     render(<TestForm />);
@@ -73,5 +93,12 @@ describe("AppointmentFormFields", () => {
     );
     expect(notesInput).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByText("Notes are required")).toBeInTheDocument();
+  });
+
+  it("renders safely when appointment type is initially undefined", () => {
+    render(<TestFormWithoutInitialType />);
+
+    expect(screen.getByText("Type")).toBeInTheDocument();
+    expect(screen.getByText("Notes")).toBeInTheDocument();
   });
 });

@@ -65,7 +65,11 @@ export function MobileNav() {
           />
           <div className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
-              <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+              <Link
+                href="/dashboard"
+                onClick={() => setIsOpen(false)}
+                className="flex h-10 items-center"
+              >
                 <DocitaLogo />
               </Link>
               <Button

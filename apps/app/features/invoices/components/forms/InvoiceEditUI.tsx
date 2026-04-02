@@ -115,7 +115,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                     <FormLabel>Status</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value ?? ""}
                     >
                       <FormControl>
                         <SelectTrigger>

@@ -13,6 +13,8 @@ import { z } from 'zod';
 import { MonitoringService } from './monitoring.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
+import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
+import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 
 const ClientErrorReportSchema = z.object({
   type: z.string().min(1),
@@ -33,6 +35,8 @@ class ClientErrorReportResponseDto extends createZodDto(
 
 @Controller('monitoring/client-errors')
 @UseGuards(JwtAuthGuard)
+@AllowNoClinic()
+@SkipSubscriptionCheck()
 export class MonitoringClientController {
   constructor(private readonly monitoringService: MonitoringService) {}
 

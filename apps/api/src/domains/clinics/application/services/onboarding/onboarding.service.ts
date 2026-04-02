@@ -143,12 +143,27 @@ export class OnboardingService {
       userAgent?: string;
     },
   ) {
-    const sessionData = this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
-      throw new BadRequestException('Onboarding session not found or expired');
+    const session = await this.prisma.uploadSession.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Signature session not found');
     }
 
-    return this.uploadsService.updateSession(sessionId, file, {
+    if (session.expiresAt < new Date()) {
+      throw new BadRequestException(
+        'This signature link has expired. Please generate a new link from onboarding.',
+      );
+    }
+
+    if (session.status === 'uploaded' && session.fileUrl) {
+      throw new BadRequestException(
+        'This signature link has already been used.',
+      );
+    }
+
+    const updated = await this.uploadsService.updateSession(sessionId, file, {
       onboardingId,
       modifiedBy: context?.modifiedBy,
       modifiedByRole: context?.modifiedByRole,
@@ -156,16 +171,21 @@ export class OnboardingService {
       ipAddress: context?.ipAddress,
       userAgent: context?.userAgent,
     });
+
+    // One-time onboarding signature links should not be reused after upload.
+    await this.prisma.uploadSession.update({
+      where: { id: sessionId },
+      data: { expiresAt: new Date() },
+    });
+
+    return updated;
   }
 
   async getSlaSignatureSessionStatus(
     onboardingId: string,
     sessionId: string,
   ): Promise<{ status: string; uploaded: boolean; fileUrl: string | null }> {
-    const sessionData = this.dataService.getSessionData(onboardingId);
-    if (!sessionData) {
-      throw new BadRequestException('Onboarding session not found or expired');
-    }
+    void onboardingId;
 
     const session = await this.prisma.uploadSession.findUnique({
       where: { id: sessionId },
@@ -174,9 +194,13 @@ export class OnboardingService {
       throw new NotFoundException('Signature session not found');
     }
 
+    if (session.purpose !== UploadSessionPurpose.GENERAL) {
+      throw new NotFoundException('Signature session not found');
+    }
+
     return {
       status: session.status,
-      uploaded: session.status === 'uploaded',
+      uploaded: session.status === 'uploaded' || !!session.fileUrl,
       fileUrl: session.fileUrl,
     };
   }

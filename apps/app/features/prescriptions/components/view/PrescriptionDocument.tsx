@@ -60,7 +60,7 @@ export function PrescriptionDocument({
                   alt="Clinic Logo"
                   width={80}
                   height={80}
-                  className="h-20 w-20 object-contain rounded-md"
+                  className="h-20 w-20 object-contain rounded-xl"
                 />
               </div>
             ) : null}

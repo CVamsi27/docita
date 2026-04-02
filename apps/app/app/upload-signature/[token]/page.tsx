@@ -27,6 +27,10 @@ import {
   type UploadResult,
 } from "@/hooks/api/use-signature-upload";
 import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
+import {
+  dataUrlToFile,
+  validateSignatureImageFile,
+} from "@/features/_shared/utils/signature-upload";
 
 export default function UploadSignaturePage() {
   const params = useParams();
@@ -72,13 +76,9 @@ export default function UploadSignaturePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File size must not exceed 5MB");
+    const validationError = validateSignatureImageFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -100,18 +100,6 @@ export default function UploadSignaturePage() {
     setSignatureDataUrl(null);
   };
 
-  const dataURLtoFile = (dataUrl: string, filename: string): File => {
-    const arr = dataUrl.split(',');
-    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
-  };
-
   const handleUpload = async () => {
     if (!selectedFile && !signatureDataUrl) return;
 
@@ -122,7 +110,7 @@ export default function UploadSignaturePage() {
       let fileToUpload: File;
 
       if (uploadMethod === 'draw' && signatureDataUrl) {
-        fileToUpload = dataURLtoFile(signatureDataUrl, 'signature.png');
+        fileToUpload = dataUrlToFile(signatureDataUrl, 'signature.png');
       } else if (selectedFile) {
         fileToUpload = selectedFile;
       } else {

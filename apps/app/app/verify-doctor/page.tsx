@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle2, Circle, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
@@ -9,17 +9,23 @@ import { Label } from '@workspace/ui/components/label';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import { useAPIQuery, useAPIMutation } from '@/lib/api-core';
-import { SignatureUploadQR } from '@/features/settings/components/signature-upload-qr';
+import { useGenerateSignatureToken } from '@/hooks/api/use-signature-upload';
 import type { User } from '@workspace/types';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { DocitaLogo } from '@workspace/ui/components/docita-logo';
+import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { toAbsoluteAppUrl } from '@/lib/url';
+import { usePhoneSignatureQrFlow } from '@/features/_shared/hooks/use-phone-signature-qr-flow';
+import { PhoneSignatureQrPanel } from '@/features/_shared/components/signature/phone-signature-qr-panel';
 
 export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [isSavingReg, setIsSavingReg] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const isDoctor = user?.role === 'DOCTOR' || user?.role === 'ADMIN_DOCTOR';
+  const generateSignatureToken = useGenerateSignatureToken();
 
   const { data: doctorProfile, isLoading: profileLoading, refetch } = useAPIQuery<User>(
     ['doctor-profile', user?.id ?? ''],
@@ -37,32 +43,51 @@ export default function VerifyDoctorPage() {
   const hasSignature = !!profile?.signatureUrl;
   const hasRegistration = !!profile?.registrationNumber;
   const canContinue = hasSignature && hasRegistration;
+  const createSignatureSession = useCallback(async () => {
+    const token = await generateSignatureToken.mutateAsync();
+    return {
+      sessionId: token.token,
+      qrUrl: toAbsoluteAppUrl(token.uploadUrl),
+    };
+  }, [generateSignatureToken]);
+
+  const checkSignatureUploaded = useCallback(async () => {
+    const result = await refetch();
+    const refreshedProfile = result.data ?? doctorProfile ?? user;
+    return Boolean(refreshedProfile?.signatureUrl);
+  }, [doctorProfile, refetch, user]);
+
+  const signatureQrFlow = usePhoneSignatureQrFlow({
+    createSession: createSignatureSession,
+    checkUploaded: checkSignatureUploaded,
+    onUploaded: () => {
+      toast.success('Signature received from your phone.');
+    },
+    persistenceKey: `docita_verify_doctor_qr_session_${user?.id ?? "anonymous"}`,
+    autoStart: !hasSignature,
+    initialUploaded: hasSignature,
+  });
 
   useEffect(() => {
     if (authLoading) return;
 
     if (!user) {
+      setIsRedirecting(true);
       router.replace('/login?next=/verify-doctor');
       return;
     }
 
     if (!isDoctor) {
+      setIsRedirecting(true);
       router.replace('/dashboard');
       return;
     }
 
     if (canContinue) {
+      setIsRedirecting(true);
       router.replace('/dashboard');
     }
   }, [authLoading, user, isDoctor, canContinue, router]);
-
-  useEffect(() => {
-    if (!user?.id || !isDoctor || hasSignature) return;
-    const intervalId = window.setInterval(() => {
-      void refetch();
-    }, 8000);
-    return () => window.clearInterval(intervalId);
-  }, [user?.id, isDoctor, hasSignature, refetch]);
 
   const handleSaveRegistration = async () => {
     if (!registrationNumber.trim()) return;
@@ -79,9 +104,24 @@ export default function VerifyDoctorPage() {
   };
 
   const handleContinue = async () => {
-    await refreshUser();
-    router.replace('/dashboard');
+    setIsRedirecting(true);
+    try {
+      await refreshUser();
+      router.replace('/dashboard');
+    } catch {
+      setIsRedirecting(false);
+      toast.error('Unable to continue right now. Please try again.');
+    }
   };
+
+  if (isRedirecting) {
+    return (
+      <PageTransitionLoader
+        title="Redirecting to dashboard..."
+        description="Finalizing your verification state."
+      />
+    );
+  }
 
   if (
     authLoading ||
@@ -117,7 +157,9 @@ export default function VerifyDoctorPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-14 items-center justify-between border-b px-6">
-        <DocitaLogo />
+        <div className="flex h-10 items-center">
+          <DocitaLogo />
+        </div>
         <ThemeToggle />
       </header>
 
@@ -180,24 +222,42 @@ export default function VerifyDoctorPage() {
                 Signature uploaded successfully.
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                Generate a QR code and upload your signature from your mobile device.
-              </p>
-            )}
-            {!hasSignature && (
-              <div className="pt-2 space-y-2">
-                <SignatureUploadQR />
-                <div className="flex items-center justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void refetch()}
-                    disabled={profileLoading}
-                  >
-                    Refresh upload status
-                  </Button>
-                </div>
-              </div>
+              <PhoneSignatureQrPanel
+                loading={signatureQrFlow.isLoading}
+                uploaded={signatureQrFlow.isUploaded}
+                polling={signatureQrFlow.isPolling}
+                error={signatureQrFlow.error}
+                qrUrl={signatureQrFlow.session?.qrUrl ?? null}
+                onRetry={() => {
+                  void signatureQrFlow.retrySession();
+                }}
+                onRefreshStatus={async () => {
+                  try {
+                    const synced = await signatureQrFlow.refreshStatus();
+                    if (synced) {
+                      toast.success('Signature synced');
+                    } else {
+                      toast.message('Still waiting for signature upload');
+                    }
+                  } catch {
+                    toast.error('Unable to refresh signature status');
+                  }
+                }}
+                onCopyLink={async () => {
+                  try {
+                    const copied = await signatureQrFlow.copyLink();
+                    if (copied) {
+                      toast.success('Link clicked');
+                    } else {
+                      toast.error('Unable to copy link');
+                    }
+                  } catch {
+                    toast.error('Unable to copy link');
+                  }
+                }}
+                successTitle="Signature uploaded successfully."
+                successDescription="Your signature has been saved and verified."
+              />
             )}
           </div>
 

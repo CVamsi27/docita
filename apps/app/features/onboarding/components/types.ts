@@ -64,7 +64,7 @@ export interface PaymentDetails {
 
 export interface TeamMember {
   email: string;
-  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN_DOCTOR";
+  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
   name?: string;
 }
 

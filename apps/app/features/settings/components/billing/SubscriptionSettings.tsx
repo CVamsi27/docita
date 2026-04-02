@@ -409,6 +409,7 @@ export function SubscriptionSettings() {
               message="Hi Docita team, I need help with billing and onboarding."
               label="Message support"
               variant="default"
+              allowGenericLink
             />
           </div>
 

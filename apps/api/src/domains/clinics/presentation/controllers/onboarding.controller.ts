@@ -30,6 +30,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -225,6 +226,7 @@ export class OnboardingController {
 
   @Post('choose-path')
   @HttpCode(200)
+  @AllowNoClinic()
   @SkipSubscriptionCheck()
   async choosePath(
     @Request() req: RequestWithUser,

@@ -131,8 +131,7 @@ export function InventoryAddItemDialogUI({
               >
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
+                  value={field.value ?? ""}
                 >
                   <FormControl>
                     <SelectTrigger id="category">

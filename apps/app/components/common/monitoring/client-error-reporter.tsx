@@ -51,6 +51,14 @@ export function ClientErrorReporter() {
       );
     };
 
+    const isMonitoringNoiseMessage = (message: string): boolean => {
+      const normalized = message.toLowerCase();
+      return (
+        normalized.includes("/monitoring/client-errors") ||
+        normalized.includes("client-error-reporting.ts")
+      );
+    };
+
     const dedupe = (key: string): boolean => {
       const now = Date.now();
       const prev = reportedKeys.get(key);
@@ -147,6 +155,9 @@ export function ClientErrorReporter() {
       }
 
       const message = getConsoleMessage(args);
+      if (isMonitoringNoiseMessage(message)) {
+        return;
+      }
 
       if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
         toast.warning(message);
@@ -169,6 +180,9 @@ export function ClientErrorReporter() {
       }
 
       const message = getConsoleMessage(args);
+      if (isMonitoringNoiseMessage(message)) {
+        return;
+      }
 
       if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
         toast.error(message);

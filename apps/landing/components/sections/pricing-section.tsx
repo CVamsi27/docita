@@ -162,7 +162,7 @@ export function PricingSection() {
             price={formatPrice("STARTER")}
             badgeColor="slate"
             features={starterFeatures}
-            buttonText="Start Free"
+            buttonText="Start trial"
           />
 
           <PricingTierCard
@@ -180,7 +180,7 @@ export function PricingSection() {
             isPopular
             features={essentialFeatures}
             isPrimary
-            buttonText="Start Free Trial"
+            buttonText="Start trial"
             buttonVariant="default"
           />
 
@@ -197,7 +197,7 @@ export function PricingSection() {
             }
             badgeColor="purple"
             features={professionalFeatures}
-            buttonText="Start Free Trial"
+            buttonText="Start trial"
           />
 
           <PricingTierCard
