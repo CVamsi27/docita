@@ -4,6 +4,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { PAYMENT_GATEWAY_TOKEN } from '@/domains/subscriptions/application/ports';
 import {
   setupTestDatabase,
   resetDatabase,
@@ -15,6 +16,27 @@ import { RazorpaySubscriptionGateway } from '@/gateways/razorpay-subscription.ga
 import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
+
+const mockPaymentGateway = {
+  createCustomer: jest.fn().mockResolvedValue('cust_1234567890'),
+  createOrder: jest.fn().mockResolvedValue({
+    razorpayOrderId: 'order_1234567890',
+    amountCents: 10000,
+    currency: 'INR',
+  }),
+  verifyPayment: jest.fn().mockResolvedValue({
+    verified: true,
+    paymentId: 'pay_1234567890',
+    orderId: 'order_1234567890',
+    amountCents: 10000,
+  }),
+  createSubscription: jest.fn().mockResolvedValue({
+    subscriptionId: 'sub_1234567890',
+  }),
+  cancelSubscription: jest.fn().mockResolvedValue(undefined),
+  refundPayment: jest.fn().mockResolvedValue(undefined),
+  verifyWebhookSignature: jest.fn().mockReturnValue(true),
+};
 
 describe('Subscription (e2e)', () => {
   let app: INestApplication;
@@ -30,6 +52,8 @@ describe('Subscription (e2e)', () => {
     })
       .overrideProvider(PrismaService)
       .useValue(getPrismaInstance())
+      .overrideProvider(PAYMENT_GATEWAY_TOKEN)
+      .useValue(mockPaymentGateway)
       .overrideProvider(RazorpaySubscriptionGateway)
       .useValue(mockRazorpayGateway)
       .overrideProvider(WhatsappService)
