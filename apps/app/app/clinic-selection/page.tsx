@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
-import { API_URL } from "@/lib/api-config";
-import { parseApiErrorResponse } from "@/lib/api-error";
 import {
   Card,
   CardContent,
@@ -18,18 +17,45 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Loader2 } from "lucide-react";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
-import { buildCsrfHeaders } from "@/lib/csrf";
+import { apiFetch } from "@/lib/api-client";
 
 export default function ClinicSelectionPage() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, logout, refreshUser } = useAuth();
   const router = useRouter();
   const [clinicCode, setClinicCode] = useState("");
   const [clinicEmail, setClinicEmail] = useState("");
-  const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   const canJoin = clinicCode.trim().length > 0 || clinicEmail.trim().length > 0;
+
+  const joinClinicMutation = useMutation({
+    mutationFn: async (payload: {
+      clinicCode?: string;
+      clinicEmail?: string;
+    }) => {
+      await apiFetch<unknown>("/clinic/join", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      let refreshedUser: unknown | null = null;
+      try {
+        const refreshResponse = await apiFetch<{ user?: unknown }>(
+          "/auth/refresh",
+          {
+            method: "POST",
+            body: JSON.stringify({}),
+          },
+        );
+        refreshedUser = refreshResponse.user ?? null;
+      } catch {
+        refreshedUser = null;
+      }
+
+      return refreshedUser;
+    },
+  });
 
   useEffect(() => {
     if (isLoading) return;
@@ -80,46 +106,17 @@ export default function ClinicSelectionPage() {
     }
 
     setJoinError("");
-    setIsJoining(true);
 
     try {
-      const joinResponse = await fetch(`${API_URL}/clinic/join`, {
-        method: "POST",
-        credentials: "include",
-        headers: buildCsrfHeaders({
-          "Content-Type": "application/json",
-        }),
-        body: JSON.stringify({
-          ...(normalizedCode ? { clinicCode: normalizedCode } : {}),
-          ...(normalizedEmail ? { clinicEmail: normalizedEmail } : {}),
-        }),
+      const refreshedUser = await joinClinicMutation.mutateAsync({
+        ...(normalizedCode ? { clinicCode: normalizedCode } : {}),
+        ...(normalizedEmail ? { clinicEmail: normalizedEmail } : {}),
       });
 
-      if (!joinResponse.ok) {
-        throw await parseApiErrorResponse(
-          joinResponse,
-          "Unable to join clinic",
-        );
+      if (refreshedUser) {
+        localStorage.setItem("docita_user", JSON.stringify(refreshedUser));
       }
-
-      // Refresh auth cookies so access token includes newly assigned clinicId.
-      const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
-        method: "POST",
-        credentials: "include",
-        headers: buildCsrfHeaders({
-          "Content-Type": "application/json",
-        }),
-        body: JSON.stringify({}),
-      });
-
-      if (refreshResponse.ok) {
-        const refreshData = (await refreshResponse.json()) as {
-          user?: unknown;
-        };
-        if (refreshData.user) {
-          localStorage.setItem("docita_user", JSON.stringify(refreshData.user));
-        }
-      }
+      await refreshUser();
 
       setRedirectMessage("Clinic linked successfully. Taking you to dashboard...");
       router.replace("/dashboard");
@@ -129,8 +126,6 @@ export default function ClinicSelectionPage() {
       } else {
         setJoinError("Unable to join clinic. Please try again.");
       }
-    } finally {
-      setIsJoining(false);
     }
   };
 
@@ -199,9 +194,9 @@ export default function ClinicSelectionPage() {
               <Button
                 className="w-full"
                 onClick={joinClinic}
-                disabled={isJoining || !canJoin}
+                disabled={joinClinicMutation.isPending || !canJoin}
               >
-                {isJoining ? "Joining..." : "Join Clinic"}
+                {joinClinicMutation.isPending ? "Joining..." : "Join Clinic"}
               </Button>
 
               <Button variant="outline" className="w-full" onClick={logout}>

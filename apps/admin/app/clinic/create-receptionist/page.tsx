@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -13,12 +14,11 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Loader2, UserPlus } from "lucide-react";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 
 export default function CreateReceptionistPage() {
-  const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     email?: string;
@@ -30,8 +30,18 @@ export default function CreateReceptionistPage() {
     password: "",
     phoneNumber: "",
   });
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
+  const createReceptionistMutation = useMutation({
+    mutationFn: () =>
+      client.post(`/clinics/${user?.clinicId}/receptionists`, {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        phoneNumber: form.phoneNumber || undefined,
+      }),
+  });
+  const loading = createReceptionistMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,38 +64,12 @@ export default function CreateReceptionistPage() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const res = await fetch(
-        `${API_URL}/clinics/${user?.clinicId}/receptionists`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: form.name,
-            email: form.email,
-            password: form.password,
-            phoneNumber: form.phoneNumber || undefined,
-          }),
-        },
-      );
-
-      if (res.ok) {
-        toast.success("Receptionist created successfully");
-        router.push("/clinic/team");
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to create receptionist");
-      }
+      await createReceptionistMutation.mutateAsync();
+      toast.success("Receptionist created successfully");
+      router.push("/clinic/team");
     } catch {
-
       toast.error("Error creating receptionist");
-    } finally {
-      setLoading(false);
     }
   };
 

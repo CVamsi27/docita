@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useRazorpay, type RazorpayResponse } from "@/hooks/use-razorpay";
-import { API_URL } from "@/lib/api-config";
+import { apiFetch } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/csrf";
+import { ApiError } from "@/lib/errors";
 import {
   type ClinicDetails,
   type ClinicRegistrationData,
@@ -156,18 +157,14 @@ export function useClinicRegistrationFlow() {
   }, [setOnboardingId, setStep]);
 
   const initializeOnboardingId = useCallback(async (): Promise<string> => {
-    const initRes = await fetch(`${API_URL}/onboarding/initialize`, {
-      method: "POST",
-      credentials: "include",
-      headers: buildJsonHeaders(),
-      body: JSON.stringify({}),
-    });
-
-    if (!initRes.ok) {
-      throw new Error("Unable to initialize onboarding session");
-    }
-
-    const initData = (await initRes.json()) as { onboardingId: string };
+    const initData = await apiFetch<{ onboardingId: string }>(
+      "/onboarding/initialize",
+      {
+        method: "POST",
+        headers: buildJsonHeaders(),
+        body: JSON.stringify({}),
+      },
+    );
     setOnboardingId(initData.onboardingId);
     validatedOnboardingIdRef.current = initData.onboardingId;
     return initData.onboardingId;
@@ -190,31 +187,23 @@ export function useClinicRegistrationFlow() {
       }
 
       try {
-        const progressRes = await fetch(
-          `${API_URL}/onboarding/${onboardingId}/progress`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: buildJsonHeaders(),
-            cache: "no-store",
-          },
-        );
+        await apiFetch(`/onboarding/${onboardingId}/progress`, {
+          method: "GET",
+          headers: buildJsonHeaders(),
+          cache: "no-store",
+        });
 
-        if (progressRes.ok) {
-          validatedOnboardingIdRef.current = onboardingId;
-          return onboardingId;
-        }
-
-        if (
-          progressRes.status !== 400 &&
-          progressRes.status !== 404
-        ) {
-          const errData = (await progressRes
-            .json()
-            .catch(() => ({}))) as { message?: string };
-          throw new Error(errData.message || "Unable to validate onboarding session");
-        }
+        validatedOnboardingIdRef.current = onboardingId;
+        return onboardingId;
       } catch (error) {
+        if (
+          error instanceof ApiError &&
+          error.statusCode !== 400 &&
+          error.statusCode !== 404
+        ) {
+          throw new Error(error.message || "Unable to validate onboarding session");
+        }
+
         if (
           error instanceof Error &&
           !error.message.toLowerCase().includes("onboarding")
@@ -234,38 +223,26 @@ export function useClinicRegistrationFlow() {
     async (file: File): Promise<string> => {
       const currentOnboardingId = await ensureOnboardingId();
 
-      const sessionRes = await fetch(
-        `${API_URL}/onboarding/${currentOnboardingId}/sla-signature-session`,
+      const sessionData = await apiFetch<{ id: string }>(
+        `/onboarding/${currentOnboardingId}/sla-signature-session`,
         {
           method: "POST",
-          credentials: "include",
           headers: buildJsonHeaders(),
           body: JSON.stringify({}),
         },
       );
 
-      if (!sessionRes.ok) {
-        throw new Error("Failed to create SLA signature upload session");
-      }
-
-      const sessionData = (await sessionRes.json()) as { id: string };
-
       const uploadData = new FormData();
       uploadData.append("file", file);
 
-      const uploadRes = await fetch(
-        `${API_URL}/onboarding/${currentOnboardingId}/sla-signature-session/${sessionData.id}`,
+      await apiFetch(
+        `/onboarding/${currentOnboardingId}/sla-signature-session/${sessionData.id}`,
         {
           method: "POST",
-          credentials: "include",
           headers: buildCsrfHeaders(),
           body: uploadData,
         },
       );
-
-      if (!uploadRes.ok) {
-        throw new Error("Failed to upload SLA signature");
-      }
 
       return sessionData.id;
     },
@@ -337,34 +314,21 @@ export function useClinicRegistrationFlow() {
       try {
         setIsProcessingPayment(true);
         const currentOnboardingId = await ensureOnboardingId();
-        const checkoutRes = await fetch(
-          `${API_URL}/onboarding/${currentOnboardingId}/checkout`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: buildJsonHeaders(),
-            body: JSON.stringify({
-              tier,
-              billingCycle,
-              currency: resolvedCurrency,
-              gstin: formData.clinicDetails.gstin,
-              customerEmail: user.email,
-              customerName: user.name,
-              customerPhone: formData.clinicDetails.phone,
-            }),
-          },
-        );
-
-        const checkoutData =
-          (await checkoutRes.json()) as OnboardingCheckoutResponse & {
-            message?: string;
-          };
-
-        if (!checkoutRes.ok) {
-          throw new Error(
-            checkoutData.message || "Unable to initialize payment",
-          );
-        }
+        const checkoutData = await apiFetch<
+          OnboardingCheckoutResponse & { message?: string }
+        >(`/onboarding/${currentOnboardingId}/checkout`, {
+          method: "POST",
+          headers: buildJsonHeaders(),
+          body: JSON.stringify({
+            tier,
+            billingCycle,
+            currency: resolvedCurrency,
+            gstin: formData.clinicDetails.gstin,
+            customerEmail: user.email,
+            customerName: user.name,
+            customerPhone: formData.clinicDetails.phone,
+          }),
+        });
 
         await openCheckout({
           key: checkoutData.razorpayKeyId,
@@ -504,34 +468,17 @@ export function useClinicRegistrationFlow() {
         };
 
         const currentOnboardingId = await ensureOnboardingId();
-
-        const res = await fetch(
-          `${API_URL}/onboarding/${currentOnboardingId}/complete`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: buildJsonHeaders(),
-            body: JSON.stringify(payload),
-          },
-        );
-
-        if (!res.ok) {
-          const err = (await res.json().catch(() => ({}))) as {
-            message?: string;
-            errors?: string[];
-          };
-          throw new Error(
-            err.errors?.[0] || err.message || "Registration failed",
-          );
-        }
-
-        const responseData = (await res.json()) as {
+        const responseData = await apiFetch<{
           success?: boolean;
           message?: string;
           errors?: string[];
           access_token?: string;
           user?: unknown;
-        };
+        }>(`/onboarding/${currentOnboardingId}/complete`, {
+          method: "POST",
+          headers: buildJsonHeaders(),
+          body: JSON.stringify(payload),
+        });
 
         if (responseData.success === false) {
           throw new Error(

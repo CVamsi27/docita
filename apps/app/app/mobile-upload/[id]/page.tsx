@@ -2,22 +2,38 @@
 
 import { useCallback, useState } from "react";
 import { useParams } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { APIRequestError } from "@workspace/data-access";
 import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2, Upload } from "lucide-react";
 import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
-import { API_URL } from "@/lib/api-config";
+import { apiFetch } from "@/lib/api-client";
 
 export default function MobileUploadPage() {
   const params = useParams();
   const sessionId = params["id"] as string;
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const uploadMutation = useMutation({
+    mutationFn: async (selectedFile: File) => {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      return await apiFetch<{ status?: string; fileUrl?: string }>(
+        `/uploads/session/${sessionId}`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+    },
+  });
 
   const handleFileSelect = useCallback(
     (selectedFile: File | null, url: string | null) => {
@@ -31,56 +47,39 @@ export default function MobileUploadPage() {
   const handleUpload = async () => {
     if (!file || !sessionId) return;
 
-    setUploading(true);
     setErrorMessage(null);
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const response = await fetch(`${API_URL}/uploads/session/${sessionId}`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      if (response.ok) {
-        try {
-          const data = await response.json();
-          if (data.status === "uploaded" && data.fileUrl) {
-            setSuccess(true);
-          } else {
-            const message =
-              "Upload completed, but we could not confirm session status. Please try again.";
-            setErrorMessage(message);
-            toast.error(message);
-          }
-        } catch {
-          setSuccess(true);
-        }
+      const data = await uploadMutation.mutateAsync(file);
+      if (data.status === "uploaded" && data.fileUrl) {
+        setSuccess(true);
       } else {
-        let errorMessage = "Upload failed. Please try again.";
-        try {
-          const errorData = await response.json();
-          if (errorData.message) {
-            errorMessage = Array.isArray(errorData.message)
-              ? errorData.message.join(", ")
-              : errorData.message;
-          }
-        } catch {
-          if (response.status === 413) {
-            errorMessage = "File is too large. Please use a smaller image.";
-          } else if (response.status === 404) {
-            errorMessage = "Session expired. Please scan the QR code again.";
-          } else if (response.status === 400) {
-            errorMessage = "Invalid file type. Please upload an image.";
-          }
-        }
-        setErrorMessage(errorMessage);
-        toast.error(errorMessage);
+        const message =
+          "Upload completed, but we could not confirm session status. Please try again.";
+        setErrorMessage(message);
+        toast.error(message);
       }
     } catch (error) {
-      if (error instanceof TypeError && error.message.includes("fetch")) {
-        const message = "Connection failed. Please check your internet and try again.";
+      if (error instanceof APIRequestError) {
+        if (error.status === 413) {
+          const message = "File is too large. Please use a smaller image.";
+          setErrorMessage(message);
+          toast.error(message);
+          return;
+        }
+        if (error.status === 404) {
+          const message = "Session expired. Please scan the QR code again.";
+          setErrorMessage(message);
+          toast.error(message);
+          return;
+        }
+        if (error.status === 400) {
+          const message = "Invalid file type. Please upload an image.";
+          setErrorMessage(message);
+          toast.error(message);
+          return;
+        }
+
+        const message = error.message || "Upload failed. Please try again.";
         setErrorMessage(message);
         toast.error(message);
       } else {
@@ -88,8 +87,6 @@ export default function MobileUploadPage() {
         setErrorMessage(message);
         toast.error(message);
       }
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -132,15 +129,15 @@ export default function MobileUploadPage() {
         {}
         <Button
           className={`w-full h-14 text-base font-medium rounded-xl shadow-lg transition-all ${
-            file && !uploading
+            file && !uploadMutation.isPending
               ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25"
               : ""
           }`}
           onClick={handleUpload}
-          disabled={!file || uploading}
+          disabled={!file || uploadMutation.isPending}
           size="lg"
         >
-          {uploading ? (
+          {uploadMutation.isPending ? (
             <span className="flex items-center gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
               Uploading...

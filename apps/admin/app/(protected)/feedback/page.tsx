@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -43,14 +44,13 @@ import {
   Trash2,
 } from "lucide-react";
 import {
-  API_URL,
   Feedback,
   feedbackAPI,
   FeedbackFilters,
-  FeedbackStats,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
+import { adminQueryKeys } from "@/lib/query-keys";
 
 const STATUS_OPTIONS = [
   { value: "NEW", label: "New", color: "badge-info" },
@@ -71,83 +71,90 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function FeedbackPage() {
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [stats, setStats] = useState<FeedbackStats | null>(null);
-  const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(
     null,
   );
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FeedbackFilters>({});
   const [adminNotes, setAdminNotes] = useState("");
-  const [updatingStatus, setUpdatingStatus] = useState(false);
   const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
+  const feedbacksQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.feedback(filtersKey),
+    queryFn: () =>
+      feedbackAPI.getAll(
+        filters as Record<string, string | number | boolean | undefined>,
+      ),
+    enabled: Boolean(token),
+  });
+
+  const statsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.feedbackStats(),
+    queryFn: () => feedbackAPI.getStats(filters.clinicId),
+    enabled: Boolean(token),
+  });
+
+  const feedbacks = feedbacksQuery.data ?? [];
+  const stats = statsQuery.data ?? null;
+  const loading = feedbacksQuery.isLoading || statsQuery.isLoading;
 
   const loadData = useCallback(async () => {
-    if (!token) return;
+    await Promise.all([feedbacksQuery.refetch(), statsQuery.refetch()]);
+  }, [feedbacksQuery, statsQuery]);
 
-    setLoading(true);
-    try {
-      const headers = { Authorization: `Bearer ${token}` };
-      const params = new URLSearchParams();
-      if (filters.status) params.append("status", filters.status);
-      if (filters.category) params.append("category", filters.category);
-      if (filters.clinicId) params.append("clinicId", filters.clinicId);
-      if (filters.startDate) params.append("startDate", filters.startDate);
-      if (filters.endDate) params.append("endDate", filters.endDate);
-      if (filters.minRating)
-        params.append("minRating", String(filters.minRating));
-      if (filters.maxRating)
-        params.append("maxRating", String(filters.maxRating));
-      const queryString = params.toString();
-
-      const [feedbackRes, statsRes] = await Promise.all([
-        fetch(
-          `${API_URL}/super-admin/feedback/all${queryString ? `?${queryString}` : ""}`,
-          { headers },
-        ),
-        fetch(`${API_URL}/super-admin/feedback/stats`, { headers }),
+  const updateStatusMutation = useMutation({
+    mutationFn: (payload: { id: string; status: string; adminNotes?: string }) =>
+      feedbackAPI.updateStatus(payload.id, {
+        status: payload.status,
+        adminNotes: payload.adminNotes,
+      }),
+    onSuccess: (updated) => {
+      setSelectedFeedback(updated);
+      setAdminNotes("");
+      void Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.superAdmin.feedback(filtersKey),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.superAdmin.feedbackStats(),
+        }),
       ]);
+    },
+  });
 
-      if (feedbackRes.ok) {
-        const data = await feedbackRes.json();
-        setFeedbacks(Array.isArray(data) ? data : []);
-      }
-      if (statsRes.ok) setStats(await statsRes.json());
-    } catch (error) {
-      void error;
-    } finally {
-      setLoading(false);
-    }
-  }, [token, filters]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => feedbackAPI.delete(id),
+    onSuccess: () => {
+      setSelectedFeedback(null);
+      void Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.superAdmin.feedback(filtersKey),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: adminQueryKeys.superAdmin.feedbackStats(),
+        }),
+      ]);
+    },
+  });
 
   const handleUpdateStatus = async (id: string, status: string) => {
-    setUpdatingStatus(true);
     try {
-      const updated = await feedbackAPI.updateStatus(id, {
+      await updateStatusMutation.mutateAsync({
+        id,
         status,
         adminNotes: adminNotes || undefined,
       });
-      setFeedbacks(feedbacks.map((f) => (f.id === id ? updated : f)));
-      setSelectedFeedback(updated);
-      setAdminNotes("");
     } catch (error) {
       void error;
-    } finally {
-      setUpdatingStatus(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this feedback?")) return;
     try {
-      await feedbackAPI.delete(id);
-      setFeedbacks(feedbacks.filter((f) => f.id !== id));
-      setSelectedFeedback(null);
+      await deleteMutation.mutateAsync(id);
     } catch (error) {
       void error;
     }
@@ -728,9 +735,9 @@ export default function FeedbackPage() {
                         onClick={() =>
                           handleUpdateStatus(selectedFeedback.id, opt.value)
                         }
-                        disabled={updatingStatus}
+                        disabled={updateStatusMutation.isPending}
                       >
-                        {updatingStatus ? (
+                        {updateStatusMutation.isPending ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           opt.label

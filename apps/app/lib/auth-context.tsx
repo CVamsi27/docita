@@ -9,11 +9,11 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { parseApiErrorResponse } from "@/lib/api-error";
 import { isNetworkError } from "@/lib/network-error";
-import { API_URL } from "@/lib/api-config";
+import { apiFetch } from "@/lib/api-client";
 import { appSession } from "@/lib/session";
 import {
   checkEmailResponseSchema,
@@ -156,6 +156,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return refreshed;
   }, [persistToken]);
 
+  const validateAuthMutation = useMutation({
+    mutationFn: (headers?: HeadersInit) =>
+      apiFetch<{ user: User }>("/auth/validate", {
+        method: "GET",
+        headers,
+      }),
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: (payload: unknown) =>
+      apiFetch<unknown>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  });
+
+  const checkEmailMutation = useMutation({
+    mutationFn: (payload: unknown) =>
+      apiFetch<unknown>("/auth/check-email", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: (payload: unknown) =>
+      apiFetch<unknown>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: () =>
+      apiFetch<unknown>("/auth/logout", {
+        method: "POST",
+        body: JSON.stringify({}),
+      }),
+  });
+
   useEffect(() => {
     const cachedUser = getStoredUser();
     if (cachedUser) {
@@ -169,12 +209,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const validateSession = async () => {
       try {
-        const res = await fetch(`${API_URL}/auth/validate`, {
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
+        const data = await validateAuthMutation.mutateAsync(undefined);
+        if (data?.user) {
           setUser(data.user);
           setUserRole(data.user.role);
           hasSetRoleRef.current = true;
@@ -184,27 +220,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           return;
         }
-
-        // Access token expired — refresh and then revalidate.
+      } catch {
         const refreshed = await refreshAccessToken();
         if (refreshed) {
-          const retryRes = await fetch(`${API_URL}/auth/validate`, {
-            credentials: "include",
-          });
-          if (retryRes.ok) {
-            const data = await retryRes.json();
-            setUser(data.user);
-            setUserRole(data.user.role);
-            hasSetRoleRef.current = true;
-            localStorage.setItem("docita_user", JSON.stringify(data.user));
-            return;
+          try {
+            const retryData = await validateAuthMutation.mutateAsync(undefined);
+            if (retryData?.user) {
+              setUser(retryData.user);
+              setUserRole(retryData.user.role);
+              hasSetRoleRef.current = true;
+              localStorage.setItem("docita_user", JSON.stringify(retryData.user));
+              return;
+            }
+          } catch {
+            // ignore retry failures
           }
         }
-
-        // Both validate and refresh failed — clear session
-        clearSession();
-      } catch {
-        // Network error — keep user logged in from cache
       } finally {
         setIsLoading(false);
       }
@@ -250,14 +281,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
       };
 
-      const res = await fetch(`${API_URL}/auth/validate`, {
-        method: "GET",
-        credentials: "include",
-        headers,
-      });
-
-      if (res.ok) {
-        const data = await res.json();
+      const data = await validateAuthMutation.mutateAsync(headers);
+      if (data?.user) {
         setUser(data.user);
         setUserRole(data.user.role);
         localStorage.setItem("docita_user", JSON.stringify(data.user));
@@ -266,16 +291,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const refreshed = await refreshAccessToken();
       if (refreshed) {
-        const retryRes = await fetch(`${API_URL}/auth/validate`, {
-          method: "GET",
-          credentials: "include",
-          headers,
-        });
-        if (retryRes.ok) {
-          const data = await retryRes.json();
-          setUser(data.user);
-          setUserRole(data.user.role);
-          localStorage.setItem("docita_user", JSON.stringify(data.user));
+        const retryData = await validateAuthMutation.mutateAsync(headers);
+        if (retryData?.user) {
+          setUser(retryData.user);
+          setUserRole(retryData.user.role);
+          localStorage.setItem("docita_user", JSON.stringify(retryData.user));
           return;
         }
       }
@@ -288,41 +308,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const payload = loginSchema.parse({ email, password });
-    const csrfToken = appSession.getCsrfToken();
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw await parseApiErrorResponse(response, "Login failed");
-    }
-
-    const authPayload = extractAuthPayload(await response.json());
+    const authPayload = extractAuthPayload(await loginMutation.mutateAsync(payload));
     const accessToken = authPayload?.access_token ?? null;
     let userData = authPayload?.user ?? null;
 
     if (!userData) {
-      const validateResponse = await fetch(`${API_URL}/auth/validate`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-        },
+      const validateData = await validateAuthMutation.mutateAsync({
+        "Content-Type": "application/json",
       });
-
-      if (validateResponse.ok) {
-        const validateData = (await validateResponse.json()) as {
-          user?: User;
-        };
-        userData = validateData.user ?? null;
-      }
+      userData = validateData?.user ?? null;
     }
 
     if (!userData) {
@@ -369,22 +363,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkEmail = async (email: string): Promise<boolean> => {
     try {
       const payload = checkEmailSchema.parse({ email });
-      const csrfToken = appSession.getCsrfToken();
-      const response = await fetch(`${API_URL}/auth/check-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw await parseApiErrorResponse(response, "Email check failed");
-      }
-
-      const data = checkEmailResponseSchema.parse(await response.json());
+      const data = checkEmailResponseSchema.parse(
+        await checkEmailMutation.mutateAsync(payload),
+      );
       return data.exists;
     } catch (error) {
       if (isNetworkError(error)) {
@@ -411,41 +392,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       clinicName,
     });
-    const csrfToken = appSession.getCsrfToken();
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-      },
-      credentials: "include",
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw await parseApiErrorResponse(response, "Registration failed");
-    }
-
-    const authPayload = extractAuthPayload(await response.json());
+    const authPayload = extractAuthPayload(
+      await registerMutation.mutateAsync(payload),
+    );
     const accessToken = authPayload?.access_token ?? null;
     let userData = authPayload?.user ?? null;
 
     if (!userData) {
-      const validateResponse = await fetch(`${API_URL}/auth/validate`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-        },
+      const validateData = await validateAuthMutation.mutateAsync({
+        "Content-Type": "application/json",
       });
-
-      if (validateResponse.ok) {
-        const validateData = (await validateResponse.json()) as {
-          user?: User;
-        };
-        userData = validateData.user ?? null;
-      }
+      userData = validateData?.user ?? null;
     }
 
     if (!userData) {
@@ -484,22 +441,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     clearSession();
-
-    const csrfToken = appSession.getCsrfToken();
     try {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-        },
-        body: JSON.stringify({}),
-      });
+      await logoutMutation.mutateAsync();
     } catch {}
 
     router.push("/login");
-  }, [clearSession, router]);
+  }, [clearSession, logoutMutation, router]);
 
   useEffect(() => {
     if (!isAuthenticated) return;

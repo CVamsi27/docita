@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { APIRequestError } from "@workspace/data-access";
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
@@ -14,12 +16,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
 import { CheckCircle2, AlertCircle, Upload, Loader2, Pencil } from "lucide-react";
 import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
-import { API_URL } from "@/lib/api-config";
 import { buildCsrfHeaders } from "@/lib/csrf";
 import {
   dataUrlToFile,
   validateSignatureImageFile,
 } from "@/features/_shared/utils/signature-upload";
+import { apiFetch } from "@/lib/api-client";
+import { appQueryKeys } from "@/lib/query-keys";
 
 export default function OnboardingSlaUploadPage() {
   const searchParams = useSearchParams();
@@ -30,93 +33,106 @@ export default function OnboardingSlaUploadPage() {
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
   const [alreadyUploaded, setAlreadyUploaded] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const checkSessionStatus = useCallback(async () => {
-    if (!onboardingId || !sessionId) {
-      setError("Invalid upload link. Missing required parameters.");
-      setCheckingStatus(false);
-      return;
-    }
-
-    try {
-      setCheckingStatus(true);
-      const res = await fetch(
-        `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
-        {
-          credentials: "include",
-          cache: "no-store",
-        },
-      );
-
-      if (!res.ok) {
-        setCheckingStatus(false);
-        return;
+  const statusQuery = useQuery({
+    queryKey: onboardingId && sessionId
+      ? appQueryKeys.onboarding.signatureSession(onboardingId, sessionId)
+      : appQueryKeys.onboarding.signatureSession("missing", "missing"),
+    enabled: Boolean(onboardingId && sessionId),
+    queryFn: async () => {
+      if (!onboardingId || !sessionId) {
+        throw new Error("Invalid upload link");
       }
 
-      const data = (await res.json()) as {
+      return await apiFetch<{
         status?: string;
         uploaded?: boolean;
         fileUrl?: string | null;
-      };
-      const status = data.status?.toLowerCase();
-      const isUploaded = Boolean(
-        data.uploaded ||
-          data.fileUrl ||
-          status === "uploaded" ||
-          status === "completed",
+      }>(
+        `/onboarding/${onboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
+        {
+          method: "GET",
+          cache: "no-store",
+        },
       );
+    },
+    retry: false,
+  });
 
-      if (isUploaded) {
-        setAlreadyUploaded(true);
-        setUploadComplete(true);
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!onboardingId || !sessionId) {
+        throw new Error("Invalid upload link. Missing required parameters.");
       }
-    } catch {
-      // Ignore status check failures; user may still upload manually.
-    } finally {
-      setCheckingStatus(false);
-    }
-  }, [onboardingId, sessionId]);
 
-  useEffect(() => {
-    checkSessionStatus();
-  }, [checkSessionStatus]);
-
-  const handleUpload = async (file: File) => {
-    if (!onboardingId || !sessionId) return;
-    setUploading(true);
-    setError(null);
-    try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(
-        `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${sessionId}`,
+      return await apiFetch<{ success?: boolean }>(
+        `/onboarding/${onboardingId}/sla-signature-session/${sessionId}`,
         {
           method: "POST",
-          credentials: "include",
           headers: buildCsrfHeaders(),
           body: formData,
         },
       );
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string };
-        if (body.message?.toLowerCase().includes("already been used")) {
+    },
+  });
+
+  useEffect(() => {
+    if (!onboardingId || !sessionId) {
+      setError("Invalid upload link. Missing required parameters.");
+      return;
+    }
+
+    const data = statusQuery.data;
+    if (!data) return;
+
+    const status = data.status?.toLowerCase();
+    const isUploaded = Boolean(
+      data.uploaded ||
+        data.fileUrl ||
+        status === "uploaded" ||
+        status === "completed",
+    );
+    if (isUploaded) {
+      setAlreadyUploaded(true);
+      setUploadComplete(true);
+    }
+  }, [onboardingId, sessionId, statusQuery.data]);
+
+  const handleUpload = async (file: File) => {
+    if (!onboardingId || !sessionId) return;
+    setError(null);
+    try {
+      await uploadMutation.mutateAsync(file);
+      setUploadComplete(true);
+    } catch (err) {
+      if (
+        err instanceof APIRequestError &&
+        err.message.toLowerCase().includes("already been used")
+      ) {
+        setAlreadyUploaded(true);
+        setUploadComplete(true);
+        return;
+      }
+
+      if (err instanceof APIRequestError) {
+        const message = err.message || "Upload failed";
+        setError(message);
+      } else if (err instanceof Error) {
+        if (err.message.toLowerCase().includes("already been used")) {
           setAlreadyUploaded(true);
           setUploadComplete(true);
           return;
         }
-        throw new Error(body.message || "Upload failed");
+        setError(err.message);
+      } else {
+        setError("Upload failed");
       }
-      setUploadComplete(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -161,7 +177,7 @@ export default function OnboardingSlaUploadPage() {
     );
   }
 
-  if (checkingStatus) {
+  if (statusQuery.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
         <Card className="w-full max-w-md">
@@ -225,7 +241,7 @@ export default function OnboardingSlaUploadPage() {
                     dataUrl={signatureDataUrl}
                     onEdit={() => setSignatureDataUrl(null)}
                   />
-                  {uploading && (
+                  {uploadMutation.isPending && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Uploading...
@@ -248,7 +264,7 @@ export default function OnboardingSlaUploadPage() {
                 variant="outline"
                 className="w-full"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                disabled={uploadMutation.isPending}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 {selectedFile ? "Change Image" : "Select Image"}
@@ -266,9 +282,9 @@ export default function OnboardingSlaUploadPage() {
                   <Button
                     className="w-full"
                     onClick={() => selectedFile && handleUpload(selectedFile)}
-                    disabled={uploading}
+                    disabled={uploadMutation.isPending}
                   >
-                    {uploading ? (
+                    {uploadMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Uploading...

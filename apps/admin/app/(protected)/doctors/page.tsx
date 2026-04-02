@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -44,8 +45,10 @@ import {
   ShieldX,
   Stethoscope,
 } from "lucide-react";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
+import { useSuperAdminFiltersStore } from "@/lib/stores/super-admin-filters-store";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import {
@@ -120,11 +123,8 @@ interface Clinic {
 }
 
 export default function DoctorsPage() {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedClinic, setSelectedClinic] = useState<string>("");
+  const { doctorSearch, selectedClinic, setDoctorSearch, setSelectedClinic } =
+    useSuperAdminFiltersStore();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const { token } = useAuth();
@@ -150,140 +150,70 @@ export default function DoctorsPage() {
     return date.toLocaleDateString("en-IN");
   };
 
-  const fetchClinics = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_URL}/super-admin/clinics`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-
-        const clinicsArray = Array.isArray(data) ? data : [];
-        setClinics(clinicsArray);
-
-        if (clinicsArray.length > 0) {
-          const firstClinicId = clinicsArray[0].id;
-          setSelectedClinic(firstClinicId);
-
-          try {
-            const doctorsRes = await fetch(
-              `${API_URL}/super-admin/clinics/${firstClinicId}/doctors`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            );
-            if (doctorsRes.ok) {
-              const doctorsData = await doctorsRes.json();
-              setDoctors(doctorsData);
-            }
-          } catch {
-
-            toast.error("Failed to load doctors");
-          }
-        }
-      }
-    } catch {
-
-      toast.error("Failed to load clinics");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
-  const fetchDoctors = useCallback(
-    async (clinicId: string) => {
-      if (!token) return;
-
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${API_URL}/super-admin/clinics/${clinicId}/doctors`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setDoctors(Array.isArray(data) ? data : []);
-        }
-      } catch {
-
-        toast.error("Failed to load doctors");
-      } finally {
-        setLoading(false);
-      }
+  const clinicsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.clinics(),
+    queryFn: async () => {
+      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
+        "/super-admin/clinics",
+      );
+      return Array.isArray(data) ? data : (data.items ?? []);
     },
-    [token],
-  );
+    enabled: Boolean(token),
+  });
+
+  const clinics = clinicsQuery.data ?? [];
 
   useEffect(() => {
-    fetchClinics();
-  }, [fetchClinics]);
-
-  useEffect(() => {
-    if (selectedClinic && selectedClinic !== "all" && selectedClinic !== "") {
-      fetchDoctors(selectedClinic);
-    } else if (selectedClinic === "all") {
-
-      const fetchAllDoctors = async () => {
-        if (!token || clinics.length === 0) return;
-
-        setLoading(true);
-        try {
-          const allDoctorsPromises = clinics.map((clinic) =>
-            fetch(`${API_URL}/super-admin/clinics/${clinic.id}/doctors`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }).then(async (res) => {
-              if (!res.ok) return [];
-              const clinicDoctors = (await res.json()) as Doctor[];
-              return clinicDoctors.map((doctor) => ({
-                ...doctor,
-                clinicId: clinic.id,
-              }));
-            }),
-          );
-
-          const allDoctorsArrays = await Promise.all(allDoctorsPromises);
-          const allDoctors = allDoctorsArrays.flat();
-          setDoctors(allDoctors);
-        } catch {
-
-          toast.error("Failed to load doctors");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchAllDoctors();
+    if (!selectedClinic || selectedClinic === "all") {
+      if (clinics.length > 0) {
+        setSelectedClinic(clinics[0]?.id ?? "");
+      }
     }
-  }, [selectedClinic, fetchDoctors, token, clinics]);
+  }, [clinics, selectedClinic, setSelectedClinic]);
+
+  const doctorsQuery = useQuery({
+    queryKey: [
+      "super-admin",
+      "doctors",
+      selectedClinic || "none",
+      clinics.length,
+    ],
+    queryFn: async () => {
+      if (selectedClinic === "all") {
+        const allDoctorsArrays = await Promise.all(
+          clinics.map(async (clinic) => {
+            const clinicDoctors = await client.get<Doctor[]>(
+              `/super-admin/clinics/${clinic.id}/doctors`,
+            );
+            return (clinicDoctors ?? []).map((doctor) => ({
+              ...doctor,
+              clinicId: clinic.id,
+            }));
+          }),
+        );
+        return allDoctorsArrays.flat();
+      }
+
+      if (!selectedClinic) return [];
+      const data = await client.get<Doctor[]>(
+        `/super-admin/clinics/${selectedClinic}/doctors`,
+      );
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: Boolean(token && selectedClinic),
+  });
+  const doctors = doctorsQuery.data ?? [];
+  const loading = clinicsQuery.isLoading || doctorsQuery.isLoading;
 
   const fetchDoctorDetails = async (clinicId: string, doctorId: string) => {
     if (!token) return;
 
     try {
-      const res = await fetch(
-        `${API_URL}/super-admin/clinics/${clinicId}/doctors/${doctorId}`,
-        {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
+      const data = await client.get<Doctor>(
+        `/super-admin/clinics/${clinicId}/doctors/${doctorId}`,
       );
-      if (res.ok) {
-        const data = await res.json();
-        setSelectedDoctor(data);
-      }
+      setSelectedDoctor(data);
     } catch {
-
       toast.error("Failed to load doctor details");
     }
   };
@@ -303,12 +233,12 @@ export default function DoctorsPage() {
 
   const filteredDoctors = doctors.filter(
     (doctor) =>
-      doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doctor.name.toLowerCase().includes(doctorSearch.toLowerCase()) ||
+      doctor.email.toLowerCase().includes(doctorSearch.toLowerCase()) ||
       (doctor.specialization &&
         SPECIALIZATION_LABELS[doctor.specialization]
           ?.toLowerCase()
-          .includes(searchTerm.toLowerCase())),
+          .includes(doctorSearch.toLowerCase())),
   );
 
   return (
@@ -331,8 +261,8 @@ export default function DoctorsPage() {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search doctors by name, email, or specialization..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={doctorSearch}
+                  onChange={(e) => setDoctorSearch(e.target.value)}
                   className="pl-9"
                 />
               </div>

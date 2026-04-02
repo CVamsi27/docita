@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { RefreshCw } from "lucide-react";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
@@ -43,10 +45,7 @@ export function SystemLogsPage({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [logs, setLogs] = useState<SystemLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<
     "ALL" | SystemLog["level"]
   >("ALL");
@@ -56,7 +55,6 @@ export function SystemLogsPage({
     defaultLimit,
   );
   const [selectedOffset, setSelectedOffset] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
   const { token } = useAuth();
 
   useEffect(() => {
@@ -140,9 +138,7 @@ export function SystemLogsPage({
     ],
   );
 
-  const fetchLogs = useCallback(async () => {
-    if (!token) return;
-
+  const logsParams = useMemo(() => {
     const normalizedSearch = searchText.trim();
     const params = new URLSearchParams();
     params.set("limit", String(selectedLimit));
@@ -150,41 +146,8 @@ export function SystemLogsPage({
     if (selectedLevel !== "ALL") params.set("level", selectedLevel);
     if (selectedModule !== "ALL") params.set("module", selectedModule);
     if (normalizedSearch) params.set("q", normalizedSearch);
-
-    setLoading(true);
-    setErrorMessage(null);
-    try {
-      const res = await fetch(`${API_URL}/super-admin/logs?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const logsData = Array.isArray(json?.data)
-          ? json.data
-          : Array.isArray(json)
-            ? json
-            : [];
-        const total =
-          typeof json?.total === "number" ? json.total : logsData.length;
-        setLogs(Array.isArray(logsData) ? logsData : []);
-        setTotalCount(total);
-      } else {
-        setErrorMessage(
-          `Failed to fetch logs: ${res.status} ${res.statusText}`,
-        );
-        setLogs([]);
-        setTotalCount(0);
-      }
-    } catch {
-      setErrorMessage("Failed to fetch logs");
-      setLogs([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    return params.toString();
   }, [
-    token,
     selectedLimit,
     selectedOffset,
     selectedLevel,
@@ -192,13 +155,36 @@ export function SystemLogsPage({
     searchText,
   ]);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+  const logsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.logs(logsParams),
+    queryFn: async () => {
+      const json = await client.get<
+        SystemLog[] | { data?: SystemLog[]; total?: number }
+      >(`/super-admin/logs?${logsParams}`);
+      const logsData = Array.isArray(json)
+        ? json
+        : Array.isArray(json.data)
+          ? json.data
+          : [];
+      const total = Array.isArray(json)
+        ? json.length
+        : typeof json.total === "number"
+          ? json.total
+          : logsData.length;
+
+      return { logs: logsData, total };
+    },
+    enabled: Boolean(token),
+  });
+
+  const logs = logsQuery.data?.logs ?? [];
+  const totalCount = logsQuery.data?.total ?? 0;
+  const loading = logsQuery.isLoading;
+  const errorMessage = logsQuery.isError ? "Failed to fetch logs" : null;
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchLogs();
+    logsQuery.refetch().finally(() => setRefreshing(false));
   };
 
   const getLevelBadge = (level: string) => {

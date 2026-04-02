@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -32,8 +33,8 @@ import {
   FormSection,
 } from "@workspace/ui/components";
 import { Loader2, Pencil, Plus, Stethoscope, UserCheck } from "lucide-react";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
 
@@ -61,10 +62,8 @@ interface FormData {
 }
 
 export default function TeamPage() {
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -86,65 +85,45 @@ export default function TeamPage() {
     }),
   );
 
-  useEffect(() => {
-    const loadTeam = async () => {
-      if (!token || !user?.clinicId) {
-        setLoading(false);
-        return;
+  const teamQuery = useQuery({
+    queryKey: ["clinic", user?.clinicId ?? "none", "team-members"],
+    queryFn: async () => {
+      const [doctors, receptionists] = await Promise.all([
+        client.get<TeamMember[]>(`/clinics/${user?.clinicId}/doctors`),
+        client.get<TeamMember[]>(`/clinics/${user?.clinicId}/receptionists`),
+      ]);
+      return [
+        ...(Array.isArray(doctors)
+          ? doctors.map((d) => ({ ...d, role: "DOCTOR" as const }))
+          : []),
+        ...(Array.isArray(receptionists)
+          ? receptionists.map((r) => ({ ...r, role: "RECEPTIONIST" as const }))
+          : []),
+      ];
+    },
+    enabled: Boolean(token && user?.clinicId),
+  });
+  const members = teamQuery.data ?? [];
+  const loading = teamQuery.isLoading;
+
+  const saveMemberMutation = useMutation({
+    mutationFn: async (input: {
+      mode: "create" | "edit";
+      endpoint: string;
+      payload: Record<string, unknown>;
+      memberId?: string;
+    }) => {
+      if (input.mode === "edit" && input.memberId) {
+        return client.put(`${input.endpoint}/${input.memberId}`, input.payload);
       }
-
-      try {
-        const allMembers: TeamMember[] = [];
-
-        const doctorsRes = await fetch(
-          `${API_URL}/clinics/${user.clinicId}/doctors`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (doctorsRes.ok) {
-          const doctors: TeamMember[] = await doctorsRes.json();
-          allMembers.push(
-            ...doctors.map((d) => ({
-              ...d,
-              role: "DOCTOR" as const,
-            })),
-          );
-        }
-
-        const receptRes = await fetch(
-          `${API_URL}/clinics/${user.clinicId}/receptionists`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (receptRes.ok) {
-          const receptionists: TeamMember[] = await receptRes.json();
-          allMembers.push(
-            ...receptionists.map((r) => ({
-              ...r,
-              role: "RECEPTIONIST" as const,
-            })),
-          );
-        }
-
-        setMembers(allMembers);
-      } catch {
-
-        toast.error("Failed to load team members");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTeam();
-  }, [token, user?.clinicId]);
+      return client.post(input.endpoint, input.payload);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["clinic", user?.clinicId ?? "none", "team-members"],
+      });
+    },
+  });
 
   const resetForm = () => {
     setEditingMember(null);
@@ -178,8 +157,6 @@ export default function TeamPage() {
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
       const endpoint =
         formData.role === "DOCTOR"
@@ -198,120 +175,35 @@ export default function TeamPage() {
       };
 
       if (editingMember) {
-
         const updatePayload: Record<string, unknown> = { ...payload };
         if (formData.password) {
           updatePayload.password = formData.password;
         }
 
-        const res = await fetch(`${API_URL}${endpoint}/${editingMember.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updatePayload),
+        await saveMemberMutation.mutateAsync({
+          mode: "edit",
+          endpoint,
+          payload: updatePayload,
+          memberId: editingMember.id,
         });
-
-        if (res.ok) {
-          toast.success("Team member updated successfully");
-          setIsDialogOpen(false);
-          resetForm();
-
-          const reloadRes = await fetch(
-            `${API_URL}/clinics/${user?.clinicId}/doctors`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-          if (reloadRes.ok) {
-            const doctors = await reloadRes.json();
-            const receptRes = await fetch(
-              `${API_URL}/clinics/${user?.clinicId}/receptionists`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            );
-            const receptionists = receptRes.ok ? await receptRes.json() : [];
-            setMembers([
-              ...doctors.map((d: TeamMember) => ({
-                ...d,
-                role: "DOCTOR" as const,
-              })),
-              ...receptionists.map((r: TeamMember) => ({
-                ...r,
-                role: "RECEPTIONIST" as const,
-              })),
-            ]);
-          }
-        } else {
-          const error = await res.json();
-          toast.error(error.message || "Failed to update team member");
-        }
+        toast.success("Team member updated successfully");
+        setIsDialogOpen(false);
+        resetForm();
       } else {
-
         const createPayload = { ...payload, password: formData.password };
-
-        const res = await fetch(`${API_URL}${endpoint}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(createPayload),
+        await saveMemberMutation.mutateAsync({
+          mode: "create",
+          endpoint,
+          payload: createPayload,
         });
-
-        if (res.ok) {
-          toast.success(
-            `${formData.role === "DOCTOR" ? "Doctor" : "Receptionist"} created successfully`,
-          );
-          setIsDialogOpen(false);
-          resetForm();
-
-          const reloadRes = await fetch(
-            `${API_URL}/clinics/${user?.clinicId}/doctors`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-          if (reloadRes.ok) {
-            const doctors = await reloadRes.json();
-            const receptRes = await fetch(
-              `${API_URL}/clinics/${user?.clinicId}/receptionists`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            );
-            const receptionists = receptRes.ok ? await receptRes.json() : [];
-            setMembers([
-              ...doctors.map((d: TeamMember) => ({
-                ...d,
-                role: "DOCTOR" as const,
-              })),
-              ...receptionists.map((r: TeamMember) => ({
-                ...r,
-                role: "RECEPTIONIST" as const,
-              })),
-            ]);
-          }
-        } else {
-          const error = await res.json();
-          toast.error(error.message || "Failed to create team member");
-        }
+        toast.success(
+          `${formData.role === "DOCTOR" ? "Doctor" : "Receptionist"} created successfully`,
+        );
+        setIsDialogOpen(false);
+        resetForm();
       }
     } catch {
-
       toast.error("Error saving team member");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -372,7 +264,7 @@ export default function TeamPage() {
             : "Add a new team member to your clinic"
         }
         isEditing={!!editingMember}
-        isLoading={isSubmitting}
+        isLoading={saveMemberMutation.isPending}
         onSubmit={handleSubmit}
         submitLabel={editingMember ? "Update Member" : "Add Member"}
         contentClassName="sm:max-w-[600px]"

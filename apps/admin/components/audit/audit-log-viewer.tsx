@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
   ChevronDown,
@@ -20,6 +21,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { toast } from "sonner";
+import { client } from "@/lib/api-client";
 
 interface AuditLog {
   id: string;
@@ -38,49 +40,42 @@ interface AuditLog {
 }
 
 export function AuditLogViewer() {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedActionType, setSelectedActionType] = useState<string>("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  const fetchLogs = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const params = new URLSearchParams();
-      if (selectedActionType) params.append("actionType", selectedActionType);
-      if (selectedDate) {
-        params.append("startDate", new Date(selectedDate).toISOString());
-        params.append(
-          "endDate",
-          new Date(new Date(selectedDate).getTime() + 86400000).toISOString(),
-        );
-      }
-      if (selectedUserId) params.append("userId", selectedUserId);
-
-      const response = await fetch(`/api/audit-logs?${params.toString()}`);
-      if (!response.ok) throw new Error("Failed to fetch logs");
-
-      const data = await response.json();
-      setLogs(Array.isArray(data) ? data : data.logs || []);
-      setErrorMessage(null);
-    } catch {
-      const message = "Failed to load audit logs. Please try again.";
-      setErrorMessage(message);
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
+  const params = useMemo(() => {
+    const next = new URLSearchParams();
+    if (selectedActionType) next.append("actionType", selectedActionType);
+    if (selectedDate) {
+      next.append("startDate", new Date(selectedDate).toISOString());
+      next.append(
+        "endDate",
+        new Date(new Date(selectedDate).getTime() + 86400000).toISOString(),
+      );
     }
+    if (selectedUserId) next.append("userId", selectedUserId);
+    return next.toString();
   }, [selectedActionType, selectedDate, selectedUserId]);
 
-  useEffect(() => {
-    fetchLogs();
-    const interval = setInterval(fetchLogs, 30000);
-    return () => clearInterval(interval);
-  }, [fetchLogs]);
+  const logsQuery = useQuery({
+    queryKey: ["super-admin", "audit-logs", params],
+    queryFn: async () => {
+      const data = await client.get<AuditLog[] | { logs?: AuditLog[] }>(
+        `/audit-logs?${params}`,
+      );
+      return Array.isArray(data) ? data : (data.logs ?? []);
+    },
+    refetchInterval: 30000,
+  });
+
+  const logs = logsQuery.data ?? [];
+  const isLoading = logsQuery.isLoading;
+  const errorMessage = logsQuery.isError
+    ? "Failed to load audit logs. Please try again."
+    : null;
 
   const actionTypes = Array.from(
     new Set(logs.map((log) => log.actionType)),
@@ -169,7 +164,11 @@ export function AuditLogViewer() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => fetchLogs()}
+            onClick={() => {
+              logsQuery.refetch().catch(() => {
+                toast.error("Failed to load audit logs. Please try again.");
+              });
+            }}
             disabled={isLoading}
             variant="ghost"
             size="icon"

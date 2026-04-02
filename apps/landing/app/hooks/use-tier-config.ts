@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
+import { landingQueryKeys } from "@/lib/query-keys";
+import { fetchLandingJson } from "@/lib/public-api";
 
 function deriveAnnualPrice(monthly: number): number {
   return Math.round(monthly * 10);
@@ -86,14 +88,6 @@ function resolveCurrencyName(code: string): string {
   if (code === "AED") return "UAE Dirham";
   if (code === "ZAR") return "South African Rand";
   return code;
-}
-
-function normalizeApiBaseUrl(baseUrl: string): string {
-  const normalized = baseUrl.replace(/\/+$/, "");
-  if (/\/api$/i.test(normalized)) {
-    return `${normalized}/v1`;
-  }
-  return normalized;
 }
 
 function resolveCurrencyCode(currency?: string): string {
@@ -403,19 +397,11 @@ function buildLocalTierConfig(currency?: string): TierConfigData {
 
 async function fetchTierConfig(currency?: string): Promise<TierConfigData> {
   const resolvedCurrency = resolveCurrencyCode(currency);
-  const apiUrl = normalizeApiBaseUrl(
-    process.env.NEXT_PUBLIC_API_URL || "/api/v1",
-  );
-  const query = `?currency=${encodeURIComponent(resolvedCurrency)}`;
 
   try {
-    const response = await fetch(`${apiUrl}/pricing/config${query}`);
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch tier configuration");
-    }
-
-    return (await response.json()) as TierConfigData;
+    return await fetchLandingJson<TierConfigData>(
+      `/pricing/config?currency=${encodeURIComponent(resolvedCurrency)}`,
+    );
   } catch {
     return buildLocalTierConfig(resolvedCurrency);
   }
@@ -430,7 +416,7 @@ export function useTierConfig(currency?: string) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["tier-config", resolvedCurrency],
+    queryKey: landingQueryKeys.pricing.config(resolvedCurrency),
     queryFn: () => fetchTierConfig(resolvedCurrency),
     staleTime: 5 * 60 * 1000, 
     gcTime: 30 * 60 * 1000, 

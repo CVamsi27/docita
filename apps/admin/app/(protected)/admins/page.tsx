@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -43,8 +44,10 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
+import { useSuperAdminFiltersStore } from "@/lib/stores/super-admin-filters-store";
 import { toast } from "sonner";
 
 interface Admin {
@@ -68,16 +71,13 @@ const ADMIN_TYPE_LABELS = {
 };
 
 export default function AdminsPage() {
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [admins, setAdmins] = useState<Admin[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedClinic, setSelectedClinic] = useState<string>("");
+  const queryClient = useQueryClient();
+  const { adminSearch, selectedClinic, setAdminSearch, setSelectedClinic } =
+    useSuperAdminFiltersStore();
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: "",
     email: "",
@@ -93,117 +93,101 @@ export default function AdminsPage() {
   });
   const { token } = useAuth();
 
-  const fetchClinics = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_URL}/super-admin/clinics`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-
-        const clinicsArray = Array.isArray(data) ? data : [];
-        setClinics(clinicsArray);
-
-        if (clinicsArray.length > 0) {
-          setSelectedClinic(clinicsArray[0].id);
-        }
-      }
-    } catch {
-
-      toast.error("Failed to load clinics");
-    }
-  }, [token]);
-
-  const fetchAdmins = useCallback(
-    async (clinicId: string) => {
-      if (!token || !clinicId) return;
-
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${API_URL}/super-admin/clinics/${clinicId}/admins`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setAdmins(Array.isArray(data) ? data : []);
-        }
-      } catch {
-
-        toast.error("Failed to load admins");
-      } finally {
-        setLoading(false);
-      }
+  const clinicsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.clinics(),
+    queryFn: async () => {
+      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
+        "/super-admin/clinics",
+      );
+      return Array.isArray(data) ? data : (data.items ?? []);
     },
-    [token],
-  );
+    enabled: Boolean(token),
+  });
+
+  const clinics = clinicsQuery.data ?? [];
 
   useEffect(() => {
-    fetchClinics();
-  }, [fetchClinics]);
-
-  useEffect(() => {
-    if (selectedClinic) {
-      fetchAdmins(selectedClinic);
+    if (!selectedClinic || selectedClinic === "all") {
+      if (clinics.length > 0) {
+        setSelectedClinic(clinics[0]?.id ?? "");
+      }
     }
-  }, [selectedClinic, fetchAdmins]);
+  }, [clinics, selectedClinic, setSelectedClinic]);
+
+  const adminsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.clinicAdmins(selectedClinic || "none"),
+    queryFn: () =>
+      client.get<Admin[]>(`/super-admin/clinics/${selectedClinic}/admins`),
+    enabled: Boolean(token && selectedClinic && selectedClinic !== "all"),
+  });
+
+  const admins = adminsQuery.data ?? [];
+
+  const invalidateAdmins = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: adminQueryKeys.superAdmin.clinicAdmins(selectedClinic || "none"),
+    });
+  };
+
+  const createAdminMutation = useMutation({
+    mutationFn: () =>
+      client.post(`/super-admin/clinics/${selectedClinic}/admins`, {
+        name: createForm.name,
+        email: createForm.email,
+        password: createForm.password,
+        phoneNumber: createForm.phoneNumber || undefined,
+        adminType: createForm.adminType,
+      }),
+    onSuccess: async () => {
+      toast.success("Admin created successfully");
+      setIsCreateOpen(false);
+      setCreateForm({
+        name: "",
+        email: "",
+        password: "",
+        phoneNumber: "",
+        adminType: "admin",
+      });
+      await invalidateAdmins();
+    },
+  });
+
+  const updateAdminMutation = useMutation({
+    mutationFn: () =>
+      client.patch(`/super-admin/admins/${selectedAdmin?.id}`, {
+        name: editForm.name,
+        email: editForm.email,
+        phoneNumber: editForm.phoneNumber || undefined,
+        adminType: editForm.adminType,
+      }),
+    onSuccess: async () => {
+      toast.success("Admin updated successfully");
+      setIsEditOpen(false);
+      await invalidateAdmins();
+    },
+  });
+
+  const deleteAdminMutation = useMutation({
+    mutationFn: (adminId: string) =>
+      client.patch(`/super-admin/admins/${adminId}/deactivate`, {}),
+    onSuccess: async () => {
+      toast.success("Admin deleted successfully");
+      await invalidateAdmins();
+    },
+  });
 
   const handleCreateAdmin = async () => {
-    if (!selectedClinic || !token) return;
+    if (!selectedClinic || !token || selectedClinic === "all") return;
 
     if (!createForm.name || !createForm.email || !createForm.password) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    setSaving(true);
     try {
-      const res = await fetch(
-        `${API_URL}/super-admin/clinics/${selectedClinic}/admins`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: createForm.name,
-            email: createForm.email,
-            password: createForm.password,
-            phoneNumber: createForm.phoneNumber || undefined,
-            adminType: createForm.adminType,
-          }),
-        },
-      );
-
-      if (res.ok) {
-        toast.success("Admin created successfully");
-        setIsCreateOpen(false);
-        setCreateForm({
-          name: "",
-          email: "",
-          password: "",
-          phoneNumber: "",
-          adminType: "admin",
-        });
-        fetchAdmins(selectedClinic);
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to create admin");
-      }
+      await createAdminMutation.mutateAsync();
     } catch {
-
       toast.error("Error creating admin");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -231,40 +215,10 @@ export default function AdminsPage() {
       return;
     }
 
-    setSaving(true);
     try {
-      const res = await fetch(
-        `${API_URL}/super-admin/admins/${selectedAdmin.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: editForm.name,
-            email: editForm.email,
-            phoneNumber: editForm.phoneNumber || undefined,
-            adminType: editForm.adminType,
-          }),
-        },
-      );
-
-      if (res.ok) {
-        toast.success("Admin updated successfully");
-        setIsEditOpen(false);
-        if (selectedClinic) {
-          fetchAdmins(selectedClinic);
-        }
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to update admin");
-      }
+      await updateAdminMutation.mutateAsync();
     } catch {
-
       toast.error("Error updating admin");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -276,37 +230,22 @@ export default function AdminsPage() {
     }
 
     try {
-
-      const res = await fetch(
-        `${API_URL}/super-admin/admins/${adminId}/deactivate`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (res.ok) {
-        toast.success("Admin deleted successfully");
-        if (selectedClinic) {
-          fetchAdmins(selectedClinic);
-        }
-      } else {
-        toast.error("Failed to delete admin");
-      }
+      await deleteAdminMutation.mutateAsync(adminId);
     } catch {
-
       toast.error("Error deleting admin");
     }
   };
 
   const filteredAdmins = admins.filter(
     (admin) =>
-      admin.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      admin.email.toLowerCase().includes(searchTerm.toLowerCase()),
+      admin.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
+      admin.email.toLowerCase().includes(adminSearch.toLowerCase()),
   );
+  const loading = clinicsQuery.isLoading || adminsQuery.isLoading;
+  const saving =
+    createAdminMutation.isPending ||
+    updateAdminMutation.isPending ||
+    deleteAdminMutation.isPending;
 
   const getRoleLabel = (role: string) => {
     return role === "ADMIN_DOCTOR"
@@ -338,8 +277,8 @@ export default function AdminsPage() {
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search admins by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={adminSearch}
+                  onChange={(e) => setAdminSearch(e.target.value)}
                   className="pl-9"
                 />
               </div>

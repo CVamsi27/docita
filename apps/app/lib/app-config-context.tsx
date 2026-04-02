@@ -5,9 +5,8 @@ import {
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
-  useState,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 
 import {
@@ -17,8 +16,9 @@ import {
   DefaultValues,
   FormOptions,
 } from "./constants/app-config";
-import { API_URL } from "./api-config";
+import { apiFetch } from "./api-client";
 import { isNetworkError } from "./network-error";
+import { appQueryKeys } from "./query-keys";
 
 export type {
   SelectOption,
@@ -58,9 +58,6 @@ export function AppConfigProvider({
   clinicId,
 }: AppConfigProviderProps) {
   const pathname = usePathname();
-  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
   const shouldSkipConfigFetch =
     pathname === "/login" ||
@@ -70,50 +67,34 @@ export function AppConfigProvider({
     pathname === "/clinic-selection" ||
     pathname.startsWith("/clinic-selection/");
 
-  const fetchConfig = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const url = clinicId
-        ? `${API_URL}/config?clinicId=${clinicId}`
-        : `${API_URL}/config`;
-
-      const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
+  const configQuery = useQuery({
+    queryKey: appQueryKeys.config.app(clinicId),
+    queryFn: () =>
+      apiFetch<AppConfig>(
+        clinicId ? `/config?clinicId=${clinicId}` : "/config",
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
         },
-      });
+      ),
+    enabled: !shouldSkipConfigFetch,
+  });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch app configuration");
-      }
+  const config = shouldSkipConfigFetch
+    ? DEFAULT_CONFIG
+    : (configQuery.data ?? DEFAULT_CONFIG);
+  const isLoading = shouldSkipConfigFetch ? false : configQuery.isLoading;
+  const error = shouldSkipConfigFetch
+    ? null
+    : configQuery.error && !isNetworkError(configQuery.error)
+      ? configQuery.error instanceof Error
+        ? configQuery.error
+        : new Error("Unknown error")
+      : null;
 
-      const data = await response.json();
-      setConfig(data);
-    } catch (err) {
-      if (isNetworkError(err)) {
-        setConfig(DEFAULT_CONFIG);
-        setError(null);
-        return;
-      }
-
-      setError(err instanceof Error ? err : new Error("Unknown error"));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [clinicId]);
-
-  useEffect(() => {
-    if (shouldSkipConfigFetch) {
-      setConfig(DEFAULT_CONFIG);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    fetchConfig();
-  }, [fetchConfig, shouldSkipConfigFetch]);
+  const fetchConfig = useCallback(async () => {
+    await configQuery.refetch();
+  }, [configQuery]);
 
   const getFormOptions = useCallback(
     <K extends keyof FormOptions>(key: K): FormOptions[K] => {

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   BarChart3,
@@ -23,6 +24,8 @@ import { Badge } from "@workspace/ui/components/badge";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
 
 interface MetricCard {
   title: string;
@@ -75,41 +78,36 @@ export function AnalyticsDashboard() {
   );
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [billing, setBilling] = useState<BillingMetrics | null>(null);
   const { token } = useAuth();
+  const analyticsParams = useMemo(() => {
+    const params = new URLSearchParams({ period });
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    return params.toString();
+  }, [endDate, period, startDate]);
 
-  const fetchData = useCallback(async () => {
-    if (!token) return;
+  const analyticsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.analytics(analyticsParams),
+    queryFn: () =>
+      client.get<AnalyticsData>(`/super-admin/analytics?${analyticsParams}`),
+    enabled: Boolean(token),
+  });
 
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ period });
-      if (startDate) params.append("startDate", startDate);
-      if (endDate) params.append("endDate", endDate);
+  const billingQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.billingMetrics(),
+    queryFn: () => client.get<BillingMetrics>("/super-admin/billing/metrics"),
+    enabled: Boolean(token),
+  });
 
-      const [analyticsRes, billingRes] = await Promise.all([
-        fetch(`${API_URL}/super-admin/analytics?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_URL}/super-admin/billing/metrics`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      if (analyticsRes.ok) setData(await analyticsRes.json());
-      if (billingRes.ok) setBilling(await billingRes.json());
-    } catch {
-      toast.error("Failed to load analytics data");
-    } finally {
-      setLoading(false);
-    }
-  }, [token, period, startDate, endDate]);
+  const data = analyticsQuery.data ?? null;
+  const billing = billingQuery.data ?? null;
+  const loading = analyticsQuery.isLoading || billingQuery.isLoading;
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (analyticsQuery.isError || billingQuery.isError) {
+      toast.error("Failed to load analytics data");
+    }
+  }, [analyticsQuery.isError, billingQuery.isError]);
 
   const handleExport = async () => {
     if (!token) return;

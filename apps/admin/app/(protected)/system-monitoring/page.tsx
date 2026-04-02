@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -17,9 +18,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { API_URL, healthAPI } from "@/lib/api";
+import { healthAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
 import {
   Activity,
   AlertTriangle,
@@ -74,51 +77,35 @@ interface HealthCheckResult {
 }
 
 export default function SystemMonitoringPage() {
-  const [performanceData, setPerformanceData] =
-    useState<PerformanceData | null>(null);
-  const [health, setHealth] = useState<HealthCheckResult | null>(null);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const { token } = useAuth();
 
-  const fetchData = useCallback(async () => {
-    if (!token) return;
+  const performanceQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.monitoringPerformance("overview"),
+    queryFn: () => client.get<PerformanceData>("/super-admin/performance"),
+    enabled: Boolean(token),
+    refetchInterval: autoRefresh && token ? 30000 : false,
+  });
 
-    try {
-      const [perfRes, healthData] = await Promise.all([
-        fetch(`${API_URL}/super-admin/performance`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        healthAPI.getHealth(),
-      ]);
+  const healthQuery = useQuery({
+    queryKey: ["health", "system-monitoring"],
+    queryFn: () => healthAPI.getHealth() as Promise<HealthCheckResult>,
+    enabled: Boolean(token),
+    refetchInterval: autoRefresh && token ? 30000 : false,
+  });
 
-      if (perfRes.ok) {
-        const perfJson = await perfRes.json();
-        setPerformanceData(perfJson);
-      }
-      setHealth(healthData);
-    } catch (error) {
-      void error;
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (!autoRefresh) return;
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, [autoRefresh, fetchData]);
+  const performanceData = performanceQuery.data ?? null;
+  const health = healthQuery.data ?? null;
+  const loading = performanceQuery.isLoading || healthQuery.isLoading;
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchData();
+    Promise.all([performanceQuery.refetch(), healthQuery.refetch()]).finally(
+      () => {
+        setRefreshing(false);
+      },
+    );
   };
 
   const getStatusIcon = (status: string) => {

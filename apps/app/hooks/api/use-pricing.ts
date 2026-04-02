@@ -7,21 +7,9 @@ import type {
   PricingEstimateResponse,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { API_URL } from "@/lib/api-config";
 import { useAuth } from "@/lib/auth-context";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
-
-function getVersionedApiBaseUrl(baseUrl: string): string {
-  const normalized = baseUrl.replace(/\/+$/, "");
-
-  if (/\/api$/i.test(normalized)) {
-    return `${normalized}/v1`;
-  }
-
-  return normalized;
-}
-
-const PRICING_API_BASE_URL = getVersionedApiBaseUrl(API_URL);
+import { apiFetch } from "@/lib/api-client";
 
 interface TierPricing {
   id: string;
@@ -77,10 +65,8 @@ export interface EstimateUsageInputs {
 
 type EstimateResponse = PricingEstimateResponse;
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch pricing");
-  return res.json();
+const fetcher = async <T>(endpoint: string) => {
+  return await apiFetch<T>(endpoint, { method: "GET" });
 };
 
 export function usePricingConfig(currency?: string) {
@@ -90,9 +76,7 @@ export function usePricingConfig(currency?: string) {
   const { data, error, isLoading, refetch } = useQuery<PricingConfig>({
     queryKey: ["pricing-config", resolvedCurrency],
     queryFn: () =>
-      fetcher(
-        `${PRICING_API_BASE_URL}/pricing/config?currency=${resolvedCurrency}`,
-      ),
+      fetcher<PricingConfig>(`/pricing/config?currency=${resolvedCurrency}`),
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
@@ -124,7 +108,7 @@ export function useEstimate(params: EstimateRequest | null) {
   const { data, error, isLoading } = useQuery<EstimateResponse>({
     queryKey: ["price-estimate", queryParams],
     queryFn: () =>
-      fetcher(`${PRICING_API_BASE_URL}/pricing/estimate?${queryParams}`),
+      fetcher<EstimateResponse>(`/pricing/estimate?${queryParams}`),
     enabled: !!queryParams,
     refetchOnWindowFocus: false,
   });
@@ -158,7 +142,7 @@ export function useTierEstimates(params: {
       return {
         queryKey: ["price-estimate", tier, queryString],
         queryFn: () =>
-          fetcher(`${PRICING_API_BASE_URL}/pricing/estimate?${queryString}`),
+          fetcher<EstimateResponse>(`/pricing/estimate?${queryString}`),
         staleTime: 30000,
         refetchOnWindowFocus: false,
       };

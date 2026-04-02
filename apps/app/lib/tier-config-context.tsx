@@ -4,11 +4,9 @@ import React, {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
-  useState,
 } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { Tier, TIER_INFO } from "@workspace/types";
 import { Feature, FEATURE_TIER_MAP } from "./stores/permission-store";
@@ -22,8 +20,9 @@ import {
   PlanPricing,
   TierConfigData,
 } from "./constants/tier-config";
-import { API_URL } from "./api-config";
+import { apiFetch } from "./api-client";
 import { isNetworkError } from "./network-error";
+import { appQueryKeys } from "./query-keys";
 
 export type {
   PlanPricing,
@@ -56,10 +55,6 @@ export function TierConfigProvider({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [config, setConfig] = useState<TierConfigData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const hasFetchedRef = useRef(false);
 
   const shouldSkipTierFetch =
     pathname === "/login" ||
@@ -69,45 +64,25 @@ export function TierConfigProvider({
     pathname === "/clinic-selection" ||
     pathname.startsWith("/clinic-selection/");
 
+  const tierConfigQuery = useQuery({
+    queryKey: appQueryKeys.config.tier(),
+    queryFn: () => apiFetch<TierConfigData>("/subscription/config"),
+    enabled: !shouldSkipTierFetch,
+  });
+
+  const config = shouldSkipTierFetch ? null : (tierConfigQuery.data ?? null);
+  const isLoading = shouldSkipTierFetch ? false : tierConfigQuery.isLoading;
+  const error = shouldSkipTierFetch
+    ? null
+    : tierConfigQuery.error && !isNetworkError(tierConfigQuery.error)
+      ? tierConfigQuery.error instanceof Error
+        ? tierConfigQuery.error.message
+        : "Unknown error"
+      : null;
+
   const fetchConfig = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await fetch(`${API_URL}/subscription/config`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch tier configuration");
-      }
-
-      const data = await response.json();
-      setConfig(data);
-    } catch (err) {
-      if (isNetworkError(err)) {
-        setConfig(null);
-        setError(null);
-        return;
-      }
-
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (shouldSkipTierFetch) {
-      setConfig(null);
-      setError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    if (!hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      void fetchConfig();
-    }
-  }, [fetchConfig, shouldSkipTierFetch]);
+    await tierConfigQuery.refetch();
+  }, [tierConfigQuery]);
 
   const getPlanPricing = useCallback(
     (tier: Tier): PlanPricing => {

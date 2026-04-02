@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -8,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 import { Building2, Stethoscope, User, Users } from "lucide-react";
 
@@ -25,60 +26,33 @@ interface ClinicStats {
 }
 
 export default function ClinicDashboard() {
-  const [clinic, setClinic] = useState<ClinicStats | null>(null);
-  const [loading, setLoading] = useState(true);
   const { token, user } = useAuth();
+  const clinicQuery = useQuery({
+    queryKey: ["clinic", user?.clinicId ?? "none", "dashboard"],
+    queryFn: async (): Promise<ClinicStats> => {
+      const clinicData = await client.get<Omit<ClinicStats, "doctors" | "receptionists">>(
+        `/clinics/${user?.clinicId}`,
+      );
+      const doctorsData = await client.get<Array<{ id: string }>>(
+        `/clinics/${user?.clinicId}/doctors`,
+      );
+
+      return {
+        ...clinicData,
+        doctors: Array.isArray(doctorsData) ? doctorsData.length : 0,
+        receptionists: 0,
+      };
+    },
+    enabled: Boolean(token && user?.clinicId),
+  });
+  const clinic = clinicQuery.data ?? null;
+  const loading = clinicQuery.isLoading;
 
   useEffect(() => {
-    const loadClinicData = async () => {
-      if (!token || !user?.clinicId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/clinics/${user.clinicId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-
-          const doctorsRes = await fetch(
-            `${API_URL}/clinics/${user.clinicId}/doctors`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-
-          let doctors = 0;
-          const receptionists = 0;
-
-          if (doctorsRes.ok) {
-            const doctorsData = await doctorsRes.json();
-            doctors = doctorsData.length;
-          }
-
-          setClinic({
-            ...data,
-            doctors,
-            receptionists,
-          });
-        }
-      } catch {
-
-        toast.error("Failed to load clinic details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadClinicData();
-  }, [token, user?.clinicId]);
+    if (clinicQuery.isError) {
+      toast.error("Failed to load clinic details");
+    }
+  }, [clinicQuery.isError]);
 
   if (loading) {
     return (

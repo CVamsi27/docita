@@ -1,7 +1,9 @@
 "use client";
 
 import { Building2, FileText, UserCog, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { landingQueryKeys } from "@/lib/query-keys";
+import { fetchLandingJson, type PlatformStatsResponse } from "@/lib/public-api";
 
 interface PlatformStats {
   clinics: number;
@@ -17,17 +19,6 @@ const FALLBACK: PlatformStats = {
   prescriptions: 25000,
 };
 
-function getLandingApiBaseUrl(): string {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
-  const normalized = baseUrl.replace(/\/+$/, "");
-
-  if (/\/api$/i.test(normalized)) {
-    return `${normalized}/v1`;
-  }
-
-  return normalized;
-}
-
 function formatStatValue(value: number): string {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M+`;
   if (value >= 1000) return `${(value / 1000).toFixed(0)}K+`;
@@ -35,30 +26,27 @@ function formatStatValue(value: number): string {
 }
 
 export function StatsSection() {
-  const [platformStats, setPlatformStats] = useState<PlatformStats>(FALLBACK);
+  const { data } = useQuery({
+    queryKey: landingQueryKeys.stats.platform(),
+    queryFn: async (): Promise<PlatformStats> => {
+      const payload = await fetchLandingJson<PlatformStatsResponse>(
+        "/public/platform-stats",
+      );
+      return {
+        clinics: Math.max(payload.clinics ?? 0, FALLBACK.clinics),
+        doctors: Math.max(payload.doctors ?? 0, FALLBACK.doctors),
+        patients: Math.max(payload.patients ?? 0, FALLBACK.patients),
+        prescriptions: Math.max(
+          payload.prescriptions ?? 0,
+          FALLBACK.prescriptions,
+        ),
+      };
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  useEffect(() => {
-    const apiUrl = getLandingApiBaseUrl();
-    fetch(`${apiUrl}/public/platform-stats`)
-      .then((res) => {
-        if (!res.ok) return null;
-        return res.json();
-      })
-      .then((data) => {
-        if (data) {
-          setPlatformStats({
-            clinics: Math.max(data.clinics ?? 0, FALLBACK.clinics),
-            doctors: Math.max(data.doctors ?? 0, FALLBACK.doctors),
-            patients: Math.max(data.patients ?? 0, FALLBACK.patients),
-            prescriptions: Math.max(
-              data.prescriptions ?? 0,
-              FALLBACK.prescriptions,
-            ),
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const platformStats = data ?? FALLBACK;
 
   const stats = [
     {

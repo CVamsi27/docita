@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
-import { API_URL } from "@/lib/api-config";
 import { toAbsoluteAppUrl } from "@/lib/url";
 
 function resolveUploadedFileUrl(fileUrl: string): string {
@@ -34,23 +33,17 @@ export const useMobileUpload = () => {
       pollIntervalRef.current = setInterval(async () => {
         try {
           const cacheBuster = Date.now();
-          const response = await fetch(
-            `${API_URL}/uploads/session/${id}?t=${cacheBuster}`,
+          const data = await apiFetch<{ status?: string; fileUrl?: string }>(
+            `/uploads/session/${id}?t=${cacheBuster}`,
             {
               method: "GET",
-              credentials: "include",
+              cache: "no-store",
               headers: {
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 Pragma: "no-cache",
               },
             },
           );
-
-          if (!response.ok) {
-            return;
-          }
-
-          const data = await response.json();
 
           if (data.status === "uploaded" && data.fileUrl) {
             clearPolling();

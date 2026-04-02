@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -11,10 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { client } from "@/lib/api-client";
 
 export default function SuperAdminLogin() {
   const [email, setEmail] = useState("");
@@ -27,6 +28,19 @@ export default function SuperAdminLogin() {
   }>({});
   const router = useRouter();
   const { login, isAuthenticated } = useAuth();
+  const loginMutation = useMutation({
+    mutationFn: async (payload: { email: string; password: string }) =>
+      client.post<{
+        user?: {
+          id: string;
+          name: string;
+          email: string;
+          role: string;
+          clinicId?: string;
+        };
+        access_token?: string;
+      }>("/auth/login", payload, { skipAuth: true }),
+  });
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -60,17 +74,7 @@ export default function SuperAdminLogin() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.message || "Invalid credentials");
-      }
+      const data = await loginMutation.mutateAsync({ email, password });
 
       if (!data?.user || !data?.access_token) {
         throw new Error("Invalid response from server");

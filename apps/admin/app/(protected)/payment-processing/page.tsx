@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -42,8 +43,9 @@ import {
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 import { CreditCard, Loader2, TrendingUp } from "lucide-react";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
@@ -81,12 +83,53 @@ interface PaymentFormData {
   paymentNotes?: string;
 }
 
+const DEFAULT_TIERS: TierPricing[] = [
+  {
+    tier: "CAPTURE",
+    price: 0,
+    billingCycle: "monthly",
+    maxDoctors: 5,
+    maxPatients: 100,
+    features: ["Basic"],
+  },
+  {
+    tier: "CORE",
+    price: 999,
+    billingCycle: "monthly",
+    maxDoctors: 20,
+    maxPatients: 500,
+    features: ["Standard"],
+  },
+  {
+    tier: "PLUS",
+    price: 2999,
+    billingCycle: "monthly",
+    maxDoctors: 50,
+    maxPatients: 2000,
+    features: ["Advanced"],
+  },
+  {
+    tier: "PRO",
+    price: 5999,
+    billingCycle: "monthly",
+    maxDoctors: 100,
+    maxPatients: 5000,
+    features: ["Professional"],
+  },
+  {
+    tier: "ENTERPRISE",
+    price: 0,
+    billingCycle: "custom",
+    maxDoctors: -1,
+    maxPatients: -1,
+    features: ["Enterprise"],
+  },
+];
+
 export default function PaymentProcessingPage() {
-  const [clinics, setClinics] = useState<Clinic[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
   const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
-  const [tierPricing, setTierPricing] = useState<TierPricing[]>([]);
   const [selectedTierPricing, setSelectedTierPricing] = useState<
     TierPricing[]
   >([]);
@@ -98,203 +141,107 @@ export default function PaymentProcessingPage() {
       currency,
       maximumFractionDigits: 0,
     }).format(amount);
-  const [processingPayment, setProcessingPayment] = useState(false);
   const { token, isSuperAdmin } = useAuth();
   const form = useForm<PaymentFormData>();
+  const clinicsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.clinics(),
+    queryFn: async () => {
+      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
+        "/super-admin/clinics",
+      );
+      return Array.isArray(data) ? data : (data.items ?? []);
+    },
+    enabled: Boolean(isSuperAdmin && token),
+  });
 
-  const loadClinics = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_URL}/super-admin/clinics`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.status === 401) {
-
-        toast.error("Session expired. Please login again.");
-        return;
+  const tierPricingQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.pricingTiers(),
+    queryFn: async () => {
+      try {
+        const data = await client.get<{ tiers?: TierPricing[] }>(
+          "/super-admin/tier-pricing",
+        );
+        return Array.isArray(data.tiers) ? data.tiers : DEFAULT_TIERS;
+      } catch {
+        return DEFAULT_TIERS;
       }
+    },
+    enabled: Boolean(isSuperAdmin && token),
+  });
 
-      if (res.ok) {
-        const data = await res.json();
-
-        const clinicsArray = Array.isArray(data) ? data : [];
-        setClinics(clinicsArray);
-      } else {
-
-        toast.error("Failed to load clinics");
-      }
-    } catch {
-
-      toast.error("Failed to load clinics");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
-  const loadTierPricing = useCallback(async () => {
-    if (!token) return;
-
-    const defaultTiers: TierPricing[] = [
-      {
-        tier: "CAPTURE",
-        price: 0,
-        billingCycle: "monthly",
-        maxDoctors: 5,
-        maxPatients: 100,
-        features: ["Basic"],
-      },
-      {
-        tier: "CORE",
-        price: 999,
-        billingCycle: "monthly",
-        maxDoctors: 20,
-        maxPatients: 500,
-        features: ["Standard"],
-      },
-      {
-        tier: "PLUS",
-        price: 2999,
-        billingCycle: "monthly",
-        maxDoctors: 50,
-        maxPatients: 2000,
-        features: ["Advanced"],
-      },
-      {
-        tier: "PRO",
-        price: 5999,
-        billingCycle: "monthly",
-        maxDoctors: 100,
-        maxPatients: 5000,
-        features: ["Professional"],
-      },
-      {
-        tier: "ENTERPRISE",
-        price: 0,
-        billingCycle: "custom",
-        maxDoctors: -1,
-        maxPatients: -1,
-        features: ["Enterprise"],
-      },
-    ];
-
-    try {
-      const res = await fetch(`${API_URL}/super-admin/tier-pricing`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setTierPricing(Array.isArray(data.tiers) ? data.tiers : defaultTiers);
-      } else if (res.status === 404) {
-
-        setTierPricing(defaultTiers);
-      } else {
-
-        setTierPricing(defaultTiers);
-      }
-    } catch {
-
-      setTierPricing(defaultTiers);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    if (isSuperAdmin && token) {
-      loadClinics();
-      loadTierPricing();
-    }
-  }, [isSuperAdmin, token, loadClinics, loadTierPricing]);
+  const clinics = clinicsQuery.data ?? [];
+  const tierPricing = tierPricingQuery.data ?? DEFAULT_TIERS;
+  const loading = clinicsQuery.isLoading || tierPricingQuery.isLoading;
 
   const loadClinicTierInfo = async (clinic: Clinic) => {
     if (!token) return;
 
     try {
-      const res = await fetch(
-        `${API_URL}/super-admin/clinics/${clinic.id}/tier-info`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const data = await queryClient.fetchQuery({
+        queryKey: ["super-admin", "clinic", clinic.id, "tier-info"],
+        queryFn: () =>
+          client.get<TierInfo>(`/super-admin/clinics/${clinic.id}/tier-info`),
+      });
 
-      if (res.ok) {
-        const data = await res.json();
+      const pricingData = await queryClient.fetchQuery({
+        queryKey: ["pricing", "config", clinic.currency || DEFAULT_CURRENCY],
+        queryFn: () =>
+          client.get<{ tiers?: Array<{ id: string; pricing?: { monthly?: number } }> }>(
+            `/pricing/config?currency=${clinic.currency || DEFAULT_CURRENCY}`,
+          ),
+      });
+      const nextPricing: TierPricing[] = Array.isArray(pricingData.tiers)
+        ? pricingData.tiers.map((tier) => ({
+            tier: tier.id,
+            price: typeof tier.pricing?.monthly === "number" ? tier.pricing.monthly : 0,
+            billingCycle: "monthly",
+            maxDoctors: -1,
+            maxPatients: -1,
+            features: [],
+          }))
+        : [];
+      setSelectedTierPricing(nextPricing);
 
-        const pricingRes = await fetch(
-          `${API_URL}/pricing/config?currency=${clinic.currency || DEFAULT_CURRENCY}`,
-        );
-        let nextPricing: TierPricing[] = [];
-        if (pricingRes.ok) {
-          const pricingData = await pricingRes.json();
-          nextPricing = Array.isArray(pricingData.tiers)
-            ? pricingData.tiers.map((tier: { id: string; pricing?: { monthly?: number } }) => ({
-                tier: tier.id,
-                price: typeof tier.pricing?.monthly === "number" ? tier.pricing.monthly : 0,
-                billingCycle: "monthly",
-                maxDoctors: -1,
-                maxPatients: -1,
-                features: [],
-              }))
-            : [];
-        }
-        setSelectedTierPricing(nextPricing);
-
-        setTierInfo(data);
-        setSelectedClinic(clinic);
-        form.reset({
-          paymentMethod: "razorpay",
-          newTier: clinic.tier,
-          amount:
-            nextPricing.find((t) => t.tier === clinic.tier)?.price?.toString() ??
-            data.pricing.toString(),
-        });
-        setShowPaymentDialog(true);
-      }
+      setTierInfo(data);
+      setSelectedClinic(clinic);
+      form.reset({
+        paymentMethod: "razorpay",
+        newTier: clinic.tier,
+        amount:
+          nextPricing.find((t) => t.tier === clinic.tier)?.price?.toString() ??
+          data.pricing.toString(),
+      });
+      setShowPaymentDialog(true);
     } catch {
-
       toast.error("Failed to load tier information");
     }
   };
 
+  const processPaymentMutation = useMutation({
+    mutationFn: (data: PaymentFormData) =>
+      client.post(`/super-admin/clinics/${selectedClinic?.id}/process-payment`, {
+        paymentId: `PAY_${Date.now()}`,
+        amount: parseFloat(data.amount),
+        currency: selectedClinic?.currency || DEFAULT_CURRENCY,
+        newTier: data.newTier,
+        paymentMethod: data.paymentMethod,
+        notes: data.paymentNotes,
+      }),
+    onSuccess: async () => {
+      toast.success("Payment processed and tier updated successfully");
+      setShowPaymentDialog(false);
+      await clinicsQuery.refetch();
+      form.reset();
+    },
+  });
+
   const onSubmit = async (data: PaymentFormData) => {
     if (!selectedClinic || !token) return;
 
-    setProcessingPayment(true);
     try {
-      const res = await fetch(
-        `${API_URL}/super-admin/clinics/${selectedClinic.id}/process-payment`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            paymentId: `PAY_${Date.now()}`,
-            amount: parseFloat(data.amount),
-            currency: selectedClinic?.currency || DEFAULT_CURRENCY,
-            newTier: data.newTier,
-            paymentMethod: data.paymentMethod,
-            notes: data.paymentNotes,
-          }),
-        },
-      );
-
-      if (res.ok) {
-        toast.success("Payment processed and tier updated successfully");
-        setShowPaymentDialog(false);
-        loadClinics();
-        form.reset();
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to process payment");
-      }
+      await processPaymentMutation.mutateAsync(data);
     } catch {
-
       toast.error("Failed to process payment");
-    } finally {
-      setProcessingPayment(false);
     }
   };
 
@@ -614,15 +561,20 @@ export default function PaymentProcessingPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowPaymentDialog(false)}
-                  disabled={processingPayment}
+                  disabled={processPaymentMutation.isPending}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={processingPayment}>
-                  {processingPayment && (
+                <Button
+                  type="submit"
+                  disabled={processPaymentMutation.isPending}
+                >
+                  {processPaymentMutation.isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {processingPayment ? "Processing..." : "Process Payment"}
+                  {processPaymentMutation.isPending
+                    ? "Processing..."
+                    : "Process Payment"}
                 </Button>
               </div>
             </form>

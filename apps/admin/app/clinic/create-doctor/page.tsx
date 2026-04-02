@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -20,8 +21,8 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Loader2, Stethoscope } from "lucide-react";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
 
@@ -33,7 +34,6 @@ const SPECIALIZATIONS = Object.entries(SPECIALIZATION_LABELS).map(
 );
 
 export default function CreateDoctorPage() {
-  const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
     email?: string;
@@ -48,8 +48,21 @@ export default function CreateDoctorPage() {
     qualification: "",
     registrationNumber: "",
   });
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
+  const createDoctorMutation = useMutation({
+    mutationFn: () =>
+      client.post(`/clinics/${user?.clinicId}/doctors`, {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        phoneNumber: form.phoneNumber || undefined,
+        specialization: form.specialization || undefined,
+        qualification: form.qualification || undefined,
+        registrationNumber: form.registrationNumber || undefined,
+      }),
+  });
+  const loading = createDoctorMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,38 +85,12 @@ export default function CreateDoctorPage() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const res = await fetch(`${API_URL}/clinics/${user?.clinicId}/doctors`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          phoneNumber: form.phoneNumber || undefined,
-          specialization: form.specialization || undefined,
-          qualification: form.qualification || undefined,
-          registrationNumber: form.registrationNumber || undefined,
-        }),
-      });
-
-      if (res.ok) {
-        toast.success("Doctor created successfully");
-        router.push("/clinic/team");
-      } else {
-        const error = await res.json();
-        toast.error(error.message || "Failed to create doctor");
-      }
+      await createDoctorMutation.mutateAsync();
+      toast.success("Doctor created successfully");
+      router.push("/clinic/team");
     } catch {
-
       toast.error("Error creating doctor");
-    } finally {
-      setLoading(false);
     }
   };
 

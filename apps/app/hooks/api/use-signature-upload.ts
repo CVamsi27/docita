@@ -1,4 +1,4 @@
-import { useAPIMutation, useAPIQuery, fetchAPI, API_URL } from "@/lib/api-core";
+import { useAPIMutation, useAPIQuery, fetchAPI } from "@/lib/api-core";
 
 export interface SignatureUploadToken {
   token: string;
@@ -86,20 +86,10 @@ export const uploadSignature = async (
       ? `/clinics/signature/upload/${token}`
       : `/doctors/signature/upload/${token}`;
 
-  const response = await fetch(
-    `${API_URL}${endpoint}`,
-    {
-      method: "POST",
-      body: formData,
-    },
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Upload failed");
-  }
-
-  return response.json();
+  return await fetchAPI<UploadResult>(endpoint, {
+    method: "POST",
+    body: formData,
+  });
 };
 
 export const validateToken = async (token: string) => {

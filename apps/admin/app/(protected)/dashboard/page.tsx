@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -9,8 +10,9 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
 import { CreateClinicDialog } from "./create-clinic-dialog";
 import { ClinicList } from "./clinic-list";
 import {
@@ -51,68 +53,69 @@ interface BillingMetrics {
   subscriptionsByTier: Record<string, number>;
 }
 
+interface Clinic {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  tier?: string;
+  type?: string;
+  active?: boolean;
+  _count?: {
+    users: number;
+    patients: number;
+  };
+}
+
 export default function SuperAdminDashboard() {
-  const [clinics, setClinics] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<StatsData>({
+  const defaultStats: StatsData = {
     clinics: 0,
     users: 0,
     doctors: 0,
     patients: 0,
     invoices: 0,
     prescriptions: 0,
+  };
+  const { token } = useAuth();
+
+  const clinicsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.clinics(),
+    queryFn: async () => {
+      const data = await client.get<Clinic[] | { items?: Clinic[] }>(
+        "/super-admin/clinics",
+      );
+      return Array.isArray(data) ? data : (data.items ?? []);
+    },
+    enabled: Boolean(token),
   });
-  const [billing, setBilling] = useState<BillingMetrics | null>(null);
-  const { token, logout } = useAuth();
+
+  const statsQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.stats(),
+    queryFn: () => client.get<StatsData>("/super-admin/stats"),
+    enabled: Boolean(token),
+  });
+
+  const billingQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.billingMetrics(),
+    queryFn: () => client.get<BillingMetrics>("/super-admin/billing/metrics"),
+    enabled: Boolean(token),
+  });
+
+  const clinics = clinicsQuery.data ?? [];
+  const stats = statsQuery.data ?? defaultStats;
+  const billing = billingQuery.data ?? null;
+  const loading =
+    Boolean(token) &&
+    (clinicsQuery.isLoading || statsQuery.isLoading || billingQuery.isLoading);
 
   const loadData = useCallback(async () => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const headers = { Authorization: `Bearer ${token}` };
-
-      const [clinicsRes, statsRes, billingRes] = await Promise.all([
-        fetch(`${API_URL}/super-admin/clinics`, { headers }),
-        fetch(`${API_URL}/super-admin/stats`, { headers }),
-        fetch(`${API_URL}/super-admin/billing/metrics`, { headers }),
-      ]);
-
-      if (clinicsRes.status === 401 || statsRes.status === 401) {
-        logout("Your session has expired. Please log in again.");
-        return;
-      }
-
-      if (clinicsRes.status === 404 || statsRes.status === 404) {
-        logout("Your account has been deleted. Please contact support.");
-        return;
-      }
-
-      if (clinicsRes.status === 403 || statsRes.status === 403) {
-        logout("You no longer have permission to access this resource.");
-        return;
-      }
-
-      if (clinicsRes.ok) {
-        const clinicsData = await clinicsRes.json();
-        setClinics(
-          Array.isArray(clinicsData) ? clinicsData : clinicsData.items || [],
-        );
-      }
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (billingRes.ok) setBilling(await billingRes.json());
-    } catch (error) {
-      void error;
-    } finally {
-      setLoading(false);
-    }
-  }, [token, logout]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+    await Promise.all([
+      clinicsQuery.refetch(),
+      statsQuery.refetch(),
+      billingQuery.refetch(),
+    ]);
+  }, [billingQuery, clinicsQuery, statsQuery]);
 
   const trends = stats.trends || {
     clinicsThisMonth: 0,

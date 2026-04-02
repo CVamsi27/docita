@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import type { OnboardingData } from "@/features/onboarding/schemas/onboarding.schemas";
-import { API_URL } from "@/lib/api-config";
+import { apiFetch } from "@/lib/api-client";
 
 interface UseOnboardingReturn {
   step: number;
@@ -40,8 +41,15 @@ const initialData: Partial<OnboardingData> = {
 export function useOnboarding(): UseOnboardingReturn {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<Partial<OnboardingData>>(initialData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submitMutation = useMutation({
+    mutationFn: () =>
+      apiFetch("/onboarding/register", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  });
+  const isSubmitting = submitMutation.isPending;
 
   const nextStep = useCallback(() => {
     if (step < TOTAL_STEPS) {
@@ -64,28 +72,13 @@ export function useOnboarding(): UseOnboardingReturn {
 
   const submit = useCallback(async () => {
     try {
-      setIsSubmitting(true);
       setError(null);
-
-      const response = await fetch(`${API_URL}/onboarding/register`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Registration failed");
-      }
-
+      await submitMutation.mutateAsync();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
       throw err;
-    } finally {
-      setIsSubmitting(false);
     }
-  }, [data]);
+  }, [submitMutation]);
 
   const reset = useCallback(() => {
     setStep(1);

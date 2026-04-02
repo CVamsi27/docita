@@ -9,9 +9,9 @@ import {
   useState,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { setAuthLogoutCallback } from "./api-client";
-import { API_URL } from "./api-config";
+import { client, setAuthLogoutCallback } from "./api-client";
 import {
   ADMIN_COOKIE_KEY,
   ADMIN_USER_KEY,
@@ -63,6 +63,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const router = useRouter();
   const pathname = usePathname();
+  const validateTokenMutation = useMutation({
+    mutationFn: async (tokenToValidate: string) =>
+      client.get("/auth/validate", {
+        skipAuth: true,
+        headers: { Authorization: `Bearer ${tokenToValidate}` },
+      }),
+  });
 
   const validateToken = useCallback(
     async (tokenToValidate?: string): Promise<boolean> => {
@@ -70,25 +77,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!tokenValue) return false;
 
       try {
-        const res = await fetch(`${API_URL}/auth/validate`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${tokenValue}` },
-        });
-
-        if (!res.ok) {
-          if (res.status === 404 || res.status === 401) {
+        await validateTokenMutation.mutateAsync(tokenValue);
+        return true;
+      } catch (error) {
+        const status =
+          typeof error === "object" &&
+          error !== null &&
+          "status" in error &&
+          typeof (error as { status?: unknown }).status === "number"
+            ? (error as { status: number }).status
+            : undefined;
+        if (status === 404 || status === 401) {
             clearAuthStorage();
             return false;
-          }
-          return false;
         }
-
-        return true;
-      } catch {
         return false;
       }
     },
-    [token],
+    [token, validateTokenMutation],
   );
 
   useEffect(() => {

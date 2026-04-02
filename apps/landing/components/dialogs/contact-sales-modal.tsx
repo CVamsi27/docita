@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -15,21 +16,12 @@ import { Label } from "@workspace/ui/components/label";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { AlertCircle, CheckCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { landingQueryKeys } from "@/lib/query-keys";
+import { submitContactInquiry } from "@/lib/public-api";
 
 export interface ContactSalesModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-function getLandingApiBaseUrl(): string {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
-  const normalized = baseUrl.replace(/\/+$/, "");
-
-  if (/\/api$/i.test(normalized)) {
-    return `${normalized}/v1`;
-  }
-
-  return normalized;
 }
 
 export function ContactSalesModal({
@@ -42,7 +34,6 @@ export function ContactSalesModal({
     clinic: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
@@ -60,6 +51,13 @@ export function ContactSalesModal({
       [name]: value,
     }));
   };
+
+  const contactSalesMutation = useMutation({
+    mutationKey: landingQueryKeys.contact.inquiry(),
+    mutationFn: submitContactInquiry,
+  });
+
+  const isSubmitting = contactSalesMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,21 +84,8 @@ export function ContactSalesModal({
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      const contactUrl = `${getLandingApiBaseUrl()}/contact/inquiry`;
-
-      const response = await fetch(contactUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send inquiry");
-      }
+      await contactSalesMutation.mutateAsync(formData);
 
       setSubmitted(true);
       toast.success("Thank you! Our sales team will contact you soon.");
@@ -113,8 +98,6 @@ export function ContactSalesModal({
         err instanceof Error ? err.message : "Failed to send inquiry";
       setError(errorMessage);
       toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -128,6 +111,7 @@ export function ContactSalesModal({
     setSubmitted(false);
     setError(null);
     setFieldErrors({});
+    contactSalesMutation.reset();
     onOpenChange(false);
   };
 

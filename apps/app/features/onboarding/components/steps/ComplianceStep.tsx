@@ -24,6 +24,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
+import { APIRequestError } from "@workspace/data-access";
 import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 import {
   DataProcessingAgreementContent,
@@ -31,7 +32,7 @@ import {
   SLAContent,
 } from "@/features/legal";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
-import { API_URL } from "@/lib/api-config";
+import { apiFetch } from "@/lib/api-client";
 import { buildJsonHeaders } from "@/lib/csrf";
 import { toAbsoluteAppUrl } from "@/lib/url";
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
@@ -263,18 +264,13 @@ export function ComplianceStep({
 
   const fetchQrSessionStatus = useCallback(
     async (activeOnboardingId: string, sessionId: string): Promise<boolean> => {
-      const res = await fetch(
-        `${API_URL}/onboarding/${activeOnboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
+      const data = await apiFetch<QrSessionStatusResponse>(
+        `/onboarding/${activeOnboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
         {
-          credentials: "include",
+          method: "GET",
           cache: "no-store",
         },
       );
-      if (!res.ok) {
-        throw new Error("Unable to fetch signature status");
-      }
-
-      const data = (await res.json()) as QrSessionStatusResponse;
       const status = data.status?.toLowerCase();
       return Boolean(
         data.uploaded ||
@@ -288,16 +284,14 @@ export function ComplianceStep({
 
   const createQrSession = useCallback(async () => {
     const createSession = async (resolvedOnboardingId: string) => {
-      const res = await fetch(
-        `${API_URL}/onboarding/${resolvedOnboardingId}/sla-signature-session`,
+      return await apiFetch<{ id: string }>(
+        `/onboarding/${resolvedOnboardingId}/sla-signature-session`,
         {
           method: "POST",
-          credentials: "include",
           headers: buildJsonHeaders(),
           body: JSON.stringify({}),
         },
       );
-      return res;
     };
 
     let activeOnboardingId: string | null = null;
@@ -311,16 +305,17 @@ export function ComplianceStep({
       throw new Error("Could not initialize onboarding session for QR signature.");
     }
 
-    let res = await createSession(activeOnboardingId);
+    let sessionData: { id: string } | null = null;
     let errMessage = "Failed to create QR session";
 
-    if (!res.ok) {
-      const errData = (await res.json().catch(() => ({}))) as { message?: string };
-      errMessage = errData.message || errMessage;
-
+    try {
+      sessionData = await createSession(activeOnboardingId);
+    } catch (error) {
+      errMessage = error instanceof Error ? error.message : errMessage;
       const normalizedError = errMessage.toLowerCase();
       const isStaleOnboardingSession = (
-        res.status === 400 || res.status === 404
+        (error instanceof APIRequestError &&
+          (error.status === 400 || error.status === 404))
       ) && (
         normalizedError.includes("onboarding session not found") ||
         normalizedError.includes("expired")
@@ -330,28 +325,27 @@ export function ComplianceStep({
         const refreshedOnboardingId = await ensureOnboardingId({
           forceRefresh: true,
         });
-        res = await createSession(refreshedOnboardingId);
-        if (!res.ok) {
-          const retryErrData = (await res
-            .json()
-            .catch(() => ({}))) as { message?: string };
-          errMessage = retryErrData.message || "Failed to create QR session";
-        } else {
+        try {
+          sessionData = await createSession(refreshedOnboardingId);
           activeOnboardingId = refreshedOnboardingId;
+        } catch (retryError) {
+          errMessage =
+            retryError instanceof Error
+              ? retryError.message
+              : "Failed to create QR session";
         }
       }
     }
 
-    if (!res.ok) {
+    if (!sessionData) {
       throw new Error(errMessage);
     }
 
-    const data = (await res.json()) as { id: string };
     return {
-      sessionId: data.id,
+      sessionId: sessionData.id,
       contextId: activeOnboardingId,
       qrUrl: toAbsoluteAppUrl(
-        `/upload-signature/onboarding?onboardingId=${activeOnboardingId}&sessionId=${data.id}`,
+        `/upload-signature/onboarding?onboardingId=${activeOnboardingId}&sessionId=${sessionData.id}`,
       ),
     };
   }, [ensureOnboardingId, onboardingId]);

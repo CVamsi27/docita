@@ -1,16 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Calendar, FileText, Loader2, Search, User, X } from "lucide-react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-
-interface SearchResult {
-  id: string;
-  type: "patient" | "appointment" | "prescription";
-  title: string;
-  subtitle?: string;
-  meta?: Record<string, unknown>;
-}
+import { appQueryKeys } from "@/lib/query-keys";
+import {
+  searchGlobal,
+  type SearchResult,
+} from "@/features/search/api/search-api";
 
 interface GlobalSearchProps {
   onResultClick?: (result: SearchResult) => void;
@@ -30,41 +28,24 @@ const typeColors = {
 
 export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const debouncedQuery = useDebounce(query, 300);
-
-  const performSearch = useCallback(async (searchQuery: string) => {
-    if (searchQuery.length < 2) {
-      setResults([]);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(searchQuery)}`,
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setResults(data);
-      }
-    } catch {
-
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    performSearch(debouncedQuery);
-  }, [debouncedQuery, performSearch]);
+  const searchEnabled = debouncedQuery.length >= 2;
+  const { data, isFetching: isLoading } = useQuery({
+    queryKey: appQueryKeys.search.global(debouncedQuery),
+    queryFn: () => searchGlobal(debouncedQuery),
+    enabled: searchEnabled,
+    retry: false,
+    staleTime: 30 * 1000,
+  });
+  const results = useMemo(
+    () => (searchEnabled ? (data ?? []) : []),
+    [data, searchEnabled],
+  );
 
   const handleResultClick = useCallback(
     (result: SearchResult) => {
@@ -171,7 +152,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           <button
             onClick={() => {
               setQuery("");
-              setResults([]);
               inputRef.current?.focus();
             }}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"

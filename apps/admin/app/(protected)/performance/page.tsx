@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -10,8 +10,9 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Progress } from "@workspace/ui/components/progress";
-import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { client } from "@/lib/api-client";
+import { adminQueryKeys } from "@/lib/query-keys";
 import {
   Activity,
   AlertTriangle,
@@ -44,36 +45,16 @@ interface PerformanceData {
 }
 
 export default function PerformancePage() {
-  const [data, setData] = useState<PerformanceData | null>(null);
-  const [loading, setLoading] = useState(true);
   const { token } = useAuth();
 
-  const fetchData = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_URL}/super-admin/performance`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        setData(await res.json());
-      }
-    } catch (error) {
-      void error;
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (!token) return;
-    const intervalId = setInterval(fetchData, 30000);
-    return () => clearInterval(intervalId);
-  }, [token, fetchData]);
+  const performanceQuery = useQuery({
+    queryKey: adminQueryKeys.superAdmin.monitoringPerformance("default"),
+    queryFn: () => client.get<PerformanceData>("/super-admin/performance"),
+    enabled: Boolean(token),
+    refetchInterval: token ? 30000 : false,
+  });
+  const data = performanceQuery.data ?? null;
+  const loading = performanceQuery.isLoading;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
