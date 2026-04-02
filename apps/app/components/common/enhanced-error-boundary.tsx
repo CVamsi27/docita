@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Component, ReactNode } from "react";
-import { Button } from "@/components/common/buttons";
+import { Button } from "@workspace/ui/components/button";
 import {
   Card,
   CardContent,
