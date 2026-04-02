@@ -100,6 +100,16 @@ Cloudflare Workers (app/admin/landing) --> Render (NestJS API)
    - Frontend: http://localhost:3000
    - Backend: http://localhost:3001
 
+## Quick Local Checks
+
+```bash
+# Fast local unit/integration loop (no full turbo build pipeline)
+pnpm test:unit:local
+
+# Full monorepo test pipeline
+pnpm test
+```
+
 ## Documentation
 
 - [Deployment Strategy](docs/DEPLOYMENT.md) - Current production path, Render runbook, and future AWS migration target

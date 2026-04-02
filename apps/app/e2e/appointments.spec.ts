@@ -1,6 +1,6 @@
 import { APIRequestContext, expect, Page, test } from "@playwright/test";
 
-const API_URL = "http://127.0.0.1:3001/api";
+const API_URL = "http://127.0.0.1:3001/api/v1";
 
 test.describe("Appointments", () => {
   let cachedUser: {

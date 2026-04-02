@@ -37,6 +37,9 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 **Files**:
 
 - `auth.spec.ts` - Login/logout and authentication flows
+- `verify-doctor.spec.ts` - Doctor verification redirect and completion flow
+- `clinic-registration.spec.ts` - Onboarding wizard with signature upload
+- `critical-flows.spec.ts` - Auth, isolation, and high-risk business flow checks
 - `patients.spec.ts` - Patient creation, search, and list display
 - `playwright.config.ts` - Playwright configuration
 
@@ -54,7 +57,7 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 
 **Features**:
 
-- ✅ Parallel test execution (backend & frontend)
+- ✅ Multi-lane Playwright CI (smoke + onboarding/verify + auth/tenant critical)
 - ✅ PostgreSQL service container for backend tests
 - ✅ Automatic test report uploads
 - ✅ Coverage reporting
@@ -144,6 +147,9 @@ pnpm --filter api test:all
 
 # Full test suite including all packages
 pnpm test
+
+# Faster local unit/integration loop
+pnpm test:unit:local
 ```
 
 ## Test Coverage

@@ -6,6 +6,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src --max-warnings 0",
     "test": "vitest run",

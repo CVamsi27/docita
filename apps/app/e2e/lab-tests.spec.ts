@@ -1,6 +1,6 @@
 import { APIRequestContext, expect, test } from "@playwright/test";
 
-const API_URL = process.env["API_URL"] || "http://localhost:3001/api";
+const API_URL = process.env["API_URL"] || "http://localhost:3001/api/v1";
 
 test.describe("Lab Tests", () => {
   let authToken: string;

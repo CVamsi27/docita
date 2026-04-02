@@ -1,6 +1,6 @@
 import { APIRequestContext, Page } from "@playwright/test";
 
-export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api";
+export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
 
 export interface UserData {
