@@ -27,6 +27,10 @@ export const updateDoctorRequestSchema = createDoctorRequestSchema
     profilePhotoUrl: z.string().url().optional(),
   });
 
+export const updateDoctorRegistrationRequestSchema = z.object({
+  registrationNumber: z.string().trim().min(1),
+});
+
 export const doctorResponseSchema = userSchema.partial({
   createdAt: true,
   updatedAt: true,
@@ -50,6 +54,9 @@ export const doctorAvailableSlotsQuerySchema = z.object({
 
 export type CreateDoctorRequest = z.infer<typeof createDoctorRequestSchema>;
 export type UpdateDoctorRequest = z.infer<typeof updateDoctorRequestSchema>;
+export type UpdateDoctorRegistrationRequest = z.infer<
+  typeof updateDoctorRegistrationRequestSchema
+>;
 export type DoctorContractResponse = z.infer<typeof doctorResponseSchema>;
 export type ListDoctorSchedulesContractQuery = z.infer<
   typeof listDoctorSchedulesQuerySchema

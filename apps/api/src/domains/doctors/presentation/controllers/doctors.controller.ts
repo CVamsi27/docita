@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   Request,
-  UsePipes,
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -22,6 +21,8 @@ import {
   DoctorListResponseDto,
   CreateDoctorSchema,
   UpdateDoctorSchema,
+  UpdateDoctorRegistrationDto,
+  UpdateDoctorRegistrationSchema,
   CreateEducationDto,
   CreateEducationSchema,
   CreateCertificationDto,
@@ -67,8 +68,10 @@ export class DoctorsController {
   @Post()
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
-  @UsePipes(new ZodValidationPipe(CreateDoctorSchema))
-  async create(@Request() req: RequestWithUser, @Body() dto: CreateDoctorDto) {
+  async create(
+    @Request() req: RequestWithUser,
+    @Body(new ZodValidationPipe(CreateDoctorSchema)) dto: CreateDoctorDto,
+  ) {
     if (!req.user?.clinicId) {
       throw new BadRequestException('Clinic ID is required');
     }
@@ -78,16 +81,34 @@ export class DoctorsController {
   @Put(':id')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
-  @UsePipes(new ZodValidationPipe(UpdateDoctorSchema))
   async update(
     @Request() req: RequestWithUser,
     @Param('id') id: string,
-    @Body() dto: UpdateDoctorDto,
+    @Body(new ZodValidationPipe(UpdateDoctorSchema)) dto: UpdateDoctorDto,
   ) {
     if (req.user?.role === Role.DOCTOR && req.user.id !== id) {
       throw new ForbiddenException('Doctors can only update their own profile');
     }
     return this.doctorsService.update(id, dto, req.user?.clinicId || undefined);
+  }
+
+  @Put(':id/registration-number')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
+  @ZodSerializerDto(DoctorResponseDto)
+  async updateRegistrationNumber(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateDoctorRegistrationSchema))
+    dto: UpdateDoctorRegistrationDto,
+  ) {
+    if (req.user?.role === Role.DOCTOR && req.user.id !== id) {
+      throw new ForbiddenException('Doctors can only update their own profile');
+    }
+    return this.doctorsService.update(
+      id,
+      { registrationNumber: dto.registrationNumber },
+      req.user?.clinicId || undefined,
+    );
   }
 
   @Delete(':id')
@@ -125,16 +146,18 @@ export class DoctorsController {
   }
 
   @Post(':id/education')
-  @UsePipes(new ZodValidationPipe(CreateEducationSchema))
-  async addEducation(@Param('id') id: string, @Body() dto: CreateEducationDto) {
+  async addEducation(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(CreateEducationSchema)) dto: CreateEducationDto,
+  ) {
     return this.doctorsService.addEducation(id, dto);
   }
 
   @Put(':id/education/:educationId')
-  @UsePipes(new ZodValidationPipe(CreateEducationSchema))
   async updateEducation(
     @Param('educationId') educationId: string,
-    @Body() dto: Partial<CreateEducationDto>,
+    @Body(new ZodValidationPipe(CreateEducationSchema))
+    dto: Partial<CreateEducationDto>,
   ) {
     return this.doctorsService.updateEducation(educationId, dto);
   }
@@ -150,19 +173,19 @@ export class DoctorsController {
   }
 
   @Post(':id/certifications')
-  @UsePipes(new ZodValidationPipe(CreateCertificationSchema))
   async addCertification(
     @Param('id') id: string,
-    @Body() dto: CreateCertificationDto,
+    @Body(new ZodValidationPipe(CreateCertificationSchema))
+    dto: CreateCertificationDto,
   ) {
     return this.doctorsService.addCertification(id, dto);
   }
 
   @Put(':id/certifications/:certificationId')
-  @UsePipes(new ZodValidationPipe(CreateCertificationSchema))
   async updateCertification(
     @Param('certificationId') certificationId: string,
-    @Body() dto: Partial<CreateCertificationDto>,
+    @Body(new ZodValidationPipe(CreateCertificationSchema))
+    dto: Partial<CreateCertificationDto>,
   ) {
     return this.doctorsService.updateCertification(certificationId, dto);
   }
@@ -178,10 +201,10 @@ export class DoctorsController {
   }
 
   @Post(':id/specializations')
-  @UsePipes(new ZodValidationPipe(AddSpecializationSchema))
   async addSpecialization(
     @Param('id') id: string,
-    @Body() dto: AddSpecializationDto,
+    @Body(new ZodValidationPipe(AddSpecializationSchema))
+    dto: AddSpecializationDto,
   ) {
     return this.doctorsService.addSpecialization(
       id,

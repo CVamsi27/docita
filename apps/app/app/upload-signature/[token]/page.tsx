@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
+import Image from "next/image";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
   Card,
@@ -11,26 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
-import Image from "next/image";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import {
-  AlertCircle,
-  CheckCircle2,
-  Upload,
-  Image as ImageIcon,
-  Loader2,
-  Pencil,
-} from "lucide-react";
-import {
-  validateToken,
-  uploadSignature,
   type UploadResult,
+  uploadSignature,
+  validateToken,
 } from "@/hooks/api/use-signature-upload";
-import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
-import {
-  dataUrlToFile,
-  validateSignatureImageFile,
-} from "@/features/_shared/utils/signature-upload";
+import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
 
 export default function UploadSignaturePage() {
   const params = useParams();
@@ -40,16 +27,9 @@ export default function UploadSignaturePage() {
   const [tokenValid, setTokenValid] = useState(false);
   const [doctorName, setDoctorName] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-
-  const [uploadMethod, setUploadMethod] = useState<'draw' | 'upload'>('draw');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -57,82 +37,31 @@ export default function UploadSignaturePage() {
         const validation = await validateToken(token);
         setTokenValid(true);
         setDoctorName(validation.doctor?.name ?? "");
-        setValidating(false);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Invalid or expired token",
-        );
+        setError(err instanceof Error ? err.message : "Invalid or expired token");
         setTokenValid(false);
+      } finally {
         setValidating(false);
       }
     };
 
     if (token) {
-      checkToken();
+      void checkToken();
     }
   }, [token]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const validationError = validateSignatureImageFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setSelectedFile(file);
-    setError(null);
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSignatureSave = (dataUrl: string) => {
-    setSignatureDataUrl(dataUrl);
-  };
-
-  const handleSignatureEdit = () => {
-    setSignatureDataUrl(null);
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile && !signatureDataUrl) return;
-
+  const handleUpload = async (file: File) => {
     setUploading(true);
     setError(null);
 
     try {
-      let fileToUpload: File;
-
-      if (uploadMethod === 'draw' && signatureDataUrl) {
-        fileToUpload = dataUrlToFile(signatureDataUrl, 'signature.png');
-      } else if (selectedFile) {
-        fileToUpload = selectedFile;
-      } else {
-        throw new Error('No signature to upload');
-      }
-
-      const result = await uploadSignature(token, fileToUpload);
+      const result = await uploadSignature(token, file);
       setUploadResult(result);
       setUploadComplete(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
-    }
-  };
-
-  const handleReset = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setError(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
     }
   };
 
@@ -227,138 +156,21 @@ export default function UploadSignaturePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Tabs value={uploadMethod} onValueChange={(v) => setUploadMethod(v as 'draw' | 'upload')}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="draw">
-                <Pencil className="mr-2 h-4 w-4" />
-                Draw Signature
-              </TabsTrigger>
-              <TabsTrigger value="upload">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Image
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="draw" className="space-y-4">
-              <Alert>
-                <Pencil className="h-4 w-4" />
-                <AlertDescription>
-                  Draw your signature using your mouse or touch screen
-                </AlertDescription>
-              </Alert>
-
-              {!signatureDataUrl ? (
-                <SignaturePad
-                  onSave={handleSignatureSave}
-                />
-              ) : (
-                <div className="space-y-4">
-                  <SignaturePreview
-                    dataUrl={signatureDataUrl}
-                    onEdit={handleSignatureEdit}
-                  />
-                  <Button
-                    onClick={handleUpload}
-                    disabled={uploading}
-                    className="w-full"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload Signature
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="upload" className="space-y-4">
-              <Alert>
-                <ImageIcon className="h-4 w-4" />
-                <AlertDescription>
-                  Upload a clear image of your signature (PNG, JPG, or WebP).
-                  Maximum file size: 5MB.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-4">
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="signature-upload"
-                  />
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    variant="outline"
-                    className="w-full"
-                    disabled={uploading}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    {selectedFile ? "Change Image" : "Select Image"}
-                  </Button>
-                </div>
-
-                {previewUrl && (
-                  <div className="space-y-3">
-                    <div className="rounded-lg border bg-white p-4">
-                      <Image
-                        src={previewUrl}
-                        alt="Signature preview"
-                        width={400}
-                        height={192}
-                        className="mx-auto max-h-48 object-contain"
-                        unoptimized
-                      />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleUpload}
-                        disabled={uploading}
-                        className="flex-1"
-                      >
-                        {uploading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="mr-2 h-4 w-4" />
-                            Upload Signature
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        onClick={handleReset}
-                        variant="outline"
-                        disabled={uploading}
-                      >
-                        Reset
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <SignatureUploadWorkflow
+            uploading={uploading}
+            error={error}
+            onErrorChange={setError}
+            onDrawUpload={handleUpload}
+            onFileUpload={handleUpload}
+            drawTabLabel="Draw Signature"
+            uploadTabLabel="Upload Image"
+            drawAlertText="Draw your signature using your mouse or touch screen"
+            uploadAlertText="Upload a clear image of your signature (PNG, JPG, or WebP). Maximum file size: 5MB."
+            selectImageButtonLabel="Select Image"
+            changeImageButtonLabel="Change Image"
+            uploadButtonLabel="Upload Signature"
+            uploadingButtonLabel="Uploading..."
+          />
         </CardContent>
       </Card>
     </div>

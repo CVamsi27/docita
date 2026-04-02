@@ -21,6 +21,15 @@ export const UpdateDoctorSchema = updateDoctorRequestSchema.extend({
 });
 export class UpdateDoctorDto extends createZodDto(UpdateDoctorSchema) {}
 
+export const UpdateDoctorRegistrationSchema = updateDoctorRequestSchema
+  .pick({ registrationNumber: true })
+  .extend({
+    registrationNumber: z.string().trim().min(1),
+  });
+export class UpdateDoctorRegistrationDto extends createZodDto(
+  UpdateDoctorRegistrationSchema,
+) {}
+
 export const CreateEducationSchema = z.object({
   degree: z.string(),
   fieldOfStudy: z.string().optional(),

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import { useAPIQuery, useAPIMutation } from '@/lib/api-core';
 import { useGenerateSignatureToken } from '@/hooks/api/use-signature-upload';
+import { ApiError } from '@/lib/errors';
 import type { User } from '@workspace/types';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { DocitaLogo } from '@workspace/ui/components/docita-logo';
@@ -22,6 +23,7 @@ export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [registrationNumber, setRegistrationNumber] = useState('');
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
   const [isSavingReg, setIsSavingReg] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const isDoctor = user?.role === 'DOCTOR' || user?.role === 'ADMIN_DOCTOR';
@@ -34,7 +36,7 @@ export default function VerifyDoctorPage() {
   );
 
   const updateDoctor = useAPIMutation<User, { registrationNumber: string }>(
-    `/doctors/${user?.id}`,
+    `/doctors/${user?.id}/registration-number`,
     'PUT',
     { invalidateKeys: [['doctor-profile', user?.id ?? '']] },
   );
@@ -92,12 +94,41 @@ export default function VerifyDoctorPage() {
   const handleSaveRegistration = async () => {
     if (!registrationNumber.trim()) return;
     setIsSavingReg(true);
+    setRegistrationError(null);
     try {
       await updateDoctor.mutateAsync({ registrationNumber: registrationNumber.trim() });
       await refetch();
       toast.success('Registration number saved.');
-    } catch {
-      toast.error('Failed to save registration number.');
+      setRegistrationNumber('');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const validationErrors = error.details?.validationErrors;
+        if (validationErrors && typeof validationErrors === 'object' && !Array.isArray(validationErrors)) {
+          const fieldErrors = validationErrors as Record<string, unknown>;
+          const registrationFieldError = fieldErrors.registrationNumber;
+          if (typeof registrationFieldError === 'string' && registrationFieldError.length > 0) {
+            setRegistrationError(registrationFieldError);
+            toast.error(registrationFieldError);
+            return;
+          }
+
+          const firstFieldError = Object.values(fieldErrors).find(
+            (value): value is string =>
+              typeof value === 'string' && value.length > 0,
+          );
+          if (firstFieldError) {
+            setRegistrationError(firstFieldError);
+            toast.error(firstFieldError);
+            return;
+          }
+        }
+      }
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to save registration number.',
+      );
     } finally {
       setIsSavingReg(false);
     }
@@ -290,8 +321,14 @@ export default function VerifyDoctorPage() {
                     id="registration-number"
                     placeholder="e.g. MH-12345"
                     value={registrationNumber}
-                    onChange={(e) => setRegistrationNumber(e.target.value)}
-                    className="flex-1"
+                    onChange={(e) => {
+                      setRegistrationNumber(e.target.value);
+                      if (registrationError) {
+                        setRegistrationError(null);
+                      }
+                    }}
+                    aria-invalid={registrationError ? true : false}
+                    className={`flex-1 ${registrationError ? 'border-destructive focus-visible:ring-destructive/40' : ''}`}
                   />
                   <Button
                     type="button"
@@ -306,6 +343,9 @@ export default function VerifyDoctorPage() {
                     )}
                   </Button>
                 </div>
+                {registrationError && (
+                  <p className="text-xs text-destructive">{registrationError}</p>
+                )}
               </div>
             )}
           </div>

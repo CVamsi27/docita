@@ -46,26 +46,28 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   async findTokenByValue(
     token: string,
   ): Promise<UploadTokenWithRelations | null> {
-    return this.prisma.signatureUploadToken.findUnique({
-      where: { token },
-      include: {
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            signatureUrl: true,
+    return this.prisma.runUnrestricted(async () => {
+      return this.prisma.signatureUploadToken.findUnique({
+        where: { token },
+        include: {
+          doctor: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              signatureUrl: true,
+            },
+          },
+          clinic: {
+            select: {
+              id: true,
+              name: true,
+              slaSignatureUrl: true,
+            },
           },
         },
-        clinic: {
-          select: {
-            id: true,
-            name: true,
-            slaSignatureUrl: true,
-          },
-        },
-      },
-    }) as Promise<UploadTokenWithRelations | null>;
+      }) as Promise<UploadTokenWithRelations | null>;
+    });
   }
 
   async findTokenById(id: string, doctorId: string) {
@@ -129,16 +131,18 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
     signatureUrl: string,
     token: string,
   ): Promise<void> {
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: doctorId },
-        data: { signatureUrl, signatureUploadedAt: new Date() },
-      }),
-      this.prisma.signatureUploadToken.update({
-        where: { token },
-        data: { used: true, usedAt: new Date() },
-      }),
-    ]);
+    await this.prisma.runUnrestricted(async () => {
+      await this.prisma.$transaction([
+        this.prisma.user.update({
+          where: { id: doctorId },
+          data: { signatureUrl, signatureUploadedAt: new Date() },
+        }),
+        this.prisma.signatureUploadToken.update({
+          where: { token },
+          data: { used: true, usedAt: new Date() },
+        }),
+      ]);
+    });
   }
 
   async updateClinicSignature(
@@ -146,18 +150,20 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
     signatureUrl: string,
     token: string,
   ): Promise<void> {
-    await this.prisma.$transaction([
-      this.prisma.clinic.update({
-        where: { id: clinicId },
-        data: {
-          slaSignatureUrl: signatureUrl,
-          slaSignatureAcceptedAt: new Date(),
-        },
-      }),
-      this.prisma.signatureUploadToken.update({
-        where: { token },
-        data: { used: true, usedAt: new Date() },
-      }),
-    ]);
+    await this.prisma.runUnrestricted(async () => {
+      await this.prisma.$transaction([
+        this.prisma.clinic.update({
+          where: { id: clinicId },
+          data: {
+            slaSignatureUrl: signatureUrl,
+            slaSignatureAcceptedAt: new Date(),
+          },
+        }),
+        this.prisma.signatureUploadToken.update({
+          where: { token },
+          data: { used: true, usedAt: new Date() },
+        }),
+      ]);
+    });
   }
 }

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
-import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
   Card,
@@ -13,30 +12,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
-import { CheckCircle2, AlertCircle, Upload, Loader2, Pencil } from "lucide-react";
-import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { buildCsrfHeaders } from "@/lib/csrf";
-import {
-  dataUrlToFile,
-  validateSignatureImageFile,
-} from "@/features/_shared/utils/signature-upload";
 import { apiFetch } from "@/lib/api-client";
 import { appQueryKeys } from "@/lib/query-keys";
+import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
 
 export default function OnboardingSlaUploadPage() {
   const searchParams = useSearchParams();
   const onboardingId = searchParams.get("onboardingId");
   const sessionId = searchParams.get("sessionId");
 
-  const [uploadMethod, setUploadMethod] = useState<"draw" | "upload">("draw");
-  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
   const [alreadyUploaded, setAlreadyUploaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const statusQuery = useQuery({
     queryKey: onboardingId && sessionId
@@ -98,6 +87,7 @@ export default function OnboardingSlaUploadPage() {
         status === "uploaded" ||
         status === "completed",
     );
+
     if (isUploaded) {
       setAlreadyUploaded(true);
       setUploadComplete(true);
@@ -107,6 +97,7 @@ export default function OnboardingSlaUploadPage() {
   const handleUpload = async (file: File) => {
     if (!onboardingId || !sessionId) return;
     setError(null);
+
     try {
       await uploadMutation.mutateAsync(file);
       setUploadComplete(true);
@@ -121,8 +112,7 @@ export default function OnboardingSlaUploadPage() {
       }
 
       if (err instanceof APIRequestError) {
-        const message = err.message || "Upload failed";
-        setError(message);
+        setError(err.message || "Upload failed");
       } else if (err instanceof Error) {
         if (err.message.toLowerCase().includes("already been used")) {
           setAlreadyUploaded(true);
@@ -134,27 +124,6 @@ export default function OnboardingSlaUploadPage() {
         setError("Upload failed");
       }
     }
-  };
-
-  const handleSignatureSave = async (dataUrl: string) => {
-    setSignatureDataUrl(dataUrl);
-    const file = dataUrlToFile(dataUrl, "signature.png");
-    await handleUpload(file);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const validationError = validateSignatureImageFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setSelectedFile(file);
-    setError(null);
-    const reader = new FileReader();
-    reader.onloadend = () => setPreviewUrl(reader.result as string);
-    reader.readAsDataURL(file);
   };
 
   if (uploadComplete) {
@@ -220,93 +189,22 @@ export default function OnboardingSlaUploadPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Tabs value={uploadMethod} onValueChange={(v) => setUploadMethod(v as "draw" | "upload")}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="draw">
-                <Pencil className="mr-2 h-4 w-4" />
-                Draw
-              </TabsTrigger>
-              <TabsTrigger value="upload">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Image
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="draw" className="space-y-3 pt-2">
-              {!signatureDataUrl ? (
-                <SignaturePad onSave={handleSignatureSave} />
-              ) : (
-                <div className="space-y-3">
-                  <SignaturePreview
-                    dataUrl={signatureDataUrl}
-                    onEdit={() => setSignatureDataUrl(null)}
-                  />
-                  {uploadMutation.isPending && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Uploading...
-                    </div>
-                  )}
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="upload" className="space-y-3 pt-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadMutation.isPending}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                {selectedFile ? "Change Image" : "Select Image"}
-              </Button>
-              {previewUrl && (
-                <div className="space-y-3">
-                  <div className="rounded-lg border bg-white p-4">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={previewUrl}
-                      alt="Signature preview"
-                      className="mx-auto max-h-32 object-contain"
-                    />
-                  </div>
-                  <Button
-                    className="w-full"
-                    onClick={() => selectedFile && handleUpload(selectedFile)}
-                    disabled={uploadMutation.isPending}
-                  >
-                    {uploadMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload Signature
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+          <SignatureUploadWorkflow
+            uploading={uploadMutation.isPending}
+            error={error}
+            onErrorChange={setError}
+            onDrawUpload={handleUpload}
+            onFileUpload={handleUpload}
+            autoUploadOnDraw
+            drawTabLabel="Draw"
+            uploadTabLabel="Upload Image"
+            drawAlertText="Draw your SLA signature using your finger or stylus."
+            uploadAlertText="Upload the SLA signature image (PNG, JPG, or WebP). Maximum file size: 5MB."
+            selectImageButtonLabel="Select Image"
+            changeImageButtonLabel="Change Image"
+            uploadButtonLabel="Upload Signature"
+            uploadingButtonLabel="Uploading..."
+          />
         </CardContent>
       </Card>
     </div>
