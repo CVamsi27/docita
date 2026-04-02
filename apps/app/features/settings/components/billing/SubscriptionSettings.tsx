@@ -4,34 +4,16 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
-import {
-  Feature,
-  FEATURE_TIER_MAP,
-  getTierInfo,
-  getTierName,
-  Tier,
-} from "@/lib/tier-config";
-import {
-  getWhatsAppAddonPricingByCurrency,
-  PRICING_CURRENCY_SYMBOLS,
-  TIER_OVERAGE_RATES_BY_CURRENCY,
-  type SupportedCurrency,
-  type TierName,
-} from "@workspace/types";
+import { getTierInfo } from "@/lib/tier-config";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useSubscription } from "@/hooks/api/use-settings";
-import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
-import { UsageDashboard } from "@/features/subscription/components/usage-dashboard";
-import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
-import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
 import { PaymentSuccessModal } from "@/features/subscription/components";
-import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   Card,
   CardContent,
@@ -49,10 +31,17 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import { AlertTriangle, Clock, Download, FileText, Loader2, XCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
+import {
+  AlertTriangle,
+  Clock,
+  Download,
+  FileText,
+  Loader2,
+  XCircle,
+} from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 
 function BillingHistory() {
   const { data: invoices, isLoading } = useBillingHistory();
@@ -119,8 +108,8 @@ function BillingHistory() {
 
   if (!invoices || invoices.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground border rounded-md bg-muted/20">
-        <FileText className="h-10 w-10 mx-auto mb-2 opacity-20" />
+      <div className="rounded-md border bg-muted/20 py-8 text-center text-muted-foreground">
+        <FileText className="mx-auto mb-2 h-10 w-10 opacity-20" />
         <p>No billing history available</p>
       </div>
     );
@@ -141,68 +130,65 @@ function BillingHistory() {
         </Button>
       </div>
 
-      <div className="border rounded-md">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Receipt</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {invoices.map((invoice) => (
-            <TableRow key={invoice.id}>
-              <TableCell>
-                {new Date(invoice.createdAt).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="max-w-[200px] truncate text-muted-foreground">
-                {invoice.description || "Subscription Payment"}
-              </TableCell>
-              <TableCell>
-                {new Intl.NumberFormat(undefined, {
-                  style: "currency",
-                  currency: invoice.currency || DEFAULT_CURRENCY,
-                }).format(invoice.amountCents / 100)}
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "capitalize",
-                    invoice.status === "paid"
-                      ? "badge-success"
-                      : "badge-warning",
-                  )}
-                >
-                  {invoice.status}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                {invoice.invoiceUrl ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDownload(invoice.invoiceUrl!)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                ) : (
-                  <span className="text-xs text-muted-foreground">-</span>
-                )}
-              </TableCell>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Receipt</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {invoices.map((invoice) => (
+              <TableRow key={invoice.id}>
+                <TableCell>{new Date(invoice.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                  {invoice.description || "Subscription Payment"}
+                </TableCell>
+                <TableCell>
+                  {new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency: invoice.currency || DEFAULT_CURRENCY,
+                  }).format(invoice.amountCents / 100)}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "capitalize",
+                      invoice.status === "paid"
+                        ? "badge-success"
+                        : "badge-warning",
+                    )}
+                  >
+                    {invoice.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {invoice.invoiceUrl ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDownload(invoice.invoiceUrl!)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
 }
-
 
 export function SubscriptionSettings() {
   const router = useRouter();
@@ -215,8 +201,8 @@ export function SubscriptionSettings() {
     planName: "",
   });
 
-  const { currency } = useLocaleCurrency();
   const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
+
   useSubscriptionCheckout((data) => {
     setSuccessData(data);
     setShowSuccessModal(true);
@@ -228,8 +214,8 @@ export function SubscriptionSettings() {
         <CardContent className="pt-6">
           <div className="flex items-center space-x-4">
             <div className="space-y-2">
-              <div className="h-4 w-[250px] bg-muted animate-pulse rounded" />
-              <div className="h-4 w-[200px] bg-muted animate-pulse rounded" />
+              <div className="h-4 w-[250px] rounded bg-muted animate-pulse" />
+              <div className="h-4 w-[200px] rounded bg-muted animate-pulse" />
             </div>
           </div>
         </CardContent>
@@ -246,7 +232,6 @@ export function SubscriptionSettings() {
     ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
     : "-";
   const currentTierInfo = getTierInfo(currentTier);
-  const currentTierName = getTierName(currentTier) as TierName;
 
   if (!isAdmin) {
     return (
@@ -257,53 +242,18 @@ export function SubscriptionSettings() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <p className="font-bold text-lg">{tierName}</p>
+            <p className="text-lg font-bold">{tierName}</p>
             <Badge variant="secondary" className="capitalize">
               {subscriptionStatus}
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground mt-3">
+          <p className="mt-3 text-sm text-muted-foreground">
             Contact your clinic administrator to manage subscription.
           </p>
         </CardContent>
       </Card>
     );
   }
-
-  const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
-    .filter(([, requiredTier]) => requiredTier > currentTier && requiredTier !== Tier.INTELLIGENCE)
-    .map(([feature, requiredTier]) => ({
-      feature: feature as Feature,
-      requiredTier,
-      details: getFeatureDetails(feature as Feature),
-    }))
-    .filter((item) => !item.details.comingSoon);
-
-  const nextTier = currentTier < Tier.ENTERPRISE ? currentTier + 1 : null;
-  const featuresByTier = [Tier.STARTER, Tier.ESSENTIAL, Tier.PROFESSIONAL, Tier.ENTERPRISE].map(
-    (tier) => ({
-      tier,
-      features: Object.entries(FEATURE_TIER_MAP)
-        .filter(([, rt]) => rt === tier)
-        .map(([feature]) => ({
-          feature: feature as Feature,
-          details: getFeatureDetails(feature as Feature),
-        }))
-        .filter((item) => !item.details.comingSoon),
-    }),
-  );
-
-  const currencyKey = (currency || "INR") as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
-  const currencySymbol = PRICING_CURRENCY_SYMBOLS[currency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
-  const overageRates =
-    (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[currentTierName];
-  const whatsappOverageRate =
-    currentTierName === "ESSENTIAL" || currentTierName === "PROFESSIONAL"
-      ? getWhatsAppAddonPricingByCurrency(
-          currentTierName,
-          currencyKey as SupportedCurrency,
-        ).overageRate
-      : 0;
 
   const trialDaysLeft =
     subscriptionStatus === "TRIALING" && subscription?.currentPeriodEnd
@@ -317,9 +267,7 @@ export function SubscriptionSettings() {
       : null;
 
   const isPaymentDue =
-    subscriptionStatus === "PAYMENT_DUE" ||
-    subscriptionStatus === "PAST_DUE";
-
+    subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
   const isExpired = subscriptionStatus === "EXPIRED";
 
   return (
@@ -332,10 +280,14 @@ export function SubscriptionSettings() {
             <span>
               {trialDaysLeft > 0
                 ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your free CORE trial.`
-                : "Your free trial ends today."}
-              {" "}Add payment details to keep your CORE features.
+                : "Your free trial ends today."}{" "}
+              Add payment details to keep your CORE features.
             </span>
-            <Button size="sm" onClick={() => router.push("/upgrade")} className="shrink-0 ml-4">
+            <Button
+              size="sm"
+              onClick={() => router.push("/upgrade")}
+              className="ml-4 shrink-0"
+            >
               Add Payment
             </Button>
           </AlertDescription>
@@ -347,8 +299,16 @@ export function SubscriptionSettings() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Payment Due</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
-            <span>Your payment is overdue. Update your payment method to avoid service interruption.</span>
-            <Button size="sm" variant="outline" onClick={() => router.push("/upgrade")} className="shrink-0 ml-4 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10">
+            <span>
+              Your payment is overdue. Update your payment method to avoid
+              service interruption.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => router.push("/upgrade")}
+              className="ml-4 shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
+            >
               Update Payment
             </Button>
           </AlertDescription>
@@ -360,36 +320,51 @@ export function SubscriptionSettings() {
           <XCircle className="h-4 w-4" />
           <AlertTitle>Trial Expired</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
-            <span>Your free trial has ended. Choose a plan to continue using Docita.</span>
-            <Button size="sm" onClick={() => router.push("/upgrade")} className="shrink-0 ml-4 bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90">
+            <span>
+              Your free trial has ended. Choose a plan to continue using
+              Docita.
+            </span>
+            <Button
+              size="sm"
+              onClick={() => router.push("/upgrade")}
+              className="ml-4 shrink-0 bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90"
+            >
               Choose a Plan
             </Button>
           </AlertDescription>
         </Alert>
       )}
 
-      <Card className="border-none shadow-lg overflow-hidden">
+      <Card className="overflow-hidden border-none shadow-lg">
         <div className="h-2 bg-linear-to-r from-info to-primary" />
         <CardHeader className="pb-2">
           <CardTitle className="text-2xl">Current Plan</CardTitle>
-          <CardDescription>Manage your subscription and billing</CardDescription>
+          <CardDescription>
+            Your active plan summary and billing history
+          </CardDescription>
         </CardHeader>
 
-        <CardContent className="pt-6 space-y-6">
-          <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <CardContent className="space-y-6 pt-6">
+          <div className="flex flex-col gap-4 rounded-xl border bg-muted/30 p-4 md:flex-row md:items-center md:justify-between md:p-5">
             <div className="space-y-1">
               <p className="font-semibold">Billing guidance</p>
               <p className="text-sm text-muted-foreground">
-                Paid Indian plans need a GSTIN on file before charge. For onboarding and follow-ups, keep the conversation on WhatsApp.
+                For the complete feature comparison and every other plan detail,
+                open the Upgrade page.
               </p>
             </div>
-            <WhatsAppButton
-              phoneNumber={supportPhone}
-              message="Hi Docita team, I need help with billing and onboarding."
-              label="Message support"
-              variant="default"
-              allowGenericLink
-            />
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" onClick={() => router.push("/upgrade")}>
+                View Upgrade Page
+              </Button>
+              <WhatsAppButton
+                phoneNumber={supportPhone}
+                message="Hi Docita team, I need help with billing and onboarding."
+                label="Message support"
+                variant="default"
+                allowGenericLink
+              />
+            </div>
           </div>
 
           <CurrentPlanCard
@@ -406,144 +381,47 @@ export function SubscriptionSettings() {
             }
           />
 
-          <div className="space-y-6">
-              <div className="bg-muted/30 rounded-xl p-6 border space-y-4">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  Active Subscription
+          <div className="rounded-xl border bg-background/60 p-4 md:p-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-sm text-muted-foreground">Billing cycle</p>
+                <p className="font-medium capitalize">
+                  {billingCycle.toLowerCase().replace("_", " ")}
                 </p>
-                <h3 className="text-3xl font-black text-foreground">{tierName}</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Billing cycle</p>
-                    <p className="font-medium capitalize">
-                      {billingCycle.toLowerCase().replace("_", " ")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Base price</p>
-                    <p className="font-medium">
-                      {new Intl.NumberFormat(undefined, {
-                        style: "currency",
-                        currency: subscriptionCurrency,
-                      }).format(basePrice)}
-                    </p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-muted-foreground">Current period ends</p>
-                    <p className="font-medium">{periodEnd}</p>
-                  </div>
-                </div>
               </div>
-
-              <UsageDashboard />
-
-              <div className="flex gap-3">
-                <Button
-                  variant="default"
-                  className="flex-1"
-                  onClick={() => router.push("/upgrade")}
-                >
-                  Open Upgrade &amp; Billing
-                </Button>
+              <div>
+                <p className="text-sm text-muted-foreground">Base price</p>
+                <p className="font-medium">
+                  {new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency: subscriptionCurrency,
+                  }).format(basePrice)}
+                </p>
               </div>
+              <div className="sm:col-span-2">
+                <p className="text-sm text-muted-foreground">
+                  Current period ends
+                </p>
+                <p className="font-medium">{periodEnd}</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {lockedFeatures.length > 0 && (
-        <LockedFeatures lockedFeatures={lockedFeatures} />
-      )}
-
-      {nextTier !== null && (
-        <NextTierPromotion
-          nextTier={nextTier}
-          featuresByTier={featuresByTier}
-          onContactSales={() => router.push("/upgrade")}
-        />
-      )}
-
-      {overageRates && (overageRates.appointmentRate > 0 || overageRates.userRate > 0 || whatsappOverageRate > 0) && (
-        <Card className="border-none shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Overage Rates</CardTitle>
-            <CardDescription>Charges applied when you exceed plan limits</CardDescription>
+      <div ref={billingHistoryRef} className="scroll-mt-6">
+        <Card className="border-none shadow-lg">
+          <CardHeader>
+            <div>
+              <CardTitle>Billing History</CardTitle>
+              <CardDescription>View and download past invoices</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {overageRates.appointmentRate > 0 && (
-                <div className="text-center p-3 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-semibold">
-                    {currencySymbol}
-                    {overageRates.appointmentRate}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">per extra consultation</p>
-                </div>
-              )}
-              {overageRates.userRate > 0 && (
-                <div className="text-center p-3 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-semibold">
-                    {currencySymbol}
-                    {overageRates.userRate}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">per extra user/mo</p>
-                </div>
-              )}
-              {whatsappOverageRate > 0 && (
-                <div className="text-center p-3 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-semibold">
-                    {currencySymbol}
-                    {whatsappOverageRate}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">per extra WhatsApp msg</p>
-                </div>
-              )}
-            </div>
+            <BillingHistory />
           </CardContent>
         </Card>
-      )}
-
-      <Card className="border-none shadow-lg">
-        <CardHeader>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <CardTitle>Plan Details</CardTitle>
-              <CardDescription>
-                You are currently on{" "}
-                <span className="font-medium">{currentTierInfo.name}</span>.
-                For full feature comparison and all upgrade or downgrade options,
-                use the Upgrade page.
-              </CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              className="self-start md:self-auto"
-              onClick={() => router.push("/upgrade")}
-            >
-              View All Plans on Upgrade
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <p className="text-sm text-muted-foreground">
-            Pricing, plan-by-plan features, and checkout are managed on the
-            Upgrade page to keep billing actions in one place.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card ref={billingHistoryRef} className="border-none shadow-lg">
-        <CardHeader>
-          <div>
-            <CardTitle>Billing History</CardTitle>
-            <CardDescription>
-              View and download past invoices
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <BillingHistory />
-        </CardContent>
-      </Card>
+      </div>
 
       <PaymentSuccessModal
         open={showSuccessModal}

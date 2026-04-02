@@ -136,7 +136,7 @@ export function CurrentPlanCard({
               className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
             >
               <TrendingUp className="mr-2 h-4 w-4" />
-              Change Plan
+              View Upgrade Page
             </Button>
             <Button variant="outline" onClick={onViewBillingHistory}>
               <Receipt className="mr-2 h-4 w-4" />

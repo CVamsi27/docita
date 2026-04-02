@@ -46,6 +46,76 @@ import {
   type NavItem,
 } from "./nav-config";
 
+const SIDEBAR_ICON_VARIANTS: Record<
+  string,
+  { idle: string; active: string }
+> = {
+  "/dashboard": {
+    idle: "bg-primary/10 text-primary",
+    active: "bg-primary/15 text-primary ring-primary/20",
+  },
+  "/patients": {
+    idle: "bg-info/10 text-info",
+    active: "bg-info/15 text-info ring-info/20",
+  },
+  "/appointments": {
+    idle: "bg-success/10 text-success",
+    active: "bg-success/15 text-success ring-success/20",
+  },
+  "/consultation": {
+    idle: "bg-primary/10 text-primary",
+    active: "bg-primary/15 text-primary ring-primary/20",
+  },
+  "/prescriptions": {
+    idle: "bg-primary/10 text-primary",
+    active: "bg-primary/15 text-primary ring-primary/20",
+  },
+  "/lab-tests": {
+    idle: "bg-warning/10 text-warning",
+    active: "bg-warning/15 text-warning ring-warning/20",
+  },
+  "/invoices": {
+    idle: "bg-success/10 text-success",
+    active: "bg-success/15 text-success ring-success/20",
+  },
+  "/inventory": {
+    idle: "bg-muted/60 text-muted-foreground",
+    active: "bg-muted text-foreground ring-border/70",
+  },
+  "/documents": {
+    idle: "bg-info/10 text-info",
+    active: "bg-info/15 text-info ring-info/20",
+  },
+  "/analytics": {
+    idle: "bg-primary/10 text-primary",
+    active: "bg-primary/15 text-primary ring-primary/20",
+  },
+  "/coding-queue": {
+    idle: "bg-warning/10 text-warning",
+    active: "bg-warning/15 text-warning ring-warning/20",
+  },
+  "/import": {
+    idle: "bg-secondary/10 text-secondary-foreground",
+    active: "bg-secondary/15 text-secondary-foreground ring-secondary/20",
+  },
+  "/settings": {
+    idle: "bg-primary/10 text-primary",
+    active: "bg-primary/15 text-primary ring-primary/20",
+  },
+};
+
+function getSidebarIconClasses(href: string, isActive: boolean) {
+  const variant = SIDEBAR_ICON_VARIANTS[href] ?? {
+    idle: "bg-muted/60 text-muted-foreground",
+    active: "bg-muted text-foreground ring-border/70",
+  };
+
+  return cn(
+    "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors ring-1 ring-transparent",
+    isActive ? variant.active : variant.idle,
+  );
+}
+
 interface SidebarProps {
   isCollapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
@@ -127,17 +197,18 @@ export function Sidebar({
 
   const tierInfo = getTierInfo();
   const tierIndicatorClass = cn(
-    "h-2.5 w-2.5 rounded-full animate-pulse",
+    "h-2.5 w-2.5 rounded-full animate-pulse bg-current shadow-[0_0_10px_currentColor]",
     tierInfo.color === "gray" && "bg-muted-foreground",
-    tierInfo.color === "blue" && "bg-info",
-    tierInfo.color === "green" && "bg-success",
-    tierInfo.color === "purple" && "bg-primary",
-    tierInfo.color === "violet" && "bg-primary",
-    tierInfo.color === "orange" && "bg-warning",
-    tierInfo.color === "pink" && "bg-secondary",
+    tierInfo.color === "blue" && "text-info",
+    tierInfo.color === "green" && "text-success",
+    tierInfo.color === "purple" && "text-primary",
+    tierInfo.color === "violet" && "text-primary",
+    tierInfo.color === "orange" && "text-warning",
+    tierInfo.color === "pink" && "text-secondary",
+    tierInfo.color === "gray" && "text-muted-foreground",
   );
   const controlIconButtonClass =
-    "h-8 w-8 shrink-0 rounded-md border border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground";
+    "flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground";
 
   return (
     <aside
@@ -174,7 +245,7 @@ export function Sidebar({
         </Button>
       </div>
 
-      <nav className="flex-1 p-2 space-y-1 overflow-hidden">
+      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5 py-2 space-y-1">
         {canAccessNotifications && (
           <Button
             variant="ghost"
@@ -226,12 +297,7 @@ export function Sidebar({
               title={isCollapsed ? item.label : undefined}
             >
               <div
-                className={cn(
-                  "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors ring-1 ring-transparent",
-                  isActive
-                    ? "bg-primary/12 text-primary ring-primary/20"
-                    : "bg-muted/60 text-muted-foreground group-hover:bg-muted group-hover:text-foreground group-hover:ring-border/70",
-                )}
+                className={getSidebarIconClasses(item.href, isActive)}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
                 {isCollapsed && settingsBadgeCount > 0 && (
@@ -252,7 +318,7 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="border-t px-2 py-2">
+      <div className="border-t px-2 py-1.5">
         {!isCollapsed ? (
           <div className="flex items-center justify-between px-2">
             <span className="text-xs text-muted-foreground font-medium">Theme</span>
@@ -266,8 +332,8 @@ export function Sidebar({
       </div>
 
       {isAdmin && (
-        <div className="border-t px-2 py-2">
-          <div className="space-y-3 p-2">
+        <div className="border-t px-2 py-1.5">
+          <div className="space-y-2 p-1.5">
             <div
               className={cn(
                 "flex items-center",
@@ -316,9 +382,7 @@ export function Sidebar({
               <Button
                 variant="ghost"
                 size="icon"
-                className={cn(
-                  controlIconButtonClass,
-                )}
+                className={cn(controlIconButtonClass)}
                 title="Customize sidebar"
                 onClick={() => setCustomizeOpen(true)}
               >
@@ -349,11 +413,11 @@ export function Sidebar({
             {customizableNavItems.map((item) => (
               <div
                 key={item.href}
-                className="flex items-center justify-between py-2 px-1"
+                className="flex items-center justify-between py-1.5 px-1"
               >
                 <div className="flex items-center gap-3 text-sm">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60">
-                    <item.icon className="h-4 w-4 text-muted-foreground" />
+                  <div className={getSidebarIconClasses(item.href, false)}>
+                    <item.icon className="h-4 w-4 shrink-0" />
                   </div>
                   <span>{item.label}</span>
                 </div>

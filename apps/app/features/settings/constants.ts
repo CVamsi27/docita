@@ -8,8 +8,10 @@ import {
   Lock,
   MessageSquare,
   Paintbrush,
+  Ticket,
   Users,
 } from "lucide-react";
+import { Feature } from "@workspace/types";
 
 const ADMIN_ROLES = ["ADMIN", "ADMIN_DOCTOR", "SUPER_ADMIN"] as const;
 const DOCTOR_ROLES = [...ADMIN_ROLES, "DOCTOR"] as const;
@@ -62,9 +64,10 @@ export const settingsTabs = [
       {
         value: "queue",
         label: "Queue",
-        icon: Users,
+        icon: Ticket,
         description: "Patient queue settings",
         roles: QUEUE_ROLES,
+        feature: Feature.QUEUE_MANAGEMENT,
       },
       {
         value: "prescriptions",
