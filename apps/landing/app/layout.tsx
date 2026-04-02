@@ -5,9 +5,19 @@ import { DOCITA_ICON_CACHE_BUST } from "@workspace/ui/lib/docita-brand";
 export const metadata = {
   metadataBase: new URL("https://docita.work"),
   icons: {
-    icon: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    shortcut: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    apple: `/apple-icon?${DOCITA_ICON_CACHE_BUST}`,
+    icon: [
+      {
+        url: `/favicon.ico?${DOCITA_ICON_CACHE_BUST}`,
+        type: "image/x-icon",
+      },
+      {
+        url: `/branding/Round_Logo-192.png?${DOCITA_ICON_CACHE_BUST}`,
+        type: "image/png",
+        sizes: "192x192",
+      },
+    ],
+    shortcut: `/favicon.ico?${DOCITA_ICON_CACHE_BUST}`,
+    apple: `/branding/Round_Logo-512.png?${DOCITA_ICON_CACHE_BUST}`,
   },
   title: {
     default: "Docita - Clinic Management Software | 14-Day Free Trial",
