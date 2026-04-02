@@ -104,6 +104,10 @@ export class RequestLoggingInterceptor implements NestInterceptor {
       catchError((error) => {
         const duration = Date.now() - startTime;
         const statusCode = error.status || 500;
+        const errorMessage =
+          typeof error?.message === 'string'
+            ? error.message.slice(0, 200)
+            : 'request_failed';
 
         this.monitoringService.logRequest({
           clinicId,
@@ -115,8 +119,7 @@ export class RequestLoggingInterceptor implements NestInterceptor {
           requestSize,
           userAgent,
           ip,
-          error: error.message,
-          errorStack: error.stack,
+          error: errorMessage,
         });
 
         this.logAccess(method, path, statusCode, duration);

@@ -111,8 +111,6 @@ export class AuditService {
           createdAt: new Date(),
         };
 
-        this.logger.debug(`Audit log: ${JSON.stringify(auditData)}`);
-
         return auditData;
       } catch (error) {
         this.logger.error(

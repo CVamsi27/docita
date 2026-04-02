@@ -54,6 +54,23 @@ const toStringArray = (value: unknown): string[] => {
 const toStringOrUndefined = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;
 
+const MAX_REQUEST_BODY_KEYS = 20;
+
+function summarizeRequestBody(
+  body: unknown,
+): Record<string, unknown> | undefined {
+  if (!isObject(body)) {
+    return undefined;
+  }
+
+  const keys = Object.keys(body);
+  return {
+    redacted: true,
+    keyCount: keys.length,
+    keys: keys.slice(0, MAX_REQUEST_BODY_KEYS),
+  };
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -256,6 +273,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (status >= 500) {
+      const requestBodySummary = summarizeRequestBody(request.body);
       Sentry.captureException(exception, {
         user: {
           id: (request.user as RequestUser)?.id,
@@ -264,28 +282,26 @@ export class AllExceptionsFilter implements ExceptionFilter {
         extra: {
           path: request.path,
           method: request.method,
-          body: request.body,
+          requestBodySummary,
         },
       });
     }
 
     if (this.monitoringService) {
       const user = request.user as RequestUser | undefined;
+      const requestBodySummary = summarizeRequestBody(request.body);
       this.monitoringService.logError({
         clinicId: user?.clinicId,
         userId: user?.id,
         type: errorType,
         message,
-        stack: errorStack,
+        stack: this.configService?.isDevelopment() ? errorStack : undefined,
         path: request.path,
         method: request.method,
         statusCode: status,
         userAgent: request.headers['user-agent'],
         ip: request.ip || request.headers['x-forwarded-for']?.toString(),
-        requestBody: request.body as Record<
-          string,
-          string | number | boolean | null | undefined | object
-        >,
+        requestBody: requestBodySummary,
         severity:
           status >= 500 ? ErrorSeverity.CRITICAL : ErrorSeverity.WARNING,
       });

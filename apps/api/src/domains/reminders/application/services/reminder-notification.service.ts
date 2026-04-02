@@ -71,7 +71,9 @@ export class ReminderNotificationService {
         appointment,
       );
 
-      this.logger.debug(`[EMAIL] To: ${appointment.patient.email}`);
+      this.logger.debug(
+        `[EMAIL] Reminder workflow started for appointment ${appointment.id}`,
+      );
       this.logger.debug(`[EMAIL] Subject: ${subject}`);
 
       await this.prisma.appointmentReminder.create({
@@ -106,7 +108,9 @@ export class ReminderNotificationService {
     try {
       this.replacePlaceholders(settings.smsTemplate || '', appointment);
 
-      this.logger.debug(`[SMS] To: ${appointment.patient.phoneNumber}`);
+      this.logger.debug(
+        `[SMS] Reminder workflow started for appointment ${appointment.id}`,
+      );
 
       await this.prisma.appointmentReminder.create({
         data: {

@@ -70,7 +70,7 @@ export class StartupValidationService {
       throw new Error('JWT_SECRET is not set in environment variables');
     }
 
-    const minLength = nodeEnv === 'production' ? 32 : 16;
+    const minLength = 32;
     if (jwtSecret.length < minLength) {
       throw new Error(
         `JWT_SECRET must be at least ${minLength} characters. Current length: ${jwtSecret.length}`,

@@ -20,6 +20,11 @@ export class WhatsAppChannel implements IMessageChannel {
     return 'WhatsApp';
   }
 
+  private maskRecipient(recipientId: string): string {
+    const suffix = recipientId.slice(-2);
+    return `***${suffix}`;
+  }
+
   async isAvailable(): Promise<boolean> {
     await Promise.resolve();
     return !!(this.phoneNumberId && this.accessToken && this.businessAccountId);
@@ -30,7 +35,7 @@ export class WhatsAppChannel implements IMessageChannel {
     content: MessageContent,
   ): Promise<SendMessageResult> {
     this.logger.log(
-      `Sending WhatsApp message to ${recipientId} with template ${content.templateKey}`,
+      `Sending WhatsApp message to ${this.maskRecipient(recipientId)} with template ${content.templateKey}`,
     );
 
     return await Promise.resolve({
@@ -43,6 +48,13 @@ export class WhatsAppChannel implements IMessageChannel {
 
   async handleWebhook(payload: unknown): Promise<void> {
     await Promise.resolve();
-    this.logger.log('Handling WhatsApp webhook:', payload);
+    const eventType =
+      typeof payload === 'object' &&
+      payload !== null &&
+      'type' in payload &&
+      typeof payload.type === 'string'
+        ? payload.type
+        : 'unknown';
+    this.logger.log(`Handling WhatsApp webhook event type: ${eventType}`);
   }
 }

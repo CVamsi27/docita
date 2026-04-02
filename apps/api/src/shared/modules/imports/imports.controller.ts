@@ -89,6 +89,7 @@ export class ImportsController {
       },
       limits: {
         fileSize: 10 * 1024 * 1024,
+        files: 1,
       },
     }),
   )
@@ -153,6 +154,10 @@ export class ImportsController {
           );
         }
         cb(null, true);
+      },
+      limits: {
+        fileSize: 10 * 1024 * 1024,
+        files: 1,
       },
     }),
   )

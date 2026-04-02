@@ -18,6 +18,16 @@ export class EmailEventsListener {
     private readonly prisma: PrismaService,
   ) {}
 
+  private maskEmail(email: string): string {
+    const [localPart, domain] = email.split('@');
+    if (!localPart || !domain) {
+      return '***';
+    }
+
+    const visible = localPart.slice(0, 2);
+    return `${visible}${'*'.repeat(Math.max(localPart.length - 2, 1))}@${domain}`;
+  }
+
   @OnEvent(DomainEvents.USER_CREATED)
   async handleUserCreated(payload: {
     userId: string;
@@ -37,7 +47,7 @@ export class EmailEventsListener {
         clinic?.name ?? '',
       );
 
-      this.logger.log(`Welcome email sent to ${payload.email}`);
+      this.logger.log(`Welcome email sent to ${this.maskEmail(payload.email)}`);
     } catch (error) {
       this.logger.error(
         `Failed to send welcome email to ${payload.email}`,
@@ -77,7 +87,9 @@ export class EmailEventsListener {
           clinic?.name ?? '',
         );
 
-        this.logger.log(`Appointment confirmation sent to ${patient.email}`);
+        this.logger.log(
+          `Appointment confirmation sent to ${this.maskEmail(patient.email)}`,
+        );
       }
     } catch (error) {
       this.logger.error('Failed to send appointment confirmation email', error);
@@ -96,16 +108,7 @@ export class EmailEventsListener {
     }
 
     try {
-      const clinic = payload.metadata?.clinicId
-        ? await this.prisma.clinic.findUnique({
-            where: { id: payload.metadata.clinicId },
-            select: { name: true },
-          })
-        : null;
-
-      this.logger.debug(
-        `Patient ${payload.firstName} created at ${clinic?.name ?? ''} - email available`,
-      );
+      this.logger.debug('Patient created event received with email available');
     } catch (error) {
       this.logger.error('Failed to process patient creation for email', error);
     }

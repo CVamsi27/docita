@@ -10,16 +10,18 @@ import {
 export class ConsoleEmailProvider implements IEmailProvider {
   private readonly logger = new Logger(ConsoleEmailProvider.name);
 
+  private getRecipientCount(to: string | string[]): number {
+    return Array.isArray(to) ? to.length : 1;
+  }
+
   send(options: EmailOptions): Promise<EmailSendResult> {
     this.logger.log('[Email] Would be sent:');
-    this.logger.log(
-      `  To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`,
-    );
+    this.logger.log(`  Recipient count: ${this.getRecipientCount(options.to)}`);
     this.logger.log(`  Subject: ${options.subject}`);
     this.logger.log(`  From: ${options.from || 'default'}`);
 
     if (options.text) {
-      this.logger.debug(`  Text: ${options.text.substring(0, 100)}...`);
+      this.logger.debug(`  Text length: ${options.text.length}`);
     }
 
     return Promise.resolve({
@@ -30,11 +32,11 @@ export class ConsoleEmailProvider implements IEmailProvider {
 
   sendTemplate(options: TemplatedEmailOptions): Promise<EmailSendResult> {
     this.logger.log('[Email] Templated email would be sent:');
-    this.logger.log(
-      `  To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}`,
-    );
+    this.logger.log(`  Recipient count: ${this.getRecipientCount(options.to)}`);
     this.logger.log(`  Template: ${options.templateId}`);
-    this.logger.log(`  Data: ${JSON.stringify(options.templateData)}`);
+    this.logger.log(
+      `  Template data keys: ${Object.keys(options.templateData).join(', ')}`,
+    );
 
     return Promise.resolve({
       success: true,

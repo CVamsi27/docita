@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   CPU_COUNT: z.coerce.number().default(4),
-  JWT_SECRET: z.string(),
+  JWT_SECRET: z.string().min(32),
   JWT_EXPIRATION: z.string().default('7d'),
   ENCRYPTION_KEY: z.string().length(64),
   NODE_ENV: z
@@ -95,7 +95,7 @@ export function validateEnv(): EnvConfig {
   if (envToParse.NODE_ENV === 'test') {
     envToParse.DATABASE_URL ??=
       'postgresql://test:test@localhost:5434/docita_test';
-    envToParse.JWT_SECRET ??= 'test-jwt-secret';
+    envToParse.JWT_SECRET ??= 'test-jwt-secret-minimum-32-characters';
     envToParse.ENCRYPTION_KEY ??=
       '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     envToParse.APP_URL ??= 'http://localhost:3001';
