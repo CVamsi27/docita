@@ -1,17 +1,11 @@
 services:
   - type: web
     name: docita-api
-    runtime: node
+    runtime: docker
     plan: starter
     region: singapore
-    rootDir: apps/api
-    buildCommand: >-
-      cd ../.. && corepack enable && pnpm install --frozen-lockfile &&
-      pnpm --filter @workspace/db run build &&
-      pnpm --filter @workspace/types run build &&
-      pnpm --filter @workspace/utils run build &&
-      pnpm --filter @docita/api run build
-    startCommand: node dist/main
+    dockerfilePath: apps/api/Dockerfile
+    dockerContext: .
     healthCheckPath: /api/health/live
     envVars:
       - key: DATABASE_URL
