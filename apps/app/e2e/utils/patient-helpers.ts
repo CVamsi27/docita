@@ -11,6 +11,16 @@ export interface UserData {
   accessToken: string;
 }
 
+export function createUniqueClientIp(): string {
+  const hex = randomUUID().replace(/-/g, "");
+  return [
+    10,
+    parseInt(hex.slice(0, 2), 16),
+    parseInt(hex.slice(2, 4), 16),
+    parseInt(hex.slice(4, 6), 16),
+  ].join(".");
+}
+
 export async function fetchPatientByApi(
   request: APIRequestContext,
   id: string,
@@ -33,6 +43,7 @@ export async function fetchPatientByApi(
 
 export async function setupTestUser(
   request: APIRequestContext,
+  requestHeaders: Record<string, string> = {},
 ): Promise<UserData> {
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
@@ -44,9 +55,13 @@ export async function setupTestUser(
     "base64",
   );
 
-  const authHeaders = (token: string) => ({ Authorization: `Bearer ${token}` });
+  const authHeaders = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    ...requestHeaders,
+  });
 
   const registerRes = await request.post(`${API_URL}/auth/register`, {
+    headers: requestHeaders,
     data: {
       email,
       password,
@@ -182,6 +197,11 @@ export async function setupTestUser(
   const uploadRes = await request.post(
     `${API_URL}/doctors/signature/upload/${uploadToken}`,
     {
+      headers: {
+        ...authHeaders(accessToken),
+        Cookie: "XSRF-TOKEN=e2e-csrf-token",
+        "X-XSRF-TOKEN": "e2e-csrf-token",
+      },
       multipart: {
         file: {
           name: "signature.png",
