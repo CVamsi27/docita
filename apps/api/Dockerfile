@@ -14,21 +14,37 @@ RUN npm install -g pnpm@10.4.1
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
+COPY packages/utils/package.json ./packages/utils/
 COPY apps/api/package.json ./apps/api/
 
 # Copy Prisma schema (needed for client generation)
 COPY packages/db/prisma/schema.prisma ./packages/db/prisma/schema.prisma
 
-# Install production dependencies with frozen lockfile
+# Install full dependencies with frozen lockfile so the workspace can build
 # OPTIMIZATION: BuildKit cache mount for pnpm store - reuses downloaded packages across builds
 # This expensive operation is cached across source code changes
 # Skip tesseract.js (moved to optional dependencies) to keep image size ~240MB instead of ~360MB
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prod --ignore-scripts --no-optional
+    pnpm install --frozen-lockfile --ignore-scripts
 
 # Generate Prisma client (required for runtime)
-# Using npx with explicit version since prisma CLI is a dev dependency
-RUN cd packages/db && npx prisma@6.0.0 generate
+# Prisma config requires a DATABASE_URL value during generation, but the client
+# does not need a live database connection at build time.
+RUN DATABASE_URL="postgresql://docita:docita@127.0.0.1:5432/docita?schema=public&sslmode=disable" \
+    pnpm --filter @workspace/db run db:generate
+
+# Copy source and build the workspace artifacts inside the image so Render
+# does not need pre-built dist folders in the repository checkout.
+COPY packages/db ./packages/db
+COPY packages/types ./packages/types
+COPY packages/utils ./packages/utils
+COPY packages/typescript-config ./packages/typescript-config
+COPY apps/api ./apps/api
+
+RUN pnpm --filter @workspace/types run build && \
+    pnpm --filter @workspace/utils run build && \
+    pnpm --filter @workspace/db run build && \
+    pnpm --filter @docita/api run build
 
 # ─────────────────────────────────────────────────────────────
 # STAGE 2: RUNTIME - Minimal production image
@@ -47,18 +63,21 @@ RUN apk add --no-cache dumb-init curl && \
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 
 # Copy package manifests for workspace resolution
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
+COPY packages/utils/package.json ./packages/utils/
 COPY apps/api/package.json ./apps/api/
 
-# Copy pre-built artifacts (built on host by GitHub Actions)
-COPY --chown=nodejs:nodejs packages/db/dist ./packages/db/dist
-COPY --chown=nodejs:nodejs packages/types/dist ./packages/types/dist
-COPY --chown=nodejs:nodejs apps/api/dist ./apps/api/dist
+# Copy built artifacts produced inside the image
+COPY --from=deps --chown=nodejs:nodejs /app/packages/db/dist ./packages/db/dist
+COPY --from=deps --chown=nodejs:nodejs /app/packages/types/dist ./packages/types/dist
+COPY --from=deps --chown=nodejs:nodejs /app/packages/utils/dist ./packages/utils/dist
+COPY --from=deps --chown=nodejs:nodejs /app/apps/api/dist ./apps/api/dist
 
 # Setup @workspace/db package link for runtime module resolution
 RUN mkdir -p /app/node_modules/@workspace && \
@@ -73,7 +92,7 @@ RUN mkdir -p /app/uploads/temp
 # This data is required for the OCR module to function properly
 # Downloaded from Tesseract GitHub releases
 RUN mkdir -p /app/.tesseract && \
-    curl -fsSL "https://github.com/UB-Mannheim/tesseract/raw/main/tessdata/eng.traineddata" \
+    curl -fsSL "https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/eng.traineddata" \
     -o /app/.tesseract/eng.traineddata && \
     echo "Tesseract training data downloaded"
 
