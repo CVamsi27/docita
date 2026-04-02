@@ -4,9 +4,11 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "predev": "turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access --filter=@workspace/db",
     "dev": "next dev --webpack --port 3000",
     "dev:webpack": "next dev --webpack --port 3000",
     "dev:turbopack": "next dev --turbopack --port 3000",
+    "prestart": "turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access --filter=@workspace/db",
     "build": "node ./scripts/clean-next.mjs && next build --webpack",
     "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access --filter=@workspace/db && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build",
     "build:analyze": "node ./scripts/clean-next.mjs && turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access --filter=@workspace/db && ANALYZE=true next build --webpack",
