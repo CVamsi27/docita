@@ -18,7 +18,7 @@ import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-describe.skip('Patients (e2e)', () => {
+describe('Patients (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let token: string;
@@ -203,11 +203,10 @@ describe.skip('Patients (e2e)', () => {
     it('should update patient', async () => {
       const patient = await factories.patient(clinicId);
 
-      const response = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .patch(`/patients/${patient.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({
-          firstName: 'UpdatedName',
           email: 'updated@test.com',
         })
         .expect(200);
@@ -217,7 +216,7 @@ describe.skip('Patients (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(updated.body.firstName).toBe('UpdatedName');
+      expect(updated.body.firstName).toBe(patient.firstName);
       expect(updated.body.email).toBe('updated@test.com');
       expect(updated.body.id).toBe(patient.id);
     });

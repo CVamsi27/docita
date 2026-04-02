@@ -83,6 +83,7 @@ Files:
 - `pnpm --filter @docita/admin run check-types`: PASS
 - `pnpm --filter @docita/api run test -- error-tracking.service.spec.ts email-events.listener.spec.ts`: PASS
 - `pnpm --filter @docita/api run test:e2e -- test/auth.e2e-spec.ts test/rbac.e2e-spec.ts test/csrf.e2e-spec.ts`: PASS
+- `pnpm --filter @docita/api run test:e2e -- test/patients.e2e-spec.ts`: PASS
 
 ## Dependency Audit Snapshot (After This Pass)
 
@@ -96,4 +97,4 @@ Current `pnpm audit --prod` count: `0` (`critical/high/moderate/low` all zero).
 ## Remaining High-Priority Work
 
 - Complete session architecture migration from browser token storage to HttpOnly cookie model.
-- Re-enable skipped security/tenant-focused API e2e suites (`apps/api/test/patients.e2e-spec.ts`, `apps/api/test/rbac-authorization.e2e-spec.ts`, and related skipped suites).
+- Re-enable remaining skipped security/authorization API e2e suites (`apps/api/test/rbac-authorization.e2e-spec.ts`, `apps/api/test/rbac-403-verification.e2e-spec.ts`, and related skipped suites).
