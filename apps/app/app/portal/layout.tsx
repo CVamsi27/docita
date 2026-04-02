@@ -12,7 +12,7 @@ export default function PortalLayout({
         <ConsentBanner />
         <div className="min-h-screen bg-transparent">
           <PortalNav />
-          <main className="container mx-auto p-4 md:p-6 lg:p-8">
+          <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
             {children}
           </main>
         </div>

@@ -17,20 +17,24 @@ import { getAppointmentStatusLabel } from "@/features/patient-portal/rules/patie
 interface PatientPortalAppointmentsUIProps {
   appointments: PatientPortalAppointment[];
   portalHomeHref: string;
+  showHeader?: boolean;
 }
 
 export function PatientPortalAppointmentsUI({
   appointments,
   portalHomeHref,
+  showHeader = true,
 }: PatientPortalAppointmentsUIProps) {
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Appointments</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your upcoming and historical appointments.
-        </p>
-      </div>
+    <div className="space-y-4">
+      {showHeader ? (
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Appointments</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your upcoming and historical appointments.
+          </p>
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Upcoming Appointments</CardTitle>

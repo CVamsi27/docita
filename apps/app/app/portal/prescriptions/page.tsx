@@ -1,25 +1,95 @@
 "use client";
 
+import { PatientPortalPrescriptionsUI } from "@/features/patient-portal/components";
+import type { PatientPrescriptionStatus } from "@/features/patient-portal/types/patient-portal-types";
 import { usePatientPortalPrescriptions } from "@/hooks/api/use-patient-portal";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { FileText } from "lucide-react";
+
+function mapPrescriptionStatus(status: unknown): PatientPrescriptionStatus {
+  if (typeof status !== "string") {
+    return "ACTIVE";
+  }
+
+  return status.toUpperCase() === "COMPLETED" ? "COMPLETED" : "ACTIVE";
+}
 
 export default function PortalPrescriptionsPage() {
-  const { data, isLoading } = usePatientPortalPrescriptions();
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+  } = usePatientPortalPrescriptions();
+
+  const prescriptions = (data?.prescriptions ?? []).map((item, index) => {
+    const row = item as Record<string, unknown>;
+    const doctor = row.doctor as Record<string, unknown> | undefined;
+
+    const title =
+      typeof row.title === "string"
+        ? row.title
+        : typeof row.name === "string"
+          ? row.name
+          : "Prescription";
+
+    const prescribedBy =
+      typeof row.prescribedBy === "string"
+        ? row.prescribedBy
+        : typeof doctor?.name === "string"
+          ? doctor.name
+          : "Doctor";
+
+    const issuedAt =
+      typeof row.issuedAt === "string"
+        ? row.issuedAt
+        : typeof row.createdAt === "string"
+          ? row.createdAt
+          : new Date().toISOString();
+
+    return {
+      id: typeof row.id === "string" ? row.id : `prescription-${index}`,
+      title,
+      prescribedBy,
+      issuedAt,
+      status: mapPrescriptionStatus(row.status),
+    };
+  });
+
+  const state = isLoading
+    ? "loading"
+    : isError
+      ? "error"
+      : prescriptions.length === 0
+      ? "empty"
+      : "success";
 
   return (
-    <div>
-      <h1 className="mb-6 text-3xl font-bold">My Prescriptions</h1>
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : (
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-muted-foreground">
-              {data?.prescriptions.length || 0} prescriptions found
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="My Prescriptions"
+          description="View active and historical medications."
+        />
+      }
+    >
+      <DataState
+        status={state}
+        loadingMessage="Loading prescriptions..."
+        errorMessage="Failed to load prescriptions."
+        onRetry={() => void refetch()}
+        emptyIcon={FileText}
+        emptyTitle="No prescriptions found"
+        emptyDescription="Prescriptions from your doctor will appear here."
+      >
+        <PatientPortalPrescriptionsUI
+          prescriptions={prescriptions}
+          portalHomeHref="/portal"
+          showHeader={false}
+        />
+      </DataState>
+    </AppPageScaffold>
   );
 }

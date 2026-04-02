@@ -18,20 +18,24 @@ import { getInvoiceStatusLabel } from "@/features/patient-portal/rules/patient-p
 interface PatientPortalBillingUIProps {
   invoices: PatientPortalInvoice[];
   portalHomeHref: string;
+  showHeader?: boolean;
 }
 
 export function PatientPortalBillingUI({
   invoices,
   portalHomeHref,
+  showHeader = true,
 }: PatientPortalBillingUIProps) {
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
-        <p className="text-sm text-muted-foreground">
-          Review invoice status and pending dues.
-        </p>
-      </div>
+    <div className="space-y-4">
+      {showHeader ? (
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
+          <p className="text-sm text-muted-foreground">
+            Review invoice status and pending dues.
+          </p>
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Invoice Summary</CardTitle>

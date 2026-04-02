@@ -7,12 +7,9 @@ import {
 import { ActiveMedicationsCard } from "@/features/patient-portal/components/medications/active-medications-card";
 import { DoseTracker } from "@/features/patient-portal/components/medications/dose-tracker";
 import { AdherenceChart } from "@/features/patient-portal/components/medications/adherence-chart";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { Pill } from "lucide-react";
 import type { ActiveMedication } from "@workspace/types";
 
@@ -28,13 +25,6 @@ function MedicationsContent({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">My Medications</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Track your medications and monitor adherence.
-        </p>
-      </div>
-
       {adherence && adherence.totalDoses > 0 && (
         <AdherenceChart summary={adherence} label="Overall Medication Adherence" />
       )}
@@ -82,42 +72,30 @@ function MedicationsContent({
 export default function PortalMedicationsPage() {
   const { data: medications, isLoading } = usePortalActiveMedications();
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(2)].map((_, i) => (
-          <div key={i} className="h-32 rounded-lg bg-muted animate-pulse" />
-        ))}
-      </div>
-    );
-  }
+  const state = isLoading
+    ? "loading"
+    : !medications || medications.length === 0
+      ? "empty"
+      : "success";
 
-  if (!medications || medications.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">My Medications</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track your medications and monitor adherence.
-          </p>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Pill className="h-5 w-5" />
-              No Active Medications
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              You have no active medications at the moment. Your prescribed
-              medications will appear here.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return <MedicationsContent medications={medications} />;
+  return (
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="My Medications"
+          description="Track your medications and monitor adherence."
+        />
+      }
+    >
+      <DataState
+        status={state}
+        loadingMessage="Loading medications..."
+        emptyIcon={Pill}
+        emptyTitle="No Active Medications"
+        emptyDescription="You have no active medications at the moment."
+      >
+        <MedicationsContent medications={medications ?? []} />
+      </DataState>
+    </AppPageScaffold>
+  );
 }

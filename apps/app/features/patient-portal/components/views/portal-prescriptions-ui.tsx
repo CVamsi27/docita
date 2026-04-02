@@ -17,20 +17,24 @@ import { getPrescriptionStatusLabel } from "@/features/patient-portal/rules/pati
 interface PatientPortalPrescriptionsUIProps {
   prescriptions: PatientPortalPrescription[];
   portalHomeHref: string;
+  showHeader?: boolean;
 }
 
 export function PatientPortalPrescriptionsUI({
   prescriptions,
   portalHomeHref,
+  showHeader = true,
 }: PatientPortalPrescriptionsUIProps) {
   return (
-    <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Prescriptions</h1>
-        <p className="text-sm text-muted-foreground">
-          Access active and past prescriptions shared by your doctors.
-        </p>
-      </div>
+    <div className="space-y-4">
+      {showHeader ? (
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Prescriptions</h1>
+          <p className="text-sm text-muted-foreground">
+            Access active and past prescriptions shared by your doctors.
+          </p>
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Prescription History</CardTitle>

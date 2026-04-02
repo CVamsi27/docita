@@ -26,7 +26,7 @@ export function PatientPortalOverviewUI({
 }: PatientPortalOverviewUIProps) {
   return (
     <div className="space-y-6">
-      <div className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+      <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           Patient Portal
         </h1>
@@ -36,7 +36,7 @@ export function PatientPortalOverviewUI({
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Upcoming Appointments
@@ -48,7 +48,7 @@ export function PatientPortalOverviewUI({
           </CardContent>
         </Card>
 
-        <Card className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300 [animation-delay:50ms]">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Active Prescriptions
@@ -60,7 +60,7 @@ export function PatientPortalOverviewUI({
           </CardContent>
         </Card>
 
-        <Card className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300 [animation-delay:100ms]">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Outstanding Invoices
@@ -75,7 +75,7 @@ export function PatientPortalOverviewUI({
         </Card>
       </div>
 
-      <Card className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300 [animation-delay:150ms]">
+      <Card>
         <CardContent>
           <EmptyState
             icon={CalendarDays}

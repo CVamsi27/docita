@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import { Label } from "@workspace/ui/components/label";
@@ -23,6 +24,7 @@ import {
   useRequestDataDeletion,
   useUpdatePatientConsent,
 } from "@/hooks/api/use-patient-portal";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { toast } from "sonner";
 import { Textarea } from "@workspace/ui/components/textarea";
 
@@ -74,15 +76,14 @@ export default function PatientProfilePage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Profile Settings</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your personal information and privacy preferences
-        </p>
-      </div>
-
-      {}
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Profile Settings"
+          description="Manage your personal information and privacy preferences."
+        />
+      }
+    >
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
@@ -150,7 +151,6 @@ export default function PatientProfilePage() {
         </CardContent>
       </Card>
 
-      {}
       <Card className="border-destructive/50">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -215,6 +215,6 @@ export default function PatientProfilePage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+    </AppPageScaffold>
   );
 }
