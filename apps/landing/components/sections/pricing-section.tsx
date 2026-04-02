@@ -147,7 +147,7 @@ export function PricingSection() {
               }`}
             >
               Annual
-              <span className="text-xs bg-success text-success dark:text-success px-2 py-0.5 rounded-full font-semibold">
+              <span className="text-xs bg-success text-success-foreground px-2 py-0.5 rounded-full font-semibold">
                 2 months free
               </span>
             </button>
