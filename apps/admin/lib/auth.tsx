@@ -12,11 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { client, setAuthLogoutCallback } from "./api-client";
-import {
-  ADMIN_COOKIE_KEY,
-  ADMIN_USER_KEY,
-  adminSession,
-} from "./session";
+import { ADMIN_USER_KEY, adminSession } from "./session";
 
 interface User {
   id: string;
@@ -33,24 +29,15 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isSuperAdmin: boolean;
   isClinicAdmin: boolean;
-  login: (token: string, user: User) => void;
+  login: (token: string | null, user: User) => void;
   logout: (reason?: string) => void;
   validateToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-function setCookie(name: string, value: string, days: number) {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-}
-
-function deleteCookie(name: string) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-}
 
 function clearAuthStorage() {
   adminSession.clearSession();
-  deleteCookie(ADMIN_COOKIE_KEY);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -64,56 +51,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const validateTokenMutation = useMutation({
-    mutationFn: async (tokenToValidate: string) =>
-      client.get("/auth/validate", {
-        skipAuth: true,
-        headers: { Authorization: `Bearer ${tokenToValidate}` },
-      }),
+    mutationFn: async () => client.get("/auth/validate", { skipAuth: true }),
   });
 
-  const validateToken = useCallback(
-    async (tokenToValidate?: string): Promise<boolean> => {
-      const tokenValue = tokenToValidate || token;
-      if (!tokenValue) return false;
-
-      try {
-        await validateTokenMutation.mutateAsync(tokenValue);
-        return true;
-      } catch (error) {
-        const status =
-          typeof error === "object" &&
-          error !== null &&
-          "status" in error &&
-          typeof (error as { status?: unknown }).status === "number"
-            ? (error as { status: number }).status
-            : undefined;
-        if (status === 404 || status === 401) {
-            clearAuthStorage();
-            return false;
-        }
+  const validateToken = useCallback(async (): Promise<boolean> => {
+    try {
+      await validateTokenMutation.mutateAsync();
+      return true;
+    } catch (error) {
+      const status =
+        typeof error === "object" &&
+        error !== null &&
+        "status" in error &&
+        typeof (error as { status?: unknown }).status === "number"
+          ? (error as { status: number }).status
+          : undefined;
+      if (status === 404 || status === 401) {
+        clearAuthStorage();
         return false;
       }
-    },
-    [token, validateTokenMutation],
-  );
+      return false;
+    }
+  }, [validateTokenMutation]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
       setIsMounted(true);
 
       try {
-        const storedToken = adminSession.getToken();
         const storedUser = localStorage.getItem(ADMIN_USER_KEY);
 
-        if (storedToken && storedUser) {
+        if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser.role === "SUPER_ADMIN") {
-            const isValid = await validateToken(storedToken);
+            await adminSession.refreshAccessToken();
+            const nextToken = adminSession.getToken();
+            setToken(nextToken);
+            const isValid = await validateToken();
 
             if (isValid) {
-              setToken(storedToken);
               setUser(parsedUser);
-              setCookie(ADMIN_COOKIE_KEY, storedToken, 7);
             } else {
               clearAuthStorage();
               setToken(null);
@@ -139,11 +116,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const isProtectedRoute =
       pathname?.startsWith("/dashboard") || pathname?.startsWith("/clinic");
-    const isAuthenticatedSuperAdmin =
-      !!token && !!user && user.role === "SUPER_ADMIN";
+    const isAuthenticatedSuperAdmin = !!user && user.role === "SUPER_ADMIN";
 
     if (isProtectedRoute && isAuthenticatedSuperAdmin) {
-      validateToken(token).then((isValid) => {
+      validateToken().then((isValid) => {
         if (!isValid) {
           clearAuthStorage();
           setToken(null);
@@ -157,10 +133,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [isLoading, isMounted, pathname, token, user, router, validateToken]);
 
-  const login = useCallback((newToken: string, newUser: User) => {
+  const login = useCallback((newToken: string | null, newUser: User) => {
     adminSession.setToken(newToken);
     localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(newUser));
-    setCookie(ADMIN_COOKIE_KEY, newToken, 7);
     setToken(newToken);
     setUser(newUser);
   }, []);
@@ -202,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         token,
         isLoading,
-        isAuthenticated: !!token && !!user,
+        isAuthenticated: !!user,
         isSuperAdmin,
         isClinicAdmin,
         login,

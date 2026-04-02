@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { fetchAPI } from "@/lib/api-core";
+import { appSession } from "@/lib/session";
 
 interface RequestOtpResponse {
   message: string;
@@ -79,7 +80,7 @@ export function usePortalOtpAuth() {
         },
       );
       if (result.access_token) {
-        localStorage.setItem("docita_token", result.access_token);
+        appSession.setToken(result.access_token);
         localStorage.setItem("docita_user", JSON.stringify(result.user));
       }
       window.location.href = "/portal";

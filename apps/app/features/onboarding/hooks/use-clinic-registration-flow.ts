@@ -7,6 +7,7 @@ import { apiFetch } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/csrf";
 import { ApiError } from "@/lib/errors";
+import { appSession } from "@/lib/session";
 import {
   type ClinicDetails,
   type ClinicRegistrationData,
@@ -489,7 +490,7 @@ export function useClinicRegistrationFlow() {
         }
 
         if (responseData.access_token && responseData.user) {
-          localStorage.setItem("docita_token", responseData.access_token);
+          appSession.setToken(responseData.access_token);
           localStorage.setItem(
             "docita_user",
             JSON.stringify(responseData.user),

@@ -75,15 +75,36 @@ Files:
 - `package.json`
 - `pnpm-lock.yaml`
 
+### 6) Browser token persistence removal (cookie-first session behavior)
+
+- Updated shared browser session manager to keep access tokens in memory only (no localStorage persistence).
+- Added automatic cleanup of legacy token storage keys to reduce residual token exposure.
+- Removed app onboarding and patient-portal localStorage token writes, replacing them with in-memory session token updates.
+- Hardened admin auth bootstrap to rely on server-managed cookies plus refresh/validate flow, and removed non-HttpOnly admin token cookie usage.
+- Kept `docita_user` localStorage persistence for UX/session restoration while authentication itself remains cookie-based.
+
+Files:
+- `packages/data-access/src/lib/browser-session.ts`
+- `apps/app/lib/auth-context.tsx`
+- `apps/app/features/onboarding/hooks/use-clinic-registration-flow.ts`
+- `apps/app/features/patient-portal/hooks/use-portal-otp-auth.ts`
+- `apps/admin/lib/session.ts`
+- `apps/admin/lib/auth.tsx`
+- `apps/admin/app/page.tsx`
+
 ## Verification Run Results
 
 - `pnpm lint`: PASS
 - `pnpm --filter @docita/api run check-types`: PASS
 - `pnpm --filter @docita/app run check-types`: PASS
 - `pnpm --filter @docita/admin run check-types`: PASS
+- `pnpm --filter @workspace/data-access run build`: PASS
 - `pnpm --filter @docita/api run test -- error-tracking.service.spec.ts email-events.listener.spec.ts`: PASS
 - `pnpm --filter @docita/api run test:e2e -- test/auth.e2e-spec.ts test/rbac.e2e-spec.ts test/csrf.e2e-spec.ts`: PASS
 - `pnpm --filter @docita/api run test:e2e -- test/patients.e2e-spec.ts`: PASS
+- `pnpm --filter @docita/api run test:e2e -- test/rbac-authorization.e2e-spec.ts`: PASS
+- `pnpm --filter @docita/app exec vitest run lib/browser-session.spec.ts`: PASS
+- `pnpm --filter @docita/admin run test -- app/page.spec.tsx`: PASS
 
 ## Dependency Audit Snapshot (After This Pass)
 
@@ -96,5 +117,4 @@ Current `pnpm audit --prod` count: `0` (`critical/high/moderate/low` all zero).
 
 ## Remaining High-Priority Work
 
-- Complete session architecture migration from browser token storage to HttpOnly cookie model.
-- Re-enable remaining skipped security/authorization API e2e suites (`apps/api/test/rbac-authorization.e2e-spec.ts`, `apps/api/test/rbac-403-verification.e2e-spec.ts`, and related skipped suites).
+- Re-enable remaining skipped security/authorization API e2e suites (`apps/api/test/rbac-403-verification.e2e-spec.ts`, `apps/api/test/prescriptions.e2e-spec.ts`, `apps/api/test/invoices.e2e-spec.ts`, and related skipped suites).

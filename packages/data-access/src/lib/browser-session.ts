@@ -50,9 +50,17 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   } = config;
 
   const refreshKey = `${apiUrl}::${tokenStorageKey}`;
+  let inMemoryToken: string | null = null;
 
   const normalizeApiUrl = (value: string) =>
     value.endsWith("/") ? value.slice(0, -1) : value;
+
+  const clearLegacyTokenStorage = (): void => {
+    if (!isBrowser()) return;
+    localStorage.removeItem(tokenStorageKey);
+  };
+
+  clearLegacyTokenStorage();
 
   const getCsrfToken = (): string | null => {
     if (typeof document === "undefined") return null;
@@ -64,22 +72,18 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   };
 
   const getToken = (): string | null => {
-    if (!isBrowser()) return null;
-    return localStorage.getItem(tokenStorageKey);
+    return inMemoryToken;
   };
 
   const setToken = (token: string | null): void => {
-    if (!isBrowser()) return;
-    if (token) {
-      localStorage.setItem(tokenStorageKey, token);
-      return;
-    }
-    localStorage.removeItem(tokenStorageKey);
+    inMemoryToken = token ?? null;
+    clearLegacyTokenStorage();
   };
 
   const clearSession = (): void => {
+    inMemoryToken = null;
+    clearLegacyTokenStorage();
     if (!isBrowser()) return;
-    localStorage.removeItem(tokenStorageKey);
     if (userStorageKey) {
       localStorage.removeItem(userStorageKey);
     }

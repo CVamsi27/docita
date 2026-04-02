@@ -16,7 +16,7 @@ import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-describe.skip('RBAC Authorization (e2e)', () => {
+describe('RBAC Authorization (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -145,7 +145,7 @@ describe.skip('RBAC Authorization (e2e)', () => {
 
     it('should deny unauthenticated access', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/appointments')
+        .post('/appointments')
         .send({
           clinicId: adminClinic.id,
           patientId: 'patient-id',

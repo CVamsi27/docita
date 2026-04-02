@@ -261,9 +261,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        if (e.key === "docita_token") {
-          setToken(e.newValue ?? null);
-        }
       } catch {
         // ignore malformed storage entries
       }

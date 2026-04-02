@@ -76,7 +76,7 @@ export default function SuperAdminLogin() {
     try {
       const data = await loginMutation.mutateAsync({ email, password });
 
-      if (!data?.user || !data?.access_token) {
+      if (!data?.user) {
         throw new Error("Invalid response from server");
       }
 
@@ -86,7 +86,7 @@ export default function SuperAdminLogin() {
         );
       }
 
-      login(data.access_token, data.user);
+      login(data.access_token ?? null, data.user);
       toast.success("Login successful");
       router.push("/dashboard");
     } catch (err) {
