@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, History } from "lucide-react";
 import { usePortalTimeline, usePortalSnapshot } from "@/hooks/api/use-patient-portal";
 import { usePatientMedicalHistory, usePatientPortalDashboard } from "@/hooks/api/use-patient-portal";
 import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history/PatientSnapshotStrip";
 import { PatientTimeline } from "@/features/_shared/components/patient-history/PatientTimeline";
+import { DataState } from "@workspace/ui/components/data-state";
 import type { TimelineEventType } from "@workspace/types";
 
 const ALL_EVENT_TYPES: TimelineEventType[] = [
@@ -20,7 +21,13 @@ const ALL_EVENT_TYPES: TimelineEventType[] = [
   "MEDICATION_DOSE",
 ];
 
-export function PortalHistoryTimelineUI() {
+interface PortalHistoryTimelineUIProps {
+  showHeader?: boolean;
+}
+
+export function PortalHistoryTimelineUI({
+  showHeader = true,
+}: PortalHistoryTimelineUIProps) {
   const [selectedTypes, setSelectedTypes] =
     useState<TimelineEventType[]>(ALL_EVENT_TYPES);
   const [offset, setOffset] = useState(0);
@@ -34,7 +41,12 @@ export function PortalHistoryTimelineUI() {
       : undefined;
 
   const { data: snapshot } = usePortalSnapshot();
-  const { data: timeline, isLoading } = usePortalTimeline({
+  const {
+    data: timeline,
+    isLoading,
+    isError,
+    refetch,
+  } = usePortalTimeline({
     eventTypes: selectedTypes,
     limit,
     offset,
@@ -52,14 +64,24 @@ export function PortalHistoryTimelineUI() {
     );
   };
 
+  const timelineStatus = isLoading && !timeline
+    ? "loading"
+    : isError
+      ? "error"
+      : timeline && timeline.total === 0
+        ? "empty"
+        : "success";
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">My Health History</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          A complete record of your health journey in one place.
-        </p>
-      </div>
+      {showHeader ? (
+        <div>
+          <h1 className="text-3xl font-bold">My Health History</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            A complete record of your health journey in one place.
+          </p>
+        </div>
+      ) : null}
 
       {snapshot && (
         <PatientSnapshotStrip snapshot={snapshot} layout="horizontal" />
@@ -67,17 +89,27 @@ export function PortalHistoryTimelineUI() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Timeline</h2>
-        <PatientTimeline
-          mode="portal"
-          events={timeline?.events ?? []}
-          summary={timeline?.summary ?? {}}
-          total={timeline?.total ?? 0}
-          selectedTypes={selectedTypes}
-          onTypeToggle={handleTypeToggle}
-          onLoadMore={() => setOffset((p) => p + limit)}
-          hasMore={timeline ? offset + limit < timeline.total : false}
-          isLoading={isLoading && !timeline}
-        />
+        <DataState
+          status={timelineStatus}
+          loadingMessage="Loading your timeline..."
+          errorMessage="Failed to load your timeline."
+          onRetry={() => void refetch()}
+          emptyIcon={History}
+          emptyTitle="No timeline records found"
+          emptyDescription="Your appointments, prescriptions, and health events will appear here."
+        >
+          <PatientTimeline
+            mode="portal"
+            events={timeline?.events ?? []}
+            summary={timeline?.summary ?? {}}
+            total={timeline?.total ?? 0}
+            selectedTypes={selectedTypes}
+            onTypeToggle={handleTypeToggle}
+            onLoadMore={() => setOffset((p) => p + limit)}
+            hasMore={timeline ? offset + limit < timeline.total : false}
+            isLoading={false}
+          />
+        </DataState>
       </div>
 
       {medicalHistory && (

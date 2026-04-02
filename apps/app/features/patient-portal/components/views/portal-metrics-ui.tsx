@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { DataState } from "@workspace/ui/components/data-state";
 import {
   Select,
   SelectContent,
@@ -11,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Plus, RefreshCw } from "lucide-react";
+import { Activity, Plus, RefreshCw } from "lucide-react";
 import {
   usePortalMetricCategories,
   usePortalMetricHistory,
@@ -37,7 +36,13 @@ function getDateRange(days: number) {
   };
 }
 
-export function PortalMetricsUI() {
+interface PortalMetricsUIProps {
+  showHeader?: boolean;
+}
+
+export function PortalMetricsUI({
+  showHeader = true,
+}: PortalMetricsUIProps) {
   const [dateRange, setDateRange] = useState("30");
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
@@ -53,6 +58,7 @@ export function PortalMetricsUI() {
   const {
     data: historyData,
     isLoading: historyLoading,
+    error: historyError,
     refetch: refetchHistory,
   } = usePortalMetricHistory({ from, to, limit: 500 });
 
@@ -63,16 +69,7 @@ export function PortalMetricsUI() {
   };
 
   const isLoading = categoriesLoading || historyLoading;
-
-  if (categoriesError) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>
-          Failed to load metrics. Please try again.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+  const hasError = Boolean(categoriesError) || Boolean(historyError);
 
   const allRecords = (historyData?.timeline ?? []) as Array<{
     id: string;
@@ -99,15 +96,33 @@ export function PortalMetricsUI() {
     }>;
   }>;
 
+  const status = isLoading
+    ? "loading"
+    : hasError
+      ? "error"
+      : categoryList.length === 0
+        ? "empty"
+        : "success";
+
+  const handleRetry = () => {
+    void refetchHistory();
+    void queryClient.invalidateQueries({
+      queryKey: ["patient-portal", "metrics", "categories"],
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      {showHeader ? (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">My Metrics</h1>
           <p className="text-sm text-muted-foreground">
             Track and monitor your personal health metrics
           </p>
         </div>
+      ) : null}
+
+      <div className="flex items-center justify-end gap-2">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -143,31 +158,19 @@ export function PortalMetricsUI() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-4 w-32" />
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {[1, 2, 3].map((j) => (
-                  <Skeleton key={j} className="h-28 rounded-lg" />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : categoryList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-          <p className="text-muted-foreground">No metric categories available.</p>
-          <Button
-            variant="link"
-            onClick={() => setShowAddModal(true)}
-            className="mt-2"
-          >
-            Add your first custom metric
-          </Button>
-        </div>
-      ) : (
+      <DataState
+        status={status}
+        loadingMessage="Loading metrics..."
+        errorMessage="Failed to load metrics. Please try again."
+        onRetry={handleRetry}
+        emptyIcon={Activity}
+        emptyTitle="No metric categories available"
+        emptyDescription="Create a custom metric to start tracking your health trends."
+        emptyAction={{
+          label: "Add your first custom metric",
+          onClick: () => setShowAddModal(true),
+        }}
+      >
         <div className="space-y-8">
           {categoryList.map((category) => (
             <MetricCategorySection
@@ -179,7 +182,7 @@ export function PortalMetricsUI() {
             />
           ))}
         </div>
-      )}
+      </DataState>
 
       {showAddModal && (
         <AddMetricDefinitionModal
