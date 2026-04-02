@@ -16,7 +16,7 @@ import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-describe.skip('Subscription (e2e)', () => {
+describe('Subscription (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let token: string;
@@ -130,7 +130,7 @@ describe.skip('Subscription (e2e)', () => {
   describe('GET /subscription/billing/preview', () => {
     it('should preview upgrade cost', async () => {
       const response = await request(app.getHttpServer())
-        .get('/subscription/billing/preview?tier=PRO&cycle=MONTHLY')
+        .get('/subscription/billing/preview?tier=PROFESSIONAL&cycle=MONTHLY')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -150,7 +150,7 @@ describe.skip('Subscription (e2e)', () => {
         .post('/subscription/billing/checkout')
         .set('Authorization', `Bearer ${token}`)
         .send({
-          tier: 'PRO',
+          tier: 'PROFESSIONAL',
           billingCycle: 'MONTHLY',
         })
         .expect(201);
@@ -175,7 +175,7 @@ describe.skip('Subscription (e2e)', () => {
       await request(app.getHttpServer())
         .post('/subscription/billing/checkout')
         .send({
-          tier: 'PRO',
+          tier: 'PROFESSIONAL',
           billingCycle: 'MONTHLY',
         })
         .expect(401);
@@ -187,7 +187,7 @@ describe.skip('Subscription (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/subscription/activate-legacy')
         .set('Authorization', `Bearer ${token}`)
-        .send({ tier: 'PLUS', cycle: 'MONTHLY' })
+        .send({ tier: 'ESSENTIAL', cycle: 'MONTHLY' })
         .expect(201);
 
       expect(response.body).toHaveProperty('subscriptionId');

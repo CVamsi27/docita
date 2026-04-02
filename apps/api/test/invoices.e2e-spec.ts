@@ -16,7 +16,7 @@ import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-describe.skip('Invoices (e2e)', () => {
+describe('Invoices (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let token: string;
@@ -96,7 +96,7 @@ describe.skip('Invoices (e2e)', () => {
       const invoiceData = {
         patientId,
         items: [{ description: 'Consultation', quantity: 1, price: 500 }],
-        status: 'DRAFT',
+        status: 'PENDING',
         total: 500,
       };
 
@@ -127,7 +127,7 @@ describe.skip('Invoices (e2e)', () => {
         .send({
           patientId,
           items: [{ description: 'Consultation', quantity: 1, price: 500 }],
-          status: 'DRAFT',
+          status: 'PENDING',
           total: 500,
         });
 
@@ -157,7 +157,7 @@ describe.skip('Invoices (e2e)', () => {
         .send({
           patientId,
           items: [{ description: 'Consultation', quantity: 1, price: 500 }],
-          status: 'DRAFT',
+          status: 'PENDING',
           total: 500,
         });
 
@@ -166,10 +166,10 @@ describe.skip('Invoices (e2e)', () => {
       const response = await request(app.getHttpServer())
         .patch(`/invoices/${invoiceId}`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ status: 'SENT' })
+        .send({ status: 'CANCELLED' })
         .expect(200);
 
-      expect(response.body.status).toBe('SENT');
+      expect(response.body.status).toBe('CANCELLED');
     });
   });
 });

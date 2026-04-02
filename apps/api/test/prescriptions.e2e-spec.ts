@@ -16,7 +16,7 @@ import { mockRazorpayGateway } from './razorpay.provider';
 import { WhatsappService } from '@/shared/modules/messaging/whatsapp/whatsapp.service';
 import { mockWhatsappService } from './whatsapp.provider';
 
-describe.skip('Prescriptions (e2e)', () => {
+describe('Prescriptions (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let token: string;
@@ -58,6 +58,14 @@ describe.skip('Prescriptions (e2e)', () => {
       role: 'DOCTOR',
     });
     doctorId = user.id;
+
+    await prisma.user.update({
+      where: { id: doctorId },
+      data: {
+        verificationStatus: 'VERIFIED',
+        signatureUrl: 'https://example.com/signature.png',
+      },
+    });
 
     await factories.doctorClinic(user.id, clinicId);
 
