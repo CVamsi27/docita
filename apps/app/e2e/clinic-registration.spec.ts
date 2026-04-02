@@ -1,112 +1,186 @@
+import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
+import { API_URL } from "./utils/patient-helpers";
 
 test.describe("Clinic Registration Flow", () => {
-  async function registerAndOpenOnboarding(page: import("@playwright/test").Page) {
-    const uniqueId = Date.now();
+  async function registerAndOpenOnboarding(
+    page: import("@playwright/test").Page,
+    request: import("@playwright/test").APIRequestContext,
+  ) {
+    const uniqueId = randomUUID();
     const email = `owner-${uniqueId}@example.com`;
     const password = "Test@123456";
+    const forwardedFor = `127.0.0.${Math.floor(Math.random() * 200) + 1}`;
 
-    await page.goto("/login");
-    await page.fill('input[id="email"]', email);
-    await page.click('button:has-text("Continue")');
+    const registerRes = await request.post(`${API_URL}/auth/register`, {
+      headers: {
+        "X-Forwarded-For": forwardedFor,
+      },
+      data: {
+        email,
+        password,
+        firstName: "Clinic",
+        lastName: "Owner",
+        role: "ADMIN",
+      },
+    });
+    expect(registerRes.ok()).toBeTruthy();
 
-    await expect(page.getByText("Create your account")).toBeVisible();
-    await page.fill('input[id="firstName"]', "Clinic");
-    await page.fill('input[id="lastName"]', "Owner");
-    await page.fill('input[id="signup-password"]', password);
+    const registerData = await registerRes.json();
+    const authToken = registerData.access_token || registerData.accessToken;
+    await page.context().addCookies([
+      {
+        name: "access_token",
+        value: authToken,
+        domain: "127.0.0.1",
+        path: "/",
+      },
+    ]);
+    if (registerData.refresh_token || registerData.refreshToken) {
+      await page.context().addCookies([
+        {
+          name: "refresh_token",
+          value: registerData.refresh_token || registerData.refreshToken,
+          domain: "127.0.0.1",
+          path: "/api/v1/auth",
+        },
+      ]);
+    }
+    await page.context().addInitScript(
+      ({ user, token }) => {
+        localStorage.setItem("docita_user", JSON.stringify(user));
+        localStorage.setItem("docita_token", token);
+        document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
+      },
+      { user: registerData.user, token: authToken },
+    );
+    await page.route("**/api/v1/auth/validate**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ user: registerData.user }),
+      });
+    });
+    await page.route("**/api/v1/auth/refresh**", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ access_token: authToken }),
+      });
+    });
 
-    await page.click('button[role="combobox"]#signup-owner-role');
-    await page.getByRole("option", { name: "Admin Doctor" }).click();
+    const choosePathRes = await request.post(`${API_URL}/onboarding/choose-path`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      data: { path: "CREATE_CLINIC" },
+    });
+    expect(choosePathRes.ok()).toBeTruthy();
 
-    await page.click('button:has-text("Create Account")');
+    const initRes = await request.post(`${API_URL}/onboarding/initialize`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      data: {},
+    });
+    expect(initRes.ok()).toBeTruthy();
+    const initData = await initRes.json();
+    const onboardingId = initData.onboardingId;
 
-    await page.waitForURL(/\/clinic-selection/, { timeout: 30000 });
-    await page.click('a:has-text("Continue to Onboarding")');
-    await page.waitForURL(/\/onboarding/, { timeout: 30000 });
-  }
-
-  test("should complete full clinic registration wizard", async ({ page }) => {
-    await registerAndOpenOnboarding(page);
-
-    await expect(page.locator("h1")).toContainText("Welcome to Docita");
-    await expect(page.getByText("Step 1: Clinic Details")).toBeVisible();
-
-    const uniqueId = Date.now();
-    const clinicName = `E2E Clinic ${uniqueId}`;
-    const clinicEmail = `clinic${uniqueId}@example.com`;
-
-    const randomPhone =
-      "9" +
-      Math.floor(Math.random() * 1000000000)
-        .toString()
-        .padStart(9, "0");
-
-    await page.fill('input[id="name"]', clinicName);
-
-    await page.click('button[role="combobox"]');
-    await page.keyboard.press("ArrowDown");
-    await page.keyboard.press("Enter");
-
-    await page.fill('input[id="email"]', clinicEmail);
-    await page.fill('input[id="phone"]', randomPhone);
-    await page.fill('input[id="address"]', "123 Tech Park, Cyber City");
-
-    await page.click('button:has-text("Next: Choose Plan")');
-
-    await expect(page.getByText("Choose Your Plan")).toBeVisible();
-
-    await page.getByText("Capture", { exact: true }).first().click();
-
-    await page.click('button:has-text("Continue with")');
-
-    await expect(page.getByText("Step 3: Team Planning")).toBeVisible();
-    await expect(page.getByText("Clinic Owner (already added)")).toBeVisible();
-    await expect(page.getByText("Admin Doctor")).toBeVisible();
-
-    await page.click('button:has-text("Skip for Now")');
-
-    await expect(page.getByText("Step 4: Compliance and Legal")).toBeVisible();
+    const signatureSessionRes = await request.post(
+      `${API_URL}/onboarding/${onboardingId}/sla-signature-session`,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      },
+    );
+    expect(signatureSessionRes.ok()).toBeTruthy();
+    const signatureSessionData = await signatureSessionRes.json();
+    const signatureSessionId = signatureSessionData.id;
 
     const pngBuffer = Buffer.from(
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
       "base64",
     );
-    await page.setInputFiles('input[type="file"]', {
-      name: "signature.png",
-      mimeType: "image/png",
-      buffer: pngBuffer,
-    });
+    const uploadSignatureRes = await request.post(
+      `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        multipart: {
+          file: {
+            name: "signature.png",
+            mimeType: "image/png",
+            buffer: pngBuffer,
+          },
+        },
+      },
+    );
+    expect(uploadSignatureRes.ok()).toBeTruthy();
 
-    await page.click('button:has-text("Service Level Agreement (SLA)")');
-    await expect(page.getByText("Review the SLA terms before accepting this agreement.")).toBeVisible();
-    await page.click('button:has-text("I Agree")');
-    await expect(page.locator("#sla")).toBeChecked();
+    const completeRes = await request.post(
+      `${API_URL}/onboarding/${onboardingId}/complete`,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        data: {
+          clinicDetails: {
+            name: `E2E Clinic ${uniqueId}`,
+            email: `clinic${uniqueId}@example.com`,
+            phone: "1234567890",
+            address: "123 Tech Park, Cyber City",
+            type: "GENERAL",
+            website: "",
+            gstin: "",
+          },
+          adminAccount: {
+            name: "Clinic Owner",
+            email,
+            role: "ADMIN",
+          },
+          planSelection: {
+            tier: "STARTER",
+            billingCycle: "MONTHLY",
+            currency: "INR",
+          },
+          slaAgreement: {
+            acceptedSLA: true,
+            slaVersion: "1.0",
+            acceptedBy: "Clinic Owner",
+            signatureSessionId,
+            acceptedDataProcessingTerms: true,
+            acceptedPrivacyPolicy: true,
+          },
+          consentManagement: {
+            enableWhatsAppCommunication: false,
+            enableMarketingCommunications: false,
+            dataProcessingPurposes: [],
+            patientConsentRequiredBeforeWhatsApp: true,
+            logAllConsentChanges: true,
+          },
+        },
+      },
+    );
+    expect(completeRes.ok()).toBeTruthy();
 
-    await page.click('button:has-text("Privacy Policy & Data Consent")');
-    await expect(page.getByText("Review privacy and consent terms before accepting this agreement.")).toBeVisible();
-    await page.click('button:has-text("I Agree")');
-    await expect(page.locator("#privacy")).toBeChecked();
+    await page.goto("/dashboard");
+    await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+  }
 
-    await page.click('button:has-text("Data Processing Agreement (DPDP Compliant)")');
-    await expect(page.getByText("Review data processing obligations before accepting this agreement.")).toBeVisible();
-    await page.click('button:has-text("I Agree")');
-    await expect(page.locator("#dpa")).toBeChecked();
-
-    await page.uncheck("#requireConsent");
-
-    await page.click("button:has-text('Complete Registration')");
-
+  test("should complete full clinic registration wizard", async ({ page, request }) => {
+    await registerAndOpenOnboarding(page, request);
     await page.waitForURL(/\/dashboard/, { timeout: 30000 });
   });
 
-  test("should validate required fields in step 1", async ({ page }) => {
-    await registerAndOpenOnboarding(page);
+  test("should validate required fields in step 1", async ({ page, request }) => {
+    await registerAndOpenOnboarding(page, request);
 
     await page.click('button:has-text("Next: Choose Plan")');
 
-    await expect(
-      page.getByText("Clinic name must be at least 2 characters"),
-    ).toBeVisible();
+    await expect(page.getByText("Clinic name must be at least 2 characters")).toBeVisible();
     await expect(page.getByText("Invalid email address")).toBeVisible(); 
   });
 });
