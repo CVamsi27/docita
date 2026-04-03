@@ -5,7 +5,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk add --no-cache dumb-init && npm install -g pnpm@10.4.1
+RUN apk add --no-cache dumb-init && npm install -g pnpm@10.30.3
 
 # Copy manifests
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
