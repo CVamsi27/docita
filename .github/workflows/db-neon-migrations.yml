@@ -1,11 +1,10 @@
-name: Disabled Neon DB Migrations
+name: Neon DB Setup and Migrations
 
 on:
   workflow_dispatch:
 
 jobs:
   migrate-neon:
-    if: ${{ false }}
     name: Apply Prisma Migrations to Neon
     runs-on: ubuntu-latest
     env:
