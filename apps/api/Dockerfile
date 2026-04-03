@@ -7,7 +7,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm@10.4.1
+RUN npm install -g pnpm@10.30.3
 
 # Copy ONLY package manifests (not source code)
 # This layer is cached unless these files change
@@ -59,7 +59,7 @@ WORKDIR /app
 # Install ONLY runtime essentials
 # curl is needed for health check in deployment workflow
 RUN apk add --no-cache dumb-init curl && \
-    npm install -g pnpm@10.4.1
+    npm install -g pnpm@10.30.3
 
 # Copy node_modules from deps stage (cached unless manifests change)
 COPY --from=deps /app/node_modules ./node_modules
