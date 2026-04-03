@@ -9,7 +9,7 @@ on:
       - packages/db/prisma/**
       - packages/db/scripts/**
       - packages/db/package.json
-      - .github/workflows/db-neon-migrations.yml
+      - .github/workflows/render-migrations.yml
 
 jobs:
   migrate-db:
