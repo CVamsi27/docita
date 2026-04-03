@@ -83,6 +83,10 @@ function resolveCurrencyFromLocale(acceptLanguage?: string): string {
 function detectManagedDatabaseProvider(
   databaseUrl: string,
 ): ManagedDatabaseProvider | null {
+  // Render injects RENDER=true on all services, including private-networking
+  // connections whose hostnames don't contain render.com.
+  if (process.env.RENDER === 'true') return 'Render';
+
   const url = databaseUrl.toLowerCase();
 
   const providers: Array<{ pattern: string; name: ManagedDatabaseProvider }> = [
