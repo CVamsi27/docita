@@ -81,6 +81,34 @@ is_ci() {
 }
 
 # Function to create a backup
+get_pg_dump_major_version() {
+    if ! command -v pg_dump &> /dev/null; then
+        printf '%s\n' ""
+        return 0
+    fi
+
+    pg_dump --version | awk '{print $3}' | cut -d. -f1
+}
+
+get_server_major_version() {
+    local db_url
+    db_url=$(get_db_url)
+
+    if ! command -v psql &> /dev/null; then
+        printf '%s\n' ""
+        return 0
+    fi
+
+    local server_version_num
+    server_version_num=$(psql --dbname="$db_url" -Atqc "SHOW server_version_num;" 2>/dev/null || true)
+    if [ -z "$server_version_num" ]; then
+        printf '%s\n' ""
+        return 0
+    fi
+
+    printf '%s\n' "$((server_version_num / 10000))"
+}
+
 create_backup() {
     local db_url=$(get_db_url)
     local db_name=$(get_db_name "$db_url")
@@ -89,6 +117,17 @@ create_backup() {
     log "Creating database backup..."
     
     if command -v pg_dump &> /dev/null; then
+        local pg_dump_major
+        local server_major
+        pg_dump_major=$(get_pg_dump_major_version)
+        server_major=$(get_server_major_version)
+
+        if [ -n "$pg_dump_major" ] && [ -n "$server_major" ] && [ "$pg_dump_major" -lt "$server_major" ]; then
+            warn "Skipping backup because pg_dump ${pg_dump_major} is older than PostgreSQL ${server_major}."
+            echo ""
+            return 0
+        fi
+
         pg_dump --dbname="$db_url" > "$backup_file"
         success "Backup created: $backup_file"
         echo "$backup_file"
