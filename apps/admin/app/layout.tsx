@@ -1,15 +1,14 @@
 import "./globals.css";
 import { OptionalSentryInitializer } from "@/components/optional-sentry-initializer";
 import { Providers } from "./providers";
-import { DOCITA_ICON_CACHE_BUST } from "@workspace/ui/lib/docita-brand";
 
 export const metadata = {
   title: "Docita Admin - Super Admin Console",
   description: "Manage clinics, users, and system settings",
   icons: {
-    icon: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    shortcut: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    apple: `/apple-icon?${DOCITA_ICON_CACHE_BUST}`,
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/branding/Round_Logo-512.png",
   },
 };
 
