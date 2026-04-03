@@ -50,17 +50,26 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   } = config;
 
   const refreshKey = `${apiUrl}::${tokenStorageKey}`;
-  let inMemoryToken: string | null = null;
+  const readPersistedToken = (): string | null => {
+    if (!isBrowser()) return null;
+
+    const persistedToken = localStorage.getItem(tokenStorageKey);
+    return persistedToken && persistedToken.length > 0 ? persistedToken : null;
+  };
+
+  let inMemoryToken: string | null = readPersistedToken();
 
   const normalizeApiUrl = (value: string) =>
     value.endsWith("/") ? value.slice(0, -1) : value;
 
-  const clearLegacyTokenStorage = (): void => {
+  const syncTokenStorage = (token: string | null): void => {
     if (!isBrowser()) return;
-    localStorage.removeItem(tokenStorageKey);
+    if (token) {
+      localStorage.setItem(tokenStorageKey, token);
+    } else {
+      localStorage.removeItem(tokenStorageKey);
+    }
   };
-
-  clearLegacyTokenStorage();
 
   const getCsrfToken = (): string | null => {
     if (typeof document === "undefined") return null;
@@ -77,12 +86,12 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
 
   const setToken = (token: string | null): void => {
     inMemoryToken = token ?? null;
-    clearLegacyTokenStorage();
+    syncTokenStorage(inMemoryToken);
   };
 
   const clearSession = (): void => {
     inMemoryToken = null;
-    clearLegacyTokenStorage();
+    syncTokenStorage(null);
     if (!isBrowser()) return;
     if (userStorageKey) {
       localStorage.removeItem(userStorageKey);

@@ -19,11 +19,11 @@ export const mockRazorpayGateway = {
       currency: 'INR',
     }),
   },
-  createCustomer: jest.fn().mockResolvedValue({
-    customerId: 'cust_1234567890',
-  }),
+  createCustomer: jest.fn().mockResolvedValue('cust_1234567890'),
   createCheckout: jest.fn().mockResolvedValue({
-    orderId: 'order_1234567890',
+    razorpayOrderId: 'order_1234567890',
+    amountCents: 10000,
+    currency: 'INR',
   }),
   cancelSubscription: jest.fn().mockResolvedValue({}),
 };

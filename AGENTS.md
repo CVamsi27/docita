@@ -173,6 +173,8 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
   - relevant tests
   - build checks where change impact is broad
+- Before creating a commit or pushing a branch, run the relevant local checks for the touched area and do not push until they pass.
+- For Render/OpenNext or Cloudflare-related app changes, verify the matching local `build:cloudflare` task before pushing.
 
 ## 11) Repo Hygiene and Documentation
 
@@ -218,3 +220,4 @@ Before finalizing changes:
 - TODO/FIXME-style comments are resolved or removed from touched areas.
 - Typographic hierarchy is preserved (headings > body > sub-points).
 - Changed behavior is covered by appropriate tests/checks.
+- Relevant local tests/builds were run and passed before the final push.

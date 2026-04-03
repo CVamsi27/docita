@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { APIRequestContext, Page } from "@playwright/test";
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
@@ -8,6 +9,16 @@ export interface UserData {
   email: string;
   clinicId: string;
   accessToken: string;
+}
+
+export function createUniqueClientIp(): string {
+  const hex = randomUUID().replace(/-/g, "");
+  return [
+    10,
+    parseInt(hex.slice(0, 2), 16),
+    parseInt(hex.slice(2, 4), 16),
+    parseInt(hex.slice(4, 6), 16),
+  ].join(".");
 }
 
 export async function fetchPatientByApi(
@@ -32,18 +43,31 @@ export async function fetchPatientByApi(
 
 export async function setupTestUser(
   request: APIRequestContext,
+  requestHeaders: Record<string, string> = {},
 ): Promise<UserData> {
-  const uniqueEmail = `doctor${Date.now()}@test.com`;
+  const uniqueId = randomUUID();
+  const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
+  const clinicName = `Test Clinic ${uniqueId}`;
+  const clinicEmail = `clinic-${uniqueId}@test.com`;
+  const signatureBuffer = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
+    "base64",
+  );
+
+  const authHeaders = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    ...requestHeaders,
+  });
 
   const registerRes = await request.post(`${API_URL}/auth/register`, {
+    headers: requestHeaders,
     data: {
-      email: uniqueEmail,
+      email,
       password,
       firstName: "Dr.",
       lastName: "History",
-      role: "DOCTOR",
-      clinicName: "Test Clinic",
+      role: "ADMIN_DOCTOR",
     },
   });
 
@@ -52,62 +76,165 @@ export async function setupTestUser(
   }
 
   const registerData = await registerRes.json();
-  const token = registerData.access_token || registerData.accessToken;
+  let accessToken = registerData.access_token || registerData.accessToken;
+  const userId = registerData.user.id;
 
-  const userData: UserData = {
-    id: registerData.user.id,
-    email: registerData.user.email,
-    clinicId: registerData.user.clinicId,
-    accessToken: token,
-  };
+  const choosePathRes = await request.post(`${API_URL}/onboarding/choose-path`, {
+    headers: authHeaders(accessToken),
+    data: { path: "CREATE_CLINIC" },
+  });
 
-  try {
-    const clinicRes = await request.post(`${API_URL}/clinics`, {
-      headers: { Authorization: `Bearer ${token}` },
-      data: {
-        name: "History Clinic",
-        email: `clinic${Date.now()}@test.com`,
-        phone: "1234567890",
-        address: "123 History St",
-        tier: "ENTERPRISE",
-      },
-    });
+  if (!choosePathRes.ok()) {
+    throw new Error(`Choose path failed: ${await choosePathRes.text()}`);
+  }
 
-    if (clinicRes.ok()) {
-      const clinic = await clinicRes.json();
-      const assignRes = await request.post(`${API_URL}/doctor-clinics`, {
-        headers: { Authorization: `Bearer ${token}` },
-        data: {
-          doctorId: userData.id,
-          clinicId: clinic.id,
-          role: "doctor",
+  const initRes = await request.post(`${API_URL}/onboarding/initialize`, {
+    headers: authHeaders(accessToken),
+    data: {},
+  });
+
+  if (!initRes.ok()) {
+    throw new Error(`Onboarding initialization failed: ${await initRes.text()}`);
+  }
+
+  const initData = await initRes.json();
+  const onboardingId = initData.onboardingId;
+
+  const signatureSessionRes = await request.post(
+    `${API_URL}/onboarding/${onboardingId}/sla-signature-session`,
+    {
+      headers: authHeaders(accessToken),
+    },
+  );
+
+  if (!signatureSessionRes.ok()) {
+    throw new Error(`SLA signature session creation failed: ${await signatureSessionRes.text()}`);
+  }
+
+  const signatureSession = await signatureSessionRes.json();
+  const signatureSessionId = signatureSession.id;
+
+  const uploadSignatureRes = await request.post(
+    `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
+    {
+      headers: authHeaders(accessToken),
+      multipart: {
+        file: {
+          name: "signature.png",
+          mimeType: "image/png",
+          buffer: signatureBuffer,
         },
-      });
+      },
+    },
+  );
 
-      if (assignRes.ok()) {
-        const loginRes = await request.post(`${API_URL}/auth/login`, {
-          data: { email: userData.email, password },
-        });
-        if (loginRes.ok()) {
-          const loginData = await loginRes.json();
-          userData.accessToken =
-            loginData.access_token || loginData.accessToken;
-          userData.clinicId = loginData.user?.clinicId || userData.clinicId;
-        } else {
-
-          throw new Error("Login failed during test user setup");
-        }
-      }
-    }
-  } catch (err) {
-    throw err;
+  if (!uploadSignatureRes.ok()) {
+    throw new Error(`SLA signature upload failed: ${await uploadSignatureRes.text()}`);
   }
 
-  if (!userData.accessToken) {
-    throw new Error("No access token obtained for test user");
+  const completeRes = await request.post(
+    `${API_URL}/onboarding/${onboardingId}/complete`,
+    {
+      headers: authHeaders(accessToken),
+      data: {
+        clinicDetails: {
+          name: clinicName,
+          email: clinicEmail,
+          phone: "1234567890",
+          address: "123 History Street, Hyderabad",
+          type: "GENERAL",
+          website: "",
+          gstin: "",
+        },
+        adminAccount: {
+          name: "Dr. History",
+          email,
+          role: "ADMIN_DOCTOR",
+        },
+        planSelection: {
+          tier: "STARTER",
+          billingCycle: "MONTHLY",
+          currency: "INR",
+        },
+        slaAgreement: {
+          acceptedSLA: true,
+          slaVersion: "1.0",
+          acceptedBy: "Dr. History",
+          signatureSessionId,
+          acceptedDataProcessingTerms: true,
+          acceptedPrivacyPolicy: true,
+        },
+        consentManagement: {
+          enableWhatsAppCommunication: false,
+          enableMarketingCommunications: false,
+          dataProcessingPurposes: [],
+          patientConsentRequiredBeforeWhatsApp: true,
+          logAllConsentChanges: true,
+        },
+      },
+    },
+  );
+
+  if (!completeRes.ok()) {
+    throw new Error(`Onboarding completion failed: ${await completeRes.text()}`);
   }
 
-  return userData;
+  const completeData = await completeRes.json();
+  accessToken = completeData.access_token || completeData.accessToken || accessToken;
+  const userFromComplete = completeData.user ?? registerData.user;
+  const clinicId = userFromComplete.clinicId || completeData.clinicId;
+
+  const tokenRes = await request.post(`${API_URL}/doctors/signature/generate-token`, {
+    headers: authHeaders(accessToken),
+  });
+  if (!tokenRes.ok()) {
+    throw new Error(`Signature token generation failed: ${await tokenRes.text()}`);
+  }
+
+  const tokenData = await tokenRes.json();
+  const uploadToken = tokenData.token;
+
+  const uploadRes = await request.post(
+    `${API_URL}/doctors/signature/upload/${uploadToken}`,
+    {
+      headers: {
+        ...authHeaders(accessToken),
+        Cookie: "XSRF-TOKEN=e2e-csrf-token",
+        "X-XSRF-TOKEN": "e2e-csrf-token",
+      },
+      multipart: {
+        file: {
+          name: "signature.png",
+          mimeType: "image/png",
+          buffer: signatureBuffer,
+        },
+      },
+    },
+  );
+  if (!uploadRes.ok()) {
+    throw new Error(`Doctor signature upload failed: ${await uploadRes.text()}`);
+  }
+
+  const regNumberRes = await request.put(
+    `${API_URL}/doctors/${userId}/registration-number`,
+    {
+      headers: authHeaders(accessToken),
+      data: {
+        registrationNumber: `REG-${uniqueId.slice(0, 8).toUpperCase()}`,
+      },
+    },
+  );
+
+  if (!regNumberRes.ok()) {
+    throw new Error(`Doctor registration number update failed: ${await regNumberRes.text()}`);
+  }
+
+  return {
+    id: userId,
+    email,
+    clinicId,
+    accessToken,
+  };
 }
 
 export async function loginUser(page: Page, user: UserData) {

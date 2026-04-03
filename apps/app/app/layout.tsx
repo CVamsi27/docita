@@ -4,7 +4,6 @@ import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/compo
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
-import { DOCITA_ICON_CACHE_BUST } from "@workspace/ui/lib/docita-brand";
 
 export const dynamic = "force-dynamic";
 
@@ -12,9 +11,9 @@ export const metadata = {
   title: "Docita - Clinic OS",
   description: "The operating system for modern clinics",
   icons: {
-    icon: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    shortcut: `/icon?${DOCITA_ICON_CACHE_BUST}`,
-    apple: `/apple-icon?${DOCITA_ICON_CACHE_BUST}`,
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/branding/Round_Logo-512.png",
   },
 };
 
