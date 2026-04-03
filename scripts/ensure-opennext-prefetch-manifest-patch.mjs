@@ -28,36 +28,73 @@ const patchNeedle =
   throwNeedle;
 
 function patchHandler(app) {
-  const handlerPath = path.join(
-    rootDir,
-    "apps",
-    app,
-    ".open-next",
-    "server-functions",
-    "default",
-    "apps",
-    app,
-    "handler.mjs",
-  );
+  const candidateHandlerPaths = [
+    path.join(
+      rootDir,
+      "apps",
+      app,
+      ".open-next",
+      "server-functions",
+      "default",
+      "handler.mjs",
+    ),
+    path.join(
+      rootDir,
+      "apps",
+      app,
+      ".open-next",
+      "server-functions",
+      "default",
+      "apps",
+      app,
+      "handler.mjs",
+    ),
+  ];
 
-  if (!fs.existsSync(handlerPath)) {
-    console.log(`[skip] ${app}: no generated handler found at ${handlerPath}`);
+  const existingPaths = candidateHandlerPaths.filter((handlerPath) =>
+    fs.existsSync(handlerPath),
+  );
+  if (existingPaths.length === 0) {
+    console.log(
+      `[skip] ${app}: no generated handler found at expected OpenNext paths`,
+    );
     return;
   }
 
-  const source = fs.readFileSync(handlerPath, "utf8");
-  if (source.includes(patchNeedle)) {
+  let patchedCount = 0;
+  let alreadyPatchedCount = 0;
+  let missingNeedleCount = 0;
+
+  for (const handlerPath of existingPaths) {
+    const source = fs.readFileSync(handlerPath, "utf8");
+    if (source.includes(patchNeedle)) {
+      alreadyPatchedCount += 1;
+      continue;
+    }
+    if (!source.includes(throwNeedle)) {
+      missingNeedleCount += 1;
+      continue;
+    }
+
+    const patched = source.replace(throwNeedle, patchNeedle);
+    fs.writeFileSync(handlerPath, patched, "utf8");
+    patchedCount += 1;
+  }
+
+  if (patchedCount > 0) {
+    console.log(
+      `[patched] ${app}: added prefetch-hints manifest fallback (${patchedCount} file(s))`,
+    );
+    return;
+  }
+  if (alreadyPatchedCount > 0) {
     console.log(`[ok] ${app}: prefetch fallback already present`);
     return;
   }
-  if (!source.includes(throwNeedle)) {
-    console.log(`[warn] ${app}: expected loadManifest guard not found`);
-    return;
-  }
 
-  const patched = source.replace(throwNeedle, patchNeedle);
-  fs.writeFileSync(handlerPath, patched, "utf8");
-  console.log(`[patched] ${app}: added prefetch-hints manifest fallback`);
+  console.log(
+    `[warn] ${app}: expected loadManifest guard not found in ${missingNeedleCount} handler file(s)`,
+  );
 }
 
 for (const app of appsToProcess) {
