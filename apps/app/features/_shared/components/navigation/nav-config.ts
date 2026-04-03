@@ -1,23 +1,24 @@
 import {
   Activity,
   Baby,
-  BarChart3,
   Bed,
   Bell,
-  Calendar,
+  Boxes,
+  CalendarDays,
+  ClipboardList,
   Eye,
-  FileText,
+  FileInput,
+  Files,
   FlaskConical,
   Heart,
-  Home,
+  LayoutDashboard,
   type LucideIcon,
-  Package,
   Pill,
   Receipt,
-  Settings,
+  Settings2,
   SmilePlus,
   Stethoscope,
-  Upload,
+  TrendingUp,
   Users,
 } from "lucide-react";
 import { APP_ACCESS_TARGETS, type AppAccessTarget, Feature } from "@workspace/types";
@@ -33,7 +34,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   {
     href: "/dashboard",
-    icon: Home,
+    icon: LayoutDashboard,
     label: "Dashboard",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
@@ -46,7 +47,7 @@ export const navItems: NavItem[] = [
   },
   {
     href: "/appointments",
-    icon: Calendar,
+    icon: CalendarDays,
     label: "Appointments",
     feature: Feature.CALENDAR_SLOTS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
@@ -75,35 +76,35 @@ export const navItems: NavItem[] = [
   },
   {
     href: "/inventory",
-    icon: Package,
+    icon: Boxes,
     label: "Inventory",
     feature: Feature.INVENTORY,
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
   },
   {
     href: "/documents",
-    icon: FileText,
+    icon: Files,
     label: "Documents",
     feature: Feature.DOCUMENT_ARCHIVAL,
     accessTarget: APP_ACCESS_TARGETS.PAGE_DOCUMENTS,
   },
   {
     href: "/analytics",
-    icon: BarChart3,
+    icon: TrendingUp,
     label: "Analytics",
     feature: Feature.BASIC_ANALYTICS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_ANALYTICS,
   },
   {
     href: "/coding-queue",
-    icon: FileText,
+    icon: ClipboardList,
     label: "Coding Queue",
     feature: Feature.MEDICAL_CODING,
     accessTarget: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE,
   },
   {
     href: "/import",
-    icon: Upload,
+    icon: FileInput,
     label: "Import Data",
     accessTarget: APP_ACCESS_TARGETS.PAGE_IMPORT,
   },
@@ -111,7 +112,7 @@ export const navItems: NavItem[] = [
 
 export const SETTINGS_NAV_ITEM: NavItem = {
   href: "/settings",
-  icon: Settings,
+  icon: Settings2,
   label: "Settings",
 };
 

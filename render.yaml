@@ -6,7 +6,7 @@ services:
     region: singapore
     dockerfilePath: apps/api/Dockerfile
     dockerContext: .
-    healthCheckPath: /api/health/live
+    healthCheckPath: /api/v1/health/live
     envVars:
       - key: DATABASE_URL
         fromDatabase:
