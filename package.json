@@ -5,6 +5,7 @@
   "scripts": {
     "build": "turbo build",
     "start": "pnpm --filter @docita/api run start:prod",
+    "patch:opennext-prefetch-manifest": "node scripts/ensure-opennext-prefetch-manifest-patch.mjs",
     "dev": "pnpm dev:full",
     "dev:full": "node scripts/kill-ports.js && node scripts/db-check.mjs && turbo dev --concurrency=20 --filter=@docita/landing --filter=@docita/app --filter=@docita/admin --filter=@docita/api",
     "dev:landing": "turbo dev --concurrency=20 --filter=@docita/landing",
