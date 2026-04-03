@@ -24,6 +24,15 @@ describe('AiService', () => {
   };
 
   beforeEach(async () => {
+    mockAppConfigService.getOpenAiConfig.mockReset().mockReturnValue({
+      apiKey: undefined,
+      model: 'gpt-4o',
+      requestTimeout: 5000,
+      cacheEnabled: true,
+      cacheTtl: 86400,
+    });
+    mockAiFactory.validateResponse.mockReset();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AiService,
@@ -70,6 +79,8 @@ describe('AiService', () => {
         cacheEnabled: true,
         cacheTtl: 86400,
       });
+      // Keep this unit test network-free and deterministic.
+      (service as unknown as { openai: unknown }).openai = null;
       const prompt = { user: 'Hello' };
       const result = await service.generateText(prompt);
 
@@ -79,13 +90,15 @@ describe('AiService', () => {
 
   describe('generateStructured', () => {
     it('should attempt validation via factory', async () => {
-      mockAppConfigService.getOpenAiConfig.mockReturnValue({
-        apiKey: undefined,
-        model: 'gpt-4o',
-        requestTimeout: 5000,
-        cacheEnabled: true,
-        cacheTtl: 86400,
-      });
+      (service as unknown as { openai: unknown }).openai = {
+        chat: {
+          completions: {
+            create: jest
+              .fn()
+              .mockResolvedValue({ choices: [{ message: { content: '{}' } }] }),
+          },
+        },
+      };
       const Schema = z.object({ foo: z.string() });
 
       mockAiFactory.validateResponse.mockReturnValue({ foo: 'bar' });
