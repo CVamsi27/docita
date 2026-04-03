@@ -1,0 +1,271 @@
+name: End-to-End Tests - Critical Flows
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  frontend-onboarding-verification:
+    name: Frontend Onboarding and Verify Doctor
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      NODE_ENV: test
+      APP_URL: http://127.0.0.1:3000
+      API_URL: http://127.0.0.1:3001/api/v1
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:3001/api/v1
+      API_PROXY_TARGET: http://127.0.0.1:3001
+      CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+      META_ACCESS_TOKEN: test-ci-token
+      META_PHONE_NUMBER_ID: test-ci-phone-id
+      META_APP_SECRET: test-ci-app-secret
+      META_VERIFY_TOKEN: test-ci-verify-token
+      WHATSAPP_PRODUCTION_MODE: "false"
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: docita
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docita_test
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Run Database Migrations
+        run: pnpm db:deploy
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @docita/app exec playwright install --with-deps
+
+      - name: Prepare API workspace packages
+        run: pnpm --filter @docita/api run predev
+
+      - name: Start API server
+        run: |
+          pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
+          echo $! > /tmp/docita-api.pid
+
+      - name: Start App server
+        run: |
+          pnpm --filter @docita/app run dev > /tmp/docita-app.log 2>&1 &
+          echo $! > /tmp/docita-app.pid
+
+      - name: Wait for API and App
+        run: |
+          for i in {1..120}; do
+            if curl -fsS http://127.0.0.1:3001/api/v1/health >/dev/null 2>&1 || curl -fsS http://127.0.0.1:3001/health >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "API server failed to start"
+              tail -n 200 /tmp/docita-api.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          for i in {1..120}; do
+            if curl -fsS http://127.0.0.1:3000/login >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "App server failed to start"
+              tail -n 200 /tmp/docita-app.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Run onboarding and verify-doctor E2E suite
+        run: |
+          pnpm --filter @docita/app exec playwright test \
+            e2e/clinic-registration.spec.ts \
+            e2e/verify-doctor.spec.ts
+
+      - name: Dump server logs on failure
+        if: failure()
+        run: |
+          echo "==== API LOGS ===="
+          tail -n 300 /tmp/docita-api.log || true
+          echo "==== APP LOGS ===="
+          tail -n 300 /tmp/docita-app.log || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-onboarding-verify
+          path: apps/app/playwright-report/
+          retention-days: 30
+
+  auth-tenant-critical-flows:
+    name: Auth and Tenant Critical Flows
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      NODE_ENV: test
+      APP_URL: http://127.0.0.1:3000
+      API_URL: http://127.0.0.1:3001/api/v1
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:3001/api/v1
+      API_PROXY_TARGET: http://127.0.0.1:3001
+      CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+      META_ACCESS_TOKEN: test-ci-token
+      META_PHONE_NUMBER_ID: test-ci-phone-id
+      META_APP_SECRET: test-ci-app-secret
+      META_VERIFY_TOKEN: test-ci-verify-token
+      WHATSAPP_PRODUCTION_MODE: "false"
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: docita
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docita_test
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Run Database Migrations
+        run: pnpm db:deploy
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @docita/app exec playwright install --with-deps
+
+      - name: Prepare API workspace packages
+        run: pnpm --filter @docita/api run predev
+
+      - name: Start API server
+        run: |
+          pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
+          echo $! > /tmp/docita-api.pid
+
+      - name: Start App server
+        run: |
+          pnpm --filter @docita/app run dev > /tmp/docita-app.log 2>&1 &
+          echo $! > /tmp/docita-app.pid
+
+      - name: Wait for API and App
+        run: |
+          for i in {1..120}; do
+            if curl -fsS http://127.0.0.1:3001/api/v1/health >/dev/null 2>&1 || curl -fsS http://127.0.0.1:3001/health >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "API server failed to start"
+              tail -n 200 /tmp/docita-api.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          for i in {1..120}; do
+            if curl -fsS http://127.0.0.1:3000/login >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "App server failed to start"
+              tail -n 200 /tmp/docita-app.log || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Run auth and tenant critical flow suite
+        run: |
+          pnpm --filter @docita/app exec playwright test \
+            e2e/auth.spec.ts \
+            e2e/critical-flows.spec.ts
+
+      - name: Dump server logs on failure
+        if: failure()
+        run: |
+          echo "==== API LOGS ===="
+          tail -n 300 /tmp/docita-api.log || true
+          echo "==== APP LOGS ===="
+          tail -n 300 /tmp/docita-app.log || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-auth-tenant-critical
+          path: apps/app/playwright-report/
+          retention-days: 30

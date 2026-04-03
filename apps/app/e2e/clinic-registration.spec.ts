@@ -131,7 +131,6 @@ test.describe("Clinic Registration Flow", () => {
     expect(initRes.ok()).toBeTruthy();
     const initData = await initRes.json();
     const onboardingId = initData.onboardingId;
-
     const signatureSessionRes = await request.post(
       `${API_URL}/onboarding/${onboardingId}/sla-signature-session`,
       {

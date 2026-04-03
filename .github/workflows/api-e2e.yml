@@ -1,0 +1,75 @@
+name: API E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  api-e2e-tests:
+    name: API E2E Tests
+    runs-on: ubuntu-latest
+    env:
+      PGHOST: localhost
+      PGPORT: "5434"
+      PGUSER: docita
+      PGPASSWORD: password
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: docita
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: docita_test
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
+        run: pnpm db:deploy
+      - name: Run API E2E Tests
+        env:
+          DATABASE_URL: postgresql://docita:password@localhost:5434/docita_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: super-secret-jwt-key-for-testing-purposes-only
+          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          NODE_ENV: test
+          APP_URL: http://localhost:3001
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          NEXT_PUBLIC_API_URL: http://localhost:3001/api
+          CORS_ORIGINS: http://localhost:3000
+          META_ACCESS_TOKEN: test-ci-token
+          META_PHONE_NUMBER_ID: test-ci-phone-id
+          META_APP_SECRET: test-ci-app-secret
+          META_VERIFY_TOKEN: test-ci-verify-token
+          WHATSAPP_PRODUCTION_MODE: "false"
+        run: pnpm --filter @docita/api run test:e2e
