@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3003",
     "build": "next build --webpack",
-    "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build && node ../../scripts/check-worker-size.mjs .open-next/worker.js @docita/landing",
+    "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build && node ../../scripts/ensure-opennext-prefetch-manifest-patch.mjs --app=landing && node ../../scripts/check-worker-size.mjs .open-next/worker.js @docita/landing",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy",
     "start": "next start",
