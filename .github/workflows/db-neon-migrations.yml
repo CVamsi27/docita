@@ -1,4 +1,4 @@
-name: DB Setup and Migrations
+name: Render Migrations
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   migrate-db:
-    name: Apply Prisma Migrations
+    name: Apply Render Prisma Migrations
     runs-on: ubuntu-latest
     env:
       NODE_ENV: production
