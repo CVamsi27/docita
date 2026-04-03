@@ -36,6 +36,20 @@ function createConfig(
 }
 
 describe('StartupValidationService', () => {
+  it('accepts production database URLs with sslmode=verify-full', () => {
+    const config = createConfig({
+      getDatabaseUrl: jest
+        .fn()
+        .mockReturnValue(
+          'postgresql://user:password@db.example.com/docita?sslmode=verify-full',
+        ),
+    });
+
+    const service = new StartupValidationService(config as AppConfigService);
+
+    expect(() => service.validate()).not.toThrow();
+  });
+
   it('allows Render-managed database URLs without explicit tls flags', () => {
     const config = createConfig({
       getDatabaseUrl: jest
@@ -43,6 +57,21 @@ describe('StartupValidationService', () => {
         .mockReturnValue(
           'postgresql://user:password@dpg-123.render.com/docita',
         ),
+      detectManagedDatabaseProvider: jest.fn().mockReturnValue('Render'),
+    });
+
+    const service = new StartupValidationService(config as AppConfigService);
+
+    expect(() => service.validate()).not.toThrow();
+  });
+
+  it('allows Render private-networking database URLs (no render.com in hostname)', () => {
+    // Render internal URLs use short hostnames like dpg-xxxxx-a with no domain.
+    // detectManagedDatabaseProvider detects Render via RENDER=true env var.
+    const config = createConfig({
+      getDatabaseUrl: jest
+        .fn()
+        .mockReturnValue('postgresql://user:password@dpg-abc123-a/docita'),
       detectManagedDatabaseProvider: jest.fn().mockReturnValue('Render'),
     });
 

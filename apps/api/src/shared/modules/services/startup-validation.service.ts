@@ -122,8 +122,21 @@ export class StartupValidationService {
       }
 
       const normalizedUrl = databaseUrl.toLowerCase();
+      let sslMode: string | null = null;
+
+      try {
+        sslMode = new URL(databaseUrl).searchParams.get('sslmode');
+      } catch {
+        // Keep substring fallback for non-standard connection string formats.
+      }
+
       const hasDbTlsEnabled =
+        sslMode === 'require' ||
+        sslMode === 'verify-ca' ||
+        sslMode === 'verify-full' ||
         normalizedUrl.includes('sslmode=require') ||
+        normalizedUrl.includes('sslmode=verify-ca') ||
+        normalizedUrl.includes('sslmode=verify-full') ||
         normalizedUrl.includes('ssl=true') ||
         normalizedUrl.includes('sslaccept=strict');
 
