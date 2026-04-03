@@ -245,12 +245,12 @@ export function Sidebar({
         </Button>
       </div>
 
-      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5 py-2 space-y-1">
+      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5 py-1 space-y-0.5">
         {canAccessNotifications && (
           <Button
             variant="ghost"
             className={cn(
-              "group w-full justify-start gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
+              "group w-full justify-start gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
               isCollapsed && "justify-center px-2",
             )}
             onClick={() => setNotificationPanelOpen(true)}
@@ -288,7 +288,7 @@ export function Sidebar({
               key={item.href}
               href={item.href}
               className={cn(
-                "group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "group flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -337,11 +337,12 @@ export function Sidebar({
             <div
               className={cn(
                 "flex items-center",
-                isCollapsed ? "justify-center" : "justify-between",
+                isCollapsed ? "justify-center" : "gap-2.5",
               )}
             >
+              <div className={tierIndicatorClass} />
               {!isCollapsed ? (
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
                     Plan
                   </p>
@@ -350,9 +351,6 @@ export function Sidebar({
               ) : (
                 <span className="sr-only">{tierInfo.name} plan</span>
               )}
-              <div className={controlIconButtonClass}>
-                <div className={tierIndicatorClass} />
-              </div>
             </div>
             <div
               className={cn(

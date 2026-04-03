@@ -7,7 +7,19 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
-const API_PROXY_TARGET = process.env.API_PROXY_TARGET || "http://localhost:3001";
+function resolveApiProxyTarget(): string {
+  if (process.env.API_PROXY_TARGET) return process.env.API_PROXY_TARGET;
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    try {
+      return new URL(process.env.NEXT_PUBLIC_API_URL).origin;
+    } catch {
+      // fall through
+    }
+  }
+  return "http://localhost:3001";
+}
+
+const API_PROXY_TARGET = resolveApiProxyTarget();
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 
 const nextConfig: NextConfig = {

@@ -1,8 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 
-@Controller('health')
+@Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthCheckController {
   constructor(private observability: ObservabilityService) {}
 
