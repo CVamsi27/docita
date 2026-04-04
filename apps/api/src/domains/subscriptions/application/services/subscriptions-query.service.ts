@@ -92,26 +92,21 @@ export class SubscriptionsQueryService {
     if (!subscription) {
       return null;
     }
-
-    const clinic = await this.clinicOps.getClinicDetails(clinicId);
+    const tierName = subscription.getPlan().value;
 
     return {
       id: subscription.id,
       clinicId: subscription.clinicId,
-      plan: subscription.getPlan().value,
-      status: subscription.getStatus().value,
+      tier: tierName,
+      tierName,
+      subscriptionStatus: subscription.getStatus().value,
       billingCycle: subscription.getBillingCycle().value,
       basePriceCents: subscription.getBasePrice().paise,
       currency: DEFAULT_CURRENCY,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
-      currentPeriodStart: subscription.currentPeriodStart,
-      currentPeriodEnd: subscription.currentPeriodEnd,
+      currentPeriodStart: subscription.currentPeriodStart.toISOString(),
+      currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
       daysRemaining: subscription.getDaysRemaining(),
-      clinic: {
-        id: clinic.id,
-        name: clinic.name,
-        tier: subscription.getPlan().value,
-      },
     };
   }
 
@@ -143,8 +138,8 @@ export class SubscriptionsQueryService {
             tier: subscription.getPlan().value,
             billingCycle: subscription.getBillingCycle().value,
             basePriceCents: subscription.getBasePrice().paise,
-            currentPeriodStart: subscription.currentPeriodStart,
-            currentPeriodEnd: subscription.currentPeriodEnd,
+            currentPeriodStart: subscription.currentPeriodStart.toISOString(),
+            currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
             cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ?? false,
           }
         : null,
@@ -154,7 +149,7 @@ export class SubscriptionsQueryService {
         ? {
             amount: lastPayment.amountCents / 100,
             currency: lastPayment.currency,
-            date: lastPayment.createdAt,
+            date: lastPayment.createdAt.toISOString(),
             status:
               lastPayment.status ?? String(lastPayment.getStatus?.() ?? ''),
           }

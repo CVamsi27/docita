@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { ForbiddenException } from '@nestjs/common';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentService as AppointmentsService } from '@/domains/appointments/application/services/appointment.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
@@ -96,13 +95,21 @@ describe('AppointmentsController', () => {
       expect(mockAppointmentsService.listAppointments).toHaveBeenCalled();
     });
 
-    it('should reject doctor access when requesting another doctor appointments', async () => {
-      await expect(
-        controller.findAll(
-          mockAuthRequest as never,
-          { doctorId: 'doctor-999' } as never,
-        ),
-      ).rejects.toBeInstanceOf(ForbiddenException);
+    it('should force doctor access to their own appointments when a different doctorId is requested', async () => {
+      mockAppointmentsService.listAppointments.mockResolvedValue([
+        mockAppointment,
+      ]);
+
+      await controller.findAll(
+        mockAuthRequest as never,
+        { doctorId: 'doctor-999' } as never,
+      );
+
+      expect(mockAppointmentsService.listAppointments).toHaveBeenCalledWith(
+        expect.objectContaining({
+          doctorId: mockAuthRequest.user.id,
+        }),
+      );
     });
 
     it('should scope doctor access to their own appointments when doctorId is not provided', async () => {

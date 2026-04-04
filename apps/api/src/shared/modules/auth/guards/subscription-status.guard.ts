@@ -67,7 +67,7 @@ export class SubscriptionStatusGuard implements CanActivate {
             'Your subscription has expired. Please renew your subscription to continue using Docita.',
           code: 'SUBSCRIPTION_INACTIVE',
           action: 'RENEW',
-          upgradeUrl: '/settings/billing',
+          upgradeUrl: '/settings?tab=subscription',
         });
       }
     } catch (error) {

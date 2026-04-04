@@ -55,6 +55,17 @@ export class PricingService {
       : fallback;
   }
 
+  private parseStringArray(value: unknown): string[] {
+    const parsed = this.parseJsonValue(value);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(
+      (item): item is string => typeof item === 'string' && item.length > 0,
+    );
+  }
+
   private getWhatsappBillableConfig(
     tier: keyof typeof TIER_LIMITS,
     currency: SupportedCurrency,
@@ -80,8 +91,6 @@ export class PricingService {
     yearly: number | 'custom';
     includedAppointments: number;
     includedUsers: number;
-    overageAppointmentRate: number;
-    overageUserRate: number;
     features: unknown;
   }) {
     const {
@@ -91,8 +100,6 @@ export class PricingService {
       yearly,
       includedAppointments,
       includedUsers,
-      overageAppointmentRate,
-      overageUserRate,
       features,
     } = args;
     const tierDefaults = TIER_LIMITS[tier];
@@ -124,20 +131,7 @@ export class PricingService {
           whatsappMessages: whatsapp.includedQuota,
         },
       },
-      overageRates: {
-        consultations: overageAppointmentRate,
-        users: overageUserRate,
-        whatsappMessages: whatsapp.overageRate,
-        appointment: overageAppointmentRate,
-        user: overageUserRate,
-        patient: 0,
-        storage: 0,
-        prescription: 0,
-        invoice: 0,
-        apiCall: 0,
-        ocrPage: 0,
-      },
-      features: this.parseJsonValue(features),
+      features: this.parseStringArray(features),
     };
   }
 
@@ -146,7 +140,6 @@ export class PricingService {
 
     const currencyConfig = PRICING_CURRENCY_CONFIG[validCurrency];
     const tierPricing = TIER_PRICING_BY_CURRENCY[validCurrency];
-    const overageRates = TIER_OVERAGE_RATES_BY_CURRENCY[validCurrency];
     const referralRewards = REFERRAL_REWARDS_BY_CURRENCY[validCurrency];
 
     const DB_TIER_TO_CANONICAL: Record<string, string> = {
@@ -199,8 +192,6 @@ export class PricingService {
             yearly: yearlyPrice,
             includedAppointments: tier.includedAppointments,
             includedUsers: tier.includedUsers,
-            overageAppointmentRate: tier.overageAppointmentCents / 100,
-            overageUserRate: tier.overageUserCents / 100,
             features: tier.features,
           });
         }),
@@ -209,7 +200,6 @@ export class PricingService {
           semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
           referralCredits: referralRewards.ESSENTIAL,
         },
-        referralRewards: referralRewards,
       };
     }
 
@@ -235,8 +225,6 @@ export class PricingService {
             yearly: tierPricing.STARTER.yearly,
             includedAppointments: TIER_LIMITS.STARTER.appointments ?? 0,
             includedUsers: TIER_LIMITS.STARTER.users ?? 1,
-            overageAppointmentRate: overageRates.STARTER.appointmentRate,
-            overageUserRate: overageRates.STARTER.userRate,
             features: [
               'Up to 50 patients',
               'Consultation scheduling',
@@ -257,8 +245,6 @@ export class PricingService {
             yearly: tierPricing.ESSENTIAL.yearly,
             includedAppointments: TIER_LIMITS.ESSENTIAL.appointments ?? 0,
             includedUsers: TIER_LIMITS.ESSENTIAL.users ?? 1,
-            overageAppointmentRate: overageRates.ESSENTIAL.appointmentRate,
-            overageUserRate: overageRates.ESSENTIAL.userRate,
             features: [
               'Unlimited patients',
               '500 consultations/month included',
@@ -271,7 +257,6 @@ export class PricingService {
               'Insurance billing',
               'Digital intake forms',
               'Prescription templates',
-              'AI features — Coming Soon',
             ],
           }),
         },
@@ -283,22 +268,11 @@ export class PricingService {
             yearly: tierPricing.PROFESSIONAL.yearly,
             includedAppointments: TIER_LIMITS.PROFESSIONAL.appointments ?? 0,
             includedUsers: TIER_LIMITS.PROFESSIONAL.users ?? 1,
-            overageAppointmentRate: overageRates.PROFESSIONAL.appointmentRate,
-            overageUserRate: overageRates.PROFESSIONAL.userRate,
             features: [
               'Unlimited patients',
               '2,000 consultations/month included',
               'Up to 5 doctors',
               'WhatsApp messaging (2,000 msgs/mo)',
-              'Broadcast campaigns',
-              'Patient segmentation',
-              'Full EHR (IPD, vitals, clinical notes)',
-              'Custom branding on reports',
-              'Multi-location analytics',
-              'Bulk data import suite',
-              'REST API access (10k calls/day)',
-              'SSO (Google / Azure AD)',
-              'Custom letterhead',
               'Priority support with SLA',
             ],
           }),
@@ -311,12 +285,9 @@ export class PricingService {
             yearly: tierPricing.ENTERPRISE.yearly,
             includedAppointments: TIER_LIMITS.ENTERPRISE.appointments ?? 0,
             includedUsers: TIER_LIMITS.ENTERPRISE.users ?? 1,
-            overageAppointmentRate: overageRates.ENTERPRISE.appointmentRate,
-            overageUserRate: overageRates.ENTERPRISE.userRate,
             features: [
               'Unlimited patients, users & branches',
               'Everything in Professional',
-              'Data warehouse export (BI tools)',
               'Custom contract & invoicing',
               'Dedicated account manager',
               'Custom SLA guarantee',
@@ -329,7 +300,6 @@ export class PricingService {
         semiAnnualPercent: SEMI_ANNUAL_DISCOUNT_PERCENT,
         referralCredits: referralRewards.ESSENTIAL,
       },
-      referralRewards: referralRewards,
     };
   }
 
