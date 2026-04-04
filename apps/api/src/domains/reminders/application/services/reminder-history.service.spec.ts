@@ -120,7 +120,7 @@ describe('ReminderHistoryService', () => {
     it('should retrieve reminder history for clinic', async () => {
       const mockHistory = [mockReminder];
       prisma.appointment.findMany
-        .mockResolvedValueOnce([{ id: 'appt-1' } as never])
+        .mockResolvedValueOnce([{ id: 'appt-1' }])
         .mockResolvedValueOnce([
           {
             id: 'appt-1',
@@ -128,11 +128,9 @@ describe('ReminderHistoryService', () => {
               firstName: 'John',
               lastName: 'Doe',
             },
-          } as never,
+          },
         ]);
-      prisma.appointmentReminder.findMany.mockResolvedValue(
-        mockHistory as never,
-      );
+      prisma.appointmentReminder.findMany.mockResolvedValue(mockHistory);
 
       const result = await service.getReminderHistory('clinic-1');
 
@@ -148,8 +146,8 @@ describe('ReminderHistoryService', () => {
 
     it('should use default limit of 50', async () => {
       prisma.appointment.findMany
-        .mockResolvedValueOnce([{ id: 'appt-1' } as never])
-        .mockResolvedValueOnce([] as never);
+        .mockResolvedValueOnce([{ id: 'appt-1' }])
+        .mockResolvedValueOnce([]);
       prisma.appointmentReminder.findMany.mockResolvedValue([]);
 
       await service.getReminderHistory('clinic-1');
@@ -163,8 +161,8 @@ describe('ReminderHistoryService', () => {
 
     it('should allow custom limit', async () => {
       prisma.appointment.findMany
-        .mockResolvedValueOnce([{ id: 'appt-1' } as never])
-        .mockResolvedValueOnce([] as never);
+        .mockResolvedValueOnce([{ id: 'appt-1' }])
+        .mockResolvedValueOnce([]);
       prisma.appointmentReminder.findMany.mockResolvedValue([]);
 
       await service.getReminderHistory('clinic-1', 100);
@@ -178,8 +176,8 @@ describe('ReminderHistoryService', () => {
 
     it('should order by creation date descending', async () => {
       prisma.appointment.findMany
-        .mockResolvedValueOnce([{ id: 'appt-1' } as never])
-        .mockResolvedValueOnce([] as never);
+        .mockResolvedValueOnce([{ id: 'appt-1' }])
+        .mockResolvedValueOnce([]);
       prisma.appointmentReminder.findMany.mockResolvedValue([]);
 
       await service.getReminderHistory('clinic-1');
@@ -192,7 +190,7 @@ describe('ReminderHistoryService', () => {
     });
 
     it('should return empty array if no history found', async () => {
-      prisma.appointment.findMany.mockResolvedValueOnce([] as never);
+      prisma.appointment.findMany.mockResolvedValueOnce([]);
       prisma.appointmentReminder.findMany.mockResolvedValue([]);
 
       const result = await service.getReminderHistory('clinic-empty');
@@ -202,8 +200,8 @@ describe('ReminderHistoryService', () => {
 
     it('should filter by clinic ID correctly', async () => {
       prisma.appointment.findMany
-        .mockResolvedValueOnce([{ id: 'appt-2' } as never])
-        .mockResolvedValueOnce([] as never);
+        .mockResolvedValueOnce([{ id: 'appt-2' }])
+        .mockResolvedValueOnce([]);
       prisma.appointmentReminder.findMany.mockResolvedValue([]);
 
       await service.getReminderHistory('clinic-2');
@@ -217,7 +215,7 @@ describe('ReminderHistoryService', () => {
 
     it('should include appointment and patient data', async () => {
       prisma.appointment.findMany
-        .mockResolvedValueOnce([{ id: 'appt-1' } as never])
+        .mockResolvedValueOnce([{ id: 'appt-1' }])
         .mockResolvedValueOnce([
           {
             id: 'appt-1',
@@ -225,11 +223,9 @@ describe('ReminderHistoryService', () => {
               firstName: 'John',
               lastName: 'Doe',
             },
-          } as never,
+          },
         ]);
-      prisma.appointmentReminder.findMany.mockResolvedValue([
-        mockReminder,
-      ] as never);
+      prisma.appointmentReminder.findMany.mockResolvedValue([mockReminder]);
 
       const result = await service.getReminderHistory('clinic-1');
 
@@ -244,29 +240,29 @@ describe('ReminderHistoryService', () => {
 
       prisma.appointment.findMany
         .mockResolvedValueOnce([
-          { id: 'appt-1' } as never,
-          { id: 'appt-2' } as never,
-          { id: 'appt-3' } as never,
+          { id: 'appt-1' },
+          { id: 'appt-2' },
+          { id: 'appt-3' },
         ])
         .mockResolvedValueOnce([
           {
             id: 'appt-1',
             patient: { firstName: 'John', lastName: 'Doe' },
-          } as never,
+          },
           {
             id: 'appt-2',
             patient: { firstName: 'John', lastName: 'Doe' },
-          } as never,
+          },
           {
             id: 'appt-3',
             patient: { firstName: 'John', lastName: 'Doe' },
-          } as never,
+          },
         ]);
       prisma.appointmentReminder.findMany.mockResolvedValue([
         reminder1,
         reminder2,
         reminder3,
-      ] as never);
+      ]);
 
       const result = await service.getReminderHistory('clinic-1');
 

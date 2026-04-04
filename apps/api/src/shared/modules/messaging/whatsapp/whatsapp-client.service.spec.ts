@@ -82,7 +82,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.abc123' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       const result = await service.sendMessage({
         to: '+919876543210',
@@ -104,7 +104,7 @@ describe('WhatsappClientService', () => {
     it('should throw ServiceUnavailableException when fetch fails (network error)', async () => {
       global.fetch = jest.fn().mockImplementation(async () => {
         throw new Error('Network Error');
-      }) as unknown as typeof fetch;
+      }) as typeof fetch;
 
       await expect(
         service.sendMessage({ to: '1234567890', message: 'test' }),
@@ -122,7 +122,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               error: { message: 'Invalid parameter', code: 100 },
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await expect(
         service.sendMessage({ to: '1234567890', message: 'test' }),
@@ -144,7 +144,7 @@ describe('WhatsappClientService', () => {
                 error_subcode: 2018109,
               },
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await expect(
         service.sendMessage({ to: '9876543210', message: 'test' }),
@@ -165,7 +165,7 @@ describe('WhatsappClientService', () => {
                 code: 132001,
               },
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await expect(
         service.sendMessage({
@@ -189,7 +189,7 @@ describe('WhatsappClientService', () => {
                 code: 131030,
               },
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await expect(
         service.sendMessage({ to: 'invalid-phone', message: 'test' }),
@@ -207,7 +207,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               error: { message: 'Internal server error' },
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await expect(
         service.sendMessage({ to: '9876543210', message: 'test' }),
@@ -237,7 +237,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.template123' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       const result = await service.sendTemplate({
         to: '919876543210',
@@ -275,7 +275,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.template456' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       const result = await service.sendTemplate({
         to: '919876543210',
@@ -312,7 +312,7 @@ describe('WhatsappClientService', () => {
     });
 
     it('should return success false when credentials are not configured', async () => {
-      global.fetch = jest.fn() as unknown as typeof fetch;
+      global.fetch = jest.fn() as typeof fetch;
       Object.defineProperty(service, 'phoneNumberId', {
         value: '',
         writable: true,
@@ -339,7 +339,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               error: { message: 'Template not found', code: 132001 },
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await expect(
         service.sendTemplate({
@@ -352,7 +352,7 @@ describe('WhatsappClientService', () => {
     it('should throw ServiceUnavailableException on network error', async () => {
       global.fetch = jest.fn().mockImplementation(async () => {
         throw new Error('Network timeout');
-      }) as unknown as typeof fetch;
+      }) as typeof fetch;
 
       await expect(
         service.sendTemplate({
@@ -372,7 +372,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.norm123' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await service.sendTemplate({
         to: '+919876543210',
@@ -395,7 +395,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.nocomp123' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await service.sendTemplate({
         to: '919876543210',
@@ -433,7 +433,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.interactive123' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       const result = await service.sendInteractiveButtons({
         to: '919876543210',
@@ -465,7 +465,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.maxbtn' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await service.sendInteractiveButtons({
         to: '919876543210',
@@ -496,7 +496,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.truncbtn' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await service.sendInteractiveButtons({
         to: '919876543210',
@@ -529,7 +529,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.headfoot' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await service.sendInteractiveButtons({
         to: '919876543210',
@@ -558,7 +558,7 @@ describe('WhatsappClientService', () => {
             .mockResolvedValue({
               messages: [{ id: 'wamid.noheadfoot' }],
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await service.sendInteractiveButtons({
         to: '919876543210',
@@ -605,7 +605,7 @@ describe('WhatsappClientService', () => {
                 code: 100,
               },
             }),
-        }) as unknown as typeof fetch;
+        }) as typeof fetch;
 
       await expect(
         service.sendInteractiveButtons({
