@@ -20,7 +20,12 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import compression from 'compression';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { json, urlencoded, type Request as ExpressRequest } from 'express';
+import {
+  json,
+  urlencoded,
+  type Request as ExpressRequest,
+  type Response as ExpressResponse,
+} from 'express';
 import * as redis from 'redis';
 import { PrismaService } from './prisma/prisma.service';
 
@@ -241,6 +246,10 @@ async function bootstrap() {
 
   app.use(json({ limit: '1mb', verify: rawBodySaver }));
   app.use(urlencoded({ limit: '1mb', extended: true, verify: rawBodySaver }));
+
+  app.use('/robots.txt', (_req: ExpressRequest, res: ExpressResponse) => {
+    res.type('text/plain').send('User-agent: *\nDisallow: /');
+  });
 
   const apiUrl = appConfigService.getApiUrl();
 

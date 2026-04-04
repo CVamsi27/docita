@@ -86,7 +86,7 @@ export function ClinicGeneralSettings() {
 
   if (isLoading) {
     return (
-      <Card className="border-none shadow-lg">
+      <Card >
         <CardHeader>
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-4 w-64 mt-1" />
@@ -101,7 +101,7 @@ export function ClinicGeneralSettings() {
   }
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader>
         <CardTitle>Clinic Information</CardTitle>
         <CardDescription>Basic clinic settings and information</CardDescription>

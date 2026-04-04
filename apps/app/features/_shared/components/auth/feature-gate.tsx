@@ -15,7 +15,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
@@ -206,18 +205,16 @@ export function LockedFeatureIndicator({
   const tierInfo = TIER_INFO[tierName];
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Lock
-            className={`h-4 w-4 text-warning ${className ?? ""}`}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Requires {tierInfo?.name || tierName} plan</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Lock
+          className={`h-4 w-4 text-warning ${className ?? ""}`}
+        />
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Requires {tierInfo?.name || tierName} plan</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

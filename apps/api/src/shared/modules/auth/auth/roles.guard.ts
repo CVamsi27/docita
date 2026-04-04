@@ -35,6 +35,10 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+    if (!user) {
+      throw new ForbiddenException('Authentication required to access this resource.');
+    }
+
     const hasRole = requiredRoles.some((role) => user.role === role);
     if (!hasRole) {
       throw new ForbiddenException(

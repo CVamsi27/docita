@@ -1,4 +1,7 @@
 
+export * from "./doctor-profile/DoctorProfileSettings";
+export * from "./profile/SettingsProfileHeader";
+export * from "./danger-zone/DangerZoneSettings";
 export * from "./management/MemberManagementSettings";
 export * from "./management/DoctorManagementSettings";
 export * from "./management/DoctorAvailabilitySettings";

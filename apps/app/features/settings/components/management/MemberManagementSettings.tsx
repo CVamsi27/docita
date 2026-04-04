@@ -342,7 +342,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="border-none shadow-lg">
+      <Card >
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Team Members</CardTitle>
@@ -368,7 +368,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   if (error) {
     return (
-      <Card className="border-none shadow-lg">
+      <Card >
         <CardContent className="py-8 text-center text-muted-foreground">
           Failed to load team members
         </CardContent>
@@ -377,7 +377,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   }
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <CardTitle>Team Members</CardTitle>

@@ -101,7 +101,7 @@ export function NotificationFeed() {
   }
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">

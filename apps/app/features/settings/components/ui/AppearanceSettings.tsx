@@ -22,7 +22,7 @@ export function AppearanceSettings() {
   };
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader>
         <CardTitle>Appearance</CardTitle>
         <CardDescription>Customize the look and feel</CardDescription>

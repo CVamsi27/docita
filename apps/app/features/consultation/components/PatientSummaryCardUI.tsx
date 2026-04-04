@@ -10,7 +10,6 @@ import { Badge } from "@workspace/ui/components/badge";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { AlertTriangle, Droplet, User } from "lucide-react";
@@ -130,19 +129,17 @@ export function PatientSummaryCardUI({
             </div>
           </div>
           {hasSevereAllergy && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1 text-destructive animate-pulse">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span className="text-xs font-medium">ALERT</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Patient has severe allergies!</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 text-destructive animate-pulse">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="text-xs font-medium">ALERT</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Patient has severe allergies!</p>
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
       </CardHeader>
@@ -157,30 +154,28 @@ export function PatientSummaryCardUI({
             </div>
             <div className="flex flex-wrap gap-1.5">
               {allergies.map((allergy) => (
-                <TooltipProvider key={allergy.id}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "text-xs cursor-help",
-                          SEVERITY_COLORS[allergy.severity],
-                        )}
-                      >
-                        {allergy.allergen}
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-medium">{allergy.allergen}</p>
-                      <p className="text-xs capitalize">
-                        Severity: {allergy.severity}
-                      </p>
-                      {allergy.reaction && (
-                        <p className="text-xs">Reaction: {allergy.reaction}</p>
+                <Tooltip key={allergy.id}>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs cursor-help",
+                        SEVERITY_COLORS[allergy.severity],
                       )}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                    >
+                      {allergy.allergen}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-medium">{allergy.allergen}</p>
+                    <p className="text-xs capitalize">
+                      Severity: {allergy.severity}
+                    </p>
+                    {allergy.reaction && (
+                      <p className="text-xs">Reaction: {allergy.reaction}</p>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
           </div>

@@ -4,7 +4,6 @@ import { Badge } from "@workspace/ui/components/badge";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
@@ -52,8 +51,7 @@ export function ConsultationTimerUI({
   };
 
   return (
-    <TooltipProvider>
-      <Popover open={showDetails} onOpenChange={onShowDetailsChange}>
+    <Popover open={showDetails} onOpenChange={onShowDetailsChange}>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
@@ -157,6 +155,5 @@ export function ConsultationTimerUI({
           </div>
         </PopoverContent>
       </Popover>
-    </TooltipProvider>
   );
 }

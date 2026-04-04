@@ -3,7 +3,6 @@ import { cn } from "@workspace/ui/lib/utils";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 
@@ -91,8 +90,7 @@ export function ConsultationProgressUI({
       </div>
 
       {}
-      <TooltipProvider delayDuration={0}>
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
           {steps.map((step, index) => {
             const isCurrent = step.id === currentStepId;
 
@@ -182,8 +180,7 @@ export function ConsultationProgressUI({
               </div>
             );
           })}
-        </div>
-      </TooltipProvider>
+      </div>
 
       {}
       <div className="flex items-center justify-center gap-2 text-xs">

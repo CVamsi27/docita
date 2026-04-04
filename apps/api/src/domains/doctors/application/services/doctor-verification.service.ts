@@ -2,6 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { runWithTenant } from '@/common/middleware/tenant.middleware';
 import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
@@ -76,17 +77,19 @@ export class DoctorVerificationService {
 
   @Cron('0 3 * * *')
   async reverifyDoctorsNightly() {
-    const doctors = await this.repository.findDoctorsForReverification();
+    await runWithTenant({ bypassed: true }, async () => {
+      const doctors = await this.repository.findDoctorsForReverification();
 
-    for (const doctor of doctors) {
-      try {
-        await this.verifyAndPersistDoctorVerification(doctor.id);
-      } catch (error) {
-        this.logger.warn(
-          `Nightly re-verification failed for doctor ${doctor.id}: ${error instanceof Error ? error.message : 'unknown error'}`,
-        );
+      for (const doctor of doctors) {
+        try {
+          await this.verifyAndPersistDoctorVerification(doctor.id);
+        } catch (error) {
+          this.logger.warn(
+            `Nightly re-verification failed for doctor ${doctor.id}: ${error instanceof Error ? error.message : 'unknown error'}`,
+          );
+        }
       }
-    }
+    });
   }
 
   private async checkLicenseExpiry(
