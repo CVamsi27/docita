@@ -1,6 +1,9 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ClinicDetails, ComplianceSettings } from "@/features/onboarding/components/types";
+import type {
+  ClinicDetails,
+  ComplianceSettings,
+} from "@/features/onboarding/components/types";
 import { useClinicRegistrationFlow } from "./use-clinic-registration-flow";
 
 const mocks = vi.hoisted(() => ({
@@ -70,7 +73,7 @@ describe("useClinicRegistrationFlow", () => {
     mocks.toast.info.mockReset();
     mocks.toast.message.mockReset();
     mocks.fetch.mockReset();
-    global.fetch = mocks.fetch as unknown as typeof fetch;
+    global.fetch = mocks.fetch as typeof fetch;
     mocks.user = {
       id: "user_1",
       name: "Owner One",
