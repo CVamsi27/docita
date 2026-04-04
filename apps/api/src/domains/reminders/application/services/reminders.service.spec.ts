@@ -5,6 +5,7 @@ import { ReminderHistoryService } from './reminder-history.service';
 
 describe('RemindersService (Facade)', () => {
   let service: RemindersService;
+  type ReminderType = Parameters<RemindersService['sendManualReminder']>[1];
   let settingsService: {
     getSettings: jest.Mock;
     updateSettings: jest.Mock;
@@ -115,14 +116,14 @@ describe('RemindersService (Facade)', () => {
   describe('sendManualReminder', () => {
     it('should delegate to ReminderHistoryService to send reminder', async () => {
       const appointmentId = 'appt-123';
-      const reminderType = 'email';
+      const reminderType: ReminderType = 'email';
 
       historyService.sendManualReminder.mockResolvedValue({
         success: true,
         message: 'email reminder sent',
       });
 
-      await service.sendManualReminder(appointmentId, reminderType as never);
+      await service.sendManualReminder(appointmentId, reminderType);
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         appointmentId,
@@ -136,7 +137,7 @@ describe('RemindersService (Facade)', () => {
       );
 
       await expect(
-        service.sendManualReminder('invalid-id', 'email' as never),
+        service.sendManualReminder('invalid-id', 'email'),
       ).rejects.toThrow('Appointment not found');
     });
 
@@ -146,7 +147,7 @@ describe('RemindersService (Facade)', () => {
         message: 'email reminder sent',
       });
 
-      await service.sendManualReminder('appt-1', 'email' as never);
+      await service.sendManualReminder('appt-1', 'email');
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
@@ -160,7 +161,7 @@ describe('RemindersService (Facade)', () => {
         message: 'sms reminder sent',
       });
 
-      await service.sendManualReminder('appt-1', 'sms' as never);
+      await service.sendManualReminder('appt-1', 'sms');
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
@@ -174,7 +175,7 @@ describe('RemindersService (Facade)', () => {
         message: 'whatsapp reminder sent',
       });
 
-      await service.sendManualReminder('appt-1', 'whatsapp' as never);
+      await service.sendManualReminder('appt-1', 'whatsapp');
 
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',

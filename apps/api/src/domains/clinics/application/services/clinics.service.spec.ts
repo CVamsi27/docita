@@ -16,7 +16,28 @@ jest.mock('bcrypt');
 
 describe('ClinicsService', () => {
   let service: ClinicsService;
-  let prismaService: PrismaService;
+  let prismaService: {
+    clinic: {
+      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      update: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    user: {
+      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    patient: {
+      count: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    appointment: {
+      count: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    doctorClinic: {
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+  };
   let clinicFactory: ClinicFactory;
   let _settingsFactory: SettingsFactory;
   let clinicDataRepository: Record<
@@ -188,7 +209,7 @@ describe('ClinicsService', () => {
     }).compile();
 
     service = module.get<ClinicsService>(ClinicsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get(PrismaService);
     clinicFactory = module.get<ClinicFactory>(ClinicFactory);
     _settingsFactory = module.get<SettingsFactory>(SettingsFactory);
 
@@ -323,12 +344,15 @@ describe('ClinicsService', () => {
   describe('createDoctor', () => {
     it('should create a doctor and associate with clinic', async () => {
       jest.mocked(bcrypt.hash).mockImplementation(async () => 'hashedPassword');
-      jest
-        .spyOn(prismaService.user, 'create')
-        .mockResolvedValue(mockUser as never);
-      jest
-        .spyOn(prismaService.doctorClinic, 'create')
-        .mockResolvedValue({} as never);
+      prismaService.user.create.mockResolvedValue(mockUser);
+      prismaService.doctorClinic.create.mockResolvedValue({
+        id: 'doctor-clinic-1',
+        doctorId: mockUser.id,
+        clinicId: 'clinic-123',
+        role: 'doctor',
+        active: true,
+        createdAt: new Date(),
+      });
 
       const result = await service.createDoctor('clinic-123', {
         name: 'Dr. Test',
@@ -350,9 +374,7 @@ describe('ClinicsService', () => {
 
   describe('getDoctors', () => {
     it('should return doctors for a clinic', async () => {
-      jest
-        .spyOn(prismaService.user, 'findMany')
-        .mockResolvedValue([mockUser] as never);
+      prismaService.user.findMany.mockResolvedValue([mockUser]);
 
       const result = await service.getDoctors('clinic-123');
 
@@ -367,11 +389,9 @@ describe('ClinicsService', () => {
 
   describe('createReceptionist', () => {
     it('should create a receptionist', async () => {
-      const mockReceptionist = { ...mockUser, role: 'RECEPTIONIST' };
+      const mockReceptionist = { ...mockUser, role: Role.RECEPTIONIST };
       jest.mocked(bcrypt.hash).mockImplementation(async () => 'hashedPassword');
-      jest
-        .spyOn(prismaService.user, 'create')
-        .mockResolvedValue(mockReceptionist as never);
+      prismaService.user.create.mockResolvedValue(mockReceptionist);
 
       const result = await service.createReceptionist('clinic-123', {
         name: 'Receptionist',
@@ -385,10 +405,8 @@ describe('ClinicsService', () => {
 
   describe('getReceptionists', () => {
     it('should return receptionists for a clinic', async () => {
-      const mockReceptionist = { ...mockUser, role: 'RECEPTIONIST' };
-      jest
-        .spyOn(prismaService.user, 'findMany')
-        .mockResolvedValue([mockReceptionist] as never);
+      const mockReceptionist = { ...mockUser, role: Role.RECEPTIONIST };
+      prismaService.user.findMany.mockResolvedValue([mockReceptionist]);
 
       const result = await service.getReceptionists('clinic-123');
 
