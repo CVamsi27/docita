@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
+import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
 const SKIP_PASSWORD_EXPIRY_KEY = 'skipPasswordExpiry';
 
@@ -34,14 +35,15 @@ export class PasswordExpiredGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
+    const userId = getAuthenticatedUserId(user);
 
-    if (!user?.sub) {
+    if (!userId) {
       return true;
     }
 
     try {
       const dbUser = await this.prisma.user.findUnique({
-        where: { id: user.sub },
+        where: { id: userId },
         select: { passwordExpiresAt: true },
       });
 
@@ -59,8 +61,13 @@ export class PasswordExpiredGuard implements CanActivate {
         throw error;
       }
       this.logger.warn('Failed to check password expiry', {
-        userId: user.sub,
+        userId,
         error,
+      });
+      throw new ForbiddenException({
+        message:
+          'Unable to validate password expiry right now. Please try again shortly.',
+        code: 'PASSWORD_EXPIRY_CHECK_FAILED',
       });
     }
 

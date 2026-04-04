@@ -8,6 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { AuthenticatedRequest } from '@workspace/types';
+import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
 export const SKIP_EMAIL_VERIFICATION_KEY = 'skipEmailVerification';
 
@@ -35,10 +36,11 @@ export class EmailVerifiedGuard implements CanActivate {
     if (skip) return true;
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    if (!request.user?.sub) return true;
+    const userId = getAuthenticatedUserId(request.user);
+    if (!userId) return true;
 
     const user = await this.prisma.user.findUnique({
-      where: { id: request.user.sub },
+      where: { id: userId },
       select: { emailVerified: true },
     });
 

@@ -28,15 +28,13 @@ import { R2StorageProvider } from './infrastructure/r2-storage.provider';
           return new LocalStorageProvider();
         }
 
-        if (provider === 'local') {
-          return new LocalStorageProvider();
-        }
-
         if (provider === 'r2' || hasR2Credentials) {
           return new R2StorageProvider();
         }
 
-        return new LocalStorageProvider();
+        throw new Error(
+          'Production storage is not configured for R2. Set STORAGE_PROVIDER=r2 and provide R2 credentials.',
+        );
       },
     },
   ],

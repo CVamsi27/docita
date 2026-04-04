@@ -23,12 +23,46 @@ export class LocalStorageProvider extends StorageProvider {
     }
   }
 
+  private resolveSafeUploadPath(rawPath: string): string {
+    const decoded = decodeURIComponent(rawPath).trim();
+    const normalized = path.posix.normalize(decoded).replace(/^\/+/, '');
+    if (
+      !normalized ||
+      normalized.startsWith('..') ||
+      path.isAbsolute(normalized)
+    ) {
+      throw new BadRequestException('Invalid file path');
+    }
+
+    const resolvedPath = path.resolve(this.uploadDir, normalized);
+    const uploadRoot = `${path.resolve(this.uploadDir)}${path.sep}`;
+    if (!resolvedPath.startsWith(uploadRoot)) {
+      throw new BadRequestException('Invalid file path');
+    }
+
+    return resolvedPath;
+  }
+
+  private sanitizeFolder(folder: string): string {
+    const normalized = folder.trim().replace(/^\/+|\/+$/g, '');
+    if (!normalized) {
+      return 'general';
+    }
+
+    if (!/^[a-zA-Z0-9/_-]+$/.test(normalized) || normalized.includes('..')) {
+      throw new BadRequestException('Invalid upload folder');
+    }
+
+    return normalized;
+  }
+
   async upload(
     file: StorageFile,
     folder: string = 'general',
     _options?: StorageUploadOptions,
   ): Promise<string> {
-    const destDir = path.join(this.uploadDir, folder);
+    const safeFolder = this.sanitizeFolder(folder);
+    const destDir = path.join(this.uploadDir, safeFolder);
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
     }
@@ -52,7 +86,7 @@ export class LocalStorageProvider extends StorageProvider {
         }
       }
 
-      return `/uploads/${folder}/${filename}`;
+      return `/uploads/${safeFolder}/${filename}`;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to upload file: ${errorMsg}`);
@@ -62,7 +96,7 @@ export class LocalStorageProvider extends StorageProvider {
 
   async delete(url: string): Promise<void> {
     const relativePath = url.replace(/^\/uploads\//, '');
-    const filePath = path.join(this.uploadDir, relativePath);
+    const filePath = this.resolveSafeUploadPath(relativePath);
 
     if (fs.existsSync(filePath)) {
       await fs.promises.unlink(filePath);

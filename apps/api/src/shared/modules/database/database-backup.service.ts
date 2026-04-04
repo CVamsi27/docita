@@ -1,11 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 @Injectable()
 export class DatabaseBackupService {
@@ -62,17 +59,102 @@ export class DatabaseBackupService {
     }
   }
 
+  private sanitizeBackupFilename(filename: string): string {
+    const trimmed = filename.trim();
+    if (!trimmed) {
+      throw new Error('Backup filename cannot be empty');
+    }
+
+    const base = path.basename(trimmed);
+    if (base !== trimmed) {
+      throw new Error('Backup filename cannot include path segments');
+    }
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(base)) {
+      throw new Error('Backup filename contains invalid characters');
+    }
+
+    return base;
+  }
+
+  private resolveSafeBackupPath(backupFilepath: string): string {
+    const decoded = decodeURIComponent(backupFilepath).trim();
+    if (!decoded) {
+      throw new Error('Backup filepath cannot be empty');
+    }
+
+    const resolvedPath = path.resolve(decoded);
+    const backupRoot = path.resolve(this.backupDir);
+    const backupRootWithSeparator = `${backupRoot}${path.sep}`;
+    if (
+      resolvedPath !== backupRoot &&
+      !resolvedPath.startsWith(backupRootWithSeparator)
+    ) {
+      throw new Error('Backup filepath is outside the backup directory');
+    }
+
+    return resolvedPath;
+  }
+
+  private runPgCommand(command: string, args: string[]): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const child = spawn(command, args, {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: {
+          ...process.env,
+          PGPASSWORD: this.databasePassword,
+        },
+      });
+
+      let stderr = '';
+      child.stderr.on('data', (chunk: Buffer | string) => {
+        stderr += chunk.toString();
+      });
+
+      child.on('error', (error) => {
+        reject(error);
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+          return;
+        }
+
+        reject(
+          new Error(
+            `${command} failed with exit code ${code}. ${stderr.trim() || 'No stderr output.'}`,
+          ),
+        );
+      });
+    });
+  }
+
   async createFullBackup(
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFilename = filename || `backup-full-${timestamp}.dump`;
+    const backupFilename = this.sanitizeBackupFilename(
+      filename || `backup-full-${timestamp}.dump`,
+    );
     const filepath = path.join(this.backupDir, backupFilename);
 
     try {
-      const pgDumpCmd = `PGPASSWORD="${this.databasePassword}" pg_dump --host="${this.databaseHost}" --port="${this.databasePort}" --username="${this.databaseUser}" --format=custom --compress=9 "${this.databaseName}" > "${filepath}"`;
-
-      await execAsync(pgDumpCmd);
+      await this.runPgCommand('pg_dump', [
+        '--host',
+        this.databaseHost,
+        '--port',
+        this.databasePort,
+        '--username',
+        this.databaseUser,
+        '--format',
+        'custom',
+        '--compress',
+        '9',
+        '--file',
+        filepath,
+        this.databaseName,
+      ]);
 
       const stats = fs.statSync(filepath);
       this.logger.log(
@@ -91,13 +173,24 @@ export class DatabaseBackupService {
     filename?: string,
   ): Promise<{ success: boolean; filepath: string; size: number }> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupFilename = filename || `backup-schema-${timestamp}.sql`;
+    const backupFilename = this.sanitizeBackupFilename(
+      filename || `backup-schema-${timestamp}.sql`,
+    );
     const filepath = path.join(this.backupDir, backupFilename);
 
     try {
-      const pgDumpCmd = `PGPASSWORD="${this.databasePassword}" pg_dump --host="${this.databaseHost}" --port="${this.databasePort}" --username="${this.databaseUser}" --schema-only "${this.databaseName}" > "${filepath}"`;
-
-      await execAsync(pgDumpCmd);
+      await this.runPgCommand('pg_dump', [
+        '--host',
+        this.databaseHost,
+        '--port',
+        this.databasePort,
+        '--username',
+        this.databaseUser,
+        '--schema-only',
+        '--file',
+        filepath,
+        this.databaseName,
+      ]);
 
       const stats = fs.statSync(filepath);
       this.logger.log(
@@ -115,21 +208,33 @@ export class DatabaseBackupService {
   async restoreFromBackup(
     backupFilepath: string,
   ): Promise<{ success: boolean; message: string }> {
-    if (!fs.existsSync(backupFilepath)) {
-      throw new Error(`Backup file not found: ${backupFilepath}`);
+    const safeBackupFilepath = this.resolveSafeBackupPath(backupFilepath);
+    if (!fs.existsSync(safeBackupFilepath)) {
+      throw new Error(`Backup file not found: ${safeBackupFilepath}`);
     }
 
     try {
-      this.logger.warn(`Starting database restore from: ${backupFilepath}`);
+      this.logger.warn(`Starting database restore from: ${safeBackupFilepath}`);
 
-      const pgRestoreCmd = `PGPASSWORD="${this.databasePassword}" pg_restore --host="${this.databaseHost}" --port="${this.databasePort}" --username="${this.databaseUser}" --dbname="${this.databaseName}" --verbose "${backupFilepath}"`;
+      await this.runPgCommand('pg_restore', [
+        '--host',
+        this.databaseHost,
+        '--port',
+        this.databasePort,
+        '--username',
+        this.databaseUser,
+        '--dbname',
+        this.databaseName,
+        '--verbose',
+        safeBackupFilepath,
+      ]);
 
-      await execAsync(pgRestoreCmd);
-
-      this.logger.log(`Database restored successfully from: ${backupFilepath}`);
+      this.logger.log(
+        `Database restored successfully from: ${safeBackupFilepath}`,
+      );
       return {
         success: true,
-        message: `Database restored from ${path.basename(backupFilepath)}`,
+        message: `Database restored from ${path.basename(safeBackupFilepath)}`,
       };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -141,16 +246,15 @@ export class DatabaseBackupService {
   async verifyBackup(
     backupFilepath: string,
   ): Promise<{ success: boolean; valid: boolean; message: string }> {
-    if (!fs.existsSync(backupFilepath)) {
+    const safeBackupFilepath = this.resolveSafeBackupPath(backupFilepath);
+    if (!fs.existsSync(safeBackupFilepath)) {
       return { success: false, valid: false, message: 'Backup file not found' };
     }
 
     try {
-      const pgRestoreCmd = `PGPASSWORD="${this.databasePassword}" pg_restore --list "${backupFilepath}" > /dev/null 2>&1`;
+      await this.runPgCommand('pg_restore', ['--list', safeBackupFilepath]);
 
-      await execAsync(pgRestoreCmd);
-
-      this.logger.log(`Backup verification passed: ${backupFilepath}`);
+      this.logger.log(`Backup verification passed: ${safeBackupFilepath}`);
       return {
         success: true,
         valid: true,

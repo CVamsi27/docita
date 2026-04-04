@@ -26,12 +26,10 @@ export class SmsChannel implements IMessageChannel {
   }
 
   async send(
-    recipientId: string,
+    _recipientId: string,
     content: MessageContent,
   ): Promise<SendMessageResult> {
-    this.logger.log(
-      `Sending SMS to ${recipientId} with template ${content.templateKey}`,
-    );
+    this.logger.log(`Sending SMS using template ${content.templateKey}`);
 
     return await Promise.resolve({
       messageId: `sms_${Date.now()}`,
@@ -41,8 +39,8 @@ export class SmsChannel implements IMessageChannel {
     });
   }
 
-  async handleWebhook(payload: unknown): Promise<void> {
+  async handleWebhook(_payload: unknown): Promise<void> {
     await Promise.resolve();
-    this.logger.log('Handling SMS webhook:', payload);
+    this.logger.log('Handling SMS webhook event');
   }
 }

@@ -14,6 +14,10 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 export class CsrfInterceptor implements NestInterceptor {
   constructor(private configService: AppConfigService) {}
 
+  private isSafeMethod(method: string): boolean {
+    return ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
+  }
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
@@ -27,7 +31,7 @@ export class CsrfInterceptor implements NestInterceptor {
 
     const existingCsrfToken = request.cookies?.['XSRF-TOKEN'];
     let csrfToken = existingCsrfToken;
-    if (!existingCsrfToken) {
+    if (!existingCsrfToken && this.isSafeMethod(request.method)) {
       csrfToken = randomBytes(24).toString('hex');
       response.cookie('XSRF-TOKEN', csrfToken, {
         path: '/',
@@ -37,14 +41,8 @@ export class CsrfInterceptor implements NestInterceptor {
       });
     }
 
-    const mutatingMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
-    if (mutatingMethods.includes(request.method)) {
-      if (!existingCsrfToken) {
-        return next.handle();
-      }
-
+    if (!this.isSafeMethod(request.method)) {
       const headerToken = request.headers['x-xsrf-token'];
-
       if (!csrfToken || !headerToken || csrfToken !== headerToken) {
         throw new ForbiddenException('Invalid or missing CSRF token');
       }

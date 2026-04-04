@@ -15,6 +15,7 @@ export class StartupValidationService {
     this.validateDatabaseConfiguration();
     this.validateTransportSecurity();
     this.validateDataAtRestControls();
+    this.validateProductionStorageConfiguration();
     this.validateProductionSecrets();
 
     this.logger.log('All startup validations passed');
@@ -225,6 +226,34 @@ export class StartupValidationService {
     }
 
     this.logger.log('All production secrets validated');
+  }
+
+  private validateProductionStorageConfiguration(): void {
+    if (!this.configService.isProduction()) {
+      return;
+    }
+
+    const storageProvider = this.configService.getStorageProvider();
+    if (storageProvider !== 'r2') {
+      throw new Error(
+        'STORAGE_PROVIDER must be set to "r2" in production to avoid local document storage.',
+      );
+    }
+
+    const r2Config = this.configService.getR2Config();
+    const missing = [];
+    if (!r2Config.accountId) missing.push('R2_ACCOUNT_ID');
+    if (!r2Config.accessKeyId) missing.push('R2_ACCESS_KEY_ID');
+    if (!r2Config.secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
+    if (!r2Config.bucketName) missing.push('R2_BUCKET_NAME');
+
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing required R2 configuration for production: ${missing.join(', ')}`,
+      );
+    }
+
+    this.logger.log('Production storage configuration validated (R2)');
   }
 
   getEncryptionKeyInfo(): {

@@ -73,6 +73,7 @@ describe('JwtStrategy', () => {
 
       expect(result).toEqual({
         id: 'user-123',
+        sub: 'user-123',
         email: 'test@docita.work',
         role: 'ADMIN',
         name: 'Test Admin',
