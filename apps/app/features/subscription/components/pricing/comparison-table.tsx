@@ -238,7 +238,8 @@ export function ComparisonTable({
 
               {categories.map((category) => {
                 const validFeatures = category.features.filter(
-                  (f) => f in FEATURE_TIER_MAP,
+                  (f) =>
+                    f in FEATURE_TIER_MAP && getFeatureDetails(f).isGenerallyAvailable,
                 );
                 if (validFeatures.length === 0) return null;
                 return (
@@ -303,9 +304,9 @@ function FeatureCategoryRows({
                 <span className="text-sm truncate" title={details.name}>
                   {details.name}
                 </span>
-                {details.comingSoon && (
+                {!details.isGenerallyAvailable && (
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                    Coming Soon
+                    Planned
                   </Badge>
                 )}
                 {details.description && (
@@ -321,7 +322,8 @@ function FeatureCategoryRows({
               </div>
             </TableCell>
             {tiers.map((tier) => {
-              const hasAccess = !details.comingSoon && tier >= requiredTier;
+              const hasAccess =
+                details.isGenerallyAvailable && tier >= requiredTier;
               return (
                 <TableCell
                   key={tier}
@@ -332,12 +334,12 @@ function FeatureCategoryRows({
                 >
                   {hasAccess ? (
                     <Check className="h-4 w-4 text-success mx-auto" />
-                  ) : details.comingSoon ? (
+                  ) : !details.isGenerallyAvailable ? (
                     <Badge
                       variant="outline"
                       className="text-[10px] px-1.5 py-0 text-muted-foreground"
                     >
-                      Coming Soon
+                      Planned
                     </Badge>
                   ) : (
                     <Minus className="h-3.5 w-3.5 text-muted-foreground/20 mx-auto" />

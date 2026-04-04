@@ -5,7 +5,11 @@ import { type RazorpayResponse, useRazorpay } from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth-context";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import type { TierName } from "@workspace/types";
+import {
+  subscriptionBillingActivateResponseSchema,
+  subscriptionBillingCheckoutResponseSchema,
+  type TierName,
+} from "@workspace/types";
 
 export interface CheckoutSuccessData {
   planName: string;
@@ -31,7 +35,7 @@ export function useSubscriptionCheckout(
   const invalidateSubscriptionQueries = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["billing-status"] }),
-      queryClient.invalidateQueries({ queryKey: ["subscription"] }),
+      queryClient.invalidateQueries({ queryKey: ["clinic", "subscription"] }),
     ]);
   }, [queryClient]);
 
@@ -44,17 +48,13 @@ export function useSubscriptionCheckout(
       setProcessingId(`tier-${tier}`);
 
       try {
-        const createData = await fetchJsonWithSession<{
-          orderId: string;
-          amountCents: number;
-          currency: string;
-          razorpayKeyId: string;
-          message?: string;
-        }>("/subscription/billing/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tier, billingCycle }),
-        });
+        const createData = subscriptionBillingCheckoutResponseSchema.parse(
+          await fetchJsonWithSession<unknown>("/subscription/billing/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tier, billingCycle }),
+          }),
+        );
         const { orderId, amountCents, currency, razorpayKeyId } = createData;
         if (!orderId || !amountCents || !currency || !razorpayKeyId) {
           throw new Error("Failed to initiate checkout");
@@ -68,21 +68,23 @@ export function useSubscriptionCheckout(
           description: `Upgrade to ${tier} Plan`,
           order_id: orderId as string,
           handler: async (response: RazorpayResponse) => {
-            await fetchJsonWithSession<{ success: boolean }>(
-              "/subscription/billing/activate",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
+            subscriptionBillingActivateResponseSchema.parse(
+              await fetchJsonWithSession<unknown>(
+                "/subscription/billing/activate",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    razorpayOrderId: response.razorpay_order_id,
+                    razorpaySignature: response.razorpay_signature,
+                    tier,
+                    billingCycle,
+                  }),
                 },
-                body: JSON.stringify({
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpaySignature: response.razorpay_signature,
-                  tier,
-                  billingCycle,
-                }),
-              },
+              ),
             );
 
             setTier(tier);

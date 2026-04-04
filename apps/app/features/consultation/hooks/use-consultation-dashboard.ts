@@ -18,8 +18,7 @@ export const useConsultationDashboard = () => {
   const { canStartConsultation } = usePermissions();
   const { canAccess } = usePermissionStore();
   const today = new Date().toISOString().split("T")[0] ?? "";
-  const shouldScopeToOwnConsultations =
-    user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const shouldScopeToOwnConsultations = user?.role === "DOCTOR";
   const doctorId = shouldScopeToOwnConsultations ? user?.id : undefined;
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,

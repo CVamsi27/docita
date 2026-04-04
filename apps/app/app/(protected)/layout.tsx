@@ -122,7 +122,10 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
     if (!user?.role || !clinic || !pathname) return;
 
     const target = getAccessTargetForPath(pathname);
-    if (!target) return;
+    if (!target) {
+      router.replace("/dashboard");
+      return;
+    }
 
     if (
       target === APP_ACCESS_TARGETS.PAGE_UPGRADE &&

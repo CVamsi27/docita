@@ -79,10 +79,14 @@ export const FEATURE_ICONS: Record<Feature, LucideIcon> = {
 
 export function getFeatureDetails(feature: Feature) {
   const display = FEATURE_DISPLAY[feature];
+  const availability = display?.availability ?? "GA";
+  const comingSoon = display?.comingSoon === true;
   return {
     name: display?.name || feature,
     description: display?.description || "",
-    comingSoon: display?.comingSoon === true,
+    availability,
+    comingSoon,
+    isGenerallyAvailable: availability === "GA" && !comingSoon,
     icon: FEATURE_ICONS[feature] || Lock,
   };
 }

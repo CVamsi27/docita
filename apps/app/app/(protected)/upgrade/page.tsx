@@ -145,7 +145,7 @@ export default function UpgradePage() {
           details: getFeatureDetails(feature as Feature),
           hasAccess: effectiveCurrentTier >= requiredTier,
         }))
-        .filter((entry) => !entry.details.comingSoon),
+        .filter((entry) => entry.details.isGenerallyAvailable),
     }));
 
   const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
@@ -155,15 +155,15 @@ export default function UpgradePage() {
       requiredTier,
       details: getFeatureDetails(feature as Feature),
     }))
-    .filter((entry) => !entry.details.comingSoon);
+    .filter((entry) => entry.details.isGenerallyAvailable);
 
-  const comingSoonFeatures = Object.entries(FEATURE_TIER_MAP)
+  const plannedFeatures = Object.entries(FEATURE_TIER_MAP)
     .map(([feature, requiredTier]) => ({
       feature: feature as Feature,
       requiredTier,
       details: getFeatureDetails(feature as Feature),
     }))
-    .filter((entry) => entry.details.comingSoon)
+    .filter((entry) => !entry.details.isGenerallyAvailable)
     .sort((a, b) => a.requiredTier - b.requiredTier);
 
   const nextTier =
@@ -303,15 +303,15 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {comingSoonFeatures.length > 0 && (
+        {plannedFeatures.length > 0 && (
           <Card className="border-dashed">
             <CardContent className="py-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold">Coming Soon</h2>
+                <h2 className="text-sm font-semibold">Planned Roadmap</h2>
                 <Badge variant="outline">Not included in today&apos;s access</Badge>
               </div>
               <div className="flex flex-wrap gap-2">
-                {comingSoonFeatures.map((entry) => (
+                {plannedFeatures.map((entry) => (
                   <Badge key={entry.feature} variant="secondary">
                     {entry.details.name}
                   </Badge>

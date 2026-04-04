@@ -7,8 +7,11 @@ interface RouteAccessRule {
 
 const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/dashboard", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
+  { pathPrefix: "/settings", target: APP_ACCESS_TARGETS.PAGE_SETTINGS },
+  { pathPrefix: "/profile", target: APP_ACCESS_TARGETS.PAGE_PROFILE },
   { pathPrefix: "/patients", target: APP_ACCESS_TARGETS.PAGE_PATIENTS },
   { pathPrefix: "/appointments", target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS },
+  { pathPrefix: "/consultation", target: APP_ACCESS_TARGETS.PAGE_CONSULTATION },
   { pathPrefix: "/prescriptions", target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS },
   { pathPrefix: "/lab-tests", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },
   { pathPrefix: "/invoices", target: APP_ACCESS_TARGETS.PAGE_INVOICES },
@@ -18,6 +21,9 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/coding-queue", target: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE },
   { pathPrefix: "/import", target: APP_ACCESS_TARGETS.PAGE_IMPORT },
   { pathPrefix: "/whatsapp", target: APP_ACCESS_TARGETS.PAGE_WHATSAPP },
+  { pathPrefix: "/ai-assistant", target: APP_ACCESS_TARGETS.PAGE_AI_ASSISTANT },
+  { pathPrefix: "/specialty", target: APP_ACCESS_TARGETS.PAGE_SPECIALTY },
+  { pathPrefix: "/hospital", target: APP_ACCESS_TARGETS.PAGE_HOSPITAL },
   { pathPrefix: "/upgrade", target: APP_ACCESS_TARGETS.PAGE_UPGRADE },
 ];
 

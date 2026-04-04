@@ -62,6 +62,7 @@ export const settingsTabs = [
         icon: CalendarOff,
         description: "Leave plans & requests",
         roles: DOCTOR_ROLES,
+        feature: Feature.LEAVE_MANAGEMENT,
       },
       {
         value: "queue",

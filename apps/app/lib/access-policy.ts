@@ -4,6 +4,7 @@ import {
   Feature,
   Tier,
   getAccessRequirement,
+  isAccessComingSoon,
   getAccessFeature,
   getAccessTier,
   type UserRole,
@@ -23,6 +24,7 @@ export function canAccessTarget(
 ): boolean {
   const policy = APP_ACCESS_MATRIX[target];
   if (!policy) return false;
+  if (isAccessComingSoon(target)) return false;
 
   const requirement = getAccessRequirement(target, mode);
   const role = context.role ?? undefined;

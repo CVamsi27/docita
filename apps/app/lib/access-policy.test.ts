@@ -62,4 +62,13 @@ describe("canAccessTarget", () => {
       }),
     ).toBe(false);
   });
+
+  it("blocks routes marked as coming soon even when role and feature checks pass", () => {
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_HOSPITAL, {
+        role: "ADMIN",
+        canAccessFeature: () => true,
+      }),
+    ).toBe(false);
+  });
 });

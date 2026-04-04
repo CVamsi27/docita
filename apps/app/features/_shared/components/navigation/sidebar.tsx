@@ -191,7 +191,7 @@ function SidebarContent({
     href: SPECIALTY_URLS[section.id] || `/specialty/${section.id}`,
     icon: SPECIALTY_ICONS[section.icon] || SPECIALTY_ICONS["Brain"]!,
     label: section.label,
-    feature: undefined,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_SPECIALTY,
   }));
 
   const hospitalNavItems: NavItem[] = [];
@@ -211,8 +211,14 @@ function SidebarContent({
     return !item.feature || canAccess(item.feature);
   });
 
+  const canAccessSettings = canAccessTarget(
+    APP_ACCESS_TARGETS.PAGE_SETTINGS,
+    { role: user?.role, canAccessFeature: canAccess },
+    "read",
+  );
+
   const visibleNavItems = [
-    SETTINGS_NAV_ITEM,
+    ...(canAccessSettings ? [SETTINGS_NAV_ITEM] : []),
     ...accessibleNavItems.filter(
       (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
     ),

@@ -12,6 +12,7 @@ export {
   getAllFeaturesUpToTier,
   getIntelligenceBundlePrice,
   hasFeatureAccess,
+  isFeatureGenerallyAvailable,
   getTierValue,
   getTierName,
   getTierInfo,
