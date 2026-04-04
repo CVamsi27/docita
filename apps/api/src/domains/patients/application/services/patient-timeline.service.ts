@@ -148,6 +148,7 @@ export class PatientTimelineService {
       ]);
 
     const now = new Date();
+    const nonPrnMedicationIds: string[] = [];
     const activeMedications: Array<{
       medicationId: string;
       name: string;
@@ -171,29 +172,8 @@ export class PatientTimelineService {
         const isActive = !med.endDate || med.endDate >= now;
         if (!isActive) continue;
 
-        let adherenceRate: number | null = null;
-
         if (!med.isPRN) {
-          try {
-            const doses = await this.repository.groupMedicationDosesByStatus(
-              patientId,
-              clinicId,
-              med.id,
-            );
-
-            const counts: Record<string, number> = {};
-            for (const d of doses) counts[d.status] = d._count.status;
-            const taken =
-              (counts['TAKEN'] ?? 0) + (counts['ADMINISTERED'] ?? 0);
-            const total = Object.values(counts).reduce((a, b) => a + b, 0);
-            if (total > 0) {
-              adherenceRate = (taken / total) * 100;
-            }
-          } catch {
-            this.logger.warn(
-              `Could not fetch adherence for medication ${med.id}`,
-            );
-          }
+          nonPrnMedicationIds.push(med.id);
         }
 
         activeMedications.push({
@@ -202,10 +182,60 @@ export class PatientTimelineService {
           dosage: med.dosage,
           frequency: med.frequency,
           isPRN: med.isPRN,
-          adherenceRate,
+          adherenceRate: null,
         });
       }
     }
+
+    const adherenceByMedicationId = new Map<string, number | null>();
+    const uniqueNonPrnMedicationIds = [...new Set(nonPrnMedicationIds)];
+    if (uniqueNonPrnMedicationIds.length > 0) {
+      try {
+        const groupedCounts =
+          await this.repository.groupMedicationDosesByMedicationIds(
+            patientId,
+            clinicId,
+            uniqueNonPrnMedicationIds,
+          );
+
+        const aggregateMap = new Map<
+          string,
+          { taken: number; total: number }
+        >();
+        for (const row of groupedCounts) {
+          const current = aggregateMap.get(row.medicationId) ?? {
+            taken: 0,
+            total: 0,
+          };
+
+          const count = row._count.status;
+          current.total += count;
+          if (row.status === 'TAKEN' || row.status === 'ADMINISTERED') {
+            current.taken += count;
+          }
+
+          aggregateMap.set(row.medicationId, current);
+        }
+
+        for (const [medicationId, counts] of aggregateMap.entries()) {
+          adherenceByMedicationId.set(
+            medicationId,
+            counts.total > 0 ? (counts.taken / counts.total) * 100 : null,
+          );
+        }
+      } catch {
+        this.logger.warn(
+          'Could not fetch medication adherence in batch for patient snapshot',
+        );
+      }
+    }
+
+    const enrichedActiveMedications = activeMedications.map((medication) => ({
+      ...medication,
+      adherenceRate: medication.isPRN
+        ? null
+        : (adherenceByMedicationId.get(medication.medicationId) ?? null),
+    }));
 
     return {
       activeConditions: (
@@ -234,7 +264,7 @@ export class PatientTimelineService {
         severity: a.severity,
         allergyType: a.allergyType,
       })),
-      activeMedications,
+      activeMedications: enrichedActiveMedications,
       latestVitals: latestVitals
         ? (() => {
             const v = latestVitals as {

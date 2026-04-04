@@ -81,6 +81,14 @@ export interface IPatientTimelineRepository {
     clinicId: string,
     medicationId: string,
   ): Promise<Array<{ status: string; _count: { status: number } }>>;
+
+  groupMedicationDosesByMedicationIds(
+    patientId: string,
+    clinicId: string,
+    medicationIds: string[],
+  ): Promise<
+    Array<{ medicationId: string; status: string; _count: { status: number } }>
+  >;
 }
 
 export const PATIENT_TIMELINE_REPOSITORY_TOKEN = Symbol(

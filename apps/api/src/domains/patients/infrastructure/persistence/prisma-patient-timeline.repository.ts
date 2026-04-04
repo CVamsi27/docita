@@ -318,4 +318,32 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
       Array<{ status: string; _count: { status: number } }>
     >;
   }
+
+  async groupMedicationDosesByMedicationIds(
+    patientId: string,
+    clinicId: string,
+    medicationIds: string[],
+  ): Promise<
+    Array<{ medicationId: string; status: string; _count: { status: number } }>
+  > {
+    if (medicationIds.length === 0) {
+      return [];
+    }
+
+    return this.prisma.medicationDose.groupBy({
+      by: ['medicationId', 'status'],
+      where: {
+        medicationId: { in: medicationIds },
+        patientId,
+        clinicId,
+      },
+      _count: { status: true },
+    }) as unknown as Promise<
+      Array<{
+        medicationId: string;
+        status: string;
+        _count: { status: number };
+      }>
+    >;
+  }
 }

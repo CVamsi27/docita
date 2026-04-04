@@ -7,6 +7,7 @@ type StartupValidationConfig = Pick<
   | 'getJwtSecret'
   | 'getDatabaseUrl'
   | 'getEnvironment'
+  | 'isProduction'
   | 'getAppUrl'
   | 'getFrontendAppUrl'
   | 'getApiUrl'
@@ -29,6 +30,7 @@ function createConfig(
       .fn()
       .mockReturnValue('postgresql://user:password@db.example.com/docita'),
     getEnvironment: jest.fn().mockReturnValue('production'),
+    isProduction: jest.fn().mockReturnValue(true),
     getAppUrl: jest.fn().mockReturnValue('https://api.docita.work'),
     getFrontendAppUrl: jest.fn().mockReturnValue('https://app.docita.work'),
     getApiUrl: jest.fn().mockReturnValue('https://api.docita.work/api'),
