@@ -1,4 +1,8 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
+import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
+import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
+import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler';
 
 describe('SubscriptionReminderScheduler', () => {
@@ -16,36 +20,51 @@ describe('SubscriptionReminderScheduler', () => {
   const clinicUpdateMock =
     jest.fn<(args: unknown) => Promise<Record<string, never>>>();
 
-  const notifyUseCase = {
-    execute: notifyExecuteMock,
-  };
-  const expireUseCase = {
-    execute: expireExecuteMock,
-  };
-  const graceUseCase = {
-    execute: graceExecuteMock,
-  };
+  const notifyUseCase = Object.create(
+    NotifyExpiringSubscriptionsUseCase.prototype,
+  ) as NotifyExpiringSubscriptionsUseCase;
+  notifyUseCase.execute = notifyExecuteMock;
 
-  const prisma = {
-    runUnrestricted: runUnrestrictedMock.mockImplementation(
-      async (callback: () => Promise<void>) => callback(),
-    ),
+  const expireUseCase = Object.create(
+    ExpireSubscriptionUseCase.prototype,
+  ) as ExpireSubscriptionUseCase;
+  expireUseCase.execute = expireExecuteMock;
+
+  const graceUseCase = Object.create(
+    EnterGracePeriodUseCase.prototype,
+  ) as EnterGracePeriodUseCase;
+  graceUseCase.execute = graceExecuteMock;
+
+  const prisma = Object.create(PrismaService.prototype) as PrismaService;
+  Object.defineProperties(prisma, {
+    runUnrestricted: {
+      value: runUnrestrictedMock.mockImplementation(
+        async (callback: () => Promise<void>) => callback(),
+      ),
+      writable: true,
+    },
     subscription: {
-      findMany: findManyMock,
-      update: subscriptionUpdateMock,
+      value: {
+        findMany: findManyMock,
+        update: subscriptionUpdateMock,
+      },
+      writable: true,
     },
     clinic: {
-      update: clinicUpdateMock,
+      value: {
+        update: clinicUpdateMock,
+      },
+      writable: true,
     },
-  };
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
     scheduler = new SubscriptionReminderScheduler(
-      notifyUseCase as never,
-      expireUseCase as never,
-      graceUseCase as never,
-      prisma as never,
+      notifyUseCase,
+      expireUseCase,
+      graceUseCase,
+      prisma,
     );
   });
 

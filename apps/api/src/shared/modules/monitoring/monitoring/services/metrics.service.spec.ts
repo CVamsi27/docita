@@ -14,7 +14,24 @@ import {
 
 describe('MetricsService', () => {
   let service: MetricsService;
-  let prismaService: PrismaService;
+  let prismaService: {
+    $queryRaw: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    systemMetric: {
+      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      createMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      deleteMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    apiRequest: {
+      groupBy: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      count: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    performanceAggregate: {
+      upsert: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+  };
 
   const mockPrismaService = {
     $queryRaw: jest.fn(),
@@ -48,7 +65,7 @@ describe('MetricsService', () => {
     }).compile();
 
     service = module.get<MetricsService>(MetricsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get(PrismaService);
   });
 
   afterEach(() => {
@@ -75,9 +92,9 @@ describe('MetricsService', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      jest
-        .spyOn(prismaService.systemMetric, 'create')
-        .mockRejectedValueOnce(new Error('DB Error'));
+      prismaService.systemMetric.create.mockRejectedValueOnce(
+        new Error('DB Error'),
+      );
 
       await expect(
         service.recordMetric(MetricType.CPU_USAGE, 50),
@@ -130,7 +147,7 @@ describe('MetricsService', () => {
 
   describe('getPerformanceMetrics', () => {
     it('should build distribution and throughput from db-side grouped queries', async () => {
-      jest.spyOn(prismaService.apiRequest, 'groupBy').mockResolvedValueOnce([
+      prismaService.apiRequest.groupBy.mockResolvedValueOnce([
         {
           path: '/api/v1/health',
           method: 'GET',
@@ -138,12 +155,8 @@ describe('MetricsService', () => {
           _max: { duration: 220 },
           _count: { id: 5 },
         },
-      ] as unknown as never);
-      jest
-        .spyOn(
-          prismaService as unknown as { $queryRaw: ReturnType<typeof jest.fn> },
-          '$queryRaw',
-        )
+      ]);
+      prismaService.$queryRaw
         .mockResolvedValueOnce([
           {
             range_0_100: 2n,
@@ -187,8 +200,7 @@ describe('MetricsService', () => {
 
   describe('aggregateHourlyMetrics', () => {
     it('should avoid per-route count n+1 by using grouped success aggregates', async () => {
-      jest
-        .spyOn(prismaService.apiRequest, 'groupBy')
+      prismaService.apiRequest.groupBy
         .mockResolvedValueOnce([
           {
             path: '/api/v1/health',
@@ -198,14 +210,14 @@ describe('MetricsService', () => {
             _min: { duration: 50 },
             _max: { duration: 300 },
           },
-        ] as unknown as never)
+        ])
         .mockResolvedValueOnce([
           {
             path: '/api/v1/health',
             method: 'GET',
             _count: { id: 8 },
           },
-        ] as unknown as never);
+        ]);
 
       await service.aggregateHourlyMetrics();
 
