@@ -1,5 +1,5 @@
 import type React from "react";
-import type { LucideIcon } from "lucide-react";
+import { Inbox, type LucideIcon } from "lucide-react";
 
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { ErrorState } from "@workspace/ui/components/error-state";
@@ -50,13 +50,9 @@ export function DataState({
   }
 
   if (status === "empty") {
-    if (!emptyIcon) {
-      throw new Error("DataState requires emptyIcon when status is 'empty'.");
-    }
-
     return (
       <EmptyState
-        icon={emptyIcon}
+        icon={emptyIcon ?? Inbox}
         title={emptyTitle}
         description={emptyDescription}
         action={emptyAction}

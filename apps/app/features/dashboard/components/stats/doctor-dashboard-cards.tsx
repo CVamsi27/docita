@@ -14,7 +14,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { ChevronRight, Clock, Play, Stethoscope, Users } from "lucide-react";
+import { Clock, Play, Stethoscope, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { DashboardAppointment } from "@workspace/types";
@@ -64,8 +64,7 @@ export function DoctorDashboardCardsUI({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {}
-      <Card className="border-none shadow-sm bg-card lg:col-span-2">
+      <Card className="border border-border shadow-sm bg-card lg:col-span-2">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -127,15 +126,15 @@ export function DoctorDashboardCardsUI({
               </p>
               {nextPatients.length > 0 && nextPatients[0] && (
                 <Button
-                  variant="default"
+                  size="lg"
                   className="gap-2"
                   disabled={startConsultation.isPending}
                   onClick={() => void handleStartAppointment(nextPatients[0].id)}
                 >
+                  <Play className="h-4 w-4" />
                   {startingAppointmentId === nextPatients[0].id
                     ? "Starting..."
                     : "Start Next Patient"}
-                  <ChevronRight className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -143,8 +142,7 @@ export function DoctorDashboardCardsUI({
         </CardContent>
       </Card>
 
-      {}
-      <Card className="border-none shadow-sm bg-card">
+      <Card className="border border-border shadow-sm bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
@@ -168,7 +166,7 @@ export function DoctorDashboardCardsUI({
               <p className="text-2xl font-bold text-warning">
                 {queueStats.waiting}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Waiting
               </p>
             </div>
@@ -176,7 +174,7 @@ export function DoctorDashboardCardsUI({
               <p className="text-2xl font-bold text-info">
                 {queueStats.inProgress}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Active
               </p>
             </div>
@@ -184,13 +182,12 @@ export function DoctorDashboardCardsUI({
               <p className="text-2xl font-bold text-success">
                 {queueStats.completed}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Done
               </p>
             </div>
           </div>
 
-          {}
           <div className="mt-4">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
               <span>Today&apos;s Progress</span>
@@ -204,7 +201,7 @@ export function DoctorDashboardCardsUI({
                   "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-colors duration-150",
                 )}
                 style={{
-                  width: `${queueStats.total > 0 ? (queueStats.completed / queueStats.total) * 100 : 0}%`,
+                  width: `${Math.min(Math.max(queueStats.total > 0 ? (queueStats.completed / queueStats.total) * 100 : 0, 0), 100)}%`,
                 }}
               />
             </div>

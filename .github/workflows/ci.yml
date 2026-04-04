@@ -128,6 +128,10 @@ jobs:
           POSTGRES_USER: docita
           POSTGRES_PASSWORD: password
           POSTGRES_DB: docita
+          POSTGRES_INITDB_ARGS: >-
+            --set=shared_preload_libraries=pg_stat_statements
+            --set=pg_stat_statements.track=all
+            --set=pg_stat_statements.max=10000
         ports:
           - 5434:5432
         options: >-
@@ -164,6 +168,15 @@ jobs:
             --to-schema prisma/schema.prisma \
             --exit-code
           echo "No drift detected."
+
+      - name: DB integrity and performance guardrails
+        env:
+          DATABASE_URL: postgresql://docita:password@localhost:5434/docita
+        run: |
+          pnpm --filter @workspace/db run db:check-integrity
+          pnpm --filter @workspace/db run db:analyze-indexes
+          pnpm --filter @workspace/db run db:profile-queries
+          pnpm --filter @workspace/db run db:check-query-plans
 
   frontend-bundle-analysis:
     name: Frontend Bundle Analysis

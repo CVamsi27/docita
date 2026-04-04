@@ -49,69 +49,12 @@ import {
   type NavItem,
 } from "./nav-config";
 
-const ICON_VARIANTS: Record<string, { idle: string; active: string }> = {
-  "/dashboard": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/patients": {
-    idle: "bg-info/10 text-info",
-    active: "bg-info/15 text-info ring-info/20",
-  },
-  "/appointments": {
-    idle: "bg-success/10 text-success",
-    active: "bg-success/15 text-success ring-success/20",
-  },
-  "/consultation": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/prescriptions": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/lab-tests": {
-    idle: "bg-warning/10 text-warning",
-    active: "bg-warning/15 text-warning ring-warning/20",
-  },
-  "/invoices": {
-    idle: "bg-success/10 text-success",
-    active: "bg-success/15 text-success ring-success/20",
-  },
-  "/inventory": {
-    idle: "bg-muted/60 text-muted-foreground",
-    active: "bg-muted text-foreground ring-border/70",
-  },
-  "/documents": {
-    idle: "bg-info/10 text-info",
-    active: "bg-info/15 text-info ring-info/20",
-  },
-  "/analytics": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/coding-queue": {
-    idle: "bg-warning/10 text-warning",
-    active: "bg-warning/15 text-warning ring-warning/20",
-  },
-  "/import": {
-    idle: "bg-muted/60 text-muted-foreground",
-    active: "bg-muted text-foreground ring-border/70",
-  },
-  "/settings": {
-    idle: "bg-muted/60 text-muted-foreground",
-    active: "bg-muted text-foreground ring-border/70",
-  },
-};
-
-function getIconClasses(href: string, isActive: boolean) {
-  const variant = ICON_VARIANTS[href] ?? {
-    idle: "bg-muted/60 text-muted-foreground",
-    active: "bg-muted text-foreground ring-border/70",
-  };
+function getIconClasses(isActive: boolean) {
   return cn(
-    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all ring-1 ring-transparent",
-    isActive ? variant.active : variant.idle,
+    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-transparent",
+    isActive
+      ? "bg-primary/10 text-primary ring-primary/20"
+      : "bg-muted/60 text-muted-foreground",
   );
 }
 
@@ -218,10 +161,10 @@ function SidebarContent({
   );
 
   const visibleNavItems = [
-    ...(canAccessSettings ? [SETTINGS_NAV_ITEM] : []),
     ...accessibleNavItems.filter(
       (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
     ),
+    ...(canAccessSettings ? [SETTINGS_NAV_ITEM] : []),
   ];
 
   const customizableNavItems = accessibleNavItems.filter(
@@ -230,7 +173,7 @@ function SidebarContent({
 
   const tierInfo = getTierInfo();
   const tierDotClass = cn(
-    "h-2 w-2 rounded-full shrink-0 animate-pulse",
+    "h-2 w-2 rounded-full shrink-0",
     tierInfo.color === "blue" && "bg-info shadow-[0_0_8px_theme(colors.info)]",
     tierInfo.color === "green" &&
       "bg-success shadow-[0_0_8px_theme(colors.success)]",
@@ -330,7 +273,7 @@ function SidebarContent({
                   {notificationCount > 0 && (
                     <Badge
                       variant="secondary"
-                      className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+                      className="ml-auto px-1.5 min-w-5 h-5 text-xs"
                     >
                       {notificationCount > 9 ? "9+" : notificationCount}
                     </Badge>
@@ -362,7 +305,7 @@ function SidebarContent({
                 )}
                 title={isCollapsed && !isMobile ? item.label : undefined}
               >
-                <div className={getIconClasses(item.href, isActive)}>
+                <div className={getIconClasses(isActive)}>
                   <item.icon className="h-4 w-4 shrink-0" />
                   {isCollapsed && !isMobile && settingsBadgeCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive" />
@@ -374,7 +317,7 @@ function SidebarContent({
                     {settingsBadgeCount > 0 && (
                       <Badge
                         variant="destructive"
-                        className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+                        className="ml-auto px-1.5 min-w-5 h-5 text-xs"
                       >
                         {settingsBadgeCount > 9 ? "9+" : settingsBadgeCount}
                       </Badge>
@@ -435,7 +378,7 @@ function SidebarContent({
               <span className={tierDotClass} />
               {showLabels && (
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
                     Plan
                   </p>
                   <p className="text-sm font-medium truncate leading-tight mt-0.5">
@@ -539,7 +482,7 @@ function SidebarContent({
                 className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-3 text-sm">
-                  <div className={getIconClasses(item.href, false)}>
+                  <div className={getIconClasses(false)}>
                     <item.icon className="h-4 w-4 shrink-0" />
                   </div>
                   <span className="font-medium">{item.label}</span>

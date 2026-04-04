@@ -23,7 +23,7 @@ export interface TodayScheduleUIProps {
 
 export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
   return (
-    <Card className="lg:col-span-2 border-none shadow-sm bg-card">
+    <Card className="lg:col-span-2 border border-border shadow-sm bg-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -70,10 +70,10 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                   key={apt.id}
                   href={`/consultation/${apt.id}`}
                   className={cn(
-                    "group flex items-center gap-4 rounded-2xl border border-transparent p-4 transition-colors duration-150",
+                    "group flex items-center gap-4 rounded-lg border border-transparent p-4 transition-colors duration-150",
                     apt.status === "completed" && "opacity-60 bg-muted/30",
                     apt.status === "in-progress" &&
-                      "bg-primary/5 ring-1 ring-primary/20",
+                      "bg-primary/8 border-primary/20 ring-1 ring-primary/30",
                     isNext && "bg-muted/40",
                     "hover:bg-muted/60 hover:border-border/50",
                   )}
@@ -88,7 +88,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     >
                       {format(new Date(apt.startTime), "h:mm")}
                     </p>
-                    <p className="text-[10px] text-muted-foreground uppercase">
+                    <p className="text-xs text-muted-foreground uppercase">
                       {format(new Date(apt.startTime), "a")}
                     </p>
                   </div>
@@ -132,9 +132,8 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                           apt.status === "in-progress" ? "default" : "ghost"
                         }
                         className={cn(
-                          "h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-150",
-                          apt.status === "in-progress" &&
-                            "opacity-100 shadow-sm",
+                          "h-8 w-8",
+                          apt.status === "in-progress" && "shadow-sm",
                         )}
                       >
                         <Play className="h-3 w-3" />

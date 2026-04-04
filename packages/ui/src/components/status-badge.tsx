@@ -63,7 +63,7 @@ const statusStyles: Record<StatusType, string> = {
 
 const statusLabels: Partial<Record<StatusType, string>> = {
   "in-progress": "In Consultation",
-  "sample-collected": "In Progress",
+  "sample-collected": "Sample Collected",
   "no-show": "No Show",
 };
 
@@ -126,8 +126,8 @@ const priorityStyles: Record<PriorityType, { bg: string; dot: string }> = {
     dot: "bg-destructive",
   },
   critical: {
-    bg: "badge-danger animate-pulse",
-    dot: "bg-destructive animate-pulse",
+    bg: "badge-danger",
+    dot: "bg-destructive",
   },
 };
 

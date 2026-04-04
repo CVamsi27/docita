@@ -252,37 +252,40 @@ export class OverageBillingScheduler {
         this.mapKeyToUsageType(key) !== null && breakdown.charge > 0,
     );
 
-    for (const [key, breakdown] of overageEntries) {
-      const usageType = this.mapKeyToUsageType(key)!;
-      const usageEntry = usageData.usage[key as keyof typeof usageData.usage];
-      await this.prisma.usageRecord.upsert({
-        where: {
-          clinicId_type_periodStart: {
+    await Promise.all(
+      overageEntries.map(async ([key, breakdown]) => {
+        const usageType = this.mapKeyToUsageType(key)!;
+        const usageEntry = usageData.usage[key as keyof typeof usageData.usage];
+
+        await this.prisma.usageRecord.upsert({
+          where: {
+            clinicId_type_periodStart: {
+              clinicId: sub.clinicId,
+              type: usageType,
+              periodStart,
+            },
+          },
+          update: {
+            quantity: usageEntry?.current ?? 0,
+            includedQuota: usageEntry?.included ?? 0,
+            overageUnits: breakdown.quantity,
+            overageChargeCents: Math.round(breakdown.charge * 100),
+            metadata: { subscriptionId: sub.id },
+          },
+          create: {
             clinicId: sub.clinicId,
             type: usageType,
             periodStart,
+            periodEnd,
+            quantity: usageEntry?.current ?? 0,
+            includedQuota: usageEntry?.included ?? 0,
+            overageUnits: breakdown.quantity,
+            overageChargeCents: Math.round(breakdown.charge * 100),
+            metadata: { subscriptionId: sub.id },
           },
-        },
-        update: {
-          quantity: usageEntry?.current ?? 0,
-          includedQuota: usageEntry?.included ?? 0,
-          overageUnits: breakdown.quantity,
-          overageChargeCents: Math.round(breakdown.charge * 100),
-          metadata: { subscriptionId: sub.id },
-        },
-        create: {
-          clinicId: sub.clinicId,
-          type: usageType,
-          periodStart,
-          periodEnd,
-          quantity: usageEntry?.current ?? 0,
-          includedQuota: usageEntry?.included ?? 0,
-          overageUnits: breakdown.quantity,
-          overageChargeCents: Math.round(breakdown.charge * 100),
-          metadata: { subscriptionId: sub.id },
-        },
-      });
-    }
+        });
+      }),
+    );
 
     if (result.totalOverageCharges > 0) {
       await this.createOrUpdateOverageInvoicePayment({
@@ -379,39 +382,20 @@ export class OverageBillingScheduler {
       breakdown,
     );
 
-    const existing = await this.prisma.subscriptionPayment.findFirst({
-      where: { clinicId, invoiceNumber },
-      select: {
-        id: true,
-        clinicId: true,
-        amountCents: true,
-        currency: true,
-        status: true,
-        invoiceUrl: true,
-        invoiceNumber: true,
-        description: true,
-      },
-    });
-
-    if (existing) {
-      const updatedPayment = await this.prisma.subscriptionPayment.update({
-        where: { id: existing.id },
-        data: {
-          amountCents,
-          currency,
-          description,
-          status:
-            existing.status?.toLowerCase() === 'paid'
-              ? existing.status
-              : 'pending',
+    let payment = await this.prisma.subscriptionPayment.upsert({
+      where: {
+        clinicId_invoiceNumber: {
+          clinicId,
+          invoiceNumber,
         },
-      });
-      await this.ensureOveragePaymentLink(updatedPayment);
-      return;
-    }
-
-    const createdPayment = await this.prisma.subscriptionPayment.create({
-      data: {
+      },
+      update: {
+        subscriptionId,
+        amountCents,
+        currency,
+        description,
+      },
+      create: {
         clinicId,
         subscriptionId,
         amountCents,
@@ -421,7 +405,16 @@ export class OverageBillingScheduler {
         description,
       },
     });
-    await this.ensureOveragePaymentLink(createdPayment);
+
+    const normalizedStatus = payment.status.toLowerCase();
+    if (normalizedStatus !== 'paid' && normalizedStatus !== 'pending') {
+      payment = await this.prisma.subscriptionPayment.update({
+        where: { id: payment.id },
+        data: { status: 'pending' },
+      });
+    }
+
+    await this.ensureOveragePaymentLink(payment);
   }
 
   private async ensureOveragePaymentLink(payment: {
@@ -542,67 +535,118 @@ export class OverageBillingScheduler {
       100: ['IN_APP'],
     };
 
+    const warningActions: Array<{
+      meter: string;
+      threshold: 80 | 100;
+      channel: 'IN_APP' | 'EMAIL';
+      reminderType: string;
+      percentUsed: number;
+    }> = [];
+
     for (const [meter, warning] of Object.entries(warnings)) {
       if (warning.threshold === null) continue;
 
       const threshold = warning.threshold as 80 | 100;
+      const reminderType = `usage_${meter}_${threshold}_${periodKey}`;
       const channels = channelsByThreshold[threshold];
 
       for (const channel of channels) {
-        const reminderType = `usage_${meter}_${threshold}_${periodKey}`;
-        const alreadySent = await this.prisma.subscriptionReminder.findFirst({
-          where: {
-            clinicId,
-            type: reminderType,
-            channel,
-            createdAt: { gte: periodStart, lte: periodEnd },
-          },
-          select: { id: true },
-        });
-
-        if (alreadySent) continue;
-
-        if (channel === 'IN_APP') {
-          await this.createInAppUsageWarning(
-            clinicId,
-            meter,
-            threshold,
-            warning.percentUsed,
-            usage,
-          );
-          await this.prisma.subscriptionReminder.create({
-            data: {
-              clinicId,
-              type: reminderType,
-              channel,
-              status: 'sent',
-              sentAt: new Date(),
-            },
-          });
-          continue;
-        }
-
-        const sent = await this.sendUsageWarningEmail(
-          clinicId,
+        warningActions.push({
           meter,
           threshold,
-          warning.percentUsed,
-        );
-
-        await this.prisma.subscriptionReminder.create({
-          data: {
-            clinicId,
-            type: reminderType,
-            channel,
-            status: sent ? 'sent' : 'failed',
-            sentAt: sent ? new Date() : null,
-            errorMessage: sent
-              ? null
-              : 'Failed to deliver usage warning email to clinic admins',
-          },
+          channel,
+          reminderType,
+          percentUsed: warning.percentUsed,
         });
       }
     }
+
+    if (warningActions.length === 0) {
+      return;
+    }
+
+    const reminderTypes = Array.from(
+      new Set(warningActions.map((action) => action.reminderType)),
+    );
+    const channels = Array.from(
+      new Set(warningActions.map((action) => action.channel)),
+    );
+
+    const existingReminders = await this.prisma.subscriptionReminder.findMany({
+      where: {
+        clinicId,
+        type: { in: reminderTypes },
+        channel: { in: channels },
+        createdAt: { gte: periodStart, lte: periodEnd },
+      },
+      select: {
+        type: true,
+        channel: true,
+      },
+    });
+
+    const dedupeSet = new Set(
+      existingReminders.map(
+        (reminder) => `${reminder.type}:${reminder.channel}`,
+      ),
+    );
+    const remindersToCreate = [];
+
+    for (const action of warningActions) {
+      const key = `${action.reminderType}:${action.channel}`;
+      if (dedupeSet.has(key)) {
+        continue;
+      }
+
+      dedupeSet.add(key);
+
+      if (action.channel === 'IN_APP') {
+        await this.createInAppUsageWarning(
+          clinicId,
+          action.meter,
+          action.threshold,
+          action.percentUsed,
+          usage,
+        );
+
+        remindersToCreate.push({
+          clinicId,
+          type: action.reminderType,
+          channel: action.channel,
+          status: 'sent',
+          sentAt: new Date(),
+          errorMessage: null,
+        });
+        continue;
+      }
+
+      const sent = await this.sendUsageWarningEmail(
+        clinicId,
+        action.meter,
+        action.threshold,
+        action.percentUsed,
+      );
+
+      remindersToCreate.push({
+        clinicId,
+        type: action.reminderType,
+        channel: action.channel,
+        status: sent ? 'sent' : 'failed',
+        sentAt: sent ? new Date() : null,
+        errorMessage: sent
+          ? null
+          : 'Failed to deliver usage warning email to clinic admins',
+      });
+    }
+
+    if (remindersToCreate.length === 0) {
+      return;
+    }
+
+    await this.prisma.subscriptionReminder.createMany({
+      data: remindersToCreate,
+      skipDuplicates: true,
+    });
   }
 
   private async createInAppUsageWarning(

@@ -9,13 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
+import { Card, CardContent } from "@workspace/ui/components/card";
 import { PageContainer } from "@workspace/ui/components/page-container";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Skeleton } from "@workspace/ui/components/skeleton";
@@ -110,14 +104,7 @@ export function PatientsPageUI({
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle>All Patients</CardTitle>
-          <CardDescription>
-            A list of all patients in your practice including their name,
-            contact, and medical history.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="mb-6 flex items-center gap-4">
             <div className="max-w-sm flex-1">
               <DebouncedSearchInput
@@ -155,7 +142,7 @@ export function PatientsPageUI({
                       <SortIcon column="fullName" />
                     </div>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell">
+                  <TableHead className="hidden lg:table-cell">
                     Contact
                   </TableHead>
                   <TableHead
@@ -168,7 +155,7 @@ export function PatientsPageUI({
                       <SortIcon column="gender" />
                     </div>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell">
+                  <TableHead className="hidden lg:table-cell">
                     Blood Group
                   </TableHead>
                   <TableHead
@@ -241,7 +228,7 @@ export function PatientsPageUI({
                         <TableCell className="font-medium">
                           {patient.firstName} {patient.lastName}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">
+                        <TableCell className="hidden lg:table-cell">
                           <div className="flex flex-col text-sm">
                             <span>{patient.phoneNumber}</span>
                             <span className="text-muted-foreground">
@@ -252,7 +239,7 @@ export function PatientsPageUI({
                         <TableCell className="capitalize">
                           {patient.gender}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">
+                        <TableCell className="hidden lg:table-cell">
                           {patient.bloodGroup ? (
                             <span className="font-medium">
                               {patient.bloodGroup}

@@ -64,7 +64,7 @@ export function DashboardHeaderUI({
     <header className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="relative">
-          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/25">
+          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground shadow-sm">
             <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
         </div>
@@ -123,7 +123,7 @@ export function DashboardHeaderUI({
           <Search className="mr-2 h-4 w-4" />
           <span className="hidden sm:inline">Search patients...</span>
           <span className="sm:hidden">Search...</span>
-          <kbd className="pointer-events-none ml-auto hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:flex">
+          <kbd className="pointer-events-none ml-auto hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium sm:flex">
             ⌘K
           </kbd>
         </Button>

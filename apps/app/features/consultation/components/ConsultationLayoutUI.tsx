@@ -20,8 +20,8 @@ export function ConsultationLayoutUI({
       {}
       <aside
         className={cn(
-          "hidden md:block border-r overflow-y-auto shrink-0 transition-[width,opacity] duration-150 ease-out",
-          isSidebarOpen ? "w-80 opacity-100" : "w-0 opacity-0 border-none",
+          "hidden md:block border-r overflow-y-auto shrink-0",
+          isSidebarOpen ? "w-80" : "w-0 overflow-hidden border-none",
         )}
       >
         {Sidebar}
@@ -33,7 +33,7 @@ export function ConsultationLayoutUI({
             variant="ghost"
             size="sm"
             onClick={onToggleSidebar}
-            className="absolute left-4 top-4 z-20 h-8 w-8 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent"
+            className="absolute left-4 top-4 z-20 h-9 w-9 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent"
             title="Show Patient Sidebar"
           >
             <PanelLeft className="h-4 w-4" />

@@ -14,7 +14,7 @@ export function DailyProgressUI({
   pendingReports,
 }: DailyProgressUIProps) {
   return (
-    <Card className="border-0 shadow-sm bg-linear-to-br from-primary/5 via-primary/5 to-transparent">
+    <Card className="border border-border shadow-sm bg-card">
       <CardContent className="p-4">
         <div className="flex items-center gap-3 mb-3">
           <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -32,7 +32,7 @@ export function DailyProgressUI({
                 {completedToday}/{totalAppointments}
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full bg-linear-to-r from-primary to-primary/60 transition-colors duration-150"
                 style={{
@@ -56,7 +56,7 @@ export function DailyProgressUI({
             </div>
             <Badge
               variant={pendingReports > 0 ? "secondary" : "outline"}
-              className="text-[10px] h-5"
+              className="text-xs h-5"
             >
               {pendingReports}
             </Badge>

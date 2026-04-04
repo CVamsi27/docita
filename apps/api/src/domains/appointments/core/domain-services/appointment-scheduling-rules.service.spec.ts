@@ -14,7 +14,7 @@ describe('AppointmentSchedulingRulesService', () => {
       count: jest.fn<() => Promise<number>>(),
     },
     doctorTimeOff: {
-      findMany: jest.fn<() => Promise<unknown[]>>(),
+      findFirst: jest.fn<(args: unknown) => Promise<unknown>>(),
     },
   };
 
@@ -168,7 +168,7 @@ describe('AppointmentSchedulingRulesService', () => {
 
   describe('validateDoctorTimeOff', () => {
     it('should allow appointment when doctor is not on time off', async () => {
-      mockPrismaService.doctorTimeOff.findMany.mockResolvedValueOnce([]);
+      mockPrismaService.doctorTimeOff.findFirst.mockResolvedValueOnce(null);
 
       const startTime = new Date(Date.now() + 86400000);
       const endTime = new Date(startTime.getTime() + 1800000);
@@ -187,13 +187,11 @@ describe('AppointmentSchedulingRulesService', () => {
       const startTime = new Date(Date.now() + 86400000);
       const endTime = new Date(startTime.getTime() + 1800000);
 
-      mockPrismaService.doctorTimeOff.findMany.mockResolvedValueOnce([
-        {
-          reason: 'Vacation',
-          startTime: new Date(startTime.getTime() - 3600000),
-          endTime: new Date(endTime.getTime() + 3600000),
-        },
-      ]);
+      mockPrismaService.doctorTimeOff.findFirst.mockResolvedValueOnce({
+        reason: 'Vacation',
+        startDate: new Date(startTime.getTime() - 3600000),
+        endDate: new Date(endTime.getTime() + 3600000),
+      });
 
       const result = await service.validateDoctorTimeOff(
         'doctor-1',
@@ -203,6 +201,18 @@ describe('AppointmentSchedulingRulesService', () => {
 
       expect(result.allowed).toBe(false);
       expect(result.reason).toContain('Vacation');
+
+      expect(mockPrismaService.doctorTimeOff.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            doctorId: 'doctor-1',
+            AND: [
+              { startDate: { lt: endTime } },
+              { endDate: { gt: startTime } },
+            ],
+          }),
+        }),
+      );
     });
   });
 

@@ -278,6 +278,58 @@ describe('SearchService', () => {
       expect(prisma.patient.findMany).toHaveBeenCalled();
     });
 
+    it('should stop retrying full-text after first capability failure', async () => {
+      cacheService.get.mockResolvedValue(null);
+      mockPrismaQueryRaw.mockRejectedValueOnce(
+        new Error('tsvector column not found'),
+      );
+      prisma.patient.findMany.mockResolvedValue([
+        {
+          id: 'patient-1',
+          firstName: 'John',
+          lastName: 'Doe',
+          phoneNumber: '1234567890',
+          mrn: 'MRN001',
+          email: 'john@example.com',
+          clinicId: mockClinicId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          dateOfBirth: null,
+          gender: 'male',
+          address: null,
+          bloodGroup: null,
+          emergencyContact: null,
+          emergencyContactPhone: null,
+          allergies: null,
+          chronicConditions: null,
+          insuranceProvider: null,
+          insuranceNumber: null,
+          referralSource: null,
+          notes: null,
+          archived: false,
+          tags: [],
+          customData: {},
+        },
+      ]);
+
+      await service.search({
+        clinicId: mockClinicId,
+        query: 'john',
+        types: ['patient'],
+        limit: 20,
+      });
+
+      await service.search({
+        clinicId: mockClinicId,
+        query: 'doe',
+        types: ['patient'],
+        limit: 20,
+      });
+
+      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(1);
+      expect(prisma.patient.findMany).toHaveBeenCalledTimes(2);
+    });
+
     it('should prioritize exact title matches over partial matches', async () => {
       cacheService.get.mockResolvedValue(null);
       const query = 'john';

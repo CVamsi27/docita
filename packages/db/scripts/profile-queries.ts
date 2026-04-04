@@ -30,24 +30,22 @@ function writeRows(rows: unknown[]): void {
 async function run(): Promise<void> {
   try {
     writeSection("Top Slow Queries (pg_stat_statements)");
-    try {
-      const slowQueries = await prisma.$queryRaw<QueryRow[]>`
-        SELECT
-          query,
-          calls,
-          ROUND(total_exec_time::numeric, 2) AS total_time_ms,
-          ROUND(mean_exec_time::numeric, 2) AS mean_time_ms,
-          rows
-        FROM pg_stat_statements
-        ORDER BY mean_exec_time DESC
-        LIMIT 20
-      `;
-      writeRows(slowQueries);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown profiling error";
-      process.stdout.write(`pg_stat_statements unavailable: ${message}\n`);
-    }
+    await prisma.$executeRawUnsafe(
+      `CREATE EXTENSION IF NOT EXISTS pg_stat_statements`,
+    );
+
+    const slowQueries = await prisma.$queryRaw<QueryRow[]>`
+      SELECT
+        query,
+        calls,
+        ROUND(total_exec_time::numeric, 2) AS total_time_ms,
+        ROUND(mean_exec_time::numeric, 2) AS mean_time_ms,
+        rows
+      FROM pg_stat_statements
+      ORDER BY mean_exec_time DESC
+      LIMIT 20
+    `;
+    writeRows(slowQueries);
 
     writeSection("Top Seq Scan Tables");
     const seqScanTables = await prisma.$queryRaw<

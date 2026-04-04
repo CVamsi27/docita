@@ -17,6 +17,7 @@ describe('MetricsService', () => {
   let prismaService: PrismaService;
 
   const mockPrismaService = {
+    $queryRaw: jest.fn(),
     systemMetric: {
       create: jest.fn(),
       createMany: jest.fn(),
@@ -124,6 +125,106 @@ describe('MetricsService', () => {
       const result = await service.cleanupOldMetrics(30);
       expect(prismaService.systemMetric.deleteMany).toHaveBeenCalled();
       expect(result).toBe(5);
+    });
+  });
+
+  describe('getPerformanceMetrics', () => {
+    it('should build distribution and throughput from db-side grouped queries', async () => {
+      jest.spyOn(prismaService.apiRequest, 'groupBy').mockResolvedValueOnce([
+        {
+          path: '/api/v1/health',
+          method: 'GET',
+          _avg: { duration: 120 },
+          _max: { duration: 220 },
+          _count: { id: 5 },
+        },
+      ] as unknown as never);
+      jest
+        .spyOn(
+          prismaService as unknown as { $queryRaw: ReturnType<typeof jest.fn> },
+          '$queryRaw',
+        )
+        .mockResolvedValueOnce([
+          {
+            range_0_100: 2n,
+            range_100_250: 3n,
+            range_250_500: 0n,
+            range_500_1000: 0n,
+            range_1000_2000: 0n,
+            range_2000_5000: 0n,
+            range_5000_plus: 0n,
+          },
+        ])
+        .mockResolvedValueOnce([{ minute: '2026-04-04T13:10', count: 4n }]);
+
+      const metrics = await service.getPerformanceMetrics(
+        new Date('2026-04-04T13:00:00.000Z'),
+        new Date('2026-04-04T14:00:00.000Z'),
+      );
+
+      expect(metrics.slowestEndpoints).toEqual([
+        {
+          path: '/api/v1/health',
+          method: 'GET',
+          avgDuration: 120,
+          maxDuration: 220,
+          count: 5,
+        },
+      ]);
+      expect(metrics.responseTimeDistribution[0]).toEqual({
+        range: '0-100ms',
+        count: 2,
+      });
+      expect(metrics.responseTimeDistribution[1]).toEqual({
+        range: '100-250ms',
+        count: 3,
+      });
+      expect(metrics.throughputByMinute).toEqual([
+        { minute: '2026-04-04T13:10', count: 4 },
+      ]);
+    });
+  });
+
+  describe('aggregateHourlyMetrics', () => {
+    it('should avoid per-route count n+1 by using grouped success aggregates', async () => {
+      jest
+        .spyOn(prismaService.apiRequest, 'groupBy')
+        .mockResolvedValueOnce([
+          {
+            path: '/api/v1/health',
+            method: 'GET',
+            _count: { id: 10 },
+            _avg: { duration: 100 },
+            _min: { duration: 50 },
+            _max: { duration: 300 },
+          },
+        ] as unknown as never)
+        .mockResolvedValueOnce([
+          {
+            path: '/api/v1/health',
+            method: 'GET',
+            _count: { id: 8 },
+          },
+        ] as unknown as never);
+
+      await service.aggregateHourlyMetrics();
+
+      expect(prismaService.apiRequest.groupBy).toHaveBeenCalledTimes(2);
+      expect(prismaService.apiRequest.count).not.toHaveBeenCalled();
+      expect(prismaService.performanceAggregate.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            totalRequests: 10,
+            successCount: 8,
+            errorCount: 2,
+          }),
+          update: expect.objectContaining({
+            totalRequests: 10,
+            successCount: 8,
+            errorCount: 2,
+          }),
+        }),
+      );
     });
   });
 

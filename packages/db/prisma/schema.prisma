@@ -103,6 +103,7 @@ model User {
 
   @@index([clinicId])
   @@index([specialization])
+  @@index([clinicId, role, createdAt], map: "User_clinicId_role_createdAt_idx")
 }
 
 model NotificationPreferences {
@@ -343,6 +344,8 @@ model Patient {
   @@index([deletedAt]) // Soft delete query optimization
   @@index([abhaAddress])
   @@index([userId]) // Patient portal lookup
+  @@index([phoneNumber, deletedAt], map: "Patient_phoneNumber_deletedAt_idx")
+  @@index([userId, deletedAt], map: "Patient_userId_deletedAt_idx")
 }
 
 // ============================================================================
@@ -621,6 +624,9 @@ model Appointment {
   @@index([doctorId])
   @@index([patientId])
   @@index([clinicId, status, startTime]) // Composite index for optimized clinic-wide filtered appointment queries
+  @@index([clinicId, startTime(sort: Desc), id(sort: Desc)], map: "Appointment_clinicId_startTime_id_idx")
+  @@index([patientId, clinicId, startTime(sort: Desc)], map: "Appointment_patientId_clinicId_startTime_idx")
+  @@index([doctorId, clinicId, startTime(sort: Desc)], map: "Appointment_doctorId_clinicId_startTime_idx")
 }
 
 model VitalSign {
@@ -1347,6 +1353,7 @@ model StaffNotification {
   @@index([createdAt])
   @@index([type])
   @@index([deletedAt])
+  @@index([userId, deletedAt, isRead, priority, createdAt(sort: Desc)], map: "StaffNotification_unread_priority_idx")
 }
 
 enum WhatsappTemplateCategory {
@@ -2751,6 +2758,7 @@ model SubscriptionPayment {
   @@index([subscriptionId])
   @@index([status])
   @@index([razorpayPaymentId])
+  @@unique([clinicId, invoiceNumber], map: "SubscriptionPayment_clinicId_invoiceNumber_key")
 }
 
 model SubscriptionReminder {
@@ -2774,6 +2782,7 @@ model SubscriptionReminder {
   @@index([clinicId])
   @@index([type])
   @@index([status])
+  @@index([clinicId, type, channel, createdAt(sort: Desc)], map: "SubscriptionReminder_clinicId_type_channel_createdAt_idx")
 }
 
 // ============================================================================
@@ -3203,6 +3212,7 @@ model RefreshToken {
   @@index([userId])
   @@index([token])
   @@index([tokenFamily])
+  @@index([userId, revokedAt, expiresAt, lastUsedAt(sort: Desc)], map: "RefreshToken_userId_revokedAt_expiresAt_lastUsedAt_idx")
 }
 
 model PatientOtp {

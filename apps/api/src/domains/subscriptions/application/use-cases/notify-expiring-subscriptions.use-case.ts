@@ -44,31 +44,57 @@ export class NotifyExpiringSubscriptionsUseCase {
       },
     });
 
+    if (subscriptions.length === 0) {
+      return;
+    }
+
+    const reminderCutoff = new Date();
+    reminderCutoff.setDate(reminderCutoff.getDate() - 1);
+
+    const clinicIds = Array.from(
+      new Set(subscriptions.map((sub) => sub.clinicId)),
+    );
+    const existingReminders = await this.prisma.subscriptionReminder.findMany({
+      where: {
+        clinicId: { in: clinicIds },
+        type: reminderType,
+        sentAt: { gte: reminderCutoff },
+      },
+      select: { clinicId: true },
+    });
+
+    const processedClinicIds = new Set(
+      existingReminders.map((reminder) => reminder.clinicId),
+    );
+    const sentAt = new Date();
+    const remindersToCreate = [];
+
     for (const sub of subscriptions) {
-      const existing = await this.prisma.subscriptionReminder.findFirst({
-        where: {
-          clinicId: sub.clinicId,
-          type: reminderType,
-          sentAt: {
-            gte: new Date(new Date().setDate(new Date().getDate() - 1)),
-          },
-        },
-      });
+      if (processedClinicIds.has(sub.clinicId)) {
+        continue;
+      }
 
-      if (existing) continue;
-
+      processedClinicIds.add(sub.clinicId);
       this.logger.log(
         `Sending reminder ${reminderType} to clinic ${sub.clinicId}`,
       );
 
-      await this.prisma.subscriptionReminder.create({
-        data: {
-          clinicId: sub.clinicId,
-          type: reminderType,
-          channel: 'EMAIL',
-          sentAt: new Date(),
-        },
+      remindersToCreate.push({
+        clinicId: sub.clinicId,
+        subscriptionId: sub.id,
+        type: reminderType,
+        channel: 'EMAIL',
+        sentAt,
       });
     }
+
+    if (remindersToCreate.length === 0) {
+      return;
+    }
+
+    await this.prisma.subscriptionReminder.createMany({
+      data: remindersToCreate,
+      skipDuplicates: true,
+    });
   }
 }

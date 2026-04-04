@@ -26,11 +26,11 @@ export interface RecentPatientsUIProps {
 
 export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
   return (
-    <Card className="border-none shadow-sm bg-card">
+    <Card className="border border-border shadow-sm bg-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-info to-info flex items-center justify-center text-info">
+            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
               <Users className="h-4 w-4" />
             </div>
             <div>
@@ -64,7 +64,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
               <Link
                 key={patient.id}
                 href={`/patients/${patient.id}`}
-                className="group flex items-center gap-4 rounded-2xl border border-transparent p-3.5 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
+                className="group flex items-center gap-4 rounded-lg border border-transparent p-3.5 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/5 text-primary text-xs font-medium">
@@ -76,7 +76,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
                   <p className="font-medium text-sm truncate">
                     {patient.firstName} {patient.lastName}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {patient.updatedAt
                       ? formatDistanceToNow(new Date(patient.updatedAt), {
                           addSuffix: true,
@@ -84,7 +84,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
                       : patient.phoneNumber}
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
               </Link>
             ))}
           </div>

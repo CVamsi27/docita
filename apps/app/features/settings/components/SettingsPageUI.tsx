@@ -205,7 +205,7 @@ export function SettingsPageUI({
                           <span className="text-sm font-medium">
                             {item.label}
                           </span>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {item.description}
                           </span>
                         </div>

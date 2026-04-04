@@ -61,11 +61,11 @@ export function DashboardStatsGridUI({
       {cards.map((card) => (
         <Card
           key={card.title}
-          className="border-none bg-card shadow-sm transition-colors duration-150 hover:shadow-md"
+          className="border border-border bg-card shadow-sm transition-colors duration-150 hover:shadow-md"
         >
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 {card.title}
               </CardTitle>
               <div
