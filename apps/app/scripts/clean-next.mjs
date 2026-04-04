@@ -4,8 +4,13 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextDir = path.resolve(__dirname, "../.next");
+const ifProduction = process.argv.includes("--if-production");
 
-if (existsSync(nextDir)) {
+// In --if-production mode, only clean when .next contains a production build
+// (detected by the presence of the standalone output directory).
+const shouldClean = !ifProduction || existsSync(path.join(nextDir, "standalone"));
+
+if (shouldClean && existsSync(nextDir)) {
   rmSync(nextDir, { recursive: true, force: true });
 }
 

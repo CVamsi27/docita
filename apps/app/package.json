@@ -4,9 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack --port 3000",
-    "dev:webpack": "next dev --webpack --port 3000",
-    "dev:turbopack": "next dev --turbopack --port 3000",
+    "dev": "node ./scripts/clean-next.mjs --if-production && next dev --webpack --port 3000",
+    "dev:webpack": "node ./scripts/clean-next.mjs --if-production && next dev --webpack --port 3000",
+    "dev:turbopack": "node ./scripts/clean-next.mjs --if-production && next dev --turbopack --port 3000",
     "prestart": "turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access",
     "build": "node ./scripts/clean-next.mjs && next build --webpack",
     "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build && node ../../scripts/ensure-opennext-prefetch-manifest-patch.mjs --app=app",

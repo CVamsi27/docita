@@ -238,7 +238,7 @@ export default function UpgradePage() {
               </Button>
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:[&>*:last-child:nth-child(3n+1)]:col-start-2">
             {featuresByTier
               .filter((t) => t.tier !== Tier.INTELLIGENCE)
               .map(({ tier, info, features }) => {

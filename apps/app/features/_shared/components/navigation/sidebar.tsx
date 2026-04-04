@@ -5,17 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
-  ChevronLeft,
   ChevronRight,
   Menu,
   PanelLeftClose,
+  Settings2,
   SlidersHorizontal,
   Sparkles,
   X,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
 import { Switch } from "@workspace/ui/components/switch";
 import {
   Sheet,
@@ -41,7 +40,6 @@ import { NotificationPanel } from "./notification-panel";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import {
   navItems,
-  SETTINGS_NAV_ITEM,
   SPECIALTY_ICONS,
   SPECIALTY_URLS,
   IPD_NAV_ITEM,
@@ -160,12 +158,9 @@ function SidebarContent({
     "read",
   );
 
-  const visibleNavItems = [
-    ...accessibleNavItems.filter(
-      (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
-    ),
-    ...(canAccessSettings ? [SETTINGS_NAV_ITEM] : []),
-  ];
+  const visibleNavItems = accessibleNavItems.filter(
+    (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
+  );
 
   const customizableNavItems = accessibleNavItems.filter(
     (item) => !FIXED_NAV_HREFS.has(item.href),
@@ -251,46 +246,9 @@ function SidebarContent({
           }}
           className="h-full overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin scrollbar-thumb-border/60 scrollbar-track-transparent"
         >
-          {canAccessNotifications && (
-            <button
-              type="button"
-              className={cn(
-                "group flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground",
-                isCollapsed && !isMobile && "justify-center px-0",
-              )}
-              onClick={() => setNotificationPanelOpen(true)}
-              title={isCollapsed && !isMobile ? "Notifications" : undefined}
-            >
-              <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/60 transition-colors group-hover:bg-muted">
-                <Bell className="h-4 w-4" />
-                {notificationCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
-                )}
-              </div>
-              {showLabels && (
-                <>
-                  <span className="flex-1 text-left">Notifications</span>
-                  {notificationCount > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="ml-auto px-1.5 min-w-5 h-5 text-xs"
-                    >
-                      {notificationCount > 9 ? "9+" : notificationCount}
-                    </Badge>
-                  )}
-                </>
-              )}
-            </button>
-          )}
-
           {visibleNavItems.map((item) => {
-            const isSettingsItem = item.href === "/settings";
-            const isActive = isSettingsItem
-              ? pathname.startsWith("/settings")
-              : pathname === item.href ||
-                pathname.startsWith(`${item.href}/`);
-            const settingsBadgeCount =
-              isSettingsItem && isAdmin ? pendingJoinRequestCount : 0;
+            const isActive =
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link
@@ -307,22 +265,9 @@ function SidebarContent({
               >
                 <div className={getIconClasses(isActive)}>
                   <item.icon className="h-4 w-4 shrink-0" />
-                  {isCollapsed && !isMobile && settingsBadgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive" />
-                  )}
                 </div>
                 {showLabels && (
-                  <>
-                    <span className="flex-1 truncate">{item.label}</span>
-                    {settingsBadgeCount > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className="ml-auto px-1.5 min-w-5 h-5 text-xs"
-                      >
-                        {settingsBadgeCount > 9 ? "9+" : settingsBadgeCount}
-                      </Badge>
-                    )}
-                  </>
+                  <span className="flex-1 truncate">{item.label}</span>
                 )}
               </Link>
             );
@@ -336,21 +281,52 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="shrink-0 border-t border-border/60">
-        {/* Theme + Customize row */}
+        {/* Quick-access icons row */}
         <div
           className={cn(
-            "flex items-center gap-2 px-3 py-2",
-            isCollapsed && !isMobile
-              ? "flex-col py-3"
-              : "justify-between",
+            "flex items-center gap-1 px-2 py-2",
+            isCollapsed && !isMobile ? "flex-col items-center py-3" : "",
           )}
         >
           <ThemeToggle />
+          {canAccessNotifications && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+              title="Notifications"
+              onClick={() => setNotificationPanelOpen(true)}
+            >
+              <Bell className="h-4 w-4" />
+              {notificationCount > 0 && (
+                <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
+              )}
+            </Button>
+          )}
+          {canAccessSettings && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted",
+                pathname.startsWith("/settings") && "bg-primary/8 text-primary",
+              )}
+              title="Settings"
+              asChild
+            >
+              <Link href="/settings">
+                <Settings2 className="h-4 w-4" />
+                {isAdmin && pendingJoinRequestCount > 0 && (
+                  <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </Link>
+            </Button>
+          )}
           {isAdmin && (
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
               title="Customize sidebar"
               onClick={() => setCustomizeOpen(true)}
             >
@@ -364,9 +340,7 @@ function SidebarContent({
           <div
             className={cn(
               "flex items-center gap-2 px-3 pb-3",
-              isCollapsed && !isMobile
-                ? "flex-col items-center"
-                : "",
+              isCollapsed && !isMobile ? "flex-col items-center" : "",
             )}
           >
             <div
@@ -408,34 +382,6 @@ function SidebarContent({
                 </Link>
               </Button>
             )}
-
-            {/* Collapse button in footer when expanded */}
-            {!isCollapsed && !isMobile && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60"
-                onClick={onCollapse}
-                aria-label="Collapse sidebar"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Collapse button for non-admin when expanded */}
-        {!isAdmin && !isCollapsed && !isMobile && (
-          <div className="flex justify-end px-3 pb-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/60"
-              onClick={onCollapse}
-              aria-label="Collapse sidebar"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
           </div>
         )}
       </div>
