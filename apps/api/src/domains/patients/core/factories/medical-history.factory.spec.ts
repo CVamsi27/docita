@@ -37,7 +37,7 @@ describe('MedicalHistoryFactory', () => {
         conditionName: '',
       };
 
-      expect(() => factory.createCondition(data as never)).toThrow(ZodError);
+      expect(() => factory.createCondition(data)).toThrow(ZodError);
     });
   });
 });

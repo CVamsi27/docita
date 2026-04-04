@@ -3,11 +3,13 @@ import { DatabaseBackupService } from './database-backup.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function createConfigService(): AppConfigService {
-  return {
-    getDatabaseUrl: jest
-      .fn()
-      .mockReturnValue('postgresql://user:password@localhost:5434/docita'),
-  } as unknown as AppConfigService;
+  const configService = Object.create(
+    AppConfigService.prototype,
+  ) as AppConfigService;
+  configService.getDatabaseUrl = jest
+    .fn<() => string>()
+    .mockReturnValue('postgresql://user:password@localhost:5434/docita');
+  return configService;
 }
 
 describe('DatabaseBackupService', () => {

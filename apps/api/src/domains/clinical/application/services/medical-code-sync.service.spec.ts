@@ -63,7 +63,7 @@ describe('MedicalCodeSyncService', () => {
   const now = new Date('2026-01-01T00:00:00.000Z');
 
   const transactionMock =
-    jest.fn<(operations: Array<Promise<{}>>) => Promise<{}[]>>();
+    jest.fn<(operations: Array<Promise<object>>) => Promise<object[]>>();
 
   const icdCreateManyMock =
     jest.fn<(_args: IcdCreateManyArgs) => Promise<CreateManyResult>>();
@@ -74,7 +74,7 @@ describe('MedicalCodeSyncService', () => {
         select: ExistingCodeSelect;
       }) => Promise<ExistingCodeRecord[]>
     >();
-  const icdUpdateMock = jest.fn<(_args: IcdUpdateArgs) => Promise<{}>>();
+  const icdUpdateMock = jest.fn<(_args: IcdUpdateArgs) => Promise<object>>();
 
   const cptCreateManyMock =
     jest.fn<(_args: CptCreateManyArgs) => Promise<CreateManyResult>>();
@@ -85,7 +85,7 @@ describe('MedicalCodeSyncService', () => {
         select: ExistingCodeSelect;
       }) => Promise<ExistingCodeRecord[]>
     >();
-  const cptUpdateMock = jest.fn<(_args: CptUpdateArgs) => Promise<{}>>();
+  const cptUpdateMock = jest.fn<(_args: CptUpdateArgs) => Promise<object>>();
 
   const prisma = Object.create(PrismaService.prototype) as PrismaService;
   Object.defineProperties(prisma, {

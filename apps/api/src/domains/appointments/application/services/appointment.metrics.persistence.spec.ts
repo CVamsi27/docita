@@ -1,17 +1,32 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AppointmentService } from './appointment.service';
+import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
+import { CreateAppointmentUseCase } from '@/domains/appointments/application/use-cases/create-appointment.use-case';
+import { PrismaService } from '@/prisma/prisma.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
+import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 
 describe('AppointmentService metric persistence', () => {
   const mockAppointmentRepository = {
-    findById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-  };
+    findById: jest.fn<IAppointmentRepository['findById']>(),
+    findAll: jest.fn<IAppointmentRepository['findAll']>(),
+    save: jest.fn<IAppointmentRepository['save']>(),
+    update: jest.fn<IAppointmentRepository['update']>(),
+    delete: jest.fn<IAppointmentRepository['delete']>(),
+    findByPatientId: jest.fn<IAppointmentRepository['findByPatientId']>(),
+    findByDoctorId: jest.fn<IAppointmentRepository['findByDoctorId']>(),
+    exists: jest.fn<IAppointmentRepository['exists']>(),
+    findAppointmentsForSlots:
+      jest.fn<IAppointmentRepository['findAppointmentsForSlots']>(),
+  } satisfies IAppointmentRepository;
 
   const mockCreateAppointmentUseCase = {
-    execute: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    execute: jest.fn<CreateAppointmentUseCase['execute']>(),
   };
 
   const mockEventEmitter = {
-    emit: jest.fn<(...args: unknown[]) => unknown>(),
+    emit: jest.fn<EventEmitter2['emit']>().mockImplementation(() => true),
   };
 
   const mockPrisma = {
@@ -37,6 +52,13 @@ describe('AppointmentService metric persistence', () => {
   };
 
   let service: AppointmentService;
+  const appointmentRepository = mockAppointmentRepository;
+  const createAppointmentUseCase = Object.create(
+    CreateAppointmentUseCase.prototype,
+  ) as CreateAppointmentUseCase;
+  createAppointmentUseCase.execute = mockCreateAppointmentUseCase.execute;
+  const eventEmitter = Object.create(EventEmitter2.prototype) as EventEmitter2;
+  eventEmitter.emit = mockEventEmitter.emit;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -48,11 +70,24 @@ describe('AppointmentService metric persistence', () => {
     mockPrisma.metricDefinition.createMany.mockResolvedValue({ count: 0 });
     mockPrisma.metricCategory.findFirst.mockResolvedValue({ id: 'cat-1' });
 
+    const prisma = Object.create(PrismaService.prototype) as PrismaService;
+    Object.defineProperties(prisma, {
+      appointment: { value: mockPrisma.appointment, writable: true },
+      vitalSign: { value: mockPrisma.vitalSign, writable: true },
+      metricCategory: { value: mockPrisma.metricCategory, writable: true },
+      metricDefinition: { value: mockPrisma.metricDefinition, writable: true },
+      patientMetricRecord: {
+        value: mockPrisma.patientMetricRecord,
+        writable: true,
+      },
+      $transaction: { value: mockPrisma.$transaction, writable: true },
+    });
+
     service = new AppointmentService(
-      mockAppointmentRepository as never,
-      mockCreateAppointmentUseCase as never,
-      mockPrisma as never,
-      mockEventEmitter as never,
+      appointmentRepository,
+      createAppointmentUseCase,
+      prisma,
+      eventEmitter,
     );
   });
 
@@ -105,13 +140,20 @@ describe('AppointmentService metric persistence', () => {
         { id: 'def-observations', key: 'observations' },
         { id: 'def-consultation-notes', key: 'consultation_notes' },
       ]);
-    mockAppointmentRepository.findById.mockResolvedValue({
-      id: 'apt-2',
-      clinicId: 'clinic-1',
-      patientId: 'patient-1',
-      doctorId: 'doctor-1',
-      status: 'IN_PROGRESS',
-    });
+    mockAppointmentRepository.findById.mockResolvedValue(
+      new Appointment({
+        id: 'apt-2',
+        clinicId: 'clinic-1',
+        patientId: 'patient-1',
+        doctorId: 'doctor-1',
+        startTime: new Date('2026-04-01T11:00:00.000Z'),
+        endTime: new Date('2026-04-01T11:30:00.000Z'),
+        status: AppointmentStatus.confirmed(),
+        createdAt: new Date('2026-04-01T10:45:00.000Z'),
+        updatedAt: new Date('2026-04-01T10:45:00.000Z'),
+        version: 1,
+      }),
+    );
 
     await service.updateAppointmentDetails('apt-2', 'clinic-1', {
       observations: 'Mild fever',

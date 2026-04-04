@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Gender } from '@workspace/db';
 import { PrismaPatientRepository } from './prisma-patient.repository';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('PrismaPatientRepository', () => {
   const mockPatientCount = jest.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -29,7 +30,20 @@ describe('PrismaPatientRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    repository = new PrismaPatientRepository(mockPrismaService as never);
+    const prismaService = Object.create(
+      PrismaService.prototype,
+    ) as PrismaService;
+    Object.defineProperties(prismaService, {
+      getReadClient: {
+        value: mockPrismaService.getReadClient,
+        writable: true,
+      },
+      patient: {
+        value: mockPrismaService.patient,
+        writable: true,
+      },
+    });
+    repository = new PrismaPatientRepository(prismaService);
   });
 
   it('returns count and hasMore metadata for paginated results', async () => {

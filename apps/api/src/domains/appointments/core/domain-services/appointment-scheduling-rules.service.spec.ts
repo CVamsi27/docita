@@ -9,7 +9,7 @@ describe('AppointmentSchedulingRulesService', () => {
 
   const mockPrismaService = {
     appointment: {
-      findMany: jest.fn<() => Promise<unknown[]>>(),
+      findMany: jest.fn<(args: unknown) => Promise<unknown[]>>(),
       findUnique: jest.fn<() => Promise<unknown>>(),
       count: jest.fn<() => Promise<number>>(),
     },
@@ -157,12 +157,15 @@ describe('AppointmentSchedulingRulesService', () => {
         'existing-appt-id',
       );
 
-      const latestCall = mockPrismaService.appointment.findMany.mock.calls.at(
-        -1,
-      ) as unknown as [{ where?: { NOT?: { id?: string } } }] | undefined;
-      const latestCallArgs = latestCall?.[0];
-
-      expect(latestCallArgs?.where?.NOT?.id).toBe('existing-appt-id');
+      const latestCallArgs =
+        mockPrismaService.appointment.findMany.mock.calls.at(-1)?.[0];
+      expect(latestCallArgs).toEqual(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            NOT: expect.objectContaining({ id: 'existing-appt-id' }),
+          }),
+        }),
+      );
     });
   });
 

@@ -43,16 +43,18 @@ describe('ReminderNotificationService', () => {
   let service: ReminderNotificationService;
   let prisma: {
     appointmentReminder: {
-      create: jest.Mock<(_args: AppointmentReminderCreateInput) => Promise<{}>>;
+      create: jest.Mock<
+        (_args: AppointmentReminderCreateInput) => Promise<object>
+      >;
     };
     whatsappLog: {
-      create: jest.Mock<(_args: WhatsappLogCreateInput) => Promise<{}>>;
+      create: jest.Mock<(_args: WhatsappLogCreateInput) => Promise<object>>;
     };
     clinic: {
       findUnique: jest.Mock<
         (
           _args: ClinicFindUniqueInput,
-        ) => Promise<{ whatsappAutomation: {} | null } | null>
+        ) => Promise<{ whatsappAutomation: object | null } | null>
       >;
     };
   };
@@ -112,12 +114,12 @@ describe('ReminderNotificationService', () => {
     const prismaMock = {
       appointmentReminder: {
         create: jest
-          .fn<(_args: AppointmentReminderCreateInput) => Promise<{}>>()
+          .fn<(_args: AppointmentReminderCreateInput) => Promise<object>>()
           .mockResolvedValue({}),
       },
       whatsappLog: {
         create: jest
-          .fn<(_args: WhatsappLogCreateInput) => Promise<{}>>()
+          .fn<(_args: WhatsappLogCreateInput) => Promise<object>>()
           .mockResolvedValue({}),
       },
       clinic: {
@@ -125,7 +127,7 @@ describe('ReminderNotificationService', () => {
           .fn<
             (
               _args: ClinicFindUniqueInput,
-            ) => Promise<{ whatsappAutomation: {} | null } | null>
+            ) => Promise<{ whatsappAutomation: object | null } | null>
           >()
           .mockResolvedValue({ whatsappAutomation: null }),
       },

@@ -3,9 +3,11 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { CsrfInterceptor } from './csrf.interceptor';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function createContext(
   reqOverrides: Partial<{
@@ -24,28 +26,24 @@ function createContext(
     cookie: jest.fn(),
   };
 
-  return {
-    switchToHttp: jest.fn().mockReturnValue({
-      getRequest: jest.fn().mockReturnValue(request),
-      getResponse: jest.fn().mockReturnValue(response),
-    }),
-  } as unknown as ExecutionContext;
+  const context = new ExecutionContextHost([request, response, undefined]);
+  context.setType('http');
+  return context;
 }
 
 describe('CsrfInterceptor', () => {
   let interceptor: CsrfInterceptor;
-  const appConfigService = {
-    isProduction: jest.fn().mockReturnValue(false),
-  };
+  const appConfigService = Object.create(
+    AppConfigService.prototype,
+  ) as AppConfigService;
+  appConfigService.isProduction = jest
+    .fn<() => boolean>()
+    .mockReturnValue(false);
   const next: CallHandler = { handle: () => of({ ok: true }) };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    interceptor = new CsrfInterceptor(
-      appConfigService as unknown as ConstructorParameters<
-        typeof CsrfInterceptor
-      >[0],
-    );
+    interceptor = new CsrfInterceptor(appConfigService);
   });
 
   it('sets CSRF token cookie on safe requests', () => {

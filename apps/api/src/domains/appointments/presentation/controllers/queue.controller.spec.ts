@@ -34,17 +34,67 @@ describe('QueueController', () => {
     jest.clearAllMocks();
   });
 
+  const getQueueUnsafe = (
+    req: {
+      user: {
+        id: string;
+        clinicId: string;
+        role: string;
+      };
+    },
+    doctorId?: string,
+    search?: string,
+  ) =>
+    (
+      controller.getQueue as (
+        req: {
+          user: {
+            id: string;
+            clinicId: string;
+            role: string;
+          };
+        },
+        doctorId?: string,
+        search?: string,
+      ) => ReturnType<QueueController['getQueue']>
+    )(req, doctorId, search);
+
+  const getTodayQueueUnsafe = (
+    req: {
+      user: {
+        id: string;
+        clinicId: string;
+        role: string;
+      };
+    },
+    doctorId?: string,
+    search?: string,
+  ) =>
+    (
+      controller.getTodayQueue as (
+        req: {
+          user: {
+            id: string;
+            clinicId: string;
+            role: string;
+          };
+        },
+        doctorId?: string,
+        search?: string,
+      ) => ReturnType<QueueController['getTodayQueue']>
+    )(req, doctorId, search);
+
   it('forces doctors to their own queue scope even when another doctorId is requested', async () => {
     mockQueueService.getQueue.mockResolvedValue([]);
 
-    await controller.getQueue(
+    await getQueueUnsafe(
       {
         user: {
           id: 'doctor-1',
           clinicId: 'clinic-1',
           role: 'DOCTOR',
         },
-      } as never,
+      },
       'doctor-2',
       'john',
     );
@@ -59,14 +109,14 @@ describe('QueueController', () => {
   it('allows clinic-wide roles to filter by any doctor id', async () => {
     mockQueueService.getQueue.mockResolvedValue([]);
 
-    await controller.getQueue(
+    await getQueueUnsafe(
       {
         user: {
           id: 'admin-doctor-1',
           clinicId: 'clinic-1',
           role: 'ADMIN_DOCTOR',
         },
-      } as never,
+      },
       'doctor-2',
       undefined,
     );
@@ -84,14 +134,14 @@ describe('QueueController', () => {
       stats: {},
     });
 
-    await controller.getTodayQueue(
+    await getTodayQueueUnsafe(
       {
         user: {
           id: 'doctor-1',
           clinicId: 'clinic-1',
           role: 'DOCTOR',
         },
-      } as never,
+      },
       'doctor-2',
       undefined,
     );

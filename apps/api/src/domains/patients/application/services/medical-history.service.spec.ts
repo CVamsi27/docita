@@ -90,13 +90,20 @@ describe('MedicalHistoryService', () => {
 
   describe('createCondition', () => {
     it('should call factory and prisma create', async () => {
-      const input = { conditionName: 'Flu' };
-      const validated = { ...input, conditionType: 'ACUTE' };
+      const input: Parameters<MedicalHistoryService['createCondition']>[1] = {
+        conditionName: 'Flu',
+        conditionType: 'ACUTE',
+        status: 'ACTIVE',
+        notes: 'Acute viral infection',
+        diagnosedBy: 'Dr. Smith',
+        sourceType: 'MANUAL',
+      };
+      const validated = { ...input, severity: 'MILD' };
       const patientId = 'p123';
 
       mockFactory.createCondition.mockReturnValue(validated);
 
-      await service.createCondition(patientId, input as never);
+      await service.createCondition(patientId, input);
 
       expect(factory.createCondition).toHaveBeenCalledWith(input);
       expect(

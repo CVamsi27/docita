@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AppointmentStatus } from '@workspace/db';
 import { PrismaAppointmentRepository } from './prisma-appointment.repository';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('PrismaAppointmentRepository', () => {
   const mockAppointmentCount =
@@ -61,7 +62,20 @@ describe('PrismaAppointmentRepository', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    repository = new PrismaAppointmentRepository(mockPrismaService as never);
+    const prismaService = Object.create(
+      PrismaService.prototype,
+    ) as PrismaService;
+    Object.defineProperties(prismaService, {
+      getReadClient: {
+        value: mockPrismaService.getReadClient,
+        writable: true,
+      },
+      appointment: {
+        value: mockPrismaService.appointment,
+        writable: true,
+      },
+    });
+    repository = new PrismaAppointmentRepository(prismaService);
   });
 
   it('uses cursor pagination with skip and deterministic ordering', async () => {

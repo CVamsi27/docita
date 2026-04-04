@@ -16,22 +16,25 @@ describe('RazorpayOrderAdapter.capturePayment', () => {
     },
   };
 
-  const mockRazorpayClient = {
-    getClient: jest.fn<() => unknown>(),
-    isAvailable: jest.fn<() => boolean>(),
-  };
-
-  const mockConfigService = {
-    get: jest.fn<(...args: unknown[]) => unknown>(),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRazorpayClient.getClient = jest.fn().mockReturnValue(mockRazorpay);
-    adapter = new RazorpayOrderAdapter(
-      mockRazorpayClient as unknown as RazorpayClientService,
-      mockConfigService as unknown as ConfigService,
-    );
+    const configService = Object.create(
+      ConfigService.prototype,
+    ) as ConfigService;
+    configService.get = ((propertyPath: string) => {
+      if (propertyPath === 'RAZORPAY_KEY_ID') {
+        return 'rzp_test_key';
+      }
+      if (propertyPath === 'RAZORPAY_KEY_SECRET') {
+        return 'rzp_test_secret';
+      }
+      return undefined;
+    }) as ConfigService['get'];
+
+    const razorpayClient = new RazorpayClientService(configService);
+    Reflect.set(razorpayClient, 'razorpay', mockRazorpay);
+
+    adapter = new RazorpayOrderAdapter(razorpayClient, configService);
   });
 
   it('captures the first authorized payment for an order', async () => {
