@@ -15,6 +15,8 @@ describe('PublicStatsController (e2e)', () => {
   };
 
   beforeEach(async () => {
+    mockPublicStatsService.getPlatformStats.mockReset();
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -49,6 +51,18 @@ describe('PublicStatsController (e2e)', () => {
       .get('/public/platform-stats')
       .expect(200)
       .expect(payload);
+
+    expect(mockPublicStatsService.getPlatformStats).toHaveBeenCalledTimes(1);
+  });
+
+  it('GET /public/platform-stats returns 500 when stats service throws', async () => {
+    mockPublicStatsService.getPlatformStats.mockRejectedValue(
+      new Error('stats unavailable'),
+    );
+
+    await request(app.getHttpServer())
+      .get('/public/platform-stats')
+      .expect(500);
 
     expect(mockPublicStatsService.getPlatformStats).toHaveBeenCalledTimes(1);
   });
