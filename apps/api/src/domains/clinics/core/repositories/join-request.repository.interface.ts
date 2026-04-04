@@ -1,7 +1,14 @@
+import {
+  JoinRequestStatus,
+  MemberJoinRequest,
+  Prisma,
+  Role,
+} from '@workspace/db';
+
 export interface JoinRequestCreateInput {
   userId: string;
   clinicId: string;
-  requestedRole: string;
+  requestedRole: Role;
   message?: string;
   expiresAt: Date;
 }
@@ -12,7 +19,7 @@ export interface JoinRequestApproveInput {
   clinicId: string;
   approvedById: string;
   approvedByName: string;
-  finalRole: string;
+  finalRole: Role;
   welcomeMessage?: string;
 }
 
@@ -29,12 +36,65 @@ export interface JoinRequestWithdrawInput {
   userId: string;
 }
 
+export type MemberJoinRequestWithRelations =
+  Prisma.MemberJoinRequestGetPayload<{
+    include: {
+      user: {
+        select: {
+          id: true;
+          name: true;
+          email: true;
+        };
+      };
+      clinic: {
+        select: {
+          id: true;
+          name: true;
+        };
+      };
+    };
+  }>;
+
+export type PendingJoinRequestWithClinic = Prisma.MemberJoinRequestGetPayload<{
+  include: {
+    clinic: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+  };
+}>;
+
+export type ClinicJoinRequestItem = Prisma.MemberJoinRequestGetPayload<{
+  include: {
+    user: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+        phoneNumber: true;
+      };
+    };
+  };
+}>;
+
 export interface IJoinRequestRepository {
-  create(input: JoinRequestCreateInput): Promise<unknown>;
-  findById(id: string): Promise<unknown | null>;
-  findPending(userId: string, clinicId: string): Promise<unknown | null>;
-  findUserPendingRequests(userId: string): Promise<unknown[]>;
-  findByClinic(clinicId: string, status?: string): Promise<unknown[]>;
+  create(
+    input: JoinRequestCreateInput,
+  ): Promise<MemberJoinRequestWithRelations>;
+  findById(id: string): Promise<MemberJoinRequestWithRelations | null>;
+  findPending(
+    userId: string,
+    clinicId: string,
+  ): Promise<MemberJoinRequest | null>;
+  findUserPendingRequests(
+    userId: string,
+  ): Promise<PendingJoinRequestWithClinic[]>;
+  findByClinic(
+    clinicId: string,
+    status?: JoinRequestStatus,
+  ): Promise<ClinicJoinRequestItem[]>;
   approve(input: JoinRequestApproveInput): Promise<void>;
   reject(input: JoinRequestRejectInput): Promise<void>;
   withdraw(input: JoinRequestWithdrawInput): Promise<void>;

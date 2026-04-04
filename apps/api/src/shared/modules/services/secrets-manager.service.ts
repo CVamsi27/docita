@@ -12,6 +12,12 @@ export class SecretsManagerService {
     this.initializeSecretsProvider();
   }
 
+  private getEnvSecret(secretName: string): string | undefined {
+    const config = this.configService.getConfig() as Record<string, unknown>;
+    const value = config[secretName];
+    return typeof value === 'string' ? value : undefined;
+  }
+
   private initializeSecretsProvider(): void {
     const nodeEnv = this.configService.getEnvironment();
     const secretsProvider = this.configService.getSecretsProvider();
@@ -50,12 +56,7 @@ export class SecretsManagerService {
     } else if ((provider as string) === 'vault') {
       secretValue = this.getFromHashiCorpVault(secretName);
     } else {
-      secretValue = (
-        this.configService.getConfig() as unknown as Record<
-          string,
-          string | undefined
-        >
-      )[secretName];
+      secretValue = this.getEnvSecret(secretName);
     }
 
     if (secretValue && cached) {
@@ -88,24 +89,13 @@ export class SecretsManagerService {
       this.logger.warn(
         `AWS Secrets Manager integration not yet implemented for ${secretName}`,
       );
-      return (
-        this.configService.getConfig() as unknown as Record<
-          string,
-          string | undefined
-        >
-      )[secretName];
+      return this.getEnvSecret(secretName);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
         `Failed to fetch secret from AWS Secrets Manager: ${errorMsg}`,
       );
-
-      return (
-        this.configService.getConfig() as unknown as Record<
-          string,
-          string | undefined
-        >
-      )[secretName];
+      return this.getEnvSecret(secretName);
     }
   }
 
@@ -114,24 +104,13 @@ export class SecretsManagerService {
       this.logger.warn(
         `HashiCorp Vault integration not yet implemented for ${secretName}`,
       );
-      return (
-        this.configService.getConfig() as unknown as Record<
-          string,
-          string | undefined
-        >
-      )[secretName];
+      return this.getEnvSecret(secretName);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(
         `Failed to fetch secret from HashiCorp Vault: ${errorMsg}`,
       );
-
-      return (
-        this.configService.getConfig() as unknown as Record<
-          string,
-          string | undefined
-        >
-      )[secretName];
+      return this.getEnvSecret(secretName);
     }
   }
 

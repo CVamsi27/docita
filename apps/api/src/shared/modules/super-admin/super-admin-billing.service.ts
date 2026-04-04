@@ -25,6 +25,10 @@ interface BillingTierInfo {
 export class SuperAdminBillingService {
   constructor(private prisma: PrismaService) {}
 
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
   private subDays(date: Date, days: number): Date {
     const result = new Date(date);
     result.setDate(result.getDate() - days);
@@ -646,7 +650,7 @@ export class SuperAdminBillingService {
       ? this.prisma.featureFlag.update({
           where: { id: existing.id },
           data: {
-            value: payload as unknown as Prisma.InputJsonValue,
+            value: this.toInputJsonValue(payload),
             description: 'Clinic pricing offer',
           },
         })
@@ -654,7 +658,7 @@ export class SuperAdminBillingService {
           data: {
             key: PRICING_OFFER_FLAG,
             clinicId,
-            value: payload as unknown as Prisma.InputJsonValue,
+            value: this.toInputJsonValue(payload),
             description: 'Clinic pricing offer',
           },
         });

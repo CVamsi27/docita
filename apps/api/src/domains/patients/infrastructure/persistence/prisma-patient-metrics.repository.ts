@@ -104,7 +104,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       },
     });
 
-    return categories as unknown as MetricCategoryRow[];
+    return categories as MetricCategoryRow[];
   }
 
   async findSelections(clinicId: string, patientId: string) {
@@ -112,7 +112,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       where: { clinicId, patientId },
     });
 
-    return selections as unknown as MetricSelectionRow[];
+    return selections as MetricSelectionRow[];
   }
 
   createCategory(clinicId: string, dto: CreateMetricCategoryDto) {
@@ -124,7 +124,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
         description: dto.description?.trim(),
         order: dto.order ?? 0,
       },
-    }) as unknown as Promise<Record<string, unknown>>;
+    }) as Promise<Record<string, unknown>>;
   }
 
   findActiveCategory(clinicId: string, categoryId: string) {
@@ -134,7 +134,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
         clinicId,
         isActive: true,
       },
-    }) as unknown as Promise<Record<string, unknown> | null>;
+    }) as Promise<Record<string, unknown> | null>;
   }
 
   createDefinition(
@@ -174,7 +174,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
           orderBy: [{ order: 'asc' }, { label: 'asc' }],
         },
       },
-    }) as unknown as Promise<Record<string, unknown>>;
+    }) as Promise<Record<string, unknown>>;
   }
 
   async findDefinitionsForSelections(
@@ -191,7 +191,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       select: { id: true },
     });
 
-    return definitions as unknown as MetricDefinitionExistsRow[];
+    return definitions as MetricDefinitionExistsRow[];
   }
 
   async upsertSelectionsBatch(
@@ -245,7 +245,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       orderBy: [{ order: 'asc' }, { label: 'asc' }],
     });
 
-    return definitions as unknown as MetricDefinitionRow[];
+    return definitions as MetricDefinitionRow[];
   }
 
   async findActiveDefinition(
@@ -262,7 +262,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       },
     });
 
-    return definition as unknown as MetricDefinitionLookupRow;
+    return definition as MetricDefinitionLookupRow;
   }
 
   createMetricRecord(
@@ -311,7 +311,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
           },
         },
       },
-    }) as unknown as Promise<Record<string, unknown>>;
+    }) as Promise<Record<string, unknown>>;
   }
 
   async findMetricHistory(
@@ -368,6 +368,6 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       take: query.limit ?? 200,
     });
 
-    return records as unknown as MetricRecordRow[];
+    return records as MetricRecordRow[];
   }
 }

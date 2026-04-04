@@ -22,7 +22,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
     });
   }
 
-  async create(data: CreateClinicInput): Promise<unknown> {
+  async create(data: CreateClinicInput) {
     return this.prisma.clinic.create({
       data: {
         name: data.name,
@@ -30,16 +30,16 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
         phone: data.phone,
         address: data.address,
         logo: data.logo,
-        tier: data.tier as never,
-        type: data.type as never,
+        tier: data.tier,
+        type: data.type,
         referralCode: data.referralCode,
-        subscriptionStatus: data.subscriptionStatus as never,
-        settings: data.settings as never,
+        subscriptionStatus: data.subscriptionStatus,
+        settings: data.settings,
       },
     });
   }
 
-  async findAll(): Promise<unknown[]> {
+  async findAll() {
     return this.prisma.clinic.findMany({
       where: { active: true },
       include: {
@@ -55,7 +55,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
     });
   }
 
-  async findById(id: string): Promise<unknown | null> {
+  async findById(id: string) {
     return this.prisma.clinic.findUnique({
       where: { id },
       include: {
@@ -77,7 +77,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
     });
   }
 
-  async update(id: string, data: UpdateClinicInput): Promise<unknown> {
+  async update(id: string, data: UpdateClinicInput) {
     return this.prisma.clinic.update({
       where: { id },
       data: {
@@ -86,21 +86,21 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
         phone: data.phone,
         email: data.email,
         logo: data.logo,
-        tier: data.tier as never,
-        type: data.type as never,
-        settings: data.settings as never,
+        tier: data.tier,
+        type: data.type,
+        settings: data.settings,
       },
     });
   }
 
-  async softDelete(id: string): Promise<unknown> {
+  async softDelete(id: string) {
     return this.prisma.clinic.update({
       where: { id },
       data: { active: false },
     });
   }
 
-  async findDoctorClinics(doctorId: string): Promise<unknown[]> {
+  async findDoctorClinics(doctorId: string) {
     return this.prisma.doctorClinic.findMany({
       where: { doctorId, active: true },
       select: {
@@ -173,7 +173,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
   async joinClinic(
     userId: string,
     clinicId: string,
-    userRole: string,
+    userRole: Role,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.user.update({

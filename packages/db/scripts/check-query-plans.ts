@@ -155,7 +155,7 @@ async function run(): Promise<void> {
   let hasFailure = false;
 
   await prisma.$transaction(async (tx) => {
-    const explainClient = tx as unknown as ExplainClient;
+    const explainClient: ExplainClient = tx;
     await explainClient.$executeRawUnsafe("SET LOCAL enable_seqscan = off");
     await explainClient.$executeRawUnsafe("SET LOCAL enable_sort = off");
     await explainClient.$executeRawUnsafe("SET LOCAL enable_bitmapscan = off");

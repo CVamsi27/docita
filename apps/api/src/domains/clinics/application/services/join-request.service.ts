@@ -41,39 +41,31 @@ export class JoinRequestService {
     });
 
     this.logger.log('Join request created', {
-      requestId: (request as MemberJoinRequest).id,
+      requestId: request.id,
     });
-    return request as unknown as MemberJoinRequest;
+    return request;
   }
 
   async findById(id: string): Promise<MemberJoinRequest | null> {
-    return (await this.repository.findById(id)) as MemberJoinRequest | null;
+    return await this.repository.findById(id);
   }
 
   async findPending(
     userId: string,
     clinicId: string,
   ): Promise<MemberJoinRequest | null> {
-    return (await this.repository.findPending(
-      userId,
-      clinicId,
-    )) as MemberJoinRequest | null;
+    return await this.repository.findPending(userId, clinicId);
   }
 
   async findUserPendingRequests(userId: string): Promise<MemberJoinRequest[]> {
-    return (await this.repository.findUserPendingRequests(
-      userId,
-    )) as MemberJoinRequest[];
+    return await this.repository.findUserPendingRequests(userId);
   }
 
   async findByClinic(
     clinicId: string,
     status?: JoinRequestStatus,
   ): Promise<MemberJoinRequest[]> {
-    return (await this.repository.findByClinic(
-      clinicId,
-      status,
-    )) as MemberJoinRequest[];
+    return await this.repository.findByClinic(clinicId, status);
   }
 
   async approve(

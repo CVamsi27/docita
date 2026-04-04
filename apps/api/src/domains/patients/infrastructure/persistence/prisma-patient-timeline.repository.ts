@@ -2,15 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IPatientTimelineRepository } from '@/domains/patients/core/repositories/patient-timeline.repository.interface';
 
-type PrismaWithOptional = PrismaService & {
-  patientMetricRecord?: {
-    findMany: (args: unknown) => Promise<unknown[]>;
-  };
-  immunization?: {
-    findMany: (args: unknown) => Promise<unknown[]>;
-  };
-};
-
 function dateRange(
   field: string,
   from?: Date,
@@ -112,14 +103,11 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    const extended = this.prisma as unknown as PrismaWithOptional;
-    if (!extended.patientMetricRecord) return [];
-
-    return extended.patientMetricRecord.findMany({
+    return this.prisma.patientMetricRecord.findMany({
       where: { patientId, clinicId, ...dateRange('recordedAt', from, to) },
       include: {
         values: {
-          include: { definition: { select: { label: true } } },
+          include: { option: { select: { label: true } } },
           take: 3,
         },
       },
@@ -186,13 +174,9 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    const extended = this.prisma as unknown as PrismaWithOptional;
-    if (!extended.immunization) return [];
-
-    return extended.immunization.findMany({
+    return this.prisma.immunization.findMany({
       where: {
         patientId,
-        clinicId,
         ...dateRange('administeredDate', from, to),
       },
       select: {
@@ -310,13 +294,16 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     clinicId: string,
     medicationId: string,
   ): Promise<Array<{ status: string; _count: { status: number } }>> {
-    return this.prisma.medicationDose.groupBy({
+    const rows = await this.prisma.medicationDose.groupBy({
       by: ['status'],
       where: { medicationId, patientId, clinicId },
       _count: { status: true },
-    }) as unknown as Promise<
-      Array<{ status: string; _count: { status: number } }>
-    >;
+    });
+
+    return rows.map((row) => ({
+      status: row.status,
+      _count: { status: row._count.status },
+    }));
   }
 
   async groupMedicationDosesByMedicationIds(
@@ -330,7 +317,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
       return [];
     }
 
-    return this.prisma.medicationDose.groupBy({
+    const rows = await this.prisma.medicationDose.groupBy({
       by: ['medicationId', 'status'],
       where: {
         medicationId: { in: medicationIds },
@@ -338,12 +325,12 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
         clinicId,
       },
       _count: { status: true },
-    }) as unknown as Promise<
-      Array<{
-        medicationId: string;
-        status: string;
-        _count: { status: number };
-      }>
-    >;
+    });
+
+    return rows.map((row) => ({
+      medicationId: row.medicationId,
+      status: row.status,
+      _count: { status: row._count.status },
+    }));
   }
 }

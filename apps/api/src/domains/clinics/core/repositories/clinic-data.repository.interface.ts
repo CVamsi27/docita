@@ -1,14 +1,23 @@
+import {
+  Clinic,
+  ClinicTier,
+  ClinicType,
+  Prisma,
+  Role,
+  SubscriptionStatus,
+} from '@workspace/db';
+
 export interface CreateClinicInput {
   name: string;
   email: string;
   phone: string;
   address: string;
   logo?: string;
-  tier?: string;
-  type?: string;
+  tier?: ClinicTier;
+  type?: ClinicType;
   referralCode: string;
-  subscriptionStatus?: string;
-  settings?: Record<string, unknown>;
+  subscriptionStatus?: SubscriptionStatus;
+  settings?: Prisma.InputJsonValue;
 }
 
 export interface UpdateClinicInput {
@@ -17,9 +26,9 @@ export interface UpdateClinicInput {
   phone?: string;
   email?: string;
   logo?: string;
-  tier?: string;
-  type?: string;
-  settings?: Record<string, unknown>;
+  tier?: ClinicTier;
+  type?: ClinicType;
+  settings?: Prisma.InputJsonValue;
 }
 
 export interface ClinicStats {
@@ -46,18 +55,70 @@ export interface ClinicSearchResult {
 
 export interface UserForClinicJoin {
   id: string;
-  role: string;
+  role: Role;
   clinicId: string | null;
 }
 
+export type ClinicListItem = Prisma.ClinicGetPayload<{
+  include: {
+    _count: {
+      select: {
+        users: true;
+        patients: true;
+        appointments: true;
+      };
+    };
+  };
+}>;
+
+export type ClinicDetailsItem = Prisma.ClinicGetPayload<{
+  include: {
+    users: {
+      select: {
+        id: true;
+        name: true;
+        email: true;
+        role: true;
+      };
+    };
+    _count: {
+      select: {
+        patients: true;
+        appointments: true;
+      };
+    };
+  };
+}>;
+
+export type DoctorClinicItem = Prisma.DoctorClinicGetPayload<{
+  select: {
+    clinic: {
+      select: {
+        id: true;
+        name: true;
+        address: true;
+        phone: true;
+        email: true;
+        website: true;
+        tier: true;
+        logo: true;
+        active: true;
+        settings: true;
+        createdAt: true;
+        updatedAt: true;
+      };
+    };
+  };
+}>;
+
 export interface IClinicDataRepository {
   findByReferralCode(code: string): Promise<{ id: string } | null>;
-  create(data: CreateClinicInput): Promise<unknown>;
-  findAll(): Promise<unknown[]>;
-  findById(id: string): Promise<unknown | null>;
-  update(id: string, data: UpdateClinicInput): Promise<unknown>;
-  softDelete(id: string): Promise<unknown>;
-  findDoctorClinics(doctorId: string): Promise<unknown[]>;
+  create(data: CreateClinicInput): Promise<Clinic>;
+  findAll(): Promise<ClinicListItem[]>;
+  findById(id: string): Promise<ClinicDetailsItem | null>;
+  update(id: string, data: UpdateClinicInput): Promise<Clinic>;
+  softDelete(id: string): Promise<Clinic>;
+  findDoctorClinics(doctorId: string): Promise<DoctorClinicItem[]>;
   getStats(clinicId: string): Promise<ClinicStats>;
   findUserForJoin(userId: string): Promise<UserForClinicJoin | null>;
   findClinicByCodeOrEmail(

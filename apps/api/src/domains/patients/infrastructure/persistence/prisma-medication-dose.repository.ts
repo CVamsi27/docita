@@ -3,8 +3,10 @@ import { Prisma } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IMedicationDoseRepository,
+  MedicationDoseHistoryRow,
   MedicationWithPrescription,
   DoseAdherenceStat,
+  PrescriptionWithMedications,
 } from '@/domains/patients/core/repositories/medication-dose.repository.interface';
 
 @Injectable()
@@ -30,7 +32,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
       include: {
         prescription: { select: { id: true, patientId: true, date: true } },
       },
-    }) as Promise<MedicationWithPrescription | null>;
+    });
   }
 
   async createDose(data: Prisma.MedicationDoseUncheckedCreateInput) {
@@ -48,9 +50,9 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   }
 
   async findDoses(
-    where: Record<string, unknown>,
+    where: Prisma.MedicationDoseWhereInput,
     options: { take: number; skip: number },
-  ): Promise<unknown[]> {
+  ): Promise<MedicationDoseHistoryRow[]> {
     return this.prisma.medicationDose.findMany({
       where,
       include: {
@@ -62,18 +64,23 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
     });
   }
 
-  async countDoses(where: Record<string, unknown>): Promise<number> {
+  async countDoses(where: Prisma.MedicationDoseWhereInput): Promise<number> {
     return this.prisma.medicationDose.count({ where });
   }
 
   async groupDosesByStatus(
-    where: Record<string, unknown>,
+    where: Prisma.MedicationDoseWhereInput,
   ): Promise<DoseAdherenceStat[]> {
-    return this.prisma.medicationDose.groupBy({
+    const rows = await this.prisma.medicationDose.groupBy({
       by: ['status'],
       where,
       _count: { status: true },
-    }) as unknown as Promise<DoseAdherenceStat[]>;
+    });
+
+    return rows.map((row) => ({
+      status: row.status,
+      _count: { status: row._count.status },
+    }));
   }
 
   async createManyDoses(
@@ -88,7 +95,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   async findPrescriptionsWithMedications(
     patientId: string,
     take: number,
-  ): Promise<unknown[]> {
+  ): Promise<PrescriptionWithMedications[]> {
     return this.prisma.prescription.findMany({
       where: { patientId },
       include: { medications: true },
@@ -100,7 +107,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   async findPrescriptionById(
     id: string,
     patientId: string,
-  ): Promise<unknown | null> {
+  ): Promise<PrescriptionWithMedications | null> {
     return this.prisma.prescription.findFirst({
       where: { id, patientId },
       include: { medications: true },

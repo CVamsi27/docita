@@ -14,7 +14,7 @@ import {
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Role } from '@workspace/db';
+import { Prisma, Role, VitalSign } from '@workspace/db';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -173,7 +173,7 @@ export class AppointmentsController {
     return this.appointmentService.updateAppointmentDetails(
       id,
       req.user!.clinicId!,
-      body as never,
+      body as Prisma.AppointmentUpdateInput,
       this.getAccessContext(req),
     );
   }
@@ -202,7 +202,7 @@ export class AppointmentsController {
     return this.appointmentService.createVitals(
       id,
       req.user!.clinicId!,
-      body as never,
+      body as Partial<VitalSign>,
       this.getAccessContext(req),
     );
   }
@@ -217,7 +217,7 @@ export class AppointmentsController {
     return this.appointmentService.updateVitals(
       id,
       req.user!.clinicId!,
-      body as never,
+      body as Partial<VitalSign>,
       this.getAccessContext(req),
     );
   }

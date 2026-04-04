@@ -26,6 +26,29 @@ export class RazorpaySubscriptionAdapter
 {
   private readonly logger = new Logger(RazorpaySubscriptionAdapter.name);
 
+  private toRazorpaySubscriptionResponse(
+    value: unknown,
+  ): RazorpaySubscriptionResponse {
+    if (!value || typeof value !== 'object') {
+      throw new BadRequestException('Invalid Razorpay subscription response');
+    }
+
+    const raw = value as Record<string, unknown>;
+    return {
+      id: typeof raw.id === 'string' ? raw.id : '',
+      customer_id: typeof raw.customer_id === 'string' ? raw.customer_id : '',
+      plan_id: typeof raw.plan_id === 'string' ? raw.plan_id : '',
+      status: typeof raw.status === 'string' ? raw.status : '',
+      current_start:
+        typeof raw.current_start === 'number' ? raw.current_start : 0,
+      current_end: typeof raw.current_end === 'number' ? raw.current_end : 0,
+      notes:
+        raw.notes && typeof raw.notes === 'object' && !Array.isArray(raw.notes)
+          ? Object.fromEntries(Object.entries(raw.notes))
+          : {},
+    };
+  }
+
   async createCustomer(
     request: CreateCustomerRequest,
   ): Promise<PaymentGatewayCustomer> {
@@ -143,13 +166,13 @@ export class RazorpaySubscriptionAdapter
           start_at: Math.floor(request.startDate.getTime() / 1000),
         }),
         ...(request.trialPeriodDays && {
-          customer_notify: 0,
+          customer_notify: 0 as const,
         }),
         notes: request.metadata || {},
       };
-      const subscription = (await razorpay.subscriptions.create(
-        createArgs as never,
-      )) as unknown as RazorpaySubscriptionResponse;
+      const subscription = this.toRazorpaySubscriptionResponse(
+        await razorpay.subscriptions.create(createArgs),
+      );
 
       return {
         id: subscription.id,
@@ -172,9 +195,9 @@ export class RazorpaySubscriptionAdapter
   ): Promise<PaymentGatewaySubscription | null> {
     try {
       const razorpay = this.getClient();
-      const subscription = (await razorpay.subscriptions.fetch(
-        subscriptionId,
-      )) as unknown as RazorpaySubscriptionResponse;
+      const subscription = this.toRazorpaySubscriptionResponse(
+        await razorpay.subscriptions.fetch(subscriptionId),
+      );
 
       return {
         id: subscription.id,

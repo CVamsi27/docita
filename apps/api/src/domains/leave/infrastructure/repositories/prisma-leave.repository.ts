@@ -7,7 +7,7 @@ import {
 import { StaffLeave, LeavePlan, Prisma } from '@workspace/db';
 
 const staffInclude = {
-  staff: { select: { id: true, name: true, email: true } },
+  staff: { select: { id: true, name: true, email: true, role: true } },
   approver: { select: { id: true, name: true } },
 } as const;
 
@@ -30,11 +30,8 @@ export class PrismaLeaveRepository implements ILeaveRepository {
   ): Promise<StaffLeaveWithRelations | null> {
     return this.prisma.staffLeave.findUnique({
       where: { id },
-      include: {
-        staff: { select: { id: true, name: true, email: true, role: true } },
-        approver: { select: { id: true, name: true } },
-      },
-    }) as Promise<StaffLeaveWithRelations | null>;
+      include: staffInclude,
+    });
   }
 
   async updateLeave(

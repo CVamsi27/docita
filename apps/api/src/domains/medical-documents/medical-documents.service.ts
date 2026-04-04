@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
   Logger,
   Inject,
 } from '@nestjs/common';
@@ -9,7 +10,11 @@ import {
   IMedicalDocumentsRepository,
   MEDICAL_DOCUMENTS_REPOSITORY_TOKEN,
 } from '@/domains/medical-documents/core/repositories/medical-documents.repository.interface';
-import { MedicalDocumentStatus, Prisma } from '@workspace/db';
+import {
+  MedicalDocumentStatus,
+  MedicalDocumentType,
+  Prisma,
+} from '@workspace/db';
 
 @Injectable()
 export class MedicalDocumentsService {
@@ -19,6 +24,24 @@ export class MedicalDocumentsService {
     @Inject(MEDICAL_DOCUMENTS_REPOSITORY_TOKEN)
     private readonly medicalDocumentsRepository: IMedicalDocumentsRepository,
   ) {}
+
+  private toMedicalDocumentType(rawType: string): MedicalDocumentType {
+    const normalized = rawType.trim().toUpperCase();
+    const legacyAliases: Record<string, MedicalDocumentType> = {
+      FIT_TO_WORK: MedicalDocumentType.FITNESS_CERTIFICATE,
+    };
+
+    if (legacyAliases[normalized]) {
+      return legacyAliases[normalized];
+    }
+
+    if ((Object.values(MedicalDocumentType) as string[]).includes(normalized)) {
+      return normalized as MedicalDocumentType;
+    }
+    throw new BadRequestException(
+      `Unsupported medical document type: ${rawType}`,
+    );
+  }
 
   async create(data: {
     type: string;
@@ -32,7 +55,7 @@ export class MedicalDocumentsService {
     validUntil?: string;
   }) {
     return this.medicalDocumentsRepository.create({
-      type: data.type as never,
+      type: this.toMedicalDocumentType(data.type),
       patient: { connect: { id: data.patientId } },
       doctor: { connect: { id: data.doctorId } },
       clinic: { connect: { id: data.clinicId } },

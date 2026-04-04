@@ -120,7 +120,7 @@ export class SearchService {
     patient: boolean;
     appointment: boolean;
   }> {
-    const prismaWithUnsafeRaw = this.prisma as unknown as {
+    const prismaWithUnsafeRaw = this.prisma as {
       $queryRawUnsafe?: <T = unknown>(query: string) => Promise<T>;
     };
 

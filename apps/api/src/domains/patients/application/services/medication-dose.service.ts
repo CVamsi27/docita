@@ -5,7 +5,11 @@ import {
   BadRequestException,
   Inject,
 } from '@nestjs/common';
-import { MedicationDoseStatus, MedicationDoseSource } from '@workspace/db';
+import {
+  MedicationDoseSource,
+  MedicationDoseStatus,
+  Prisma,
+} from '@workspace/db';
 import {
   IMedicationDoseRepository,
   MEDICATION_DOSE_REPOSITORY_TOKEN,
@@ -136,7 +140,7 @@ export class MedicationDoseService {
       throw new NotFoundException('Medication dose not found');
     }
 
-    const data: Record<string, unknown> = {};
+    const data: Prisma.MedicationDoseUpdateInput = {};
     if (dto.status !== undefined) data.status = dto.status;
     if (dto.takenAt !== undefined) data.takenAt = dto.takenAt;
     if (dto.notes !== undefined) data.notes = dto.notes;
@@ -155,17 +159,14 @@ export class MedicationDoseService {
   ) {
     await this.verifyPatientAccess(clinicId, patientId);
 
-    const where: Record<string, unknown> = { patientId, clinicId };
+    const where: Prisma.MedicationDoseWhereInput = { patientId, clinicId };
     if (query.prescriptionId) where.prescriptionId = query.prescriptionId;
     if (query.status) where.status = query.status;
     if (query.from || query.to) {
-      where.scheduledAt = {};
-      if (query.from)
-        (where.scheduledAt as Record<string, unknown>).gte = new Date(
-          query.from,
-        );
-      if (query.to)
-        (where.scheduledAt as Record<string, unknown>).lte = new Date(query.to);
+      where.scheduledAt = {
+        ...(query.from ? { gte: new Date(query.from) } : {}),
+        ...(query.to ? { lte: new Date(query.to) } : {}),
+      };
     }
 
     const limit = query.limit ?? 20;
@@ -186,7 +187,7 @@ export class MedicationDoseService {
   ) {
     await this.verifyPatientAccess(clinicId, patientId);
 
-    const where: Record<string, unknown> = {
+    const where: Prisma.MedicationDoseWhereInput = {
       patientId,
       clinicId,
       source: {
@@ -221,25 +222,7 @@ export class MedicationDoseService {
     const now = new Date();
 
     const prescriptions =
-      (await this.repository.findPrescriptionsWithMedications(
-        patientId,
-        10,
-      )) as Array<{
-        id: string;
-        date: Date;
-        medications: Array<{
-          id: string;
-          name: string;
-          dosage: string;
-          frequency: string;
-          duration: string;
-          route: string;
-          startDate: Date | null;
-          endDate: Date | null;
-          isPRN: boolean;
-          prnInstructions: string | null;
-        }>;
-      }>;
+      await this.repository.findPrescriptionsWithMedications(patientId, 10);
 
     const activeMedications: Array<{
       medicationId: string;
@@ -307,21 +290,10 @@ export class MedicationDoseService {
     patientId: string,
     prescriptionId: string,
   ) {
-    const prescription = (await this.repository.findPrescriptionById(
+    const prescription = await this.repository.findPrescriptionById(
       prescriptionId,
       patientId,
-    )) as {
-      id: string;
-      date: Date;
-      medications: Array<{
-        id: string;
-        isPRN: boolean;
-        sigCode: string | null;
-        frequency: string;
-        duration: string;
-        startDate: Date | null;
-      }>;
-    } | null;
+    );
 
     if (!prescription) {
       throw new NotFoundException('Prescription not found');

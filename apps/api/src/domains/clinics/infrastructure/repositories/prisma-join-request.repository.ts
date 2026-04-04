@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JoinRequestStatus, Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IJoinRequestRepository,
@@ -17,13 +18,13 @@ const JOIN_REQUEST_WITH_RELATIONS = {
 export class PrismaJoinRequestRepository implements IJoinRequestRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(input: JoinRequestCreateInput): Promise<unknown> {
+  async create(input: JoinRequestCreateInput) {
     const [request] = await this.prisma.$transaction([
       this.prisma.memberJoinRequest.create({
         data: {
           userId: input.userId,
           clinicId: input.clinicId,
-          requestedRole: input.requestedRole as never,
+          requestedRole: input.requestedRole,
           message: input.message,
           expiresAt: input.expiresAt,
         },
@@ -37,31 +38,31 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
     return request;
   }
 
-  async findById(id: string): Promise<unknown | null> {
+  async findById(id: string) {
     return this.prisma.memberJoinRequest.findUnique({
       where: { id },
       include: JOIN_REQUEST_WITH_RELATIONS,
     });
   }
 
-  async findPending(userId: string, clinicId: string): Promise<unknown | null> {
+  async findPending(userId: string, clinicId: string) {
     return this.prisma.memberJoinRequest.findFirst({
       where: { userId, clinicId, status: 'PENDING' },
     });
   }
 
-  async findUserPendingRequests(userId: string): Promise<unknown[]> {
+  async findUserPendingRequests(userId: string) {
     return this.prisma.memberJoinRequest.findMany({
       where: { userId, status: 'PENDING' },
       include: { clinic: { select: { id: true, name: true } } },
     });
   }
 
-  async findByClinic(clinicId: string, status?: string): Promise<unknown[]> {
+  async findByClinic(clinicId: string, status?: JoinRequestStatus) {
     return this.prisma.memberJoinRequest.findMany({
       where: {
         clinicId,
-        ...(status && { status: status as never }),
+        ...(status ? { status } : {}),
       },
       include: {
         user: {
@@ -94,13 +95,16 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
         where: { id: input.userId },
         data: {
           clinicId: input.clinicId,
-          role: input.finalRole as never,
+          role: input.finalRole,
           onboardingStep: 'COMPLETED',
           onboardingCompletedAt: new Date(),
         },
       });
 
-      if (input.finalRole === 'DOCTOR' || input.finalRole === 'ADMIN_DOCTOR') {
+      if (
+        input.finalRole === Role.DOCTOR ||
+        input.finalRole === Role.ADMIN_DOCTOR
+      ) {
         await tx.doctorClinic.upsert({
           where: {
             doctorId_clinicId: {
@@ -112,13 +116,13 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
             doctorId: input.userId,
             clinicId: input.clinicId,
             role:
-              input.finalRole === 'ADMIN_DOCTOR' ? 'admin_doctor' : 'doctor',
+              input.finalRole === Role.ADMIN_DOCTOR ? 'admin_doctor' : 'doctor',
             active: true,
           },
           update: {
             active: true,
             role:
-              input.finalRole === 'ADMIN_DOCTOR' ? 'admin_doctor' : 'doctor',
+              input.finalRole === Role.ADMIN_DOCTOR ? 'admin_doctor' : 'doctor',
           },
         });
       }

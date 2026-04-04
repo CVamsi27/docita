@@ -470,13 +470,14 @@ export class AuthController {
   @Delete('sessions')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Revoke all sessions except current' })
-  async revokeAllSessions(@Request() req: AuthenticatedRequest) {
-    const currentRefreshToken = (req as unknown as RequestWithUser).cookies
-      ?.refresh_token;
-    await this.authService.revokeAllSessions(
-      req.user.sub,
-      currentRefreshToken as string | undefined,
-    );
+  async revokeAllSessions(
+    @Request()
+    req: AuthenticatedRequest & {
+      cookies?: { refresh_token?: string };
+    },
+  ) {
+    const currentRefreshToken = req.cookies?.refresh_token;
+    await this.authService.revokeAllSessions(req.user.sub, currentRefreshToken);
     return { message: 'All other sessions revoked' };
   }
 

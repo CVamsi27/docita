@@ -45,7 +45,7 @@ const ICD_SYNC_PREFIXES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const HCPCS_SYNC_PREFIXES = 'ABCDEFGHIJKLMNOPQRSTUV'.split('');
 const ACTIVE_HCPCS_FILTER = 'obsolete:false';
 
-const SYNTHETIC_DATE = new Date(0).toISOString();
+const SYNTHETIC_DATE = new Date(0);
 
 function cptCategory(code: string): string {
   if (/^[A-Z]/i.test(code)) return 'HCPCS';
@@ -164,7 +164,7 @@ export class NlmCodingService {
       isCommon,
       createdAt: SYNTHETIC_DATE,
       updatedAt: SYNTHETIC_DATE,
-    } as unknown as IcdCode;
+    };
   }
 
   private mapCpt(
@@ -181,7 +181,7 @@ export class NlmCodingService {
       price: 0,
       createdAt: SYNTHETIC_DATE,
       updatedAt: SYNTHETIC_DATE,
-    } as unknown as CptCode;
+    };
   }
 
   private async fetchAllByPrefix<T extends { code: string }>(

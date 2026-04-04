@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DoctorVerificationStatus, Role } from '@workspace/db';
+import { DoctorVerificationStatus, Prisma, Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IDoctorVerificationRepository,
@@ -29,6 +29,10 @@ const VERIFICATION_SELECT = {
 export class PrismaDoctorVerificationRepository implements IDoctorVerificationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
   async findDoctorForVerification(
     doctorId: string,
   ): Promise<DoctorForVerification | null> {
@@ -41,7 +45,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
         registrationNumber: true,
         licenseNumber: true,
       },
-    }) as Promise<DoctorForVerification | null>;
+    });
   }
 
   async findDoctorVerificationRecord(
@@ -50,7 +54,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
     return this.prisma.user.findUnique({
       where: { id: doctorId },
       select: VERIFICATION_SELECT,
-    }) as Promise<DoctorVerificationRecord | null>;
+    });
   }
 
   async findDoctorLicenseExpiry(doctorId: string) {
@@ -96,7 +100,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
           verificationReason: data.verificationReason,
         }),
         ...(data.verificationData !== undefined && {
-          verificationData: data.verificationData as never,
+          verificationData: this.toInputJsonValue(data.verificationData),
         }),
         verificationCheckedAt: data.verificationCheckedAt,
       },
