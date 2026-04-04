@@ -111,7 +111,7 @@ export class PatientPortalAuthService {
 
       await this.repository.linkUserToPatient(patientWithUser.id, user.id);
 
-      this.logger.log(`Created portal user for patient ${patientWithUser.id}`);
+      this.logger.log('Created portal user account');
     }
 
     const { password: _password, ...userWithoutPassword } = user;

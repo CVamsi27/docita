@@ -53,11 +53,9 @@ export class DataRetentionScheduler {
     for (const patient of recordsToDelete) {
       try {
         await this.anonymizePatient(patient.id, patient.clinicId);
-        this.logger.log(
-          `Permanently anonymized soft-deleted patient: ${patient.id}`,
-        );
+        this.logger.log('Permanently anonymized soft-deleted patient');
       } catch (error) {
-        this.logger.error(`Failed to anonymize patient ${patient.id}`, error);
+        this.logger.error('Failed to anonymize patient', error);
       }
     }
   }
@@ -113,7 +111,7 @@ export class DataRetentionScheduler {
         );
       } else {
         this.logger.warn(
-          `Skipping audit log for anonymized patient ${patientId}: no users found in clinic ${clinicId}`,
+          'Skipping retention audit log: no users found in clinic',
         );
       }
     });

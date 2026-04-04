@@ -92,9 +92,7 @@ export class DPDPComplianceService {
       ipAddress,
     });
 
-    this.logger.log(
-      `Consent recorded: ${consent.id} for patient: ${data.patientId}`,
-    );
+    this.logger.log('Consent recorded');
 
     return consent;
   }
@@ -173,7 +171,7 @@ export class DPDPComplianceService {
       ipAddress,
     });
 
-    this.logger.log(`Access request processed for patient: ${data.patientId}`);
+    this.logger.log('Access request processed for patient data');
 
     return patientData;
   }
@@ -200,9 +198,7 @@ export class DPDPComplianceService {
       ipAddress,
     });
 
-    this.logger.log(
-      `Correction request processed for patient: ${data.patientId}`,
-    );
+    this.logger.log('Correction request processed for patient data');
 
     return updatedPatient;
   }
@@ -238,7 +234,7 @@ export class DPDPComplianceService {
       ipAddress,
     });
 
-    this.logger.log(`Erasure request processed for patient: ${data.patientId}`);
+    this.logger.log('Erasure request processed for patient data');
 
     return { anonymized: true, patient: anonymizedPatient };
   }
@@ -264,9 +260,7 @@ export class DPDPComplianceService {
       ipAddress,
     });
 
-    this.logger.log(
-      `Portability request processed for patient: ${data.patientId}`,
-    );
+    this.logger.log('Portability request processed for patient data');
 
     return exportData;
   }

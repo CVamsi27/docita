@@ -534,7 +534,7 @@ export class AuthService {
         },
       });
 
-      this.logger.log('Password reset token generated', { userId: user.id });
+      this.logger.log('Password reset token generated');
 
       return {
         message:

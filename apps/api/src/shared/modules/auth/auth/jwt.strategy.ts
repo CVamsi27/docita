@@ -56,7 +56,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      this.logger.warn(`User not found for sub: ${payload.sub}`);
+      this.logger.warn('User not found for token subject');
       throw new UnauthorizedException('User not found');
     }
     return {

@@ -242,13 +242,11 @@ export class PatientPortalService {
 
   async requestDataDeletion(
     userId: string,
-    data: { reason: string; confirmDeletion?: boolean },
+    _data: { reason: string; confirmDeletion?: boolean },
   ) {
     const { patientId } = await this.contextService.getPatientContext(userId);
 
-    this.logger.log(
-      `Patient ${patientId} requested data deletion. Reason: ${data.reason}`,
-    );
+    this.logger.log('Patient requested data deletion');
 
     return {
       message:

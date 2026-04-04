@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Specialization } from '@workspace/db';
+import * as bcrypt from 'bcrypt';
+import { nanoid } from 'nanoid';
 import {
   IImportStrategy,
   ImportValidationResult,
@@ -39,8 +41,11 @@ export class DoctorImportStrategy implements IImportStrategy {
       where: { email },
     });
     if (existing) {
-      throw new Error(`Email already exists: ${email}`);
+      throw new Error('Doctor email already exists');
     }
+
+    const generatedPassword = nanoid(32);
+    const passwordHash = await bcrypt.hash(generatedPassword, 10);
 
     const specializationValue = this.readString(row, 'specialization');
     const specialization =
@@ -55,7 +60,7 @@ export class DoctorImportStrategy implements IImportStrategy {
       data: {
         email,
         name,
-        password: 'temp_password',
+        password: passwordHash,
         role: 'DOCTOR',
         clinicId,
         specialization,
@@ -65,7 +70,7 @@ export class DoctorImportStrategy implements IImportStrategy {
       },
     });
 
-    this.logger.log(`Imported doctor: ${email}`);
+    this.logger.log('Imported doctor account');
   }
 
   getTemplate(): Record<string, string> {
