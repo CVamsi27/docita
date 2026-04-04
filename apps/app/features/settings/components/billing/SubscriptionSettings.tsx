@@ -210,7 +210,7 @@ export function SubscriptionSettings() {
 
   if (isLoading) {
     return (
-      <Card className="border-none shadow-sm">
+      <Card >
         <CardContent className="pt-6">
           <div className="flex items-center space-x-4">
             <div className="space-y-2">
@@ -235,7 +235,7 @@ export function SubscriptionSettings() {
 
   if (!isAdmin) {
     return (
-      <Card className="border-none shadow-lg">
+      <Card >
         <CardHeader>
           <CardTitle>Subscription</CardTitle>
           <CardDescription>Your current plan details</CardDescription>
@@ -335,7 +335,7 @@ export function SubscriptionSettings() {
         </Alert>
       )}
 
-      <Card className="overflow-hidden border-none shadow-lg">
+      <Card className="overflow-hidden">
         <div className="h-2 bg-linear-to-r from-info to-primary" />
         <CardHeader className="pb-2">
           <CardTitle className="text-2xl">Current Plan</CardTitle>
@@ -410,7 +410,7 @@ export function SubscriptionSettings() {
       </Card>
 
       <div ref={billingHistoryRef} className="scroll-mt-6">
-        <Card className="border-none shadow-lg">
+        <Card >
           <CardHeader>
             <div>
               <CardTitle>Billing History</CardTitle>

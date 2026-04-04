@@ -282,6 +282,24 @@
   }
 }
 
+@keyframes docita-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes docita-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.docita-loading-pulse {
+  animation: docita-pulse 1.8s ease-in-out infinite;
+}
+
+.docita-loading-shimmer {
+  animation: docita-shimmer 2s ease-in-out infinite;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

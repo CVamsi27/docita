@@ -37,6 +37,11 @@ import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
 import { NotificationPanel } from "./notification-panel";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import {
   navItems,
   SETTINGS_NAV_ITEM,
   SPECIALTY_ICONS,
@@ -230,48 +235,61 @@ export function Sidebar({
             <DocitaLogo />
           </Link>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onCollapsedChange?.(!isCollapsed)}
-          className="h-8 w-8"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onCollapsedChange?.(!isCollapsed)}
+              className="h-8 w-8"
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5 py-2 space-y-1">
         {canAccessNotifications && (
-          <Button
-            variant="ghost"
-            className={cn(
-              "group w-full justify-start gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
-              isCollapsed && "justify-center px-2",
-            )}
-            onClick={() => setNotificationPanelOpen(true)}
-            title={isCollapsed ? "Notifications" : undefined}
-          >
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-md bg-muted/60 transition-colors group-hover:bg-muted">
-              <Bell className="h-4 w-4 shrink-0" />
-              {notificationCount > 0 && (
-                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
-              )}
-            </div>
-            {!isCollapsed && <span>Notifications</span>}
-            {!isCollapsed && notificationCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "group w-full justify-start gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
+                  isCollapsed && "justify-center px-2",
+                )}
+                onClick={() => setNotificationPanelOpen(true)}
               >
-                {notificationCount > 9 ? "9+" : notificationCount}
-              </Badge>
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-md bg-muted/60 transition-colors group-hover:bg-muted">
+                  <Bell className="h-4 w-4 shrink-0" />
+                  {notificationCount > 0 && (
+                    <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
+                  )}
+                </div>
+                {!isCollapsed && <span>Notifications</span>}
+                {!isCollapsed && notificationCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
+                  >
+                    {notificationCount > 9 ? "9+" : notificationCount}
+                  </Badge>
+                )}
+              </Button>
+            </TooltipTrigger>
+            {isCollapsed && (
+              <TooltipContent side="right">Notifications</TooltipContent>
             )}
-          </Button>
+          </Tooltip>
         )}
 
         {visibleNavItems.map((item) => {
@@ -283,7 +301,7 @@ export function Sidebar({
           const settingsBadgeCount =
             isSettingsItem && isAdmin ? pendingJoinRequestCount : 0;
 
-          return (
+          const linkEl = (
             <Link
               key={item.href}
               href={item.href}
@@ -294,7 +312,6 @@ export function Sidebar({
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 isCollapsed && "justify-center px-2",
               )}
-              title={isCollapsed ? item.label : undefined}
             >
               <div
                 className={getSidebarIconClasses(item.href, isActive)}
@@ -315,6 +332,13 @@ export function Sidebar({
               )}
             </Link>
           );
+
+          return isCollapsed ? (
+            <Tooltip key={item.href}>
+              <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
+              <TooltipContent side="right">{item.label}</TooltipContent>
+            </Tooltip>
+          ) : linkEl;
         })}
       </nav>
 
@@ -364,30 +388,42 @@ export function Sidebar({
                 role: user?.role,
                 canAccessFeature: canAccess,
               }) && (
-                <Button
-                  className={cn(
-                    isCollapsed
-                      ? "h-8 w-8 rounded-md border border-primary/30 bg-primary/10 p-0 text-primary hover:bg-primary/20"
-                      : "flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className={cn(
+                        isCollapsed
+                          ? "h-8 w-8 rounded-md border border-primary/30 bg-primary/10 p-0 text-primary hover:bg-primary/20"
+                          : "flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+                      )}
+                      size="sm"
+                      asChild
+                    >
+                      <Link href="/upgrade">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {!isCollapsed && "Upgrade"}
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  {isCollapsed && (
+                    <TooltipContent side="right">Upgrade plan</TooltipContent>
                   )}
-                  size="sm"
-                  asChild
-                >
-                  <Link href="/upgrade">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {!isCollapsed && "Upgrade"}
-                  </Link>
-                </Button>
+                </Tooltip>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(controlIconButtonClass)}
-                title="Customize sidebar"
-                onClick={() => setCustomizeOpen(true)}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(controlIconButtonClass)}
+                    aria-label="Customize sidebar"
+                    onClick={() => setCustomizeOpen(true)}
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Customize sidebar</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>

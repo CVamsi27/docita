@@ -74,7 +74,7 @@ export function SecuritySettings() {
   }
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
         <CardDescription>Manage security and access controls</CardDescription>

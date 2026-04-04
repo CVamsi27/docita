@@ -252,9 +252,11 @@ export class ErrorTrackingService implements OnModuleDestroy {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
-    const result = await this.prisma.errorLog.deleteMany({
-      where: { createdAt: { lt: cutoffDate }, resolved: true },
-    });
+    const result = await this.prisma.runUnrestricted(() =>
+      this.prisma.errorLog.deleteMany({
+        where: { createdAt: { lt: cutoffDate }, resolved: true },
+      }),
+    );
 
     return result.count;
   }

@@ -7,6 +7,7 @@ import { SocketProvider } from "@/lib/socket-context";
 import { TierConfigProvider } from "@/lib/tier-config-context";
 import { AppConfigProvider } from "@/lib/app-config-context";
 import { ConfirmProvider } from "@/hooks/use-confirm";
+import { TooltipProvider } from "@workspace/ui/components/tooltip";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +21,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         <TierConfigProvider>
           <AppConfigProvider>
-            <ConfirmProvider>{children}</ConfirmProvider>
+            <TooltipProvider delayDuration={300}>
+              <ConfirmProvider>{children}</ConfirmProvider>
+            </TooltipProvider>
           </AppConfigProvider>
         </TierConfigProvider>
       </NextThemesProvider>

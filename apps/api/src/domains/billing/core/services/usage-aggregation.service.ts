@@ -13,36 +13,38 @@ export class UsageAggregationService {
   async aggregateDailyUsage() {
     this.logger.log('Starting daily usage aggregation...');
 
-    const { yesterday, endOfYesterday } = this.getYesterdayRange();
+    await this.prisma.runUnrestricted(async () => {
+      const { yesterday, endOfYesterday } = this.getYesterdayRange();
 
-    const clinics = await this.prisma.clinic.findMany({
-      where: {
-        subscription: {
-          status: { in: ['ACTIVE', 'TRIALING'] },
+      const clinics = await this.prisma.clinic.findMany({
+        where: {
+          subscription: {
+            status: { in: ['ACTIVE', 'TRIALING'] },
+          },
         },
-      },
-      select: { id: true },
-    });
+        select: { id: true },
+      });
 
-    let successCount = 0;
-    let errorCount = 0;
+      let successCount = 0;
+      let errorCount = 0;
 
-    for (const clinic of clinics) {
-      try {
-        await this.aggregateForClinic(clinic.id, yesterday, endOfYesterday);
-        successCount++;
-      } catch (error) {
-        errorCount++;
-        this.logger.error(
-          `Failed to aggregate usage for clinic ${clinic.id}:`,
-          error,
-        );
+      for (const clinic of clinics) {
+        try {
+          await this.aggregateForClinic(clinic.id, yesterday, endOfYesterday);
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          this.logger.error(
+            `Failed to aggregate usage for clinic ${clinic.id}:`,
+            error,
+          );
+        }
       }
-    }
 
-    this.logger.log(
-      `Daily usage aggregation complete: ${successCount} succeeded, ${errorCount} failed`,
-    );
+      this.logger.log(
+        `Daily usage aggregation complete: ${successCount} succeeded, ${errorCount} failed`,
+      );
+    });
   }
 
   private async aggregateForClinic(

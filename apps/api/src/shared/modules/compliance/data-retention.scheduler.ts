@@ -35,22 +35,24 @@ export class DataRetentionScheduler {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const recordsToDelete = await this.prisma.patient.findMany({
-      where: {
-        deletedAt: {
-          lt: thirtyDaysAgo,
+    const recordsToDelete = await this.prisma.runUnrestricted(() =>
+      this.prisma.patient.findMany({
+        where: {
+          deletedAt: {
+            lt: thirtyDaysAgo,
+          },
+          NOT: {
+            email: { endsWith: '@anonymized.local' },
+          },
         },
-
-        NOT: {
-          email: { endsWith: '@anonymized.local' },
-        },
-      },
-      take: 100,
-    });
+        select: { id: true, clinicId: true },
+        take: 100,
+      }),
+    );
 
     for (const patient of recordsToDelete) {
       try {
-        await this.anonymizePatient(patient.id);
+        await this.anonymizePatient(patient.id, patient.clinicId);
         this.logger.log(
           `Permanently anonymized soft-deleted patient: ${patient.id}`,
         );
@@ -67,33 +69,53 @@ export class DataRetentionScheduler {
     await Promise.resolve();
   }
 
-  private async anonymizePatient(patientId: string): Promise<void> {
+  private async anonymizePatient(
+    patientId: string,
+    clinicId: string,
+  ): Promise<void> {
     const randomId = `ANON-${Date.now()}`;
 
-    await this.prisma.patient.update({
-      where: { id: patientId },
-      data: {
-        firstName: 'Anonymous',
-        lastName: 'Patient',
-        email: `${randomId}@anonymized.local`,
-        phoneNumber: '0000000000',
-        address: null,
-        dateOfBirth: new Date('1900-01-01'),
-        emergencyContactName: null,
-        emergencyContactPhone: null,
-        whatsappConsent: false,
-      },
-    });
+    await this.prisma.runUnrestricted(async () => {
+      await this.prisma.patient.update({
+        where: { id: patientId },
+        data: {
+          firstName: 'Anonymous',
+          lastName: 'Patient',
+          email: `${randomId}@anonymized.local`,
+          phoneNumber: '0000000000',
+          address: null,
+          dateOfBirth: new Date('1900-01-01'),
+          emergencyContactName: null,
+          emergencyContactPhone: null,
+          whatsappConsent: false,
+        },
+      });
 
-    await this.auditService.logAction({
-      userId: 'SYSTEM_RETENTION_JOB',
-      clinicId: 'SYSTEM',
-      actionType: 'DATA_RETENTION_ANONYMIZATION',
-      resourceType: 'Patient',
-      resourceId: patientId,
-      metadata: {
-        reason: 'Retention Policy (3 Years/Soft Delete Expiry)',
-      },
+      const adminUser = await this.prisma.user.findFirst({
+        where: { clinicId },
+        select: { id: true },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      if (adminUser) {
+        await this.auditService.logAction(
+          {
+            userId: adminUser.id,
+            clinicId,
+            actionType: 'DATA_RETENTION_ANONYMIZATION',
+            resourceType: 'Patient',
+            resourceId: patientId,
+            metadata: {
+              reason: 'Retention Policy (3 Years/Soft Delete Expiry)',
+            },
+          },
+          true,
+        );
+      } else {
+        this.logger.warn(
+          `Skipping audit log for anonymized patient ${patientId}: no users found in clinic ${clinicId}`,
+        );
+      }
     });
   }
 }

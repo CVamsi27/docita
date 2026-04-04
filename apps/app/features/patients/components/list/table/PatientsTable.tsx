@@ -11,7 +11,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
@@ -63,8 +62,7 @@ export function PatientsTable({
 
   return (
     <div className="rounded-md border border-border overflow-hidden">
-      <TooltipProvider>
-        <Table>
+      <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
               <TableHead className="w-[50px]"></TableHead>
@@ -221,8 +219,7 @@ export function PatientsTable({
               ))
             )}
           </TableBody>
-        </Table>
-      </TooltipProvider>
+      </Table>
     </div>
   );
 }

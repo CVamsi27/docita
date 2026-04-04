@@ -22,7 +22,6 @@ import { cn } from "@workspace/ui/lib/utils";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { Feature } from "@workspace/types";
@@ -168,8 +167,7 @@ export function ComparisonTable({
         </p>
       </div>
       <div className="overflow-x-auto">
-        <TooltipProvider>
-          <Table>
+        <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[260px] min-w-[200px] sticky left-0 z-10 bg-card border-r">
@@ -254,8 +252,7 @@ export function ComparisonTable({
                 );
               })}
             </TableBody>
-          </Table>
-        </TooltipProvider>
+        </Table>
       </div>
     </div>
   );
