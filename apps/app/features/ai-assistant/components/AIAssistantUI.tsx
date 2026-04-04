@@ -42,7 +42,7 @@ interface AIAssistantUIProps {
 export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
   return (
     <FeatureGuard feature={Feature.AI_PRESCRIPTION_ASSISTANT}>
-      <div className="flex-1 space-y-6 p-4 md:p-6">
+      <div className="flex-1 space-y-6">
         <AIAssistantHeader />
 
         <Tabs

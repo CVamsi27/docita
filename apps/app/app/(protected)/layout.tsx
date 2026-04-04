@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   FloatingStartConsultation,
-  MobileNav,
   Sidebar,
   SidebarMobileTrigger,
 } from "@/features/_shared/components";
@@ -168,7 +167,6 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
       )}
       <div className="ml-auto flex items-center gap-1">
         <ThemeToggle />
-        <MobileNav />
       </div>
     </header>
   );

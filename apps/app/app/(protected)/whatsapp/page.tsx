@@ -28,7 +28,7 @@ export default function WhatsAppPage() {
   return (
     <FeatureGuard feature="WHATSAPP_MESSAGING">
       {}
-      <div className="flex-1 space-y-6 max-w-4xl mx-auto p-4 md:p-6">
+      <div className="flex-1 space-y-6 max-w-4xl mx-auto">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             WhatsApp Integration

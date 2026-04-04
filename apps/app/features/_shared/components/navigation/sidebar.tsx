@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
-  ChevronRight,
   Menu,
   PanelLeftClose,
+  PanelLeftOpen,
   Settings2,
   SlidersHorizontal,
   Sparkles,
@@ -183,7 +183,6 @@ function SidebarContent({
     (tierInfo.color === "gray" || !tierInfo.color) && "bg-muted-foreground",
   );
 
-  const showExpand = isCollapsed && !isMobile;
   const showLabels = !isCollapsed || isMobile;
 
   return (
@@ -191,25 +190,21 @@ function SidebarContent({
       {/* Header */}
       <div
         className={cn(
-          "flex h-14 shrink-0 items-center border-b border-border/60 px-3",
-          isCollapsed && !isMobile ? "justify-center" : "justify-between",
+          "flex h-14 shrink-0 items-center justify-between border-b border-border/60",
+          isCollapsed && !isMobile ? "px-2" : "px-3",
         )}
       >
-        {isCollapsed && !isMobile ? (
-          <Link
-            href="/dashboard"
-            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-muted transition-colors"
-          >
-            <DocitaIcon />
-          </Link>
-        ) : (
-          <Link
-            href="/dashboard"
-            className="flex h-9 items-center gap-2 rounded-lg px-1 hover:opacity-80 transition-opacity"
-          >
-            <DocitaLogo />
-          </Link>
-        )}
+        <Link
+          href="/dashboard"
+          className={cn(
+            "flex items-center justify-center rounded-lg transition-colors hover:bg-muted",
+            isCollapsed && !isMobile
+              ? "h-6 w-6"
+              : "h-9 gap-2 px-1 hover:opacity-80 hover:bg-transparent",
+          )}
+        >
+          {isCollapsed && !isMobile ? <DocitaIcon /> : <DocitaLogo />}
+        </Link>
 
         {isMobile ? (
           <Button
@@ -221,7 +216,17 @@ function SidebarContent({
           >
             <X className="h-4 w-4" />
           </Button>
-        ) : !isCollapsed ? (
+        ) : isCollapsed ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+            onClick={onExpand}
+            aria-label="Expand sidebar"
+          >
+            <PanelLeftOpen className="h-3.5 w-3.5" />
+          </Button>
+        ) : (
           <Button
             variant="ghost"
             size="icon"
@@ -231,7 +236,7 @@ function SidebarContent({
           >
             <PanelLeftClose className="h-4 w-4" />
           </Button>
-        ) : null}
+        )}
       </div>
 
       {/* Scrollable nav */}
@@ -385,23 +390,6 @@ function SidebarContent({
           </div>
         )}
       </div>
-
-      {/* Expand tab — shown at right edge when collapsed (desktop only) */}
-      {showExpand && (
-        <button
-          type="button"
-          aria-label="Expand sidebar"
-          onClick={onExpand}
-          className={cn(
-            "absolute -right-3 top-1/2 -translate-y-1/2 z-20",
-            "flex h-10 w-6 items-center justify-center",
-            "rounded-r-lg border border-l-0 border-border/60 bg-background",
-            "text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground transition-colors",
-          )}
-        >
-          <ChevronRight className="h-3.5 w-3.5" />
-        </button>
-      )}
 
       {/* Notification panel */}
       {canAccessNotifications && (

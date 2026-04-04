@@ -195,7 +195,7 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 min-h-screen">
+    <div className="flex flex-1 flex-col gap-6 min-h-screen">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
           <div className="space-y-1">

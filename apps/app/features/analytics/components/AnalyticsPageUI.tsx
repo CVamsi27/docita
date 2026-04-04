@@ -99,7 +99,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
       feature={Feature.ADVANCED_ANALYTICS}
       fallback={<AnalyticsUpgradeState />}
     >
-      <div className="flex-1 space-y-6 p-4 md:p-6">
+      <div className="flex-1 space-y-6">
         <AnalyticsHeader />
 
         <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
