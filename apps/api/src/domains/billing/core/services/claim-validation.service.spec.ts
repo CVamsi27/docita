@@ -1,30 +1,72 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ClaimValidationService } from './claim-validation.service';
 
+type InvoiceLookup = {
+  id: string;
+  appointmentId: string | null;
+  patient: { clinicId: string };
+};
+
+type AppointmentLookup = {
+  id: string;
+  diagnoses: Array<{ id: string; icdCodeId: string | null }>;
+  procedures: Array<{ id: string; cptCodeId: string | null }>;
+};
+
 describe('ClaimValidationService', () => {
-  const prisma = {
+  const invoiceFindUniqueMock = jest.fn<
+    (_args: {
+      where: { id: string };
+      select: {
+        id: true;
+        appointmentId: true;
+        patient: { select: { clinicId: true } };
+      };
+    }) => Promise<InvoiceLookup | null>
+  >();
+
+  const appointmentFindUniqueMock = jest.fn<
+    (_args: {
+      where: { id: string };
+      select: {
+        id: true;
+        diagnoses: { select: { id: true; icdCodeId: true } };
+        procedures: { select: { id: true; cptCodeId: true } };
+      };
+    }) => Promise<AppointmentLookup | null>
+  >();
+
+  const prisma = Object.create(PrismaService.prototype) as PrismaService;
+  Object.defineProperties(prisma, {
     invoice: {
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      value: {
+        findUnique: invoiceFindUniqueMock,
+      },
+      writable: true,
     },
     appointment: {
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      value: {
+        findUnique: appointmentFindUniqueMock,
+      },
+      writable: true,
     },
-  };
+  });
 
   let service: ClaimValidationService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new ClaimValidationService(prisma as unknown as never);
+    service = new ClaimValidationService(prisma);
   });
 
   it('returns ready for invoices without appointment linkage', async () => {
-    prisma.invoice.findUnique.mockResolvedValue({
+    invoiceFindUniqueMock.mockResolvedValue({
       id: 'inv-1',
       appointmentId: null,
       patient: { clinicId: 'clinic-1' },
-    } as never);
+    });
 
     const result = await service.evaluateClaimReadiness('inv-1', 'clinic-1');
 
@@ -34,16 +76,16 @@ describe('ClaimValidationService', () => {
   });
 
   it('returns incomplete result when diagnosis/procedure coding is missing', async () => {
-    prisma.invoice.findUnique.mockResolvedValue({
+    invoiceFindUniqueMock.mockResolvedValue({
       id: 'inv-2',
       appointmentId: 'appt-2',
       patient: { clinicId: 'clinic-1' },
-    } as never);
-    prisma.appointment.findUnique.mockResolvedValue({
+    });
+    appointmentFindUniqueMock.mockResolvedValue({
       id: 'appt-2',
       diagnoses: [{ id: 'd1', icdCodeId: null }],
       procedures: [{ id: 'p1', cptCodeId: null }],
-    } as never);
+    });
 
     const result = await service.evaluateClaimReadiness('inv-2', 'clinic-1');
 
@@ -59,11 +101,11 @@ describe('ClaimValidationService', () => {
   });
 
   it('throws on clinic mismatch', async () => {
-    prisma.invoice.findUnique.mockResolvedValue({
+    invoiceFindUniqueMock.mockResolvedValue({
       id: 'inv-3',
       appointmentId: null,
       patient: { clinicId: 'clinic-A' },
-    } as never);
+    });
 
     await expect(
       service.evaluateClaimReadiness('inv-3', 'clinic-B'),
@@ -71,16 +113,16 @@ describe('ClaimValidationService', () => {
   });
 
   it('assertClaimReady throws when coding is incomplete', async () => {
-    prisma.invoice.findUnique.mockResolvedValue({
+    invoiceFindUniqueMock.mockResolvedValue({
       id: 'inv-4',
       appointmentId: 'appt-4',
       patient: { clinicId: 'clinic-1' },
-    } as never);
-    prisma.appointment.findUnique.mockResolvedValue({
+    });
+    appointmentFindUniqueMock.mockResolvedValue({
       id: 'appt-4',
       diagnoses: [],
       procedures: [],
-    } as never);
+    });
 
     await expect(
       service.assertClaimReady('inv-4', 'clinic-1'),

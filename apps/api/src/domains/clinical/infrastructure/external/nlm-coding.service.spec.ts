@@ -6,6 +6,11 @@ describe('NlmCodingService', () => {
   let service: NlmCodingService;
   let fetchMock: jest.MockedFunction<typeof fetch>;
   const originalFetch = global.fetch;
+  const jsonResponse = (payload: unknown, status = 200): Response =>
+    new Response(JSON.stringify(payload), {
+      status,
+      headers: { 'content-type': 'application/json' },
+    });
 
   beforeEach(() => {
     service = new NlmCodingService();
@@ -14,17 +19,14 @@ describe('NlmCodingService', () => {
   });
 
   it('searches CPT/HCPCS codes from NLM first when available', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: jest
-        .fn()
-        .mockImplementation(async () => [
-          1,
-          ['99213'],
-          null,
-          [['99213', 'Office or other outpatient visit']],
-        ]),
-    } as unknown as Response);
+    fetchMock.mockResolvedValue(
+      jsonResponse([
+        1,
+        ['99213'],
+        null,
+        [['99213', 'Office or other outpatient visit']],
+      ]),
+    );
 
     const results = await service.searchCptCodes('office');
 
@@ -75,17 +77,14 @@ describe('NlmCodingService', () => {
   });
 
   it('maps ICD search results from NLM response', async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: jest
-        .fn()
-        .mockImplementation(async () => [
-          1,
-          ['E11.9'],
-          null,
-          [['E11.9', 'Type 2 diabetes mellitus without complications']],
-        ]),
-    } as unknown as Response);
+    fetchMock.mockResolvedValue(
+      jsonResponse([
+        1,
+        ['E11.9'],
+        null,
+        [['E11.9', 'Type 2 diabetes mellitus without complications']],
+      ]),
+    );
 
     const results = await service.searchIcdCodes('diabetes');
 
@@ -130,37 +129,28 @@ describe('NlmCodingService', () => {
       const offset = parsed.searchParams.get('offset');
 
       if (terms === 'A' && offset === '0') {
-        return Promise.resolve({
-          ok: true,
-          json: jest
-            .fn()
-            .mockImplementation(async () => [
-              501,
-              firstPageRows.map((row) => row[0]),
-              null,
-              firstPageRows,
-            ]),
-        } as unknown as Response);
+        return Promise.resolve(
+          jsonResponse([
+            501,
+            firstPageRows.map((row) => row[0]),
+            null,
+            firstPageRows,
+          ]),
+        );
       }
 
       if (terms === 'A' && offset === '500') {
-        return Promise.resolve({
-          ok: true,
-          json: jest
-            .fn()
-            .mockImplementation(async () => [
-              501,
-              secondPageRows.map((row) => row[0]),
-              null,
-              secondPageRows,
-            ]),
-        } as unknown as Response);
+        return Promise.resolve(
+          jsonResponse([
+            501,
+            secondPageRows.map((row) => row[0]),
+            null,
+            secondPageRows,
+          ]),
+        );
       }
 
-      return Promise.resolve({
-        ok: true,
-        json: jest.fn().mockImplementation(async () => [0, [], null, []]),
-      } as unknown as Response);
+      return Promise.resolve(jsonResponse([0, [], null, []]));
     });
 
     const results = await service.fetchAllIcdCodesForSync();
@@ -184,23 +174,12 @@ describe('NlmCodingService', () => {
       const terms = parsed.searchParams.get('terms');
 
       if (terms === 'A') {
-        return Promise.resolve({
-          ok: true,
-          json: jest
-            .fn()
-            .mockImplementation(async () => [
-              1,
-              ['A4550'],
-              null,
-              [['A4550', 'Surgical trays']],
-            ]),
-        } as unknown as Response);
+        return Promise.resolve(
+          jsonResponse([1, ['A4550'], null, [['A4550', 'Surgical trays']]]),
+        );
       }
 
-      return Promise.resolve({
-        ok: true,
-        json: jest.fn().mockImplementation(async () => [0, [], null, []]),
-      } as unknown as Response);
+      return Promise.resolve(jsonResponse([0, [], null, []]));
     });
 
     const results = await service.fetchAllCptCodesForSync();

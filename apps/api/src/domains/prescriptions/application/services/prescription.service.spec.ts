@@ -1,57 +1,104 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApprovalStatus } from '@workspace/db';
+import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
+import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import {
+  IPrescriptionRepository,
+  PrescriptionDetail,
+} from '@/domains/prescriptions/core/repositories/prescription.repository.interface';
+import {
+  PrescriptionData,
+  PrescriptionPdfService,
+} from './prescription-pdf.service';
 import { PrescriptionsService } from './prescription.service';
 
 describe('PrescriptionsService', () => {
-  const repository = {
-    findAll: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    findById: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    findPatientWithAllergies:
-      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    findDoctorCompliance: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  const findAllMock = jest.fn<IPrescriptionRepository['findAll']>();
+  const findByIdMock = jest.fn<IPrescriptionRepository['findById']>();
+  const createMock = jest.fn<IPrescriptionRepository['create']>();
+  const updateMock = jest.fn<IPrescriptionRepository['update']>();
+  const deleteMock = jest.fn<IPrescriptionRepository['delete']>();
+  const findPatientWithAllergiesMock =
+    jest.fn<IPrescriptionRepository['findPatientWithAllergies']>();
+  const findDoctorComplianceMock =
+    jest.fn<IPrescriptionRepository['findDoctorCompliance']>();
+
+  const repository: IPrescriptionRepository = {
+    findAll: findAllMock,
+    findById: findByIdMock,
+    create: createMock,
+    update: updateMock,
+    delete: deleteMock,
+    findPatientWithAllergies: findPatientWithAllergiesMock,
+    findDoctorCompliance: findDoctorComplianceMock,
   };
 
-  const pdfService = {
-    generate: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-  };
+  const pdfService = Object.create(
+    PrescriptionPdfService.prototype,
+  ) as PrescriptionPdfService;
+  const generatePdfMock =
+    jest.fn<(data: PrescriptionData) => Promise<Buffer>>();
+  pdfService.generate = generatePdfMock;
 
-  const eventEmitter = {
-    emit: jest.fn<(...args: unknown[]) => unknown>(),
-  };
+  const eventEmitter = new EventEmitter2();
 
-  const usageTracking = {
-    trackPrescription: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-  };
+  const usageTracking = Object.create(
+    UsageTrackingService.prototype,
+  ) as UsageTrackingService;
+  usageTracking.trackPrescription =
+    jest.fn<UsageTrackingService['trackPrescription']>();
 
-  const storageProvider = {
-    supportsSignedUrls: false,
-    uploadBuffer: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    generateSignedUrl: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-  };
+  class MockStorageProvider extends StorageProvider {
+    readonly supportsSignedUrls = false;
+    upload = jest.fn<StorageProvider['upload']>();
+    delete = jest.fn<StorageProvider['delete']>();
+    uploadBuffer = jest.fn<StorageProvider['uploadBuffer']>();
+    generateSignedUrl = jest.fn<StorageProvider['generateSignedUrl']>();
+  }
+
+  const storageProvider = new MockStorageProvider();
 
   let service: PrescriptionsService;
 
   beforeEach(() => {
     jest.clearAllMocks();
     service = new PrescriptionsService(
-      repository as never,
-      pdfService as never,
-      eventEmitter as never,
-      usageTracking as never,
-      storageProvider as never,
+      repository,
+      pdfService,
+      eventEmitter,
+      usageTracking,
+      storageProvider,
     );
   });
 
   it('passes doctor signature URL to PDF payload when available', async () => {
-    repository.findById.mockResolvedValue({
+    const now = new Date('2026-01-01T00:00:00.000Z');
+    const prescription: PrescriptionDetail = {
       id: 'rx-1',
+      appointmentId: 'appt-1',
       patientId: 'pat-1',
       doctorId: 'doc-1',
-      doctorName: 'Dr. Asha',
-      doctorRegistrationNumber: 'REG123',
       instructions: 'Take after food',
+      date: now,
+      createdAt: now,
+      updatedAt: now,
+      approvalStatus: ApprovalStatus.PENDING,
+      approvedById: null,
+      approvedAt: null,
+      whatsappSentAt: null,
+      whatsappMessageId: null,
+      whatsappStatus: null,
+      doctorName: 'Dr. Asha',
+      doctorEmail: 'doctor@example.com',
+      doctorPhone: '9999999999',
+      doctorSpecialization: null,
+      doctorRole: null,
+      doctorRegistrationNumber: 'REG123',
+      doctorLicenseNumber: null,
+      pdfUrl: null,
+      pdfGeneratedAt: null,
+      pdfTemplateVersion: 1,
       medications: [
         {
           id: 'med-1',
@@ -64,17 +111,18 @@ describe('PrescriptionsService', () => {
       ],
       patient: {
         id: 'pat-1',
+        mrn: 'MRN-1',
         firstName: 'Asha',
         lastName: 'Rao',
         phoneNumber: '9999999999',
         email: 'asha@test.com',
         gender: 'FEMALE',
-        dateOfBirth: new Date('1992-01-01'),
+        dateOfBirth: new Date('1992-01-01T00:00:00.000Z'),
         clinic: {
           id: 'clinic-1',
           name: 'Docita Clinic',
           address: 'Main Road',
-          phone: '1234567890',
+          phoneNumber: '1234567890',
           email: 'clinic@test.com',
         },
       },
@@ -85,13 +133,14 @@ describe('PrescriptionsService', () => {
         registrationNumber: 'REG123',
         signatureUrl: 'https://example.com/doctor-signature.png',
       },
-    } as never);
+    };
 
-    pdfService.generate.mockResolvedValue(Buffer.from('pdf') as never);
+    findByIdMock.mockResolvedValue(prescription);
+    generatePdfMock.mockResolvedValue(Buffer.from('pdf'));
 
     await service.generatePDF('rx-1');
 
-    expect(pdfService.generate).toHaveBeenCalledWith(
+    expect(generatePdfMock).toHaveBeenCalledWith(
       expect.objectContaining({
         doctor: expect.objectContaining({
           signatureUrl: 'https://example.com/doctor-signature.png',
