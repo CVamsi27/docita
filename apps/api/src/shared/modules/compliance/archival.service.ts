@@ -20,7 +20,7 @@ export class ArchivalService {
   constructor(private prisma: PrismaService) {}
 
   async archiveAuditLogs(daysOld = 90): Promise<number> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       runInArchivalMode(async () => {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);

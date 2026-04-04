@@ -20,10 +20,20 @@ export class ErrorTrackingService implements OnModuleDestroy {
     this.startFlushTimer();
   }
 
+  private formatError(error: unknown): string {
+    if (error instanceof Error) {
+      return `${error.name}: ${error.message}`;
+    }
+
+    return String(error);
+  }
+
   private startFlushTimer(): void {
     this.flushTimer = setInterval(() => {
       this.flushBuffer().catch((error) => {
-        this.logger.error('Failed to flush error buffer', error);
+        this.logger.error(
+          `Failed to flush error buffer: ${this.formatError(error)}`,
+        );
       });
     }, this.FLUSH_INTERVAL);
   }
@@ -33,7 +43,9 @@ export class ErrorTrackingService implements OnModuleDestroy {
       clearInterval(this.flushTimer);
     }
     this.flushBuffer().catch((error) => {
-      this.logger.error('Failed to flush errors on shutdown', error);
+      this.logger.error(
+        `Failed to flush errors on shutdown: ${this.formatError(error)}`,
+      );
     });
   }
 
@@ -53,7 +65,9 @@ export class ErrorTrackingService implements OnModuleDestroy {
 
     if (this.errorBuffer.length >= this.BATCH_SIZE) {
       this.flushBuffer().catch((error) => {
-        this.logger.error('Failed to flush error buffer', error);
+        this.logger.error(
+          `Failed to flush error buffer: ${this.formatError(error)}`,
+        );
       });
     }
   }
@@ -117,7 +131,9 @@ export class ErrorTrackingService implements OnModuleDestroy {
         return;
       }
 
-      this.logger.error('Failed to write errors to database', error);
+      this.logger.error(
+        `Failed to write errors to database: ${this.formatError(error)}`,
+      );
     }
   }
 
@@ -252,7 +268,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
-    const result = await this.prisma.runUnrestricted(() =>
+    const result = await this.prisma.runUnrestricted(async () =>
       this.prisma.errorLog.deleteMany({
         where: { createdAt: { lt: cutoffDate }, resolved: true },
       }),

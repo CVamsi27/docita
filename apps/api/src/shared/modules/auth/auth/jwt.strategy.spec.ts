@@ -19,12 +19,9 @@ describe('JwtStrategy', () => {
   };
 
   const mockPrisma = {
-    user: {
-      findUnique: jest.fn() as jest.MockedFunction<
-        (...args: unknown[]) => Promise<MockUser | null>
-      >,
-    },
-    runUnrestricted: jest.fn(<T>(callback: () => T): T => callback()),
+    $queryRaw: jest.fn() as jest.MockedFunction<
+      (...args: unknown[]) => Promise<MockUser[]>
+    >,
   };
 
   const mockAppConfigService = {
@@ -44,9 +41,7 @@ describe('JwtStrategy', () => {
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
-    prisma = module.get<PrismaService>(
-      PrismaService,
-    ) as unknown as typeof mockPrisma;
+    prisma = mockPrisma;
   });
 
   const validPayload = {
@@ -66,8 +61,17 @@ describe('JwtStrategy', () => {
   };
 
   describe('validate', () => {
+    it('should throw UnauthorizedException when payload subject is missing', async () => {
+      await expect(
+        strategy.validate({
+          ...validPayload,
+          sub: '',
+        }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
     it('should return user data when valid payload is provided', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      prisma.$queryRaw.mockResolvedValue([mockUser]);
 
       const result = await strategy.validate(validPayload);
 
@@ -82,19 +86,24 @@ describe('JwtStrategy', () => {
       });
     });
 
-    it('should use runUnrestricted to bypass tenant context', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+    it('should query user profile from database', async () => {
+      prisma.$queryRaw.mockResolvedValue([mockUser]);
 
       await strategy.validate(validPayload);
 
-      expect(prisma.runUnrestricted).toHaveBeenCalledTimes(1);
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user-123' },
-      });
+      expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
     });
 
     it('should throw UnauthorizedException when user is not found', async () => {
-      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.$queryRaw.mockResolvedValue([]);
+
+      await expect(strategy.validate(validPayload)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw UnauthorizedException when user lookup fails', async () => {
+      prisma.$queryRaw.mockRejectedValue(new Error('db unavailable'));
 
       await expect(strategy.validate(validPayload)).rejects.toThrow(
         UnauthorizedException,
@@ -106,7 +115,7 @@ describe('JwtStrategy', () => {
         ...mockUser,
         clinicId: 'different-clinic-id',
       };
-      prisma.user.findUnique.mockResolvedValue(userWithDifferentClinic);
+      prisma.$queryRaw.mockResolvedValue([userWithDifferentClinic]);
 
       const result = await strategy.validate(validPayload);
 
@@ -115,7 +124,7 @@ describe('JwtStrategy', () => {
 
     it('should handle null clinicId for super admin users', async () => {
       const superAdmin = { ...mockUser, clinicId: null, role: 'SUPER_ADMIN' };
-      prisma.user.findUnique.mockResolvedValue(superAdmin);
+      prisma.$queryRaw.mockResolvedValue([superAdmin]);
 
       const payloadForSuperAdmin = {
         ...validPayload,

@@ -15,9 +15,8 @@ import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators';
 import { RequestWithUser } from '@/common/types/common.types';
-import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
 import { PatientPortalContextService } from '@/domains/patient-portal/application/services/patient-portal-context.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PatientPortalMetricsService } from '@/domains/patient-portal/application/services/patient-portal-metrics.service';
 import {
   CreateMetricDefinitionDto,
   CreatePatientMetricValueDto,
@@ -33,9 +32,8 @@ import {
 @ApiBearerAuth('JWT-auth')
 export class PatientPortalMetricsController {
   constructor(
-    private readonly metricsService: PatientMetricsService,
+    private readonly portalMetricsService: PatientPortalMetricsService,
     private readonly contextService: PatientPortalContextService,
-    private readonly prisma: PrismaService,
   ) {}
 
   private async resolveContext(req: RequestWithUser) {
@@ -50,9 +48,7 @@ export class PatientPortalMetricsController {
   @ApiOperation({ summary: 'List metric categories for patient' })
   async getCategories(@Request() req: RequestWithUser) {
     const { patientId, clinicId } = await this.resolveContext(req);
-    return this.prisma.runUnrestricted(() =>
-      this.metricsService.listCategories(clinicId, patientId),
-    );
+    return this.portalMetricsService.listCategories(clinicId, patientId);
   }
 
   @Get('history')
@@ -62,18 +58,14 @@ export class PatientPortalMetricsController {
     @Query() query: MetricHistoryQueryDto,
   ) {
     const { patientId, clinicId } = await this.resolveContext(req);
-    return this.prisma.runUnrestricted(() =>
-      this.metricsService.getHistory(clinicId, patientId, query),
-    );
+    return this.portalMetricsService.getHistory(clinicId, patientId, query);
   }
 
   @Get('selected')
   @ApiOperation({ summary: 'Get selected metrics for patient' })
   async getSelected(@Request() req: RequestWithUser) {
     const { patientId, clinicId } = await this.resolveContext(req);
-    return this.prisma.runUnrestricted(() =>
-      this.metricsService.getSelections(clinicId, patientId),
-    );
+    return this.portalMetricsService.getSelections(clinicId, patientId);
   }
 
   @Put('selected')
@@ -83,9 +75,7 @@ export class PatientPortalMetricsController {
     @Body() dto: UpsertMetricSelectionsDto,
   ) {
     const { patientId, clinicId } = await this.resolveContext(req);
-    return this.prisma.runUnrestricted(() =>
-      this.metricsService.upsertSelections(clinicId, patientId, dto),
-    );
+    return this.portalMetricsService.upsertSelections(clinicId, patientId, dto);
   }
 
   @Post('values')
@@ -96,11 +86,11 @@ export class PatientPortalMetricsController {
   ) {
     const { patientId, clinicId } = await this.resolveContext(req);
     const userId = req.user?.id;
-    return this.prisma.runUnrestricted(() =>
-      this.metricsService.recordMetricValue(clinicId, patientId, userId, {
-        ...dto,
-        source: 'PATIENT_PORTAL',
-      }),
+    return this.portalMetricsService.recordMetricValue(
+      clinicId,
+      patientId,
+      userId,
+      dto,
     );
   }
 
@@ -111,9 +101,7 @@ export class PatientPortalMetricsController {
     @Body() dto: CreateMetricDefinitionDto,
   ) {
     const { patientId, clinicId } = await this.resolveContext(req);
-    return this.prisma.runUnrestricted(() =>
-      this.metricsService.createDefinition(clinicId, patientId, dto),
-    );
+    return this.portalMetricsService.createDefinition(clinicId, patientId, dto);
   }
 
   @Get('vitals-history')
@@ -123,11 +111,6 @@ export class PatientPortalMetricsController {
     @Query() query: MetricHistoryQueryDto,
   ) {
     const { patientId, clinicId } = await this.resolveContext(req);
-    return this.prisma.runUnrestricted(() =>
-      this.metricsService.getHistory(clinicId, patientId, {
-        ...query,
-        categoryId: query.categoryId,
-      }),
-    );
+    return this.portalMetricsService.getHistory(clinicId, patientId, query);
   }
 }

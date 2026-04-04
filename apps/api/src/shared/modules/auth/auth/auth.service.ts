@@ -158,7 +158,6 @@ export class AuthService {
             'Successful login after failed attempts',
             {
               userId: user.id,
-              email: user.email,
               previousFailedAttempts: user.failedLoginAttempts,
             },
           );
@@ -191,7 +190,6 @@ export class AuthService {
         'Failed login attempt recorded',
         {
           userId: user.id,
-          email: user.email,
           attempt: newFailedAttempts,
           maxAttempts: AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS,
           accountLocked:
@@ -205,10 +203,9 @@ export class AuthService {
 
       if (newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS) {
         this.observability.captureMessage(
-          `Account locked: ${user.email} due to ${AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS} failed login attempts`,
+          `Account locked for user ${user.id} due to ${AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS} failed login attempts`,
           {
             userId: user.id,
-            email: user.email,
             failedAttempts: newFailedAttempts,
             lockoutDuration: `${AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES} minutes`,
           },
@@ -216,7 +213,6 @@ export class AuthService {
         );
 
         this.observability.recordMetric('auth_account_lockout_total', 1, {
-          email: user.email,
           reason: 'max_failed_attempts',
         });
       }
@@ -257,18 +253,20 @@ export class AuthService {
       challengeToken,
       totpCode,
     );
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        clinicId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const user = await this.prisma.runUnrestricted(async () =>
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          clinicId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+    );
 
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -295,12 +293,14 @@ export class AuthService {
     };
 
     if (user.role === Role.PATIENT) {
-      const patient = await this.prisma.patient.findFirst({
-        where: {
-          userId: user.id,
-        },
-        select: { id: true },
-      });
+      const patient = await this.prisma.runUnrestricted(async () =>
+        this.prisma.patient.findFirst({
+          where: {
+            userId: user.id,
+          },
+          select: { id: true },
+        }),
+      );
 
       if (patient) {
         payload.patientId = patient.id;
@@ -493,7 +493,6 @@ export class AuthService {
       });
       const tokens = await this.login(user);
 
-      // Fire-and-forget: send verification email; don't block registration on email failure
       this.sendVerificationEmail(user.id).catch((err: unknown) => {
         this.logger.warn(
           'Failed to send verification email after registration',

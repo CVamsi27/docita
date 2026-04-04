@@ -199,15 +199,10 @@ export class MfaService {
   ): Promise<string> {
     const challenge = await this.prisma.mfaChallenge.findUnique({
       where: { token: challengeToken },
-      include: {
-        user: {
-          select: {
-            id: true,
-            mfaEnabled: true,
-            mfaSecret: true,
-            mfaBackupCodes: true,
-          },
-        },
+      select: {
+        id: true,
+        userId: true,
+        expiresAt: true,
       },
     });
 
@@ -217,7 +212,21 @@ export class MfaService {
       );
     }
 
-    const { user } = challenge;
+    const user = await this.prisma.runUnrestricted(async () =>
+      this.prisma.user.findUnique({
+        where: { id: challenge.userId },
+        select: {
+          id: true,
+          mfaEnabled: true,
+          mfaSecret: true,
+          mfaBackupCodes: true,
+        },
+      }),
+    );
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
 
     if (!user.mfaEnabled || !user.mfaSecret) {
       throw new BadRequestException('MFA is not configured for this user');
@@ -256,10 +265,12 @@ export class MfaService {
       if (matches) {
         const remaining = [...hashedCodes];
         remaining.splice(i, 1);
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: { mfaBackupCodes: remaining },
-        });
+        await this.prisma.runUnrestricted(async () =>
+          this.prisma.user.update({
+            where: { id: userId },
+            data: { mfaBackupCodes: remaining },
+          }),
+        );
         this.logger.warn('Backup code used', {
           userId,
           remainingCodes: remaining.length,

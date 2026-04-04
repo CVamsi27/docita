@@ -125,7 +125,7 @@ export interface IPatientPortalRepository {
   createPortalUser(data: {
     email: string;
     password: string;
-    role: string;
+    role: User['role'];
     name: string;
   }): Promise<User>;
 

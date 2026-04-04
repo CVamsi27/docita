@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
-import { EncryptionService } from '@/common/encryption.service';
 import { ArchivalService } from './archival.service';
 
 @Injectable()
@@ -12,9 +11,16 @@ export class DataRetentionScheduler {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
-    private encryptionService: EncryptionService,
     private archivalService: ArchivalService,
   ) {}
+
+  private formatError(error: unknown): string {
+    if (error instanceof Error) {
+      return `${error.name}: ${error.message}`;
+    }
+
+    return String(error);
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleDataRetention() {
@@ -27,15 +33,13 @@ export class DataRetentionScheduler {
     await this.archivalService.archiveAppointments(2);
 
     await this.processSoftDeletedRecords();
-
-    await this.flagExpiredRecords();
   }
 
   private async processSoftDeletedRecords() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const recordsToDelete = await this.prisma.runUnrestricted(() =>
+    const recordsToDelete = await this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findMany({
         where: {
           deletedAt: {
@@ -55,16 +59,11 @@ export class DataRetentionScheduler {
         await this.anonymizePatient(patient.id, patient.clinicId);
         this.logger.log('Permanently anonymized soft-deleted patient');
       } catch (error) {
-        this.logger.error('Failed to anonymize patient', error);
+        this.logger.error(
+          `Failed to anonymize patient: ${this.formatError(error)}`,
+        );
       }
     }
-  }
-
-  private async flagExpiredRecords() {
-    const threeYearsAgo = new Date();
-    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
-
-    await Promise.resolve();
   }
 
   private async anonymizePatient(
