@@ -81,5 +81,21 @@ describe('FinancialAnalyticsFactory', () => {
       expect(result[0].revenue).toBe(150);
       expect(mockCacheManager.set).toHaveBeenCalled();
     });
+
+    it('groups revenue by period for monthly aggregation', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
+      mockInvoiceFindMany.mockResolvedValue([
+        { createdAt: new Date('2023-01-05'), total: 100 },
+        { createdAt: new Date('2023-01-15'), total: 150 },
+        { createdAt: new Date('2023-02-01'), total: 200 },
+      ]);
+
+      const result = await factory.getRevenueTrends('clinic-1', 'monthly', 60);
+
+      expect(result).toEqual([
+        { date: '2023-01', revenue: 250 },
+        { date: '2023-02', revenue: 200 },
+      ]);
+    });
   });
 });

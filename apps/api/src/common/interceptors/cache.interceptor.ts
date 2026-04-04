@@ -42,7 +42,13 @@ export class CacheInterceptor implements NestInterceptor {
         if (cachedResponse) {
           this.logger.debug(`[CACHE] HIT: key=${key}`);
           const duration = cacheMetadata || 300;
-          this.applyCacheHeaders(response, duration, cachedResponse, request);
+          const etag = this.createEtag(cachedResponse);
+          this.applyCacheHeaders(response, duration, etag);
+          const clientEtag = request.headers?.['if-none-match'];
+          if (clientEtag === etag) {
+            response.status?.(304);
+            return of(null);
+          }
           return of(cachedResponse);
         }
       } catch (error) {
@@ -55,7 +61,8 @@ export class CacheInterceptor implements NestInterceptor {
         map((data) => {
           this.logger.debug(`[CACHE] MISS: key=${key}`);
           const duration = cacheMetadata || 300;
-          this.applyCacheHeaders(response, duration, data, request);
+          const etag = this.createEtag(data);
+          this.applyCacheHeaders(response, duration, etag);
 
           this.cacheManager.set(key, data, duration * 1000).catch((err) => {
             this.logger.warn(`Cache set error: ${err.message}`);
@@ -70,10 +77,17 @@ export class CacheInterceptor implements NestInterceptor {
   }
 
   private generateKey(
-    request: Record<string, unknown> & { url?: string },
+    request: Record<string, unknown> & {
+      url?: string;
+      originalUrl?: string;
+      headers?: Record<string, string>;
+    },
   ): string {
     const clinicId = this.extractClinicId(request.user);
-    return `${clinicId}:${request.url}`;
+    const role = this.extractRole(request.user);
+    const normalizedUrl = this.normalizeUrl(request.originalUrl ?? request.url);
+    const language = request.headers?.['accept-language'] ?? 'default';
+    return `${clinicId}:${role}:${language}:${normalizedUrl}`;
   }
 
   private extractClinicId(user: unknown): string {
@@ -87,6 +101,33 @@ export class CacheInterceptor implements NestInterceptor {
       : 'public';
   }
 
+  private extractRole(user: unknown): string {
+    if (!user || typeof user !== 'object') {
+      return 'public';
+    }
+
+    const role = (user as { role?: unknown }).role;
+    return typeof role === 'string' && role.length > 0 ? role : 'public';
+  }
+
+  private normalizeUrl(url: string | undefined): string {
+    if (!url) {
+      return '/';
+    }
+
+    const [path, query = ''] = url.split('?');
+    if (!query) {
+      return path;
+    }
+
+    const searchParams = new URLSearchParams(query);
+    const sortedParams = [...searchParams.entries()].sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+    const normalizedQuery = new URLSearchParams(sortedParams).toString();
+    return normalizedQuery ? `${path}?${normalizedQuery}` : path;
+  }
+
   private applyNoCacheHeaders(
     response: Record<string, unknown> & {
       setHeader: (key: string, value: string) => void;
@@ -97,37 +138,33 @@ export class CacheInterceptor implements NestInterceptor {
     response.setHeader('Expires', '0');
   }
 
+  private createEtag(data: unknown): string {
+    const hash = crypto
+      .createHash('md5')
+      .update(JSON.stringify(data))
+      .digest('hex');
+    return `"${hash}"`;
+  }
+
   private applyCacheHeaders(
     response: Record<string, unknown> & {
       setHeader: (key: string, value: string) => void;
       headersSent?: boolean;
-      status?: (code: number) => void;
     },
     duration: number,
-    data: unknown,
-    request: Record<string, unknown> & { headers?: Record<string, string> },
+    etag: string,
   ) {
     if (response.headersSent) return;
 
     response.setHeader(
       'Cache-Control',
-      `private, no-cache, must-revalidate, max-age=${duration}`,
+      `private, max-age=${duration}, stale-while-revalidate=30`,
     );
-
-    if (data) {
-      const etag = crypto
-        .createHash('md5')
-        .update(JSON.stringify(data))
-        .digest('hex');
-      response.setHeader('ETag', `"${etag}"`);
-
-      const clientEtag = request.headers?.['if-none-match'];
-      if (clientEtag === `"${etag}"`) {
-        response.status?.(304);
-      }
-    }
-
-    response.setHeader('Vary', 'Authorization, Accept-Encoding');
+    response.setHeader('ETag', etag);
+    response.setHeader(
+      'Vary',
+      'Authorization, Accept-Encoding, Accept-Language',
+    );
   }
 }
 

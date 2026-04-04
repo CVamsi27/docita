@@ -19,11 +19,16 @@ export class SuperAdminAnalyticsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async getGlobalStats(timezone: string = DEFAULT_TIMEZONE) {
     try {
       const cacheKey = `super-admin:global-stats:${timezone}`;
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) return cached;
+      const readClient = this.getReadClient();
 
       const thisMonthRange = getMonthRange(new Date(), { timezone });
       const lastMonthDate = new Date();
@@ -32,12 +37,12 @@ export class SuperAdminAnalyticsService {
 
       const [clinics, users, doctors, patients, invoices, prescriptions] =
         await Promise.all([
-          this.prisma.clinic.count(),
-          this.prisma.user.count(),
-          this.prisma.user.count({ where: { role: 'DOCTOR' } }),
-          this.prisma.patient.count(),
-          this.prisma.invoice.count(),
-          this.prisma.prescription.count(),
+          readClient.clinic.count(),
+          readClient.user.count(),
+          readClient.user.count({ where: { role: 'DOCTOR' } }),
+          readClient.patient.count(),
+          readClient.invoice.count(),
+          readClient.prescription.count(),
         ]);
 
       const [
@@ -48,36 +53,36 @@ export class SuperAdminAnalyticsService {
         invoicesThisMonth,
         prescriptionsThisMonth,
       ] = await Promise.all([
-        this.prisma.clinic.count({
+        readClient.clinic.count({
           where: { createdAt: { gte: thisMonthRange.start } },
         }),
-        this.prisma.user.count({
+        readClient.user.count({
           where: { createdAt: { gte: thisMonthRange.start } },
         }),
-        this.prisma.user.count({
+        readClient.user.count({
           where: {
             role: 'DOCTOR',
             createdAt: { gte: thisMonthRange.start },
           },
         }),
-        this.prisma.patient.count({
+        readClient.patient.count({
           where: { createdAt: { gte: thisMonthRange.start } },
         }),
-        this.prisma.invoice.count({
+        readClient.invoice.count({
           where: { createdAt: { gte: thisMonthRange.start } },
         }),
-        this.prisma.prescription.count({
+        readClient.prescription.count({
           where: { createdAt: { gte: thisMonthRange.start } },
         }),
       ]);
 
       const [invoicesLastMonth, prescriptionsLastMonth] = await Promise.all([
-        this.prisma.invoice.count({
+        readClient.invoice.count({
           where: {
             createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
           },
         }),
-        this.prisma.prescription.count({
+        readClient.prescription.count({
           where: {
             createdAt: { gte: lastMonthRange.start, lte: lastMonthRange.end },
           },
@@ -130,7 +135,7 @@ export class SuperAdminAnalyticsService {
   }
 
   async getAnalytics(
-    _period: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly',
+    period: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly',
     startDate?: string,
     endDate?: string,
   ) {
@@ -140,54 +145,51 @@ export class SuperAdminAnalyticsService {
         ? new Date(startDate)
         : new Date(now.getFullYear(), now.getMonth(), 1);
       const end = endDate ? new Date(endDate) : now;
+      const cacheKey = `super-admin:analytics:${period}:${start.toISOString()}:${end.toISOString()}`;
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
 
-      const [totalRevenue, appointmentsCount, newPatientsCount, invoices] =
+      const readClient = this.getReadClient();
+
+      const [invoiceStats, appointmentsCount, newPatientsCount] =
         await Promise.all([
-          this.prisma.invoice.aggregate({
+          readClient.invoice.aggregate({
             where: {
               createdAt: { gte: start, lte: end },
               status: InvoiceStatus.PAID,
             },
             _sum: { total: true },
+            _avg: { total: true },
           }),
-          this.prisma.appointment.count({
+          readClient.appointment.count({
             where: { createdAt: { gte: start, lte: end } },
           }),
-          this.prisma.patient.count({
+          readClient.patient.count({
             where: { createdAt: { gte: start, lte: end } },
-          }),
-          this.prisma.invoice.findMany({
-            where: {
-              createdAt: { gte: start, lte: end },
-              status: InvoiceStatus.PAID,
-            },
-            select: { total: true },
           }),
         ]);
 
-      const revenue = totalRevenue._sum?.total || 0;
-      const avgInvoiceValue =
-        invoices.length > 0
-          ? invoices.reduce((sum, inv) => sum + (inv.total || 0), 0) /
-            invoices.length
-          : 0;
+      const revenue = invoiceStats._sum?.total || 0;
+      const avgInvoiceValue = Number(invoiceStats._avg?.total || 0);
 
       const periodLength = end.getTime() - start.getTime();
       const prevStart = new Date(start.getTime() - periodLength);
       const prevEnd = new Date(end.getTime() - periodLength);
 
       const [prevRevenue, prevAppointments, prevPatients] = await Promise.all([
-        this.prisma.invoice.aggregate({
+        readClient.invoice.aggregate({
           where: {
             createdAt: { gte: prevStart, lte: prevEnd },
-            status: 'PAID',
+            status: InvoiceStatus.PAID,
           },
           _sum: { total: true },
         }),
-        this.prisma.appointment.count({
+        readClient.appointment.count({
           where: { createdAt: { gte: prevStart, lte: prevEnd } },
         }),
-        this.prisma.patient.count({
+        readClient.patient.count({
           where: { createdAt: { gte: prevStart, lte: prevEnd } },
         }),
       ]);
@@ -206,7 +208,7 @@ export class SuperAdminAnalyticsService {
           ? ((newPatientsCount - prevPatients) / prevPatients) * 100
           : 0;
 
-      return {
+      const result = {
         revenue: Number(revenue),
         appointments: appointmentsCount,
         newPatients: newPatientsCount,
@@ -215,6 +217,9 @@ export class SuperAdminAnalyticsService {
         appointmentsChange: Number(appointmentsChange.toFixed(2)),
         patientsChange: Number(patientsChange.toFixed(2)),
       };
+
+      await this.cacheManager.set(cacheKey, result, 300 * 1000);
+      return result;
     } catch (error) {
       this.logger.error('Failed to fetch analytics data', error);
       throw new InternalServerErrorException('Failed to fetch analytics data');
@@ -226,6 +231,7 @@ export class SuperAdminAnalyticsService {
       const now = new Date();
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      const readClient = this.getReadClient();
 
       const [
         recentAppointments,
@@ -235,23 +241,23 @@ export class SuperAdminAnalyticsService {
         activeClinicCount,
         totalClinicCount,
       ] = await Promise.all([
-        this.prisma.appointment.count({
+        readClient.appointment.count({
           where: { createdAt: { gte: oneHourAgo } },
         }),
-        this.prisma.appointment.count({
+        readClient.appointment.count({
           where: { createdAt: { gte: oneDayAgo } },
         }),
-        this.prisma.paymentSession.count({
+        readClient.paymentSession.count({
           where: {
             status: PaymentSessionStatus.FAILED,
             createdAt: { gte: oneDayAgo },
           },
         }),
-        this.prisma.paymentSession.count({
+        readClient.paymentSession.count({
           where: { createdAt: { gte: oneDayAgo } },
         }),
-        this.prisma.clinic.count({ where: { active: true } }),
-        this.prisma.clinic.count(),
+        readClient.clinic.count({ where: { active: true } }),
+        readClient.clinic.count(),
       ]);
 
       const errorRate =
@@ -322,6 +328,7 @@ export class SuperAdminAnalyticsService {
       const cacheKey = 'super-admin:usage-metrics';
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) return cached;
+      const readClient = this.getReadClient();
 
       const now = new Date();
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -335,26 +342,24 @@ export class SuperAdminAnalyticsService {
         prescriptionsToday,
         prescriptionsThisMonth,
       ] = await Promise.all([
-        this.prisma.appointment.findMany({
-          where: { createdAt: { gte: oneDayAgo } },
-          select: { doctorId: true },
-          distinct: ['doctorId'],
-        }),
-        this.prisma.appointment.findMany({
-          where: { createdAt: { gte: thirtyDaysAgo } },
-          select: { doctorId: true },
-          distinct: ['doctorId'],
-        }),
-        this.prisma.appointment.count({
+        readClient.appointment.groupBy({
+          by: ['doctorId'],
           where: { createdAt: { gte: oneDayAgo } },
         }),
-        this.prisma.appointment.count({
+        readClient.appointment.groupBy({
+          by: ['doctorId'],
           where: { createdAt: { gte: thirtyDaysAgo } },
         }),
-        this.prisma.prescription.count({
+        readClient.appointment.count({
           where: { createdAt: { gte: oneDayAgo } },
         }),
-        this.prisma.prescription.count({
+        readClient.appointment.count({
+          where: { createdAt: { gte: thirtyDaysAgo } },
+        }),
+        readClient.prescription.count({
+          where: { createdAt: { gte: oneDayAgo } },
+        }),
+        readClient.prescription.count({
           where: { createdAt: { gte: thirtyDaysAgo } },
         }),
       ]);
@@ -380,8 +385,9 @@ export class SuperAdminAnalyticsService {
       const cacheKey = 'super-admin:tier-distribution';
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) return cached;
+      const readClient = this.getReadClient();
 
-      const clinics = await this.prisma.clinic.groupBy({
+      const clinics = await readClient.clinic.groupBy({
         by: ['tier'],
         _count: { tier: true },
         orderBy: { tier: 'asc' },
