@@ -35,8 +35,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check repository hygiene
-        run: pnpm check:hygiene
+      - name: Verify Repository Standards
+        run: pnpm verify:standard
 
       - name: Generate Prisma Client
         run: pnpm db:generate
@@ -46,6 +46,9 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Validate App Cloudflare Build
+        run: pnpm --filter @docita/app run build:cloudflare
 
       - name: Test (Unit)
         run: pnpm test -- --coverage

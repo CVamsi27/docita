@@ -5,6 +5,7 @@ import { constants } from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
+const logError = (message) => process.stderr.write(`${message}\n`);
 
 const runtimePackages = [
   'auth',
@@ -64,9 +65,9 @@ for (const pkg of runtimePackages) {
 }
 
 if (errors.length > 0) {
-
+  logError('Package contract violations detected:\n');
   for (const error of errors) {
-
+    logError(` - ${error}`);
   }
   process.exit(1);
 }
