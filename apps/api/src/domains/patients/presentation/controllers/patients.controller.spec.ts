@@ -11,16 +11,52 @@ import { PatientsController } from './patients.controller';
 import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Role } from '@workspace/db';
+import { RequestWithUser } from '@/common/types/common.types';
+import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
+import { Patient } from '@/domains/patients/core/entities/patient.entity';
 
 describe('PatientsController (Authorization)', () => {
   let controller: PatientsController;
+  type AuthRequest = RequestWithUser & {
+    user: NonNullable<RequestWithUser['user']>;
+  };
 
-  const mockPatientsService = {
-    listPatients:
-      jest.fn<(query: Record<string, unknown>) => Promise<unknown>>(),
-    getPatient: jest.fn<() => Promise<unknown>>(),
-    createPatient: jest.fn<() => Promise<unknown>>(),
-    updatePatient: jest.fn<() => Promise<unknown>>(),
+  const listPatientsMock = jest.fn<PatientsService['listPatients']>();
+  const getPatientMock = jest.fn<PatientsService['getPatient']>();
+  const createPatientMock = jest.fn<PatientsService['createPatient']>();
+  const updatePatientMock = jest.fn<PatientsService['updatePatient']>();
+
+  const mockPatientsService: Pick<
+    PatientsService,
+    'listPatients' | 'getPatient' | 'createPatient' | 'updatePatient'
+  > = {
+    listPatients: listPatientsMock,
+    getPatient: getPatientMock,
+    createPatient: createPatientMock,
+    updatePatient: updatePatientMock,
+  };
+
+  const buildRequest = (clinicId = 'clinic-1', role = Role.DOCTOR) => {
+    const request = Object.create({}) as AuthRequest;
+    const user = Object.create({}) as NonNullable<RequestWithUser['user']>;
+    user.clinicId = clinicId;
+    user.role = role;
+    request.user = user;
+    return request;
+  };
+
+  const buildQuery = (
+    query: Partial<ListPatientsQueryDto>,
+  ): ListPatientsQueryDto =>
+    ({
+      ...query,
+    }) as ListPatientsQueryDto;
+
+  const emptyPatients: Awaited<ReturnType<PatientsService['listPatients']>> = {
+    items: [],
+    total: 0,
+    count: 0,
+    hasMore: false,
   };
 
   beforeEach(async () => {
@@ -53,130 +89,109 @@ describe('PatientsController (Authorization)', () => {
     });
 
     it('should allow DOCTOR role to access patients', async () => {
-      const mockRequest = {
-        user: {
-          clinicId: 'clinic-1',
-          role: Role.DOCTOR,
-          sub: 'doctor-1',
-        },
-      };
+      const mockRequest = buildRequest();
 
-      mockPatientsService.listPatients.mockResolvedValue({
-        items: [],
-        count: 0,
-        hasMore: false,
-      });
+      listPatientsMock.mockResolvedValue(emptyPatients);
 
       const result = await controller.findAll(
-        mockRequest as never,
-        {
+        mockRequest,
+        buildQuery({
           limit: 10,
-        } as never,
+        }),
       );
 
-      expect(result).toEqual({ items: [], count: 0, hasMore: false });
-      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+      expect(result).toEqual(emptyPatients);
+      const firstCallQuery = listPatientsMock.mock.calls[0]![0];
 
-      expect(firstCallQuery['clinicId']).toBe('clinic-1');
-      expect(firstCallQuery['limit']).toBe(10);
-      expect(firstCallQuery['page']).toBe(1);
+      expect(firstCallQuery.clinicId).toBe('clinic-1');
+      expect(firstCallQuery.limit).toBe(10);
+      expect(firstCallQuery.page).toBe(1);
     });
 
     it('should enforce clinic isolation - can only access own clinic patients', async () => {
-      const mockRequest = {
-        user: {
-          clinicId: 'clinic-1',
-          role: Role.DOCTOR,
-          sub: 'doctor-1',
-        },
-      };
+      const mockRequest = buildRequest();
 
-      mockPatientsService.listPatients.mockResolvedValue({
-        items: [],
-        count: 0,
-        hasMore: false,
-      });
+      listPatientsMock.mockResolvedValue(emptyPatients);
 
-      await controller.findAll(mockRequest as never, { limit: 10 } as never);
+      await controller.findAll(
+        mockRequest,
+        buildQuery({
+          limit: 10,
+        }),
+      );
 
-      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+      const firstCallQuery = listPatientsMock.mock.calls[0]![0];
 
-      expect(firstCallQuery['clinicId']).toBe('clinic-1');
+      expect(firstCallQuery.clinicId).toBe('clinic-1');
     });
   });
 
   describe('Route - GET /patients', () => {
     it('should list all patients with pagination', async () => {
-      const mockRequest = {
-        user: { clinicId: 'clinic-1' },
-      };
+      const mockRequest = buildRequest();
 
       const mockPatients = {
         items: [
-          {
+          new Patient({
             id: 'patient-1',
+            clinicId: 'clinic-1',
             firstName: 'John',
             lastName: 'Doe',
             email: 'john@example.com',
-          },
+            phoneNumber: '9999999999',
+            gender: 'male',
+            metadata: {},
+            createdAt: new Date('2026-01-01T00:00:00.000Z'),
+            updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+            version: 1,
+          }),
         ],
+        total: 1,
         count: 1,
         hasMore: false,
       };
 
-      mockPatientsService.listPatients.mockResolvedValue(mockPatients);
+      listPatientsMock.mockResolvedValue(mockPatients);
 
       const result = await controller.findAll(
-        mockRequest as never,
-        {
+        mockRequest,
+        buildQuery({
           limit: 10,
-        } as never,
+        }),
       );
 
       expect(result).toEqual(mockPatients);
     });
 
     it('should support search parameter', async () => {
-      const mockRequest = {
-        user: { clinicId: 'clinic-1' },
-      };
+      const mockRequest = buildRequest();
 
-      mockPatientsService.listPatients.mockResolvedValue({
-        items: [],
-        count: 0,
-        hasMore: false,
-      });
+      listPatientsMock.mockResolvedValue(emptyPatients);
 
       await controller.findAll(
-        mockRequest as never,
-        { limit: 10, search: 'john' } as never,
+        mockRequest,
+        buildQuery({ limit: 10, search: 'john' }),
       );
 
-      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+      const firstCallQuery = listPatientsMock.mock.calls[0]![0];
 
-      expect(firstCallQuery['clinicId']).toBe('clinic-1');
-      expect(firstCallQuery['search']).toBe('john');
+      expect(firstCallQuery.clinicId).toBe('clinic-1');
+      expect(firstCallQuery.search).toBe('john');
     });
   });
 
   describe('Input Validation', () => {
     it('should validate pagination limit parameter', async () => {
-      const mockRequest = {
-        user: { clinicId: 'clinic-1' },
-      };
+      const mockRequest = buildRequest();
 
-      mockPatientsService.listPatients.mockResolvedValue({
-        items: [],
-        count: 0,
-        hasMore: false,
-      });
+      listPatientsMock.mockResolvedValue(emptyPatients);
 
-      await controller.findAll(mockRequest as never, { limit: 100 } as never);
+      await controller.findAll(mockRequest, buildQuery({ limit: 100 }));
 
-      const firstCallQuery = mockPatientsService.listPatients.mock.calls[0]![0];
+      const firstCallQuery = listPatientsMock.mock.calls[0]![0];
 
-      expect(firstCallQuery['clinicId']).toBe('clinic-1');
-      expect(firstCallQuery['limit']).toBe(100);
+      expect(firstCallQuery.clinicId).toBe('clinic-1');
+      expect(firstCallQuery.limit).toBe(100);
     });
   });
 
