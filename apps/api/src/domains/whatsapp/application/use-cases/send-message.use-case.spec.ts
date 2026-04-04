@@ -1,128 +1,102 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { SendMessageUseCase } from './send-message.use-case';
-import {
-  WHATSAPP_REPOSITORY_TOKEN,
-  IWhatsAppRepository,
-} from '../ports/whatsapp.repository.port';
-import {
-  WHATSAPP_CLIENT_TOKEN,
-  IWhatsAppClient,
-} from '../ports/whatsapp-client.port';
-import { TemplateResolverService } from '../../core/services/template-resolver.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { SendMessageUseCase } from './send-message.use-case';
+import { IWhatsAppRepository } from '../ports/whatsapp.repository.port';
+import { IWhatsAppClient } from '../ports/whatsapp-client.port';
+import {
+  ResolvedTemplate,
+  TemplateResolverService,
+} from '../../core/services/template-resolver.service';
 import {
   WhatsAppMessage,
   WhatsAppMessageStatus,
 } from '../../core/entities/whatsapp-message.entity';
-import {
-  WhatsAppTemplate,
-  WhatsAppTemplateStatus,
-  WhatsAppTemplateCategory,
-} from '../../core/entities/whatsapp-template.entity';
-
-function makeMessage(
-  overrides: Partial<ConstructorParameters<typeof WhatsAppMessage>[0]> = {},
-): WhatsAppMessage {
-  return new WhatsAppMessage({
-    id: 'msg-001',
-    clinicId: 'clinic-123',
-    conversationId: 'conv-001',
-    recipientPhone: '919876543210',
-    content: 'Hello',
-    status: WhatsAppMessageStatus.DISPATCHED,
-    sentAt: new Date(),
-    ...overrides,
-  });
-}
-
-function makeTemplate(
-  overrides: Partial<ConstructorParameters<typeof WhatsAppTemplate>[0]> = {},
-): WhatsAppTemplate {
-  return new WhatsAppTemplate({
-    id: 'tmpl-001',
-    clinicId: 'clinic-123',
-    name: 'appointment_reminder',
-    category: WhatsAppTemplateCategory.UTILITY,
-    content: 'Hello {{patientName}}',
-    status: WhatsAppTemplateStatus.APPROVED,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    ...overrides,
-  });
-}
+import { WhatsAppTemplate } from '../../core/entities/whatsapp-template.entity';
 
 describe('SendMessageUseCase', () => {
   let useCase: SendMessageUseCase;
-  let mockRepository: jest.Mocked<IWhatsAppRepository>;
-  let mockClient: jest.Mocked<IWhatsAppClient>;
-  let mockTemplateResolver: jest.Mocked<TemplateResolverService>;
-  let mockConfigService: jest.Mocked<AppConfigService>;
+
+  const saveMessageMock = jest.fn<IWhatsAppRepository['saveMessage']>();
+  const findMessageByIdMock = jest.fn<IWhatsAppRepository['findMessageById']>();
+  const findMessageByExternalIdMock =
+    jest.fn<IWhatsAppRepository['findMessageByExternalId']>();
+  const saveTemplateMock = jest.fn<IWhatsAppRepository['saveTemplate']>();
+  const findTemplateByIdMock =
+    jest.fn<IWhatsAppRepository['findTemplateById']>();
+  const findTemplateByNameMock =
+    jest.fn<IWhatsAppRepository['findTemplateByName']>();
+  const listTemplatesByClinicMock =
+    jest.fn<IWhatsAppRepository['listTemplatesByClinic']>();
+  const isAutomationEnabledMock =
+    jest.fn<IWhatsAppRepository['isAutomationEnabled']>();
+
+  const mockRepository: IWhatsAppRepository = {
+    saveMessage: saveMessageMock,
+    findMessageById: findMessageByIdMock,
+    findMessageByExternalId: findMessageByExternalIdMock,
+    saveTemplate: saveTemplateMock,
+    findTemplateById: findTemplateByIdMock,
+    findTemplateByName: findTemplateByNameMock,
+    listTemplatesByClinic: listTemplatesByClinicMock,
+    isAutomationEnabled: isAutomationEnabledMock,
+  };
+
+  const sendMessageMock = jest.fn<IWhatsAppClient['sendMessage']>();
+  const sendInteractiveMessageMock =
+    jest.fn<IWhatsAppClient['sendInteractiveMessage']>();
+  const checkHealthMock = jest.fn<IWhatsAppClient['checkHealth']>();
+
+  const mockClient: IWhatsAppClient = {
+    sendMessage: sendMessageMock,
+    sendInteractiveMessage: sendInteractiveMessageMock,
+    checkHealth: checkHealthMock,
+  };
+
+  const mockTemplateResolver = Object.create(
+    TemplateResolverService.prototype,
+  ) as TemplateResolverService;
+  const resolveTemplateMock =
+    jest.fn<TemplateResolverService['resolveTemplate']>();
+  mockTemplateResolver.resolveTemplate = resolveTemplateMock;
+
+  const mockConfigService = Object.create(
+    AppConfigService.prototype,
+  ) as AppConfigService;
+  const getMetaConfigMock = jest.fn<AppConfigService['getMetaConfig']>();
+  mockConfigService.getMetaConfig = getMetaConfigMock;
 
   beforeEach(() => {
-    mockRepository = {
-      saveMessage: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      findMessageById: jest
-        .fn<() => Promise<WhatsAppMessage | null>>()
-        .mockResolvedValue(null),
-      findMessageByExternalId: jest
-        .fn<() => Promise<WhatsAppMessage | null>>()
-        .mockResolvedValue(null),
-      saveTemplate: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      findTemplateById: jest
-        .fn<() => Promise<WhatsAppTemplate | null>>()
-        .mockResolvedValue(null),
-      findTemplateByName: jest
-        .fn<() => Promise<WhatsAppTemplate | null>>()
-        .mockResolvedValue(null),
-      listTemplatesByClinic: jest
-        .fn<() => Promise<WhatsAppTemplate[]>>()
-        .mockResolvedValue([]),
-      isAutomationEnabled: jest
-        .fn<() => Promise<boolean>>()
-        .mockResolvedValue(true),
-    } as jest.Mocked<IWhatsAppRepository>;
+    jest.clearAllMocks();
 
-    mockClient = {
-      sendMessage: jest
-        .fn<() => Promise<{ externalId: string }>>()
-        .mockResolvedValue({ externalId: 'wamid.ext001' }),
-      sendInteractiveMessage: jest
-        .fn<() => Promise<{ externalId: string }>>()
-        .mockResolvedValue({ externalId: 'wamid.int001' }),
-      checkHealth: jest.fn<() => Promise<boolean>>().mockResolvedValue(true),
-    } as jest.Mocked<IWhatsAppClient>;
+    saveMessageMock.mockResolvedValue();
+    findMessageByIdMock.mockResolvedValue(null);
+    findMessageByExternalIdMock.mockResolvedValue(null);
+    saveTemplateMock.mockResolvedValue();
+    findTemplateByIdMock.mockResolvedValue(null);
+    findTemplateByNameMock.mockResolvedValue(null);
+    listTemplatesByClinicMock.mockResolvedValue([] as WhatsAppTemplate[]);
+    isAutomationEnabledMock.mockResolvedValue(true);
 
-    mockTemplateResolver = {
-      resolveTemplate: jest
-        .fn<
-          () => Promise<{
-            content: string;
-            buttonType: 'QUICK_REPLY' | 'CALL_TO_ACTION';
-            textFallback: string;
-            buttons?: Array<{ id: string; text: string }>;
-          } | null>
-        >()
-        .mockResolvedValue(null),
-    } as unknown as jest.Mocked<TemplateResolverService>;
+    sendMessageMock.mockResolvedValue({ externalId: 'wamid.ext001' });
+    sendInteractiveMessageMock.mockResolvedValue({
+      externalId: 'wamid.int001',
+    });
+    checkHealthMock.mockResolvedValue(true);
 
-    mockConfigService = {
-      getMetaConfig: jest.fn().mockReturnValue({
-        accessToken: 'test-token',
-        phoneNumberId: 'test-phone-id',
-        businessAccountId: 'test-biz-id',
-        appSecret: 'test-secret',
-        verifyToken: 'test-verify',
-        productionMode: false,
-      }),
-    } as unknown as jest.Mocked<AppConfigService>;
+    resolveTemplateMock.mockResolvedValue(null);
+
+    getMetaConfigMock.mockReturnValue({
+      accessToken: 'test-token',
+      phoneNumberId: 'test-phone-id',
+      businessAccountId: 'test-biz-id',
+      appSecret: 'test-secret',
+      verifyToken: 'test-verify',
+      productionMode: false,
+    });
 
     useCase = new SendMessageUseCase(
-      mockRepository as unknown as typeof mockRepository & {
-        [WHATSAPP_REPOSITORY_TOKEN]: symbol;
-      },
-      mockClient as unknown as typeof mockClient & {
-        [WHATSAPP_CLIENT_TOKEN]: symbol;
-      },
+      mockRepository,
+      mockClient,
       mockTemplateResolver,
       mockConfigService,
     );
@@ -136,11 +110,11 @@ describe('SendMessageUseCase', () => {
         text: 'Your appointment is confirmed.',
       });
 
-      expect(mockClient.sendMessage).toHaveBeenCalledWith({
+      expect(sendMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
         text: 'Your appointment is confirmed.',
       });
-      expect(mockRepository.saveMessage).toHaveBeenCalledTimes(1);
+      expect(saveMessageMock).toHaveBeenCalledTimes(1);
       expect(result.messageId).toBeDefined();
     });
 
@@ -156,12 +130,13 @@ describe('SendMessageUseCase', () => {
 
   describe('template message (sandbox mode)', () => {
     it('should resolve template and send plain text in sandbox mode', async () => {
-      mockTemplateResolver.resolveTemplate.mockResolvedValue({
+      const resolved: ResolvedTemplate = {
         content: 'Hello John',
         buttons: undefined,
         buttonType: 'QUICK_REPLY',
         textFallback: 'Hello John',
-      });
+      };
+      resolveTemplateMock.mockResolvedValue(resolved);
 
       const result = await useCase.execute({
         clinicId: 'clinic-123',
@@ -170,12 +145,12 @@ describe('SendMessageUseCase', () => {
         variables: { patientName: 'John' },
       });
 
-      expect(mockTemplateResolver.resolveTemplate).toHaveBeenCalledWith(
+      expect(resolveTemplateMock).toHaveBeenCalledWith(
         'appointment_reminder',
         { patientName: 'John' },
         'clinic-123',
       );
-      expect(mockClient.sendMessage).toHaveBeenCalledWith({
+      expect(sendMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
         text: 'Hello John',
       });
@@ -183,7 +158,7 @@ describe('SendMessageUseCase', () => {
     });
 
     it('should send interactive buttons when template has buttons', async () => {
-      mockTemplateResolver.resolveTemplate.mockResolvedValue({
+      resolveTemplateMock.mockResolvedValue({
         content: 'Confirm appointment?',
         buttons: [
           { id: 'btn_confirm', text: 'Confirm' },
@@ -199,7 +174,7 @@ describe('SendMessageUseCase', () => {
         templateName: 'appointment_confirm',
       });
 
-      expect(mockClient.sendInteractiveMessage).toHaveBeenCalledWith({
+      expect(sendInteractiveMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
         bodyText: 'Confirm appointment?',
         buttons: [
@@ -210,7 +185,7 @@ describe('SendMessageUseCase', () => {
     });
 
     it('should send Meta template API call in production mode', async () => {
-      mockConfigService.getMetaConfig.mockReturnValue({
+      getMetaConfigMock.mockReturnValue({
         accessToken: 'prod-token',
         phoneNumberId: 'prod-phone-id',
         businessAccountId: 'biz-id',
@@ -220,17 +195,13 @@ describe('SendMessageUseCase', () => {
       });
 
       useCase = new SendMessageUseCase(
-        mockRepository as unknown as typeof mockRepository & {
-          [WHATSAPP_REPOSITORY_TOKEN]: symbol;
-        },
-        mockClient as unknown as typeof mockClient & {
-          [WHATSAPP_CLIENT_TOKEN]: symbol;
-        },
+        mockRepository,
+        mockClient,
         mockTemplateResolver,
         mockConfigService,
       );
 
-      mockTemplateResolver.resolveTemplate.mockResolvedValue({
+      resolveTemplateMock.mockResolvedValue({
         content: 'Hello',
         buttons: undefined,
         buttonType: 'QUICK_REPLY',
@@ -245,7 +216,7 @@ describe('SendMessageUseCase', () => {
         variables: { patientName: 'John' },
       });
 
-      expect(mockClient.sendMessage).toHaveBeenCalledWith(
+      expect(sendMessageMock).toHaveBeenCalledWith(
         expect.objectContaining({
           to: '919876543210',
           templateName: 'appointment_reminder_24hr',
@@ -254,7 +225,7 @@ describe('SendMessageUseCase', () => {
     });
 
     it('should fall back to plain text when template not found', async () => {
-      mockTemplateResolver.resolveTemplate.mockResolvedValue(null);
+      resolveTemplateMock.mockResolvedValue(null);
 
       await useCase.execute({
         clinicId: 'clinic-123',
@@ -263,7 +234,7 @@ describe('SendMessageUseCase', () => {
         text: 'fallback text',
       });
 
-      expect(mockClient.sendMessage).toHaveBeenCalledWith({
+      expect(sendMessageMock).toHaveBeenCalledWith({
         to: '919876543210',
         text: 'fallback text',
       });
@@ -278,10 +249,9 @@ describe('SendMessageUseCase', () => {
         text: 'Test',
       });
 
-      const saved = mockRepository.saveMessage.mock
-        .calls[0][0] as WhatsAppMessage;
+      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.clinicId).toBe('clinic-abc');
-      expect(mockRepository.saveMessage).toHaveBeenCalledTimes(1);
+      expect(saveMessageMock).toHaveBeenCalledTimes(1);
     });
 
     it('should save message with DISPATCHED status initially', async () => {
@@ -291,8 +261,7 @@ describe('SendMessageUseCase', () => {
         text: 'Test',
       });
 
-      const saved = mockRepository.saveMessage.mock
-        .calls[0][0] as WhatsAppMessage;
+      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.DISPATCHED);
     });
   });
