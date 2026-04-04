@@ -6,6 +6,7 @@ import {
   FloatingStartConsultation,
   MobileNav,
   Sidebar,
+  SidebarMobileTrigger,
 } from "@/features/_shared/components";
 import { SmartBackButton } from "@/features/_shared/components/navigation/smart-back-button";
 import { useNavigationStore } from "@/lib/stores/navigation-store";
@@ -147,14 +148,14 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function MobileHeader() {
+function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const { canGoBack } = useNavigationStore();
   return (
     <header
-      className="flex h-14 items-center gap-2 border-b bg-background px-4 md:hidden"
+      className="flex h-14 items-center gap-2 border-b bg-background px-3 md:hidden"
       aria-label="Mobile navigation"
     >
-      <MobileNav />
+      <SidebarMobileTrigger onClick={onMenuClick} />
       {canGoBack() ? (
         <SmartBackButton fallback="/dashboard" label="" className="px-2" />
       ) : (
@@ -162,8 +163,9 @@ function MobileHeader() {
           <DocitaLogo />
         </div>
       )}
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-1">
         <ThemeToggle />
+        <MobileNav />
       </div>
     </header>
   );
@@ -176,6 +178,7 @@ export default function ProtectedLayout({
 }) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
   const wasSettingsRouteRef = useRef(false);
@@ -282,12 +285,14 @@ export default function ProtectedLayout({
                           sidebarPanelRef.current?.expand();
                         }
                       }}
+                      mobileOpen={mobileOpen}
+                      onMobileOpenChange={setMobileOpen}
                     />
                   </ResizablePanel>
                   <ResizableHandle withHandle className="hidden md:flex" />
                   <ResizablePanel defaultSize={82}>
                     <div className="flex h-full flex-col overflow-hidden">
-                      <MobileHeader />
+                      <MobileHeader onMenuClick={() => setMobileOpen(true)} />
                       <main
                         className="flex-1 overflow-y-auto p-4 md:p-6"
                         aria-label="Main content"
