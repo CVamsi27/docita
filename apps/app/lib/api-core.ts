@@ -162,14 +162,16 @@ const STALE_TIME_BY_KEY_PREFIX: Record<string, number> = {
   permissions: 5 * 60 * 1000,
 };
 
-function inferStaleTime(key: (string | number | Record<string, unknown>)[]): number | undefined {
+function inferStaleTime(
+  key: readonly (string | number | Record<string, unknown>)[],
+): number | undefined {
   const prefix = typeof key[0] === "string" ? key[0] : undefined;
   if (!prefix) return undefined;
   return STALE_TIME_BY_KEY_PREFIX[prefix];
 }
 
 export function useAPIQuery<T>(
-  key: (string | number | Record<string, unknown>)[],
+  key: readonly (string | number | Record<string, unknown>)[],
   endpoint: string,
   options?: Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">,
 ) {
@@ -186,7 +188,9 @@ export function useAPIMutation<TData, TVariables>(
   endpointOrFn: string | ((vars: TVariables) => string),
   method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST",
   options?: Omit<UseMutationOptions<TData, ApiError, TVariables>, "mutationFn"> & {
-    invalidateKeys?: (string | number | Record<string, unknown>)[][];
+    invalidateKeys?: readonly (
+      readonly (string | number | Record<string, unknown>)[]
+    )[];
   },
 ) {
   const queryClient = useQueryClient();

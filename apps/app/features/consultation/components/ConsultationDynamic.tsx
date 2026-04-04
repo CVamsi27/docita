@@ -530,6 +530,46 @@ export const ClinicalDocumentationDynamic: FC<
       ? "Complete Consultation"
       : "Save Draft";
 
+  const rendererData = useMemo(
+    () => ({
+      chiefComplaint,
+      history,
+      examination,
+      diagnosis,
+      treatment,
+      prescriptions,
+      dentalChart,
+      eyeExam,
+      growthData,
+    }),
+    [
+      chiefComplaint,
+      history,
+      examination,
+      diagnosis,
+      treatment,
+      prescriptions,
+      dentalChart,
+      eyeExam,
+      growthData,
+    ],
+  );
+
+  const rendererHandlers = useMemo(
+    () => ({
+      setChiefComplaint,
+      setHistory,
+      setExamination,
+      setDiagnosis,
+      setTreatment,
+      setPrescriptions,
+      setDentalChart,
+      setEyeExam,
+      setGrowthData,
+    }),
+    [],
+  );
+
   return (
     <div className={`space-y-4 ${isFocusMode ? "max-w-4xl mx-auto" : ""}`}>
       <div className="sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border bg-background/95 p-3 shadow-sm">
@@ -593,28 +633,8 @@ export const ClinicalDocumentationDynamic: FC<
         <CardContent className="p-6">
           <ConsultationFormRenderer
             tabId={activeTab}
-            data={{
-              chiefComplaint,
-              history,
-              examination,
-              diagnosis,
-              treatment,
-              prescriptions,
-              dentalChart,
-              eyeExam,
-              growthData,
-            }}
-            handlers={{
-              setChiefComplaint,
-              setHistory,
-              setExamination,
-              setDiagnosis,
-              setTreatment,
-              setPrescriptions,
-              setDentalChart,
-              setEyeExam,
-              setGrowthData,
-            }}
+            data={rendererData}
+            handlers={rendererHandlers}
             patient={patient}
             isLoading={isPatientLoading}
           />

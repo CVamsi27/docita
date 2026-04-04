@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -12,20 +13,27 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
-import { Badge } from "@workspace/ui/components/badge";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { client } from "@/lib/api-client";
 import { adminQueryKeys } from "@/lib/query-keys";
+import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
+
+const AnalyticsDetailedMetricsTable = dynamic(
+  () =>
+    import("@/components/analytics/analytics-detailed-metrics-table").then(
+      (module) => module.AnalyticsDetailedMetricsTable,
+    ),
+  {
+    loading: () => (
+      <div className="text-center text-muted-foreground py-8">
+        <p>Loading detailed metrics...</p>
+      </div>
+    ),
+    ssr: false,
+  },
+);
 
 interface MetricCard {
   title: string;
@@ -44,14 +52,7 @@ interface AnalyticsData {
   appointmentsChange?: number;
   patientsChange?: number;
   invoiceValueChange?: number;
-  detailedMetrics?: Array<{
-    period: string;
-    revenue: number;
-    invoices: number;
-    avgAmount: number;
-    appointments: number;
-    fillRate: number;
-  }>;
+  detailedMetrics?: DetailedMetricsRow[];
 }
 
 interface BillingMetrics {
@@ -109,7 +110,7 @@ export function AnalyticsDashboard() {
     }
   }, [analyticsQuery.isError, billingQuery.isError]);
 
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -137,72 +138,98 @@ export function AnalyticsDashboard() {
     } catch {
       toast.error("Failed to export report");
     }
-  };
+  }, [endDate, period, startDate, token]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = useCallback((amount: number) => {
     if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
     if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`;
     return `₹${amount.toFixed(0)}`;
-  };
+  }, []);
 
-  const metrics: MetricCard[] = [
-    {
-      title: "Total Revenue",
-      value: data ? `₹${((data.revenue || 0) / 1000).toFixed(1)}K` : "₹0",
-      change: data?.revenueChange
-        ? `${data.revenueChange > 0 ? "+" : ""}${data.revenueChange.toFixed(1)}%`
-        : undefined,
-      icon: <DollarSign className="h-6 w-6" />,
-      trend:
-        data?.revenueChange && data.revenueChange > 0
-          ? "up"
-          : data?.revenueChange && data.revenueChange < 0
-            ? "down"
-            : "neutral",
-    },
-    {
-      title: "Appointments",
-      value: data?.appointments || 0,
-      change: data?.appointmentsChange
-        ? `${data.appointmentsChange > 0 ? "+" : ""}${data.appointmentsChange.toFixed(1)}%`
-        : undefined,
-      icon: <Activity className="h-6 w-6" />,
-      trend:
-        data?.appointmentsChange && data.appointmentsChange > 0
-          ? "up"
-          : data?.appointmentsChange && data.appointmentsChange < 0
-            ? "down"
-            : "neutral",
-    },
-    {
-      title: "New Patients",
-      value: data?.newPatients || 0,
-      change: data?.patientsChange
-        ? `${data.patientsChange > 0 ? "+" : ""}${data.patientsChange.toFixed(1)}%`
-        : undefined,
-      icon: <Users className="h-6 w-6" />,
-      trend:
-        data?.patientsChange && data.patientsChange > 0
-          ? "up"
-          : data?.patientsChange && data.patientsChange < 0
-            ? "down"
-            : "neutral",
-    },
-    {
-      title: "Avg Invoice Value",
-      value: data ? `₹${(data.avgInvoiceValue || 0).toFixed(2)}` : "₹0.00",
-      change: data?.invoiceValueChange
-        ? `${data.invoiceValueChange > 0 ? "+" : ""}${data.invoiceValueChange.toFixed(1)}%`
-        : undefined,
-      icon: <TrendingUp className="h-6 w-6" />,
-      trend:
-        data?.invoiceValueChange && data.invoiceValueChange > 0
-          ? "up"
-          : data?.invoiceValueChange && data.invoiceValueChange < 0
-            ? "down"
-            : "neutral",
-    },
-  ];
+  const metrics = useMemo<MetricCard[]>(
+    () => [
+      {
+        title: "Total Revenue",
+        value: data ? `₹${((data.revenue || 0) / 1000).toFixed(1)}K` : "₹0",
+        change: data?.revenueChange
+          ? `${data.revenueChange > 0 ? "+" : ""}${data.revenueChange.toFixed(1)}%`
+          : undefined,
+        icon: <DollarSign className="h-6 w-6" />,
+        trend:
+          data?.revenueChange && data.revenueChange > 0
+            ? "up"
+            : data?.revenueChange && data.revenueChange < 0
+              ? "down"
+              : "neutral",
+      },
+      {
+        title: "Appointments",
+        value: data?.appointments || 0,
+        change: data?.appointmentsChange
+          ? `${data.appointmentsChange > 0 ? "+" : ""}${data.appointmentsChange.toFixed(1)}%`
+          : undefined,
+        icon: <Activity className="h-6 w-6" />,
+        trend:
+          data?.appointmentsChange && data.appointmentsChange > 0
+            ? "up"
+            : data?.appointmentsChange && data.appointmentsChange < 0
+              ? "down"
+              : "neutral",
+      },
+      {
+        title: "New Patients",
+        value: data?.newPatients || 0,
+        change: data?.patientsChange
+          ? `${data.patientsChange > 0 ? "+" : ""}${data.patientsChange.toFixed(1)}%`
+          : undefined,
+        icon: <Users className="h-6 w-6" />,
+        trend:
+          data?.patientsChange && data.patientsChange > 0
+            ? "up"
+            : data?.patientsChange && data.patientsChange < 0
+              ? "down"
+              : "neutral",
+      },
+      {
+        title: "Avg Invoice Value",
+        value: data ? `₹${(data.avgInvoiceValue || 0).toFixed(2)}` : "₹0.00",
+        change: data?.invoiceValueChange
+          ? `${data.invoiceValueChange > 0 ? "+" : ""}${data.invoiceValueChange.toFixed(1)}%`
+          : undefined,
+        icon: <TrendingUp className="h-6 w-6" />,
+        trend:
+          data?.invoiceValueChange && data.invoiceValueChange > 0
+            ? "up"
+            : data?.invoiceValueChange && data.invoiceValueChange < 0
+              ? "down"
+              : "neutral",
+      },
+    ],
+    [data],
+  );
+
+  const tierEntries = useMemo(
+    () =>
+      billing?.subscriptionsByTier
+        ? Object.entries(billing.subscriptionsByTier).sort(
+            (a, b) => b[1] - a[1],
+          )
+        : [],
+    [billing?.subscriptionsByTier],
+  );
+  const totalTierCount = useMemo(
+    () => tierEntries.reduce((sum, [, value]) => sum + value, 0),
+    [tierEntries],
+  );
+
+  const revenueByMonth = useMemo(
+    () => billing?.revenueByMonth || [],
+    [billing?.revenueByMonth],
+  );
+  const maxRevenue = useMemo(
+    () => Math.max(...revenueByMonth.map((row) => row.revenue), 1),
+    [revenueByMonth],
+  );
 
   if (loading && !data) {
     return (
@@ -211,14 +238,6 @@ export function AnalyticsDashboard() {
       </div>
     );
   }
-
-  const tierEntries = billing?.subscriptionsByTier
-    ? Object.entries(billing.subscriptionsByTier).sort((a, b) => b[1] - a[1])
-    : [];
-  const totalTierCount = tierEntries.reduce((sum, [, v]) => sum + v, 0);
-
-  const revenueByMonth = billing?.revenueByMonth || [];
-  const maxRevenue = Math.max(...revenueByMonth.map((r) => r.revenue), 1);
 
   return (
     <div className="space-y-6 p-6">
@@ -494,54 +513,7 @@ export function AnalyticsDashboard() {
           Detailed Metrics
         </h2>
         {data?.detailedMetrics && data.detailedMetrics.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="border-b border-border">
-                <TableRow>
-                  <TableHead>Period</TableHead>
-                  <TableHead className="text-right">Revenue</TableHead>
-                  <TableHead className="text-right">Invoices</TableHead>
-                  <TableHead className="text-right">Avg Amount</TableHead>
-                  <TableHead className="text-right">Appointments</TableHead>
-                  <TableHead className="text-right">Fill Rate</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="divide-y divide-border">
-                {data.detailedMetrics.map((row, idx) => (
-                  <TableRow key={idx} className="hover:bg-accent">
-                    <TableCell className="font-medium text-foreground">
-                      {row.period}
-                    </TableCell>
-                    <TableCell className="text-right text-foreground">
-                      ₹{row.revenue.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {row.invoices}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      ₹{(row.avgAmount || 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {row.appointments}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge
-                        className={
-                          row.fillRate >= 80
-                            ? "badge-success"
-                            : row.fillRate >= 60
-                              ? "badge-warning"
-                              : "badge-danger"
-                        }
-                      >
-                        {row.fillRate}%
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <AnalyticsDetailedMetricsTable rows={data.detailedMetrics} />
         ) : (
           <div className="text-center text-muted-foreground py-8">
             <p>No detailed metrics available for this period</p>

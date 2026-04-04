@@ -28,6 +28,7 @@ vi.mock("@/lib/auth-context", () => ({
 
 vi.mock("@workspace/ui/components/docita-logo", () => ({
   DocitaLogo: () => <div>Docita</div>,
+  DocitaIcon: () => <div>Docita Icon</div>,
 }));
 
 vi.mock("@/features/onboarding/components/forms/clinic-registration-form", () => ({

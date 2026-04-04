@@ -11,8 +11,7 @@ type PatientsSortConfig = {
 
 export function usePatientsLogic() {
   const PAGE_SIZE = 25;
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [cursorHistory, setCursorHistory] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<PatientsSortConfig | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -25,14 +24,14 @@ export function usePatientsLogic() {
     refetch,
   } = usePatients({
     limit: PAGE_SIZE,
+    page,
     search: searchQuery.trim() ? searchQuery.trim() : undefined,
   });
   const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
-    setCursor(undefined);
-    setCursorHistory([]);
+    setPage(1);
   }, [searchQuery]);
 
   const currentAction = searchParams.get("action");
@@ -67,17 +66,7 @@ export function usePatientsLogic() {
 
   const filteredPatients = useMemo(() => {
     const patients = patientsResponse?.items || [];
-    let result = [...patients];
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter((patient) => {
-        const fullName =
-          `${patient.firstName} ${patient.lastName}`.toLowerCase();
-        const phoneNumber = patient.phoneNumber.toLowerCase();
-        return fullName.includes(query) || phoneNumber.includes(query);
-      });
-    }
+    const result = [...patients];
 
     if (sortConfig) {
       result.sort((a, b) => {
@@ -108,29 +97,33 @@ export function usePatientsLogic() {
     }
 
     return result;
-  }, [patientsResponse, searchQuery, sortConfig]);
+  }, [patientsResponse, sortConfig]);
 
   const error = queryError ? (queryError as Error).message : null;
 
-  const hasMore = Boolean(
-    patientsResponse?.hasMore && patientsResponse?.nextCursor,
+  const totalPatients = useMemo(
+    () =>
+      patientsResponse?.count ?? (patientsResponse as { total?: number })?.total ?? 0,
+    [patientsResponse],
   );
-  const canGoPrev = cursorHistory.length > 0;
+
+  const hasMore = useMemo(() => {
+    if (!patientsResponse) return false;
+    if (typeof patientsResponse.hasMore === "boolean") {
+      return patientsResponse.hasMore;
+    }
+    return page * PAGE_SIZE < totalPatients;
+  }, [patientsResponse, page, totalPatients]);
+
+  const canGoPrev = page > 1;
 
   const goToNextPage = useCallback(() => {
-    if (!patientsResponse?.nextCursor) return;
-    setCursorHistory((previous) => [...previous, cursor ?? ""]);
-    setCursor(patientsResponse.nextCursor);
-  }, [patientsResponse?.nextCursor, cursor]);
+    if (!hasMore) return;
+    setPage((current) => current + 1);
+  }, [hasMore]);
 
   const goToPrevPage = useCallback(() => {
-    setCursorHistory((previous) => {
-      if (previous.length === 0) return previous;
-      const nextHistory = [...previous];
-      const previousCursor = nextHistory.pop();
-      setCursor(previousCursor || undefined);
-      return nextHistory;
-    });
+    setPage((current) => (current > 1 ? current - 1 : current));
   }, []);
 
   return {
@@ -142,9 +135,9 @@ export function usePatientsLogic() {
       filteredPatients,
       isAddDialogOpen,
       editingPatient,
-      totalPatients: patientsResponse?.count ?? 0,
+      totalPatients,
       pageSize: PAGE_SIZE,
-      currentPage: cursorHistory.length + 1,
+      currentPage: page,
       canGoPrev,
       canGoNext: hasMore,
     },

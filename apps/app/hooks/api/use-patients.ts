@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import {
   CreatePatientRequest,
   Patient,
@@ -12,11 +13,22 @@ import {
 } from "@/lib/api-core";
 import { withQueryString } from "@/lib/http/query-string";
 
+type UsePatientsOptions = {
+  limit?: number;
+  page?: number;
+  search?: string;
+  enabled?: boolean;
+} | null;
+
 export const usePatients = (
-  options?: { limit?: number; search?: string } | null,
+  options?: UsePatientsOptions,
 ) => {
+  const limit = options?.limit ?? 20;
+  const page = options?.page ?? 1;
+  const enabled = options !== null && (options?.enabled ?? true);
   const url = withQueryString("/patients", {
-    limit: options?.limit,
+    limit,
+    page,
     search: options?.search,
   });
 
@@ -26,9 +38,13 @@ export const usePatients = (
     hasMore: boolean;
     count: number;
   }>(
-    ["patients", options?.limit?.toString() ?? "", options?.search ?? ""],
+    queryKeys.patients.list({
+      limit,
+      page,
+      search: options?.search ?? "",
+    }),
     url,
-    { enabled: options !== null },
+    { enabled },
   );
 };
 

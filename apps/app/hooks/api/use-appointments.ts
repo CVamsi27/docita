@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import {
   Appointment,
   CreateAppointmentRequest,
@@ -51,32 +52,39 @@ export interface StartConsultationResponse {
   status: string;
 }
 
+type AppointmentQueryOptions = {
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+  doctorId?: string;
+  search?: string;
+  status?: string;
+  cursor?: string;
+  limit?: number;
+};
+
+const normalizeAppointmentQueryOptions = (
+  options?: AppointmentQueryOptions | null,
+): AppointmentQueryOptions | undefined => {
+  if (!options) {
+    return undefined;
+  }
+
+  const normalizedEntries = Object.entries(options).filter(
+    ([, value]) => value !== undefined && value !== null && value !== "",
+  );
+
+  return Object.fromEntries(normalizedEntries) as AppointmentQueryOptions;
+};
+
 export const useAppointments = (
-  options?: {
-    date?: string;
-    startDate?: string;
-    endDate?: string;
-    doctorId?: string;
-    search?: string;
-  } | null,
+  options?: AppointmentQueryOptions | null,
 ) => {
-  const url = withQueryString("/appointments", {
-    date: options?.date,
-    startDate: options?.startDate,
-    endDate: options?.endDate,
-    doctorId: options?.doctorId,
-    search: options?.search,
-  });
+  const normalizedOptions = normalizeAppointmentQueryOptions(options);
+  const url = withQueryString("/appointments", normalizedOptions);
 
   return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
-    [
-      "appointments",
-      options?.date ?? "",
-      options?.startDate ?? "",
-      options?.endDate ?? "",
-      options?.doctorId ?? "",
-      options?.search ?? "",
-    ],
+    queryKeys.appointments.list(normalizedOptions),
     url,
     { enabled: options !== null },
   );
@@ -85,7 +93,7 @@ export const useAppointments = (
 export const useTodayAppointments = (enabled: boolean = true) => {
   const today = new Date().toISOString().split("T")[0] ?? "";
   return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
-    ["appointments", "today", today],
+    queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
     { enabled },
   );
@@ -93,13 +101,13 @@ export const useTodayAppointments = (enabled: boolean = true) => {
 
 export const useAppointment = (id: string) =>
   useAPIQuery<AppointmentWithRelations>(
-    ["appointments", id],
+    queryKeys.appointments.detail(id),
     `/appointments/${id}`,
   );
 
 export const usePatientAppointments = (patientId: string) =>
   useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
-    ["appointments", "patient", patientId],
+    queryKeys.appointments.byPatient(patientId),
     `/appointments?patientId=${patientId}`,
     { enabled: !!patientId },
   );
@@ -109,7 +117,7 @@ export const useCreateAppointment = () =>
     "/appointments",
     "POST",
     {
-      invalidateKeys: [["appointments"]],
+      invalidateKeys: [queryKeys.appointments.all()],
     },
   );
 
@@ -118,7 +126,10 @@ export const useUpdateAppointment = (id: string) =>
     `/appointments/${id}`,
     "PUT",
     {
-      invalidateKeys: [["appointments"], ["appointments", id]],
+      invalidateKeys: [
+        queryKeys.appointments.all(),
+        queryKeys.appointments.detail(id),
+      ],
     },
   );
 
@@ -127,7 +138,7 @@ export const useStartConsultation = () =>
     ({ appointmentId }) => `/appointments/${appointmentId}/start-consultation`,
     "POST",
     {
-      invalidateKeys: [["appointments"], ["queue"]],
+      invalidateKeys: [queryKeys.appointments.all(), queryKeys.queue.all()],
     },
   );
 
@@ -138,25 +149,16 @@ export const useInfiniteAppointments = (options?: {
   endDate?: string;
   search?: string;
 }) => {
+  const normalizedOptions = normalizeAppointmentQueryOptions(options);
+
   return useInfiniteQuery({
-    queryKey: [
-      "appointments",
-      "infinite",
-      options?.limit,
-      options?.date,
-      options?.startDate,
-      options?.endDate,
-      options?.search,
-    ],
+    queryKey: queryKeys.appointments.infinite(normalizedOptions),
     queryFn: ({ pageParam }) => {
       return fetchAPI<PaginatedResponse<Appointment & { patient?: Patient }>>(
         withQueryString("/appointments", {
-          limit: options?.limit || 50,
+          ...normalizedOptions,
+          limit: options?.limit ?? 50,
           cursor: pageParam as string | undefined,
-          date: options?.date,
-          startDate: options?.startDate,
-          endDate: options?.endDate,
-          search: options?.search,
         }),
       );
     },
@@ -170,11 +172,15 @@ export const useCheckInAppointment = () =>
   useAPIMutation<{ success: boolean }, string>(
     (id) => `/queue/check-in/${id}`,
     "POST",
+    {
+      invalidateKeys: [queryKeys.queue.all(), queryKeys.appointments.all()],
+    },
   );
 
 export const useQueue = (options?: { search?: string }) => {
+  const params = options?.search ? { search: options.search } : undefined;
   return useAPIQuery<QueueItem[]>(
-    ["queue", options?.search ?? ""],
+    queryKeys.queue.list(params),
     withQueryString("/queue", {
       search: options?.search,
     }),
@@ -186,8 +192,15 @@ export const useQueueByDoctor = (
   search?: string,
   enabled: boolean = true,
 ) => {
+  const params =
+    doctorId || search
+      ? {
+          doctorId: doctorId ?? "all",
+          search: search ?? "",
+        }
+      : undefined;
   return useAPIQuery<QueueItem[]>(
-    ["queue", doctorId ?? "all", search ?? ""],
+    queryKeys.queue.list(params),
     withQueryString("/queue", { doctorId, search }),
     { enabled },
   );
@@ -198,7 +211,7 @@ export const useCallPatient = () =>
     (queueId) => `/queue/call/${queueId}`,
     "POST",
     {
-      invalidateKeys: [["queue"]],
+      invalidateKeys: [queryKeys.queue.all()],
     },
   );
 
@@ -207,11 +220,11 @@ export const useCompletePatient = () =>
     (queueId) => `/queue/complete/${queueId}`,
     "POST",
     {
-      invalidateKeys: [["queue"]],
+      invalidateKeys: [queryKeys.queue.all()],
     },
   );
 
 export const useResetQueue = () =>
   useAPIMutation<{ success: boolean }, void>("/queue/reset", "POST", {
-    invalidateKeys: [["queue"]],
+    invalidateKeys: [queryKeys.queue.all()],
   });

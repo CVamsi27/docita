@@ -36,7 +36,9 @@ export function CommandMenu() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const { data: patientsResponse } = usePatients(isAuthenticated ? {} : null); 
+  const { data: patientsResponse } = usePatients(
+    isAuthenticated ? { limit: 5, enabled: open } : null,
+  );
   const paginatedResponse = patientsResponse as
     | PaginatedResponse<Patient>
     | undefined;

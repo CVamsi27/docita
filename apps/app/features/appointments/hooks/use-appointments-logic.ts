@@ -39,6 +39,8 @@ const getCurrentTimeSlot = () => {
 };
 
 export const useAppointmentsLogic = () => {
+  const NON_CANCELLED_APPOINTMENT_STATUSES =
+    "scheduled,confirmed,in_progress,completed,no-show";
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
 
@@ -137,6 +139,8 @@ export const useAppointmentsLogic = () => {
       ? { doctorId: doctorScope.scopedDoctorId }
       : {}),
     search: debouncedSearch,
+    status: NON_CANCELLED_APPOINTMENT_STATUSES,
+    limit: 100,
   });
 
   const appointments = useMemo(() => {
@@ -302,6 +306,7 @@ export const useAppointmentsLogic = () => {
       doctorsList,
       loading,
       isError,
+      hasMoreAppointments: Boolean(appointmentsResponse?.hasMore),
       filteredAppointments,
       appointments: uniqueAppointments,
       currentTimeSlot,

@@ -16,7 +16,7 @@ const AnalyticsPageUI = dynamic(
 );
 
 export default function AnalyticsPage() {
-  const { state } = useAnalyticsLogic();
+  const { state, handlers } = useAnalyticsLogic();
 
   return (
     <FeatureGate feature={Feature.BASIC_ANALYTICS} showLockedCard>
@@ -29,6 +29,8 @@ export default function AnalyticsPage() {
         trendsLoading={state.trendsLoading}
         revenueLoading={state.revenueLoading}
         complianceLoading={state.complianceLoading}
+        activeTab={state.activeTab}
+        onTabChange={handlers.setActiveTab}
       />
     </FeatureGate>
   );
