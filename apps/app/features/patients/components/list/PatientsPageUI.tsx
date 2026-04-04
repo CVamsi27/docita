@@ -225,8 +225,8 @@ export function PatientsPageUI({
                             </AvatarFallback>
                           </Avatar>
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {patient.firstName} {patient.lastName}
+                        <TableCell className="font-medium max-w-[160px] sm:max-w-xs">
+                          <span className="truncate block">{patient.firstName} {patient.lastName}</span>
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
                           <div className="flex flex-col text-sm">
@@ -256,11 +256,11 @@ export function PatientsPageUI({
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1.5">
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 gap-2"
+                              className="h-8 gap-1.5"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (patientId) {
@@ -268,21 +268,23 @@ export function PatientsPageUI({
                                 }
                               }}
                               disabled={!patientId}
+                              title="Schedule appointment"
                             >
                               <Calendar className="h-4 w-4" />
-                              Schedule
+                              <span className="hidden sm:inline">Schedule</span>
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 gap-2"
+                              className="h-8 gap-1.5"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onEditPatient(patient);
                               }}
+                              title="Edit patient"
                             >
                               <Pencil className="h-4 w-4" />
-                              Edit
+                              <span className="hidden sm:inline">Edit</span>
                             </Button>
                           </div>
                         </TableCell>
@@ -294,10 +296,11 @@ export function PatientsPageUI({
             </Table>
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-2">
+          <div className="mt-4 flex items-center justify-between gap-2 flex-wrap">
             <p className="text-sm text-muted-foreground">
-              Page {currentPage} • Showing up to {pageSize} records • Total{" "}
-              {totalPatients}
+              <span className="hidden sm:inline">Page {currentPage} • </span>
+              {totalPatients} patients
+              <span className="hidden sm:inline"> (showing up to {pageSize})</span>
             </p>
             <div className="flex items-center gap-2">
               <Button
@@ -308,6 +311,7 @@ export function PatientsPageUI({
               >
                 Previous
               </Button>
+              <span className="text-xs text-muted-foreground px-1">{currentPage}</span>
               <Button
                 variant="outline"
                 size="sm"

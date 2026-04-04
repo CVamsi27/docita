@@ -131,21 +131,21 @@ export const ConsultationDashboardUI: FC = () => {
                 {activeConsultations.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-4 border rounded-lg bg-primary/5"
+                    className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg bg-primary/5"
                   >
-                    <div className="flex items-center gap-4">
-                      <Avatar>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar className="shrink-0">
                         <AvatarFallback>
                           {item.patient?.firstName?.[0]}
                           {item.patient?.lastName?.[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <p className="font-medium">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">
                           {item.patient?.firstName} {item.patient?.lastName}
                         </p>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3" />
+                        <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                          <Clock className="mr-1 h-3 w-3 shrink-0" />
                           Started:{" "}
                           {item.consultationStart
                             ? new Date(
@@ -161,6 +161,7 @@ export const ConsultationDashboardUI: FC = () => {
                     {canStartConsultation ? (
                       <Button
                         size="sm"
+                        className="shrink-0"
                         disabled={isStartingConsultation}
                         onClick={() =>
                           void handleStartConsultation(
@@ -171,7 +172,7 @@ export const ConsultationDashboardUI: FC = () => {
                         Resume
                       </Button>
                     ) : (
-                      <Badge variant="outline">View only</Badge>
+                      <Badge variant="outline" className="shrink-0">View only</Badge>
                     )}
                   </div>
                 ))}
@@ -196,21 +197,21 @@ export const ConsultationDashboardUI: FC = () => {
                 {waitingList.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted font-bold">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm">
                         {item.tokenNumber}
                       </div>
-                      <div>
-                        <p className="font-medium">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">
                           {item.patient?.firstName} {item.patient?.lastName}
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <Badge variant="outline" className="text-xs">
                             {item.tokenType}
                           </Badge>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-xs sm:text-sm text-muted-foreground">
                             Wait: {item.estimatedWaitTime} min
                           </span>
                         </div>
@@ -220,6 +221,7 @@ export const ConsultationDashboardUI: FC = () => {
                       <Button
                         size="sm"
                         variant="default"
+                        className="shrink-0"
                         disabled={isStartingConsultation}
                         onClick={() =>
                           void handleStartConsultation(
@@ -231,7 +233,7 @@ export const ConsultationDashboardUI: FC = () => {
                         Start
                       </Button>
                     ) : (
-                      <Badge variant="outline">View only</Badge>
+                      <Badge variant="outline" className="shrink-0">View only</Badge>
                     )}
                   </div>
                 ))}

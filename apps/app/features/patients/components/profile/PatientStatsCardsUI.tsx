@@ -30,18 +30,18 @@ export function PatientStatsCardsUI({
   const showLoading = loading || statistics === null;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
       <Card className="overflow-hidden border border-border bg-card shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-info text-info-foreground">
-              <Activity className="h-7 w-7" />
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-info text-info-foreground">
+              <Activity className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
+            <div className="min-w-0">
+              <p className="font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
                 Total Visits
               </p>
-              <h3 className="text-3xl font-extrabold tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                 {showLoading ? "..." : totalVisits}
               </h3>
             </div>
@@ -50,16 +50,16 @@ export function PatientStatsCardsUI({
       </Card>
 
       <Card className="overflow-hidden border border-border bg-card shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success text-success-foreground">
-              <Calendar className="h-7 w-7" />
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-success text-success-foreground">
+              <Calendar className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
+            <div className="min-w-0">
+              <p className="font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
                 Last Visit
               </p>
-              <h3 className="text-lg font-bold">
+              <h3 className="text-sm sm:text-lg font-bold truncate">
                 {showLoading
                   ? "..."
                   : lastVisit
@@ -74,16 +74,16 @@ export function PatientStatsCardsUI({
       </Card>
 
       <Card className="overflow-hidden border border-border bg-card shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-              <Clock className="h-7 w-7" />
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+              <Clock className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
+            <div className="min-w-0">
+              <p className="font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
                 Next Visit
               </p>
-              <h3 className="text-lg font-bold">
+              <h3 className="text-sm sm:text-lg font-bold truncate">
                 {showLoading
                   ? "..."
                   : nextVisit
@@ -98,16 +98,16 @@ export function PatientStatsCardsUI({
       </Card>
 
       <Card className="overflow-hidden border border-border bg-card shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning text-warning-foreground">
-              <TrendingUp className="h-7 w-7" />
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-warning text-warning-foreground">
+              <TrendingUp className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
+            <div className="min-w-0">
+              <p className="font-medium text-muted-foreground uppercase tracking-widest text-[10px]">
                 Adherence
               </p>
-              <h3 className="text-3xl font-extrabold tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                 {showLoading ? "..." : `${adherenceRate}%`}
               </h3>
             </div>

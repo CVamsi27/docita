@@ -11,8 +11,6 @@
       "@workspace/auth/*": ["../../packages/auth/dist/*"],
       "@workspace/data-access": ["../../packages/data-access/dist/index"],
       "@workspace/data-access/*": ["../../packages/data-access/dist/*"],
-      "@workspace/db": ["../../packages/db/dist/src/index"],
-      "@workspace/db/*": ["../../packages/db/dist/src/*"],
       "@workspace/hooks": ["../../packages/hooks/dist/index"],
       "@workspace/hooks/*": ["../../packages/hooks/dist/*"],
       "@workspace/types": ["../../packages/types/dist/index"],

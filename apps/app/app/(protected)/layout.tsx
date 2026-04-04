@@ -184,10 +184,12 @@ export default function ProtectedLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
-  const wasSettingsRouteRef = useRef(false);
+  const wasAutoCollapseRouteRef = useRef(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
+  const isConsultationRoute = pathname?.startsWith("/consultation") ?? false;
+  const isAutoCollapseRoute = isSettingsRoute || isConsultationRoute;
 
   useEffect(() => {
     if (isLoading) return;
@@ -211,14 +213,14 @@ export default function ProtectedLayout({
   }, [isLoading, user, router]);
 
   useEffect(() => {
-    const wasSettingsRoute = wasSettingsRouteRef.current;
-    wasSettingsRouteRef.current = isSettingsRoute;
+    const wasAutoCollapseRoute = wasAutoCollapseRouteRef.current;
+    wasAutoCollapseRouteRef.current = isAutoCollapseRoute;
 
-    if (isSettingsRoute && !wasSettingsRoute) {
+    if (isAutoCollapseRoute && !wasAutoCollapseRoute) {
       sidebarPanelRef.current?.collapse();
       setIsCollapsed(true);
     }
-  }, [isSettingsRoute]);
+  }, [isAutoCollapseRoute]);
 
   if (isLoading) {
     return (
@@ -297,7 +299,7 @@ export default function ProtectedLayout({
                     <div className="flex h-full flex-col overflow-hidden">
                       <MobileHeader onMenuClick={() => setMobileOpen(true)} />
                       <main
-                        className="flex-1 overflow-y-auto p-4 md:p-6"
+                        className={isConsultationRoute ? "flex-1 overflow-hidden" : "flex-1 overflow-y-auto p-4 md:p-6"}
                         aria-label="Main content"
                       >
                         <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>

@@ -158,7 +158,7 @@ export function BillingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-success" />
@@ -167,7 +167,7 @@ export function BillingModal({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap justify-between items-center gap-3">
             <div className="text-sm font-medium">Line Items</div>
             <div className="flex items-center gap-2">
               <Label>Due Date</Label>
@@ -175,13 +175,13 @@ export function BillingModal({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-40 h-8"
+                className="w-36 sm:w-40 h-8"
               />
             </div>
           </div>
 
           <div className="space-y-3 bg-muted/20 p-4 rounded-lg">
-            <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <div className="col-span-5">Description</div>
               <div className="col-span-2">Qty</div>
               <div className="col-span-4">Unit Price</div>
@@ -189,8 +189,8 @@ export function BillingModal({
             </div>
 
             {items.map((item, index) => (
-              <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                <div className="col-span-5">
+              <div key={index} className="flex flex-col gap-2 sm:grid sm:grid-cols-12 sm:items-center">
+                <div className="sm:col-span-5">
                   <Input
                     placeholder="Item description"
                     value={item.description}
@@ -200,48 +200,52 @@ export function BillingModal({
                     className="h-9"
                   />
                 </div>
-                <div className="col-span-2">
-                  <Input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      updateItem(
-                        index,
-                        "quantity",
-                        parseInt(e.target.value) || 1,
-                      )
-                    }
-                    className="h-9"
-                  />
-                </div>
-                <div className="col-span-4">
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={item.price}
-                    onChange={(e) =>
-                      updateItem(
-                        index,
-                        "price",
-                        parseFloat(e.target.value) || 0,
-                      )
-                    }
-                    className="h-9"
-                  />
-                </div>
-                <div className="col-span-1 flex justify-center">
-                  {items.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => removeItem(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
+                <div className="flex gap-2 sm:contents">
+                  <div className="flex-1 sm:col-span-2">
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) =>
+                        updateItem(
+                          index,
+                          "quantity",
+                          parseInt(e.target.value) || 1,
+                        )
+                      }
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="flex-1 sm:col-span-4">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Unit price"
+                      value={item.price}
+                      onChange={(e) =>
+                        updateItem(
+                          index,
+                          "price",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="sm:col-span-1 flex items-center justify-center">
+                    {items.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeItem(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

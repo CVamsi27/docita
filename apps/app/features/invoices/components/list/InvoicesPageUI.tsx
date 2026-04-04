@@ -103,8 +103,8 @@ export const InvoicesPageUI: FC = () => {
       <div className="flex flex-col gap-6 p-4 md:p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Invoices</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Manage patient billing and invoices
             </p>
           </div>
@@ -191,9 +191,9 @@ export const InvoicesPageUI: FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Invoice #</TableHead>
+                      <TableHead className="hidden md:table-cell">Invoice #</TableHead>
                       <TableHead>Patient</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead className="hidden sm:table-cell">Date</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -202,15 +202,17 @@ export const InvoicesPageUI: FC = () => {
                   <TableBody>
                     {filteredInvoices.map((invoice: InvoiceWithPatient) => (
                       <TableRow key={invoice.id ?? `invoice-${Math.random()}`}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium hidden md:table-cell">
                           #{(invoice.id ?? "").substring(0, 8)}
                         </TableCell>
-                        <TableCell>
-                          {invoice.patient
-                            ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
-                            : "N/A"}
+                        <TableCell className="max-w-[140px] sm:max-w-none">
+                          <span className="truncate block">
+                            {invoice.patient
+                              ? `${invoice.patient.firstName} ${invoice.patient.lastName}`
+                              : "N/A"}
+                          </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           {invoice.createdAt ? formatDate(invoice.createdAt) : "N/A"}
                         </TableCell>
                         <TableCell>

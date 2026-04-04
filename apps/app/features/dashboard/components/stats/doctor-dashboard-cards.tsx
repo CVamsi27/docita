@@ -91,26 +91,26 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent>
           {currentPatient ? (
-            <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14">
-                <AvatarFallback className="bg-linear-to-br from-primary/30 to-primary/10 text-primary text-lg font-medium">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
+                <AvatarFallback className="bg-linear-to-br from-primary/30 to-primary/10 text-primary text-base sm:text-lg font-medium">
                   {currentPatient.patient?.firstName?.[0]}
                   {currentPatient.patient?.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <p className="text-xl font-semibold">
+              <div className="flex-1 min-w-0">
+                <p className="text-base sm:text-xl font-semibold truncate">
                   {currentPatient.patient?.firstName}{" "}
                   {currentPatient.patient?.lastName}
                 </p>
-                <p className="text-sm text-muted-foreground capitalize">
+                <p className="text-xs sm:text-sm text-muted-foreground capitalize truncate">
                   {currentPatient.type?.replace(/_/g, " ").toLowerCase()} •{" "}
                   {format(new Date(currentPatient.startTime), "h:mm a")}
                 </p>
               </div>
               <Button
-                size="lg"
-                className="gap-2 shadow-lg shadow-primary/20"
+                size="default"
+                className="gap-2 shadow-sm shadow-primary/20 shrink-0"
                 onClick={() => router.push(`/consultation/${currentPatient.id}`)}
               >
                 <Play className="h-4 w-4" />
@@ -118,16 +118,16 @@ export function DoctorDashboardCardsUI({
               </Button>
             </div>
           ) : (
-            <div className="flex items-center justify-between py-4">
-              <p className="text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-3 py-3 sm:py-4">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {nextPatients.length > 0
                   ? `${nextPatients.length} patient(s) waiting`
                   : "No patients in queue"}
               </p>
               {nextPatients.length > 0 && nextPatients[0] && (
                 <Button
-                  size="lg"
-                  className="gap-2"
+                  size="default"
+                  className="gap-2 shrink-0"
                   disabled={startConsultation.isPending}
                   onClick={() => void handleStartAppointment(nextPatients[0].id)}
                 >

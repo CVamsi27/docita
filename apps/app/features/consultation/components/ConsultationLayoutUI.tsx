@@ -21,7 +21,7 @@ export function ConsultationLayoutUI({
       <aside
         className={cn(
           "hidden md:block border-r overflow-y-auto shrink-0",
-          isSidebarOpen ? "w-80" : "w-0 overflow-hidden border-none",
+          isSidebarOpen ? "w-72 lg:w-80" : "w-0 overflow-hidden border-none",
         )}
       >
         {Sidebar}

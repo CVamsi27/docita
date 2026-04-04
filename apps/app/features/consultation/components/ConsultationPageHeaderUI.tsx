@@ -1,6 +1,12 @@
-import { ArrowLeft, CreditCard, HeartPulse, PanelLeft, Clock, User } from "lucide-react";
+import { ArrowLeft, CreditCard, HeartPulse, MoreVertical, PanelLeft, Clock, User } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu";
 import {
   Sheet,
   SheetContent,
@@ -130,7 +136,7 @@ export function ConsultationPageHeaderUI({
                   })}
                 </span>
                 {chiefComplaint && (
-                  <span className="hidden md:inline truncate max-w-[200px]">
+                  <span className="hidden md:inline truncate max-w-[150px] lg:max-w-[250px]">
                     &middot; {chiefComplaint}
                   </span>
                 )}
@@ -161,6 +167,23 @@ export function ConsultationPageHeaderUI({
             <CreditCard className="h-3.5 w-3.5 text-success" />
             <span className="hidden md:inline">Invoice</span>
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="sm:hidden h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setVitalsOpen(true)}>
+                <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
+                Vitals
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setBillingOpen(true)}>
+                <CreditCard className="mr-2 h-4 w-4 text-success" />
+                Invoice
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

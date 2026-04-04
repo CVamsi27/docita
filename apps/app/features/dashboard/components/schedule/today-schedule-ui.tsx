@@ -70,7 +70,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                   key={apt.id}
                   href={`/consultation/${apt.id}`}
                   className={cn(
-                    "group flex items-center gap-4 rounded-lg border border-transparent p-4 transition-colors duration-150",
+                    "group flex items-center gap-2 sm:gap-4 rounded-lg border border-transparent p-3 sm:p-4 transition-colors duration-150",
                     apt.status === "completed" && "opacity-60 bg-muted/30",
                     apt.status === "in-progress" &&
                       "bg-primary/8 border-primary/20 ring-1 ring-primary/30",
@@ -79,7 +79,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                   )}
                 >
                   {}
-                  <div className="flex flex-col items-center justify-center min-w-12 text-center">
+                  <div className="flex flex-col items-center justify-center min-w-10 sm:min-w-12 text-center">
                     <p
                       className={cn(
                         "text-sm font-bold leading-none",
@@ -122,8 +122,8 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                   </div>
 
                   {}
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status={apt.status} />
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <span className="hidden sm:block"><StatusBadge status={apt.status} /></span>
                     {(apt.status === "scheduled" ||
                       apt.status === "in-progress") && (
                       <Button
@@ -132,7 +132,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                           apt.status === "in-progress" ? "default" : "ghost"
                         }
                         className={cn(
-                          "h-8 w-8",
+                          "h-7 w-7 sm:h-8 sm:w-8",
                           apt.status === "in-progress" && "shadow-sm",
                         )}
                       >

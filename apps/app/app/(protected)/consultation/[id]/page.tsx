@@ -96,7 +96,7 @@ export default function ConsultationPage() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-full bg-background">
       <ConsultationPageHeaderUI
         patientName={patientName}
         appointmentDate={appointmentData.startTime}

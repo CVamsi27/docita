@@ -111,7 +111,7 @@ export function FloatingStartConsultation({
   return (
     <div
       className={cn(
-        "fixed bottom-6 right-6 z-50 transition-opacity duration-150",
+        "fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 transition-opacity duration-150",
         className,
       )}
     >
