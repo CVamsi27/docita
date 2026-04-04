@@ -52,7 +52,10 @@
     "verify:standard": "pnpm check:hygiene && pnpm verify:structure && pnpm verify:contracts",
     "check:prisma-boundary": "node scripts/check-prisma-boundary.js",
     "check:colors": "node scripts/detect-hardcoded-colors.js",
-    "check:sensitive-logging": "node scripts/check-sensitive-logging.mjs"
+    "check:sensitive-logging": "node scripts/check-sensitive-logging.mjs",
+    "perf:baseline": "node scripts/perf-baseline.mjs",
+    "perf:budget:warn": "PERF_BUDGET_MODE=warn node scripts/check-perf-budget.mjs",
+    "perf:budget:enforce": "PERF_BUDGET_MODE=fail node scripts/check-perf-budget.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",

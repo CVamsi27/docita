@@ -186,3 +186,13 @@ jobs:
           ANALYZE: "true"
           NEXT_TELEMETRY_DISABLED: 1
         run: pnpm --filter @docita/app run build:analyze
+
+      - name: Capture Perf Baseline Snapshot
+        run: pnpm perf:baseline
+
+      - name: Perf Budget Check (Warn Mode)
+        run: pnpm perf:budget:warn
+
+      - name: Perf Budget Check (Enforced on main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pnpm perf:budget:enforce
