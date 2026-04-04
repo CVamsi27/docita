@@ -93,6 +93,8 @@ const pricingEstimateChargeSchema = z.object({
   charge: z.number().min(0),
 }).strict();
 
+const pricingAmountSchema = z.union([z.number().min(0), z.literal("custom")]);
+
 export const pricingEstimateResponseSchema = z.object({
   tier: tierSchema,
   billingCycle: estimateBillingCycleSchema,
@@ -117,6 +119,151 @@ export const pricingEstimateResponseSchema = z.object({
   totalMonthly: z.number().min(0),
   totalYearly: z.number().min(0),
 }).strict();
+
+const pricingConfigCurrencySchema = z
+  .object({
+    code: z.string(),
+    symbol: z.string(),
+    name: z.string(),
+  })
+  .strict();
+
+const pricingConfigTierSchema = z
+  .object({
+    id: tierSchema,
+    name: z.string(),
+    description: z.string(),
+    tagline: z.string(),
+    color: z.string(),
+    pricing: z
+      .object({
+        monthly: pricingAmountSchema,
+        yearly: pricingAmountSchema,
+        currency: z.string(),
+      })
+      .strict(),
+    limits: z
+      .object({
+        patients: z.number().int().min(0),
+        appointments: z.number().int().min(0),
+        storage: z.number().int().min(0),
+        users: z.number().int().min(0),
+        doctors: z.number().int().min(0),
+        branches: z.number().int().min(0),
+        prescriptions: z.number().int().min(0).optional(),
+        invoices: z.number().int().min(0).optional(),
+        billable: z
+          .object({
+            consultations: z.number().int().min(0),
+            users: z.number().int().min(0),
+            whatsappMessages: z.number().int().min(0),
+          })
+          .strict(),
+      })
+      .strict(),
+    features: z.array(z.string()),
+  })
+  .strict();
+
+export const pricingConfigResponseSchema = z
+  .object({
+    currency: pricingConfigCurrencySchema,
+    supportedCurrencies: z.array(pricingConfigCurrencySchema),
+    tiers: z.array(pricingConfigTierSchema),
+    discounts: z
+      .object({
+        annualPercent: z.number().min(0),
+        semiAnnualPercent: z.number().min(0),
+        referralCredits: z.number().min(0),
+      })
+      .strict(),
+  })
+  .strict();
+
+const subscriptionCurrentItemSchema = z
+  .object({
+    id: z.string(),
+    clinicId: z.string(),
+    tier: tierSchema,
+    tierName: tierSchema,
+    subscriptionStatus: z.string(),
+    billingCycle: billingCycleSchema,
+    basePriceCents: z.number().int().min(0),
+    currency: z.string(),
+    cancelAtPeriodEnd: z.boolean(),
+    currentPeriodStart: z.string(),
+    currentPeriodEnd: z.string(),
+    daysRemaining: z.number().int().min(0),
+  })
+  .strict();
+
+export const subscriptionCurrentResponseSchema =
+  subscriptionCurrentItemSchema.nullable();
+
+const subscriptionBillingStatusItemSchema = z
+  .object({
+    id: z.string(),
+    status: z.string(),
+    tier: tierSchema,
+    billingCycle: billingCycleSchema,
+    basePriceCents: z.number().int().min(0),
+    currentPeriodStart: z.string(),
+    currentPeriodEnd: z.string(),
+    cancelAtPeriodEnd: z.boolean(),
+  })
+  .strict();
+
+export const subscriptionBillingStatusResponseSchema = z
+  .object({
+    subscription: subscriptionBillingStatusItemSchema.nullable(),
+    referralCredits: z.number().min(0),
+    pendingReferralDiscount: z.number().min(0),
+    lastPayment: z
+      .object({
+        amount: z.number().min(0),
+        currency: z.string(),
+        date: z.string(),
+        status: z.string(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export const subscriptionBillingPreviewResponseSchema = z
+  .object({
+    currentTier: tierSchema.nullable(),
+    newTier: tierSchema,
+    currentCycle: billingCycleSchema.nullable(),
+    newCycle: billingCycleSchema,
+    creditCents: z.number().int().min(0),
+    chargeCents: z.number().int().min(0),
+    daysRemaining: z.number().int().min(0),
+    billingCycleDays: z.number().int().positive(),
+    finalAmountCents: z.number().int().min(0),
+  })
+  .strict();
+
+export const subscriptionBillingCheckoutResponseSchema = z
+  .object({
+    orderId: z.string(),
+    amountCents: z.number().int().min(0),
+    currency: z.string(),
+    razorpayKeyId: z.string(),
+  })
+  .strict();
+
+export const subscriptionBillingActivateResponseSchema = z
+  .object({
+    success: z.boolean(),
+  })
+  .strict();
+
+export const subscriptionBillingCancelResponseSchema = z
+  .object({
+    success: z.boolean(),
+  })
+  .strict();
 
 export const superAdminBillingSubscriptionsQuerySchema = z.object({
   tier: z.string().optional(),
@@ -152,23 +299,44 @@ export type PricingEstimateQuery = z.infer<typeof pricingEstimateQuerySchema>;
 export type PricingEstimateRequest = z.infer<
   typeof pricingEstimateRequestSchema
 >;
+export type PricingConfigResponse = z.infer<
+  typeof pricingConfigResponseSchema
+>;
 export type SubscriptionBillingPreviewQuery = z.infer<
   typeof subscriptionBillingPreviewQuerySchema
 >;
 export type SubscriptionBillingCheckoutRequest = z.infer<
   typeof subscriptionBillingCheckoutRequestSchema
 >;
+export type SubscriptionBillingCheckoutResponse = z.infer<
+  typeof subscriptionBillingCheckoutResponseSchema
+>;
 export type SubscriptionBillingActivateRequest = z.infer<
   typeof subscriptionBillingActivateRequestSchema
 >;
+export type SubscriptionBillingActivateResponse = z.infer<
+  typeof subscriptionBillingActivateResponseSchema
+>;
 export type SubscriptionBillingCancelRequest = z.infer<
   typeof subscriptionBillingCancelRequestSchema
+>;
+export type SubscriptionBillingCancelResponse = z.infer<
+  typeof subscriptionBillingCancelResponseSchema
 >;
 export type SubscriptionBillingPaymentHistoryItem = z.infer<
   typeof subscriptionBillingPaymentHistoryItemSchema
 >;
 export type SubscriptionBillingPaymentHistoryResponse = z.infer<
   typeof subscriptionBillingPaymentHistoryResponseSchema
+>;
+export type SubscriptionCurrentResponse = z.infer<
+  typeof subscriptionCurrentResponseSchema
+>;
+export type SubscriptionBillingStatusResponse = z.infer<
+  typeof subscriptionBillingStatusResponseSchema
+>;
+export type SubscriptionBillingPreviewResponse = z.infer<
+  typeof subscriptionBillingPreviewResponseSchema
 >;
 export type PricingEstimateResponse = z.infer<
   typeof pricingEstimateResponseSchema
