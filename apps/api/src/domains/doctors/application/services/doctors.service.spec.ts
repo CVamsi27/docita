@@ -3,6 +3,7 @@ import { DoctorsService } from './doctors.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorVerificationService } from './doctor-verification.service';
 import { NotFoundException } from '@nestjs/common';
+import { Specialization } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('DoctorsService', () => {
@@ -152,7 +153,7 @@ describe('DoctorsService', () => {
         email: 'newdoctor@example.com',
         password: 'password123',
         name: 'Dr. New Doctor',
-        specialization: 'PEDIATRICS' as never,
+        specialization: Specialization.PEDIATRICS,
       };
 
       mockPrismaService.doctorClinic.findFirst.mockResolvedValue(null);

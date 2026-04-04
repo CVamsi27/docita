@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { NotifyExpiringSubscriptionsUseCase } from './notify-expiring-subscriptions.use-case';
+import { PrismaService } from '@/prisma/prisma.service';
+import { ISubscriptionRepository } from '@/domains/subscriptions/application/ports';
 
 describe('NotifyExpiringSubscriptionsUseCase', () => {
   const findSubscriptionsMock =
@@ -9,23 +11,46 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
   const createManyRemindersMock =
     jest.fn<(args: unknown) => Promise<{ count: number }>>();
 
-  const prisma = {
-    subscription: {
-      findMany: findSubscriptionsMock,
-    },
-    subscriptionReminder: {
-      findMany: findRemindersMock,
-      createMany: createManyRemindersMock,
-    },
+  const prismaSubscription = {
+    findMany: findSubscriptionsMock,
+  };
+  const prismaSubscriptionReminder = {
+    findMany: findRemindersMock,
+    createMany: createManyRemindersMock,
+  };
+
+  const subscriptionRepository: ISubscriptionRepository = {
+    save: jest.fn(async () => undefined),
+    findById: jest.fn(async () => null),
+    findByClinicId: jest.fn(async () => null),
+    findByStatus: jest.fn(async () => []),
+    findApproachingRenewal: jest.fn(async () => []),
+    update: jest.fn(async () => undefined),
+    delete: jest.fn(async () => undefined),
+    savePayment: jest.fn(async () => undefined),
+    updatePaymentStatus: jest.fn(async () => undefined),
+    findPaymentsByClinicId: jest.fn(async () => []),
   };
 
   let useCase: NotifyExpiringSubscriptionsUseCase;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const prisma = Object.create(PrismaService.prototype) as PrismaService;
+    Object.defineProperties(prisma, {
+      subscription: {
+        value: prismaSubscription,
+        writable: true,
+      },
+      subscriptionReminder: {
+        value: prismaSubscriptionReminder,
+        writable: true,
+      },
+    });
+
     useCase = new NotifyExpiringSubscriptionsUseCase(
-      {} as never,
-      prisma as never,
+      subscriptionRepository,
+      prisma,
     );
   });
 

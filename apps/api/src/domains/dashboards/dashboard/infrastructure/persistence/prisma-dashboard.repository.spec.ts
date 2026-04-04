@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { PrismaDashboardRepository } from './prisma-dashboard.repository';
+import { PrismaService } from '@/prisma/prisma.service';
 
 describe('PrismaDashboardRepository', () => {
   const mockPatientCount = jest.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -39,13 +40,17 @@ describe('PrismaDashboardRepository', () => {
 
   const mockPrismaService = {
     getReadClient: jest.fn().mockReturnValue(mockReadClient),
-  };
+  } as Pick<PrismaService, 'getReadClient'>;
 
   let repository: PrismaDashboardRepository;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    repository = new PrismaDashboardRepository(mockPrismaService as never);
+    const prismaService = Object.create(
+      PrismaService.prototype,
+    ) as PrismaService;
+    prismaService.getReadClient = mockPrismaService.getReadClient;
+    repository = new PrismaDashboardRepository(prismaService);
   });
 
   it('builds stats using read client and deterministic sort order', async () => {
