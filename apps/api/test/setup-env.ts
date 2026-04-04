@@ -29,7 +29,7 @@ const shouldSuppressTestErrorLog = (message: string): boolean =>
   message.includes('Verification failed') ||
   message.includes('Connection refused');
 
-const stringifyLogArgs = (args: unknown[]): string =>
+const stringifyLogArgs = (args: readonly unknown[]): string =>
   args
     .map((arg) => {
       if (
@@ -53,19 +53,20 @@ const stringifyLogArgs = (args: unknown[]): string =>
     .join(' ');
 
 const originalNestLoggerError = Logger.prototype.error;
-Logger.prototype.error = function (...args: unknown[]) {
+type NestLoggerErrorArgs = Parameters<Logger['error']>;
+Logger.prototype.error = function (...args: NestLoggerErrorArgs) {
   const message = stringifyLogArgs(args);
 
   if (shouldSuppressTestErrorLog(message)) {
     return;
   }
 
-  return originalNestLoggerError.apply(this, args as never);
+  return originalNestLoggerError.call(this, ...args);
 };
 
 const originalNestLoggerStaticError = Logger.error;
 Logger.error = (...args: Parameters<typeof Logger.error>) => {
-  const message = stringifyLogArgs(args as unknown[]);
+  const message = stringifyLogArgs(args);
 
   if (shouldSuppressTestErrorLog(message)) {
     return;
@@ -75,24 +76,23 @@ Logger.error = (...args: Parameters<typeof Logger.error>) => {
 };
 
 const originalConsoleLoggerError = ConsoleLogger.prototype.error;
-ConsoleLogger.prototype.error = function (...args: unknown[]) {
+type ConsoleLoggerErrorArgs = Parameters<ConsoleLogger['error']>;
+ConsoleLogger.prototype.error = function (...args: ConsoleLoggerErrorArgs) {
   const message = stringifyLogArgs(args);
 
   if (shouldSuppressTestErrorLog(message)) {
     return;
   }
 
-  return originalConsoleLoggerError.apply(this, args as never);
+  return originalConsoleLoggerError.call(this, ...args);
 };
 
 if (!global.fetch) {
-  global.fetch = (() =>
-    Promise.resolve({
-      ok: false,
+  global.fetch = async () =>
+    new Response('{}', {
       status: 503,
-      json: () => Promise.resolve({}),
-      text: () => Promise.resolve(''),
-    })) as unknown as typeof fetch;
+      headers: { 'content-type': 'application/json' },
+    });
 }
 
 const originalError = console.error;

@@ -4,6 +4,7 @@ import { RequestLogService } from './services/request-log.service';
 import { ErrorTrackingService } from './services/error-tracking.service';
 import { MetricsService } from './services/metrics.service';
 import { HealthCheckService } from './services/health-check.service';
+import { MetricType } from '@workspace/db';
 
 describe('MonitoringService', () => {
   let service: MonitoringService;
@@ -94,9 +95,9 @@ describe('MonitoringService', () => {
     });
 
     it('recordMetric should delegate to MetricsService', async () => {
-      await service.recordMetric('CPU_USAGE' as never, 100);
+      await service.recordMetric(MetricType.CPU_USAGE, 100);
       expect(metricsService.recordMetric).toHaveBeenCalledWith(
-        'CPU_USAGE',
+        MetricType.CPU_USAGE,
         100,
         undefined,
         undefined,

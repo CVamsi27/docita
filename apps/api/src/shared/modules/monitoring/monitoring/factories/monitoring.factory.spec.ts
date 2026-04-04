@@ -30,10 +30,12 @@ describe('MonitoringFactory', () => {
     it('should throw error for invalid data', () => {
       const data = {
         method: '',
-        path: '/api/test',
+        path: '',
+        statusCode: 200,
+        duration: -1,
       };
 
-      expect(() => factory.createApiRequest(data as never)).toThrow(ZodError);
+      expect(() => factory.createApiRequest(data)).toThrow(ZodError);
     });
   });
 
@@ -56,10 +58,11 @@ describe('MonitoringFactory', () => {
 
     it('should throw error for invalid data', () => {
       const data = {
+        type: '',
         message: '',
       };
 
-      expect(() => factory.createErrorLog(data as never)).toThrow(ZodError);
+      expect(() => factory.createErrorLog(data)).toThrow(ZodError);
     });
   });
 });

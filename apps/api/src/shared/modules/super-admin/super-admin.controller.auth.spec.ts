@@ -9,6 +9,7 @@ import { FeedbackService } from '@/domains/feedback/application/services/feedbac
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
@@ -83,15 +84,14 @@ describe('SuperAdminController - Authorization', () => {
   });
 
   const createMockExecutionContext = (userRole: Role): ExecutionContext => {
-    return {
-      getHandler: () => controller.getGlobalStats,
-      getClass: () => SuperAdminController,
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { role: userRole, clinicId: 'clinic-123' },
-        }),
-      }),
-    } as unknown as ExecutionContext;
+    const request = { user: { role: userRole, clinicId: 'clinic-123' } };
+    const context = new ExecutionContextHost(
+      [request, undefined, undefined],
+      SuperAdminController,
+      controller.getGlobalStats,
+    );
+    context.setType('http');
+    return context;
   };
 
   describe('RolesGuard - SuperAdminController', () => {
