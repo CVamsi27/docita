@@ -56,11 +56,24 @@ describe('Clinic Members Lifecycle (e2e)', () => {
     const now = Date.now();
     const adminEmail = `e2e.admin.${now}@docita.work`;
     const adminPassword = 'E2E#Admin#12345';
+    const registerResponse = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        firstName: 'E2E',
+        lastName: 'Admin',
+        email: adminEmail,
+        password: adminPassword,
+        role: 'ADMIN',
+      })
+      .expect(201);
+
+    const bootstrapToken =
+      registerResponse.body?.access_token || registerResponse.body?.accessToken;
+    expect(bootstrapToken).toBeDefined();
 
     const initResponse = await request(app.getHttpServer())
       .post('/onboarding/initialize')
-      .set('Cookie', 'XSRF-TOKEN=e2e-csrf-token')
-      .set('X-XSRF-TOKEN', 'e2e-csrf-token')
+      .set('Authorization', `Bearer ${bootstrapToken}`)
       .expect(201);
 
     const onboardingId = initResponse.body?.onboardingId;
