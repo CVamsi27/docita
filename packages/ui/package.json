@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
