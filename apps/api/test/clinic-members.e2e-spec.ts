@@ -90,6 +90,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
 
     const completeResponse = await request(app.getHttpServer())
       .post(`/onboarding/${onboardingId}/complete`)
+      .set('Authorization', `Bearer ${bootstrapToken}`)
       .send({
         clinicDetails: {
           name: `E2E Clinic ${now}`,
