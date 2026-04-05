@@ -32,13 +32,6 @@ export interface PricingConfig {
   tiers: TierConfig[];
 }
 
-export const FALLBACK_PLATFORM_STATS: PlatformStats = {
-  clinics: 25,
-  doctors: 50,
-  patients: 10000,
-  prescriptions: 25000,
-};
-
 const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "STARTER",
@@ -114,23 +107,41 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
   tiers: FALLBACK_TIERS,
 };
 
-export async function fetchPlatformStats(): Promise<PlatformStats> {
+function parseStatValue(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return null;
+  }
+  return Math.floor(value);
+}
+
+export async function fetchPlatformStats(): Promise<PlatformStats | null> {
   try {
     const payload = await fetchLandingJson<Partial<PlatformStats>>(
       "/public/platform-stats",
     );
 
+    const clinics = parseStatValue(payload.clinics);
+    const doctors = parseStatValue(payload.doctors);
+    const patients = parseStatValue(payload.patients);
+    const prescriptions = parseStatValue(payload.prescriptions);
+
+    if (
+      clinics === null ||
+      doctors === null ||
+      patients === null ||
+      prescriptions === null
+    ) {
+      return null;
+    }
+
     return {
-      clinics: Math.max(payload.clinics ?? 0, FALLBACK_PLATFORM_STATS.clinics),
-      doctors: Math.max(payload.doctors ?? 0, FALLBACK_PLATFORM_STATS.doctors),
-      patients: Math.max(payload.patients ?? 0, FALLBACK_PLATFORM_STATS.patients),
-      prescriptions: Math.max(
-        payload.prescriptions ?? 0,
-        FALLBACK_PLATFORM_STATS.prescriptions,
-      ),
+      clinics,
+      doctors,
+      patients,
+      prescriptions,
     };
   } catch {
-    return FALLBACK_PLATFORM_STATS;
+    return null;
   }
 }
 
@@ -169,15 +180,7 @@ export async function fetchPricingConfig(
 }
 
 export function formatStatValue(value: number): string {
-  if (value >= 1000000) {
-    return `${(value / 1000000).toFixed(1)}M+`;
-  }
-
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(0)}K+`;
-  }
-
-  return `${value}+`;
+  return value.toLocaleString("en-IN");
 }
 
 export function formatTierPrice(value: number | "custom", symbol: string): string {

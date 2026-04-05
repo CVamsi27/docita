@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Building2, FileText, UserCog, Users } from "lucide-react";
 
 import {
-  FALLBACK_PLATFORM_STATS,
   fetchPlatformStats,
   formatStatValue,
   type PlatformStats,
@@ -16,9 +15,8 @@ const statCards = [
 ];
 
 export function StatsStrip() {
-  const [stats, setStats] = useState<PlatformStats>(FALLBACK_PLATFORM_STATS);
+  const [stats, setStats] = useState<PlatformStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -34,8 +32,7 @@ export function StatsStrip() {
         if (!active) {
           return;
         }
-        setHasError(true);
-        setStats(FALLBACK_PLATFORM_STATS);
+        setStats(null);
       } finally {
         if (active) {
           setIsLoading(false);
@@ -53,9 +50,9 @@ export function StatsStrip() {
   return (
     <section className="py-16 bg-primary text-primary-foreground" aria-live="polite">
       <div className="container mx-auto px-6">
-        {hasError ? (
+        {!isLoading && !stats ? (
           <p className="mb-4 text-center text-sm text-primary-foreground/80">
-            Live stats are temporarily unavailable. Showing conservative baseline figures.
+            Live clinic statistics are temporarily unavailable.
           </p>
         ) : null}
         <div className="grid grid-cols-2 gap-6 text-center md:grid-cols-4">
@@ -66,7 +63,7 @@ export function StatsStrip() {
             >
               <card.icon className="mx-auto mb-3 h-7 w-7 opacity-90" aria-hidden="true" />
               <div className="text-3xl font-bold md:text-4xl">
-                {isLoading ? "..." : formatStatValue(stats[card.key])}
+                {isLoading ? "..." : stats ? formatStatValue(stats[card.key]) : "—"}
               </div>
               <p className="mt-1 text-sm font-medium text-primary-foreground/80">{card.label}</p>
             </article>
