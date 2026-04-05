@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException, Logger, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  Inject,
+  BadRequestException,
+} from '@nestjs/common';
+import { LeaveType } from '@workspace/db';
 import {
   ILeaveRepository,
   LEAVE_REPOSITORY_TOKEN,
@@ -13,6 +20,13 @@ export class LeavePlanService {
     @Inject(LEAVE_REPOSITORY_TOKEN)
     private readonly leaveRepository: ILeaveRepository,
   ) {}
+
+  private toLeaveType(rawType: string): LeaveType {
+    if ((Object.values(LeaveType) as string[]).includes(rawType)) {
+      return rawType as LeaveType;
+    }
+    throw new BadRequestException(`Unsupported leave type: ${rawType}`);
+  }
 
   async getPlans(clinicId: string) {
     const plans = await this.leaveRepository.findLeavePlans({ clinicId });
@@ -29,11 +43,12 @@ export class LeavePlanService {
       isActive?: boolean;
     },
   ) {
+    const leaveType = this.toLeaveType(data.leaveType);
     const plan = await this.leaveRepository.upsertLeavePlan(
-      { clinicId_leaveType: { clinicId, leaveType: data.leaveType as never } },
+      { clinicId_leaveType: { clinicId, leaveType } },
       {
         clinic: { connect: { id: clinicId } },
-        leaveType: data.leaveType as never,
+        leaveType,
         annualQuota: data.annualQuota,
         carryForward: data.carryForward ?? false,
         maxCarryForward: data.maxCarryForward ?? 0,

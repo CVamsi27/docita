@@ -25,6 +25,10 @@ interface BillingTierInfo {
 export class SuperAdminBillingService {
   constructor(private prisma: PrismaService) {}
 
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  }
+
   private subDays(date: Date, days: number): Date {
     const result = new Date(date);
     result.setDate(result.getDate() - days);
@@ -34,6 +38,12 @@ export class SuperAdminBillingService {
   private addDays(date: Date, days: number): Date {
     const result = new Date(date);
     result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  private addMonths(date: Date, months: number): Date {
+    const result = new Date(date);
+    result.setMonth(result.getMonth() + months);
     return result;
   }
 
@@ -160,24 +170,39 @@ export class SuperAdminBillingService {
         clinic: s.clinic,
       }));
 
+    const currentMonthStart = this.startOfMonth(new Date());
+    const firstMonthStart = this.addMonths(currentMonthStart, -5);
+    const nextMonthStart = this.addMonths(currentMonthStart, 1);
+
+    const groupedRevenue = await this.prisma.$queryRaw<
+      Array<{ monthStart: Date; revenueCents: bigint }>
+    >`
+      SELECT
+        date_trunc('month', "paidAt") AS "monthStart",
+        COALESCE(SUM("amountCents"), 0)::bigint AS "revenueCents"
+      FROM "SubscriptionPayment"
+      WHERE
+        status = 'paid'
+        AND "paidAt" IS NOT NULL
+        AND "paidAt" >= ${firstMonthStart}
+        AND "paidAt" < ${nextMonthStart}
+      GROUP BY date_trunc('month', "paidAt")
+      ORDER BY date_trunc('month', "paidAt") ASC
+    `;
+
+    const revenueByMonthMap = new Map<string, number>();
+    for (const row of groupedRevenue) {
+      const monthKey = row.monthStart.toISOString().slice(0, 7);
+      revenueByMonthMap.set(monthKey, Number(row.revenueCents));
+    }
+
     const revenueByMonth: { month: string; revenue: number }[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const monthStart = this.startOfMonth(this.subDays(new Date(), i * 30));
-      const monthEnd = this.startOfMonth(
-        this.subDays(new Date(), (i - 1) * 30),
-      );
-
-      const payments = await this.prisma.subscriptionPayment.findMany({
-        where: {
-          status: 'paid',
-          paidAt: { gte: monthStart, lt: monthEnd },
-        },
-      });
-
-      const revenue = payments.reduce((sum, p) => sum + p.amountCents, 0);
+    for (let i = 0; i < 6; i++) {
+      const monthStart = this.addMonths(firstMonthStart, i);
+      const monthKey = monthStart.toISOString().slice(0, 7);
       revenueByMonth.push({
         month: this.formatDate(monthStart, 'MMM yyyy'),
-        revenue: revenue / 100,
+        revenue: (revenueByMonthMap.get(monthKey) ?? 0) / 100,
       });
     }
 
@@ -625,7 +650,7 @@ export class SuperAdminBillingService {
       ? this.prisma.featureFlag.update({
           where: { id: existing.id },
           data: {
-            value: payload as unknown as Prisma.InputJsonValue,
+            value: this.toInputJsonValue(payload),
             description: 'Clinic pricing offer',
           },
         })
@@ -633,7 +658,7 @@ export class SuperAdminBillingService {
           data: {
             key: PRICING_OFFER_FLAG,
             clinicId,
-            value: payload as unknown as Prisma.InputJsonValue,
+            value: this.toInputJsonValue(payload),
             description: 'Clinic pricing offer',
           },
         });

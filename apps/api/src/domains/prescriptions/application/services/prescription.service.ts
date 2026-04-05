@@ -21,7 +21,11 @@ import {
   checkPrescriptionAllergies,
   validateDosage,
 } from '@workspace/utils';
-import { Specialization, HospitalRole } from '@workspace/types';
+import {
+  Specialization,
+  HospitalRole,
+  extractPdfTheme,
+} from '@workspace/types';
 import {
   Prescription as _Prescription,
   DosageForm,
@@ -261,6 +265,15 @@ export class PrescriptionsService {
       );
     }
 
+    const diagnoses = prescription.appointment?.diagnoses
+      ?.filter((d) => d.icdCode)
+      .map((d) => ({
+        icdCode: d.icdCode!.code,
+        description: d.icdCode!.description,
+        version: d.icdCode!.version,
+        isPrimary: d.isPrimary,
+      }));
+
     return this.pdfService.generate({
       prescriptionId: prescription.id.slice(0, 8).toUpperCase(),
       clinic: {
@@ -268,6 +281,9 @@ export class PrescriptionsService {
         address: clinic.address || undefined,
         phone: clinic.phoneNumber || undefined,
         email: clinic.email || undefined,
+        logo: clinic.logo || undefined,
+        currency: clinic.currency || undefined,
+        branding: extractPdfTheme(clinic.branding),
       },
       doctor: {
         name: prescription.doctorName,
@@ -290,6 +306,7 @@ export class PrescriptionsService {
         frequency: med.frequency,
         duration: med.duration,
       })),
+      diagnoses: diagnoses?.length ? diagnoses : undefined,
       instructions: prescription.instructions || undefined,
       date: new Date(),
       validityDays: 30,

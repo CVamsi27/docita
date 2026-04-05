@@ -6,7 +6,10 @@ import {
   PricingConfigQueryDto,
   PricingEstimateQueryDto,
 } from '@/domains/billing/application/dto/pricing.dto';
-import { pricingEstimateResponseSchema } from '@workspace/types';
+import {
+  pricingConfigResponseSchema,
+  pricingEstimateResponseSchema,
+} from '@workspace/types';
 
 @ApiTags('pricing')
 @Controller('pricing')
@@ -23,7 +26,9 @@ export class PricingController {
     enum: ['INR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED', 'ZAR'],
   })
   async getPricingConfig(@Query() query?: PricingConfigQueryDto) {
-    return await this.pricingService.getPricingConfig(query?.currency);
+    return pricingConfigResponseSchema.parse(
+      await this.pricingService.getPricingConfig(query?.currency),
+    );
   }
 
   @Get('estimate')

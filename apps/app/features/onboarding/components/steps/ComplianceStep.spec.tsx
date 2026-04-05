@@ -59,7 +59,9 @@ function ComplianceStepHarness({
   onFormReady,
 }: {
   onboardingId?: string;
-  ensureOnboardingId?: (options?: { forceRefresh?: boolean }) => Promise<string>;
+  ensureOnboardingId?: (options?: {
+    forceRefresh?: boolean;
+  }) => Promise<string>;
   onFormReady: (form: UseFormReturn<ComplianceSettings>) => void;
 }) {
   const complianceForm = useForm<ComplianceSettings>({
@@ -89,7 +91,7 @@ describe("ComplianceStep", () => {
     mocks.toast.info.mockReset();
     mocks.toast.message.mockReset();
     sessionStorage.clear();
-    global.fetch = mocks.fetch as unknown as typeof fetch;
+    global.fetch = mocks.fetch as typeof fetch;
   });
 
   afterEach(() => {
@@ -104,7 +106,7 @@ describe("ComplianceStep", () => {
         if (typeof handler === "function") {
           void handler();
         }
-        return 1 as unknown as ReturnType<typeof setInterval>;
+        return setTimeout(() => undefined, 0) as ReturnType<typeof setInterval>;
       });
     const clearIntervalSpy = vi
       .spyOn(globalThis, "clearInterval")
@@ -113,7 +115,10 @@ describe("ComplianceStep", () => {
     mocks.fetch.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
 
-      if (url.includes("/onboarding/onb_1/sla-signature-session/") && url.includes("/status")) {
+      if (
+        url.includes("/onboarding/onb_1/sla-signature-session/") &&
+        url.includes("/status")
+      ) {
         return new Response(
           JSON.stringify({
             status: "uploaded",
@@ -156,7 +161,9 @@ describe("ComplianceStep", () => {
       expect(formRef?.getValues("slaSignatureSessionId")).toBe("sess_1");
     });
 
-    expect(screen.getByText(/Signature received from your phone/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Signature received from your phone/i),
+    ).toBeInTheDocument();
     expect(setIntervalSpy).toHaveBeenCalled();
     expect(clearIntervalSpy).toHaveBeenCalled();
 
@@ -175,7 +182,9 @@ describe("ComplianceStep", () => {
 
       if (url.endsWith("/onboarding/onb_stale/sla-signature-session")) {
         return new Response(
-          JSON.stringify({ message: "Onboarding session not found or expired" }),
+          JSON.stringify({
+            message: "Onboarding session not found or expired",
+          }),
           {
             status: 400,
             headers: { "Content-Type": "application/json" },
@@ -224,7 +233,9 @@ describe("ComplianceStep", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId("qr-code")).toHaveTextContent("onboardingId=onb_fresh");
+      expect(screen.getByTestId("qr-code")).toHaveTextContent(
+        "onboardingId=onb_fresh",
+      );
     });
   });
 });

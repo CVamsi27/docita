@@ -43,7 +43,16 @@ import {
 } from '@/domains/subscriptions/application/dto/subscriptions-billing.dto';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
-import { APP_ACCESS_TARGETS, currentUsageSchema } from '@workspace/types';
+import {
+  APP_ACCESS_TARGETS,
+  currentUsageSchema,
+  subscriptionBillingActivateResponseSchema,
+  subscriptionBillingCancelResponseSchema,
+  subscriptionBillingCheckoutResponseSchema,
+  subscriptionBillingPreviewResponseSchema,
+  subscriptionBillingStatusResponseSchema,
+  subscriptionCurrentResponseSchema,
+} from '@workspace/types';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { ZodSerializerDto } from 'nestjs-zod';
 
@@ -75,7 +84,9 @@ export class SubscriptionsController {
     if (!req.user?.clinicId) {
       throw new Error('Clinic ID not found');
     }
-    return this.queryService.getSubscriptionDetails(req.user.clinicId);
+    return subscriptionCurrentResponseSchema.parse(
+      await this.queryService.getSubscriptionDetails(req.user.clinicId),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -150,7 +161,9 @@ export class SubscriptionsController {
   @Get('billing')
   async getBillingStatus(@Request() req: RequestWithUser) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
-    return this.queryService.getBillingStatus(req.user.clinicId);
+    return subscriptionBillingStatusResponseSchema.parse(
+      await this.queryService.getBillingStatus(req.user.clinicId),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -211,7 +224,7 @@ export class SubscriptionsController {
     );
 
     if (!subscription) {
-      return {
+      return subscriptionBillingPreviewResponseSchema.parse({
         currentTier: null,
         newTier: tier,
         currentCycle: null,
@@ -221,11 +234,11 @@ export class SubscriptionsController {
         daysRemaining: 0,
         billingCycleDays: newCycle.isYearly() ? 365 : 30,
         finalAmountCents: newPriceCents,
-      };
+      });
     }
 
-    const currentTierObj = ClinicTier.fromString(subscription.plan);
-    const currentCycleObj = BillingCycle.fromString('MONTHLY');
+    const currentTierObj = ClinicTier.fromString(subscription.tier);
+    const currentCycleObj = BillingCycle.fromString(subscription.billingCycle);
     const currentPriceCents = this.pricingService.calculatePrice(
       currentTierObj,
       currentCycleObj,
@@ -240,17 +253,17 @@ export class SubscriptionsController {
       billingCycleDays,
     );
 
-    return {
-      currentTier: subscription.plan,
+    return subscriptionBillingPreviewResponseSchema.parse({
+      currentTier: subscription.tier,
       newTier: tier,
-      currentCycle: 'MONTHLY',
+      currentCycle: subscription.billingCycle,
       newCycle: cycle,
       creditCents: proration.credit,
       chargeCents: proration.charge,
       daysRemaining,
       billingCycleDays,
       finalAmountCents: proration.netAmount,
-    };
+    });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -262,11 +275,13 @@ export class SubscriptionsController {
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     try {
-      return await this.createCheckoutUseCase.execute({
-        clinicId: req.user.clinicId,
-        tier: body.tier,
-        cycle: body.billingCycle,
-      });
+      return subscriptionBillingCheckoutResponseSchema.parse(
+        await this.createCheckoutUseCase.execute({
+          clinicId: req.user.clinicId,
+          tier: body.tier,
+          cycle: body.billingCycle,
+        }),
+      );
     } catch (error) {
       if (
         error instanceof Error &&
@@ -294,7 +309,7 @@ export class SubscriptionsController {
       tier: body.tier,
       cycle: body.billingCycle,
     });
-    return { success: true };
+    return subscriptionBillingActivateResponseSchema.parse({ success: true });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -305,9 +320,10 @@ export class SubscriptionsController {
     @Body() body: SubscriptionBillingCancelRequestDto,
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
-    return this.cancelSubscriptionUseCase.execute({
+    await this.cancelSubscriptionUseCase.execute({
       clinicId: req.user.clinicId,
       cancelAtPeriodEnd: !body.immediate,
     });
+    return subscriptionBillingCancelResponseSchema.parse({ success: true });
   }
 }

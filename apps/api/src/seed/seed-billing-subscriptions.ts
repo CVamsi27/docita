@@ -126,8 +126,8 @@ export async function seedBillingAndUsage(
     }),
   );
 
-  const activeTier = ClinicTier.PROFESSIONAL;
-  const activeTierName: keyof typeof TIER_LIMITS = 'PROFESSIONAL';
+  const activeTier = ClinicTier.ENTERPRISE;
+  const activeTierName: keyof typeof TIER_LIMITS = 'ENTERPRISE';
   const activeTierLimits = TIER_LIMITS[activeTierName];
   const activeTierPricing = pricing[activeTierName];
 

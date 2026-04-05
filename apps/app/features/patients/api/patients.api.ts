@@ -69,28 +69,43 @@ export interface PatientMetricHistoryQuery {
 }
 
 export const patientsApi = {
-  
-  getAll: (params?: { limit?: number; search?: string; cursor?: string }) => {
+  getAll: (params?: {
+    limit?: number;
+    page?: number;
+    search?: string;
+    cursor?: string;
+  }) => {
     const searchParams = new URLSearchParams();
     if (params?.limit) searchParams.set("limit", String(params.limit));
+    if (params?.page) searchParams.set("page", String(params.page));
     if (params?.cursor) searchParams.set("cursor", params.cursor);
     if (params?.search) searchParams.set("search", params.search);
-    searchParams.set("_cb", String(Date.now()));
     const query = searchParams.toString();
     return api
       .get<{
-      items: Patient[];
-      nextCursor?: string;
-      hasMore: boolean;
-      count: number;
+        items: Patient[];
+        nextCursor?: string;
+        hasMore?: boolean;
+        count?: number;
+        total?: number;
       }>(`/patients${query ? `?${query}` : ""}`)
       .then((response) => {
+        const total =
+          typeof response.count === "number"
+            ? response.count
+            : typeof response.total === "number"
+              ? response.total
+              : response.items.length;
+        const effectiveLimit = params?.limit ?? 20;
+        const currentPage = params?.page ?? 1;
+        const hasMore =
+          typeof response.hasMore === "boolean"
+            ? response.hasMore
+            : currentPage * effectiveLimit < total;
+
         const normalized = {
           items: response.items,
-          total:
-            typeof response.count === "number"
-              ? response.count
-              : response.items.length,
+          total,
         };
 
         const parsed = listPatientsResponseSchema.parse(normalized);
@@ -98,19 +113,18 @@ export const patientsApi = {
         return {
           ...response,
           items: parsed.items,
-          count:
-            typeof response.count === "number" ? response.count : parsed.total,
+          hasMore,
+          total: parsed.total,
+          count: total,
         };
       });
   },
 
-  
   getById: (id: string) =>
     api.get<Patient>(`/patients/${id}`).then((response) => {
       return patientResponseSchema.parse(response);
     }),
 
-  
   getMedicalHistory: (id: string) =>
     api.get(`/patients/${id}/medical-history-timeline`),
 
@@ -147,7 +161,6 @@ export const patientsApi = {
     );
   },
 
-  
   create: (data: CreatePatientRequest) =>
     api
       .post<Patient>(
@@ -158,7 +171,6 @@ export const patientsApi = {
         return patientResponseSchema.parse(response);
       }),
 
-  
   update: (id: string, data: UpdatePatientRequest) =>
     api
       .patch<Patient>(`/patients/${id}`, updatePatientRequestSchema.parse(data))
@@ -166,6 +178,5 @@ export const patientsApi = {
         return patientResponseSchema.parse(response);
       }),
 
-  
   delete: (id: string) => api.delete(`/patients/${id}`),
 };

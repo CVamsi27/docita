@@ -10,10 +10,7 @@ import {
   toISODateString,
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
-import {
-  PATIENT_ANALYTICS_SELECT,
-  APPOINTMENT_ANALYTICS_SELECT,
-} from '@/common/select-fragments';
+import { PATIENT_ANALYTICS_SELECT } from '@/common/select-fragments';
 import {
   OverviewMetrics,
   PatientGrowthPoint,
@@ -166,30 +163,44 @@ export class OperationalAnalyticsFactory {
   ) {
     const monthRange = getMonthRange(new Date(), { timezone });
     const readClient = this.getReadClient();
+    const where = { clinicId, createdAt: { gte: monthRange.start } };
 
-    const appointments = await readClient.appointment.findMany({
-      where: { clinicId, createdAt: { gte: monthRange.start } },
-      select: APPOINTMENT_ANALYTICS_SELECT,
-    });
+    const [total, statusCounts, typeCounts] = await Promise.all([
+      readClient.appointment.count({ where }),
+      readClient.appointment.groupBy({
+        by: ['status'],
+        where,
+        _count: { id: true },
+      }),
+      readClient.appointment.groupBy({
+        by: ['type'],
+        where,
+        _count: { id: true },
+      }),
+    ]);
 
-    const byStatus = appointments.reduce(
+    const byStatus = (
+      statusCounts as Array<{ status: string; _count: { id: number } }>
+    ).reduce(
       (acc, apt) => {
-        acc[apt.status] = (acc[apt.status] || 0) + 1;
+        acc[apt.status] = apt._count.id;
         return acc;
       },
       {} as Record<string, number>,
     );
 
-    const byType = appointments.reduce(
+    const byType = (
+      typeCounts as Array<{ type: string; _count: { id: number } }>
+    ).reduce(
       (acc, apt) => {
-        acc[apt.type] = (acc[apt.type] || 0) + 1;
+        acc[apt.type] = apt._count.id;
         return acc;
       },
       {} as Record<string, number>,
     );
 
     return {
-      total: appointments.length,
+      total,
       byStatus,
       byType,
     };
@@ -266,10 +277,35 @@ export class OperationalAnalyticsFactory {
 
     const readClient = this.getReadClient();
 
-    const patients = await readClient.patient.findMany({
-      where,
-      select: { dateOfBirth: true, gender: true },
-    });
+    const [totalPatients, patientsWithDateOfBirth, genders] = await Promise.all(
+      [
+        readClient.patient.count({ where }),
+        readClient.patient.findMany({
+          where,
+          select: { dateOfBirth: true },
+        }),
+        readClient.patient.groupBy({
+          by: ['gender'],
+          where,
+          _count: { _all: true },
+        }),
+      ],
+    );
+
+    const patients = patientsWithDateOfBirth as Array<{ dateOfBirth: Date }>;
+    const genderDistribution = {
+      MALE: 0,
+      FEMALE: 0,
+      OTHER: 0,
+    };
+    for (const row of genders as Array<{
+      gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
+      _count: { _all: number };
+    }>) {
+      if (row.gender && row.gender in genderDistribution) {
+        genderDistribution[row.gender] = row._count._all;
+      }
+    }
 
     const now = new Date();
     const ageDistribution = {
@@ -281,7 +317,6 @@ export class OperationalAnalyticsFactory {
     };
 
     patients.forEach((p) => {
-      if (!p.dateOfBirth) return;
       const age = now.getFullYear() - p.dateOfBirth.getFullYear();
       if (age < 18) ageDistribution['0-18']++;
       else if (age < 35) ageDistribution['18-35']++;
@@ -290,15 +325,9 @@ export class OperationalAnalyticsFactory {
       else ageDistribution['65+']++;
     });
 
-    const genderDistribution = {
-      MALE: patients.filter((p) => p.gender === 'MALE').length,
-      FEMALE: patients.filter((p) => p.gender === 'FEMALE').length,
-      OTHER: patients.filter((p) => p.gender === 'OTHER').length,
-    };
-
     const result = {
-      totalPatients: patients.length,
-      newPatients: patients.length,
+      totalPatients,
+      newPatients: totalPatients,
       ageDistribution,
       genderDistribution,
     };
@@ -316,26 +345,31 @@ export class OperationalAnalyticsFactory {
     const sevenDaysAgo = new Date(now);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const uncodedVisits = await this.prisma.appointment.findMany({
-      where: {
-        clinicId,
-        status: AppointmentStatus.COMPLETED,
-        diagnoses: {
-          none: {},
-        },
+    const readClient = this.getReadClient();
+    const uncodedWhere: Prisma.AppointmentWhereInput = {
+      clinicId,
+      status: AppointmentStatus.COMPLETED,
+      diagnoses: {
+        none: {},
       },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    });
+    };
 
-    const oldUncoded = uncodedVisits.filter(
-      (v) => v.createdAt < sevenDaysAgo,
-    ).length;
+    const [totalUncoded, uncodedOlderThan7Days] = await Promise.all([
+      readClient.appointment.count({
+        where: uncodedWhere,
+      }),
+      readClient.appointment.count({
+        where: {
+          ...uncodedWhere,
+          createdAt: { lt: sevenDaysAgo },
+        },
+      }),
+    ]);
 
     return {
-      totalUncoded: uncodedVisits.length,
-      uncodedOlderThan7Days: oldUncoded,
-      recentUncoded: uncodedVisits.length - oldUncoded,
+      totalUncoded,
+      uncodedOlderThan7Days,
+      recentUncoded: totalUncoded - uncodedOlderThan7Days,
     };
   }
 }

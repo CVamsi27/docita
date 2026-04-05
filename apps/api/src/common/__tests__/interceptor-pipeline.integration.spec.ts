@@ -178,6 +178,12 @@ type PipelineResponse = {
   statusCode: number;
 };
 
+type PipelineHttpResponse = {
+  cookie: (name: string, value: string) => void;
+  setHeader: (name: string, value: string) => void;
+  status: (code: number) => PipelineHttpResponse;
+};
+
 async function runPipeline({
   moduleFixture,
   request,
@@ -256,8 +262,8 @@ function createResponse(
   headers: Record<string, string>,
   cookies: string[],
   setStatusCode: (code: number) => void,
-): Response {
-  return {
+): PipelineHttpResponse {
+  const response: PipelineHttpResponse = {
     cookie: jest.fn((name: string, value: string) => {
       cookies.push(`${name}=${value}`);
     }),
@@ -266,9 +272,11 @@ function createResponse(
     }),
     status: jest.fn((code: number) => {
       setStatusCode(code);
-      return undefined;
+      return response;
     }),
-  } as unknown as Response;
+  };
+
+  return response;
 }
 
 async function invokeInterceptors(
@@ -283,7 +291,7 @@ async function invokeInterceptors(
   context: {
     switchToHttp: () => {
       getRequest: () => RequestWithUser;
-      getResponse: () => Response;
+      getResponse: () => PipelineHttpResponse;
     };
     getHandler: () => typeof PipelineController.prototype.getHealth;
   },

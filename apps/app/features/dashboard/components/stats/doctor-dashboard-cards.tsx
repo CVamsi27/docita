@@ -14,7 +14,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
-import { ChevronRight, Clock, Play, Stethoscope, Users } from "lucide-react";
+import { Clock, Play, Stethoscope, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { DashboardAppointment } from "@workspace/types";
@@ -64,8 +64,7 @@ export function DoctorDashboardCardsUI({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {}
-      <Card className="border-none shadow-sm bg-card lg:col-span-2">
+      <Card className="border border-border shadow-sm bg-card lg:col-span-2">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -92,26 +91,26 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent>
           {currentPatient ? (
-            <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14">
-                <AvatarFallback className="bg-linear-to-br from-primary/30 to-primary/10 text-primary text-lg font-medium">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
+                <AvatarFallback className="bg-linear-to-br from-primary/30 to-primary/10 text-primary text-base sm:text-lg font-medium">
                   {currentPatient.patient?.firstName?.[0]}
                   {currentPatient.patient?.lastName?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <p className="text-xl font-semibold">
+              <div className="flex-1 min-w-0">
+                <p className="text-base sm:text-xl font-semibold truncate">
                   {currentPatient.patient?.firstName}{" "}
                   {currentPatient.patient?.lastName}
                 </p>
-                <p className="text-sm text-muted-foreground capitalize">
+                <p className="text-xs sm:text-sm text-muted-foreground capitalize truncate">
                   {currentPatient.type?.replace(/_/g, " ").toLowerCase()} •{" "}
                   {format(new Date(currentPatient.startTime), "h:mm a")}
                 </p>
               </div>
               <Button
-                size="lg"
-                className="gap-2 shadow-lg shadow-primary/20"
+                size="default"
+                className="gap-2 shadow-sm shadow-primary/20 shrink-0"
                 onClick={() => router.push(`/consultation/${currentPatient.id}`)}
               >
                 <Play className="h-4 w-4" />
@@ -119,23 +118,23 @@ export function DoctorDashboardCardsUI({
               </Button>
             </div>
           ) : (
-            <div className="flex items-center justify-between py-4">
-              <p className="text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-3 py-3 sm:py-4">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 {nextPatients.length > 0
                   ? `${nextPatients.length} patient(s) waiting`
                   : "No patients in queue"}
               </p>
               {nextPatients.length > 0 && nextPatients[0] && (
                 <Button
-                  variant="default"
-                  className="gap-2"
+                  size="default"
+                  className="gap-2 shrink-0"
                   disabled={startConsultation.isPending}
                   onClick={() => void handleStartAppointment(nextPatients[0].id)}
                 >
+                  <Play className="h-4 w-4" />
                   {startingAppointmentId === nextPatients[0].id
                     ? "Starting..."
                     : "Start Next Patient"}
-                  <ChevronRight className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -143,8 +142,7 @@ export function DoctorDashboardCardsUI({
         </CardContent>
       </Card>
 
-      {}
-      <Card className="border-none shadow-sm bg-card">
+      <Card className="border border-border shadow-sm bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
@@ -168,7 +166,7 @@ export function DoctorDashboardCardsUI({
               <p className="text-2xl font-bold text-warning">
                 {queueStats.waiting}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Waiting
               </p>
             </div>
@@ -176,7 +174,7 @@ export function DoctorDashboardCardsUI({
               <p className="text-2xl font-bold text-info">
                 {queueStats.inProgress}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Active
               </p>
             </div>
@@ -184,13 +182,12 @@ export function DoctorDashboardCardsUI({
               <p className="text-2xl font-bold text-success">
                 {queueStats.completed}
               </p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Done
               </p>
             </div>
           </div>
 
-          {}
           <div className="mt-4">
             <div className="flex justify-between text-xs text-muted-foreground mb-1">
               <span>Today&apos;s Progress</span>
@@ -204,7 +201,7 @@ export function DoctorDashboardCardsUI({
                   "h-full rounded-full bg-linear-to-r from-primary to-primary/70 transition-colors duration-150",
                 )}
                 style={{
-                  width: `${queueStats.total > 0 ? (queueStats.completed / queueStats.total) * 100 : 0}%`,
+                  width: `${Math.min(Math.max(queueStats.total > 0 ? (queueStats.completed / queueStats.total) * 100 : 0, 0), 100)}%`,
                 }}
               />
             </div>

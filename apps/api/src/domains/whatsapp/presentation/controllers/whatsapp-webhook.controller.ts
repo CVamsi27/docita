@@ -45,7 +45,8 @@ export class WhatsAppWebhookController {
   @HttpCode(HttpStatus.OK)
   @ZodSerializerDto(WhatsAppWebhookAckResponseDto)
   async handleWebhook(@Body() payload: HandleWhatsAppWebhookDto) {
-    this.logger.debug('Received WhatsApp webhook', payload);
+    const entryCount = payload.entry?.length ?? 0;
+    this.logger.debug(`Received WhatsApp webhook with ${entryCount} entries`);
     await this.handleWebhookUseCase.execute({ payload });
     return { status: 'ok' };
   }

@@ -8,7 +8,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
@@ -80,8 +79,7 @@ export function PatientBadgeUI({
   const hasAllergies = allergiesArray.length > 0;
 
   return (
-    <TooltipProvider>
-      <div
+    <div
         className={cn(
           "flex items-center",
           sizes.container,
@@ -185,7 +183,6 @@ export function PatientBadgeUI({
             </div>
           )}
         </div>
-      </div>
-    </TooltipProvider>
+    </div>
   );
 }

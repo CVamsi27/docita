@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '..');
+const log = (message) => process.stdout.write(`${message}\n`);
+const error = (message) => process.stderr.write(`${message}\n`);
 
 function listFiles() {
   const out = execSync('git ls-files', { cwd: repoRoot, encoding: 'utf8' });
@@ -16,6 +18,7 @@ const prismaClientImportPattern =
   /from\s+['"]@prisma\/client['"]|require\(\s*['"]@prisma\/client['"]\s*\)/;
 const workspaceDbImportPattern =
   /from\s+['"]@workspace\/db['"]|require\(\s*['"]@workspace\/db['"]\s*\)/;
+const workspaceDbTokenPattern = /@workspace\/db/;
 
 const violations = [];
 
@@ -30,26 +33,68 @@ for (const file of files) {
   }
 
   if (prismaClientImportPattern.test(content)) {
-    const allowed = file.startsWith('packages/db/') || file.startsWith('apps/api/infrastructure/') || file.startsWith('apps/api/src/prisma/') || file.startsWith('apps/api/prisma/');
-    if (!allowed) violations.push({file, reason: "@prisma/client used outside packages/db or apps/api/infrastructure"});
+    const allowed =
+      file.startsWith('packages/db/') ||
+      file.startsWith('apps/api/src/prisma/') ||
+      file.startsWith('apps/api/prisma/') ||
+      (file.startsWith('apps/api/src/') &&
+        (file.includes('/infrastructure/') || file.includes('/repositories/')));
+
+    if (!allowed) {
+      violations.push({
+        file,
+        reason:
+          "@prisma/client used outside packages/db or API repository layer boundaries",
+      });
+    }
   }
 
   if (workspaceDbImportPattern.test(content)) {
-    // disallow @workspace/db imports inside packages/types
-    if (file.startsWith('packages/types/')) {
-      violations.push({file, reason: "@workspace/db imported inside packages/types (types must be DB-agnostic)"});
+    const allowed =
+      file.startsWith('packages/db/') ||
+      file.startsWith('apps/api/') ||
+      file.startsWith('scripts/');
+
+    if (!allowed) {
+      if (file.startsWith('packages/types/')) {
+        violations.push({file, reason: "@workspace/db imported inside packages/types (types must be DB-agnostic)"});
+      } else if (
+        file.startsWith('apps/app/') ||
+        file.startsWith('apps/admin/') ||
+        file.startsWith('apps/landing/')
+      ) {
+        violations.push({file, reason: "@workspace/db imported in frontend code (frontend must remain DB-agnostic)"});
+      } else {
+        violations.push({file, reason: "@workspace/db used outside backend boundaries (allowed: apps/api, packages/db, scripts)"});
+      }
     }
+  }
+
+  const isFrontendConfigFile =
+    (file === 'apps/app/package.json' ||
+      file === 'apps/app/tsconfig.json' ||
+      file === 'apps/admin/package.json' ||
+      file === 'apps/admin/tsconfig.json' ||
+      file === 'apps/landing/package.json' ||
+      file === 'apps/landing/tsconfig.json');
+
+  if (isFrontendConfigFile && workspaceDbTokenPattern.test(content)) {
+    violations.push({
+      file,
+      reason:
+        "@workspace/db referenced in frontend config (frontend must not depend on DB package)",
+    });
   }
 }
 
 if (violations.length === 0) {
-  console.log('OK: No boundary violations found');
+  log('OK: No boundary violations found');
   process.exit(0);
 }
 
-console.error('Prisma boundary violations detected:\n');
+error('Prisma boundary violations detected:\n');
 for (const v of violations) {
-  console.error(` - ${v.file}: ${v.reason}`);
+  error(` - ${v.file}: ${v.reason}`);
 }
 
 process.exit(2);

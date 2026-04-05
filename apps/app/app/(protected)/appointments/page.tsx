@@ -36,6 +36,7 @@ function AppointmentsContent() {
     doctorsList,
     loading,
     isError,
+    hasMoreAppointments,
     filteredAppointments,
     currentTimeSlot,
     isToday,
@@ -106,6 +107,7 @@ function AppointmentsContent() {
             doctorsList={doctorsList}
             selectedDoctorId={selectedDoctorId}
             filteredAppointments={filteredAppointments}
+            hasMoreAppointments={hasMoreAppointments}
             isToday={isToday}
             currentTimeSlot={currentTimeSlot}
             currentTimeSlotRef={currentTimeSlotRef}
@@ -128,7 +130,6 @@ function AppointmentsContent() {
         </div>
       </AppPageScaffold>
 
-      {}
       <ConfirmationDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}

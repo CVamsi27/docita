@@ -147,7 +147,7 @@ function UpgradePrompt({
         )}
       </p>
       <button
-        onClick={() => router.push("/settings/billing")}
+        onClick={() => router.push("/settings?tab=subscription")}
         className="btn-warning mt-4 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
       >
         View Plans & Upgrade
@@ -171,7 +171,7 @@ function SubscriptionExpiredBanner() {
         Your subscription has expired. Please renew to continue using Docita.
       </p>
       <button
-        onClick={() => router.push("/settings/billing")}
+        onClick={() => router.push("/settings?tab=subscription")}
         className="btn-danger mt-4 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
       >
         Renew Subscription

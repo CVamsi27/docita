@@ -145,7 +145,7 @@ export default function UpgradePage() {
           details: getFeatureDetails(feature as Feature),
           hasAccess: effectiveCurrentTier >= requiredTier,
         }))
-        .filter((entry) => !entry.details.comingSoon),
+        .filter((entry) => entry.details.isGenerallyAvailable),
     }));
 
   const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
@@ -155,15 +155,15 @@ export default function UpgradePage() {
       requiredTier,
       details: getFeatureDetails(feature as Feature),
     }))
-    .filter((entry) => !entry.details.comingSoon);
+    .filter((entry) => entry.details.isGenerallyAvailable);
 
-  const comingSoonFeatures = Object.entries(FEATURE_TIER_MAP)
+  const plannedFeatures = Object.entries(FEATURE_TIER_MAP)
     .map(([feature, requiredTier]) => ({
       feature: feature as Feature,
       requiredTier,
       details: getFeatureDetails(feature as Feature),
     }))
-    .filter((entry) => entry.details.comingSoon)
+    .filter((entry) => !entry.details.isGenerallyAvailable)
     .sort((a, b) => a.requiredTier - b.requiredTier);
 
   const nextTier =
@@ -195,7 +195,7 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 min-h-screen">
+    <div className="flex flex-1 flex-col gap-6 min-h-screen">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
           <div className="space-y-1">
@@ -238,7 +238,7 @@ export default function UpgradePage() {
               </Button>
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:[&>*:last-child:nth-child(3n+1)]:col-start-2">
             {featuresByTier
               .filter((t) => t.tier !== Tier.INTELLIGENCE)
               .map(({ tier, info, features }) => {
@@ -303,15 +303,15 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {comingSoonFeatures.length > 0 && (
+        {plannedFeatures.length > 0 && (
           <Card className="border-dashed">
             <CardContent className="py-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold">Coming Soon</h2>
+                <h2 className="text-sm font-semibold">Planned Roadmap</h2>
                 <Badge variant="outline">Not included in today&apos;s access</Badge>
               </div>
               <div className="flex flex-wrap gap-2">
-                {comingSoonFeatures.map((entry) => (
+                {plannedFeatures.map((entry) => (
                   <Badge key={entry.feature} variant="secondary">
                     {entry.details.name}
                   </Badge>

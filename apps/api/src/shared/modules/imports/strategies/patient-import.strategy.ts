@@ -52,7 +52,7 @@ export class PatientImportStrategy implements IImportStrategy {
         where: { email },
       });
       if (existing) {
-        throw new Error(`Email already exists: ${email}`);
+        throw new Error('Patient email already exists');
       }
     }
 

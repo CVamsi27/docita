@@ -12,6 +12,7 @@ import { PatientTimelineService } from './application/services/patient-timeline.
 import { PrismaPatientRepository } from './infrastructure/persistence/prisma-patient.repository';
 import { PrismaMedicationDoseRepository } from './infrastructure/persistence/prisma-medication-dose.repository';
 import { PrismaPatientTimelineRepository } from './infrastructure/persistence/prisma-patient-timeline.repository';
+import { PrismaPatientMetricsRepository } from './infrastructure/persistence/prisma-patient-metrics.repository';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
@@ -20,6 +21,7 @@ import { VitalsFactory } from './core/factories/vitals.factory';
 import { AiModule } from '@/shared/modules/ai-core/ai.module';
 import { MEDICATION_DOSE_REPOSITORY_TOKEN } from './core/repositories/medication-dose.repository.interface';
 import { PATIENT_TIMELINE_REPOSITORY_TOKEN } from './core/repositories/patient-timeline.repository.interface';
+import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-metrics.repository.interface';
 
 @Module({
   imports: [PrismaModule, AuthModule, AuditModule, AiModule],
@@ -48,6 +50,10 @@ import { PATIENT_TIMELINE_REPOSITORY_TOKEN } from './core/repositories/patient-t
     {
       provide: PATIENT_TIMELINE_REPOSITORY_TOKEN,
       useClass: PrismaPatientTimelineRepository,
+    },
+    {
+      provide: PATIENT_METRICS_REPOSITORY_TOKEN,
+      useClass: PrismaPatientMetricsRepository,
     },
     MedicalHistoryFactory,
     VitalsFactory,

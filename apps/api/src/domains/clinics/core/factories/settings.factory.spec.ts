@@ -103,7 +103,7 @@ describe('SettingsFactory', () => {
         consultationDuration: 'not-a-number',
       };
 
-      expect(() => factory.validate(invalid as never)).toThrow(ZodError);
+      expect(() => factory.validate(invalid)).toThrow(ZodError);
     });
 
     it('should validate working days array', () => {

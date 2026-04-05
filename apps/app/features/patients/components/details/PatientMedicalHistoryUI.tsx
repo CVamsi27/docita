@@ -74,6 +74,11 @@ interface PatientMedicalHistoryUIProps {
   variant?: "default" | "consultation";
 }
 
+const asObject = (value: unknown): Record<string, unknown> =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value))
+    : {};
+
 export function PatientMedicalHistoryUI({
   patient,
   readOnly,
@@ -111,7 +116,7 @@ export function PatientMedicalHistoryUI({
   const isCompact = variant === "consultation";
 
   const renderSpecialtySection = () => {
-    const customData = patient.customData || {};
+    const customData = asObject(patient.customData);
 
     let component = null;
     let title = "";
@@ -123,7 +128,7 @@ export function PatientMedicalHistoryUI({
       component = (
         <DentalChartUI
           value={
-            (customData.dentalChart as unknown as DentalChartValue) ||
+            (asObject(customData.dentalChart) as DentalChartValue) ||
             ({} as DentalChartValue)
           }
           onChange={(val: DentalChartValue) =>
@@ -141,7 +146,7 @@ export function PatientMedicalHistoryUI({
       component = (
         <VisionExamUI
           value={
-            (customData.ophthalmologyExam as OphthalmologyExamData) ||
+            (asObject(customData.ophthalmologyExam) as OphthalmologyExamData) ||
             ({} as OphthalmologyExamData)
           }
           onChange={(val: OphthalmologyExamData) =>
@@ -159,7 +164,7 @@ export function PatientMedicalHistoryUI({
       component = (
         <GrowthChartUI
           value={
-            (customData.growthData as unknown as GrowthChartData) || {
+            (asObject(customData.growthData) as GrowthChartData) || {
               patientGender: patient.gender === "MALE" ? "MALE" : "FEMALE",
               measurements: [],
             }

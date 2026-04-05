@@ -4,13 +4,12 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { ClinicTier, ClinicType } from '@workspace/db';
+import { ClinicTier, ClinicType, Prisma } from '@workspace/db';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IClinicDataRepository,
   CLINIC_DATA_REPOSITORY_TOKEN,
-  CreateClinicInput,
   ClinicSearchResult,
 } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
 
@@ -55,6 +54,12 @@ export class ClinicDataService {
       return {};
     }
     return Object.fromEntries(Object.entries(value as object));
+  }
+
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    return JSON.parse(
+      JSON.stringify(this.toRecord(value)),
+    ) as Prisma.InputJsonValue;
   }
 
   private readString(
@@ -130,7 +135,8 @@ export class ClinicDataService {
       subscriptionStatus: this.configService.isProduction()
         ? undefined
         : 'TRIALING',
-    } as unknown as CreateClinicInput);
+      settings: this.toInputJsonValue(clinicInput.settings),
+    });
   }
 
   async findAll() {
@@ -141,14 +147,10 @@ export class ClinicDataService {
     const clinic = await this.repository.findById(id);
     if (!clinic) return null;
 
-    const raw = clinic as { settings?: unknown; phone?: string } & Record<
-      string,
-      unknown
-    >;
-    const settings = this.toRecord(raw.settings);
+    const settings = this.toRecord(clinic.settings);
     return {
-      ...raw,
-      phoneNumber: raw.phone,
+      ...clinic,
+      phoneNumber: clinic.phone,
       gstin: this.readOptionalString(settings, 'gstin'),
       description: this.readString(settings, 'description'),
       openingTime: this.readString(settings, 'openingTime'),
@@ -167,7 +169,7 @@ export class ClinicDataService {
       logo: data.logo,
       tier: data.tier,
       type: data.type,
-      settings: this.toRecord(data.settings),
+      settings: this.toInputJsonValue(data.settings),
     });
   }
 
@@ -176,11 +178,7 @@ export class ClinicDataService {
   }
 
   async getUserClinics(userId: string) {
-    const doctorClinics = (await this.repository.findDoctorClinics(
-      userId,
-    )) as Array<{
-      clinic: { settings?: unknown; phone?: string } & Record<string, unknown>;
-    }>;
+    const doctorClinics = await this.repository.findDoctorClinics(userId);
 
     return doctorClinics.map((dc) => {
       const clinic = dc.clinic;

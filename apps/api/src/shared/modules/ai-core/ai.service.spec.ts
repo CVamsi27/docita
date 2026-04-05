@@ -80,7 +80,7 @@ describe('AiService', () => {
         cacheTtl: 86400,
       });
       // Keep this unit test network-free and deterministic.
-      (service as unknown as { openai: unknown }).openai = null;
+      Reflect.set(service, 'openai', null);
       const prompt = { user: 'Hello' };
       const result = await service.generateText(prompt);
 
@@ -90,7 +90,7 @@ describe('AiService', () => {
 
   describe('generateStructured', () => {
     it('should attempt validation via factory', async () => {
-      (service as unknown as { openai: unknown }).openai = {
+      Reflect.set(service, 'openai', {
         chat: {
           completions: {
             create: jest
@@ -98,7 +98,7 @@ describe('AiService', () => {
               .mockResolvedValue({ choices: [{ message: { content: '{}' } }] }),
           },
         },
-      };
+      });
       const Schema = z.object({ foo: z.string() });
 
       mockAiFactory.validateResponse.mockReturnValue({ foo: 'bar' });

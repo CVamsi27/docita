@@ -4,17 +4,16 @@ import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Prisma } from '@workspace/db';
-import {
-  getLastNDaysRange,
-  toISODateString,
-  DEFAULT_TIMEZONE,
-} from '@workspace/utils';
-import { INVOICE_ANALYTICS_SELECT } from '@/common/select-fragments';
+import { getLastNDaysRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 import {
   RevenueMetric,
   RevenueTrendPoint,
   CptRevenueMetric,
 } from '@workspace/types';
+import {
+  toAnalyticsPeriodKey,
+  toTimeSeriesBucketKey,
+} from '@/domains/analytics/factories/period-bucket.util';
 
 @Injectable()
 export class FinancialAnalyticsFactory {
@@ -50,22 +49,27 @@ export class FinancialAnalyticsFactory {
         patient: { clinicId },
         createdAt: { gte: dateRange.start },
       },
-      select: INVOICE_ANALYTICS_SELECT,
+      select: {
+        createdAt: true,
+        total: true,
+      },
       orderBy: { createdAt: 'asc' },
     });
 
-    const revenueByDate = new Map<string, number>();
+    const revenueByPeriod = new Map<string, number>();
 
     invoices.forEach((invoice) => {
-      const dateKey = toISODateString(invoice.createdAt, { timezone });
-      const current = revenueByDate.get(dateKey) || 0;
-      revenueByDate.set(dateKey, current + (invoice.total || 0));
+      const periodKey = toAnalyticsPeriodKey(invoice.createdAt, period);
+      const current = revenueByPeriod.get(periodKey) || 0;
+      revenueByPeriod.set(periodKey, current + (invoice.total || 0));
     });
 
-    const data = Array.from(revenueByDate.entries()).map(([date, revenue]) => ({
-      date,
-      revenue,
-    }));
+    const data = Array.from(revenueByPeriod.entries())
+      .map(([date, revenue]) => ({
+        date,
+        revenue,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     await this.cacheManager.set(cacheKey, data, 3600 * 1000);
 
@@ -190,7 +194,8 @@ export class FinancialAnalyticsFactory {
     endDate: Date,
     groupBy: 'day' | 'week' | 'month' = 'month',
   ) {
-    const procedures = await this.prisma.procedure.findMany({
+    const readClient = this.getReadClient();
+    const procedures = await readClient.procedure.findMany({
       where: {
         appointment: { clinicId },
         createdAt: { gte: startDate, lte: endDate },
@@ -211,18 +216,7 @@ export class FinancialAnalyticsFactory {
     procedures.forEach((procedure) => {
       if (!procedure.cptCode) return;
 
-      const date = new Date(procedure.createdAt);
-      let periodKey: string;
-
-      if (groupBy === 'day') {
-        periodKey = date.toISOString().split('T')[0];
-      } else if (groupBy === 'week') {
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay());
-        periodKey = weekStart.toISOString().split('T')[0];
-      } else {
-        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      }
+      const periodKey = toTimeSeriesBucketKey(procedure.createdAt, groupBy);
 
       const revenue = Number(procedure.cptCode.price);
       timeSeriesData.set(
@@ -257,12 +251,12 @@ export class FinancialAnalyticsFactory {
 
     const invoices = await readClient.invoice.findMany({
       where,
-      select: { total: true, createdAt: true, status: true },
+      select: { total: true, createdAt: true },
     });
 
     const grouped: Record<string, RevenueMetric> = {};
     invoices.forEach((inv) => {
-      const key = this.getPeriodKey(inv.createdAt, period);
+      const key = toAnalyticsPeriodKey(inv.createdAt, period);
       if (!grouped[key]) {
         grouped[key] = {
           totalRevenue: 0,
@@ -287,21 +281,5 @@ export class FinancialAnalyticsFactory {
       this.configService.getAnalyticsCacheTtl() * 1000,
     );
     return result;
-  }
-
-  private getPeriodKey(
-    date: Date,
-    period: 'daily' | 'weekly' | 'monthly',
-  ): string {
-    const d = new Date(date);
-    if (period === 'daily') {
-      return d.toISOString().split('T')[0];
-    }
-    if (period === 'weekly') {
-      const weekStart = new Date(d);
-      weekStart.setDate(d.getDate() - d.getDay());
-      return `${weekStart.getFullYear()}-W${Math.ceil((d.getDate() + weekStart.getDay()) / 7)}`;
-    }
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   }
 }

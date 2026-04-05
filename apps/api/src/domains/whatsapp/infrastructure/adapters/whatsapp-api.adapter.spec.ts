@@ -14,23 +14,23 @@ import { WhatsAppApiAdapter } from './whatsapp-api.adapter';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 function makeSuccessResponse(messageId: string) {
-  return {
-    ok: true,
-    json: () => Promise.resolve({ messages: [{ id: messageId }] }),
-  } as unknown as Response;
+  return new Response(JSON.stringify({ messages: [{ id: messageId }] }), {
+    status: 200,
+    headers: { 'content-type': 'application/json' },
+  });
 }
 
 function makeErrorResponse(errorMessage: string, status = 400) {
-  return {
-    ok: false,
+  return new Response(JSON.stringify({ error: { message: errorMessage } }), {
     status,
-    json: () => Promise.resolve({ error: { message: errorMessage } }),
-  } as unknown as Response;
+    headers: { 'content-type': 'application/json' },
+  });
 }
 
 describe('WhatsAppApiAdapter', () => {
   let adapter: WhatsAppApiAdapter;
-  let mockConfigService: jest.Mocked<AppConfigService>;
+  let mockConfigService: AppConfigService;
+  let getMetaConfigMock: jest.MockedFunction<AppConfigService['getMetaConfig']>;
   let originalFetch: typeof global.fetch;
   let loggerErrorSpy: ReturnType<typeof jest.spyOn>;
 
@@ -47,16 +47,20 @@ describe('WhatsAppApiAdapter', () => {
   beforeEach(async () => {
     originalFetch = global.fetch;
 
-    mockConfigService = {
-      getMetaConfig: jest.fn().mockReturnValue({
+    mockConfigService = Object.create(
+      AppConfigService.prototype,
+    ) as AppConfigService;
+    getMetaConfigMock = jest
+      .fn<AppConfigService['getMetaConfig']>()
+      .mockReturnValue({
         accessToken: 'test-access-token',
         phoneNumberId: 'test-phone-id',
         businessAccountId: 'biz-id',
         appSecret: 'secret',
         verifyToken: 'verify',
         productionMode: false,
-      }),
-    } as unknown as jest.Mocked<AppConfigService>;
+      });
+    mockConfigService.getMetaConfig = getMetaConfigMock;
 
     const module = await Test.createTestingModule({
       providers: [
@@ -135,8 +139,8 @@ describe('WhatsAppApiAdapter', () => {
     });
 
     it('should return skipped externalId when credentials not configured', async () => {
-      global.fetch = jest.fn() as unknown as typeof fetch;
-      mockConfigService.getMetaConfig.mockReturnValue({
+      global.fetch = jest.fn<typeof fetch>();
+      getMetaConfigMock.mockReturnValue({
         accessToken: '',
         phoneNumberId: '',
         businessAccountId: '',
@@ -275,7 +279,7 @@ describe('WhatsAppApiAdapter', () => {
     });
 
     it('should return false when credentials are missing', async () => {
-      mockConfigService.getMetaConfig.mockReturnValue({
+      getMetaConfigMock.mockReturnValue({
         accessToken: '',
         phoneNumberId: '',
         businessAccountId: '',

@@ -58,7 +58,7 @@ export function ChangePasswordSettings() {
   };
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader>
         <CardTitle>Change Password</CardTitle>
         <CardDescription>Update your account password</CardDescription>

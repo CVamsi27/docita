@@ -7,6 +7,7 @@ import { PatientsModule } from '@/domains/patients/patients.module';
 
 import { PatientPortalAuthService } from './application/services/patient-portal-auth.service';
 import { PatientPortalContextService } from './application/services/patient-portal-context.service';
+import { PatientPortalMetricsService } from './application/services/patient-portal-metrics.service';
 import { PatientPortalService } from './application/services/patient-portal.service';
 
 import { PatientPortalAuthController } from './presentation/controllers/patient-portal-auth.controller';
@@ -32,6 +33,7 @@ import { PATIENT_PORTAL_REPOSITORY_TOKEN } from './core/repositories/patient-por
   providers: [
     PatientPortalAuthService,
     PatientPortalContextService,
+    PatientPortalMetricsService,
     PatientPortalService,
     {
       provide: PATIENT_PORTAL_REPOSITORY_TOKEN,

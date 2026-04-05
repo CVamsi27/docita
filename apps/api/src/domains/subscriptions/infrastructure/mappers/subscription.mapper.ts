@@ -17,15 +17,28 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { DEFAULT_CURRENCY } from '@workspace/utils';
 
-interface DiscountJsonItem {
+interface DiscountJsonItem extends Record<
+  string,
+  Prisma.JsonValue | undefined
+> {
   type: string;
   percentOff: number;
   expiresAt?: string;
   description?: string;
-  [key: string]: unknown;
 }
 
 export class SubscriptionMapper {
+  private static isDiscountJsonItem(
+    value: Prisma.JsonValue,
+  ): value is DiscountJsonItem {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return false;
+    }
+
+    const raw = value as Record<string, unknown>;
+    return typeof raw.type === 'string' && typeof raw.percentOff === 'number';
+  }
+
   private static toInputJsonValue(
     value: DiscountJsonItem[] | Record<string, unknown>,
   ): Prisma.InputJsonValue {
@@ -105,15 +118,14 @@ export class SubscriptionMapper {
 
     json.forEach((item) => {
       try {
-        if (typeof item !== 'object' || item === null) {
+        if (!this.isDiscountJsonItem(item)) {
           return;
         }
-        const d = item as unknown as DiscountJsonItem;
         const discount = new Discount({
-          type: d.type as DiscountType,
-          percentOff: d.percentOff,
-          expiresAt: d.expiresAt ? new Date(d.expiresAt) : undefined,
-          description: d.description || '',
+          type: item.type as DiscountType,
+          percentOff: item.percentOff,
+          expiresAt: item.expiresAt ? new Date(item.expiresAt) : undefined,
+          description: item.description || '',
         });
         aggregate.addDiscount(discount);
       } catch (_error) {}

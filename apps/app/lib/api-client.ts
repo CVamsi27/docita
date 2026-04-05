@@ -80,7 +80,7 @@ const client = getAPIClient({
     if (error.status === 403 && typeof window !== "undefined") {
       const code = errorCode;
       if (code === "SUBSCRIPTION_INACTIVE" || code === "INSUFFICIENT_TIER") {
-        window.location.href = "/settings/billing";
+        window.location.href = "/settings?tab=subscription";
       } else if (code === "NO_CLINIC") {
         window.location.href = "/choose-path";
       }

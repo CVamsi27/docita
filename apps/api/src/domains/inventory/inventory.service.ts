@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Prisma } from '@workspace/db';
 import {
   IInventoryRepository,
   INVENTORY_REPOSITORY_TOKEN,
@@ -15,7 +16,7 @@ export class InventoryService {
     clinicId: string,
     filters: { search?: string; category?: string; status?: string },
   ) {
-    const where: Record<string, unknown> = { clinicId };
+    const where: Prisma.InventoryItemWhereInput = { clinicId };
     if (filters.search) {
       where.OR = [
         { name: { contains: filters.search, mode: 'insensitive' } },
@@ -28,7 +29,7 @@ export class InventoryService {
     if (filters.status === 'active') where.active = true;
     if (filters.status === 'inactive') where.active = false;
 
-    const items = await this.inventoryRepository.findItems(where as never);
+    const items = await this.inventoryRepository.findItems(where);
 
     if (filters.status === 'low_stock') {
       return items.filter((item) => item.quantity <= item.minQuantity);

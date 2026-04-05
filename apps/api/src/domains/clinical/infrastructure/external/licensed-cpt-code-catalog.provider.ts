@@ -68,9 +68,9 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
       category: this.cptCategory(code, record.category),
       isCommon,
       price: record.price ?? 0,
-      createdAt: new Date(0).toISOString(),
-      updatedAt: new Date(0).toISOString(),
-    } as unknown as CptCode;
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    };
   }
 
   private extractItems(payload: unknown): LicensedCodeRecord[] {

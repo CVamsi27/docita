@@ -1,4 +1,5 @@
 import { UseQueryOptions } from "@tanstack/react-query";
+import { queryKeys } from "@workspace/data-access";
 import {
   AnalyticsAppointmentMetricsResponse,
   AnalyticsCodingComplianceMetricsResponse,
@@ -15,6 +16,8 @@ import {
 import { useAPIQuery } from "@/lib/api-core";
 import { ApiError } from "@/lib/errors";
 
+type APIQueryOptions<T> = Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">;
+
 const buildQueryString = (
   query: Record<string, string | number | undefined>,
 ) => {
@@ -30,22 +33,25 @@ const buildQueryString = (
   return queryString ? `?${queryString}` : "";
 };
 
-export const useAnalyticsOverview = () =>
+export const useAnalyticsOverview = (options?: APIQueryOptions<AnalyticsOverview>) =>
   useAPIQuery<AnalyticsOverview>(
-    ["analytics", "overview"],
+    queryKeys.analytics.overview(),
     "/analytics/overview",
+    options,
   );
 
 export const useDiseaseTrends = (
   clinicId: string,
   startDate?: string,
   endDate?: string,
+  options?: APIQueryOptions<DiseaseTrend[]>,
 ) => {
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<DiseaseTrend[]>(
-    ["analytics", "disease-trends", clinicId, startDate || "", endDate || ""],
+    queryKeys.analytics.diseaseTrends(clinicId, startDate || "", endDate || ""),
     `/analytics/disease-trends${buildQueryString(query)}`,
+    options,
   );
 };
 
@@ -53,12 +59,14 @@ export const useRevenueByCPT = (
   clinicId: string,
   startDate?: string,
   endDate?: string,
+  options?: APIQueryOptions<AnalyticsRevenueByCptListResponse>,
 ) => {
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<AnalyticsRevenueByCptListResponse>(
-    ["analytics", "revenue-cpt", clinicId, startDate || "", endDate || ""],
+    queryKeys.analytics.revenueByCpt(clinicId, startDate || "", endDate || ""),
     `/analytics/revenue/by-cpt${buildQueryString(query)}`,
+    options,
   );
 };
 
@@ -66,12 +74,14 @@ export const useComplianceMetrics = (
   clinicId: string,
   startDate?: string,
   endDate?: string,
+  options?: APIQueryOptions<AnalyticsCodingComplianceMetricsResponse>,
 ) => {
   const query: AnalyticsDateRangeQuery = { clinicId, startDate, endDate };
 
   return useAPIQuery<AnalyticsCodingComplianceMetricsResponse>(
-    ["analytics", "compliance", clinicId, startDate || "", endDate || ""],
+    queryKeys.analytics.complianceMetrics(clinicId, startDate || "", endDate || ""),
     `/analytics/compliance/metrics${buildQueryString(query)}`,
+    options,
   );
 };
 
@@ -82,13 +92,12 @@ export const useRevenueMetrics = (
   endDate?: Date,
 ) =>
   useAPIQuery<AnalyticsRevenueMetricsResponse>(
-    [
-      "revenue-metrics",
+    queryKeys.analytics.revenueMetrics(
       clinicId,
       period,
       startDate?.toISOString() || "",
       endDate?.toISOString() || "",
-    ],
+    ),
     `/analytics/revenue-metrics${buildQueryString({
       ...( { clinicId, period } as AnalyticsPeriodDateRangeQuery),
       startDate: startDate?.toISOString(),
@@ -104,13 +113,12 @@ export const useAppointmentMetrics = (
   endDate?: Date,
 ) =>
   useAPIQuery<AnalyticsAppointmentMetricsResponse>(
-    [
-      "appointment-metrics",
+    queryKeys.analytics.appointmentMetrics(
       clinicId,
       period,
       startDate?.toISOString() || "",
       endDate?.toISOString() || "",
-    ],
+    ),
     `/analytics/appointment-metrics${buildQueryString({
       ...( { clinicId, period } as AnalyticsPeriodDateRangeQuery),
       startDate: startDate?.toISOString(),
@@ -125,12 +133,11 @@ export const usePatientDemographics = (
   endDate?: Date,
 ) =>
   useAPIQuery<AnalyticsPatientDemographicsResponse>(
-    [
-      "patient-demographics",
+    queryKeys.analytics.patientDemographics(
       clinicId,
       startDate?.toISOString() || "",
       endDate?.toISOString() || "",
-    ],
+    ),
     `/analytics/patient-demographics${buildQueryString({
       ...( { clinicId } as AnalyticsDateRangeQuery),
       startDate: startDate?.toISOString(),
@@ -141,7 +148,7 @@ export const usePatientDemographics = (
 
 export const useTopConditions = (clinicId: string, limit: number = 10) =>
   useAPIQuery<AnalyticsTopConditionListResponse>(
-    ["top-conditions", clinicId, limit.toString()],
+    queryKeys.analytics.topConditions(clinicId, limit),
     `/analytics/top-conditions${buildQueryString({
       ...( { clinicId, limit } as AnalyticsLimitQuery),
     })}`,
@@ -175,13 +182,12 @@ export const useAuditLogs = (
       createdAt: Date;
     }>
   >(
-    [
-      "audit-logs",
-      clinicId || "",
-      actionType || "",
-      startDate?.toISOString() || "",
-      endDate?.toISOString() || "",
-    ],
+    queryKeys.analytics.auditLogs({
+      clinicId: clinicId || "",
+      actionType: actionType || "",
+      startDate: startDate?.toISOString() || "",
+      endDate: endDate?.toISOString() || "",
+    }),
     `/audit-logs?${clinicId ? `clinicId=${clinicId}&` : ""}${actionType ? `actionType=${actionType}&` : ""}${startDate ? `startDate=${startDate.toISOString()}&` : ""}${endDate ? `endDate=${endDate.toISOString()}` : ""}`,
     { staleTime: 1000 * 60, ...options },
   );

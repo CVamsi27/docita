@@ -7,9 +7,12 @@ type StartupValidationConfig = Pick<
   | 'getJwtSecret'
   | 'getDatabaseUrl'
   | 'getEnvironment'
+  | 'isProduction'
   | 'getAppUrl'
   | 'getFrontendAppUrl'
   | 'getApiUrl'
+  | 'getStorageProvider'
+  | 'getR2Config'
   | 'detectManagedDatabaseProvider'
 >;
 
@@ -27,9 +30,17 @@ function createConfig(
       .fn()
       .mockReturnValue('postgresql://user:password@db.example.com/docita'),
     getEnvironment: jest.fn().mockReturnValue('production'),
+    isProduction: jest.fn().mockReturnValue(true),
     getAppUrl: jest.fn().mockReturnValue('https://api.docita.work'),
     getFrontendAppUrl: jest.fn().mockReturnValue('https://app.docita.work'),
     getApiUrl: jest.fn().mockReturnValue('https://api.docita.work/api'),
+    getStorageProvider: jest.fn().mockReturnValue('r2'),
+    getR2Config: jest.fn().mockReturnValue({
+      accountId: 'test-account',
+      accessKeyId: 'test-key',
+      secretAccessKey: 'test-secret',
+      bucketName: 'docita-storage',
+    }),
     detectManagedDatabaseProvider: jest.fn().mockReturnValue(null),
     ...overrides,
   };

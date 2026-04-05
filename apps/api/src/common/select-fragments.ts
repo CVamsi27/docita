@@ -369,6 +369,9 @@ export const INVOICE_DETAIL_SELECT = {
           address: true,
           phone: true,
           email: true,
+          logo: true,
+          currency: true,
+          branding: true,
           slaSignatureUrl: true,
           settings: true,
         },
@@ -386,6 +389,22 @@ export const INVOICE_DETAIL_SELECT = {
           email: true,
           qualification: true,
           registrationNumber: true,
+        },
+      },
+      diagnoses: {
+        select: {
+          isPrimary: true,
+          icdCode: {
+            select: { code: true, description: true, version: true },
+          },
+        },
+      },
+      procedures: {
+        select: {
+          description: true,
+          cptCode: {
+            select: { code: true, description: true },
+          },
         },
       },
     },

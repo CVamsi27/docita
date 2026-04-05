@@ -530,22 +530,62 @@ export const ClinicalDocumentationDynamic: FC<
       ? "Complete Consultation"
       : "Save Draft";
 
+  const rendererData = useMemo(
+    () => ({
+      chiefComplaint,
+      history,
+      examination,
+      diagnosis,
+      treatment,
+      prescriptions,
+      dentalChart,
+      eyeExam,
+      growthData,
+    }),
+    [
+      chiefComplaint,
+      history,
+      examination,
+      diagnosis,
+      treatment,
+      prescriptions,
+      dentalChart,
+      eyeExam,
+      growthData,
+    ],
+  );
+
+  const rendererHandlers = useMemo(
+    () => ({
+      setChiefComplaint,
+      setHistory,
+      setExamination,
+      setDiagnosis,
+      setTreatment,
+      setPrescriptions,
+      setDentalChart,
+      setEyeExam,
+      setGrowthData,
+    }),
+    [],
+  );
+
   return (
     <div className={`space-y-4 ${isFocusMode ? "max-w-4xl mx-auto" : ""}`}>
-      <div className="sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border bg-background/95 p-3 shadow-sm">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">
+      <div className="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-background/95 p-3 shadow-sm">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
+          <span className="font-medium text-foreground truncate">
             {progress.isMinimumMet ? "Ready to complete" : "Draft in progress"}
           </span>
-          <span className="text-muted-foreground/50">•</span>
-          <span>
+          <span className="text-muted-foreground/50 hidden sm:inline">•</span>
+          <span className="hidden sm:inline shrink-0">
             {progress.completedCount}/{progress.totalCount} sections complete
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MessageSquare className="h-4 w-4 shrink-0" />
-            <Label htmlFor="whatsapp-summary" className="cursor-pointer">
+            <Label htmlFor="whatsapp-summary" className="cursor-pointer hidden sm:inline">
               Send to WhatsApp
             </Label>
             <Switch
@@ -578,43 +618,24 @@ export const ClinicalDocumentationDynamic: FC<
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-xs sm:text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${
                   activeTab === tab.id
                     ? "border-primary text-primary bg-primary/5"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
                 {tab.icon}
-                {tab.label}
+                <span className="sm:hidden">{tab.shortLabel}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           <ConsultationFormRenderer
             tabId={activeTab}
-            data={{
-              chiefComplaint,
-              history,
-              examination,
-              diagnosis,
-              treatment,
-              prescriptions,
-              dentalChart,
-              eyeExam,
-              growthData,
-            }}
-            handlers={{
-              setChiefComplaint,
-              setHistory,
-              setExamination,
-              setDiagnosis,
-              setTreatment,
-              setPrescriptions,
-              setDentalChart,
-              setEyeExam,
-              setGrowthData,
-            }}
+            data={rendererData}
+            handlers={rendererHandlers}
             patient={patient}
             isLoading={isPatientLoading}
           />

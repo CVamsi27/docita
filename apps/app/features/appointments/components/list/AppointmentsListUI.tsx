@@ -21,6 +21,7 @@ interface AppointmentsListUIProps {
   doctorsList: { id: string; name: string }[];
   selectedDoctorId: string | undefined;
   filteredAppointments: (Appointment & { patient?: Patient })[];
+  hasMoreAppointments?: boolean;
   isToday: boolean;
   currentTimeSlot: string;
   currentTimeSlotRef: React.RefObject<HTMLDivElement | null>;
@@ -43,6 +44,7 @@ export function AppointmentsListUI({
   doctorsList,
   selectedDoctorId,
   filteredAppointments,
+  hasMoreAppointments = false,
   isToday,
   currentTimeSlot,
   currentTimeSlotRef,
@@ -123,6 +125,12 @@ export function AppointmentsListUI({
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">
+            {hasMoreAppointments && (
+              <div className="border-b border-border bg-warning/10 px-4 py-2 text-xs text-muted-foreground">
+                Showing first 100 appointments for this view. Refine filters to
+                narrow results.
+              </div>
+            )}
             {filteredAppointments.length === 0 && (
               <div className="p-6">
                 <EmptyState

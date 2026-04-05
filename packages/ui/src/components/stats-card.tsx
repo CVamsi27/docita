@@ -56,21 +56,21 @@ export function GradientStatCard({
         className,
       )}
     >
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div
             className={cn(
-              "flex h-14 w-14 items-center justify-center rounded-2xl",
+              "flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl",
               styles.iconBg,
               styles.iconColor,
             )}
           >
-            <Icon className="h-7 w-7" />
+            <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-bold">{value}</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold">{value}</h3>
               {subtitle && (
                 <span className="text-xs text-muted-foreground">
                   {subtitle}

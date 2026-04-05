@@ -14,9 +14,27 @@ import {
 
 describe('MetricsService', () => {
   let service: MetricsService;
-  let prismaService: PrismaService;
+  let prismaService: {
+    $queryRaw: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    systemMetric: {
+      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      createMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      deleteMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    apiRequest: {
+      groupBy: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      count: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+    performanceAggregate: {
+      upsert: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
+  };
 
   const mockPrismaService = {
+    $queryRaw: jest.fn(),
     systemMetric: {
       create: jest.fn(),
       createMany: jest.fn(),
@@ -47,7 +65,7 @@ describe('MetricsService', () => {
     }).compile();
 
     service = module.get<MetricsService>(MetricsService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    prismaService = module.get(PrismaService);
   });
 
   afterEach(() => {
@@ -74,9 +92,9 @@ describe('MetricsService', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      jest
-        .spyOn(prismaService.systemMetric, 'create')
-        .mockRejectedValueOnce(new Error('DB Error'));
+      prismaService.systemMetric.create.mockRejectedValueOnce(
+        new Error('DB Error'),
+      );
 
       await expect(
         service.recordMetric(MetricType.CPU_USAGE, 50),
@@ -124,6 +142,101 @@ describe('MetricsService', () => {
       const result = await service.cleanupOldMetrics(30);
       expect(prismaService.systemMetric.deleteMany).toHaveBeenCalled();
       expect(result).toBe(5);
+    });
+  });
+
+  describe('getPerformanceMetrics', () => {
+    it('should build distribution and throughput from db-side grouped queries', async () => {
+      prismaService.apiRequest.groupBy.mockResolvedValueOnce([
+        {
+          path: '/api/v1/health',
+          method: 'GET',
+          _avg: { duration: 120 },
+          _max: { duration: 220 },
+          _count: { id: 5 },
+        },
+      ]);
+      prismaService.$queryRaw
+        .mockResolvedValueOnce([
+          {
+            range_0_100: 2n,
+            range_100_250: 3n,
+            range_250_500: 0n,
+            range_500_1000: 0n,
+            range_1000_2000: 0n,
+            range_2000_5000: 0n,
+            range_5000_plus: 0n,
+          },
+        ])
+        .mockResolvedValueOnce([{ minute: '2026-04-04T13:10', count: 4n }]);
+
+      const metrics = await service.getPerformanceMetrics(
+        new Date('2026-04-04T13:00:00.000Z'),
+        new Date('2026-04-04T14:00:00.000Z'),
+      );
+
+      expect(metrics.slowestEndpoints).toEqual([
+        {
+          path: '/api/v1/health',
+          method: 'GET',
+          avgDuration: 120,
+          maxDuration: 220,
+          count: 5,
+        },
+      ]);
+      expect(metrics.responseTimeDistribution[0]).toEqual({
+        range: '0-100ms',
+        count: 2,
+      });
+      expect(metrics.responseTimeDistribution[1]).toEqual({
+        range: '100-250ms',
+        count: 3,
+      });
+      expect(metrics.throughputByMinute).toEqual([
+        { minute: '2026-04-04T13:10', count: 4 },
+      ]);
+    });
+  });
+
+  describe('aggregateHourlyMetrics', () => {
+    it('should avoid per-route count n+1 by using grouped success aggregates', async () => {
+      prismaService.apiRequest.groupBy
+        .mockResolvedValueOnce([
+          {
+            path: '/api/v1/health',
+            method: 'GET',
+            _count: { id: 10 },
+            _avg: { duration: 100 },
+            _min: { duration: 50 },
+            _max: { duration: 300 },
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            path: '/api/v1/health',
+            method: 'GET',
+            _count: { id: 8 },
+          },
+        ]);
+
+      await service.aggregateHourlyMetrics();
+
+      expect(prismaService.apiRequest.groupBy).toHaveBeenCalledTimes(2);
+      expect(prismaService.apiRequest.count).not.toHaveBeenCalled();
+      expect(prismaService.performanceAggregate.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            totalRequests: 10,
+            successCount: 8,
+            errorCount: 2,
+          }),
+          update: expect.objectContaining({
+            totalRequests: 10,
+            successCount: 8,
+            errorCount: 2,
+          }),
+        }),
+      );
     });
   });
 

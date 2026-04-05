@@ -39,6 +39,9 @@ export interface PrescriptionDetail extends Prescription {
       email: string | null;
       phoneNumber: string | null;
       address: string | null;
+      logo: string | null;
+      currency: string | null;
+      branding: unknown;
     };
   };
   doctor?: {
@@ -47,6 +50,12 @@ export interface PrescriptionDetail extends Prescription {
     qualification: string | null;
     registrationNumber: string | null;
     signatureUrl: string | null;
+  };
+  appointment?: {
+    diagnoses: Array<{
+      isPrimary: boolean;
+      icdCode: { code: string; description: string; version: string } | null;
+    }>;
   };
 }
 

@@ -28,12 +28,10 @@ export class EmailChannel implements IMessageChannel {
   }
 
   async send(
-    recipientId: string,
+    _recipientId: string,
     content: MessageContent,
   ): Promise<SendMessageResult> {
-    this.logger.log(
-      `Sending email to ${recipientId} with template ${content.templateKey}`,
-    );
+    this.logger.log(`Sending email using template ${content.templateKey}`);
 
     return await Promise.resolve({
       messageId: `em_${Date.now()}`,
@@ -43,8 +41,8 @@ export class EmailChannel implements IMessageChannel {
     });
   }
 
-  async handleWebhook(payload: unknown): Promise<void> {
+  async handleWebhook(_payload: unknown): Promise<void> {
     await Promise.resolve();
-    this.logger.log('Handling email webhook:', payload);
+    this.logger.log('Handling email webhook event');
   }
 }

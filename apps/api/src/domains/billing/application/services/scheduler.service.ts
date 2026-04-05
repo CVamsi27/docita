@@ -107,10 +107,16 @@ export class SchedulerService {
       return createdAt >= start && createdAt < end;
     });
 
+    if (targetInvoices.length === 0) return;
+
+    const sessions = autoSendWhatsApp
+      ? await this.sessionRepository.findPendingReminders()
+      : [];
+    const sessionByInvoiceId = new Map(sessions.map((s) => [s.invoiceId, s]));
+
     for (const invoice of targetInvoices) {
       if (autoSendWhatsApp) {
-        const sessions = await this.sessionRepository.findPendingReminders();
-        const session = sessions.find((s) => s.invoiceId === invoice.id);
+        const session = sessionByInvoiceId.get(invoice.id);
         if (session) {
           await this.paymentsService.sendPaymentLinkWhatsApp(session.id);
         }

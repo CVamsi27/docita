@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SignaturePurpose } from '@workspace/db';
+import { Prisma, SignaturePurpose } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   ISignatureUploadRepository,
@@ -40,7 +40,15 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
     expiresAt: Date;
     purpose: SignaturePurpose;
   }) {
-    return this.prisma.signatureUploadToken.create({ data: data as never });
+    return this.prisma.signatureUploadToken.create({
+      data: {
+        doctorId: data.doctorId,
+        clinicId: data.clinicId ?? null,
+        token: data.token,
+        expiresAt: data.expiresAt,
+        purpose: data.purpose,
+      } satisfies Prisma.SignatureUploadTokenUncheckedCreateInput,
+    });
   }
 
   async findTokenByValue(
@@ -66,7 +74,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
             },
           },
         },
-      }) as Promise<UploadTokenWithRelations | null>;
+      });
     });
   }
 

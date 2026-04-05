@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Param,
@@ -13,7 +14,10 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
 import { QueueService } from '@/domains/appointments/application/services/queue.service';
 import { RequestWithUser } from '@/common/types/common.types';
-import { APP_ACCESS_TARGETS } from '@workspace/types';
+import {
+  APP_ACCESS_TARGETS,
+  resolveDoctorScopedAppointmentFilter,
+} from '@workspace/types';
 import {
   getDbRolesForTarget,
   requireFeatureForTarget,
@@ -36,7 +40,21 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
-    return this.queueService.getQueue(req.user!.clinicId!, doctorId, search);
+    const doctorScope = resolveDoctorScopedAppointmentFilter({
+      role: req.user?.role,
+      userId: req.user?.id,
+      requestedDoctorId: doctorId,
+    });
+
+    if (doctorScope.denied) {
+      throw new ForbiddenException('Doctors can only access their queue');
+    }
+
+    return this.queueService.getQueue(
+      req.user!.clinicId!,
+      doctorScope.scopedDoctorId,
+      search,
+    );
   }
 
   @Get('today')
@@ -46,9 +64,19 @@ export class QueueController {
     @Query('doctorId') doctorId?: string,
     @Query('search') search?: string,
   ) {
+    const doctorScope = resolveDoctorScopedAppointmentFilter({
+      role: req.user?.role,
+      userId: req.user?.id,
+      requestedDoctorId: doctorId,
+    });
+
+    if (doctorScope.denied) {
+      throw new ForbiddenException('Doctors can only access their queue');
+    }
+
     return this.queueService.getTodayQueue(
       req.user!.clinicId!,
-      doctorId,
+      doctorScope.scopedDoctorId,
       search,
     );
   }

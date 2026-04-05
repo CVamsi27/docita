@@ -3,11 +3,13 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { AuthenticatedRequest } from '@workspace/types';
+import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
 export const SKIP_EMAIL_VERIFICATION_KEY = 'skipEmailVerification';
 
@@ -16,6 +18,8 @@ export const SkipEmailVerification = () =>
 
 @Injectable()
 export class EmailVerifiedGuard implements CanActivate {
+  private readonly logger = new Logger(EmailVerifiedGuard.name);
+
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
@@ -35,19 +39,45 @@ export class EmailVerifiedGuard implements CanActivate {
     if (skip) return true;
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    if (!request.user?.sub) return true;
+    const userId = getAuthenticatedUserId(request.user);
+    if (!userId) return true;
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: request.user.sub },
-      select: { emailVerified: true },
-    });
+    try {
+      const users = await this.prisma.$queryRaw<
+        Array<{ emailVerified: boolean }>
+      >`
+        SELECT "emailVerified"
+        FROM "User"
+        WHERE "id" = ${userId}
+        LIMIT 1
+      `;
+      const user = users[0] ?? null;
 
-    if (user && !user.emailVerified) {
+      if (user && !user.emailVerified) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          code: 'EMAIL_NOT_VERIFIED',
+          message:
+            'Please verify your email address before continuing. Check your inbox or request a new verification link at POST /auth/resend-verification.',
+        });
+      }
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+
+      const errorMessage =
+        error instanceof Error
+          ? `${error.name}: ${error.message}`
+          : String(error);
+      this.logger.warn(
+        `Failed to check email verification for user ${userId}: ${errorMessage}`,
+      );
+
       throw new ForbiddenException({
-        statusCode: 403,
-        code: 'EMAIL_NOT_VERIFIED',
         message:
-          'Please verify your email address before continuing. Check your inbox or request a new verification link at POST /auth/resend-verification.',
+          'Unable to validate email verification right now. Please try again shortly.',
+        code: 'EMAIL_VERIFICATION_CHECK_FAILED',
       });
     }
 

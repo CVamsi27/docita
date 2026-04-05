@@ -1,5 +1,6 @@
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import React, { FC } from "react";
+import dynamic from "next/dynamic";
 import {
   Tabs,
   TabsContent,
@@ -15,15 +16,43 @@ import {
 } from "@/features/_shared/components/auth/feature-gate";
 import type {
   AnalyticsOverview,
+  AnalyticsTab,
   ComplianceMetric,
   DiseaseTrend,
   RevenueByCPT,
 } from "@/features/analytics/hooks/use-analytics-logic";
 import { OverviewCard } from "./charts/OverviewCard";
-import { TrendsBarChart, TrendsPieChart } from "./charts/TrendsCharts";
-import { RevenueBarChart, RevenuePieChart } from "./charts/RevenueCharts";
-import { ComplianceDashboard } from "./charts/ComplianceDashboard";
 import { AnalyticsUpgradeState } from "./charts/AnalyticsUpgradeState";
+
+const TrendsBarChart = dynamic(
+  () => import("./charts/TrendsCharts").then((module) => module.TrendsBarChart),
+  { ssr: false },
+);
+
+const TrendsPieChart = dynamic(
+  () => import("./charts/TrendsCharts").then((module) => module.TrendsPieChart),
+  { ssr: false },
+);
+
+const RevenueBarChart = dynamic(
+  () =>
+    import("./charts/RevenueCharts").then((module) => module.RevenueBarChart),
+  { ssr: false },
+);
+
+const RevenuePieChart = dynamic(
+  () =>
+    import("./charts/RevenueCharts").then((module) => module.RevenuePieChart),
+  { ssr: false },
+);
+
+const ComplianceDashboard = dynamic(
+  () =>
+    import("./charts/ComplianceDashboard").then(
+      (module) => module.ComplianceDashboard,
+    ),
+  { ssr: false },
+);
 
 interface AnalyticsPageUIProps {
   overview?: AnalyticsOverview;
@@ -34,6 +63,8 @@ interface AnalyticsPageUIProps {
   trendsLoading: boolean;
   revenueLoading: boolean;
   complianceLoading: boolean;
+  activeTab: AnalyticsTab;
+  onTabChange: (tab: AnalyticsTab) => void;
 }
 
 export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
@@ -45,6 +76,8 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   trendsLoading,
   revenueLoading,
   complianceLoading,
+  activeTab,
+  onTabChange,
 }) => {
   if (isLoading) {
     return (
@@ -66,7 +99,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
       feature={Feature.ADVANCED_ANALYTICS}
       fallback={<AnalyticsUpgradeState />}
     >
-      <div className="flex-1 space-y-6 p-4 md:p-6">
+      <div className="flex-1 space-y-6">
         <AnalyticsHeader />
 
         <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -96,7 +129,11 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
           />
         </div>
 
-        <Tabs defaultValue="disease-trends" className="space-y-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={(nextTab) => onTabChange(nextTab as AnalyticsTab)}
+          className="space-y-4"
+        >
           <TabsList>
             <TabsTrigger value="disease-trends">Disease Trends</TabsTrigger>
             <TabsTrigger value="cpt-revenue">CPT Revenue</TabsTrigger>

@@ -26,6 +26,24 @@ export type DoseAdherenceStat = {
   _count: { status: number };
 };
 
+export type MedicationDoseHistoryRow = Prisma.MedicationDoseGetPayload<{
+  include: {
+    medication: {
+      select: {
+        name: true;
+        dosage: true;
+        frequency: true;
+      };
+    };
+  };
+}>;
+
+export type PrescriptionWithMedications = Prisma.PrescriptionGetPayload<{
+  include: {
+    medications: true;
+  };
+}>;
+
 export interface IMedicationDoseRepository {
   verifyPatientAccess(patientId: string, clinicId: string): Promise<boolean>;
 
@@ -49,14 +67,14 @@ export interface IMedicationDoseRepository {
   ): Promise<MedicationDose>;
 
   findDoses(
-    where: Record<string, unknown>,
+    where: Prisma.MedicationDoseWhereInput,
     options: { take: number; skip: number },
-  ): Promise<unknown[]>;
+  ): Promise<MedicationDoseHistoryRow[]>;
 
-  countDoses(where: Record<string, unknown>): Promise<number>;
+  countDoses(where: Prisma.MedicationDoseWhereInput): Promise<number>;
 
   groupDosesByStatus(
-    where: Record<string, unknown>,
+    where: Prisma.MedicationDoseWhereInput,
   ): Promise<DoseAdherenceStat[]>;
 
   createManyDoses(
@@ -66,9 +84,12 @@ export interface IMedicationDoseRepository {
   findPrescriptionsWithMedications(
     patientId: string,
     take: number,
-  ): Promise<unknown[]>;
+  ): Promise<PrescriptionWithMedications[]>;
 
-  findPrescriptionById(id: string, patientId: string): Promise<unknown | null>;
+  findPrescriptionById(
+    id: string,
+    patientId: string,
+  ): Promise<PrescriptionWithMedications | null>;
 }
 
 export const MEDICATION_DOSE_REPOSITORY_TOKEN = Symbol(

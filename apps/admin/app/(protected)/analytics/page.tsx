@@ -1,6 +1,21 @@
 "use client";
 
-import { AnalyticsDashboard } from "@/components/analytics/analytics-dashboard";
+import dynamic from "next/dynamic";
+
+const AnalyticsDashboardLazy = dynamic(
+  () =>
+    import("@/components/analytics/analytics-dashboard").then(
+      (module) => module.AnalyticsDashboard,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="rounded-lg border p-6 text-sm text-muted-foreground">
+        Loading analytics dashboard...
+      </div>
+    ),
+  },
+);
 
 export default function AnalyticsPage() {
   return (
@@ -13,7 +28,7 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      <AnalyticsDashboard />
+      <AnalyticsDashboardLazy />
     </div>
   );
 }

@@ -138,10 +138,14 @@ const BullModule = MockBullModule;
     CacheConfigModule,
     BullModule.forRootAsync(),
     ScheduleModule.forRoot(),
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/uploads',
-    }),
+    ...(process.env.NODE_ENV === 'production'
+      ? []
+      : [
+          ServeStaticModule.forRoot({
+            rootPath: join(process.cwd(), 'uploads'),
+            serveRoot: '/uploads',
+          }),
+        ]),
     PrismaModule,
     MonitoringModule,
     AuthModule,

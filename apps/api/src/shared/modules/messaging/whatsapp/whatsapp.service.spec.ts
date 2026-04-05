@@ -142,7 +142,7 @@ describe('WhatsappService', () => {
 
     service = module.get<WhatsappService>(WhatsappService);
 
-    global.fetch = jest.fn() as unknown as typeof fetch;
+    global.fetch = jest.fn<typeof fetch>();
 
     process.env.META_PHONE_NUMBER_ID = '1234567890';
     process.env.META_ACCESS_TOKEN = 'test_token';

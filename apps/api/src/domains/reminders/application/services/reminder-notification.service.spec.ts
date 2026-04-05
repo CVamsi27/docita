@@ -2,31 +2,75 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReminderNotificationService } from './reminder-notification.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
-import { WhatsappLogStatus as _WhatsappLogStatus } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 describe('ReminderNotificationService', () => {
+  type ReminderAppointment = Parameters<
+    ReminderNotificationService['sendEmailReminder']
+  >[0];
+  type ReminderConfig = Parameters<
+    ReminderNotificationService['sendEmailReminder']
+  >[1];
+  type SendMessageRequest = Parameters<SendMessageUseCase['execute']>[0];
+  type SendMessageResponse = Awaited<ReturnType<SendMessageUseCase['execute']>>;
+
+  type AppointmentReminderCreateInput = {
+    data: {
+      appointmentId: string;
+      type: string;
+      status: string;
+      sentAt?: Date;
+      error?: string;
+    };
+  };
+
+  type WhatsappLogCreateInput = {
+    data: {
+      clinicId: string;
+      patientId: string;
+      phoneNumber: string;
+      message: string;
+      type: string;
+      status: string;
+    };
+  };
+
+  type ClinicFindUniqueInput = {
+    where: { id: string };
+    select: { whatsappAutomation: true };
+  };
+
   let service: ReminderNotificationService;
   let prisma: {
     appointmentReminder: {
-      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      create: jest.Mock<
+        (_args: AppointmentReminderCreateInput) => Promise<object>
+      >;
     };
     whatsappLog: {
-      create: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      create: jest.Mock<(_args: WhatsappLogCreateInput) => Promise<object>>;
     };
-    clinic: { findUnique: jest.Mock<(...args: unknown[]) => Promise<unknown>> };
+    clinic: {
+      findUnique: jest.Mock<
+        (
+          _args: ClinicFindUniqueInput,
+        ) => Promise<{ whatsappAutomation: object | null } | null>
+      >;
+    };
   };
   let sendMessage: {
-    execute: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    execute: jest.Mock<
+      (_request: SendMessageRequest) => Promise<SendMessageResponse>
+    >;
   };
 
   const sendMessageMock = {
     execute: jest
-      .fn<(...args: unknown[]) => Promise<unknown>>()
+      .fn<(_request: SendMessageRequest) => Promise<SendMessageResponse>>()
       .mockResolvedValue({ messageId: 'msg-1' }),
   };
 
-  const mockAppointment = {
+  const mockAppointment: ReminderAppointment = {
     id: 'appt-1',
     startTime: new Date('2024-12-25T15:00:00Z'),
     type: 'consultation',
@@ -47,33 +91,44 @@ describe('ReminderNotificationService', () => {
     },
   };
 
-  const mockSettings = {
+  const mockSettings: ReminderConfig = {
+    id: 'rs-1',
     enabled: true,
     emailTemplate:
       'Dear {patientName}, you have an appointment on {appointmentDate}',
     emailSubject: 'Appointment Reminder - {clinicName}',
     smsTemplate:
       'Reminder: appointment on {appointmentDate} at {appointmentTime} with Dr. {doctorName}',
+    whatsappTemplate: 'appointment_reminder_24hr',
     emailEnabled: true,
     smsEnabled: true,
     whatsappEnabled: true,
+    hoursBeforeAppt: 24,
+    minutesBefore30: true,
+    clinicId: 'clinic-1',
+    createdAt: new Date('2024-01-01T00:00:00Z'),
+    updatedAt: new Date('2024-01-01T00:00:00Z'),
   };
 
   beforeEach(async () => {
     const prismaMock = {
       appointmentReminder: {
         create: jest
-          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .fn<(_args: AppointmentReminderCreateInput) => Promise<object>>()
           .mockResolvedValue({}),
       },
       whatsappLog: {
         create: jest
-          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .fn<(_args: WhatsappLogCreateInput) => Promise<object>>()
           .mockResolvedValue({}),
       },
       clinic: {
         findUnique: jest
-          .fn<(...args: unknown[]) => Promise<unknown>>()
+          .fn<
+            (
+              _args: ClinicFindUniqueInput,
+            ) => Promise<{ whatsappAutomation: object | null } | null>
+          >()
           .mockResolvedValue({ whatsappAutomation: null }),
       },
     };
@@ -101,7 +156,7 @@ describe('ReminderNotificationService', () => {
 
   describe('sendEmailReminder', () => {
     it('should send email reminder and log to database', async () => {
-      await service.sendEmailReminder(mockAppointment, mockSettings as never);
+      await service.sendEmailReminder(mockAppointment, mockSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -120,7 +175,7 @@ describe('ReminderNotificationService', () => {
           'Hello {patientName}, your appointment with {doctorName} is on {appointmentDate}',
       };
 
-      await service.sendEmailReminder(mockAppointment, customSettings as never);
+      await service.sendEmailReminder(mockAppointment, customSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -138,7 +193,7 @@ describe('ReminderNotificationService', () => {
         emailSubject: 'Appointment at {clinicName}',
       };
 
-      await service.sendEmailReminder(mockAppointment, customSettings as never);
+      await service.sendEmailReminder(mockAppointment, customSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -155,7 +210,7 @@ describe('ReminderNotificationService', () => {
         new Error('Database error'),
       );
 
-      await service.sendEmailReminder(mockAppointment, testSettings as never);
+      await service.sendEmailReminder(mockAppointment, testSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -163,13 +218,10 @@ describe('ReminderNotificationService', () => {
     it('should use default subject if not provided', async () => {
       const settingsWithoutSubject = {
         ...mockSettings,
-        emailSubject: null,
+        emailSubject: '',
       };
 
-      await service.sendEmailReminder(
-        mockAppointment,
-        settingsWithoutSubject as never,
-      );
+      await service.sendEmailReminder(mockAppointment, settingsWithoutSubject);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -177,7 +229,7 @@ describe('ReminderNotificationService', () => {
 
   describe('sendSmsReminder', () => {
     it('should send SMS reminder and log to database', async () => {
-      await service.sendSmsReminder(mockAppointment, mockSettings as never);
+      await service.sendSmsReminder(mockAppointment, mockSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -196,7 +248,7 @@ describe('ReminderNotificationService', () => {
           '{patientName}, appointment with {doctorName} on {appointmentDate}',
       };
 
-      await service.sendSmsReminder(mockAppointment, customSettings as never);
+      await service.sendSmsReminder(mockAppointment, customSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledWith({
         data: {
@@ -214,7 +266,7 @@ describe('ReminderNotificationService', () => {
         patient: { ...mockAppointment.patient, phoneNumber: '' },
       };
 
-      await service.sendSmsReminder(appointmentNoPhone, mockSettings as never);
+      await service.sendSmsReminder(appointmentNoPhone, mockSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -225,7 +277,7 @@ describe('ReminderNotificationService', () => {
         .mockRejectedValueOnce(new Error('SMS error'))
         .mockResolvedValueOnce({});
 
-      await service.sendSmsReminder(mockAppointment, mockSettings as never);
+      await service.sendSmsReminder(mockAppointment, mockSettings);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalled();
     });
@@ -235,7 +287,7 @@ describe('ReminderNotificationService', () => {
     it('should send WhatsApp reminder with correct template', async () => {
       await service.sendWhatsappReminder(
         mockAppointment,
-        mockSettings as never,
+        mockSettings,
         'appointment_reminder_24hr',
       );
 
@@ -255,7 +307,7 @@ describe('ReminderNotificationService', () => {
     it('should send WhatsApp message via use case', async () => {
       await service.sendWhatsappReminder(
         mockAppointment,
-        mockSettings as never,
+        mockSettings,
         'appointment_reminder_24hr',
       );
 
@@ -342,8 +394,8 @@ describe('ReminderNotificationService', () => {
       const appt2 = { ...mockAppointment, id: 'appt-2' };
 
       await Promise.all([
-        service.sendEmailReminder(mockAppointment, mockSettings as never),
-        service.sendEmailReminder(appt2, mockSettings as never),
+        service.sendEmailReminder(mockAppointment, mockSettings),
+        service.sendEmailReminder(appt2, mockSettings),
       ]);
 
       expect(prisma.appointmentReminder.create).toHaveBeenCalledTimes(2);
@@ -352,10 +404,10 @@ describe('ReminderNotificationService', () => {
     it('should maintain appointment data integrity through reminder cycle', async () => {
       const originalId = mockAppointment.id;
 
-      await service.sendEmailReminder(mockAppointment, mockSettings as never);
+      await service.sendEmailReminder(mockAppointment, mockSettings);
 
       const firstCall = prisma.appointmentReminder.create.mock
-        .calls[0][0] as Record<string, Record<string, unknown>>;
+        .calls[0][0] as AppointmentReminderCreateInput;
       expect(firstCall.data.appointmentId).toBe(originalId);
     });
   });

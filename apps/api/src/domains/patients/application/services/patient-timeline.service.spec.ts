@@ -36,6 +36,8 @@ describe('PatientTimelineService', () => {
       fetchLatestVitals: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       groupMedicationDosesByStatus:
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      groupMedicationDosesByMedicationIds:
+        jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -233,9 +235,9 @@ describe('PatientTimelineService', () => {
         weight: 70,
         createdAt: mockDate,
       });
-      repository.groupMedicationDosesByStatus.mockResolvedValue([
-        { status: 'TAKEN', _count: { status: 9 } },
-        { status: 'MISSED', _count: { status: 1 } },
+      repository.groupMedicationDosesByMedicationIds.mockResolvedValue([
+        { medicationId: 'med-1', status: 'TAKEN', _count: { status: 9 } },
+        { medicationId: 'med-1', status: 'MISSED', _count: { status: 1 } },
       ]);
 
       const snapshot = await service.getPatientSnapshot(
@@ -330,7 +332,9 @@ describe('PatientTimelineService', () => {
         'patient-1',
       );
 
-      expect(repository.groupMedicationDosesByStatus).not.toHaveBeenCalled();
+      expect(
+        repository.groupMedicationDosesByMedicationIds,
+      ).not.toHaveBeenCalled();
       expect(snapshot.activeMedications[0]?.adherenceRate).toBeNull();
     });
   });

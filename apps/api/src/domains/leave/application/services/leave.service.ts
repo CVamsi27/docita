@@ -12,7 +12,7 @@ import {
 } from '@/domains/leave/core/repositories/leave.repository.interface';
 import { LeaveMapper } from '@/domains/leave/infrastructure/mappers/leave.mapper';
 import { AvailabilityScheduleService } from '@/domains/doctors/application/services/availability-schedule.service';
-import { Role } from '@workspace/db';
+import { LeaveStatus, LeaveType, Prisma, Role } from '@workspace/db';
 
 @Injectable()
 export class LeaveService {
@@ -23,6 +23,20 @@ export class LeaveService {
     private readonly leaveRepository: ILeaveRepository,
     private readonly availabilityScheduleService: AvailabilityScheduleService,
   ) {}
+
+  private toLeaveType(rawType: string): LeaveType {
+    if ((Object.values(LeaveType) as string[]).includes(rawType)) {
+      return rawType as LeaveType;
+    }
+    throw new BadRequestException(`Unsupported leave type: ${rawType}`);
+  }
+
+  private toLeaveStatus(rawStatus: string): LeaveStatus {
+    if ((Object.values(LeaveStatus) as string[]).includes(rawStatus)) {
+      return rawStatus as LeaveStatus;
+    }
+    throw new BadRequestException(`Unsupported leave status: ${rawStatus}`);
+  }
 
   async applyLeave(
     staffId: string,
@@ -40,10 +54,11 @@ export class LeaveService {
       throw new BadRequestException('End date must be on or after start date');
     }
 
+    const leaveType = this.toLeaveType(data.leaveType);
     const leave = await this.leaveRepository.createLeave({
       staff: { connect: { id: staffId } },
       clinic: { connect: { id: clinicId } },
-      leaveType: data.leaveType as never,
+      leaveType,
       startDate: start,
       endDate: end,
       reason: data.reason,
@@ -71,10 +86,9 @@ export class LeaveService {
       approvedAt: new Date(),
     });
 
+    const staffRole = leave.staff?.role;
     const isDoctor =
-      (leave as { staff?: { role?: string } }).staff?.role === Role.DOCTOR ||
-      (leave as { staff?: { role?: string } }).staff?.role ===
-        Role.ADMIN_DOCTOR;
+      staffRole === Role.DOCTOR || staffRole === Role.ADMIN_DOCTOR;
     if (isDoctor) {
       try {
         await this.availabilityScheduleService.createTimeOff({
@@ -176,17 +190,17 @@ export class LeaveService {
       endDate?: string;
     },
   ) {
-    const where: Record<string, unknown> = { clinicId };
+    const where: Prisma.StaffLeaveWhereInput = { clinicId };
     if (filters.staffId) where.staffId = filters.staffId;
-    if (filters.status) where.status = filters.status;
+    if (filters.status) where.status = this.toLeaveStatus(filters.status);
     if (filters.startDate || filters.endDate) {
-      where.startDate = {};
-      const sd = where.startDate as Record<string, unknown>;
-      if (filters.startDate) sd.gte = new Date(filters.startDate);
-      if (filters.endDate) sd.lte = new Date(filters.endDate);
+      where.startDate = {
+        ...(filters.startDate ? { gte: new Date(filters.startDate) } : {}),
+        ...(filters.endDate ? { lte: new Date(filters.endDate) } : {}),
+      };
     }
 
-    const leaves = await this.leaveRepository.findLeaves(where as never);
+    const leaves = await this.leaveRepository.findLeaves(where);
     return leaves.map((l) => LeaveMapper.staffLeaveToDomain(l));
   }
 

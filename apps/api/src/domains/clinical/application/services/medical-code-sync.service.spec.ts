@@ -1,63 +1,186 @@
 import { describe, expect, it, beforeEach, jest } from '@jest/globals';
+import { CptCode, IcdCode } from '@workspace/db';
+import { PrismaService } from '@/prisma/prisma.service';
+import { CodeCatalogProvider } from '@/domains/clinical/core/providers/code-catalog.provider';
 import { MedicalCodeSyncService } from './medical-code-sync.service';
 
+type ExistingCodeRecord = {
+  code: string;
+  description: string;
+  category: string;
+  isCommon: boolean;
+};
+type ExistingCodeSelect = {
+  code: true;
+  description: true;
+  category: true;
+  isCommon: true;
+};
+
+type CreateManyResult = { count: number };
+
+type IcdCreateManyArgs = {
+  data: Array<{
+    code: string;
+    description: string;
+    category: string;
+    version: string;
+    isCommon: boolean;
+  }>;
+  skipDuplicates: boolean;
+};
+
+type CptCreateManyArgs = {
+  data: Array<{
+    code: string;
+    description: string;
+    category: string;
+    isCommon: boolean;
+    price: number;
+  }>;
+  skipDuplicates: boolean;
+};
+
+type IcdUpdateArgs = {
+  where: { code: string };
+  data: {
+    description: string;
+    category: string;
+    isCommon: boolean;
+  };
+};
+
+type CptUpdateArgs = {
+  where: { code: string };
+  data: {
+    description: string;
+    category: string;
+    isCommon: boolean;
+  };
+};
+
 describe('MedicalCodeSyncService', () => {
-  const prisma = {
-    $transaction: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  const now = new Date('2026-01-01T00:00:00.000Z');
+
+  const transactionMock =
+    jest.fn<(operations: Array<Promise<object>>) => Promise<object[]>>();
+
+  const icdCreateManyMock =
+    jest.fn<(_args: IcdCreateManyArgs) => Promise<CreateManyResult>>();
+  const icdFindManyMock =
+    jest.fn<
+      (_args: {
+        where: { code: { in: string[] } };
+        select: ExistingCodeSelect;
+      }) => Promise<ExistingCodeRecord[]>
+    >();
+  const icdUpdateMock = jest.fn<(_args: IcdUpdateArgs) => Promise<object>>();
+
+  const cptCreateManyMock =
+    jest.fn<(_args: CptCreateManyArgs) => Promise<CreateManyResult>>();
+  const cptFindManyMock =
+    jest.fn<
+      (_args: {
+        where: { code: { in: string[] } };
+        select: ExistingCodeSelect;
+      }) => Promise<ExistingCodeRecord[]>
+    >();
+  const cptUpdateMock = jest.fn<(_args: CptUpdateArgs) => Promise<object>>();
+
+  const prisma = Object.create(PrismaService.prototype) as PrismaService;
+  Object.defineProperties(prisma, {
+    $transaction: {
+      value: transactionMock,
+      writable: true,
+    },
     icdCode: {
-      createMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      value: {
+        createMany: icdCreateManyMock,
+        findMany: icdFindManyMock,
+        update: icdUpdateMock,
+      },
+      writable: true,
     },
     cptCode: {
-      createMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      value: {
+        createMany: cptCreateManyMock,
+        findMany: cptFindManyMock,
+        update: cptUpdateMock,
+      },
+      writable: true,
     },
+  });
+
+  const searchIcdCodesMock = jest.fn<CodeCatalogProvider['searchIcdCodes']>();
+  const searchCptCodesMock = jest.fn<CodeCatalogProvider['searchCptCodes']>();
+  const fetchAllIcdCodesForSyncMock =
+    jest.fn<CodeCatalogProvider['fetchAllIcdCodesForSync']>();
+  const fetchAllCptCodesForSyncMock =
+    jest.fn<CodeCatalogProvider['fetchAllCptCodesForSync']>();
+
+  const codeCatalogProvider: CodeCatalogProvider = {
+    searchIcdCodes: searchIcdCodesMock,
+    searchCptCodes: searchCptCodesMock,
+    fetchAllIcdCodesForSync: fetchAllIcdCodesForSyncMock,
+    fetchAllCptCodesForSync: fetchAllCptCodesForSyncMock,
   };
 
-  const nlmCodingService = {
-    searchIcdCodes: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    searchCptCodes: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    fetchAllIcdCodesForSync:
-      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-    fetchAllCptCodesForSync:
-      jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-  };
+  const buildIcdCode = (
+    code: string,
+    description: string,
+    category: string,
+  ): IcdCode => ({
+    id: `icd-${code}`,
+    code,
+    description,
+    category,
+    version: 'ICD-10',
+    isCommon: false,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const buildCptCode = (
+    code: string,
+    description: string,
+    category: string,
+  ): CptCode => ({
+    id: `cpt-${code}`,
+    code,
+    description,
+    category,
+    isCommon: false,
+    price: 0,
+    createdAt: now,
+    updatedAt: now,
+  });
 
   let service: MedicalCodeSyncService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    prisma.$transaction.mockImplementation(async (...args: unknown[]) => {
-      const operations = args[0] as Promise<unknown>[];
-      return Promise.all(operations) as never;
-    });
-    service = new MedicalCodeSyncService(
-      prisma as unknown as never,
-      nlmCodingService as unknown as never,
+    transactionMock.mockImplementation(async (operations) =>
+      Promise.all(operations),
     );
+    service = new MedicalCodeSyncService(prisma, codeCatalogProvider);
   });
 
   it('syncs unique ICD codes into the database as common codes', async () => {
-    nlmCodingService.fetchAllIcdCodesForSync.mockResolvedValue([
-      {
-        code: 'E11.9',
-        description: 'Type 2 diabetes mellitus without complications',
-        category: 'Endocrine',
-      },
-      {
-        code: 'I10',
-        description: 'Essential hypertension',
-        category: 'Circulatory',
-      },
-      {
-        code: 'E11.9',
-        description: 'Type 2 diabetes mellitus without complications',
-        category: 'Endocrine',
-      },
+    fetchAllIcdCodesForSyncMock.mockResolvedValue([
+      buildIcdCode(
+        'E11.9',
+        'Type 2 diabetes mellitus without complications',
+        'Endocrine',
+      ),
+      buildIcdCode('I10', 'Essential hypertension', 'Circulatory'),
+      buildIcdCode(
+        'E11.9',
+        'Type 2 diabetes mellitus without complications',
+        'Endocrine',
+      ),
     ]);
-    prisma.icdCode.findMany.mockResolvedValue([
+
+    icdFindManyMock.mockResolvedValue([
       {
         code: 'I10',
         description: 'Old hypertension description',
@@ -65,13 +188,13 @@ describe('MedicalCodeSyncService', () => {
         isCommon: false,
       },
     ]);
-    prisma.icdCode.createMany.mockResolvedValue({ count: 1 } as never);
-    prisma.icdCode.update.mockResolvedValue({} as never);
+    icdCreateManyMock.mockResolvedValue({ count: 1 });
+    icdUpdateMock.mockResolvedValue({});
 
     const synced = await service.syncCommonIcdCodes();
 
     expect(synced).toBe(2);
-    expect(prisma.icdCode.findMany).toHaveBeenCalledWith({
+    expect(icdFindManyMock).toHaveBeenCalledWith({
       where: { code: { in: ['E11.9', 'I10'] } },
       select: {
         code: true,
@@ -80,7 +203,7 @@ describe('MedicalCodeSyncService', () => {
         isCommon: true,
       },
     });
-    expect(prisma.icdCode.createMany).toHaveBeenCalledWith(
+    expect(icdCreateManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
         data: [
           expect.objectContaining({
@@ -92,8 +215,8 @@ describe('MedicalCodeSyncService', () => {
         skipDuplicates: true,
       }),
     );
-    expect(prisma.icdCode.update).toHaveBeenCalledTimes(1);
-    expect(prisma.icdCode.update).toHaveBeenCalledWith({
+    expect(icdUpdateMock).toHaveBeenCalledTimes(1);
+    expect(icdUpdateMock).toHaveBeenCalledWith({
       where: { code: 'I10' },
       data: {
         description: 'Essential hypertension',
@@ -104,24 +227,21 @@ describe('MedicalCodeSyncService', () => {
   });
 
   it('syncs unique CPT codes into the database as common codes', async () => {
-    nlmCodingService.fetchAllCptCodesForSync.mockResolvedValue([
-      {
-        code: '99213',
-        description: 'Office or other outpatient visit',
-        category: 'Evaluation and Management',
-      },
-      {
-        code: '93000',
-        description: 'Electrocardiogram',
-        category: 'Medicine',
-      },
-      {
-        code: '99213',
-        description: 'Office or other outpatient visit',
-        category: 'Evaluation and Management',
-      },
+    fetchAllCptCodesForSyncMock.mockResolvedValue([
+      buildCptCode(
+        '99213',
+        'Office or other outpatient visit',
+        'Evaluation and Management',
+      ),
+      buildCptCode('93000', 'Electrocardiogram', 'Medicine'),
+      buildCptCode(
+        '99213',
+        'Office or other outpatient visit',
+        'Evaluation and Management',
+      ),
     ]);
-    prisma.cptCode.findMany.mockResolvedValue([
+
+    cptFindManyMock.mockResolvedValue([
       {
         code: '93000',
         description: 'Electrocardiogram',
@@ -129,12 +249,12 @@ describe('MedicalCodeSyncService', () => {
         isCommon: true,
       },
     ]);
-    prisma.cptCode.createMany.mockResolvedValue({ count: 1 } as never);
+    cptCreateManyMock.mockResolvedValue({ count: 1 });
 
     const synced = await service.syncCommonCptCodes();
 
     expect(synced).toBe(2);
-    expect(prisma.cptCode.findMany).toHaveBeenCalledWith({
+    expect(cptFindManyMock).toHaveBeenCalledWith({
       where: { code: { in: ['99213', '93000'] } },
       select: {
         code: true,
@@ -143,7 +263,7 @@ describe('MedicalCodeSyncService', () => {
         isCommon: true,
       },
     });
-    expect(prisma.cptCode.createMany).toHaveBeenCalledWith(
+    expect(cptCreateManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
         data: [
           expect.objectContaining({
@@ -155,28 +275,20 @@ describe('MedicalCodeSyncService', () => {
         skipDuplicates: true,
       }),
     );
-    expect(prisma.cptCode.update).not.toHaveBeenCalled();
+    expect(cptUpdateMock).not.toHaveBeenCalled();
   });
 
   it('syncs both ICD and CPT code sets together', async () => {
-    nlmCodingService.fetchAllIcdCodesForSync.mockResolvedValue([
-      {
-        code: 'J02.9',
-        description: 'Acute pharyngitis, unspecified',
-        category: 'Respiratory',
-      },
+    fetchAllIcdCodesForSyncMock.mockResolvedValue([
+      buildIcdCode('J02.9', 'Acute pharyngitis, unspecified', 'Respiratory'),
     ]);
-    nlmCodingService.fetchAllCptCodesForSync.mockResolvedValue([
-      {
-        code: '87880',
-        description: 'Infectious agent detection',
-        category: 'Laboratory',
-      },
+    fetchAllCptCodesForSyncMock.mockResolvedValue([
+      buildCptCode('87880', 'Infectious agent detection', 'Laboratory'),
     ]);
-    prisma.icdCode.findMany.mockResolvedValue([]);
-    prisma.cptCode.findMany.mockResolvedValue([]);
-    prisma.icdCode.createMany.mockResolvedValue({ count: 1 } as never);
-    prisma.cptCode.createMany.mockResolvedValue({ count: 1 } as never);
+    icdFindManyMock.mockResolvedValue([]);
+    cptFindManyMock.mockResolvedValue([]);
+    icdCreateManyMock.mockResolvedValue({ count: 1 });
+    cptCreateManyMock.mockResolvedValue({ count: 1 });
 
     await expect(service.syncCommonCodes()).resolves.toEqual({
       icd: 1,

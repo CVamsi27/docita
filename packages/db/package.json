@@ -26,7 +26,7 @@
     "db:check-query-plans": "npx ts-node scripts/check-query-plans.ts",
     "db:validate-feedback-backfill": "npx ts-node scripts/validate-feedback-feature-backfill.ts",
     "db:backfill-onboarding-clinic-state": "pnpm exec ts-node scripts/backfill-onboarding-clinic-state.ts",
-    "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:check-query-plans"
+    "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:profile-queries && pnpm db:check-query-plans"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

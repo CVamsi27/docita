@@ -1,15 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import {
-  UnauthorizedException,
-  BadRequestException as _BadRequestException,
-} from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { MfaService } from './mfa.service';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
-import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
 import * as bcrypt from 'bcrypt';
@@ -34,6 +30,10 @@ describe('AuthService', () => {
       create: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
       findUnique: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
       update: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+      updateMany: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    };
+    patient: {
+      findFirst: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
     };
     passwordHistory: {
       create: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
@@ -45,7 +45,14 @@ describe('AuthService', () => {
   };
   let jwtService: JwtService;
   let userFactory: UserFactory;
-  let _clinicFactory: ClinicFactory;
+  let mfaService: {
+    issueMfaChallenge: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    verifyMfaChallenge: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+  };
   let passwordPolicy: {
     validate: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
   };
@@ -126,6 +133,10 @@ describe('AuthService', () => {
               create: jest.fn(),
               findUnique: jest.fn(),
               update: jest.fn(),
+              updateMany: jest.fn(),
+            },
+            patient: {
+              findFirst: jest.fn(),
             },
             passwordHistory: {
               create: jest.fn(),
@@ -187,18 +198,6 @@ describe('AuthService', () => {
           },
         },
         {
-          provide: ClinicFactory,
-          useValue: {
-            create: jest.fn().mockImplementation((data: unknown) => ({
-              ...(data as Record<string, unknown>),
-              phone: '',
-              address: '',
-              tier: 'CORE',
-              active: true,
-            })),
-          },
-        },
-        {
           provide: MonitoringService,
           useValue: {
             logError: jest.fn(),
@@ -235,7 +234,7 @@ describe('AuthService', () => {
     prismaService = module.get<typeof prismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
     userFactory = module.get<UserFactory>(UserFactory);
-    _clinicFactory = module.get<ClinicFactory>(ClinicFactory);
+    mfaService = module.get<typeof mfaService>(MfaService);
     passwordPolicy = module.get('IPasswordPolicy');
 
     jest.clearAllMocks();
@@ -304,6 +303,73 @@ describe('AuthService', () => {
         clinicId: mockUserWithoutPassword.clinicId,
       });
     });
+
+    it('adds patientId to token payload for patient users', async () => {
+      const patientUser = {
+        ...mockUserWithoutPassword,
+        role: Role.PATIENT,
+      };
+      jest
+        .spyOn(prismaService.patient, 'findFirst')
+        .mockResolvedValue({ id: 'patient-1' });
+
+      await service.login(patientUser);
+
+      expect(prismaService.runUnrestricted).toHaveBeenCalled();
+      expect(prismaService.patient.findFirst).toHaveBeenCalledWith({
+        where: { userId: patientUser.id },
+        select: { id: true },
+      });
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sub: patientUser.id,
+          patientId: 'patient-1',
+        }),
+      );
+    });
+  });
+
+  describe('loginAfterMfa', () => {
+    it('resolves user through unrestricted lookup and issues tokens', async () => {
+      mfaService.verifyMfaChallenge.mockResolvedValue('user-123');
+      jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockResolvedValue(mockUserWithoutPassword);
+
+      const tokens = await service.loginAfterMfa('challenge-token', '123456', {
+        deviceName: 'Chrome',
+        ipAddress: '127.0.0.1',
+      });
+
+      expect(mfaService.verifyMfaChallenge).toHaveBeenCalledWith(
+        'challenge-token',
+        '123456',
+      );
+      expect(prismaService.runUnrestricted).toHaveBeenCalled();
+      expect(prismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'user-123' },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          clinicId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      expect(tokens).toHaveProperty('access_token');
+      expect(tokens).toHaveProperty('refresh_token');
+    });
+
+    it('throws when MFA challenge resolves to unknown user', async () => {
+      mfaService.verifyMfaChallenge.mockResolvedValue('missing-user');
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
+
+      await expect(
+        service.loginAfterMfa('challenge-token', '123456'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
   });
 
   describe('register', () => {
@@ -320,7 +386,7 @@ describe('AuthService', () => {
         .mockImplementation(async () => 'hashedNewPassword');
       jest
         .spyOn(prismaService.user, 'create')
-        .mockResolvedValue(mockUserWithoutPassword as never);
+        .mockResolvedValue(mockUserWithoutPassword);
 
       const result = await service.register(registerData);
 
@@ -359,7 +425,7 @@ describe('AuthService', () => {
       jest.spyOn(prismaService.user, 'create').mockResolvedValue({
         ...mockUserWithoutPassword,
         role: Role.ADMIN,
-      } as never);
+      });
 
       await service.register(registerData);
 
@@ -445,6 +511,176 @@ describe('AuthService', () => {
           newPassword: 'SamePass123!',
         }),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('checkEmailExists', () => {
+    it('returns true when user exists', async () => {
+      jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockResolvedValue({ id: 'u1' });
+
+      await expect(
+        service.checkEmailExists('exists@example.com'),
+      ).resolves.toBe(true);
+    });
+
+    it('disables lookup after database auth failure and fails closed', async () => {
+      const runUnrestrictedSpy = jest
+        .spyOn(prismaService, 'runUnrestricted')
+        .mockImplementationOnce(async () => {
+          throw { code: 'P1000' };
+        });
+
+      await expect(service.checkEmailExists('first@example.com')).resolves.toBe(
+        false,
+      );
+      await expect(
+        service.checkEmailExists('second@example.com'),
+      ).resolves.toBe(false);
+
+      expect(runUnrestrictedSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('rethrows non-database-auth errors', async () => {
+      jest
+        .spyOn(prismaService, 'runUnrestricted')
+        .mockImplementation(async () => {
+          throw new Error('network timeout');
+        });
+
+      await expect(
+        service.checkEmailExists('error@example.com'),
+      ).rejects.toThrow('network timeout');
+    });
+  });
+
+  describe('refreshTokens', () => {
+    it('throws UnauthorizedException when refresh token is missing', async () => {
+      jest
+        .spyOn(prismaService.refreshToken, 'findUnique')
+        .mockResolvedValue(null);
+
+      await expect(service.refreshTokens('missing-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('revokes token family and blocks token reuse', async () => {
+      jest.spyOn(prismaService.refreshToken, 'findUnique').mockResolvedValue({
+        id: 'rt-1',
+        token: 'incoming',
+        userId: 'user-123',
+        tokenFamily: 'family-1',
+        deviceName: 'Chrome',
+        ipAddress: '127.0.0.1',
+        userAgent: 'UA',
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 60_000),
+        replacedByToken: 'rotated-token',
+        user: mockUser,
+      });
+      jest
+        .spyOn(prismaService.refreshToken, 'updateMany')
+        .mockResolvedValue({ count: 3 });
+
+      await expect(service.refreshTokens('incoming')).rejects.toThrow(
+        'Token reuse detected',
+      );
+
+      expect(prismaService.refreshToken.updateMany).toHaveBeenCalledWith({
+        where: {
+          tokenFamily: 'family-1',
+          userId: 'user-123',
+        },
+        data: {
+          revokedAt: expect.any(Date),
+        },
+      });
+    });
+
+    it('rotates refresh token on successful refresh', async () => {
+      jest.spyOn(prismaService.refreshToken, 'findUnique').mockResolvedValue({
+        id: 'rt-1',
+        token: 'incoming',
+        userId: 'user-123',
+        tokenFamily: 'family-1',
+        deviceName: 'Chrome',
+        ipAddress: '127.0.0.1',
+        userAgent: 'UA',
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 60_000),
+        replacedByToken: null,
+        user: mockUser,
+      });
+      jest.spyOn(service, 'login').mockResolvedValue({
+        access_token: 'new-access',
+        refresh_token: 'new-refresh',
+        user: mockUserWithoutPassword,
+      });
+      jest.spyOn(prismaService.refreshToken, 'update').mockResolvedValue({});
+
+      const tokens = await service.refreshTokens('incoming');
+
+      expect(service.login).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'user-123',
+          email: 'test@example.com',
+        }),
+        'family-1',
+        {
+          deviceName: 'Chrome',
+          ipAddress: '127.0.0.1',
+          userAgent: 'UA',
+        },
+      );
+      expect(prismaService.refreshToken.update).toHaveBeenCalledWith({
+        where: { id: 'rt-1' },
+        data: {
+          revokedAt: expect.any(Date),
+          replacedByToken: 'new-refresh',
+        },
+      });
+      expect(tokens).toEqual({
+        access_token: 'new-access',
+        refresh_token: 'new-refresh',
+        user: mockUserWithoutPassword,
+      });
+    });
+  });
+
+  describe('requestPasswordReset', () => {
+    it('returns generic success response for unknown user', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue(null);
+
+      const result = await service.requestPasswordReset('missing@example.com');
+
+      expect(result).toEqual({
+        message:
+          'If an account with that email exists, a reset link has been sent.',
+      });
+      expect(prismaService.user.update).not.toHaveBeenCalled();
+    });
+
+    it('stores reset token and expiry for known user', async () => {
+      jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockResolvedValue({ id: 'user-123' });
+      jest.spyOn(prismaService.user, 'update').mockResolvedValue({});
+
+      const result = await service.requestPasswordReset('test@example.com');
+
+      expect(result).toEqual({
+        message:
+          'If an account with that email exists, a reset link has been sent.',
+      });
+      expect(prismaService.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-123' },
+        data: {
+          passwordResetToken: expect.any(String),
+          passwordResetExpiresAt: expect.any(Date),
+        },
+      });
     });
   });
 });

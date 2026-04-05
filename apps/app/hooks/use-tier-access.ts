@@ -6,7 +6,9 @@ import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import {
   Feature,
   FEATURE_TIER_MAP,
+  subscriptionCurrentResponseSchema,
   Tier,
+  type SubscriptionCurrentResponse,
   type TierName,
 } from "@workspace/types";
 import { useQuery } from "@tanstack/react-query";
@@ -34,37 +36,22 @@ const TIER_FROM_DB: Record<string, Tier> = {
   FREE: Tier.STARTER,
 };
 
-interface ClinicSubscription {
-  tier: TierName;
-  subscriptionStatus: string;
-  hasIntelligence: boolean;
-  features?: Record<string, boolean>;
-}
-
 export function useTierAccess() {
   const { user, token } = useAuth();
 
-  const { data: subscription } = useQuery<ClinicSubscription>({
+  const { data: subscription } = useQuery<SubscriptionCurrentResponse>({
     queryKey: ["clinic-subscription", user?.clinicId],
     queryFn: async () => {
       if (!token || !user?.clinicId) {
-        return {
-          tier: "STARTER" as TierName,
-          subscriptionStatus: "INACTIVE",
-          hasIntelligence: false,
-        };
+        return null;
       }
 
       try {
-        return await fetchJsonWithSession<ClinicSubscription>(
-          "/subscription/current",
+        return subscriptionCurrentResponseSchema.parse(
+          await fetchJsonWithSession<unknown>("/subscription/current"),
         );
       } catch {
-        return {
-          tier: "STARTER" as TierName,
-          subscriptionStatus: "INACTIVE",
-          hasIntelligence: false,
-        };
+        return null;
       }
     },
     enabled: !!user?.clinicId && !!token,
@@ -77,11 +64,8 @@ export function useTierAccess() {
     return TIER_FROM_DB[subscription.tier] ?? Tier.STARTER;
   }, [subscription?.tier]);
 
-  const hasIntelligence = subscription?.hasIntelligence ?? false;
-  const featureOverrides = useMemo(
-    () => subscription?.features ?? {},
-    [subscription?.features],
-  );
+  const hasIntelligence = false;
+  const featureOverrides = useMemo<Record<string, boolean>>(() => ({}), []);
 
   const hasTier = useCallback(
     (requiredTier: Tier): boolean => {

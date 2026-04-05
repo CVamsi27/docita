@@ -31,6 +31,10 @@ const APPOINTMENT_STATUS_TO_PRISMA: Record<
 export class PrismaAppointmentRepository implements IAppointmentRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findAll(
     params: AppointmentSearchParams,
   ): Promise<PaginatedResult<AppointmentListItem>> {
@@ -73,13 +77,15 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     }
 
     try {
+      const readClient = this.getReadClient();
       const [total, items] = await Promise.all([
-        this.prisma.appointment.count({ where }),
-        this.prisma.appointment.findMany({
+        readClient.appointment.count({ where }),
+        readClient.appointment.findMany({
           where,
           take: limit + 1,
           cursor: cursor ? { id: cursor } : undefined,
-          orderBy: { startTime: 'asc' },
+          skip: cursor ? 1 : 0,
+          orderBy: [{ startTime: 'asc' }, { id: 'asc' }],
           include: {
             patient: {
               select: {
@@ -116,7 +122,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
   }
 
   async findById(id: string): Promise<Appointment | null> {
-    const item = await this.prisma.appointment.findUnique({
+    const item = await this.getReadClient().appointment.findUnique({
       where: { id },
     });
 
@@ -152,7 +158,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
   }
 
   async findByPatientId(patientId: string): Promise<Appointment[]> {
-    const items = await this.prisma.appointment.findMany({
+    const items = await this.getReadClient().appointment.findMany({
       where: { patientId },
       orderBy: { startTime: 'desc' },
     });
@@ -167,7 +173,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const items = await this.prisma.appointment.findMany({
+    const items = await this.getReadClient().appointment.findMany({
       where: {
         doctorId,
         startTime: {
@@ -182,7 +188,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
   }
 
   async exists(id: string): Promise<boolean> {
-    const count = await this.prisma.appointment.count({
+    const count = await this.getReadClient().appointment.count({
       where: { id },
     });
     return count > 0;
@@ -194,7 +200,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     startOfDay: Date,
     endOfDay: Date,
   ): Promise<Array<{ doctorId: string; startTime: Date; endTime: Date }>> {
-    const appointments = await this.prisma.appointment.findMany({
+    const appointments = await this.getReadClient().appointment.findMany({
       where: {
         clinicId,
         doctorId: { in: doctorIds },

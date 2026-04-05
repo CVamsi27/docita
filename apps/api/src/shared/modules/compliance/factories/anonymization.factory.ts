@@ -10,7 +10,7 @@ export class AnonymizationFactory {
   async anonymizePatient(patientId: string): Promise<unknown> {
     const randomId = `ANON-${Date.now()}`;
 
-    this.logger.log(`Anonymizing patient ${patientId}`);
+    this.logger.log('Anonymizing patient record');
 
     return await this.prisma.patient.update({
       where: { id: patientId },

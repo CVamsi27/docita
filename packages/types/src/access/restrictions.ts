@@ -60,13 +60,6 @@ export const resolveDoctorScopedAppointmentFilter = (
     return { denied: true };
   }
 
-  if (
-    normalizedRequestedDoctorId &&
-    normalizedRequestedDoctorId !== normalizedUserId
-  ) {
-    return { denied: true };
-  }
-
   return {
     denied: false,
     scopedDoctorId: normalizedUserId,

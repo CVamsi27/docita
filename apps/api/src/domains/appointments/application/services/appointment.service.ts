@@ -10,7 +10,13 @@ import {
   IAppointmentRepository,
   AppointmentSearchParams,
 } from '@/domains/appointments/core/repositories/appointment.repository.interface';
-import { Prisma, Role, VitalSign } from '@workspace/db';
+import {
+  MetricCardinality,
+  MetricCaptureScope,
+  Prisma,
+  Role,
+  VitalSign,
+} from '@workspace/db';
 import {
   CreateAppointmentUseCase,
   CreateAppointmentCommand,
@@ -29,6 +35,13 @@ const CONSULTATION_START_ALLOWED_STATUSES = new Set([
   'CONFIRMED',
   'IN_PROGRESS',
 ]);
+
+type MetricDefinitionConfig = {
+  key: string;
+  label: string;
+  valueType: 'STRING' | 'NUMBER';
+  unit?: string;
+};
 
 @Injectable()
 export class AppointmentService {
@@ -234,29 +247,39 @@ export class AppointmentService {
 
     const observations =
       typeof data.observations === 'string' ? data.observations.trim() : '';
+    const consultationNotes =
+      typeof data.consultationNotes === 'string'
+        ? data.consultationNotes.trim()
+        : '';
+
+    const observationMetrics: Array<{
+      definitionKey: string;
+      definitionLabel: string;
+      value: string;
+    }> = [];
+
     if (observations) {
-      await this.recordObservationMetric({
-        clinicId,
-        patientId: appointment.patientId,
-        appointmentId: id,
+      observationMetrics.push({
         definitionKey: 'observations',
         definitionLabel: 'Observations',
         value: observations,
       });
     }
 
-    const consultationNotes =
-      typeof data.consultationNotes === 'string'
-        ? data.consultationNotes.trim()
-        : '';
     if (consultationNotes) {
-      await this.recordObservationMetric({
-        clinicId,
-        patientId: appointment.patientId,
-        appointmentId: id,
+      observationMetrics.push({
         definitionKey: 'consultation_notes',
         definitionLabel: 'Consultation Notes',
         value: consultationNotes,
+      });
+    }
+
+    if (observationMetrics.length > 0) {
+      await this.recordObservationMetrics({
+        clinicId,
+        patientId: appointment.patientId,
+        appointmentId: id,
+        metrics: observationMetrics,
       });
     }
 
@@ -427,89 +450,136 @@ export class AppointmentService {
       },
     ];
 
-    for (const metric of mappings) {
-      if (typeof metric.value !== 'number' || Number.isNaN(metric.value)) {
-        continue;
-      }
+    const validMetrics = mappings.filter(
+      (metric): metric is (typeof mappings)[number] & { value: number } =>
+        typeof metric.value === 'number' && !Number.isNaN(metric.value),
+    );
 
-      const definitionId = await this.ensureMetricDefinition({
-        clinicId: input.clinicId,
-        patientId: input.patientId,
-        categoryKey: 'vitals',
-        categoryName: 'Vitals',
-        definitionKey: metric.key,
-        definitionLabel: metric.label,
+    if (validMetrics.length === 0) {
+      return;
+    }
+
+    const definitionIdsByKey = await this.ensureMetricDefinitions({
+      clinicId: input.clinicId,
+      patientId: input.patientId,
+      categoryKey: 'vitals',
+      categoryName: 'Vitals',
+      definitions: validMetrics.map((metric) => ({
+        key: metric.key,
+        label: metric.label,
         valueType: 'NUMBER',
         unit: metric.unit,
-      });
+      })),
+    });
 
+    const operations: Prisma.PrismaPromise<unknown>[] = [];
+
+    for (const metric of validMetrics) {
+      const definitionId = definitionIdsByKey.get(metric.key);
       if (!definitionId) {
         continue;
       }
 
-      await this.prisma.patientMetricRecord.create({
-        data: {
-          clinicId: input.clinicId,
-          patientId: input.patientId,
-          appointmentId: input.appointmentId,
-          definitionId,
-          source: 'VITALS_FORM',
-          values: {
-            create: [{ valueNumber: metric.value }],
+      operations.push(
+        this.prisma.patientMetricRecord.create({
+          data: {
+            clinicId: input.clinicId,
+            patientId: input.patientId,
+            appointmentId: input.appointmentId,
+            definitionId,
+            source: 'VITALS_FORM',
+            values: {
+              create: [{ valueNumber: metric.value }],
+            },
           },
-        },
-      });
+        }),
+      );
+    }
+
+    if (operations.length > 0) {
+      await this.prisma.$transaction(operations);
     }
   }
 
-  private async recordObservationMetric(input: {
+  private async recordObservationMetrics(input: {
     clinicId: string;
     patientId: string;
     appointmentId: string;
-    definitionKey: string;
-    definitionLabel: string;
-    value: string;
+    metrics: Array<{
+      definitionKey: string;
+      definitionLabel: string;
+      value: string;
+    }>;
   }) {
-    const definitionId = await this.ensureMetricDefinition({
+    const definitionIdsByKey = await this.ensureMetricDefinitions({
       clinicId: input.clinicId,
       patientId: input.patientId,
       categoryKey: 'observations',
       categoryName: 'Observations',
-      definitionKey: input.definitionKey,
-      definitionLabel: input.definitionLabel,
-      valueType: 'STRING',
+      definitions: input.metrics.map((metric) => ({
+        key: metric.definitionKey,
+        label: metric.definitionLabel,
+        valueType: 'STRING',
+      })),
     });
 
-    if (!definitionId) {
-      return;
+    const operations: Prisma.PrismaPromise<unknown>[] = [];
+
+    for (const metric of input.metrics) {
+      const definitionId = definitionIdsByKey.get(
+        metric.definitionKey.trim().toLowerCase(),
+      );
+      if (!definitionId) {
+        continue;
+      }
+
+      operations.push(
+        this.prisma.patientMetricRecord.create({
+          data: {
+            clinicId: input.clinicId,
+            patientId: input.patientId,
+            appointmentId: input.appointmentId,
+            definitionId,
+            source: 'OBSERVATION_FORM',
+            values: {
+              create: [{ valueString: metric.value }],
+            },
+          },
+        }),
+      );
     }
 
-    await this.prisma.patientMetricRecord.create({
-      data: {
-        clinicId: input.clinicId,
-        patientId: input.patientId,
-        appointmentId: input.appointmentId,
-        definitionId,
-        source: 'OBSERVATION_FORM',
-        values: {
-          create: [{ valueString: input.value }],
-        },
-      },
-    });
+    if (operations.length > 0) {
+      await this.prisma.$transaction(operations);
+    }
   }
 
-  private async ensureMetricDefinition(input: {
+  private async ensureMetricDefinitions(input: {
     clinicId: string;
     patientId: string;
     categoryKey: string;
     categoryName: string;
-    definitionKey: string;
-    definitionLabel: string;
-    valueType: 'STRING' | 'NUMBER';
-    unit?: string;
-  }): Promise<string | null> {
+    definitions: MetricDefinitionConfig[];
+  }): Promise<Map<string, string>> {
+    const definitionConfigByKey = new Map<string, MetricDefinitionConfig>();
+
+    for (const definition of input.definitions) {
+      const normalizedKey = definition.key.trim().toLowerCase();
+      if (!normalizedKey || definitionConfigByKey.has(normalizedKey)) {
+        continue;
+      }
+      definitionConfigByKey.set(normalizedKey, {
+        ...definition,
+        key: normalizedKey,
+      });
+    }
+
+    if (definitionConfigByKey.size === 0) {
+      return new Map();
+    }
+
+    const definitionKeys = Array.from(definitionConfigByKey.keys());
     const categoryKey = input.categoryKey.trim().toLowerCase();
-    const definitionKey = input.definitionKey.trim().toLowerCase();
 
     let category = await this.prisma.metricCategory.findFirst({
       where: {
@@ -531,37 +601,70 @@ export class AppointmentService {
       });
     }
 
-    const existingDefinition = await this.prisma.metricDefinition.findFirst({
-      where: {
-        clinicId: input.clinicId,
-        key: definitionKey,
-        isActive: true,
-        OR: [{ isPatientScoped: false }, { patientId: input.patientId }],
-      },
-      select: { id: true },
+    const where = {
+      clinicId: input.clinicId,
+      key: { in: definitionKeys },
+      isActive: true,
+      OR: [{ isPatientScoped: false }, { patientId: input.patientId }],
+    } satisfies Prisma.MetricDefinitionWhereInput;
+
+    const existingDefinitions = await this.prisma.metricDefinition.findMany({
+      where,
+      select: { id: true, key: true },
+      orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
     });
 
-    if (existingDefinition?.id) {
-      return existingDefinition.id;
+    const definitionIdsByKey = new Map<string, string>();
+    for (const definition of existingDefinitions) {
+      if (!definitionIdsByKey.has(definition.key)) {
+        definitionIdsByKey.set(definition.key, definition.id);
+      }
     }
 
-    const createdDefinition = await this.prisma.metricDefinition.create({
-      data: {
-        clinicId: input.clinicId,
-        categoryId: category.id,
-        key: definitionKey,
-        label: input.definitionLabel,
-        valueType: input.valueType,
-        unit: input.unit,
-        scope: 'ENCOUNTER',
-        cardinality: 'SINGLE',
-        isTrackedByDefault: true,
-        isPatientScoped: false,
-        isCustom: false,
-      },
-      select: { id: true },
-    });
+    const missingDefinitionKeys = definitionKeys.filter(
+      (definitionKey) => !definitionIdsByKey.has(definitionKey),
+    );
 
-    return createdDefinition.id;
+    if (missingDefinitionKeys.length > 0) {
+      await this.prisma.metricDefinition.createMany({
+        data: missingDefinitionKeys
+          .map((definitionKey) => {
+            const config = definitionConfigByKey.get(definitionKey);
+            if (!config) {
+              return null;
+            }
+
+            return {
+              clinicId: input.clinicId,
+              categoryId: category.id,
+              key: definitionKey,
+              label: config.label,
+              valueType: config.valueType,
+              unit: config.unit,
+              scope: MetricCaptureScope.ENCOUNTER,
+              cardinality: MetricCardinality.SINGLE,
+              isTrackedByDefault: true,
+              isPatientScoped: false,
+              isCustom: false,
+            };
+          })
+          .filter((entry) => entry !== null),
+        skipDuplicates: true,
+      });
+
+      const refreshedDefinitions = await this.prisma.metricDefinition.findMany({
+        where,
+        select: { id: true, key: true },
+        orderBy: [{ isPatientScoped: 'asc' }, { createdAt: 'asc' }],
+      });
+
+      for (const definition of refreshedDefinitions) {
+        if (!definitionIdsByKey.has(definition.key)) {
+          definitionIdsByKey.set(definition.key, definition.id);
+        }
+      }
+    }
+
+    return definitionIdsByKey;
   }
 }

@@ -84,11 +84,13 @@ export function PlanSelectionStep({
         ...getTierInfo(tier),
         tagline: PLAN_AUDIENCE[Tier[tier] as string] ?? getTierInfo(tier).tagline,
       },
-      features: getAllFeaturesUpToTier(Tier[tier] as TierName).map((feature) => ({
-        feature,
-        details: getFeatureDetails(feature),
-        hasAccess: true,
-      })),
+      features: getAllFeaturesUpToTier(Tier[tier] as TierName)
+        .map((feature) => ({
+          feature,
+          details: getFeatureDetails(feature),
+          hasAccess: true,
+        }))
+        .filter((entry) => entry.details.isGenerallyAvailable),
     }));
 
   const handleSelectTier = async (tier: string) => {

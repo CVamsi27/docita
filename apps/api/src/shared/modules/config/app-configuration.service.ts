@@ -128,6 +128,20 @@ export class AppConfigService {
     return this.getConfig().NEXT_PUBLIC_API_URL;
   }
 
+  getStorageProvider(): 'local' | 'r2' {
+    return this.getConfig().STORAGE_PROVIDER;
+  }
+
+  getR2Config() {
+    const config = this.getConfig();
+    return {
+      accountId: config.R2_ACCOUNT_ID || '',
+      accessKeyId: config.R2_ACCESS_KEY_ID || '',
+      secretAccessKey: config.R2_SECRET_ACCESS_KEY || '',
+      bucketName: config.R2_BUCKET_NAME || '',
+    };
+  }
+
   getEnvironment(): 'development' | 'staging' | 'production' | 'test' {
     return this.getConfig().NODE_ENV;
   }

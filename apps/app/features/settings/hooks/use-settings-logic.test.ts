@@ -16,6 +16,7 @@ describe("getVisibleSettingsTabs", () => {
 
     const tabs = getVisibleSettingsTabs({
       userRole: "ADMIN",
+      currentTier: store.currentTier,
       canAccessFeature: store.canAccess,
       canAccessTier: store.canAccessTier,
     });
@@ -30,9 +31,28 @@ describe("getVisibleSettingsTabs", () => {
   it("shows the queue tab once the clinic reaches Essential", () => {
     const store = usePermissionStore.getState();
     store.setTier(Tier.ESSENTIAL);
+    const updatedStore = usePermissionStore.getState();
 
     const tabs = getVisibleSettingsTabs({
       userRole: "ADMIN",
+      currentTier: updatedStore.currentTier,
+      canAccessFeature: updatedStore.canAccess,
+      canAccessTier: updatedStore.canAccessTier,
+    });
+
+    const visibleTabValues = tabs.flatMap((category) =>
+      category.items.map((item) => item.value),
+    );
+
+    expect(visibleTabValues).toContain("queue");
+  });
+
+  it("hides leave tab when leave management feature is not available", () => {
+    const store = usePermissionStore.getState();
+
+    const tabs = getVisibleSettingsTabs({
+      userRole: "DOCTOR",
+      currentTier: store.currentTier,
       canAccessFeature: store.canAccess,
       canAccessTier: store.canAccessTier,
     });
@@ -41,6 +61,25 @@ describe("getVisibleSettingsTabs", () => {
       category.items.map((item) => item.value),
     );
 
-    expect(visibleTabValues).toContain("queue");
+    expect(visibleTabValues).not.toContain("leave");
+  });
+
+  it("shows leave tab when leave management feature is available", () => {
+    const store = usePermissionStore.getState();
+    store.setTier(Tier.ESSENTIAL);
+    const updatedStore = usePermissionStore.getState();
+
+    const tabs = getVisibleSettingsTabs({
+      userRole: "DOCTOR",
+      currentTier: updatedStore.currentTier,
+      canAccessFeature: updatedStore.canAccess,
+      canAccessTier: updatedStore.canAccessTier,
+    });
+
+    const visibleTabValues = tabs.flatMap((category) =>
+      category.items.map((item) => item.value),
+    );
+
+    expect(visibleTabValues).toContain("leave");
   });
 });

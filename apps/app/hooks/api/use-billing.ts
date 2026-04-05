@@ -4,12 +4,20 @@ import {
   Invoice,
   ListInvoicesContractQuery,
   Patient,
+  type SubscriptionBillingActivateResponse,
+  type SubscriptionBillingCancelResponse,
+  type SubscriptionBillingCheckoutResponse,
+  type SubscriptionBillingPreviewResponse,
+  type SubscriptionBillingStatusResponse,
   SubscriptionBillingPaymentHistoryResponse,
   SubscriptionBillingActivateRequest,
   SubscriptionBillingCancelRequest,
   SubscriptionBillingCheckoutRequest,
   SubscriptionBillingPreviewQuery,
   UpdateInvoiceRequest,
+  subscriptionBillingPaymentHistoryResponseSchema,
+  subscriptionBillingPreviewResponseSchema,
+  subscriptionBillingStatusResponseSchema,
 } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 import { fetchWithSession } from "@/lib/fetch-with-session";
@@ -57,65 +65,36 @@ export const useDeleteInvoice = (id: string) =>
   });
 
 export const useBillingStatus = () =>
-  useAPIQuery<{
-    subscription: {
-      id: string;
-      status: string;
-      tier: string;
-      billingCycle: string;
-      basePriceCents?: number;
-      currentPeriodStart: Date;
-      currentPeriodEnd: Date;
-      cancelAtPeriodEnd: boolean;
-      graceEndsAt?: Date;
-      scheduledChange?: {
-        tier: string;
-        billingCycle: string;
-        effectiveDate: Date;
-      };
-    } | null;
-    referralCredits: number;
-    pendingReferralDiscount: number;
-    lastPayment?: {
-      amount: number;
-      currency: string;
-      date: Date;
-      status: string;
-      paymentMethod?: string;
-    };
-  }>(["billing-status"], "/subscription/billing", {
+  useAPIQuery<SubscriptionBillingStatusResponse>(
+    ["billing-status"],
+    "/subscription/billing",
+    {
+      select: (data) => subscriptionBillingStatusResponseSchema.parse(data),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
-  });
+    },
+  );
 
 export const usePaymentHistory = () =>
-  useAPIQuery<SubscriptionBillingPaymentHistoryResponse>(["payment-history"], "/subscription/billing/payments", {
-    staleTime: 1000 * 60 * 5,
-  });
+  useAPIQuery<SubscriptionBillingPaymentHistoryResponse>(
+    ["payment-history"],
+    "/subscription/billing/payments",
+    {
+      select: (data) =>
+        subscriptionBillingPaymentHistoryResponseSchema.parse(data),
+      staleTime: 1000 * 60 * 5,
+    },
+  );
 
 export const useProrationPreview = (
   tier: SubscriptionBillingPreviewQuery["tier"],
   cycle: SubscriptionBillingPreviewQuery["cycle"],
 ) =>
-  useAPIQuery<{
-    currentTier: string;
-    newTier: string;
-    currentCycle: string;
-    newCycle: string;
-    creditCents: number;
-    chargeCents: number;
-    daysRemaining: number;
-    billingCycleDays: number;
-    finalAmountCents: number;
-    discount?: {
-      type: string;
-      percent: number;
-      description: string;
-    };
-  }>(
+  useAPIQuery<SubscriptionBillingPreviewResponse>(
     ["proration-preview", tier, cycle],
     `/subscription/billing/preview?tier=${tier}&cycle=${cycle}`,
     {
+      select: (data) => subscriptionBillingPreviewResponseSchema.parse(data),
       enabled: !!tier && !!cycle,
       staleTime: 1000 * 60,
     },
@@ -123,36 +102,19 @@ export const useProrationPreview = (
 
 export const useCreateCheckout = () =>
   useAPIMutation<
-    {
-      orderId: string;
-      amount: number;
-      currency: string;
-      razorpayKeyId: string;
-      prefill: {
-        name: string;
-        email: string;
-        contact?: string;
-      };
-    },
+    SubscriptionBillingCheckoutResponse,
     SubscriptionBillingCheckoutRequest
   >("/subscription/billing/checkout", "POST");
 
 export const useActivateSubscription = () =>
   useAPIMutation<
-    {
-      success: boolean;
-      subscription: {
-        id: string;
-        tier: string;
-        status: string;
-      };
-    },
+    SubscriptionBillingActivateResponse,
     SubscriptionBillingActivateRequest
   >("/subscription/billing/activate", "POST");
 
 export const useCancelSubscription = () =>
   useAPIMutation<
-    { success: boolean; message: string },
+    SubscriptionBillingCancelResponse,
     SubscriptionBillingCancelRequest
   >("/subscription/billing/cancel", "POST");
 

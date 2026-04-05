@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useEffect, useState } from "react";
 import { ApiError } from "@/lib/errors";
+import { QUERY_GC_TIMES } from "@/lib/react-query-config";
 
 async function reportWebVitals() {
   interface WebVitals {
@@ -72,10 +73,10 @@ export function ReactQueryProvider({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 10 * 1000,
-            gcTime: 5 * 60 * 1000,
-            refetchOnWindowFocus: true,
-            refetchOnMount: true,
+            staleTime: 30 * 1000,
+            gcTime: QUERY_GC_TIMES.DEFAULT,
+            refetchOnWindowFocus: false,
+            refetchOnMount: false,
             retry: (failureCount: number, error: unknown) => {
               if (error instanceof ApiError) {
                 if (error.statusCode >= 400 && error.statusCode < 500) {

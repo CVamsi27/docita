@@ -264,53 +264,92 @@ export class MetricsService {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const slowestEndpoints = await this.prisma.apiRequest.groupBy({
-      by: ['path', 'method'],
-      where,
-      _avg: { duration: true },
-      _max: { duration: true },
-      _count: { id: true },
-      orderBy: { _avg: { duration: 'desc' } },
-      take: 15,
-    });
+    const whereSqlClauses: Prisma.Sql[] = [];
+    if (startDate) {
+      whereSqlClauses.push(Prisma.sql`"createdAt" >= ${startDate}`);
+    }
+    if (endDate) {
+      whereSqlClauses.push(Prisma.sql`"createdAt" <= ${endDate}`);
+    }
 
-    const allRequests = await this.prisma.apiRequest.findMany({
-      where,
-      select: { duration: true },
-    });
+    const sqlWhere =
+      whereSqlClauses.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(whereSqlClauses, ' AND ')}`
+        : Prisma.empty;
 
-    const ranges = [
-      { min: 0, max: 100, label: '0-100ms' },
-      { min: 100, max: 250, label: '100-250ms' },
-      { min: 250, max: 500, label: '250-500ms' },
-      { min: 500, max: 1000, label: '500ms-1s' },
-      { min: 1000, max: 2000, label: '1-2s' },
-      { min: 2000, max: 5000, label: '2-5s' },
-      { min: 5000, max: Infinity, label: '5s+' },
+    const [slowestEndpoints, distributionRows] = await Promise.all([
+      this.prisma.apiRequest.groupBy({
+        by: ['path', 'method'],
+        where,
+        _avg: { duration: true },
+        _max: { duration: true },
+        _count: { id: true },
+        orderBy: { _avg: { duration: 'desc' } },
+        take: 15,
+      }),
+      this.prisma.$queryRaw<
+        Array<{
+          range_0_100: bigint;
+          range_100_250: bigint;
+          range_250_500: bigint;
+          range_500_1000: bigint;
+          range_1000_2000: bigint;
+          range_2000_5000: bigint;
+          range_5000_plus: bigint;
+        }>
+      >(Prisma.sql`
+        SELECT
+          COUNT(*) FILTER (WHERE duration >= 0 AND duration < 100)::bigint AS "range_0_100",
+          COUNT(*) FILTER (WHERE duration >= 100 AND duration < 250)::bigint AS "range_100_250",
+          COUNT(*) FILTER (WHERE duration >= 250 AND duration < 500)::bigint AS "range_250_500",
+          COUNT(*) FILTER (WHERE duration >= 500 AND duration < 1000)::bigint AS "range_500_1000",
+          COUNT(*) FILTER (WHERE duration >= 1000 AND duration < 2000)::bigint AS "range_1000_2000",
+          COUNT(*) FILTER (WHERE duration >= 2000 AND duration < 5000)::bigint AS "range_2000_5000",
+          COUNT(*) FILTER (WHERE duration >= 5000)::bigint AS "range_5000_plus"
+        FROM "ApiRequest"
+        ${sqlWhere}
+      `),
+    ]);
+
+    const distributionRow = distributionRows[0] ?? {
+      range_0_100: 0n,
+      range_100_250: 0n,
+      range_250_500: 0n,
+      range_500_1000: 0n,
+      range_1000_2000: 0n,
+      range_2000_5000: 0n,
+      range_5000_plus: 0n,
+    };
+
+    const distribution = [
+      { range: '0-100ms', count: Number(distributionRow.range_0_100) },
+      { range: '100-250ms', count: Number(distributionRow.range_100_250) },
+      { range: '250-500ms', count: Number(distributionRow.range_250_500) },
+      { range: '500ms-1s', count: Number(distributionRow.range_500_1000) },
+      { range: '1-2s', count: Number(distributionRow.range_1000_2000) },
+      { range: '2-5s', count: Number(distributionRow.range_2000_5000) },
+      { range: '5s+', count: Number(distributionRow.range_5000_plus) },
     ];
 
-    const distribution = ranges.map((range) => ({
-      range: range.label,
-      count: allRequests.filter(
-        (r) => r.duration >= range.min && r.duration < range.max,
-      ).length,
+    const throughputStart = startDate ?? new Date(Date.now() - 60 * 60 * 1000);
+    const throughputEnd = endDate ?? new Date();
+    const throughputRows = await this.prisma.$queryRaw<
+      Array<{ minute: string; count: bigint }>
+    >(Prisma.sql`
+      SELECT
+        to_char(date_trunc('minute', "createdAt"), 'YYYY-MM-DD"T"HH24:MI') AS "minute",
+        COUNT(*)::bigint AS "count"
+      FROM "ApiRequest"
+      WHERE "createdAt" >= ${throughputStart}
+        AND "createdAt" <= ${throughputEnd}
+      GROUP BY date_trunc('minute', "createdAt")
+      ORDER BY date_trunc('minute', "createdAt") ASC
+    `);
+
+    const throughputByMinute = throughputRows.map((row) => ({
+      minute: row.minute,
+      count: Number(row.count),
     }));
-
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const recentRequests = await this.prisma.apiRequest.findMany({
-      where: { createdAt: { gte: oneHourAgo } },
-      select: { createdAt: true },
-    });
-
-    const minuteCounts = new Map<string, number>();
-    recentRequests.forEach((r) => {
-      const minute = r.createdAt.toISOString().slice(0, 16);
-      minuteCounts.set(minute, (minuteCounts.get(minute) || 0) + 1);
-    });
-
-    const throughputByMinute = Array.from(minuteCounts.entries())
-      .map(([minute, count]) => ({ minute, count }))
-      .sort((a, b) => a.minute.localeCompare(b.minute));
 
     return {
       slowestEndpoints: slowestEndpoints.map((e) => ({
@@ -334,58 +373,71 @@ export class MetricsService {
     const hourEnd = new Date(hourStart);
     hourEnd.setHours(hourEnd.getHours() + 1);
 
-    const aggregates = await this.prisma.apiRequest.groupBy({
-      by: ['path', 'method'],
-      where: {
-        createdAt: { gte: hourStart, lt: hourEnd },
-      },
-      _count: { id: true },
-      _avg: { duration: true },
-      _min: { duration: true },
-      _max: { duration: true },
-    });
-
-    for (const agg of aggregates) {
-      const successCount = await this.prisma.apiRequest.count({
+    const [aggregates, successAggregates] = await Promise.all([
+      this.prisma.apiRequest.groupBy({
+        by: ['path', 'method'],
         where: {
-          path: agg.path,
-          method: agg.method,
+          createdAt: { gte: hourStart, lt: hourEnd },
+        },
+        _count: { id: true },
+        _avg: { duration: true },
+        _min: { duration: true },
+        _max: { duration: true },
+      }),
+      this.prisma.apiRequest.groupBy({
+        by: ['path', 'method'],
+        where: {
           createdAt: { gte: hourStart, lt: hourEnd },
           statusCode: { lt: 400 },
         },
-      });
+        _count: { id: true },
+      }),
+    ]);
 
-      await this.prisma.performanceAggregate.upsert({
-        where: {
-          path_method_period_periodStart: {
+    const successCountByRoute = new Map(
+      successAggregates.map((row) => [
+        `${row.path}::${row.method}`,
+        row._count.id,
+      ]),
+    );
+
+    await Promise.all(
+      aggregates.map((agg) => {
+        const successCount =
+          successCountByRoute.get(`${agg.path}::${agg.method}`) ?? 0;
+
+        return this.prisma.performanceAggregate.upsert({
+          where: {
+            path_method_period_periodStart: {
+              path: agg.path,
+              method: agg.method,
+              period: 'hourly',
+              periodStart: hourStart,
+            },
+          },
+          create: {
             path: agg.path,
             method: agg.method,
             period: 'hourly',
             periodStart: hourStart,
+            totalRequests: agg._count.id,
+            successCount,
+            errorCount: agg._count.id - successCount,
+            avgDuration: agg._avg.duration || 0,
+            minDuration: agg._min.duration || 0,
+            maxDuration: agg._max.duration || 0,
           },
-        },
-        create: {
-          path: agg.path,
-          method: agg.method,
-          period: 'hourly',
-          periodStart: hourStart,
-          totalRequests: agg._count.id,
-          successCount,
-          errorCount: agg._count.id - successCount,
-          avgDuration: agg._avg.duration || 0,
-          minDuration: agg._min.duration || 0,
-          maxDuration: agg._max.duration || 0,
-        },
-        update: {
-          totalRequests: agg._count.id,
-          successCount,
-          errorCount: agg._count.id - successCount,
-          avgDuration: agg._avg.duration || 0,
-          minDuration: agg._min.duration || 0,
-          maxDuration: agg._max.duration || 0,
-        },
-      });
-    }
+          update: {
+            totalRequests: agg._count.id,
+            successCount,
+            errorCount: agg._count.id - successCount,
+            avgDuration: agg._avg.duration || 0,
+            minDuration: agg._min.duration || 0,
+            maxDuration: agg._max.duration || 0,
+          },
+        });
+      }),
+    );
   }
 
   async getAggregatedPerformance(

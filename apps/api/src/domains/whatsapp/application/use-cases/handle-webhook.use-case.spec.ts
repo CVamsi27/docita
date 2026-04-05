@@ -5,7 +5,11 @@ import {
   WhatsAppMessage,
   WhatsAppMessageStatus,
 } from '../../core/entities/whatsapp-message.entity';
-import type { WhatsAppWebhookPayload } from '@workspace/types';
+import {
+  WhatsAppWebhookDeliveryStatus,
+  WhatsAppWebhookPayload,
+} from '@workspace/types';
+import { WhatsAppTemplate } from '../../core/entities/whatsapp-template.entity';
 
 function makeMessage(status = WhatsAppMessageStatus.SENT): WhatsAppMessage {
   return new WhatsAppMessage({
@@ -20,157 +24,151 @@ function makeMessage(status = WhatsAppMessageStatus.SENT): WhatsAppMessage {
   });
 }
 
+const createStatusPayload = (
+  statuses: WhatsAppWebhookDeliveryStatus[],
+): WhatsAppWebhookPayload => ({
+  object: 'whatsapp_business_account',
+  entry: [
+    {
+      id: 'entry-1',
+      changes: [
+        {
+          field: 'messages',
+          value: {
+            messaging_product: 'whatsapp',
+            metadata: {
+              display_phone_number: '919876543210',
+              phone_number_id: 'phone-id',
+            },
+            statuses,
+          },
+        },
+      ],
+    },
+  ],
+});
+
 function makePayload(
   status: 'sent' | 'delivered' | 'read' | 'failed',
   externalId = 'wamid.ext001',
-  errors?: Array<{ code: number; message: string }>,
+  errors?: Array<{ code: number; title: string; message?: string }>,
 ): WhatsAppWebhookPayload {
-  return {
-    object: 'whatsapp_business_account',
-    entry: [
-      {
-        id: 'entry-1',
-        changes: [
-          {
-            field: 'messages',
-            value: {
-              messaging_product: 'whatsapp',
-              metadata: {
-                display_phone_number: '919876543210',
-                phone_number_id: 'phone-id',
-              },
-              statuses: [
-                {
-                  id: externalId,
-                  status,
-                  timestamp: String(Math.floor(Date.now() / 1000)),
-                  recipient_id: '919876543210',
-                  ...(errors ? { errors } : {}),
-                },
-              ],
-            },
-          },
-        ],
-      },
-    ],
-  } as unknown as WhatsAppWebhookPayload;
+  return createStatusPayload([
+    {
+      id: externalId,
+      status,
+      timestamp: String(Math.floor(Date.now() / 1000)),
+      recipient_id: '919876543210',
+      ...(errors ? { errors } : {}),
+    },
+  ]);
 }
 
 describe('HandleWebhookUseCase', () => {
   let useCase: HandleWebhookUseCase;
-  let mockRepository: jest.Mocked<IWhatsAppRepository>;
+
+  const saveMessageMock = jest.fn<IWhatsAppRepository['saveMessage']>();
+  const findMessageByIdMock = jest.fn<IWhatsAppRepository['findMessageById']>();
+  const findMessageByExternalIdMock =
+    jest.fn<IWhatsAppRepository['findMessageByExternalId']>();
+  const saveTemplateMock = jest.fn<IWhatsAppRepository['saveTemplate']>();
+  const findTemplateByIdMock =
+    jest.fn<IWhatsAppRepository['findTemplateById']>();
+  const findTemplateByNameMock =
+    jest.fn<IWhatsAppRepository['findTemplateByName']>();
+  const listTemplatesByClinicMock =
+    jest.fn<IWhatsAppRepository['listTemplatesByClinic']>();
+  const isAutomationEnabledMock =
+    jest.fn<IWhatsAppRepository['isAutomationEnabled']>();
+
+  const mockRepository: IWhatsAppRepository = {
+    saveMessage: saveMessageMock,
+    findMessageById: findMessageByIdMock,
+    findMessageByExternalId: findMessageByExternalIdMock,
+    saveTemplate: saveTemplateMock,
+    findTemplateById: findTemplateByIdMock,
+    findTemplateByName: findTemplateByNameMock,
+    listTemplatesByClinic: listTemplatesByClinicMock,
+    isAutomationEnabled: isAutomationEnabledMock,
+  };
 
   beforeEach(() => {
-    mockRepository = {
-      saveMessage: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      findMessageByExternalId: jest
-        .fn<() => Promise<WhatsAppMessage | null>>()
-        .mockResolvedValue(makeMessage()),
-      findMessageById: jest
-        .fn<() => Promise<WhatsAppMessage | null>>()
-        .mockResolvedValue(null),
-      saveTemplate: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-      findTemplateById: jest.fn<() => Promise<any>>().mockResolvedValue(null),
-      findTemplateByName: jest.fn<() => Promise<any>>().mockResolvedValue(null),
-      listTemplatesByClinic: jest
-        .fn<() => Promise<any[]>>()
-        .mockResolvedValue([]),
-      isAutomationEnabled: jest
-        .fn<() => Promise<boolean>>()
-        .mockResolvedValue(true),
-    } as jest.Mocked<IWhatsAppRepository>;
+    jest.clearAllMocks();
 
-    useCase = new HandleWebhookUseCase(
-      mockRepository as unknown as typeof mockRepository & {
-        WHATSAPP_REPOSITORY_TOKEN: symbol;
-      },
-    );
+    saveMessageMock.mockResolvedValue();
+    findMessageByIdMock.mockResolvedValue(null);
+    findMessageByExternalIdMock.mockResolvedValue(makeMessage());
+    saveTemplateMock.mockResolvedValue();
+    findTemplateByIdMock.mockResolvedValue(null);
+    findTemplateByNameMock.mockResolvedValue(null);
+    listTemplatesByClinicMock.mockResolvedValue([] as WhatsAppTemplate[]);
+    isAutomationEnabledMock.mockResolvedValue(true);
+
+    useCase = new HandleWebhookUseCase(mockRepository);
   });
 
   describe('status update processing', () => {
     it('should update message status to SENT', async () => {
       await useCase.execute({ payload: makePayload('sent') });
 
-      expect(mockRepository.findMessageByExternalId).toHaveBeenCalledWith(
-        'wamid.ext001',
-      );
-      const saved = mockRepository.saveMessage.mock
-        .calls[0][0] as WhatsAppMessage;
+      expect(findMessageByExternalIdMock).toHaveBeenCalledWith('wamid.ext001');
+      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.SENT);
     });
 
     it('should update message status to DELIVERED', async () => {
       await useCase.execute({ payload: makePayload('delivered') });
 
-      const saved = mockRepository.saveMessage.mock
-        .calls[0][0] as WhatsAppMessage;
+      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.DELIVERED);
     });
 
     it('should update message status to READ', async () => {
       await useCase.execute({ payload: makePayload('read') });
 
-      const saved = mockRepository.saveMessage.mock
-        .calls[0][0] as WhatsAppMessage;
+      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.READ);
     });
 
     it('should update message status to FAILED', async () => {
       await useCase.execute({ payload: makePayload('failed') });
 
-      const saved = mockRepository.saveMessage.mock
-        .calls[0][0] as WhatsAppMessage;
+      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.FAILED);
     });
 
     it('should set error code and message on FAILED with errors', async () => {
       const payload = makePayload('failed', 'wamid.ext001', [
-        { code: 131026, message: 'Message undeliverable' },
+        {
+          code: 131026,
+          title: 'Message undeliverable',
+          message: 'Message undeliverable',
+        },
       ]);
 
       await useCase.execute({ payload });
 
-      const saved = mockRepository.saveMessage.mock
-        .calls[0][0] as WhatsAppMessage;
+      const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.FAILED);
     });
 
     it('should skip update when external ID not found in repository', async () => {
-      mockRepository.findMessageByExternalId.mockResolvedValue(null);
+      findMessageByExternalIdMock.mockResolvedValue(null);
 
       await useCase.execute({ payload: makePayload('delivered') });
 
-      expect(mockRepository.saveMessage).not.toHaveBeenCalled();
+      expect(saveMessageMock).not.toHaveBeenCalled();
     });
 
     it('should skip unknown status values', async () => {
-      const payload = {
-        object: 'whatsapp_business_account',
-        entry: [
-          {
-            id: 'entry-1',
-            changes: [
-              {
-                field: 'messages',
-                value: {
-                  statuses: [
-                    {
-                      id: 'wamid.ext001',
-                      status: 'unknown_status',
-                      timestamp: '1234567890',
-                      recipient_id: '919876543210',
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        ],
-      } as unknown as WhatsAppWebhookPayload;
+      const payload = makePayload('sent');
+      Object.assign(payload.entry[0].changes[0].value.statuses![0], {
+        status: 'unknown_status',
+      });
 
       await useCase.execute({ payload });
 
-      expect(mockRepository.saveMessage).not.toHaveBeenCalled();
+      expect(saveMessageMock).not.toHaveBeenCalled();
     });
   });
 
@@ -180,10 +178,10 @@ describe('HandleWebhookUseCase', () => {
         payload: {
           object: 'whatsapp_business_account',
           entry: [],
-        } as unknown as WhatsAppWebhookPayload,
+        },
       });
 
-      expect(mockRepository.findMessageByExternalId).not.toHaveBeenCalled();
+      expect(findMessageByExternalIdMock).not.toHaveBeenCalled();
     });
 
     it('should handle changes with non-messages field', async () => {
@@ -193,13 +191,24 @@ describe('HandleWebhookUseCase', () => {
           entry: [
             {
               id: 'entry-1',
-              changes: [{ field: 'account_alerts', value: {} }],
+              changes: [
+                {
+                  field: 'account_alerts',
+                  value: {
+                    messaging_product: 'whatsapp',
+                    metadata: {
+                      display_phone_number: '919876543210',
+                      phone_number_id: 'phone-id',
+                    },
+                  },
+                },
+              ],
             },
           ],
-        } as unknown as WhatsAppWebhookPayload,
+        },
       });
 
-      expect(mockRepository.findMessageByExternalId).not.toHaveBeenCalled();
+      expect(findMessageByExternalIdMock).not.toHaveBeenCalled();
     });
 
     it('should handle missing statuses in value', async () => {
@@ -212,58 +221,49 @@ describe('HandleWebhookUseCase', () => {
               changes: [
                 {
                   field: 'messages',
-                  value: { messaging_product: 'whatsapp' },
+                  value: {
+                    messaging_product: 'whatsapp',
+                    metadata: {
+                      display_phone_number: '919876543210',
+                      phone_number_id: 'phone-id',
+                    },
+                  },
                 },
               ],
             },
           ],
-        } as unknown as WhatsAppWebhookPayload,
+        },
       });
 
-      expect(mockRepository.findMessageByExternalId).not.toHaveBeenCalled();
+      expect(findMessageByExternalIdMock).not.toHaveBeenCalled();
     });
 
     it('should process multiple status updates in one payload', async () => {
       const msg1 = makeMessage(WhatsAppMessageStatus.SENT);
       const msg2 = makeMessage(WhatsAppMessageStatus.SENT);
 
-      mockRepository.findMessageByExternalId
+      findMessageByExternalIdMock
         .mockResolvedValueOnce(msg1)
         .mockResolvedValueOnce(msg2);
 
       await useCase.execute({
-        payload: {
-          object: 'whatsapp_business_account',
-          entry: [
-            {
-              id: 'entry-1',
-              changes: [
-                {
-                  field: 'messages',
-                  value: {
-                    statuses: [
-                      {
-                        id: 'wamid.001',
-                        status: 'delivered',
-                        timestamp: '123',
-                        recipient_id: '1',
-                      },
-                      {
-                        id: 'wamid.002',
-                        status: 'read',
-                        timestamp: '124',
-                        recipient_id: '1',
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          ],
-        } as unknown as WhatsAppWebhookPayload,
+        payload: createStatusPayload([
+          {
+            id: 'wamid.001',
+            status: 'delivered',
+            timestamp: '123',
+            recipient_id: '1',
+          },
+          {
+            id: 'wamid.002',
+            status: 'read',
+            timestamp: '124',
+            recipient_id: '1',
+          },
+        ]),
       });
 
-      expect(mockRepository.saveMessage).toHaveBeenCalledTimes(2);
+      expect(saveMessageMock).toHaveBeenCalledTimes(2);
     });
   });
 });

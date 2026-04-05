@@ -248,9 +248,27 @@ export default function VerifyDoctorPage() {
               <h2 className="font-semibold text-sm">Step 1: Upload Your Signature</h2>
             </div>
             {hasSignature ? (
-              <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                Signature uploaded successfully.
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  Signature uploaded successfully.
+                </div>
+                {profile?.signatureUrl && (
+                  <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={profile.signatureUrl}
+                      alt="Your uploaded signature"
+                      className="max-h-24 max-w-full object-contain"
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  This signature will appear on prescriptions and medical documents.{' '}
+                  <a href="/settings?tab=doctor-profile" className="text-primary underline-offset-2 hover:underline">
+                    Re-upload in Settings
+                  </a>
+                </p>
               </div>
             ) : (
               <PhoneSignatureQrPanel

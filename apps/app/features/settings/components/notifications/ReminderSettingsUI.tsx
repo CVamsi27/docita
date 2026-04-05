@@ -193,7 +193,7 @@ export const ReminderSettingsUI: FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="border-none shadow-lg">
+      <Card >
         <CardHeader>
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-primary" />
@@ -263,7 +263,7 @@ export const ReminderSettingsUI: FC = () => {
         </CardContent>
       </Card>
 
-      <Card className="border-none shadow-lg">
+      <Card >
         <CardHeader>
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-primary" />

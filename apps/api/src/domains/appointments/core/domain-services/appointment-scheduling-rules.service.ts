@@ -157,25 +157,22 @@ export class AppointmentSchedulingRulesService implements AppointmentSchedulingR
     startTime: Date,
     endTime: Date,
   ): Promise<{ allowed: boolean; reason?: string }> {
-    const timeOff = await this.prisma.doctorTimeOff.findMany({
+    const timeOff = await this.prisma.doctorTimeOff.findFirst({
       where: {
         doctorId,
-        AND: [
-          { startTime: { lt: endTime.toISOString() } },
-          { endTime: { gt: startTime.toISOString() } },
-        ],
+        AND: [{ startDate: { lt: endTime } }, { endDate: { gt: startTime } }],
       },
       select: {
         reason: true,
-        startTime: true,
-        endTime: true,
+        startDate: true,
+        endDate: true,
       },
     });
 
-    if (timeOff.length > 0) {
+    if (timeOff) {
       return {
         allowed: false,
-        reason: `Doctor has time off: ${timeOff[0].reason}`,
+        reason: `Doctor has time off: ${timeOff.reason}`,
       };
     }
 

@@ -282,10 +282,10 @@ export class FeatureFlagService implements OnModuleInit {
   async getClinicPricingOffer(
     clinicId: string,
   ): Promise<ClinicPricingOffer | null> {
-    const offer = await this.getValue<ClinicPricingOffer>(
+    const offer = await this.getValue<ClinicPricingOffer | null>(
       'clinic_pricing_offer',
       clinicId,
-      null as unknown as ClinicPricingOffer,
+      null,
     );
 
     if (!offer || !offer.percentOff || offer.percentOff <= 0) {

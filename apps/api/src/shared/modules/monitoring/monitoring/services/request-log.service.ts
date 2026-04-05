@@ -146,6 +146,22 @@ export class RequestLogService implements OnModuleDestroy {
     }
     if (clinicId) where.clinicId = clinicId;
 
+    const whereSqlClauses: Prisma.Sql[] = [];
+    if (startDate) {
+      whereSqlClauses.push(Prisma.sql`"createdAt" >= ${startDate}`);
+    }
+    if (endDate) {
+      whereSqlClauses.push(Prisma.sql`"createdAt" <= ${endDate}`);
+    }
+    if (clinicId) {
+      whereSqlClauses.push(Prisma.sql`"clinicId" = ${clinicId}`);
+    }
+
+    const sqlWhere =
+      whereSqlClauses.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(whereSqlClauses, ' AND ')}`
+        : Prisma.empty;
+
     const [
       totalRequests,
       successfulRequests,
@@ -153,6 +169,7 @@ export class RequestLogService implements OnModuleDestroy {
       avgDuration,
       requestsByPath,
       requestsByStatus,
+      requestsByHourRows,
     ] = await Promise.all([
       this.prisma.apiRequest.count({ where }),
       this.prisma.apiRequest.count({
@@ -179,22 +196,16 @@ export class RequestLogService implements OnModuleDestroy {
         _count: { id: true },
         orderBy: { statusCode: 'asc' },
       }),
+      this.prisma.$queryRaw<Array<{ hour: number; count: bigint }>>(Prisma.sql`
+        SELECT
+          EXTRACT(HOUR FROM "createdAt")::int AS "hour",
+          COUNT(*)::bigint AS "count"
+        FROM "ApiRequest"
+        ${sqlWhere}
+        GROUP BY EXTRACT(HOUR FROM "createdAt")
+        ORDER BY EXTRACT(HOUR FROM "createdAt") ASC
+      `),
     ]);
-
-    const requestsRaw = await this.prisma.apiRequest.findMany({
-      where,
-      select: { createdAt: true },
-    });
-
-    const hourCounts = new Map<number, number>();
-    requestsRaw.forEach((r) => {
-      const hour = r.createdAt.getHours();
-      hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
-    });
-
-    const requestsByHour = Array.from(hourCounts.entries())
-      .map(([hour, count]) => ({ hour, count }))
-      .sort((a, b) => a.hour - b.hour);
 
     return {
       totalRequests,
@@ -210,7 +221,10 @@ export class RequestLogService implements OnModuleDestroy {
         statusCode: r.statusCode,
         count: r._count.id,
       })),
-      requestsByHour,
+      requestsByHour: requestsByHourRows.map((row) => ({
+        hour: row.hour,
+        count: Number(row.count),
+      })),
     };
   }
 

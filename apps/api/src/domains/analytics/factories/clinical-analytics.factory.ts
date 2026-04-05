@@ -4,11 +4,8 @@ import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Prisma, AppointmentStatus } from '@workspace/db';
-import {
-  DiseaseTrendPoint,
-  TopCondition,
-  ComplianceMetrics as _ComplianceMetrics,
-} from '@workspace/types';
+import { DiseaseTrendPoint, TopCondition } from '@workspace/types';
+import { toTimeSeriesBucketKey } from './period-bucket.util';
 
 @Injectable()
 export class ClinicalAnalyticsFactory {
@@ -176,18 +173,7 @@ export class ClinicalAnalyticsFactory {
     diagnoses.forEach((diagnosis) => {
       if (!diagnosis.icdCode) return;
 
-      const date = new Date(diagnosis.createdAt);
-      let periodKey: string;
-
-      if (groupBy === 'day') {
-        periodKey = date.toISOString().split('T')[0];
-      } else if (groupBy === 'week') {
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay());
-        periodKey = weekStart.toISOString().split('T')[0];
-      } else {
-        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      }
+      const periodKey = toTimeSeriesBucketKey(diagnosis.createdAt, groupBy);
 
       if (!timeSeriesData.has(periodKey)) {
         timeSeriesData.set(periodKey, new Map());
@@ -223,57 +209,54 @@ export class ClinicalAnalyticsFactory {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const appointments = await this.prisma.appointment.findMany({
-      where,
-      select: {
-        id: true,
-        diagnoses: {
-          select: {
-            id: true,
-            isPrimary: true,
-            icdCodeId: true,
-          },
+    const readClient = this.getReadClient();
+    const appointmentScope: Prisma.AppointmentWhereInput = where;
+
+    const [
+      totalVisits,
+      codedVisits,
+      billedVisits,
+      primaryDiagnosisCount,
+      totalDiagnoses,
+      totalProcedures,
+      proceduresWithoutPrice,
+    ] = await Promise.all([
+      readClient.appointment.count({ where: appointmentScope }),
+      readClient.appointment.count({
+        where: {
+          ...appointmentScope,
+          diagnoses: { some: {} },
         },
-        procedures: {
-          select: {
-            id: true,
-            cptCodeId: true,
-            cptCode: {
-              select: {
-                price: true,
-              },
-            },
-          },
+      }),
+      readClient.appointment.count({
+        where: {
+          ...appointmentScope,
+          procedures: { some: {} },
         },
-      },
-    });
-
-    const totalVisits = appointments.length;
-    const codedVisits = appointments.filter(
-      (a) => a.diagnoses.length > 0,
-    ).length;
-    const billedVisits = appointments.filter(
-      (a) => a.procedures.length > 0,
-    ).length;
-    const primaryDiagnosisCount = appointments.filter((a) =>
-      a.diagnoses.some((d) => d.isPrimary),
-    ).length;
-
-    const totalDiagnoses = appointments.reduce(
-      (sum, a) => sum + a.diagnoses.length,
-      0,
-    );
-    const totalProcedures = appointments.reduce(
-      (sum, a) => sum + a.procedures.length,
-      0,
-    );
-
-    const proceduresWithoutPrice = appointments.reduce((sum, a) => {
-      return (
-        sum +
-        a.procedures.filter((p) => !p.cptCode || p.cptCode.price === 0).length
-      );
-    }, 0);
+      }),
+      readClient.appointment.count({
+        where: {
+          ...appointmentScope,
+          diagnoses: { some: { isPrimary: true } },
+        },
+      }),
+      readClient.diagnosis.count({
+        where: {
+          appointment: appointmentScope,
+        },
+      }),
+      readClient.procedure.count({
+        where: {
+          appointment: appointmentScope,
+        },
+      }),
+      readClient.procedure.count({
+        where: {
+          appointment: appointmentScope,
+          OR: [{ cptCodeId: null }, { cptCode: { price: 0 } }],
+        },
+      }),
+    ]);
 
     return {
       totalVisits,
@@ -303,9 +286,6 @@ export class ClinicalAnalyticsFactory {
     const where: Prisma.AppointmentWhereInput = {
       clinicId,
       status: AppointmentStatus.COMPLETED,
-      diagnoses: {
-        some: {},
-      },
     };
 
     if (startDate || endDate) {
@@ -314,47 +294,71 @@ export class ClinicalAnalyticsFactory {
       if (endDate) where.createdAt.lte = endDate;
     }
 
-    const appointments = await this.prisma.appointment.findMany({
-      where,
+    const readClient = this.getReadClient();
+    const diagnosisWhere: Prisma.DiagnosisWhereInput = {
+      appointment: where,
+    };
+    const firstDiagnosisByAppointment = await readClient.diagnosis.groupBy({
+      by: ['appointmentId'],
+      where: diagnosisWhere,
+      _min: { createdAt: true },
+    });
+
+    const appointmentIds = firstDiagnosisByAppointment
+      .map((row) => row.appointmentId)
+      .filter((id): id is string => typeof id === 'string');
+
+    if (appointmentIds.length === 0) {
+      return {
+        avgTimeToCodeHours: 0,
+        distribution: this.getCodingTimelinessDistribution([]),
+        totalCoded: 0,
+      };
+    }
+
+    const appointments = await readClient.appointment.findMany({
+      where: {
+        ...where,
+        id: { in: appointmentIds },
+      },
       select: {
         id: true,
         createdAt: true,
-        diagnoses: {
-          select: {
-            createdAt: true,
-          },
-          orderBy: { createdAt: 'asc' },
-          take: 1,
-        },
       },
     });
 
-    const timeToCodeData = appointments
-      .filter((a) => a.diagnoses.length > 0)
-      .map((a) => {
-        const appointmentDate = new Date(a.createdAt);
-        const firstDiagnosisDate = new Date(a.diagnoses[0].createdAt);
+    const appointmentCreatedAtById = new Map(
+      appointments.map((appointment) => [
+        appointment.id,
+        appointment.createdAt,
+      ]),
+    );
+
+    const timeToCodeData = firstDiagnosisByAppointment
+      .map((row) => {
+        const appointmentCreatedAt = appointmentCreatedAtById.get(
+          row.appointmentId,
+        );
+        const firstDiagnosisCreatedAt = row._min.createdAt;
+        if (!appointmentCreatedAt || !firstDiagnosisCreatedAt) {
+          return null;
+        }
+
         const hoursToCode =
-          (firstDiagnosisDate.getTime() - appointmentDate.getTime()) /
+          (firstDiagnosisCreatedAt.getTime() - appointmentCreatedAt.getTime()) /
           (1000 * 60 * 60);
-        return hoursToCode;
-      });
+        return hoursToCode >= 0 ? hoursToCode : null;
+      })
+      .filter((value): value is number => value !== null);
 
     const avgTimeToCode =
       timeToCodeData.length > 0
         ? timeToCodeData.reduce((sum, t) => sum + t, 0) / timeToCodeData.length
         : 0;
 
-    const distribution = {
-      within24h: timeToCodeData.filter((t) => t < 24).length,
-      within48h: timeToCodeData.filter((t) => t >= 24 && t < 48).length,
-      within72h: timeToCodeData.filter((t) => t >= 48 && t < 72).length,
-      over72h: timeToCodeData.filter((t) => t >= 72).length,
-    };
-
     return {
       avgTimeToCodeHours: avgTimeToCode,
-      distribution,
+      distribution: this.getCodingTimelinessDistribution(timeToCodeData),
       totalCoded: timeToCodeData.length,
     };
   }
@@ -386,5 +390,18 @@ export class ClinicalAnalyticsFactory {
       this.configService.getAnalyticsCacheTtl() * 1000,
     );
     return result;
+  }
+
+  private getCodingTimelinessDistribution(timeToCodeData: number[]) {
+    return {
+      within24h: timeToCodeData.filter((timeToCode) => timeToCode < 24).length,
+      within48h: timeToCodeData.filter(
+        (timeToCode) => timeToCode >= 24 && timeToCode < 48,
+      ).length,
+      within72h: timeToCodeData.filter(
+        (timeToCode) => timeToCode >= 48 && timeToCode < 72,
+      ).length,
+      over72h: timeToCodeData.filter((timeToCode) => timeToCode >= 72).length,
+    };
   }
 }

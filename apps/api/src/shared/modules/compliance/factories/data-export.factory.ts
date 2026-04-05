@@ -15,7 +15,7 @@ export class DataExportFactory {
   constructor(private prisma: PrismaService) {}
 
   async exportPatientData(patientId: string): Promise<ExportResult> {
-    this.logger.log(`Exporting data for patient ${patientId}`);
+    this.logger.log('Exporting patient data');
 
     const patient = await this.prisma.patient.findUnique({
       where: { id: patientId },

@@ -1,7 +1,7 @@
 import { StaffLeave, LeavePlan, Prisma, User } from '@workspace/db';
 
 export type StaffLeaveWithRelations = StaffLeave & {
-  staff?: Pick<User, 'id' | 'name' | 'email'> | null;
+  staff?: Pick<User, 'id' | 'name' | 'email' | 'role'> | null;
   approver?: Pick<User, 'id' | 'name'> | null;
 };
 

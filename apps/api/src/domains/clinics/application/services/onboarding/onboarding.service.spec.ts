@@ -23,6 +23,7 @@ import {
   OnboardingStep,
   ClinicTier,
   BillingCycle,
+  CompleteOnboardingDto,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 
 describe('OnboardingService', () => {
@@ -369,14 +370,15 @@ describe('OnboardingService', () => {
 
     it('should fail if validation missing', async () => {
       const { onboardingId } = service.initializeOnboarding();
-      const incompleteData = { ...completeData, clinicDetails: undefined };
+      const completeOnboardingUnsafe = service.completeOnboarding.bind(
+        service,
+      ) as (
+        onboardingId: string,
+        completeData: CompleteOnboardingDto | undefined,
+        ipAddress?: string,
+      ) => ReturnType<OnboardingService['completeOnboarding']>;
 
-      const result = await service.completeOnboarding(
-        onboardingId,
-        incompleteData as unknown as Parameters<
-          OnboardingService['completeOnboarding']
-        >[1],
-      );
+      const result = await completeOnboardingUnsafe(onboardingId, undefined);
 
       expect(result.success).toBe(false);
       expect(result.errors?.[0]).toContain('Clinic details are required');

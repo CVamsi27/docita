@@ -15,6 +15,7 @@ import {
 describe('RequestLogService', () => {
   let service: RequestLogService;
   let prismaService: {
+    $queryRaw: ReturnType<typeof jest.fn>;
     apiRequest: {
       createMany: ReturnType<typeof jest.fn>;
       count: ReturnType<typeof jest.fn>;
@@ -26,6 +27,7 @@ describe('RequestLogService', () => {
   };
 
   const mockPrismaService = {
+    $queryRaw: jest.fn(async () => []),
     apiRequest: {
       createMany: jest.fn(),
       count: jest.fn(async () => 100),
@@ -157,10 +159,13 @@ describe('RequestLogService', () => {
 
   describe('getRequestStats', () => {
     it('should aggregate stats', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([{ hour: 10, count: 3n }]);
       const stats = await service.getRequestStats();
       expect(stats.totalRequests).toBe(100);
       expect(prismaService.apiRequest.count).toHaveBeenCalledTimes(3);
       expect(prismaService.apiRequest.aggregate).toHaveBeenCalled();
+      expect(prismaService.$queryRaw).toHaveBeenCalled();
+      expect(stats.requestsByHour).toEqual([{ hour: 10, count: 3 }]);
     });
   });
 

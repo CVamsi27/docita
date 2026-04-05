@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Bell,
   Building2,
   Calendar,
@@ -9,6 +10,7 @@ import {
   MessageSquare,
   Paintbrush,
   Ticket,
+  UserCircle,
   Users,
 } from "lucide-react";
 import { Feature } from "@workspace/types";
@@ -60,6 +62,7 @@ export const settingsTabs = [
         icon: CalendarOff,
         description: "Leave plans & requests",
         roles: DOCTOR_ROLES,
+        feature: Feature.LEAVE_MANAGEMENT,
       },
       {
         value: "queue",
@@ -101,6 +104,13 @@ export const settingsTabs = [
     category: "Account",
     items: [
       {
+        value: "doctor-profile",
+        label: "Doctor Profile",
+        icon: UserCircle,
+        description: "Signature & registration",
+        roles: DOCTOR_ROLES,
+      },
+      {
         value: "notifications",
         label: "Notifications",
         icon: Bell,
@@ -119,6 +129,17 @@ export const settingsTabs = [
         label: "Appearance",
         icon: Paintbrush,
         description: "Theme & display",
+      },
+    ],
+  },
+  {
+    category: "Danger Zone",
+    items: [
+      {
+        value: "danger-zone",
+        label: "Danger Zone",
+        icon: AlertTriangle,
+        description: "Sign out & leave clinic",
       },
     ],
   },

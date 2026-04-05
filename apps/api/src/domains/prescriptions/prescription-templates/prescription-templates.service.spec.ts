@@ -57,7 +57,7 @@ describe('PrescriptionTemplatesService', () => {
     it('should return templates for a user', async () => {
       jest
         .spyOn(prismaService.prescriptionTemplate, 'findMany')
-        .mockResolvedValue([mockTemplate] as never);
+        .mockResolvedValue([mockTemplate]);
 
       const result = await service.findAll('user-123');
       expect(result).toEqual([mockTemplate]);
@@ -72,7 +72,7 @@ describe('PrescriptionTemplatesService', () => {
     it('should create a template', async () => {
       jest
         .spyOn(prismaService.prescriptionTemplate, 'create')
-        .mockResolvedValue(mockTemplate as never);
+        .mockResolvedValue(mockTemplate);
 
       const createData = {
         name: 'Standard Fever',

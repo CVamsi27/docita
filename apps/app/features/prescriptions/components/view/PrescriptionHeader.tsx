@@ -3,7 +3,6 @@ import { ArrowLeft, Edit, Lock, Printer, Share2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { format } from "date-fns";
@@ -58,19 +57,17 @@ export function PrescriptionHeader({
             WhatsApp
           </Button>
         ) : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" disabled>
-                  <Lock className="mr-2 h-4 w-4" />
-                  WhatsApp
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Upgrade to access WhatsApp sharing</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="sm" disabled>
+                <Lock className="mr-2 h-4 w-4" />
+                WhatsApp
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Upgrade to access WhatsApp sharing</p>
+            </TooltipContent>
+          </Tooltip>
         )}
         <Button onClick={onPrint}>
           <Printer className="mr-2 h-4 w-4" />

@@ -30,9 +30,9 @@ export function DashboardQuickActionsUI({
         >
           <div
             className={cn(
-              "h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shadow-sm",
+              "relative h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shadow-sm",
               idx === 0
-                ? "bg-primary text-primary-foreground shadow-primary/25"
+                ? "bg-primary text-primary-foreground"
                 : "bg-background/80 text-primary hover:bg-primary/10",
             )}
           >
@@ -43,12 +43,12 @@ export function DashboardQuickActionsUI({
               )}
             />
             {action.badge && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1 ring-2 ring-background">
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-bold px-1 ring-2 ring-background">
                 {action.badge}
               </span>
             )}
           </div>
-          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
+          <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
             {action.label}
           </span>
         </Link>
@@ -63,7 +63,7 @@ export function DashboardQuickActionsUI({
         <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors">
           <Users className="h-5 w-5" />
         </div>
-        <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground">
+        <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">
           All Patients
         </span>
       </Link>

@@ -22,7 +22,6 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import {
@@ -250,9 +249,8 @@ export function PatientTagManagerUI({
                               <div className="absolute top-10 right-0 z-50 p-2 bg-popover border rounded-lg shadow-lg">
                                 <div className="grid grid-cols-6 gap-1">
                                   {COLOR_PALETTE.map((color) => (
-                                    <TooltipProvider key={color.value}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
+                                    <Tooltip key={color.value}>
+                                      <TooltipTrigger asChild>
                                           <button
                                             type="button"
                                             className={`h-6 w-6 rounded-md transition-colors duration-150 ${
@@ -268,12 +266,11 @@ export function PatientTagManagerUI({
                                               setEditShowColorPicker(false);
                                             }}
                                           />
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          {color.name}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        {color.name}
+                                      </TooltipContent>
+                                    </Tooltip>
                                   ))}
                                 </div>
                               </div>
@@ -437,26 +434,24 @@ export function PatientTagManagerUI({
                   <div className="p-3 border rounded-lg bg-card mt-2">
                     <div className="grid grid-cols-9 gap-2">
                       {COLOR_PALETTE.map((color) => (
-                        <TooltipProvider key={color.value}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className={`h-8 w-8 rounded-md transition-colors duration-150 ${
-                                  newColor === color.value
-                                    ? "ring-2 ring-primary ring-offset-2"
-                                    : "hover:opacity-80"
-                                }`}
-                                style={{ backgroundColor: color.value }}
-                                onClick={() => {
-                                  onNewColorChange(color.value);
-                                  setShowColorPicker(false);
-                                }}
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent>{color.name}</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <Tooltip key={color.value}>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className={`h-8 w-8 rounded-md transition-colors duration-150 ${
+                                newColor === color.value
+                                  ? "ring-2 ring-primary ring-offset-2"
+                                  : "hover:opacity-80"
+                              }`}
+                              style={{ backgroundColor: color.value }}
+                              onClick={() => {
+                                onNewColorChange(color.value);
+                                setShowColorPicker(false);
+                              }}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>{color.name}</TooltipContent>
+                        </Tooltip>
                       ))}
                     </div>
                     <div className="mt-3 flex items-center gap-2">

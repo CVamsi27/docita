@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { ClinicalAiService } from './clinical-ai.service';
 import { OpenaiService } from './openai.service';
+import type { PrescriptionAnalysisRequest } from '@workspace/types';
 
 describe('ClinicalAiService', () => {
   let service: ClinicalAiService;
@@ -206,11 +207,13 @@ describe('ClinicalAiService', () => {
 
   describe('error handling', () => {
     it('should handle invalid request gracefully', async () => {
-      try {
-        await service.analyzePrescription(null as never);
-      } catch (error) {
-        expect(error).toBeDefined();
-      }
+      const analyzePrescriptionUnsafe = service.analyzePrescription.bind(
+        service,
+      ) as (
+        request: PrescriptionAnalysisRequest | null,
+      ) => ReturnType<ClinicalAiService['analyzePrescription']>;
+
+      await expect(analyzePrescriptionUnsafe(null)).rejects.toBeDefined();
     });
 
     it('should return fallback on analysis error', async () => {

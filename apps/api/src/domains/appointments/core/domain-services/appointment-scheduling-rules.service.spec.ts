@@ -9,12 +9,12 @@ describe('AppointmentSchedulingRulesService', () => {
 
   const mockPrismaService = {
     appointment: {
-      findMany: jest.fn<() => Promise<unknown[]>>(),
+      findMany: jest.fn<(args: unknown) => Promise<unknown[]>>(),
       findUnique: jest.fn<() => Promise<unknown>>(),
       count: jest.fn<() => Promise<number>>(),
     },
     doctorTimeOff: {
-      findMany: jest.fn<() => Promise<unknown[]>>(),
+      findFirst: jest.fn<(args: unknown) => Promise<unknown>>(),
     },
   };
 
@@ -157,18 +157,21 @@ describe('AppointmentSchedulingRulesService', () => {
         'existing-appt-id',
       );
 
-      const latestCall = mockPrismaService.appointment.findMany.mock.calls.at(
-        -1,
-      ) as unknown as [{ where?: { NOT?: { id?: string } } }] | undefined;
-      const latestCallArgs = latestCall?.[0];
-
-      expect(latestCallArgs?.where?.NOT?.id).toBe('existing-appt-id');
+      const latestCallArgs =
+        mockPrismaService.appointment.findMany.mock.calls.at(-1)?.[0];
+      expect(latestCallArgs).toEqual(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            NOT: expect.objectContaining({ id: 'existing-appt-id' }),
+          }),
+        }),
+      );
     });
   });
 
   describe('validateDoctorTimeOff', () => {
     it('should allow appointment when doctor is not on time off', async () => {
-      mockPrismaService.doctorTimeOff.findMany.mockResolvedValueOnce([]);
+      mockPrismaService.doctorTimeOff.findFirst.mockResolvedValueOnce(null);
 
       const startTime = new Date(Date.now() + 86400000);
       const endTime = new Date(startTime.getTime() + 1800000);
@@ -187,13 +190,11 @@ describe('AppointmentSchedulingRulesService', () => {
       const startTime = new Date(Date.now() + 86400000);
       const endTime = new Date(startTime.getTime() + 1800000);
 
-      mockPrismaService.doctorTimeOff.findMany.mockResolvedValueOnce([
-        {
-          reason: 'Vacation',
-          startTime: new Date(startTime.getTime() - 3600000),
-          endTime: new Date(endTime.getTime() + 3600000),
-        },
-      ]);
+      mockPrismaService.doctorTimeOff.findFirst.mockResolvedValueOnce({
+        reason: 'Vacation',
+        startDate: new Date(startTime.getTime() - 3600000),
+        endDate: new Date(endTime.getTime() + 3600000),
+      });
 
       const result = await service.validateDoctorTimeOff(
         'doctor-1',
@@ -203,6 +204,18 @@ describe('AppointmentSchedulingRulesService', () => {
 
       expect(result.allowed).toBe(false);
       expect(result.reason).toContain('Vacation');
+
+      expect(mockPrismaService.doctorTimeOff.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            doctorId: 'doctor-1',
+            AND: [
+              { startDate: { lt: endTime } },
+              { endDate: { gt: startTime } },
+            ],
+          }),
+        }),
+      );
     });
   });
 

@@ -241,11 +241,11 @@ describe('AuditService', () => {
     it('should filter logs by date range', async () => {
       const startDate = new Date('2025-01-01');
       const endDate = new Date('2025-01-31');
-      const mockLogs: unknown[] = [];
+      const mockLogs: Array<Record<string, unknown>> = [];
 
       jest
         .spyOn(prismaService.auditLog, 'findMany')
-        .mockResolvedValue(mockLogs as never);
+        .mockResolvedValue(mockLogs);
 
       const result = await service.getAuditLogs(
         {
@@ -332,19 +332,14 @@ describe('AuditService', () => {
       expect(loggerSpy).toHaveBeenCalled();
     });
 
-    it('should handle archive errors gracefully', async () => {
-      const _loggerErrorSpy = jest.spyOn(service['logger'], 'error');
+    it('should handle archive errors gracefully', () => {
+      jest.spyOn(service['logger'], 'log').mockImplementationOnce(() => {
+        throw new Error('Archive failed');
+      });
 
-      jest
-        .spyOn(
-          service as unknown as {
-            archiveOldLogs: (days?: number) => Promise<void>;
-          },
-          'archiveOldLogs',
-        )
-        .mockRejectedValue(new Error('Archive failed'));
+      service.archiveOldLogs(90);
 
-      await expect(service.archiveOldLogs(90)).rejects.toThrow();
+      expect(service['logger'].error).toHaveBeenCalled();
     });
   });
 

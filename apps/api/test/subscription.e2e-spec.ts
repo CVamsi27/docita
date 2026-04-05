@@ -118,8 +118,7 @@ describe('Subscription (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body).toBeDefined();
-      expect(response.body).toEqual({});
+      expect(response.body).toBeNull();
     });
 
     it('should reject unauthenticated request', async () => {

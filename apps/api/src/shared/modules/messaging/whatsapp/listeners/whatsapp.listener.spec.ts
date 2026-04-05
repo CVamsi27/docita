@@ -6,6 +6,7 @@ import { PrescriptionCreatedEvent } from '@/domains/prescriptions/core/events/pr
 import { InvoiceGeneratedEvent } from '@/domains/billing/application/services/events/invoice-generated.event';
 import { AppointmentCreatedEvent } from '@/domains/appointments/application/events/appointment-created.event';
 import { AppointmentUpdatedEvent } from '@/domains/appointments/application/events/appointment-updated.event';
+import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import {
   beforeEach,
   afterEach,
@@ -17,34 +18,40 @@ import {
 
 describe('WhatsappEventListener', () => {
   let listener: WhatsappEventListener;
-  let mockWhatsappService: {
-    sendPrescriptionSystem: ReturnType<typeof jest.fn>;
-    sendInvoiceSystem: ReturnType<typeof jest.fn>;
-    sendAppointmentConfirmation: ReturnType<typeof jest.fn>;
-    sendAppointmentUpdate: ReturnType<typeof jest.fn>;
+  const sendPrescriptionSystemMock =
+    jest.fn<WhatsappService['sendPrescriptionSystem']>();
+  const sendInvoiceSystemMock = jest.fn<WhatsappService['sendInvoiceSystem']>();
+  const sendAppointmentConfirmationMock =
+    jest.fn<WhatsappService['sendAppointmentConfirmation']>();
+  const sendAppointmentUpdateMock =
+    jest.fn<WhatsappService['sendAppointmentUpdate']>();
+
+  const mockWhatsappService: Pick<
+    WhatsappService,
+    | 'sendPrescriptionSystem'
+    | 'sendInvoiceSystem'
+    | 'sendAppointmentConfirmation'
+    | 'sendAppointmentUpdate'
+  > = {
+    sendPrescriptionSystem: sendPrescriptionSystemMock,
+    sendInvoiceSystem: sendInvoiceSystemMock,
+    sendAppointmentConfirmation: sendAppointmentConfirmationMock,
+    sendAppointmentUpdate: sendAppointmentUpdateMock,
   };
 
-  function createMockAppointment(startTime: Date) {
-    return {
-      getStartTime: jest.fn().mockReturnValue(startTime),
-    };
-  }
+  const createMockAppointment = (startTime: Date): Appointment => {
+    const appointment = Object.create(Appointment.prototype) as Appointment;
+    appointment.getStartTime = jest
+      .fn<Appointment['getStartTime']>()
+      .mockReturnValue(startTime);
+    return appointment;
+  };
 
   beforeEach(async () => {
-    mockWhatsappService = {
-      sendPrescriptionSystem: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(undefined),
-      sendInvoiceSystem: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(undefined),
-      sendAppointmentConfirmation: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(undefined),
-      sendAppointmentUpdate: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue(undefined),
-    };
+    sendPrescriptionSystemMock.mockResolvedValue();
+    sendInvoiceSystemMock.mockResolvedValue();
+    sendAppointmentConfirmationMock.mockResolvedValue();
+    sendAppointmentUpdateMock.mockResolvedValue();
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
@@ -83,7 +90,7 @@ describe('WhatsappEventListener', () => {
     });
 
     it('should catch and log errors without rethrowing', async () => {
-      mockWhatsappService.sendPrescriptionSystem.mockRejectedValue(
+      sendPrescriptionSystemMock.mockRejectedValue(
         new Error('WhatsApp failed'),
       );
       const event = {
@@ -113,9 +120,7 @@ describe('WhatsappEventListener', () => {
     });
 
     it('should catch errors without rethrowing', async () => {
-      mockWhatsappService.sendInvoiceSystem.mockRejectedValue(
-        new Error('Send failed'),
-      );
+      sendInvoiceSystemMock.mockRejectedValue(new Error('Send failed'));
       const event = {
         invoiceId: 'inv-fail',
         clinicId: 'clinic-123',
@@ -134,7 +139,7 @@ describe('WhatsappEventListener', () => {
         'appt-123',
         'clinic-123',
         'patient-123',
-        appointment as never,
+        appointment,
       );
 
       await listener.handleAppointmentCreated(event);
@@ -145,7 +150,7 @@ describe('WhatsappEventListener', () => {
     });
 
     it('should catch errors without rethrowing', async () => {
-      mockWhatsappService.sendAppointmentConfirmation.mockRejectedValue(
+      sendAppointmentConfirmationMock.mockRejectedValue(
         new Error('Confirmation failed'),
       );
       const appointment = createMockAppointment(new Date());
@@ -153,7 +158,7 @@ describe('WhatsappEventListener', () => {
         'appt-fail',
         'clinic-123',
         'patient-123',
-        appointment as never,
+        appointment,
       );
 
       await expect(
@@ -171,7 +176,7 @@ describe('WhatsappEventListener', () => {
         'clinic-123',
         'cancelled',
         'SCHEDULED',
-        appointment as never,
+        appointment,
         undefined,
       );
 
@@ -192,7 +197,7 @@ describe('WhatsappEventListener', () => {
         'clinic-123',
         'no-show',
         'SCHEDULED',
-        appointment as never,
+        appointment,
         undefined,
       );
 
@@ -214,7 +219,7 @@ describe('WhatsappEventListener', () => {
         'clinic-123',
         'SCHEDULED',
         'SCHEDULED',
-        appointment as never,
+        appointment,
         oldStartTime,
       );
 
@@ -235,7 +240,7 @@ describe('WhatsappEventListener', () => {
         'clinic-123',
         'CONFIRMED',
         'SCHEDULED',
-        appointment as never,
+        appointment,
         startTime,
       );
 
@@ -245,9 +250,7 @@ describe('WhatsappEventListener', () => {
     });
 
     it('should catch errors without rethrowing', async () => {
-      mockWhatsappService.sendAppointmentUpdate.mockRejectedValue(
-        new Error('Update failed'),
-      );
+      sendAppointmentUpdateMock.mockRejectedValue(new Error('Update failed'));
       const startTime = new Date('2026-04-01T10:00:00Z');
       const appointment = createMockAppointment(startTime);
       const event = new AppointmentUpdatedEvent(
@@ -255,7 +258,7 @@ describe('WhatsappEventListener', () => {
         'clinic-123',
         'cancelled',
         'SCHEDULED',
-        appointment as never,
+        appointment,
         undefined,
       );
 

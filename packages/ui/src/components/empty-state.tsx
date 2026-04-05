@@ -29,7 +29,7 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div className={cn("text-center py-12 text-muted-foreground", className)}>
+    <div className={cn("text-center py-8 text-muted-foreground", className)}>
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/50 mx-auto mb-4">
         <Icon className="h-8 w-8 text-muted-foreground/50" />
       </div>
@@ -142,7 +142,7 @@ export function LoadingState({
   const sizes = sizeClasses[size];
 
   return (
-    <div className={cn("text-center py-12 text-muted-foreground", className)}>
+    <div className={cn("text-center py-8 text-muted-foreground", className)}>
       <Loader2
         className={cn(sizes.icon, "mx-auto mb-4 animate-spin text-primary")}
       />

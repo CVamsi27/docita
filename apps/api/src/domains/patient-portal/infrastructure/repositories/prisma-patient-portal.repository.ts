@@ -13,13 +13,13 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findPatientByUserId(userId: string) {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findFirst({ where: { userId, deletedAt: null } }),
     );
   }
 
   async findPatientByPhone(phone: string) {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findFirst({
         where: { phoneNumber: phone, deletedAt: null },
       }),
@@ -29,7 +29,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   async findPatientWithUserByPhone(
     phone: string,
   ): Promise<PatientWithUser | null> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findFirst({
         where: { phoneNumber: phone, deletedAt: null },
         include: { user: true },
@@ -38,7 +38,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   }
 
   async getPatientSummary(patientId: string): Promise<PatientSummary | null> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findFirst({
         where: { id: patientId },
         select: {
@@ -57,7 +57,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   }
 
   async getPatientProfile(patientId: string): Promise<PatientProfile | null> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patient.findFirst({
         where: { id: patientId },
         select: {
@@ -88,7 +88,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     patientId: string,
     data: Record<string, unknown>,
   ): Promise<PatientProfile> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patient.update({
         where: { id: patientId },
         data,
@@ -122,7 +122,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     from: Date,
     take: number,
   ): Promise<unknown[]> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.appointment.findMany({
         where: {
           patientId,
@@ -196,7 +196,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     patientId: string,
     clinicId: string,
   ): Promise<unknown | null> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.appointment.findFirst({
         where: { id: appointmentId, patientId, clinicId },
         select: {
@@ -272,7 +272,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     prescriptionId: string,
     patientId: string,
   ): Promise<unknown | null> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.prescription.findFirst({
         where: { id: prescriptionId, patientId },
         select: {
@@ -334,7 +334,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     patientId: string,
     take: number,
   ): Promise<unknown[]> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.prescription.findMany({
         where: { patientId },
         orderBy: { createdAt: 'desc' },
@@ -358,7 +358,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     patientId: string,
     take: number,
   ): Promise<unknown[]> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.invoice.findMany({
         where: { patientId, status: { in: ['PENDING', 'OVERDUE'] } },
         orderBy: { createdAt: 'desc' },
@@ -369,7 +369,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   }
 
   async invalidateOtps(phone: string): Promise<void> {
-    await this.prisma.runUnrestricted(() =>
+    await this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.updateMany({
         where: { phoneNumber: phone, usedAt: null },
         data: { usedAt: new Date() },
@@ -382,13 +382,13 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
     otpHash: string;
     expiresAt: Date;
   }): Promise<OtpRecord> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.create({ data }),
     ) as Promise<OtpRecord>;
   }
 
   async findActiveOtp(phone: string, now: Date): Promise<OtpRecord | null> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.findFirst({
         where: {
           phoneNumber: phone,
@@ -401,7 +401,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   }
 
   async incrementOtpAttempts(id: string): Promise<void> {
-    await this.prisma.runUnrestricted(() =>
+    await this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.update({
         where: { id },
         data: { attempts: { increment: 1 } },
@@ -410,7 +410,7 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   }
 
   async markOtpUsed(id: string): Promise<void> {
-    await this.prisma.runUnrestricted(() =>
+    await this.prisma.runUnrestricted(async () =>
       this.prisma.patientOtp.update({
         where: { id },
         data: { usedAt: new Date() },
@@ -421,16 +421,16 @@ export class PrismaPatientPortalRepository implements IPatientPortalRepository {
   async createPortalUser(data: {
     email: string;
     password: string;
-    role: string;
+    role: Parameters<IPatientPortalRepository['createPortalUser']>[0]['role'];
     name: string;
   }) {
-    return this.prisma.runUnrestricted(() =>
-      this.prisma.user.create({ data: data as never }),
+    return this.prisma.runUnrestricted(async () =>
+      this.prisma.user.create({ data }),
     );
   }
 
   async linkUserToPatient(patientId: string, userId: string): Promise<void> {
-    await this.prisma.runUnrestricted(() =>
+    await this.prisma.runUnrestricted(async () =>
       this.prisma.patient.update({
         where: { id: patientId },
         data: { userId },

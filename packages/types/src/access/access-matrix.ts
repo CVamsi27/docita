@@ -43,6 +43,7 @@ export const APP_ACCESS_TARGETS = {
   PAGE_DASHBOARD: "page.dashboard",
   PAGE_PATIENTS: "page.patients",
   PAGE_APPOINTMENTS: "page.appointments",
+  PAGE_CONSULTATION: "page.consultation",
   PAGE_PRESCRIPTIONS: "page.prescriptions",
   PAGE_LAB_TESTS: "page.lab-tests",
   PAGE_INVOICES: "page.invoices",
@@ -52,6 +53,11 @@ export const APP_ACCESS_TARGETS = {
   PAGE_CODING_QUEUE: "page.coding-queue",
   PAGE_IMPORT: "page.import",
   PAGE_WHATSAPP: "page.whatsapp",
+  PAGE_AI_ASSISTANT: "page.ai-assistant",
+  PAGE_SPECIALTY: "page.specialty",
+  PAGE_HOSPITAL: "page.hospital",
+  PAGE_PROFILE: "page.profile",
+  PAGE_SETTINGS: "page.settings",
   PAGE_UPGRADE: "page.upgrade",
   PAGE_SETTINGS_SUBSCRIPTION: "page.settings.subscription",
 
@@ -85,11 +91,21 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_DASHBOARD]: {
     read: { roles: ALL_STAFF_ROLES },
   },
+  [APP_ACCESS_TARGETS.PAGE_SETTINGS]: {
+    read: { roles: ALL_STAFF_ROLES },
+  },
+  [APP_ACCESS_TARGETS.PAGE_PROFILE]: {
+    read: { roles: ALL_STAFF_ROLES },
+  },
   [APP_ACCESS_TARGETS.PAGE_PATIENTS]: {
     read: { roles: ALL_STAFF_ROLES },
     feature: Feature.BASIC_PATIENT_MANAGEMENT,
   },
   [APP_ACCESS_TARGETS.PAGE_APPOINTMENTS]: {
+    read: { roles: ALL_STAFF_ROLES },
+    feature: Feature.CALENDAR_SLOTS,
+  },
+  [APP_ACCESS_TARGETS.PAGE_CONSULTATION]: {
     read: { roles: ALL_STAFF_ROLES },
     feature: Feature.CALENDAR_SLOTS,
   },
@@ -128,6 +144,20 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_WHATSAPP]: {
     read: { roles: ALL_STAFF_ROLES },
     feature: Feature.WHATSAPP_MESSAGING,
+  },
+  [APP_ACCESS_TARGETS.PAGE_SPECIALTY]: {
+    read: { roles: ALL_STAFF_ROLES },
+    feature: Feature.CALENDAR_SLOTS,
+  },
+  [APP_ACCESS_TARGETS.PAGE_HOSPITAL]: {
+    read: { roles: ALL_STAFF_ROLES },
+    feature: Feature.FULL_EHR,
+    comingSoon: true,
+  },
+  [APP_ACCESS_TARGETS.PAGE_AI_ASSISTANT]: {
+    read: { roles: CLINICAL_CODING_ROLES },
+    feature: Feature.AI_PRESCRIPTION_ASSISTANT,
+    comingSoon: true,
   },
   [APP_ACCESS_TARGETS.PAGE_UPGRADE]: {
     read: { roles: ADMIN_BILLING_ROLES, permissions: ["manageBilling"] },

@@ -12,8 +12,13 @@ import { Prisma, Gender } from '@workspace/db';
 export class PrismaPatientRepository implements IPatientRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findById(id: string): Promise<Patient | null> {
-    const item = await this.prisma.patient.findUnique({
+    const readClient = this.getReadClient();
+    const item = await readClient.patient.findUnique({
       where: { id },
     });
     if (!item) return null;
@@ -21,16 +26,21 @@ export class PrismaPatientRepository implements IPatientRepository {
   }
 
   async findByMrn(mrn: string, clinicId: string): Promise<Patient | null> {
-    const item = await this.prisma.patient.findFirst({
+    const readClient = this.getReadClient();
+    const item = await readClient.patient.findFirst({
       where: { mrn, clinicId },
     });
     if (!item) return null;
     return PatientMapper.toDomain(item);
   }
 
-  async findAll(
-    params: PatientSearchParams,
-  ): Promise<{ items: Patient[]; total: number }> {
+  async findAll(params: PatientSearchParams): Promise<{
+    items: Patient[];
+    total: number;
+    count: number;
+    hasMore: boolean;
+  }> {
+    const readClient = this.getReadClient();
     const { clinicId, search, gender, page = 1, limit = 20 } = params;
 
     const where: Prisma.PatientWhereInput = {
@@ -49,18 +59,20 @@ export class PrismaPatientRepository implements IPatientRepository {
     }
 
     const [total, items] = await Promise.all([
-      this.prisma.patient.count({ where }),
-      this.prisma.patient.findMany({
+      readClient.patient.count({ where }),
+      readClient.patient.findMany({
         where,
         take: limit,
         skip: (page - 1) * limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       }),
     ]);
 
     return {
       items: items.map((item) => PatientMapper.toDomain(item)),
       total,
+      count: total,
+      hasMore: page * limit < total,
     };
   }
 

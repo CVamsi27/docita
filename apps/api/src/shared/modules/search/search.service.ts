@@ -28,6 +28,14 @@ export interface SearchOptions {
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
   private readonly SEARCH_CACHE_TTL = 300;
+  private fullTextSupportPromise: Promise<{
+    patient: boolean;
+    appointment: boolean;
+  }> | null = null;
+  private fullTextSupport = {
+    patient: true,
+    appointment: true,
+  };
 
   constructor(
     private prisma: PrismaService,
@@ -92,14 +100,89 @@ export class SearchService {
     return sorted;
   }
 
+  private async getFullTextSupport(): Promise<{
+    patient: boolean;
+    appointment: boolean;
+  }> {
+    if (!this.fullTextSupportPromise) {
+      this.fullTextSupportPromise = this.detectFullTextSupport().then(
+        (support) => {
+          this.fullTextSupport = support;
+          return support;
+        },
+      );
+    }
+
+    return this.fullTextSupportPromise;
+  }
+
+  private async detectFullTextSupport(): Promise<{
+    patient: boolean;
+    appointment: boolean;
+  }> {
+    const prismaWithUnsafeRaw = this.prisma as {
+      $queryRawUnsafe?: <T = unknown>(query: string) => Promise<T>;
+    };
+
+    if (typeof prismaWithUnsafeRaw.$queryRawUnsafe !== 'function') {
+      return { patient: true, appointment: true };
+    }
+
+    try {
+      const rows = await prismaWithUnsafeRaw.$queryRawUnsafe<
+        Array<{ tableName: string; hasSearchTsvector: boolean }>
+      >(
+        `SELECT
+           table_name AS "tableName",
+           BOOL_OR(column_name = 'search_tsvector' AND udt_name = 'tsvector') AS "hasSearchTsvector"
+         FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name IN ('Patient', 'Appointment')
+         GROUP BY table_name`,
+      );
+
+      const supportByTable = new Map(
+        rows.map((row) => [row.tableName, row.hasSearchTsvector]),
+      );
+
+      return {
+        patient: supportByTable.get('Patient') ?? false,
+        appointment: supportByTable.get('Appointment') ?? false,
+      };
+    } catch (error) {
+      this.logger.warn(
+        `Unable to probe full-text search support; defaulting to full-text path: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return { patient: true, appointment: true };
+    }
+  }
+
+  private disableFullTextSupport(type: 'patient' | 'appointment'): void {
+    if (!this.fullTextSupport[type]) {
+      return;
+    }
+
+    this.fullTextSupport = {
+      ...this.fullTextSupport,
+      [type]: false,
+    };
+    this.fullTextSupportPromise = Promise.resolve(this.fullTextSupport);
+  }
+
   private async searchPatients(
     clinicId: string,
     query: string,
     limit: number,
   ): Promise<SearchResult[]> {
+    const support = await this.getFullTextSupport();
+    if (!support.patient) {
+      return this.searchPatientsFallback(clinicId, query, limit);
+    }
+
     try {
       return await this.searchPatientsFullText(clinicId, query, limit);
     } catch (error) {
+      this.disableFullTextSupport('patient');
       this.logger.warn(
         `Full-text search failed for patients, falling back to ILIKE: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
@@ -188,9 +271,15 @@ export class SearchService {
     query: string,
     limit: number,
   ): Promise<SearchResult[]> {
+    const support = await this.getFullTextSupport();
+    if (!support.appointment) {
+      return this.searchAppointmentsFallback(clinicId, query, limit);
+    }
+
     try {
       return await this.searchAppointmentsFullText(clinicId, query, limit);
     } catch (error) {
+      this.disableFullTextSupport('appointment');
       this.logger.warn(
         `Full-text search failed for appointments, falling back to ILIKE: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );

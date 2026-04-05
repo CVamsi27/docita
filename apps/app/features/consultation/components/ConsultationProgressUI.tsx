@@ -3,7 +3,6 @@ import { cn } from "@workspace/ui/lib/utils";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 
@@ -41,8 +40,6 @@ export function ConsultationProgressUI({
   className,
   compact = false,
 }: ConsultationProgressUIProps) {
-  const _currentStepIndex = steps.findIndex((s) => s.id === currentStepId);
-
   if (compact) {
     return (
       <div className={cn("flex items-center gap-2", className)}>
@@ -69,7 +66,6 @@ export function ConsultationProgressUI({
 
   return (
     <div className={cn("space-y-3", className)}>
-      {}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
           <div
@@ -90,9 +86,7 @@ export function ConsultationProgressUI({
         </span>
       </div>
 
-      {}
-      <TooltipProvider delayDuration={0}>
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between overflow-x-auto no-scrollbar">
           {steps.map((step, index) => {
             const isCurrent = step.id === currentStepId;
 
@@ -110,7 +104,7 @@ export function ConsultationProgressUI({
                     >
                       <div
                         className={cn(
-                          "h-8 w-8 rounded-full flex items-center justify-center border-2 transition-colors duration-150",
+                          "h-6 w-6 sm:h-8 sm:w-8 rounded-full flex items-center justify-center border-2 transition-colors duration-150",
                           step.isComplete &&
                             "bg-success border-success text-success-foreground",
                           !step.isComplete &&
@@ -125,11 +119,11 @@ export function ConsultationProgressUI({
                         )}
                       >
                         {step.isComplete ? (
-                          <Check className="h-4 w-4" />
+                          <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                         ) : step.hasWarnings ? (
-                          <AlertCircle className="h-4 w-4 text-warning" />
+                          <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-warning" />
                         ) : (
-                          <span className="text-xs font-medium">
+                          <span className="text-[10px] sm:text-xs font-medium">
                             {index + 1}
                           </span>
                         )}
@@ -166,7 +160,6 @@ export function ConsultationProgressUI({
                   </TooltipContent>
                 </Tooltip>
 
-                {}
                 {index < steps.length - 1 && (
                   <div
                     className={cn(
@@ -182,8 +175,7 @@ export function ConsultationProgressUI({
               </div>
             );
           })}
-        </div>
-      </TooltipProvider>
+      </div>
 
       {}
       <div className="flex items-center justify-center gap-2 text-xs">

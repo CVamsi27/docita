@@ -52,7 +52,12 @@ export const navItems: NavItem[] = [
     feature: Feature.CALENDAR_SLOTS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
   },
-  { href: "/consultation", icon: Stethoscope, label: "Consultation" },
+  {
+    href: "/consultation",
+    icon: Stethoscope,
+    label: "Consultation",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_CONSULTATION,
+  },
   {
     href: "/prescriptions",
     icon: Pill,
@@ -114,6 +119,7 @@ export const SETTINGS_NAV_ITEM: NavItem = {
   href: "/settings",
   icon: Settings2,
   label: "Settings",
+  accessTarget: APP_ACCESS_TARGETS.PAGE_SETTINGS,
 };
 
 export const FIXED_NAV_HREFS = new Set(["/dashboard", "/settings"]);
@@ -147,5 +153,5 @@ export const IPD_NAV_ITEM: NavItem = {
   href: "/hospital/beds",
   icon: Bed,
   label: "Bed Management",
-  feature: undefined,
+  accessTarget: APP_ACCESS_TARGETS.PAGE_HOSPITAL,
 };

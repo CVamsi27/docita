@@ -1,8 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionContext } from '@nestjs/common';
+import { ContextType, ExecutionContext, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+
+type AuthUser = {
+  id: string;
+  role: string;
+  clinicId?: string;
+};
+
+const noopHandler = (): void => {};
+
+const createExecutionContext = (user?: AuthUser): ExecutionContext => ({
+  getHandler: () => noopHandler,
+  getClass: <T = RolesGuard>() => RolesGuard as Type<T>,
+  switchToHttp: () => ({
+    getRequest: <T = { user?: AuthUser }>() => ({ user }) as T,
+    getResponse: <T = undefined>() => undefined as T,
+    getNext: <T = undefined>() => undefined as T,
+  }),
+  switchToRpc: () => ({
+    getData: <T = undefined>() => undefined as T,
+    getContext: <T = undefined>() => undefined as T,
+  }),
+  switchToWs: () => ({
+    getClient: <T = undefined>() => undefined as T,
+    getData: <T = undefined>() => undefined as T,
+    getPattern: <T = undefined>() => undefined as T,
+  }),
+  getType: <TContext extends string = ContextType>() => 'http' as TContext,
+  getArgs: <
+    T extends Array<{ user?: AuthUser }> = Array<{ user?: AuthUser }>,
+  >() => [{ user }] as T,
+  getArgByIndex: <T = { user?: AuthUser }>(index: number) =>
+    [{ user }][index] as T,
+});
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
@@ -33,17 +66,9 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(undefined);
 
-      const mockExecutionContext = {
-        getHandler: jest.fn(),
-        getClass: jest.fn(),
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: { id: 'user-1', role: 'DOCTOR' },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      const result = guard.canActivate(mockExecutionContext);
+      const result = guard.canActivate(
+        createExecutionContext({ id: 'user-1', role: 'DOCTOR' }),
+      );
 
       expect(result).toBe(true);
     });
@@ -53,17 +78,13 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(['DOCTOR', 'ADMIN']);
 
-      const mockExecutionContext = {
-        getHandler: jest.fn(),
-        getClass: jest.fn(),
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: { id: 'user-1', role: 'DOCTOR', clinicId: 'clinic-1' },
-          }),
+      const result = guard.canActivate(
+        createExecutionContext({
+          id: 'user-1',
+          role: 'DOCTOR',
+          clinicId: 'clinic-1',
         }),
-      } as unknown as ExecutionContext;
-
-      const result = guard.canActivate(mockExecutionContext);
+      );
 
       expect(result).toBe(true);
     });
@@ -73,17 +94,15 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(['ADMIN']);
 
-      const mockExecutionContext = {
-        getHandler: jest.fn(),
-        getClass: jest.fn(),
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: { id: 'user-1', role: 'PATIENT', clinicId: 'clinic-1' },
+      expect(() =>
+        guard.canActivate(
+          createExecutionContext({
+            id: 'user-1',
+            role: 'PATIENT',
+            clinicId: 'clinic-1',
           }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow();
+        ),
+      ).toThrow();
     });
 
     it('should deny request when user is not authenticated', () => {
@@ -91,17 +110,9 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(['DOCTOR']);
 
-      const mockExecutionContext = {
-        getHandler: jest.fn(),
-        getClass: jest.fn(),
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: undefined,
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow();
+      expect(() =>
+        guard.canActivate(createExecutionContext(undefined)),
+      ).toThrow();
     });
 
     it('should handle multiple required roles', () => {
@@ -110,17 +121,13 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(requiredRoles);
 
-      const mockExecutionContext = {
-        getHandler: jest.fn(),
-        getClass: jest.fn(),
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: { id: 'user-1', role: 'RECEPTIONIST', clinicId: 'clinic-1' },
-          }),
+      const result = guard.canActivate(
+        createExecutionContext({
+          id: 'user-1',
+          role: 'RECEPTIONIST',
+          clinicId: 'clinic-1',
         }),
-      } as unknown as ExecutionContext;
-
-      const result = guard.canActivate(mockExecutionContext);
+      );
 
       expect(result).toBe(true);
     });
@@ -130,17 +137,15 @@ describe('RolesGuard', () => {
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(['DOCTOR']);
 
-      const mockExecutionContext = {
-        getHandler: jest.fn(),
-        getClass: jest.fn(),
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: { id: 'user-1', role: 'SUPER_ADMIN', clinicId: 'clinic-1' },
+      expect(() =>
+        guard.canActivate(
+          createExecutionContext({
+            id: 'user-1',
+            role: 'SUPER_ADMIN',
+            clinicId: 'clinic-1',
           }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(() => guard.canActivate(mockExecutionContext)).toThrow();
+        ),
+      ).toThrow();
     });
   });
 });

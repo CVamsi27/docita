@@ -5,6 +5,8 @@ import { InjectQueue } from '@nestjs/bull';
 import * as Papa from 'papaparse';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Gender, Specialization } from '@workspace/db';
+import * as bcrypt from 'bcrypt';
+import { nanoid } from 'nanoid';
 
 export type BulkImportEntityType =
   | 'PATIENT'
@@ -351,7 +353,7 @@ export class BulkImportService {
         where: { email },
       });
       if (existing) {
-        throw new Error(`Email already exists: ${email}`);
+        throw new Error('Patient email already exists');
       }
     }
 
@@ -381,18 +383,18 @@ export class BulkImportService {
       where: { id: patientId },
     });
     if (!patient) {
-      throw new Error(`Patient not found: ${patientId}`);
+      throw new Error('Patient not found');
     }
 
     const doctor = await this.prisma.user.findUnique({
       where: { id: doctorId },
     });
     if (!doctor) {
-      throw new Error(`Doctor not found: ${doctorId}`);
+      throw new Error('Doctor not found');
     }
 
     this.logger.warn(
-      `Skipping prescription import for patient ${patientId}: bulk import requires existing appointments`,
+      'Skipping prescription import: bulk import requires existing appointments',
     );
   }
 
@@ -407,14 +409,17 @@ export class BulkImportService {
       where: { email },
     });
     if (existing) {
-      throw new Error(`Email already exists: ${email}`);
+      throw new Error('Doctor email already exists');
     }
+
+    const generatedPassword = nanoid(32);
+    const passwordHash = await bcrypt.hash(generatedPassword, 10);
 
     await this.prisma.user.create({
       data: {
         email,
         name,
-        password: 'temp_password',
+        password: passwordHash,
         role: 'DOCTOR',
         clinicId,
         specialization: this.getSpecialization(row),

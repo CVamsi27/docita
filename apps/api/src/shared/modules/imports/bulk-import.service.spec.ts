@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bull';
-import { BulkImportService } from './bulk-import.service';
+import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
@@ -70,6 +70,23 @@ describe('BulkImportService', () => {
     expect(service).toBeDefined();
   });
 
+  const startImportUnsafe = (
+    clinicId: string | null,
+    userId: string,
+    entityType: BulkImportEntityType | string,
+    fileName: string,
+    fileBuffer: Buffer,
+  ) =>
+    (
+      service.startImport as (
+        clinicId: string | null,
+        userId: string,
+        entityType: BulkImportEntityType | string,
+        fileName: string,
+        fileBuffer: Buffer,
+      ) => ReturnType<BulkImportService['startImport']>
+    )(clinicId, userId, entityType, fileName, fileBuffer);
+
   describe('startImport', () => {
     it('should start bulk import job', async () => {
       const csvContent = Buffer.from(
@@ -121,10 +138,10 @@ describe('BulkImportService', () => {
       const csvContent = Buffer.from('firstName,lastName\nJohn,Doe');
 
       await expect(
-        service.startImport(
+        startImportUnsafe(
           'clinic-1',
           'user-1',
-          'INVALID_TYPE' as never,
+          'INVALID_TYPE',
           'test.csv',
           csvContent,
         ),
@@ -369,10 +386,10 @@ describe('BulkImportService', () => {
       const csvContent = Buffer.from('firstName,lastName\nJohn,Doe');
 
       await expect(
-        service.startImport(
+        startImportUnsafe(
           'clinic-1',
           'user-1',
-          'UNKNOWN' as never,
+          'UNKNOWN',
           'test.csv',
           csvContent,
         ),
@@ -382,8 +399,8 @@ describe('BulkImportService', () => {
     it('should handle null clinic ID', async () => {
       const csvContent = Buffer.from('firstName,lastName\nJohn,Doe');
 
-      const result = await service.startImport(
-        null as never,
+      const result = await startImportUnsafe(
+        null,
         'user-1',
         'PATIENT',
         'test.csv',

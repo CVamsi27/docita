@@ -1023,6 +1023,7 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
 export const featureDisplaySchema = z.object({
   name: z.string(),
   description: z.string(),
+  availability: z.enum(["GA", "PLANNED"]).optional(),
   comingSoon: z.boolean().optional(),
 });
 export type FeatureDisplay = z.infer<typeof featureDisplaySchema>;
@@ -1130,6 +1131,7 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.MULTI_CLINIC]: {
     name: "Multi-Branch",
     description: "Manage multiple clinic branches",
+    availability: "PLANNED",
   },
   [Feature.LAB_TESTS]: {
     name: "Lab Tests",
@@ -1158,6 +1160,7 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.BROADCAST_CAMPAIGNS]: {
     name: "Broadcast Campaigns",
     description: "WhatsApp bulk messaging",
+    availability: "PLANNED",
   },
   [Feature.OCR_ADVANCED]: {
     name: "Advanced OCR",
@@ -1171,60 +1174,73 @@ export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
   [Feature.FULL_EHR]: {
     name: "Full EHR",
     description: "Complete electronic health records",
+    availability: "PLANNED",
   },
   [Feature.API_ACCESS]: {
     name: "API Access",
     description: "REST API for integrations",
+    availability: "PLANNED",
   },
   [Feature.MULTI_LOCATION_ANALYTICS]: {
     name: "Multi-Location Analytics",
     description: "Analytics across all branches",
+    availability: "PLANNED",
   },
   [Feature.CUSTOM_BRANDING]: {
     name: "Custom Branding",
     description: "White-label with your brand",
+    availability: "PLANNED",
   },
   [Feature.DATA_WAREHOUSE_EXPORT]: {
     name: "Data Warehouse Export",
     description: "Export to data warehouse",
+    availability: "PLANNED",
   },
   [Feature.SSO]: {
     name: "Single Sign-On",
     description: "Enterprise SSO integration",
+    availability: "PLANNED",
   },
   [Feature.BULK_IMPORT_SUITE]: {
     name: "Bulk Import Suite",
     description: "Advanced bulk data import",
+    availability: "PLANNED",
   },
 
   [Feature.AI_PRESCRIPTION_ASSISTANT]: {
     name: "AI Prescription Assistant",
     description: "AI-powered prescription suggestions",
+    availability: "PLANNED",
     comingSoon: true,
   },
   [Feature.AI_DIAGNOSIS_HINTS]: {
     name: "AI Diagnosis Hints",
     description: "AI-powered diagnosis suggestions",
+    availability: "PLANNED",
     comingSoon: true,
   },
   [Feature.SMART_TASK_ENGINE]: {
     name: "Smart Tasks",
     description: "AI-powered task automation",
+    availability: "PLANNED",
     comingSoon: true,
   },
   [Feature.PREDICTIVE_NO_SHOW]: {
     name: "No-Show Prediction",
     description: "Predict appointment no-shows",
+    availability: "PLANNED",
     comingSoon: true,
   },
   [Feature.PATIENT_SEGMENTATION]: {
     name: "Patient Segmentation",
     description: "AI-powered patient grouping",
+    availability: "PLANNED",
     comingSoon: true,
   },
   [Feature.ANOMALY_DETECTION]: {
     name: "Anomaly Detection",
     description: "Detect unusual patterns",
+    availability: "PLANNED",
     comingSoon: true,
   },
 };
@@ -1292,7 +1308,6 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Automated reminders & payment links",
     "Insurance billing",
     "Leave management",
-    "AI features — Coming Soon",
   ],
   PROFESSIONAL: [
     "Everything in Essential",
@@ -1300,21 +1315,11 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "5 doctors included",
     "2,000 consultations/mo included",
     "WhatsApp messaging (2,000 msgs/mo included)",
-    "Broadcast campaigns (mass WhatsApp/SMS)",
-    "Patient segmentation & targeted messaging",
-    "Full EHR (IPD, structured vitals, clinical notes)",
-    "Custom branding on reports & receipts",
-    "Multi-location analytics (cross-branch)",
-    "Bulk data import suite",
-    "REST API access (10,000 calls/day)",
-    "SSO (Google Workspace / Azure AD)",
-    "Custom letterhead",
     "Priority support with SLA",
   ],
   ENTERPRISE: [
     "Everything in Professional",
     "Unlimited patients, users & branches",
-    "Data warehouse export (BI tools)",
     "Custom contract & invoicing",
     "Dedicated account manager",
     "Custom SLA guarantee",
@@ -1342,6 +1347,13 @@ export function hasFeatureAccess(
   }
 
   return getTierValue(tier) >= requiredTier;
+}
+
+export function isFeatureGenerallyAvailable(feature: Feature): boolean {
+  const display = FEATURE_DISPLAY[feature];
+  if (!display) return false;
+  if (display.availability === "PLANNED") return false;
+  return display.comingSoon !== true;
 }
 
 export function getFeaturesForTier(tier: TierName): Feature[] {

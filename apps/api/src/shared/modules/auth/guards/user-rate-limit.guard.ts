@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { UserRateLimitService } from '@/shared/modules/services/user-rate-limit.service';
 import { AuthenticatedRequest } from '@workspace/types';
+import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
 @Injectable()
 export class UserRateLimitGuard implements CanActivate {
@@ -14,12 +15,11 @@ export class UserRateLimitGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const userId = getAuthenticatedUserId(request.user);
 
-    if (!request.user?.sub) {
+    if (!userId) {
       return true;
     }
-
-    const userId = request.user.sub;
 
     if (!this.userRateLimitService.checkRateLimit(userId)) {
       const remaining = this.userRateLimitService.getRemainingRequests(userId);

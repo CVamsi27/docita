@@ -1,7 +1,86 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionContext, CallHandler } from '@nestjs/common';
-import { RequestContextInterceptor } from './request-context.interceptor';
+import {
+  CallHandler,
+  ContextType,
+  ExecutionContext,
+  Type,
+} from '@nestjs/common';
 import { of } from 'rxjs';
+import { RequestContextInterceptor } from './request-context.interceptor';
+
+type HeaderMap = Record<string, string | undefined>;
+
+type TestRequest = {
+  headers: HeaderMap;
+  id?: string;
+  method: string;
+  url: string;
+  ip: string;
+  get: jest.Mock;
+};
+
+type TestResponse = {
+  setHeader: jest.Mock;
+};
+
+const noopHandler = (): void => {};
+
+const createRequest = (headers: HeaderMap = {}): TestRequest => ({
+  headers,
+  id: undefined,
+  method: 'GET',
+  url: '/appointments',
+  ip: '127.0.0.1',
+  get: jest.fn().mockReturnValue('jest-agent'),
+});
+
+const createResponse = (): TestResponse => ({
+  setHeader: jest.fn(),
+});
+
+const createExecutionContext = (
+  request: TestRequest,
+  response: TestResponse,
+): ExecutionContext => {
+  return {
+    switchToHttp: () => ({
+      getRequest: <T = TestRequest>() => request as T,
+      getResponse: <T = TestResponse>() => response as T,
+      getNext: <T = () => void>() => noopHandler as T,
+    }),
+    switchToRpc: () => ({
+      getData: <T = undefined>() => undefined as T,
+      getContext: <T = undefined>() => undefined as T,
+    }),
+    switchToWs: () => ({
+      getClient: <T = undefined>() => undefined as T,
+      getData: <T = undefined>() => undefined as T,
+      getPattern: <T = undefined>() => undefined as T,
+    }),
+    getType: <TContext extends string = ContextType>() => 'http' as TContext,
+    getClass: <T = RequestContextInterceptor>() =>
+      RequestContextInterceptor as Type<T>,
+    getHandler: () => noopHandler,
+    getArgs: <
+      T extends Array<TestRequest | TestResponse> = Array<
+        TestRequest | TestResponse
+      >,
+    >() => [request, response] as T,
+    getArgByIndex: <T = TestRequest | TestResponse>(index: number) =>
+      [request, response][index] as T,
+  };
+};
+
+const createCallHandler = <T>(value: T): CallHandler<T> => ({
+  handle: () => of(value),
+});
+
+const createTestContext = (headers: HeaderMap = {}) => {
+  const request = createRequest(headers);
+  const response = createResponse();
+  const executionContext = createExecutionContext(request, response);
+  return { request, response, executionContext };
+};
 
 describe('RequestContextInterceptor', () => {
   let interceptor: RequestContextInterceptor;
@@ -18,207 +97,102 @@ describe('RequestContextInterceptor', () => {
 
   describe('intercept', () => {
     it('should generate correlation ID if not provided', (done) => {
-      const mockRequest = {
-        headers: {},
-        id: undefined,
-        get: jest.fn().mockReturnValue('jest-agent'),
-      };
+      const { request, response, executionContext } = createTestContext();
+      const callHandler = createCallHandler({});
 
-      const mockResponse = {
-        setHeader: jest.fn(),
-      };
-
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-          getResponse: jest.fn().mockReturnValue(mockResponse),
-        }),
-      } as unknown as ExecutionContext;
-
-      const mockCallHandler = {
-        handle: jest.fn().mockReturnValue(of({})),
-      } as CallHandler;
-
-      interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe(
+      interceptor.intercept(executionContext, callHandler).subscribe(
         () => {
-          expect(mockRequest.id).toBeDefined();
-          expect(typeof mockRequest.id).toBe('string');
-          expect(mockResponse.setHeader).toHaveBeenCalledWith(
+          expect(request.id).toBeDefined();
+          expect(typeof request.id).toBe('string');
+          expect(response.setHeader).toHaveBeenCalledWith(
             'x-correlation-id',
-            mockRequest.id,
+            request.id,
           );
           done();
         },
-        (err) => done(err),
+        (error) => done(error),
       );
     });
 
     it('should extract correlation ID from header if provided', (done) => {
       const providedCorrelationId = 'existing-correlation-id-123';
-      const mockRequest = {
-        headers: {
-          'x-correlation-id': providedCorrelationId,
-        },
-        id: undefined,
-        get: jest.fn().mockReturnValue('jest-agent'),
-      };
+      const { request, response, executionContext } = createTestContext({
+        'x-correlation-id': providedCorrelationId,
+      });
+      const callHandler = createCallHandler({});
 
-      const mockResponse = {
-        setHeader: jest.fn(),
-      };
-
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-          getResponse: jest.fn().mockReturnValue(mockResponse),
-        }),
-      } as unknown as ExecutionContext;
-
-      const mockCallHandler = {
-        handle: jest.fn().mockReturnValue(of({})),
-      } as CallHandler;
-
-      interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe(
+      interceptor.intercept(executionContext, callHandler).subscribe(
         () => {
-          expect(mockRequest.id).toBe(providedCorrelationId);
-          expect(mockResponse.setHeader).toHaveBeenCalledWith(
+          expect(request.id).toBe(providedCorrelationId);
+          expect(response.setHeader).toHaveBeenCalledWith(
             'x-correlation-id',
             providedCorrelationId,
           );
           done();
         },
-        (err) => done(err),
+        (error) => done(error),
       );
     });
 
     it('should set correlation ID in response header', (done) => {
-      const mockRequest = {
-        headers: {},
-        id: undefined,
-        get: jest.fn().mockReturnValue('jest-agent'),
-      };
+      const { response, executionContext } = createTestContext();
+      const callHandler = createCallHandler({ data: 'response' });
 
-      const mockResponse = {
-        setHeader: jest.fn(),
-      };
-
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-          getResponse: jest.fn().mockReturnValue(mockResponse),
-        }),
-      } as unknown as ExecutionContext;
-
-      const mockCallHandler = {
-        handle: jest.fn().mockReturnValue(of({ data: 'response' })),
-      } as CallHandler;
-
-      interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe(
+      interceptor.intercept(executionContext, callHandler).subscribe(
         () => {
-          expect(mockResponse.setHeader).toHaveBeenCalled();
-          const calls = mockResponse.setHeader.mock.calls;
+          expect(response.setHeader).toHaveBeenCalled();
+          const calls = response.setHeader.mock.calls;
           expect(
             calls.some(
-              (c: Array<string | number>) => c[0] === 'x-correlation-id',
+              (call) =>
+                call[0] === 'x-correlation-id' &&
+                typeof call[1] === 'string' &&
+                call[1].length > 0,
             ),
           ).toBe(true);
           done();
         },
-        (err) => done(err),
+        (error) => done(error),
       );
     });
 
     it('should handle case-insensitive header', (done) => {
       const providedCorrelationId = 'header-correlation-id';
-      const mockRequest = {
-        headers: {
-          'X-Correlation-Id': providedCorrelationId,
-        },
-        id: undefined,
-        get: jest.fn().mockReturnValue('jest-agent'),
-      };
+      const { request, executionContext } = createTestContext({
+        'X-Correlation-Id': providedCorrelationId,
+      });
+      const callHandler = createCallHandler({});
 
-      const mockResponse = {
-        setHeader: jest.fn(),
-      };
-
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-          getResponse: jest.fn().mockReturnValue(mockResponse),
-        }),
-      } as unknown as ExecutionContext;
-
-      const mockCallHandler = {
-        handle: jest.fn().mockReturnValue(of({})),
-      } as CallHandler;
-
-      interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe(
+      interceptor.intercept(executionContext, callHandler).subscribe(
         () => {
-          expect(mockRequest.id).toBeDefined();
+          expect(request.id).toBeDefined();
           done();
         },
-        (err) => done(err),
+        (error) => done(error),
       );
     });
 
     it('should pass through call handler response', (done) => {
       const responseData = { message: 'success', data: [1, 2, 3] };
-      const mockRequest = {
-        headers: {},
-        id: undefined,
-        get: jest.fn().mockReturnValue('jest-agent'),
-      };
+      const { executionContext } = createTestContext();
+      const callHandler = createCallHandler(responseData);
 
-      const mockResponse = {
-        setHeader: jest.fn(),
-      };
-
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-          getResponse: jest.fn().mockReturnValue(mockResponse),
-        }),
-      } as unknown as ExecutionContext;
-
-      const mockCallHandler = {
-        handle: jest.fn().mockReturnValue(of(responseData)),
-      } as CallHandler;
-
-      interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe(
+      interceptor.intercept(executionContext, callHandler).subscribe(
         (result) => {
           expect(result).toEqual(responseData);
           done();
         },
-        (err) => done(err),
+        (error) => done(error),
       );
     });
 
     it('should handle errors from handler', (done) => {
       const testError = new Error('Handler error');
-      const mockRequest = {
-        headers: {},
-        id: undefined,
-        get: jest.fn().mockReturnValue('jest-agent'),
-      };
-
-      const mockResponse = {
-        setHeader: jest.fn(),
-      };
-
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-          getResponse: jest.fn().mockReturnValue(mockResponse),
-        }),
-      } as unknown as ExecutionContext;
-
-      const mockCallHandler = {
-        handle: jest.fn().mockReturnValue(of(testError).pipe()),
-      } as CallHandler;
+      const { executionContext } = createTestContext();
+      const callHandler = createCallHandler(testError);
 
       expect(() => {
-        interceptor.intercept(mockExecutionContext, mockCallHandler);
+        interceptor.intercept(executionContext, callHandler);
       }).not.toThrow();
 
       done();
@@ -227,35 +201,17 @@ describe('RequestContextInterceptor', () => {
 
   describe('correlation ID generation', () => {
     it('should generate unique correlation IDs', (done) => {
-      const ids = new Set();
+      const ids = new Set<string>();
 
-      for (let i = 0; i < 5; i++) {
-        const mockRequest = {
-          headers: {},
-          id: undefined,
-          get: jest.fn().mockReturnValue('jest-agent'),
-        };
+      for (let index = 0; index < 5; index += 1) {
+        const { request, executionContext } = createTestContext();
+        const callHandler = createCallHandler({});
 
-        const mockResponse = {
-          setHeader: jest.fn(),
-        };
-
-        const mockExecutionContext = {
-          switchToHttp: jest.fn().mockReturnValue({
-            getRequest: jest.fn().mockReturnValue(mockRequest),
-            getResponse: jest.fn().mockReturnValue(mockResponse),
-          }),
-        } as unknown as ExecutionContext;
-
-        const mockCallHandler = {
-          handle: jest.fn().mockReturnValue(of({})),
-        } as CallHandler;
-
-        interceptor
-          .intercept(mockExecutionContext, mockCallHandler)
-          .subscribe(() => {
-            ids.add(mockRequest.id);
-          });
+        interceptor.intercept(executionContext, callHandler).subscribe(() => {
+          if (request.id) {
+            ids.add(request.id);
+          }
+        });
       }
 
       setTimeout(() => {
@@ -265,35 +221,17 @@ describe('RequestContextInterceptor', () => {
     });
 
     it('should have valid UUID format', (done) => {
-      const mockRequest = {
-        headers: {},
-        id: undefined,
-        get: jest.fn().mockReturnValue('jest-agent'),
-      };
+      const { request, executionContext } = createTestContext();
+      const callHandler = createCallHandler({});
 
-      const mockResponse = {
-        setHeader: jest.fn(),
-      };
-
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue(mockRequest),
-          getResponse: jest.fn().mockReturnValue(mockResponse),
-        }),
-      } as unknown as ExecutionContext;
-
-      const mockCallHandler = {
-        handle: jest.fn().mockReturnValue(of({})),
-      } as CallHandler;
-
-      interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe(
+      interceptor.intercept(executionContext, callHandler).subscribe(
         () => {
           const uuidRegex =
             /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          expect(mockRequest.id).toMatch(uuidRegex);
+          expect(request.id).toMatch(uuidRegex);
           done();
         },
-        (err) => done(err),
+        (error) => done(error),
       );
     });
   });

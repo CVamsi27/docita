@@ -1,59 +1,19 @@
 "use client";
 
 import { useQueries, useQuery } from "@tanstack/react-query";
-import type {
-  CurrentUsage,
-  PricingEstimateRequest,
-  PricingEstimateResponse,
+import {
+  currentUsageSchema,
+  pricingConfigResponseSchema,
+  pricingEstimateResponseSchema,
+  type CurrentUsage,
+  type PricingConfigResponse,
+  type PricingEstimateRequest,
+  type PricingEstimateResponse,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useAuth } from "@/lib/auth-context";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import { apiFetch } from "@/lib/api-client";
-
-interface TierPricing {
-  id: string;
-  name: string;
-  description: string;
-  tagline: string;
-  color: string;
-  pricing: {
-    monthly: number | "custom";
-    yearly: number | "custom";
-    currency: string;
-  };
-  limits: {
-    patients: number;
-    doctors: number;
-    branches: number;
-    appointments: number;
-    storage: number;
-    users: number;
-    prescriptions?: number;
-    invoices?: number;
-    billable?: {
-      consultations: number;
-      users: number;
-      whatsappMessages: number;
-    };
-  };
-  features?: string[];
-}
-
-interface PricingConfig {
-  currency: {
-    code: string;
-    symbol: string;
-    name: string;
-  };
-  supportedCurrencies: Array<{ code: string; symbol: string; name: string }>;
-  tiers: TierPricing[];
-  discounts: {
-    annualPercent: number;
-    semiAnnualPercent: number;
-    referralCredits: number;
-  };
-}
 
 type EstimateRequest = PricingEstimateRequest;
 
@@ -64,6 +24,8 @@ export interface EstimateUsageInputs {
 }
 
 type EstimateResponse = PricingEstimateResponse;
+type PricingConfig = PricingConfigResponse;
+type TierPricing = PricingConfig["tiers"][number];
 
 const fetcher = async <T>(endpoint: string) => {
   return await apiFetch<T>(endpoint, { method: "GET" });
@@ -75,8 +37,10 @@ export function usePricingConfig(currency?: string) {
 
   const { data, error, isLoading, refetch } = useQuery<PricingConfig>({
     queryKey: ["pricing-config", resolvedCurrency],
-    queryFn: () =>
-      fetcher<PricingConfig>(`/pricing/config?currency=${resolvedCurrency}`),
+    queryFn: async () =>
+      pricingConfigResponseSchema.parse(
+        await fetcher<unknown>(`/pricing/config?currency=${resolvedCurrency}`),
+      ),
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
@@ -107,8 +71,10 @@ export function useEstimate(params: EstimateRequest | null) {
 
   const { data, error, isLoading } = useQuery<EstimateResponse>({
     queryKey: ["price-estimate", queryParams],
-    queryFn: () =>
-      fetcher<EstimateResponse>(`/pricing/estimate?${queryParams}`),
+    queryFn: async () =>
+      pricingEstimateResponseSchema.parse(
+        await fetcher<unknown>(`/pricing/estimate?${queryParams}`),
+      ),
     enabled: !!queryParams,
     refetchOnWindowFocus: false,
   });
@@ -141,8 +107,10 @@ export function useTierEstimates(params: {
 
       return {
         queryKey: ["price-estimate", tier, queryString],
-        queryFn: () =>
-          fetcher<EstimateResponse>(`/pricing/estimate?${queryString}`),
+        queryFn: async () =>
+          pricingEstimateResponseSchema.parse(
+            await fetcher<unknown>(`/pricing/estimate?${queryString}`),
+          ),
         staleTime: 30000,
         refetchOnWindowFocus: false,
       };
@@ -169,7 +137,10 @@ export function useCurrentUsage() {
 
   const { data, isLoading, error, refetch } = useQuery<CurrentUsage>({
     queryKey: ["subscription-usage"],
-    queryFn: () => fetchJsonWithSession<CurrentUsage>("/subscriptions/usage"),
+    queryFn: async () =>
+      currentUsageSchema.parse(
+        await fetchJsonWithSession<unknown>("/subscriptions/usage"),
+      ),
     enabled: !!token,
     staleTime: 60000,
     refetchOnWindowFocus: false,

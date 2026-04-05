@@ -52,7 +52,7 @@ export const SubscriptionSettingsDynamic: FC<{ clinicId?: string }> = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="border-none shadow-lg">
+      <Card >
         <CardHeader>
           <CardTitle>Current Plan</CardTitle>
           <CardDescription>You are currently on the Essential plan</CardDescription>
@@ -74,7 +74,7 @@ export const SubscriptionSettingsDynamic: FC<{ clinicId?: string }> = () => {
         {plans.map((plan) => (
           <Card
             key={plan.name}
-            className={`border-none shadow-lg ${plan.current ? "ring-2 ring-primary" : ""}`}
+            className={`${plan.current ? "ring-2 ring-primary" : ""}`}
           >
             <CardHeader>
               <CardTitle className="text-lg">{plan.name}</CardTitle>
@@ -126,7 +126,7 @@ export const DoctorAvailabilitySettingsDynamic: FC<{
   );
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader>
         <CardTitle>Doctor Availability</CardTitle>
         <CardDescription>
@@ -205,7 +205,7 @@ export const TemplatesSettingsDynamic: FC<{ clinicId?: string }> = () => {
   ];
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card >
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Templates</CardTitle>

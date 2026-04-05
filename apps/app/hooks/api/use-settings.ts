@@ -3,11 +3,13 @@ import {
   CreateClinicDoctorRequest,
   CreateClinicReceptionistRequest,
   CreateDoctorRequest,
+  type SubscriptionCurrentResponse,
   UpdateClinicMemberRequest,
   UpdateClinicSettingsRequest,
   UpdateDoctorRequest,
   UpdateProfileRequest,
   User,
+  subscriptionCurrentResponseSchema,
 } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
@@ -85,29 +87,6 @@ export interface PrescriptionDefaults {
   includeClinicHeader: boolean;
   includeDoctorSignature: boolean;
   includeQRCode: boolean;
-}
-
-export interface Subscription {
-  id: string;
-  clinicId: string;
-  plan: string;
-  status: string;
-  billingCycle: string;
-  basePriceCents: number;
-  currency: string;
-  currentPeriodStart: Date;
-  currentPeriodEnd: Date;
-  scheduledChange?: { [key: string]: unknown } | null;
-  clinic?: {
-    id: string;
-    name: string;
-    email: string;
-    tier: string;
-  };
-
-  tier?: string;
-  tierName?: string;
-  subscriptionStatus?: string;
 }
 
 export interface SignatureUploadSessionResponse {
@@ -318,48 +297,14 @@ export const useUpdateMedicalCodingSettings = () =>
   >("/clinical/medical-coding/settings", "PUT");
 
 export const useSubscription = (queryOptions?: { enabled?: boolean }) => {
-  const res = useAPIQuery<Subscription>(["clinic", "subscription"], "/subscription/current", queryOptions);
-
-  const normalized = {
-    ...res,
-  } as typeof res & {
-    data?: Subscription & {
-      tier?: string;
-      tierName?: string;
-      subscriptionStatus?: string;
-    };
-  };
-
-  if (res.data) {
-    const d = res.data as Subscription & {
-      subscription_status?: unknown;
-      subscriptionState?: unknown;
-    };
-    const tierFromClinic = d.clinic?.tier;
-    const tier =
-      tierFromClinic || d.tier || d.plan || d.tierName;
-    const tierName = d.tierName || d.plan || tier;
-    const subscriptionStatus =
-      (typeof d.subscriptionStatus === "string"
-        ? d.subscriptionStatus
-        : undefined) ??
-      (typeof d.status === "string" ? d.status : undefined) ??
-      (typeof d.subscription_status === "string"
-        ? d.subscription_status
-        : undefined) ??
-      (typeof d.subscriptionState === "string"
-        ? d.subscriptionState
-        : undefined);
-
-    normalized.data = {
-      ...d,
-      tier,
-      tierName,
-      subscriptionStatus,
-    } as Subscription & { tier?: string; tierName?: string; subscriptionStatus?: string };
-  }
-
-  return normalized;
+  return useAPIQuery<SubscriptionCurrentResponse>(
+    ["clinic", "subscription"],
+    "/subscription/current",
+    {
+      ...queryOptions,
+      select: (data) => subscriptionCurrentResponseSchema.parse(data),
+    },
+  );
 };
 
 export const useUpdateProfile = () =>
@@ -367,4 +312,3 @@ export const useUpdateProfile = () =>
     { id: string; name?: string; email?: string },
     UpdateProfileRequest
   >("/users/profile", "PATCH");
-

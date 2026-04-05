@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
-  ChevronLeft,
-  ChevronRight,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings2,
   SlidersHorizontal,
   Sparkles,
+  X,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
 import { Switch } from "@workspace/ui/components/switch";
 import {
   Sheet,
@@ -38,7 +40,6 @@ import { NotificationPanel } from "./notification-panel";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import {
   navItems,
-  SETTINGS_NAV_ITEM,
   SPECIALTY_ICONS,
   SPECIALTY_URLS,
   IPD_NAV_ITEM,
@@ -46,99 +47,71 @@ import {
   type NavItem,
 } from "./nav-config";
 
-const SIDEBAR_ICON_VARIANTS: Record<
-  string,
-  { idle: string; active: string }
-> = {
-  "/dashboard": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/patients": {
-    idle: "bg-info/10 text-info",
-    active: "bg-info/15 text-info ring-info/20",
-  },
-  "/appointments": {
-    idle: "bg-success/10 text-success",
-    active: "bg-success/15 text-success ring-success/20",
-  },
-  "/consultation": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/prescriptions": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/lab-tests": {
-    idle: "bg-warning/10 text-warning",
-    active: "bg-warning/15 text-warning ring-warning/20",
-  },
-  "/invoices": {
-    idle: "bg-success/10 text-success",
-    active: "bg-success/15 text-success ring-success/20",
-  },
-  "/inventory": {
-    idle: "bg-muted/60 text-muted-foreground",
-    active: "bg-muted text-foreground ring-border/70",
-  },
-  "/documents": {
-    idle: "bg-info/10 text-info",
-    active: "bg-info/15 text-info ring-info/20",
-  },
-  "/analytics": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-  "/coding-queue": {
-    idle: "bg-warning/10 text-warning",
-    active: "bg-warning/15 text-warning ring-warning/20",
-  },
-  "/import": {
-    idle: "bg-secondary/10 text-secondary-foreground",
-    active: "bg-secondary/15 text-secondary-foreground ring-secondary/20",
-  },
-  "/settings": {
-    idle: "bg-primary/10 text-primary",
-    active: "bg-primary/15 text-primary ring-primary/20",
-  },
-};
-
-function getSidebarIconClasses(href: string, isActive: boolean) {
-  const variant = SIDEBAR_ICON_VARIANTS[href] ?? {
-    idle: "bg-muted/60 text-muted-foreground",
-    active: "bg-muted text-foreground ring-border/70",
-  };
-
+function getIconClasses(isActive: boolean) {
   return cn(
-    "relative flex h-8 w-8 items-center justify-center rounded-md transition-colors ring-1 ring-transparent",
-    isActive ? variant.active : variant.idle,
+    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-transparent",
+    isActive
+      ? "bg-primary/10 text-primary ring-primary/20"
+      : "bg-muted/60 text-muted-foreground",
   );
 }
 
-interface SidebarProps {
-  isCollapsed?: boolean;
-  onCollapsedChange?: (collapsed: boolean) => void;
+function useScrollShadow(ref: React.RefObject<HTMLElement | null>) {
+  const [showTopShadow, setShowTopShadow] = useState(false);
+  const [showBottomShadow, setShowBottomShadow] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    function update() {
+      if (!el) return;
+      setShowTopShadow(el.scrollTop > 4);
+      setShowBottomShadow(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+    }
+
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", update);
+      ro.disconnect();
+    };
+  }, [ref]);
+
+  return { showTopShadow, showBottomShadow };
 }
 
-export function Sidebar({
-  isCollapsed = false,
-  onCollapsedChange,
-}: SidebarProps) {
+interface SidebarContentProps {
+  isCollapsed: boolean;
+  onCollapse: () => void;
+  onExpand: () => void;
+  onClose?: () => void;
+  isMobile?: boolean;
+}
+
+function SidebarContent({
+  isCollapsed,
+  onCollapse,
+  onExpand,
+  onClose,
+  isMobile = false,
+}: SidebarContentProps) {
   const pathname = usePathname();
   const { user } = useAuth();
   const { clinicId } = useClinic();
   const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
+  const scrollRef = useRef<HTMLElement | null>(null);
+  const { showTopShadow, showBottomShadow } = useScrollShadow(scrollRef);
 
   const isAdmin = !!user?.role && CLINIC_ADMIN_ROLES.has(user.role);
-  const { canAccess, getTierInfo, clinicType: storeClinicType } = usePermissionStore();
+  const { canAccess, getTierInfo, clinicType: storeClinicType } =
+    usePermissionStore();
   const canAccessNotifications = canAccessTarget(
     APP_ACCESS_TARGETS.API_WHATSAPP,
-    {
-      role: user?.role,
-      canAccessFeature: canAccess,
-    },
+    { role: user?.role, canAccessFeature: canAccess },
     "read",
   );
   const { data: unreadNotificationCount } =
@@ -153,13 +126,13 @@ export function Sidebar({
   const clinicType = (storeClinicType ||
     getClinicSetting("clinicType")) as ClinicType | undefined;
 
-  const specialtySections = ClinicFeatureService.getSpecialtySections(clinicType);
-
+  const specialtySections =
+    ClinicFeatureService.getSpecialtySections(clinicType);
   const specialtyNavItems: NavItem[] = specialtySections.map((section) => ({
     href: SPECIALTY_URLS[section.id] || `/specialty/${section.id}`,
     icon: SPECIALTY_ICONS[section.icon] || SPECIALTY_ICONS["Brain"]!,
     label: section.label,
-    feature: undefined,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_SPECIALTY,
   }));
 
   const hospitalNavItems: NavItem[] = [];
@@ -168,229 +141,257 @@ export function Sidebar({
   }
 
   const allNavItems = [...navItems, ...specialtyNavItems, ...hospitalNavItems];
-
   const accessibleNavItems = allNavItems.filter((item) => {
     if (item.accessTarget) {
       return canAccessTarget(
         item.accessTarget,
-        {
-          role: user?.role,
-          canAccessFeature: canAccess,
-        },
+        { role: user?.role, canAccessFeature: canAccess },
         "read",
       );
     }
-
     return !item.feature || canAccess(item.feature);
   });
 
-  const visibleNavItems = [
-    ...accessibleNavItems.filter(
-      (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
-    ),
-    SETTINGS_NAV_ITEM,
-  ];
+  const canAccessSettings = canAccessTarget(
+    APP_ACCESS_TARGETS.PAGE_SETTINGS,
+    { role: user?.role, canAccessFeature: canAccess },
+    "read",
+  );
+
+  const visibleNavItems = accessibleNavItems.filter(
+    (item) => FIXED_NAV_HREFS.has(item.href) || !isHidden(item.href),
+  );
 
   const customizableNavItems = accessibleNavItems.filter(
     (item) => !FIXED_NAV_HREFS.has(item.href),
   );
 
   const tierInfo = getTierInfo();
-  const tierIndicatorClass = cn(
-    "h-2.5 w-2.5 rounded-full animate-pulse bg-current shadow-[0_0_10px_currentColor]",
-    tierInfo.color === "gray" && "bg-muted-foreground",
-    tierInfo.color === "blue" && "text-info",
-    tierInfo.color === "green" && "text-success",
-    tierInfo.color === "purple" && "text-primary",
-    tierInfo.color === "violet" && "text-primary",
-    tierInfo.color === "orange" && "text-warning",
-    tierInfo.color === "pink" && "text-secondary",
-    tierInfo.color === "gray" && "text-muted-foreground",
+  const tierDotClass = cn(
+    "h-2 w-2 rounded-full shrink-0",
+    tierInfo.color === "blue" && "bg-info shadow-[0_0_8px_theme(colors.info)]",
+    tierInfo.color === "green" &&
+      "bg-success shadow-[0_0_8px_theme(colors.success)]",
+    tierInfo.color === "purple" &&
+      "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
+    tierInfo.color === "violet" &&
+      "bg-primary shadow-[0_0_8px_theme(colors.primary)]",
+    tierInfo.color === "orange" &&
+      "bg-warning shadow-[0_0_8px_theme(colors.warning)]",
+    tierInfo.color === "pink" &&
+      "bg-secondary shadow-[0_0_8px_theme(colors.secondary)]",
+    (tierInfo.color === "gray" || !tierInfo.color) && "bg-muted-foreground",
   );
-  const controlIconButtonClass =
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground hover:bg-muted hover:text-foreground";
+
+  const showLabels = !isCollapsed || isMobile;
 
   return (
-    <aside
-      className={cn(
-        "hidden lg:flex flex-col h-screen bg-background border-r transition-[width] duration-150",
-        isCollapsed ? "w-16" : "w-64",
-      )}
-    >
-      <div className="flex items-center justify-between p-4 border-b">
-        {isCollapsed ? (
-          <Link
-            href="/dashboard"
-            className="flex h-10 w-full items-center justify-center"
-          >
-            <DocitaIcon />
-          </Link>
-        ) : (
-          <Link href="/dashboard" className="flex h-10 items-center gap-2">
-            <DocitaLogo />
-          </Link>
+    <>
+      {/* Header */}
+      <div
+        className={cn(
+          "flex h-14 shrink-0 items-center justify-between border-b border-border/60",
+          isCollapsed && !isMobile ? "px-2" : "px-3",
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onCollapsedChange?.(!isCollapsed)}
-          className="h-8 w-8"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
+      >
+        <Link
+          href="/dashboard"
+          className={cn(
+            "flex items-center justify-center rounded-lg transition-colors hover:bg-muted",
+            isCollapsed && !isMobile
+              ? "h-6 w-6"
+              : "h-9 gap-2 px-1 hover:opacity-80 hover:bg-transparent",
           )}
-        </Button>
-      </div>
+        >
+          {isCollapsed && !isMobile ? <DocitaIcon /> : <DocitaLogo />}
+        </Link>
 
-      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1.5 py-1 space-y-0.5">
-        {canAccessNotifications && (
+        {isMobile ? (
           <Button
             variant="ghost"
-            className={cn(
-              "group w-full justify-start gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:bg-muted hover:text-foreground",
-              isCollapsed && "justify-center px-2",
-            )}
-            onClick={() => setNotificationPanelOpen(true)}
-            title={isCollapsed ? "Notifications" : undefined}
+            size="icon"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+            onClick={onClose}
+            aria-label="Close sidebar"
           >
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-md bg-muted/60 transition-colors group-hover:bg-muted">
-              <Bell className="h-4 w-4 shrink-0" />
-              {notificationCount > 0 && (
-                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
-              )}
-            </div>
-            {!isCollapsed && <span>Notifications</span>}
-            {!isCollapsed && notificationCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
-              >
-                {notificationCount > 9 ? "9+" : notificationCount}
-              </Badge>
-            )}
+            <X className="h-4 w-4" />
+          </Button>
+        ) : isCollapsed ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+            onClick={onExpand}
+            aria-label="Expand sidebar"
+          >
+            <PanelLeftOpen className="h-3.5 w-3.5" />
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+            onClick={onCollapse}
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="h-4 w-4" />
           </Button>
         )}
+      </div>
 
-        {visibleNavItems.map((item) => {
-          const isSettingsItem = item.href === "/settings";
-          const isActive = isSettingsItem
-            ? pathname.startsWith("/settings")
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+      {/* Scrollable nav */}
+      <div className="relative flex-1 min-h-0">
+        {showTopShadow && (
+          <div className="pointer-events-none absolute top-0 left-0 right-0 h-6 z-10 bg-gradient-to-b from-background to-transparent" />
+        )}
 
-          const settingsBadgeCount =
-            isSettingsItem && isAdmin ? pendingJoinRequestCount : 0;
+        <nav
+          ref={(el) => {
+            scrollRef.current = el;
+          }}
+          className="h-full overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin scrollbar-thumb-border/60 scrollbar-track-transparent"
+        >
+          {visibleNavItems.map((item) => {
+            const isActive =
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "group flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                isCollapsed && "justify-center px-2",
-              )}
-              title={isCollapsed ? item.label : undefined}
-            >
-              <div
-                className={getSidebarIconClasses(item.href, isActive)}
-              >
-                <item.icon className="h-4 w-4 shrink-0" />
-                {isCollapsed && settingsBadgeCount > 0 && (
-                  <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "group flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-primary/8 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  isCollapsed && !isMobile && "justify-center px-0",
                 )}
-              </div>
-              {!isCollapsed && <span>{item.label}</span>}
-              {!isCollapsed && settingsBadgeCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="ml-auto px-1.5 min-w-5 h-5 text-[10px]"
-                >
-                  {settingsBadgeCount > 9 ? "9+" : settingsBadgeCount}
-                </Badge>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+                title={isCollapsed && !isMobile ? item.label : undefined}
+              >
+                <div className={getIconClasses(isActive)}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                </div>
+                {showLabels && (
+                  <span className="flex-1 truncate">{item.label}</span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="border-t px-2 py-1.5">
-        {!isCollapsed ? (
-          <div className="flex items-center justify-between px-2">
-            <span className="text-xs text-muted-foreground font-medium">Theme</span>
-            <ThemeToggle />
-          </div>
-        ) : (
-          <div className="flex justify-center">
-            <ThemeToggle />
+        {showBottomShadow && (
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 z-10 bg-gradient-to-t from-background to-transparent" />
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="shrink-0 border-t border-border/60">
+        {/* Quick-access icons row */}
+        <div
+          className={cn(
+            "flex items-center gap-1 px-2 py-2",
+            isCollapsed && !isMobile ? "flex-col items-center py-3" : "",
+          )}
+        >
+          <ThemeToggle />
+          {canAccessNotifications && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+              title="Notifications"
+              onClick={() => setNotificationPanelOpen(true)}
+            >
+              <Bell className="h-4 w-4" />
+              {notificationCount > 0 && (
+                <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
+              )}
+            </Button>
+          )}
+          {canAccessSettings && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted",
+                pathname.startsWith("/settings") && "bg-primary/8 text-primary",
+              )}
+              title="Settings"
+              asChild
+            >
+              <Link href="/settings">
+                <Settings2 className="h-4 w-4" />
+                {isAdmin && pendingJoinRequestCount > 0 && (
+                  <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </Link>
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+              title="Customize sidebar"
+              onClick={() => setCustomizeOpen(true)}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* Plan + Upgrade row */}
+        {isAdmin && (
+          <div
+            className={cn(
+              "flex items-center gap-2 px-3 pb-3",
+              isCollapsed && !isMobile ? "flex-col items-center" : "",
+            )}
+          >
+            <div
+              className={cn(
+                "flex items-center gap-2 min-w-0",
+                isCollapsed && !isMobile ? "justify-center" : "flex-1",
+              )}
+            >
+              <span className={tierDotClass} />
+              {showLabels && (
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
+                    Plan
+                  </p>
+                  <p className="text-sm font-medium truncate leading-tight mt-0.5">
+                    {tierInfo.name}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {canAccessTarget(APP_ACCESS_TARGETS.PAGE_UPGRADE, {
+              role: user?.role,
+              canAccessFeature: canAccess,
+            }) && (
+              <Button
+                className={cn(
+                  "shrink-0 gap-1.5",
+                  isCollapsed && !isMobile
+                    ? "h-8 w-8 rounded-lg border border-primary/30 bg-primary/10 p-0 text-primary hover:bg-primary/20"
+                    : "h-8 px-3 text-xs bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+                )}
+                size="sm"
+                asChild
+              >
+                <Link href="/upgrade">
+                  <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                  {showLabels && "Upgrade"}
+                </Link>
+              </Button>
+            )}
           </div>
         )}
       </div>
 
-      {isAdmin && (
-        <div className="border-t px-2 py-1.5">
-          <div className="space-y-2 p-1.5">
-            <div
-              className={cn(
-                "flex items-center",
-                isCollapsed ? "justify-center" : "gap-2.5",
-              )}
-            >
-              <div className={tierIndicatorClass} />
-              {!isCollapsed ? (
-                <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
-                    Plan
-                  </p>
-                  <p className="text-sm font-medium truncate">{tierInfo.name}</p>
-                </div>
-              ) : (
-                <span className="sr-only">{tierInfo.name} plan</span>
-              )}
-            </div>
-            <div
-              className={cn(
-                "flex items-center gap-2",
-                isCollapsed && "justify-center",
-              )}
-            >
-              {canAccessTarget(APP_ACCESS_TARGETS.PAGE_UPGRADE, {
-                role: user?.role,
-                canAccessFeature: canAccess,
-              }) && (
-                <Button
-                  className={cn(
-                    isCollapsed
-                      ? "h-8 w-8 rounded-md border border-primary/30 bg-primary/10 p-0 text-primary hover:bg-primary/20"
-                      : "flex-1 gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
-                  )}
-                  size="sm"
-                  asChild
-                >
-                  <Link href="/upgrade">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {!isCollapsed && "Upgrade"}
-                  </Link>
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(controlIconButtonClass)}
-                title="Customize sidebar"
-                onClick={() => setCustomizeOpen(true)}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Notification panel */}
       {canAccessNotifications && (
         <NotificationPanel
           open={notificationPanelOpen}
@@ -399,25 +400,26 @@ export function Sidebar({
         />
       )}
 
+      {/* Customize sheet */}
       <Sheet open={customizeOpen} onOpenChange={setCustomizeOpen}>
         <SheetContent side="left" className="w-72">
           <SheetHeader>
             <SheetTitle>Customize Sidebar</SheetTitle>
           </SheetHeader>
           <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Toggle which items appear in the sidebar for your clinic.
+            Toggle which items appear in the sidebar.
           </p>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {customizableNavItems.map((item) => (
               <div
                 key={item.href}
-                className="flex items-center justify-between py-1.5 px-1"
+                className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-3 text-sm">
-                  <div className={getSidebarIconClasses(item.href, false)}>
+                  <div className={getIconClasses(false)}>
                     <item.icon className="h-4 w-4 shrink-0" />
                   </div>
-                  <span>{item.label}</span>
+                  <span className="font-medium">{item.label}</span>
                 </div>
                 <Switch
                   checked={!isHidden(item.href)}
@@ -428,6 +430,85 @@ export function Sidebar({
           </div>
         </SheetContent>
       </Sheet>
-    </aside>
+    </>
+  );
+}
+
+interface SidebarProps {
+  isCollapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
+}
+
+export function Sidebar({
+  isCollapsed = false,
+  onCollapsedChange,
+  mobileOpen = false,
+  onMobileOpenChange,
+}: SidebarProps) {
+  const pathname = usePathname();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    onMobileOpenChange?.(false);
+  }, [pathname, onMobileOpenChange]);
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          "relative hidden md:flex flex-col h-full bg-background border-r border-border/60",
+          "transition-[width] duration-200 ease-in-out overflow-visible",
+          isCollapsed ? "w-16" : "w-full",
+        )}
+      >
+        <SidebarContent
+          isCollapsed={isCollapsed}
+          onCollapse={() => onCollapsedChange?.(true)}
+          onExpand={() => onCollapsedChange?.(false)}
+        />
+      </aside>
+
+      {/* Mobile sidebar — Sheet */}
+      <Sheet open={mobileOpen} onOpenChange={onMobileOpenChange}>
+        <SheetContent
+          side="left"
+          className="w-72 p-0 flex flex-col gap-0 md:hidden"
+          aria-label="Navigation"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Navigation</SheetTitle>
+          </SheetHeader>
+          <SidebarContent
+            isCollapsed={false}
+            isMobile
+            onCollapse={() => {}}
+            onExpand={() => {}}
+            onClose={() => onMobileOpenChange?.(false)}
+          />
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}
+
+/** Trigger button rendered in the mobile header to open the sidebar */
+export function SidebarMobileTrigger({
+  onClick,
+}: {
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9 md:hidden"
+      onClick={onClick}
+      aria-label="Open navigation"
+    >
+      <Menu className="h-5 w-5" />
+    </Button>
   );
 }

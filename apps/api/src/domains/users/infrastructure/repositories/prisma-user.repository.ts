@@ -11,13 +11,13 @@ export class PrismaUserRepository implements IUserRepository {
   constructor(private prisma: PrismaService) {}
 
   async findById(id: string) {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({ where: { id } }),
     );
   }
 
   async findByEmail(email: string) {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.user.findUnique({ where: { email } }),
     );
   }
@@ -26,7 +26,7 @@ export class PrismaUserRepository implements IUserRepository {
     userId: string,
     data: { name?: string; email?: string },
   ): Promise<UserProfile> {
-    return this.prisma.runUnrestricted(() =>
+    return this.prisma.runUnrestricted(async () =>
       this.prisma.user.update({
         where: { id: userId },
         data: {
@@ -45,7 +45,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async updateOnboardingStep(userId: string, step: string): Promise<void> {
-    await this.prisma.runUnrestricted(() =>
+    await this.prisma.runUnrestricted(async () =>
       this.prisma.user.update({
         where: { id: userId },
         data: { onboardingStep: step as OnboardingStep },

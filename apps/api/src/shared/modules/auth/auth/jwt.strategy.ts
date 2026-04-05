@@ -49,23 +49,45 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Invalid token');
     }
 
-    const user = await this.prisma.runUnrestricted(async () => {
-      return this.prisma.user.findUnique({
-        where: { id: payload.sub },
-      });
-    });
+    try {
+      const users = await this.prisma.$queryRaw<
+        Array<{ id: string; name: string; clinicId: string | null }>
+      >`
+        SELECT "id", "name", "clinicId"
+        FROM "User"
+        WHERE "id" = ${payload.sub}
+        LIMIT 1
+      `;
+      const user = users[0] ?? null;
 
-    if (!user) {
-      this.logger.warn(`User not found for sub: ${payload.sub}`);
-      throw new UnauthorizedException('User not found');
+      if (!user) {
+        this.logger.warn('User not found for token subject');
+        throw new UnauthorizedException('User not found');
+      }
+      return {
+        id: payload.sub,
+        sub: payload.sub,
+        email: payload.email,
+        role: payload.role,
+        name: user.name,
+        clinicId: user.clinicId,
+        patientId: payload.patientId,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      const errorMessage =
+        error instanceof Error
+          ? `${error.name}: ${error.message}`
+          : String(error);
+      this.logger.warn(
+        `Failed to validate token subject ${payload.sub}: ${errorMessage}`,
+      );
+      throw new UnauthorizedException(
+        'Unable to validate authentication right now. Please try again shortly.',
+      );
     }
-    return {
-      id: payload.sub,
-      email: payload.email,
-      role: payload.role,
-      name: user.name,
-      clinicId: user.clinicId,
-      patientId: payload.patientId,
-    };
   }
 }

@@ -1,24 +1,52 @@
+"use client";
+
 import React from "react";
-import { DentalChartUI, DentalChartValue } from "./specialty/DentalChartUI";
-import { GrowthChartUI } from "./specialty/GrowthChartUI";
-import { VisionExamUI } from "./specialty/VisionExamUI";
+import dynamic from "next/dynamic";
 import {
   ChiefComplaintInput,
-  ChiefComplaintItem,
+  type ChiefComplaintItem,
 } from "./structured/ChiefComplaintInput";
-import { DiagnosisInput, DiagnosisItem } from "./structured/DiagnosisInput";
+import { DiagnosisInput, type DiagnosisItem } from "./structured/DiagnosisInput";
 import {
-  ExaminationData,
+  type ExaminationData,
   ExaminationInput,
 } from "./structured/ExaminationInput";
-import { Medication, PrescriptionInput } from "./structured/PrescriptionInput";
-import { PatientMedicalHistoryContainer } from "@/features/patients/components";
+import { type Medication, PrescriptionInput } from "./structured/PrescriptionInput";
 import { Textarea } from "@workspace/ui/components/textarea";
 import {
-  GrowthChartData,
-  OphthalmologyExamData,
-  Patient,
+  type GrowthChartData,
+  type OphthalmologyExamData,
+  type Patient,
 } from "@workspace/types";
+import type { DentalChartValue } from "./specialty/DentalChartUI";
+
+function SectionLoading() {
+  return (
+    <div className="flex items-center justify-center p-8">
+      <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+    </div>
+  );
+}
+
+const DentalChartUILazy = dynamic(
+  () => import("./specialty/DentalChartUI").then((m) => m.DentalChartUI),
+  { ssr: false, loading: SectionLoading },
+);
+const GrowthChartUILazy = dynamic(
+  () => import("./specialty/GrowthChartUI").then((m) => m.GrowthChartUI),
+  { ssr: false, loading: SectionLoading },
+);
+const VisionExamUILazy = dynamic(
+  () => import("./specialty/VisionExamUI").then((m) => m.VisionExamUI),
+  { ssr: false, loading: SectionLoading },
+);
+const PatientMedicalHistoryContainerLazy = dynamic(
+  () =>
+    import(
+      "@/features/patients/components/details/PatientMedicalHistoryContainer"
+    ).then((m) => m.PatientMedicalHistoryContainer),
+  { ssr: false, loading: SectionLoading },
+);
 
 export interface ConsultationData {
   chiefComplaint: ChiefComplaintItem[];
@@ -49,15 +77,16 @@ interface ConsultationFormRendererProps {
   data: ConsultationData;
   handlers: ConsultationHandlers;
   patient?: Patient;
+  isLoading?: boolean;
 }
 
-export function ConsultationFormRenderer({
+export const ConsultationFormRenderer = React.memo(function ConsultationFormRenderer({
   tabId,
   data,
   handlers,
   patient,
   isLoading,
-}: ConsultationFormRendererProps & { isLoading?: boolean }) {
+}: ConsultationFormRendererProps) {
   switch (tabId) {
     case "chief-complaint":
       return (
@@ -68,15 +97,11 @@ export function ConsultationFormRenderer({
       );
     case "history":
       if (isLoading && !patient) {
-        return (
-          <div className="flex items-center justify-center p-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        );
+        return <SectionLoading />;
       }
       if (patient) {
         return (
-          <PatientMedicalHistoryContainer
+          <PatientMedicalHistoryContainerLazy
             patient={patient}
             readOnly={false}
             variant="consultation"
@@ -84,7 +109,7 @@ export function ConsultationFormRenderer({
         );
       }
       return (
-        <div className="flex items-center justify-center p-8 text-muted-foreground border rounded-md border-dashed">
+        <div className="flex items-center justify-center rounded-md border border-dashed p-8 text-muted-foreground">
           Patient data not available for medical history.
         </div>
       );
@@ -97,28 +122,28 @@ export function ConsultationFormRenderer({
       );
     case "dental-chart":
       return (
-        <DentalChartUI
+        <DentalChartUILazy
           value={data.dentalChart}
           onChange={handlers.setDentalChart}
         />
       );
     case "vision-exam":
       return (
-        <VisionExamUI value={data.eyeExam} onChange={handlers.setEyeExam} />
+        <VisionExamUILazy
+          value={data.eyeExam}
+          onChange={handlers.setEyeExam}
+        />
       );
     case "growth-chart":
       return (
-        <GrowthChartUI
+        <GrowthChartUILazy
           value={data.growthData}
           onChange={handlers.setGrowthData}
         />
       );
     case "diagnosis":
       return (
-        <DiagnosisInput
-          value={data.diagnosis}
-          onChange={handlers.setDiagnosis}
-        />
+        <DiagnosisInput value={data.diagnosis} onChange={handlers.setDiagnosis} />
       );
     case "treatment":
       return (
@@ -143,4 +168,4 @@ export function ConsultationFormRenderer({
     default:
       return null;
   }
-}
+});

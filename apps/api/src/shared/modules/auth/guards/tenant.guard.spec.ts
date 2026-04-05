@@ -1,32 +1,33 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { Role } from '@workspace/db';
 import { TenantGuard } from './tenant.guard';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
-  return {
-    getType: jest.fn().mockReturnValue('http'),
-    switchToHttp: jest.fn().mockReturnValue({
-      getRequest: jest.fn().mockReturnValue(request),
-    }),
-    getHandler: jest.fn(),
-    getClass: jest.fn(),
-  } as unknown as ExecutionContext;
+  const context = new ExecutionContextHost([request, undefined, undefined]);
+  context.setType('http');
+  return context;
 }
 
 describe('TenantGuard', () => {
-  let reflector: jest.Mocked<Reflector>;
+  let reflector: Reflector;
+  let getAllAndOverrideMock: jest.MockedFunction<
+    Reflector['getAllAndOverride']
+  >;
   let guard: TenantGuard;
 
   beforeEach(() => {
-    reflector = {
-      getAllAndOverride: jest.fn(),
-    } as unknown as jest.Mocked<Reflector>;
+    reflector = Object.create(Reflector.prototype) as Reflector;
+    getAllAndOverrideMock = jest.fn() as jest.MockedFunction<
+      Reflector['getAllAndOverride']
+    >;
+    reflector.getAllAndOverride = getAllAndOverrideMock;
     guard = new TenantGuard(reflector);
   });
 
   it('should allow public route', () => {
-    reflector.getAllAndOverride
+    getAllAndOverrideMock
       .mockReturnValueOnce(true) // isPublic
       .mockReturnValueOnce(false); // allowNoClinic
 
@@ -35,7 +36,7 @@ describe('TenantGuard', () => {
   });
 
   it('should allow SUPER_ADMIN without clinicId', () => {
-    reflector.getAllAndOverride
+    getAllAndOverrideMock
       .mockReturnValueOnce(false) // isPublic
       .mockReturnValueOnce(false); // allowNoClinic
 
@@ -46,7 +47,7 @@ describe('TenantGuard', () => {
   });
 
   it('should allow no-clinic route when AllowNoClinic is set', () => {
-    reflector.getAllAndOverride
+    getAllAndOverrideMock
       .mockReturnValueOnce(false) // isPublic
       .mockReturnValueOnce(true); // allowNoClinic
 
@@ -57,7 +58,7 @@ describe('TenantGuard', () => {
   });
 
   it('should reject authenticated user without clinic for clinic-scoped route', () => {
-    reflector.getAllAndOverride
+    getAllAndOverrideMock
       .mockReturnValueOnce(false) // isPublic
       .mockReturnValueOnce(false); // allowNoClinic
 
@@ -69,7 +70,7 @@ describe('TenantGuard', () => {
   });
 
   it('should reject clinic mismatch from params/query/body', () => {
-    reflector.getAllAndOverride
+    getAllAndOverrideMock
       .mockReturnValueOnce(false) // isPublic
       .mockReturnValueOnce(false); // allowNoClinic
 
@@ -86,7 +87,7 @@ describe('TenantGuard', () => {
   });
 
   it('should allow matching clinicId across request parts', () => {
-    reflector.getAllAndOverride
+    getAllAndOverrideMock
       .mockReturnValueOnce(false) // isPublic
       .mockReturnValueOnce(false); // allowNoClinic
 

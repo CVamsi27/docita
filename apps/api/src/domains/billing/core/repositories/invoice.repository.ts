@@ -43,6 +43,9 @@ export interface InvoiceDetail {
       address: string | null;
       phone: string | null;
       email: string | null;
+      logo: string | null;
+      currency: string | null;
+      branding: Prisma.JsonValue | null;
       slaSignatureUrl?: string | null;
       gstin?: string | null;
       settings?: Prisma.JsonValue | null;
@@ -57,6 +60,14 @@ export interface InvoiceDetail {
       qualification: string | null;
       registrationNumber: string | null;
     };
+    diagnoses?: Array<{
+      isPrimary: boolean;
+      icdCode: { code: string; description: string; version: string } | null;
+    }>;
+    procedures?: Array<{
+      description: string;
+      cptCode: { code: string; description: string } | null;
+    }>;
   } | null;
 }
 

@@ -118,9 +118,9 @@ describe('ErrorTrackingService', () => {
       { code: 'P2021', clientVersion: 'test' },
     );
 
-    (
-      prismaService.errorLog.createMany as unknown as jest.Mock
-    ).mockImplementationOnce(async () => Promise.reject(prismaError));
+    prismaService.errorLog.createMany.mockImplementationOnce(async () =>
+      Promise.reject(prismaError),
+    );
 
     service.logError(sampleError);
     await service.flushBuffer();
