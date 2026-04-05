@@ -6,6 +6,9 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig({
   site: "https://docita.work",
   output: "server",
+  build: {
+    inlineStylesheets: "always",
+  },
   adapter: cloudflare({ imageService: "compile" }),
   integrations: [react()],
   vite: {

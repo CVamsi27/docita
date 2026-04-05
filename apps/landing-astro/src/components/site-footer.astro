@@ -2,36 +2,54 @@
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 ---
 
-<footer class="border-t bg-muted/30 px-6 py-10">
-  <div class="container mx-auto grid gap-8 md:grid-cols-[1.2fr_1fr_1fr]">
+<footer class="bg-muted text-muted-foreground border-t px-6 py-10">
+  <div class="container mx-auto grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
     <div>
       <a href="/" class="inline-flex h-10 items-center" aria-label="Docita home">
         <DocitaLogo />
       </a>
-      <p class="mt-4 max-w-sm text-sm text-muted-foreground">
-        Docita helps Indian clinics run faster, safer, and with better patient experience.
+      <p class="mt-4 text-sm">
+        The complete operating system for modern clinics. Simplifying healthcare
+        delivery one patient at a time.
       </p>
     </div>
 
     <div>
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-foreground">Company</h2>
-      <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
-        <li><a href="/contact" class="transition-colors hover:text-foreground">Contact</a></li>
-        <li><a href="/refund-policy" class="transition-colors hover:text-foreground">Refund Policy</a></li>
-        <li><a href="/cookies" class="transition-colors hover:text-foreground">Cookie Policy</a></li>
+      <h2 class="font-semibold text-foreground">Product</h2>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li><a href="/#features" class="hover:text-primary">Features</a></li>
+        <li><a href="/#pricing" class="hover:text-primary">Pricing</a></li>
+        <li><a href="/#testimonials" class="hover:text-primary">Testimonials</a></li>
+        <li><a href="/#faq" class="hover:text-primary">FAQ</a></li>
       </ul>
     </div>
 
     <div>
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-foreground">Legal</h2>
-      <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
-        <li><a href="/privacy" class="transition-colors hover:text-foreground">Privacy Policy</a></li>
-        <li><a href="/terms" class="transition-colors hover:text-foreground">Terms of Service</a></li>
+      <h2 class="font-semibold text-foreground">Support</h2>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li><a href="/contact" class="hover:text-primary">Help Center</a></li>
+        <li><a href="/contact" class="hover:text-primary">Contact Us</a></li>
+        <li><a href="mailto:support@docita.work" class="hover:text-primary">support@docita.work</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="font-semibold text-foreground">Legal</h2>
+      <ul class="mt-4 space-y-2 text-sm">
+        <li><a href="/privacy" class="hover:text-primary">Privacy Policy</a></li>
+        <li><a href="/terms" class="hover:text-primary">Terms of Service</a></li>
+        <li><a href="/refund-policy" class="hover:text-primary">Refund Policy</a></li>
+        <li><a href="/cookies" class="hover:text-primary">Cookie Policy</a></li>
       </ul>
     </div>
   </div>
 
-  <div class="container mx-auto mt-8 border-t pt-6 text-sm text-muted-foreground">
-    © {new Date().getFullYear()} Docita. All rights reserved.
+  <div class="container mx-auto mt-8 border-t pt-6 text-center text-xs leading-relaxed text-muted-foreground">
+    <p>© {new Date().getFullYear()} Docita. All rights reserved.</p>
+    <p class="mt-1">
+      Docita is operated by <strong>CHANDALURI VAMSI KRISHNA</strong>, a registered sole proprietorship in India.
+    </p>
+    <p>GSTIN: 36CJPPC6222C1ZI</p>
+    <p>Aparna Cyberscape, Nalagandla, Hyderabad, Telangana 500019</p>
   </div>
 </footer>

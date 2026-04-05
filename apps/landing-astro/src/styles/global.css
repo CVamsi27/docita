@@ -1,5 +1,3 @@
-@import "@workspace/ui/globals.css";
-
 .hero-grid {
   background-image:
     radial-gradient(circle at 0% 0%, color-mix(in oklch, var(--primary) 18%, transparent) 0%, transparent 45%),

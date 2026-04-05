@@ -1,0 +1,56 @@
+<button
+  id="theme-toggle-button"
+  type="button"
+  class="inline-flex h-9 items-center justify-center rounded-lg border border-input bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+  aria-label="Switch to light mode"
+>
+  Dark
+</button>
+
+<script is:inline>
+  (() => {
+    const storageKey = "docita-theme";
+    const button = document.getElementById("theme-toggle-button");
+
+    if (!button) {
+      return;
+    }
+
+    const root = document.documentElement;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const resolveTheme = () => {
+      const stored = localStorage.getItem(storageKey);
+      if (stored === "dark" || stored === "light") {
+        return stored;
+      }
+      return media.matches ? "dark" : "light";
+    };
+
+    const applyTheme = (theme) => {
+      root.classList.toggle("dark", theme === "dark");
+      root.style.colorScheme = theme;
+      button.textContent = theme === "dark" ? "Dark" : "Light";
+      button.setAttribute(
+        "aria-label",
+        theme === "dark" ? "Switch to light mode" : "Switch to dark mode",
+      );
+    };
+
+    applyTheme(resolveTheme());
+
+    button.addEventListener("click", () => {
+      const current = root.classList.contains("dark") ? "dark" : "light";
+      const next = current === "dark" ? "light" : "dark";
+      localStorage.setItem(storageKey, next);
+      applyTheme(next);
+    });
+
+    media.addEventListener("change", () => {
+      const stored = localStorage.getItem(storageKey);
+      if (stored !== "dark" && stored !== "light") {
+        applyTheme(resolveTheme());
+      }
+    });
+  })();
+</script>

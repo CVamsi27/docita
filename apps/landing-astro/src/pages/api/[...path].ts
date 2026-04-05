@@ -26,11 +26,21 @@ function buildHeaders(headers: Headers): Headers {
   return nextHeaders;
 }
 
+function jsonError(status: number, message: string): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    },
+  });
+}
+
 export const ALL: APIRoute = async ({ params, request }) => {
   const path = params["path"];
 
   if (!path) {
-    return new Response("Missing path", { status: 400 });
+    return jsonError(400, "Missing path");
   }
 
   const targetBase = (import.meta.env["API_PROXY_TARGET"] || "http://localhost:3001").replace(
@@ -53,13 +63,20 @@ export const ALL: APIRoute = async ({ params, request }) => {
     init.body = request.body ?? null;
   }
 
-  const upstream = await fetch(targetUrl.toString(), init);
-  const responseHeaders = new Headers(upstream.headers);
-  responseHeaders.delete("content-length");
+  try {
+    const upstream = await fetch(targetUrl.toString(), init);
+    const responseHeaders = new Headers(upstream.headers);
+    responseHeaders.delete("content-length");
 
-  return new Response(upstream.body, {
-    status: upstream.status,
-    statusText: upstream.statusText,
-    headers: responseHeaders,
-  });
+    return new Response(upstream.body, {
+      status: upstream.status,
+      statusText: upstream.statusText,
+      headers: responseHeaders,
+    });
+  } catch {
+    return jsonError(
+      502,
+      "Unable to reach Docita API. Please try again in a few minutes.",
+    );
+  }
 };

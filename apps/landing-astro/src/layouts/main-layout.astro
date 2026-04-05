@@ -1,4 +1,5 @@
 ---
+import "@workspace/ui/globals.css";
 import "@/styles/global.css";
 
 import SiteFooter from "@/components/site-footer.astro";
@@ -47,8 +48,23 @@ const jsonLd = {
 <!doctype html>
 <html lang="en">
   <head>
+    <script is:inline>
+      (() => {
+        const storageKey = "docita-theme";
+        const stored = localStorage.getItem(storageKey);
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = stored === "dark" || stored === "light"
+          ? stored
+          : systemPrefersDark
+            ? "dark"
+            : "light";
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <meta name="color-scheme" content="dark light" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
