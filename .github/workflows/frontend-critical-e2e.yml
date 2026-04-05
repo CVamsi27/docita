@@ -121,6 +121,7 @@ jobs:
 
       - name: Run onboarding and verify-doctor E2E suite
         run: |
+          unset NO_COLOR
           pnpm --filter @docita/app exec playwright test \
             e2e/clinic-registration.spec.ts \
             e2e/verify-doctor.spec.ts
@@ -257,6 +258,7 @@ jobs:
 
       - name: Run auth and tenant critical flow suite
         run: |
+          unset NO_COLOR
           pnpm --filter @docita/app exec playwright test \
             e2e/auth.spec.ts \
             e2e/critical-flows.spec.ts

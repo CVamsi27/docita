@@ -44,7 +44,9 @@ jobs:
           API_URL: http://127.0.0.1:3001/api/v1
           APP_URL: http://127.0.0.1:3000
           NODE_ENV: test
-        run: pnpm --filter @docita/app exec playwright test e2e/health.spec.ts
+        run: |
+          unset NO_COLOR
+          pnpm --filter @docita/app exec playwright test e2e/health.spec.ts
 
       - name: Upload Playwright report
         if: always()
