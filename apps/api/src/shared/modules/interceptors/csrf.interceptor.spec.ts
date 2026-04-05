@@ -14,12 +14,16 @@ function createContext(
     method: string;
     headers: Record<string, string>;
     cookies: Record<string, string>;
+    url: string;
+    originalUrl: string;
   }> = {},
 ): ExecutionContext {
   const request = {
     method: 'GET',
     headers: {},
     cookies: {},
+    url: '/api/v1/patients',
+    originalUrl: '/api/v1/patients',
     ...reqOverrides,
   };
   const response = {
@@ -69,6 +73,30 @@ describe('CsrfInterceptor', () => {
       headers: { 'x-xsrf-token': token },
     });
     expect(() => interceptor.intercept(context, next)).not.toThrow();
+  });
+
+  it('allows first-touch public auth mutations and seeds CSRF cookie', () => {
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      originalUrl: '/api/v1/auth/login',
+    });
+    expect(() => interceptor.intercept(context, next)).not.toThrow();
+
+    const response = context.switchToHttp().getResponse();
+    expect(response.cookie).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects auth mutations without CSRF token when auth cookies are present', () => {
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/auth/logout',
+      originalUrl: '/api/v1/auth/logout',
+      cookies: { refresh_token: 'refresh-token' },
+    });
+    expect(() => interceptor.intercept(context, next)).toThrow(
+      ForbiddenException,
+    );
   });
 
   it('bypasses CSRF checks for bearer-token requests', () => {
