@@ -26,13 +26,16 @@ export class DataRetentionScheduler {
   async handleDataRetention() {
     this.logger.log('Starting data retention check...');
 
-    await this.archivalService.archiveAuditLogs(90);
-
-    await this.archivalService.archiveWhatsappLogs(180);
-
-    await this.archivalService.archiveAppointments(2);
-
-    await this.processSoftDeletedRecords();
+    try {
+      await this.archivalService.archiveAuditLogs(90);
+      await this.archivalService.archiveWhatsappLogs(180);
+      await this.archivalService.archiveAppointments(2);
+      await this.processSoftDeletedRecords();
+    } catch (error) {
+      this.logger.error(
+        `Data retention check failed: ${this.formatError(error)}`,
+      );
+    }
   }
 
   private async processSoftDeletedRecords() {

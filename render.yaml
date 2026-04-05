@@ -30,6 +30,8 @@ services:
         sync: false
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=400
 
 databases:
   - name: docita-db

@@ -1,4 +1,5 @@
 import "./globals.css";
+import Script from "next/script";
 import { AuthProvider } from "@/lib/auth-context";
 import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
@@ -31,6 +32,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
+        {/* esbuild's __name helper may appear in server-rendered inline scripts
+            (e.g. next-themes ThemeProvider) when the Cloudflare edge worker
+            bundles server code with keepNames. Define a browser-safe polyfill
+            before any other scripts execute. */}
+        <Script id="esbuild-name-polyfill" strategy="beforeInteractive">{`var __defProp=Object.defineProperty;var __name=function(t,n){if(t.name!==n)try{__defProp(t,"name",{value:n,configurable:true})}catch(e){}return t};`}</Script>
         <SentryInitializer />
         <ClientErrorReporter />
         <ReactQueryProvider>
