@@ -63,6 +63,7 @@ export const factories = {
         email,
         name: 'Test Doctor',
         password: hashedPassword,
+        emailVerified: true,
         ...userOverrides,
         role: normalizeRole(userOverrides.role),
       },
