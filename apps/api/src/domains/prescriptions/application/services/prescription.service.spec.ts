@@ -124,6 +124,9 @@ describe('PrescriptionsService', () => {
           address: 'Main Road',
           phoneNumber: '1234567890',
           email: 'clinic@test.com',
+          logo: null,
+          currency: 'INR',
+          branding: null,
         },
       },
       doctor: {

@@ -9,6 +9,8 @@ export const invoiceItemSchema = z.object({
   description: z.string().max(255).transform(stripHtmlTags),
   quantity: z.number().min(1),
   price: z.number().min(0),
+  cptCode: z.string().max(20).optional(),
+  hsnCode: z.string().max(20).optional(),
 });
 export type InvoiceItem = z.infer<typeof invoiceItemSchema>;
 export type LineItem = InvoiceItem;

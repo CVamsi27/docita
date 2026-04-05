@@ -12,7 +12,11 @@ import {
 } from '@workspace/db';
 import { PDFService } from './pdf.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { invoiceItemSchema, type InvoiceItem } from '@workspace/types';
+import {
+  invoiceItemSchema,
+  type InvoiceItem,
+  extractPdfTheme,
+} from '@workspace/types';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -254,6 +258,16 @@ export class InvoicesService {
       );
     }
 
+    // Build a description → CPT code map from appointment procedures
+    const procedureCptMap: Record<string, string> = {};
+    if (invoice.appointment?.procedures) {
+      for (const proc of invoice.appointment.procedures) {
+        if (proc.cptCode?.code) {
+          procedureCptMap[proc.description] = proc.cptCode.code;
+        }
+      }
+    }
+
     return this.pdfService.generate({
       invoiceId: invoice.id.slice(0, 8).toUpperCase(),
       clinic: {
@@ -261,6 +275,9 @@ export class InvoicesService {
         address: clinic.address || undefined,
         phone: clinic.phone || undefined,
         email: clinic.email || undefined,
+        logo: clinic.logo || undefined,
+        currency: clinic.currency || undefined,
+        branding: extractPdfTheme(clinic.branding),
         gstin: extractClinicGstin(clinic),
       },
       patient: {
@@ -290,6 +307,8 @@ export class InvoicesService {
         quantity: item.quantity,
         unitPrice: item.price,
         amount: item.quantity * item.price,
+        cptCode: item.cptCode ?? procedureCptMap[item.description],
+        hsnCode: item.hsnCode,
       })),
       status: invoice.status.toUpperCase(),
       date: new Date(invoice.createdAt),

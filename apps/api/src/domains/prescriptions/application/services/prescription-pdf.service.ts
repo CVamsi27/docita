@@ -9,6 +9,8 @@ import {
   PDFDoctorInfo,
   PDFPatientInfo,
   PDFMedicationInfo,
+  PDFDiagnosis,
+  PDFHospitalConfig,
 } from '@workspace/types';
 import PDFDocument from 'pdfkit';
 
@@ -18,11 +20,12 @@ export interface PrescriptionData {
   doctor: PDFDoctorInfo;
   patient: PDFPatientInfo;
   medications: PDFMedicationInfo[];
-  diagnosis?: string;
+  diagnoses?: PDFDiagnosis[];
   instructions?: string;
   nextVisit?: Date;
   date?: Date;
   validityDays?: number;
+  hospitalConfig?: PDFHospitalConfig;
 }
 
 @Injectable()
@@ -31,12 +34,16 @@ export class PrescriptionPdfService extends BasePdfService {
     const config: BasePDFConfig = {
       title: 'PRESCRIPTION',
       documentId: data.prescriptionId,
-      clinic: data.clinic,
+      clinic: {
+        ...data.clinic,
+        branding: data.hospitalConfig?.theme
+          ? { ...data.clinic.branding, ...data.hospitalConfig.theme }
+          : data.clinic.branding,
+      },
       patient: data.patient,
       doctor: data.doctor,
       date: data.date,
-
-      footerText: `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes. Prescription support: support@docita.work.`,
+      footerText: `This prescription is valid for ${data.validityDays ?? 30} days from the date of issue. Not valid for medico-legal purposes.`,
     };
 
     const { doc, context } = this.createDocument(config);
@@ -45,7 +52,7 @@ export class PrescriptionPdfService extends BasePdfService {
     doc.on('data', (buffer: Buffer) => buffers.push(buffer));
     doc.on('end', () => {});
 
-    let currentY = this.renderHeader(doc, config, context);
+    let currentY = await this.renderHeader(doc, config, context);
 
     currentY = this.renderTitle(
       doc,
@@ -64,24 +71,23 @@ export class PrescriptionPdfService extends BasePdfService {
       );
     }
 
-    if (data.diagnosis) {
-      currentY = this.renderSectionTitle(
+    if (data.diagnoses?.length) {
+      currentY = this.renderDiagnosesSection(
         doc,
-        'Chief Complaint / Diagnosis',
+        data.diagnoses,
+        data.hospitalConfig,
         context,
         currentY,
       );
-      doc.font('Helvetica').text(data.diagnosis, context.margin, currentY, {
-        width: context.contentWidth,
-      });
-      currentY = doc.y + 15;
     }
 
     doc
+      .fillColor(context.theme.accentColor)
       .font('Helvetica-Bold')
-      .fontSize(20)
+      .fontSize(22)
       .text('Rx', context.margin, currentY);
-    currentY += 25;
+    doc.fillColor('#000000');
+    currentY += 28;
 
     currentY = this.renderMedicationsTable(
       doc,
@@ -92,7 +98,7 @@ export class PrescriptionPdfService extends BasePdfService {
 
     if (data.instructions) {
       currentY += 15;
-      currentY = this.checkPageCheck(doc, currentY, 50, context);
+      currentY = this.checkPageBreak(doc, currentY, 50, context);
       currentY = this.renderSectionTitle(
         doc,
         'Special Instructions',
@@ -101,16 +107,18 @@ export class PrescriptionPdfService extends BasePdfService {
       );
       doc
         .font('Helvetica')
-        .fontSize(10)
+        .fontSize(9)
+        .fillColor('#374151')
         .text(data.instructions, context.margin, currentY, {
           width: context.contentWidth,
         });
+      doc.fillColor('#000000');
       currentY = doc.y;
     }
 
     if (data.patient.allergies?.length) {
       currentY += 20;
-      currentY = this.checkPageCheck(doc, currentY, 40, context);
+      currentY = this.checkPageBreak(doc, currentY, 40, context);
       this.renderWarningBox(
         doc,
         `WARNING - Known Allergies: ${data.patient.allergies.join(', ')}`,
@@ -122,10 +130,11 @@ export class PrescriptionPdfService extends BasePdfService {
 
     if (data.nextVisit) {
       currentY += 20;
-      currentY = this.checkPageCheck(doc, currentY, 30, context);
+      currentY = this.checkPageBreak(doc, currentY, 30, context);
       doc
         .fontSize(10)
         .font('Helvetica-Bold')
+        .fillColor(context.theme.titleTextColor)
         .text(
           `Next Visit: ${data.nextVisit.toLocaleDateString('en-IN', {
             weekday: 'long',
@@ -136,18 +145,21 @@ export class PrescriptionPdfService extends BasePdfService {
           context.margin,
           currentY,
         );
+      doc.fillColor('#000000');
       currentY = doc.y;
     }
 
     currentY += 40;
-    currentY = this.checkPageCheck(doc, currentY, 80, context);
+    currentY = this.checkPageBreak(doc, currentY, 80, context);
 
     const signatureX = context.margin + context.contentWidth - 200;
 
     doc
-      .fontSize(10)
+      .fontSize(9)
       .font('Helvetica-Bold')
+      .fillColor('#374151')
       .text("Doctor's Signature:", signatureX, currentY);
+    doc.fillColor('#000000');
     currentY += 15;
 
     if (data.doctor.signatureUrl) {
@@ -161,11 +173,12 @@ export class PrescriptionPdfService extends BasePdfService {
         });
         currentY += 65;
       } catch {
-        currentY += 25;
         doc
           .font('Helvetica-Oblique')
           .fontSize(8)
+          .fillColor('#6b7280')
           .text('[Digital signature]', signatureX, currentY);
+        doc.fillColor('#000000');
         currentY += 15;
       }
     } else {
@@ -173,22 +186,23 @@ export class PrescriptionPdfService extends BasePdfService {
     }
 
     doc
-      .font('Helvetica')
+      .font('Helvetica-Bold')
       .fontSize(10)
+      .fillColor('#111827')
       .text(data.doctor.name, signatureX, currentY);
     if (data.doctor.registrationNumber) {
       doc
         .font('Helvetica')
         .fontSize(8)
+        .fillColor('#6b7280')
         .text(`Reg: ${data.doctor.registrationNumber}`, signatureX, doc.y);
+      doc.fillColor('#000000');
     }
 
     this.renderFooter(doc, config.footerText, context);
 
     const bufferPromise = new Promise<Buffer>((resolve) => {
-      doc.on('end', () => {
-        resolve(Buffer.concat(buffers));
-      });
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
     });
 
     doc.end();
@@ -202,11 +216,58 @@ export class PrescriptionPdfService extends BasePdfService {
     context: PDFContext,
     currentY: number,
   ): number {
+    doc.rect(context.margin, currentY, 3, 14).fill(context.theme.accentColor);
     doc
-      .fontSize(12)
+      .fillColor(context.theme.titleTextColor)
+      .fontSize(11)
       .font('Helvetica-Bold')
-      .text(title, context.margin, currentY);
-    return doc.y + 5;
+      .text(title, context.margin + 8, currentY, {
+        width: context.contentWidth,
+      });
+    doc.fillColor('#000000');
+    return doc.y + 8;
+  }
+
+  private renderDiagnosesSection(
+    doc: typeof PDFDocument.prototype,
+    diagnoses: PDFDiagnosis[],
+    hospitalConfig: PDFHospitalConfig | undefined,
+    context: PDFContext,
+    currentY: number,
+  ): number {
+    currentY = this.renderSectionTitle(
+      doc,
+      'Chief Complaint / Diagnosis',
+      context,
+      currentY,
+    );
+
+    const codeSystem = hospitalConfig?.codeSystem ?? 'ICD-10';
+
+    for (const d of diagnoses) {
+      currentY = this.checkPageBreak(doc, currentY, 20, context);
+
+      const prefix = d.isPrimary ? '\u25CF ' : '\u25CB ';
+      let line = `${prefix}${d.description ?? ''}`;
+
+      if (d.icdCode) {
+        const overrideCode = hospitalConfig?.codeOverrides?.icd?.[d.icdCode];
+        const displayCode = overrideCode ?? d.icdCode;
+        const label = overrideCode ? 'Code' : (d.version ?? codeSystem);
+        line += ` (${label}: ${displayCode})`;
+      }
+
+      doc
+        .font(d.isPrimary ? 'Helvetica-Bold' : 'Helvetica')
+        .fontSize(9)
+        .fillColor('#111827')
+        .text(line, context.margin, currentY, { width: context.contentWidth });
+      doc.fillColor('#000000');
+      currentY = doc.y + 4;
+    }
+
+    currentY += 8;
+    return currentY;
   }
 
   private renderMedicationsTable(
@@ -216,41 +277,50 @@ export class PrescriptionPdfService extends BasePdfService {
     startY: number,
   ): number {
     let currentY = startY;
-    const colWidths = [150, 60, 60, 60, 80];
+    const colWidths = [165, 65, 75, 70, 85];
     const startX = context.margin;
+    const totalW = colWidths.reduce((a, b) => a + b, 0);
 
-    doc.fontSize(9).font('Helvetica-Bold');
-    doc.text('Medicine', startX, currentY, { width: colWidths[0] });
-    doc.text('Dosage', startX + colWidths[0], currentY, {
+    doc.rect(startX, currentY - 4, totalW, 22).fill(context.theme.primaryColor);
+    doc
+      .fillColor(context.theme.primaryTextColor)
+      .fontSize(9)
+      .font('Helvetica-Bold');
+    doc.text('Medicine', startX + 4, currentY + 2, { width: colWidths[0] });
+    doc.text('Dosage', startX + colWidths[0], currentY + 2, {
       width: colWidths[1],
     });
-    doc.text('Freq', startX + colWidths[0] + colWidths[1], currentY, {
+    doc.text('Frequency', startX + colWidths[0] + colWidths[1], currentY + 2, {
       width: colWidths[2],
     });
     doc.text(
       'Duration',
       startX + colWidths[0] + colWidths[1] + colWidths[2],
-      currentY,
+      currentY + 2,
       { width: colWidths[3] },
     );
     doc.text(
       'Notes',
       startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
-      currentY,
+      currentY + 2,
       { width: colWidths[4] },
     );
-
-    currentY += 15;
-    this.drawDivider(doc, currentY, context);
-    currentY += 10;
+    doc.fillColor('#000000');
+    currentY += 24;
 
     doc.font('Helvetica').fontSize(9);
 
-    for (const med of medications) {
-      currentY = this.checkPageCheck(doc, currentY, 30, context);
+    for (let i = 0; i < medications.length; i++) {
+      const med = medications[i];
+      currentY = this.checkPageBreak(doc, currentY, 30, context);
       const rowY = currentY;
 
-      doc.text(med.name, startX, rowY, { width: colWidths[0] });
+      if (i % 2 === 0) {
+        doc.rect(startX, rowY - 2, totalW, 18).fill(context.theme.altRowColor);
+      }
+
+      doc.fillColor('#111827');
+      doc.text(med.name, startX + 4, rowY, { width: colWidths[0] - 4 });
       doc.text(med.dosage, startX + colWidths[0], rowY, {
         width: colWidths[1],
       });
@@ -264,15 +334,18 @@ export class PrescriptionPdfService extends BasePdfService {
         { width: colWidths[3] },
       );
       if (med.specialInstructions) {
-        doc.text(
-          med.specialInstructions,
-          startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
-          rowY,
-          { width: colWidths[4] },
-        );
+        doc
+          .fillColor('#374151')
+          .text(
+            med.specialInstructions,
+            startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
+            rowY,
+            { width: colWidths[4] },
+          );
       }
 
-      currentY = doc.y + 10;
+      doc.fillColor('#000000');
+      currentY = doc.y + 8;
       this.drawDivider(doc, currentY, context);
       currentY += 5;
     }
@@ -288,23 +361,14 @@ export class PrescriptionPdfService extends BasePdfService {
   ) {
     doc
       .rect(context.margin, y, context.contentWidth, 30)
-      .fill('#ffebee')
-      .stroke('#ef5350');
+      .fill('#fff1f2')
+      .stroke('#fca5a5');
     doc
-      .fillColor('#c62828')
+      .fillColor('#991b1b')
       .font('Helvetica-Bold')
-      .fontSize(10)
+      .fontSize(9)
       .text(text, context.margin + 10, y + 10);
-    doc.fillColor('black');
-  }
-
-  private checkPageCheck(
-    doc: typeof PDFDocument.prototype,
-    currentY: number,
-    needed: number,
-    context: PDFContext,
-  ): number {
-    return this.checkPageBreak(doc, currentY, needed, context);
+    doc.fillColor('#000000');
   }
 
   private async fetchSignatureImage(url: string): Promise<Buffer> {

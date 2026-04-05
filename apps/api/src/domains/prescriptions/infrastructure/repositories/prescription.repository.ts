@@ -106,6 +106,9 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
                 address: true,
                 phone: true,
                 email: true,
+                logo: true,
+                currency: true,
+                branding: true,
               },
             },
           },
@@ -117,6 +120,18 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
             qualification: true,
             registrationNumber: true,
             signatureUrl: true,
+          },
+        },
+        appointment: {
+          select: {
+            diagnoses: {
+              select: {
+                isPrimary: true,
+                icdCode: {
+                  select: { code: true, description: true, version: true },
+                },
+              },
+            },
           },
         },
       },
