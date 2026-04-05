@@ -28,22 +28,23 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 ```
 Frontend                    Backend
 ---------                   -------
-Cloudflare Workers (app/admin/landing) --> Render (NestJS API)
+Cloudflare Workers (app/admin/landing-astro) --> Render (NestJS API)
 ```
 
 - **Database**: Render PostgreSQL
 - **Backend**: Render Web Service (NestJS)
-- **Frontend**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/admin`)
+- **Frontend**: Cloudflare Workers (`apps/app`, `apps/landing-astro`, `apps/admin`)
+- **Legacy Fallback**: `apps/landing` (Next.js/OpenNext, deprecated)
 
 ## Tech Stack
 
 ### Frontend
 
-- **Framework**: Next.js 16 (App Router)
+- **Frameworks**: Next.js 16 (App Router) for `apps/app` and `apps/admin`, Astro 5 for `apps/landing-astro`
 - **UI**: React 19, Tailwind CSS 4, Shadcn UI
 - **Icons**: Lucide Icons
 - **Data Fetching**: TanStack React Query
-- **Hosting**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/admin`)
+- **Hosting**: Cloudflare Workers (`apps/app`, `apps/landing-astro`, `apps/admin`)
 
 ### Backend
 
@@ -123,7 +124,9 @@ pnpm test
 
 1. **Database**: Create Render PostgreSQL in Singapore
 2. **Backend**: Deploy `apps/api` as a Render Web Service
-3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/admin` to Cloudflare Workers with OpenNext
+3. **Frontend**: Deploy `apps/app`, `apps/landing-astro`, and `apps/admin` to Cloudflare Workers
+
+`apps/landing` remains available only as a temporary rollback target during migration.
 
 See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment direction.
 

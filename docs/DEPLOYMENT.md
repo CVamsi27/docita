@@ -5,7 +5,8 @@
 - Frontend
   - `apps/app`: Cloudflare (OpenNext)
   - `apps/admin`: Cloudflare Workers (OpenNext)
-  - `apps/landing`: Cloudflare Workers (OpenNext)
+  - `apps/landing-astro`: Cloudflare Workers (Astro)
+  - `apps/landing`: Cloudflare Workers (OpenNext, legacy fallback only)
 - Backend
   - `apps/api`: Render Web Service
 - Database
@@ -21,8 +22,9 @@ This is the active production strategy.
 - Keep frontend API URLs pointed to the deployed Render API URL.
 - Keep each Worker entry bundle under Cloudflare's 3 MB limit. Use
   `node scripts/check-worker-size.mjs` after OpenNext builds.
-- Deploy order: API first, then `apps/app`, `apps/admin`, and `apps/landing`.
-- Keep `open-next.config.ts` and `wrangler.toml` in sync for each frontend app.
+- Deploy order: API first, then `apps/app`, `apps/admin`, and `apps/landing-astro`.
+- Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
+- Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing-astro`.
 
 ## Release Gates
 
@@ -31,6 +33,10 @@ This is the active production strategy.
 - `pnpm test`
 - `pnpm --filter @docita/api run test:e2e`
 - `pnpm build:app:cloudflare && pnpm build:admin:cloudflare && pnpm build:landing:cloudflare`
+
+Legacy rollback gate (optional):
+
+- `pnpm build:landing:next:cloudflare`
 
 ## Migration Target (Planned)
 
@@ -56,7 +62,8 @@ This is the active production strategy.
 
 - Build `apps/app` with `pnpm build:app:cloudflare`.
 - Build `apps/admin` with `pnpm build:admin:cloudflare`.
-- Build `apps/landing` with `pnpm build:landing:cloudflare`.
+- Build `apps/landing-astro` with `pnpm build:landing:cloudflare`.
+- Build legacy `apps/landing` with `pnpm build:landing:next:cloudflare` only for rollback validation.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
 
