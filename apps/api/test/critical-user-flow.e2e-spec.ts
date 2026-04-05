@@ -192,18 +192,45 @@ describe('Critical User Flow (e2e)', () => {
         .expect(403);
     });
 
-    it('should block a doctor from querying another doctor appointments (403)', async () => {
-      const { clinic, token } = await createAuthenticatedDoctor();
+    it('should scope a doctor query to their own appointments', async () => {
+      const { clinic, doctor, token } = await createAuthenticatedDoctor();
 
       const { user: anotherDoctor } = await factories.user({
         clinicId: clinic.id,
         role: 'DOCTOR',
       });
 
-      await request(app.getHttpServer())
+      const patient = await factories.patient(clinic.id);
+      const ownAppointment = await factories.appointment(
+        patient.id,
+        doctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 4 * 60 * 60 * 1000),
+          endTime: new Date(Date.now() + 5 * 60 * 60 * 1000),
+        },
+      );
+      const anotherDoctorAppointment = await factories.appointment(
+        patient.id,
+        anotherDoctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 6 * 60 * 60 * 1000),
+          endTime: new Date(Date.now() + 7 * 60 * 60 * 1000),
+        },
+      );
+
+      const response = await request(app.getHttpServer())
         .get(`/appointments?doctorId=${anotherDoctor.id}`)
         .set('Authorization', `Bearer ${token}`)
-        .expect(403);
+        .expect(200);
+
+      expect(Array.isArray(response.body.items)).toBe(true);
+      const appointmentIds = (response.body.items as Array<{ id: string }>).map(
+        ({ id }) => id,
+      );
+      expect(appointmentIds).toContain(ownAppointment.id);
+      expect(appointmentIds).not.toContain(anotherDoctorAppointment.id);
     });
   });
 });

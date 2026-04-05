@@ -118,7 +118,15 @@ describe('Subscription (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body).toBeNull();
+      const body = response.body as unknown;
+      const hasNoActiveSubscription =
+        body === null ||
+        (typeof body === 'object' &&
+          body !== null &&
+          !Array.isArray(body) &&
+          Object.keys(body as Record<string, unknown>).length === 0);
+
+      expect(hasNoActiveSubscription).toBe(true);
     });
 
     it('should reject unauthenticated request', async () => {

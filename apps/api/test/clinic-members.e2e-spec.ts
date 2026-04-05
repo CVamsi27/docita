@@ -59,6 +59,8 @@ describe('Clinic Members Lifecycle (e2e)', () => {
 
     const initResponse = await request(app.getHttpServer())
       .post('/onboarding/initialize')
+      .set('Cookie', 'XSRF-TOKEN=e2e-csrf-token')
+      .set('X-XSRF-TOKEN', 'e2e-csrf-token')
       .expect(201);
 
     const onboardingId = initResponse.body?.onboardingId;
