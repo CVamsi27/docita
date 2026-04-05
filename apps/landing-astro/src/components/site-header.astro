@@ -1,0 +1,37 @@
+---
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+
+import { getAppBaseUrl } from "@/lib/public-api";
+
+const appUrl = getAppBaseUrl();
+---
+
+<header class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+  <div class="container mx-auto flex h-16 items-center justify-between px-6">
+    <a href="/" class="flex h-10 items-center" aria-label="Docita home">
+      <DocitaLogo />
+    </a>
+
+    <nav class="hidden items-center gap-6 text-sm font-medium md:flex">
+      <a href="/#why-docita" class="text-muted-foreground transition-colors hover:text-foreground">Why Docita</a>
+      <a href="/#capabilities" class="text-muted-foreground transition-colors hover:text-foreground">Capabilities</a>
+      <a href="/#pricing" class="text-muted-foreground transition-colors hover:text-foreground">Pricing</a>
+      <a href="/contact" class="text-muted-foreground transition-colors hover:text-foreground">Contact</a>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a
+        href={`${appUrl}/login`}
+        class="hidden rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
+      >
+        Log In
+      </a>
+      <a
+        href={`${appUrl}/onboarding`}
+        class="cta-ring inline-flex h-10 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+      >
+        Start Free Trial
+      </a>
+    </div>
+  </div>
+</header>

@@ -1,6 +1,7 @@
 {
   "name": "@docita/landing",
   "version": "0.1.0",
+  "description": "Legacy Next.js landing app (deprecated). Use @docita/landing-astro.",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3003",

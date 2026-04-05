@@ -1,0 +1,210 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import { PricingSection } from "@/components/pricing-section";
+import { StatsStrip } from "@/components/stats-strip";
+import { getAppBaseUrl } from "@/lib/public-api";
+
+const appUrl = getAppBaseUrl();
+
+const valueProps = [
+  {
+    title: "Faster Daily Flow",
+    description:
+      "Reduce waiting-room friction with appointment, queue, and consultation workflows in one place.",
+  },
+  {
+    title: "Billing With Fewer Leaks",
+    description:
+      "Track services, generate invoices, and align collections without spreadsheet handoffs.",
+  },
+  {
+    title: "Clinical Record Consistency",
+    description:
+      "Prescriptions, visit history, and patient context stay unified for every follow-up.",
+  },
+];
+
+const capabilities = [
+  "Appointment booking and queue management",
+  "Digital prescriptions with printable output",
+  "Structured patient records and visit timeline",
+  "Billing workflows and receipts",
+  "WhatsApp reminders and follow-up communication",
+  "Role-aware access and audit-ready activity trails",
+];
+
+const specialties = [
+  "General Practice",
+  "Pediatrics",
+  "Gynecology",
+  "Orthopedics",
+  "ENT and Dental",
+  "Multi-specialty Clinics",
+];
+
+const faqs = [
+  {
+    question: "How quickly can we go live?",
+    answer:
+      "Most clinics complete initial setup within a day, then expand templates and workflows over the first week.",
+  },
+  {
+    question: "Can we migrate existing records?",
+    answer:
+      "Yes. Docita supports guided imports and assisted onboarding for existing clinic data.",
+  },
+  {
+    question: "Is support included?",
+    answer:
+      "Every plan includes email support. Higher tiers add faster response windows and deeper onboarding support.",
+  },
+];
+---
+
+<MainLayout
+  canonicalPath="/"
+  title="Docita - Clinic Management Software | 14-Day Free Trial"
+  description="Docita helps Indian clinics run appointments, prescriptions, records, and billing from one reliable workflow."
+>
+  <section class="hero-grid border-b px-6 py-20">
+    <div class="container mx-auto grid items-center gap-12 lg:grid-cols-2">
+      <div class="space-y-6">
+        <p class="inline-flex rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+          Built for modern Indian clinics
+        </p>
+        <h1 class="text-4xl font-bold leading-tight tracking-tight md:text-6xl">
+          Clinic Ops, Simplified
+        </h1>
+        <p class="max-w-xl text-lg text-muted-foreground">
+          Replace fragmented tools with one operating system for appointments,
+          prescriptions, billing, records, and patient communication.
+        </p>
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            href={`${appUrl}/onboarding`}
+            class="cta-ring inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Start Free Trial
+          </a>
+          <a
+            href="/contact"
+            class="inline-flex h-11 items-center justify-center rounded-xl border border-input bg-background px-5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+          >
+            Talk to Sales
+          </a>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-primary/20 bg-card p-6 shadow-sm">
+        <h2 class="text-2xl font-semibold">Why teams switch to Docita</h2>
+        <p class="mt-2 text-sm text-muted-foreground">
+          Operational clarity from front desk to doctor desk.
+        </p>
+        <ul class="mt-6 space-y-3 text-sm text-muted-foreground">
+          <li>• One timeline per patient with fewer context gaps</li>
+          <li>• Better handoffs between admin and doctors</li>
+          <li>• Improved billing visibility and collection follow-through</li>
+          <li>• Strong baseline controls for compliance-sensitive workflows</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="why-docita" class="px-6 py-16">
+    <div class="container mx-auto">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-bold tracking-tight md:text-4xl">
+          Designed for Reliability Under Real Clinic Pressure
+        </h2>
+      </div>
+      <div class="mt-10 grid gap-6 md:grid-cols-3">
+        {valueProps.map((item) => (
+          <article class="rounded-xl border bg-card p-6">
+            <h3 class="text-xl font-semibold">{item.title}</h3>
+            <p class="mt-3 text-sm text-muted-foreground">{item.description}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <StatsStrip client:load />
+
+  <section id="capabilities" class="px-6 py-20">
+    <div class="container mx-auto grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+      <div>
+        <h2 class="text-3xl font-bold tracking-tight md:text-4xl">
+          Core Workflows That Stay Cohesive
+        </h2>
+        <p class="mt-3 max-w-2xl text-base text-muted-foreground">
+          Reduce operational drag by keeping patient operations and clinical
+          documentation tightly connected.
+        </p>
+        <ul class="mt-8 grid gap-4 sm:grid-cols-2">
+          {capabilities.map((capability) => (
+            <li class="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
+              {capability}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <aside class="rounded-2xl border bg-card p-6">
+        <h3 class="text-2xl font-semibold">Specialties we support</h3>
+        <p class="mt-2 text-sm text-muted-foreground">
+          Flexible enough for focused and multi-doctor clinics.
+        </p>
+        <ul class="mt-5 space-y-3 text-sm text-muted-foreground">
+          {specialties.map((specialty) => (
+            <li>• {specialty}</li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <PricingSection appUrl={appUrl} client:load />
+
+  <section class="border-t px-6 py-20">
+    <div class="container mx-auto">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-bold tracking-tight md:text-4xl">
+          Frequently Asked Questions
+        </h2>
+      </div>
+      <div class="mx-auto mt-10 grid max-w-4xl gap-6 md:grid-cols-3">
+        {faqs.map((faq) => (
+          <article class="rounded-xl border bg-card p-5">
+            <h3 class="text-lg font-semibold">{faq.question}</h3>
+            <p class="mt-3 text-sm text-muted-foreground">{faq.answer}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="border-t px-6 py-16">
+    <div class="container mx-auto rounded-2xl border bg-card p-8 text-center md:p-12">
+      <h2 class="text-3xl font-bold tracking-tight md:text-4xl">
+        Ready to run a smoother clinic day?
+      </h2>
+      <p class="mx-auto mt-3 max-w-2xl text-base text-muted-foreground">
+        Start your free trial and onboard your clinic with practical support from day one.
+      </p>
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <a
+          href={`${appUrl}/onboarding`}
+          class="cta-ring inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Start Free Trial
+        </a>
+        <a
+          href="/contact"
+          class="inline-flex h-11 items-center justify-center rounded-xl border border-input bg-background px-5 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+        >
+          Book a Demo
+        </a>
+      </div>
+    </div>
+  </section>
+</MainLayout>

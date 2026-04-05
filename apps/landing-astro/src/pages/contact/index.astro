@@ -1,0 +1,68 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import { ContactInquiryForm } from "@/components/contact-inquiry-form";
+---
+
+<MainLayout
+  canonicalPath="/contact"
+  title="Contact Docita"
+  description="Reach the Docita team for product demos, onboarding help, pricing guidance, and support."
+>
+  <section class="px-6 py-14">
+    <div class="container mx-auto">
+      <div class="mb-10 text-center">
+        <h1 class="text-4xl font-bold tracking-tight">Contact Us</h1>
+        <p class="mx-auto mt-3 max-w-2xl text-base text-muted-foreground">
+          Tell us your clinic setup and growth goals. We will help you choose a
+          rollout path that fits your team.
+        </p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <aside class="space-y-6">
+          <article class="rounded-xl border bg-card p-5">
+            <h2 class="text-2xl font-semibold">Email Channels</h2>
+            <div class="mt-4 space-y-3 text-sm text-muted-foreground">
+              <p>
+                <strong class="text-foreground">Support:</strong>
+                <a class="ml-2 text-primary hover:underline" href="mailto:support@docita.work">support@docita.work</a>
+              </p>
+              <p>
+                <strong class="text-foreground">Billing:</strong>
+                <a class="ml-2 text-primary hover:underline" href="mailto:billing@docita.work">billing@docita.work</a>
+              </p>
+              <p>
+                <strong class="text-foreground">Compliance / Admin:</strong>
+                <a class="ml-2 text-primary hover:underline" href="mailto:admin@docita.work">admin@docita.work</a>
+              </p>
+            </div>
+          </article>
+
+          <article class="rounded-xl border bg-card p-5">
+            <h2 class="text-2xl font-semibold">Support Hours</h2>
+            <div class="mt-4 space-y-2 text-sm text-muted-foreground">
+              <p><strong class="text-foreground">Mon - Fri:</strong> 9:00 AM - 6:00 PM IST</p>
+              <p><strong class="text-foreground">Saturday:</strong> 10:00 AM - 2:00 PM IST</p>
+              <p><strong class="text-foreground">Sunday:</strong> Closed</p>
+            </div>
+          </article>
+
+          <article class="rounded-xl border bg-card p-5">
+            <h2 class="text-2xl font-semibold">Address</h2>
+            <div class="mt-4 space-y-1 text-sm text-muted-foreground">
+              <p class="font-medium text-foreground">CHANDALURI VAMSI KRISHNA</p>
+              <p>Sole Proprietor, Docita</p>
+              <p>Aparna Cyberscape, Nalagandla</p>
+              <p>Hyderabad, Telangana 500019</p>
+              <p>India</p>
+            </div>
+          </article>
+        </aside>
+
+        <div>
+          <ContactInquiryForm client:load />
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>

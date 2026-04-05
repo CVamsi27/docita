@@ -1,0 +1,43 @@
+---
+import LegalLayout from "@/layouts/legal-layout.astro";
+---
+
+<LegalLayout
+  canonicalPath="/cookies"
+  title="Cookie Policy"
+  description="How Docita uses cookies and local browser storage."
+  lastUpdated="March 15, 2026"
+>
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">1. What We Use</h2>
+    <p class="mt-3">
+      We use essential cookies and local storage to maintain secure sessions,
+      remember basic preferences, and keep core workflows reliable.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">2. Why We Use Them</h2>
+    <ul class="mt-3 list-disc space-y-2 pl-6">
+      <li>Authentication and session continuity.</li>
+      <li>Preference retention such as theme or currency display.</li>
+      <li>Operational analytics to improve reliability and UX quality.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">3. Managing Cookies</h2>
+    <p class="mt-3">
+      Browser settings allow you to block or clear cookies. Disabling essential
+      cookies can prevent login and key product functionality.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">4. Contact</h2>
+    <p class="mt-3">
+      Questions about cookie use can be sent to
+      <a class="ml-1 text-primary hover:underline" href="mailto:admin@docita.work">admin@docita.work</a>.
+    </p>
+  </section>
+</LegalLayout>

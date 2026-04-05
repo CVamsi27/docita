@@ -1,0 +1,44 @@
+---
+import LegalLayout from "@/layouts/legal-layout.astro";
+---
+
+<LegalLayout
+  canonicalPath="/refund-policy"
+  title="Refund Policy"
+  description="Refund and cancellation policy for Docita subscriptions and add-ons."
+  lastUpdated="March 09, 2026"
+>
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">1. Scope</h2>
+    <p class="mt-3">
+      This policy applies to paid Docita subscriptions and add-ons purchased
+      directly from Docita.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">2. Trial Period</h2>
+    <p class="mt-3">
+      Eligible plans may include a free trial. Cancel during trial to avoid
+      paid billing.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">3. Plan Refund Rules</h2>
+    <ul class="mt-3 list-disc space-y-2 pl-6">
+      <li>Monthly plans are generally non-refundable after billing.</li>
+      <li>Annual plans may be reviewed for first-cycle requests within 14 days.</li>
+      <li>Usage-based charges and consumed credits are non-refundable.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">4. How to Request</h2>
+    <p class="mt-3">
+      Send refund requests to
+      <a class="mx-1 text-primary hover:underline" href="mailto:billing@docita.work">billing@docita.work</a>
+      with clinic name, account email, invoice reference, and reason.
+    </p>
+  </section>
+</LegalLayout>

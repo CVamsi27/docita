@@ -1,0 +1,31 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  lastUpdated: string;
+}
+
+const { title, description, canonicalPath, lastUpdated } = Astro.props;
+---
+
+<MainLayout title={`${title} | Docita`} description={description} canonicalPath={canonicalPath}>
+  <section class="px-6 py-12">
+    <div class="mx-auto max-w-4xl">
+      <div class="mb-8">
+        <a href="/" class="text-sm font-medium text-primary transition-colors hover:text-primary/80">← Back to Home</a>
+      </div>
+
+      <header class="mb-8 border-b pb-6">
+        <h1 class="text-4xl font-bold tracking-tight">{title}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
+      </header>
+
+      <article class="space-y-8 text-base leading-7 text-muted-foreground">
+        <slot />
+      </article>
+    </div>
+  </section>
+</MainLayout>

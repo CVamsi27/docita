@@ -1,0 +1,37 @@
+---
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+---
+
+<footer class="border-t bg-muted/30 px-6 py-10">
+  <div class="container mx-auto grid gap-8 md:grid-cols-[1.2fr_1fr_1fr]">
+    <div>
+      <a href="/" class="inline-flex h-10 items-center" aria-label="Docita home">
+        <DocitaLogo />
+      </a>
+      <p class="mt-4 max-w-sm text-sm text-muted-foreground">
+        Docita helps Indian clinics run faster, safer, and with better patient experience.
+      </p>
+    </div>
+
+    <div>
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-foreground">Company</h2>
+      <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+        <li><a href="/contact" class="transition-colors hover:text-foreground">Contact</a></li>
+        <li><a href="/refund-policy" class="transition-colors hover:text-foreground">Refund Policy</a></li>
+        <li><a href="/cookies" class="transition-colors hover:text-foreground">Cookie Policy</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-foreground">Legal</h2>
+      <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+        <li><a href="/privacy" class="transition-colors hover:text-foreground">Privacy Policy</a></li>
+        <li><a href="/terms" class="transition-colors hover:text-foreground">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container mx-auto mt-8 border-t pt-6 text-sm text-muted-foreground">
+    © {new Date().getFullYear()} Docita. All rights reserved.
+  </div>
+</footer>
