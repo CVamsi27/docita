@@ -19,11 +19,15 @@ test("legal pages are reachable", async ({ page }) => {
 });
 
 test("contact inquiry form validation and submit path", async ({ page }) => {
+  let csrfHeader: string | undefined;
+
   await page.route("**/api/v1/contact/inquiry", async (route) => {
     if (route.request().method() !== "POST") {
       await route.fallback();
       return;
     }
+
+    csrfHeader = route.request().headers()["x-xsrf-token"];
 
     await route.fulfill({
       status: 200,
@@ -37,6 +41,9 @@ test("contact inquiry form validation and submit path", async ({ page }) => {
 
   await page.goto("/contact");
   await page.waitForTimeout(1200);
+  await page.evaluate(() => {
+    document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
+  });
 
   await page.locator("form").getByRole("button", { name: "Send Message" }).click();
   await expect(page.getByText("Name is required", { exact: true })).toBeVisible();
@@ -54,4 +61,5 @@ test("contact inquiry form validation and submit path", async ({ page }) => {
   await expect(
     page.getByText("Message sent successfully"),
   ).toBeVisible({ timeout: 15000 });
+  expect(csrfHeader).toBe("e2e-csrf-token");
 });

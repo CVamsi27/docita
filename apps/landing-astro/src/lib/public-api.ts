@@ -15,6 +15,40 @@ export function getAppBaseUrl(): string {
   return import.meta.env["PUBLIC_APP_URL"] || "http://localhost:3000";
 }
 
+function getCsrfTokenFromCookie(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const tokenRow = document.cookie
+    .split(";")
+    .map((row) => row.trim())
+    .find((row) => row.startsWith("XSRF-TOKEN="));
+
+  if (!tokenRow) {
+    return null;
+  }
+
+  return decodeURIComponent(tokenRow.slice("XSRF-TOKEN=".length));
+}
+
+async function ensureCsrfToken(): Promise<string | null> {
+  const existingToken = getCsrfTokenFromCookie();
+  if (existingToken) {
+    return existingToken;
+  }
+
+  try {
+    await fetch(`${getLandingApiBaseUrl()}/public/platform-stats`, {
+      credentials: "include",
+    });
+  } catch {
+    return null;
+  }
+
+  return getCsrfTokenFromCookie();
+}
+
 export interface ContactInquiryPayload {
   name: string;
   email: string;
@@ -35,10 +69,13 @@ export async function fetchLandingJson<T>(path: string): Promise<T> {
 export async function submitContactInquiry(
   payload: ContactInquiryPayload,
 ): Promise<void> {
+  const csrfToken = await ensureCsrfToken();
   const response = await fetch(`${getLandingApiBaseUrl()}/contact/inquiry`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
     },
     body: JSON.stringify(payload),
   });
