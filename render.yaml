@@ -6,7 +6,7 @@ services:
     region: singapore
     dockerfilePath: apps/api/Dockerfile
     dockerContext: .
-    healthCheckPath: /api/v1/health/live
+    healthCheckPath: /api/health/live
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -31,7 +31,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_OPTIONS
-        value: --max-old-space-size=400
+        value: --max-old-space-size=256
 
 databases:
   - name: docita-db
