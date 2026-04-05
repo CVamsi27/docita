@@ -19,7 +19,13 @@ dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   environment: process.env.NODE_ENV ?? 'development',
-  integrations: nodeProfilingIntegration ? [nodeProfilingIntegration()] : [],
+  integrations: nodeProfilingIntegration
+    ? [
+        nodeProfilingIntegration(),
+        Sentry.consoleLoggingIntegration({ levels: ['log', 'warn', 'error'] }),
+      ]
+    : [Sentry.consoleLoggingIntegration({ levels: ['log', 'warn', 'error'] })],
+  enableLogs: true,
   tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
   profilesSampleRate:
     process.env.NODE_ENV === 'production'

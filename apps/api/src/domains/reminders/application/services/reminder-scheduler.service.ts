@@ -183,7 +183,10 @@ export class ReminderSchedulerService {
         return;
       }
 
-      throw error;
+      this.logger.error(
+        'Reminder scheduler encountered an unexpected error',
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 
@@ -296,7 +299,10 @@ export class ReminderSchedulerService {
         return;
       }
 
-      throw error;
+      this.logger.error(
+        '30-min reminder scheduler encountered an unexpected error',
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 }
