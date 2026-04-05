@@ -21,10 +21,6 @@ jobs:
       NEXT_PUBLIC_API_URL: http://127.0.0.1:3001/api/v1
       API_PROXY_TARGET: http://127.0.0.1:3001
       CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
-      META_ACCESS_TOKEN: test-ci-token
-      META_PHONE_NUMBER_ID: test-ci-phone-id
-      META_APP_SECRET: test-ci-app-secret
-      META_VERIFY_TOKEN: test-ci-verify-token
       WHATSAPP_PRODUCTION_MODE: "false"
     services:
       postgres:
@@ -143,6 +139,7 @@ jobs:
         with:
           name: playwright-report-onboarding-verify
           path: apps/app/playwright-report/
+          if-no-files-found: ignore
           retention-days: 30
 
   auth-tenant-critical-flows:
@@ -160,10 +157,6 @@ jobs:
       NEXT_PUBLIC_API_URL: http://127.0.0.1:3001/api/v1
       API_PROXY_TARGET: http://127.0.0.1:3001
       CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
-      META_ACCESS_TOKEN: test-ci-token
-      META_PHONE_NUMBER_ID: test-ci-phone-id
-      META_APP_SECRET: test-ci-app-secret
-      META_VERIFY_TOKEN: test-ci-verify-token
       WHATSAPP_PRODUCTION_MODE: "false"
     services:
       postgres:
@@ -282,4 +275,5 @@ jobs:
         with:
           name: playwright-report-auth-tenant-critical
           path: apps/app/playwright-report/
+          if-no-files-found: ignore
           retention-days: 30
