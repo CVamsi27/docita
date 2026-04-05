@@ -84,6 +84,9 @@ jobs:
       - name: Prepare API workspace packages
         run: pnpm --filter @docita/api run predev
 
+      - name: Prepare App workspace packages
+        run: pnpm --filter @docita/app run prestart
+
       - name: Start API server
         run: |
           pnpm --filter @docita/api run dev > /tmp/docita-api.log 2>&1 &
@@ -219,6 +222,9 @@ jobs:
 
       - name: Prepare API workspace packages
         run: pnpm --filter @docita/api run predev
+
+      - name: Prepare App workspace packages
+        run: pnpm --filter @docita/app run prestart
 
       - name: Start API server
         run: |

@@ -5,9 +5,10 @@ import path from 'path';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 
-let prisma: PrismaClient;
+let prisma: TestPrismaClient;
 
 type TestPrismaClient = PrismaClient & {
+  getReadClient(): PrismaClient;
   runUnrestricted<T>(fn: () => Promise<T>): Promise<T>;
 };
 
@@ -25,6 +26,9 @@ export function setupTestDatabase() {
   const rawPrisma = new PrismaClient({ adapter });
 
   prisma = Object.assign(rawPrisma, {
+    getReadClient(): PrismaClient {
+      return rawPrisma;
+    },
     runUnrestricted<T>(fn: () => Promise<T>): Promise<T> {
       return fn();
     },
