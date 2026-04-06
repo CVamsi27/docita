@@ -1,0 +1,45 @@
+app = 'docita-api'
+primary_region = 'bom'
+
+# Docker context is repo root; Dockerfile lives at apps/api/Dockerfile
+[build]
+  dockerfile = 'apps/api/Dockerfile'
+
+[env]
+  PORT = '3001'
+  NODE_ENV = 'production'
+  STORAGE_PROVIDER = 'r2'
+
+# Secrets set via: fly secrets set KEY=value
+# Required: DATABASE_URL, REDIS_URL, JWT_SECRET, ENCRYPTION_KEY,
+#           CACHE_PROVIDER, QUEUE_PROVIDER,
+#           R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
+#           RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET
+#           RESEND_API_KEY, SENTRY_DSN
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 200
+    soft_limit = 150
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[checks]
+  [checks.health]
+    grace_period = '30s'
+    interval = '15s'
+    method = 'GET'
+    path = '/api/health/live'
+    port = 3001
+    timeout = '5s'
+    type = 'http'

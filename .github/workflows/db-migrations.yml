@@ -1,4 +1,4 @@
-name: Render Migrations
+name: Database Migrations
 
 on:
   workflow_dispatch:
@@ -9,11 +9,11 @@ on:
       - packages/db/prisma/**
       - packages/db/scripts/**
       - packages/db/package.json
-      - .github/workflows/render-migrations.yml
+      - .github/workflows/db-migrations.yml
 
 jobs:
   migrate-db:
-    name: Apply Render Prisma Migrations
+    name: Apply Prisma Migrations
     runs-on: ubuntu-latest
     env:
       NODE_ENV: production
@@ -43,10 +43,9 @@ jobs:
             echo "DATABASE_URL secret is required."
             exit 1
           fi
-
           pnpm --filter @workspace/db run db:generate
 
-      - name: Run Safe Prisma Migrations
+      - name: Run Prisma Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -54,5 +53,4 @@ jobs:
             echo "DATABASE_URL secret is required."
             exit 1
           fi
-
           pnpm --filter @workspace/db run db:migrate:safe
