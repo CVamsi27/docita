@@ -39,7 +39,7 @@ Cloudflare Workers (app/admin/landing) --> Render (NestJS API)
 
 ### Frontend
 
-- **Framework**: Next.js 16 (App Router)
+- **Frameworks**: Next.js 16 (App Router) for `apps/app` and `apps/admin`, Astro 5 for `apps/landing`
 - **UI**: React 19, Tailwind CSS 4, Shadcn UI
 - **Icons**: Lucide Icons
 - **Data Fetching**: TanStack React Query
@@ -123,7 +123,7 @@ pnpm test
 
 1. **Database**: Create Render PostgreSQL in Singapore
 2. **Backend**: Deploy `apps/api` as a Render Web Service
-3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/admin` to Cloudflare Workers with OpenNext
+3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/admin` to Cloudflare Workers
 
 See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment direction.
 

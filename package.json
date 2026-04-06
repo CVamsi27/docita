@@ -28,6 +28,8 @@
     "test:unit:local": "pnpm --filter @workspace/utils run test && pnpm --filter @workspace/ui run test && pnpm --filter @docita/admin run test && pnpm --filter @docita/app run test && pnpm --filter @docita/api run test",
     "test:api": "turbo test --filter=@docita/api",
     "test:e2e": "turbo test --filter=@docita/app",
+    "test:landing": "pnpm --filter @docita/landing run test:critical-flows",
+    "test:landing:a11y": "pnpm --filter @docita/landing run audit:accessibility",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "audit:accessibility": "tsx scripts/accessibility-audit.ts",

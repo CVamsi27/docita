@@ -1,0 +1,210 @@
+---
+import LegalLayout from "@/layouts/legal-layout.astro";
+---
+
+<LegalLayout
+  canonicalPath="/cookies"
+  title="Cookie Policy"
+  description="How Docita uses cookies, local storage, and related technologies."
+  lastUpdated="March 15, 2026"
+>
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">1. What Are Cookies</h2>
+    <p class="mt-3">
+      Cookies are small text files stored on your device when you visit a website.
+      They allow the website to remember your actions and preferences over time, so
+      you do not have to re-enter them whenever you return or move between pages.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">2. How We Use Cookies</h2>
+    <p class="mt-3">Docita uses cookies and similar technologies to:</p>
+    <ul class="mt-3 list-disc space-y-2 pl-6">
+      <li>Keep you signed in to your account across sessions.</li>
+      <li>Remember your preferences (language, theme, currency).</li>
+      <li>Understand how the application is used to improve it.</li>
+      <li>Detect and prevent fraud and security threats.</li>
+      <li>Ensure pages load correctly and features function as expected.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">3. Types of Cookies We Use</h2>
+
+    <h3 class="mt-5 text-xl font-medium text-foreground">3.1 Strictly Necessary Cookies</h3>
+    <p class="mt-3">
+      These cookies are essential for the website to function and cannot be switched
+      off. They are usually set in response to actions you take, such as logging in
+      or filling in forms.
+    </p>
+    <div class="mt-4 overflow-x-auto rounded-lg border">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-muted/50">
+            <th class="px-4 py-2 text-left font-medium text-foreground">Cookie</th>
+            <th class="px-4 py-2 text-left font-medium text-foreground">Purpose</th>
+            <th class="px-4 py-2 text-left font-medium text-foreground">Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="px-4 py-2 font-mono text-foreground">auth_token</td>
+            <td class="px-4 py-2">Maintains your authenticated session</td>
+            <td class="px-4 py-2">Session</td>
+          </tr>
+          <tr class="border-b">
+            <td class="px-4 py-2 font-mono text-foreground">csrf_token</td>
+            <td class="px-4 py-2">Protects against cross-site request forgery</td>
+            <td class="px-4 py-2">Session</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2 font-mono text-foreground">tenant_id</td>
+            <td class="px-4 py-2">Identifies your clinic workspace</td>
+            <td class="px-4 py-2">Session</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="mt-6 text-xl font-medium text-foreground">3.2 Functional Cookies</h3>
+    <p class="mt-3">
+      These cookies allow the website to remember choices you have made to provide
+      enhanced, personalized features. Disabling them may affect your experience.
+    </p>
+    <div class="mt-4 overflow-x-auto rounded-lg border">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-muted/50">
+            <th class="px-4 py-2 text-left font-medium text-foreground">Cookie</th>
+            <th class="px-4 py-2 text-left font-medium text-foreground">Purpose</th>
+            <th class="px-4 py-2 text-left font-medium text-foreground">Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b">
+            <td class="px-4 py-2 font-mono text-foreground">theme</td>
+            <td class="px-4 py-2">Remembers your light/dark mode preference</td>
+            <td class="px-4 py-2">1 year</td>
+          </tr>
+          <tr class="border-b">
+            <td class="px-4 py-2 font-mono text-foreground">currency_pref</td>
+            <td class="px-4 py-2">Remembers your selected display currency</td>
+            <td class="px-4 py-2">24 hours</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2 font-mono text-foreground">locale</td>
+            <td class="px-4 py-2">Remembers your language preference</td>
+            <td class="px-4 py-2">1 year</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="mt-6 text-xl font-medium text-foreground">3.3 Analytics Cookies</h3>
+    <p class="mt-3">
+      These cookies help us understand how visitors interact with our website by
+      collecting and reporting information anonymously. All analytics data is
+      aggregated and does not identify individual users.
+    </p>
+    <p class="mt-3">
+      We do not use third-party advertising or behavioral tracking cookies. Any
+      analytics we collect is processed in-house or via privacy-first tools that do
+      not share data with advertisers.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">4. Local Storage</h2>
+    <p class="mt-3">
+      In addition to cookies, we use browser local storage to save certain
+      preferences (such as detected currency and user-interface state). Local
+      storage data does not leave your device by itself.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">5. Third-Party Cookies</h2>
+    <p class="mt-3">
+      Some features of Docita rely on third-party services that may set their own
+      cookies:
+    </p>
+    <ul class="mt-3 list-disc space-y-2 pl-6">
+      <li>
+        <strong>Razorpay</strong> - payment processing; cookies are set during
+        checkout and are governed by
+        <a
+          class="mx-1 text-primary hover:underline"
+          href="https://razorpay.com/privacy/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Razorpay privacy policy
+        </a>.
+      </li>
+      <li>
+        <strong>AWS CloudFront</strong> - content delivery; may set cookies for
+        load balancing and security.
+      </li>
+    </ul>
+    <p class="mt-3">
+      We do not use Google Analytics, Facebook Pixel, or other advertising-platform
+      trackers.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">6. Managing Cookies</h2>
+    <p class="mt-3">You can control and manage cookies in several ways:</p>
+    <ul class="mt-3 list-disc space-y-2 pl-6">
+      <li>
+        <strong>Browser settings:</strong> Most browsers allow you to refuse or
+        delete cookies through settings.
+      </li>
+      <li>
+        <strong>In-app preferences:</strong> Functional preferences (theme,
+        language, currency) can be changed directly inside the Docita app.
+      </li>
+      <li>
+        <strong>Clearing local storage:</strong> You can clear local storage any
+        time via browser site-data controls.
+      </li>
+    </ul>
+    <p class="mt-3">
+      Disabling strictly necessary cookies will prevent login and key product
+      functionality.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">7. Compliance</h2>
+    <p class="mt-3">
+      Our cookie practices are consistent with the Digital Personal Data
+      Protection Act, 2023 (India) and the Information Technology Act, 2000.
+      We do not use cookies to build advertising profiles or share data for
+      marketing purposes.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">8. Changes to This Policy</h2>
+    <p class="mt-3">
+      We may update this Cookie Policy from time to time to reflect changes in
+      technology or regulation. The "Last updated" date on this page will be
+      revised accordingly.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold text-foreground">9. Contact Us</h2>
+    <p class="mt-3">If you have questions about our cookie practices:</p>
+    <div class="mt-4 rounded-lg border bg-card p-4">
+      <p class="font-medium text-foreground">Docita Data Protection Team</p>
+      <p class="mt-2">
+        Email:
+        <a class="ml-1 text-primary hover:underline" href="mailto:admin@docita.work">admin@docita.work</a>
+      </p>
+      <p>Address: Aparna Cyberscape, Nalagandla, Hyderabad, India</p>
+    </div>
+  </section>
+</LegalLayout>

@@ -26,7 +26,7 @@ docita/
 │   ├── api/          # NestJS backend (port 3001)
 │   ├── app/          # Next.js main product app (port 3000)
 │   ├── admin/        # Next.js admin interface (port 3002)
-│   └── landing/      # Next.js marketing site (port 3003)
+│   └── landing/      # Astro marketing site (port 3003)
 ├── packages/
 │   ├── db/           # Prisma schema, migrations, client
 │   ├── types/        # Zod schemas (source of truth)
@@ -475,7 +475,7 @@ Before adding any file, ask:
 
 ### Global Styles Standard
 
-**CRITICAL**: All Next.js apps (landing, app, admin) share a single `global.css` file.
+**CRITICAL**: All web apps (app, admin, landing) share a single global stylesheet source.
 
 Location: `packages/ui/src/styles/global.css`
 
@@ -487,8 +487,8 @@ import '@workspace/ui/styles/global.css';
 // apps/admin/app/layout.tsx
 import '@workspace/ui/styles/global.css';
 
-// apps/landing/app/layout.tsx
-import '@workspace/ui/styles/global.css';
+// apps/landing/src/layouts/main-layout.astro
+import '@workspace/ui/globals.css';
 ```
 
 Never create app-specific `global.css` files. All global styles are centralized in the UI package.

@@ -130,7 +130,7 @@ EXPOSE 3001
 # Health check (uses fast liveness probe)
 # Note: /api prefix is required because of app.setGlobalPrefix('api') in main.ts
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl --fail http://localhost:3001/api/health || exit 1
+    CMD curl --fail http://localhost:3001/api/health/live || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
 

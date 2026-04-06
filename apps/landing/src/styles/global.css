@@ -1,0 +1,10 @@
+.hero-grid {
+  background-image:
+    radial-gradient(circle at 0% 0%, color-mix(in oklch, var(--primary) 18%, transparent) 0%, transparent 45%),
+    radial-gradient(circle at 100% 0%, color-mix(in oklch, var(--info) 15%, transparent) 0%, transparent 42%),
+    linear-gradient(180deg, color-mix(in oklch, var(--background) 96%, transparent), var(--background));
+}
+
+.cta-ring {
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 28%, transparent);
+}

@@ -2,7 +2,7 @@
 
 This is a recommended, production-grade structure for a Turborepo using:
 
-- Next.js (frontend apps)
+- Next.js + Astro (frontend apps)
 - NestJS (backend API)
 - Prisma
 - PostgreSQL
@@ -16,7 +16,7 @@ Use this as the baseline across all modules to keep architecture consistent and 
 ├── apps/
 │   ├── app/                      # Next.js main product app
 │   ├── admin/                    # Next.js admin app (optional)
-│   ├── landing/                  # Next.js marketing site (optional)
+│   ├── landing/                  # Astro marketing site
 │   └── api/                      # NestJS API
 ├── packages/
 │   ├── ui/                       # Shared React UI components
@@ -35,7 +35,7 @@ Use this as the baseline across all modules to keep architecture consistent and 
 ├── package.json
 └── tsconfig.json
 
-## 2) Next.js App Structure (apps/app, apps/admin, apps/landing)
+## 2) Web App Structure (apps/app, apps/admin, apps/landing)
 
 apps/app/
 ├── app/                          # App Router routes and layouts
@@ -190,7 +190,8 @@ When adopting this structure in an existing codebase:
 
 ## 9) Suggested Target Mapping for This Repository
 
-- Keep apps/app, apps/admin, apps/landing as Next.js apps.
+- Keep `apps/app` and `apps/admin` as Next.js apps.
+- Keep `apps/landing` as the primary Astro marketing app.
 - Keep apps/api as NestJS app.
 - Keep packages/db as single source of Prisma schema and DB client.
 - Keep packages/ui, packages/types, packages/data-access as the shared contract/UI/data layer.
@@ -208,8 +209,7 @@ The following baseline structure has been created to standardize app layout:
 
 - apps/app/tests/{unit,integration,e2e}
 - apps/admin/tests/{unit,integration,e2e}
-- apps/landing/{features,lib,providers,hooks}
-- apps/landing/tests/{unit,integration,e2e}
+- apps/landing/{src,public,e2e}
 - apps/api/test/{unit,integration,e2e}
 
 The following baseline structure has also been created for shared runtime packages:

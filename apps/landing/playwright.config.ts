@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const APP_URL = process.env["APP_URL"] || "http://127.0.0.1:3003";
+const APP_URL = process.env["APP_URL"] || "http://localhost:3003";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -18,15 +18,19 @@ export default defineConfig({
     navigationTimeout: 60000,
     actionTimeout: 30000,
   },
-
   expect: {
     timeout: 15000,
   },
-
   projects: [
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
   ],
+  webServer: {
+    command: "pnpm dev",
+    url: APP_URL,
+    reuseExistingServer: !process.env["CI"],
+    timeout: 120000,
+  },
 });

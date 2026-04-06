@@ -451,6 +451,7 @@ export class AuthService {
   async register(data: RegisterData) {
     return this.prisma.runUnrestricted(async () => {
       this.passwordPolicy.validate(data.password);
+      const shouldAutoVerifyEmail = process.env.NODE_ENV === 'test';
 
       if (await this.checkEmailExists(data.email)) {
         throw new ConflictException('User with this email already exists');
@@ -479,6 +480,7 @@ export class AuthService {
           ...userData,
           onboardingStep: 'CHOOSE_PATH',
           onboardingStartedAt: new Date(),
+          emailVerified: shouldAutoVerifyEmail,
         },
         select: {
           id: true,
@@ -493,15 +495,17 @@ export class AuthService {
       });
       const tokens = await this.login(user);
 
-      this.sendVerificationEmail(user.id).catch((err: unknown) => {
-        this.logger.warn(
-          'Failed to send verification email after registration',
-          {
-            userId: user.id,
-            error: err instanceof Error ? err.message : String(err),
-          },
-        );
-      });
+      if (!shouldAutoVerifyEmail) {
+        this.sendVerificationEmail(user.id).catch((err: unknown) => {
+          this.logger.warn(
+            'Failed to send verification email after registration',
+            {
+              userId: user.id,
+              error: err instanceof Error ? err.message : String(err),
+            },
+          );
+        });
+      }
 
       return tokens;
     });

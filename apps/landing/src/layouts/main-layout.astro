@@ -1,0 +1,99 @@
+---
+import "@workspace/ui/globals.css";
+import "@/styles/global.css";
+
+import SiteFooter from "@/components/site-footer.astro";
+import SiteHeader from "@/components/site-header.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  noIndex?: boolean;
+}
+
+const {
+  title = "Docita - Clinic Management Software | 14-Day Free Trial",
+  description = "Docita helps clinics manage appointments, billing, digital prescriptions, records, and patient communication in one platform.",
+  canonicalPath = "/",
+  noIndex = false,
+} = Astro.props;
+
+const siteUrl = "https://docita.work";
+const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Docita",
+  applicationCategory: "HealthApplication",
+  operatingSystem: "Web",
+  url: siteUrl,
+  description,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "INR",
+    description: "14-day free trial, no credit card required",
+  },
+  creator: {
+    "@type": "Organization",
+    name: "Docita",
+    url: siteUrl,
+    email: "support@docita.work",
+  },
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <script is:inline>
+      (() => {
+        const storageKey = "docita-theme";
+        const stored = localStorage.getItem(storageKey);
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = stored === "dark" || stored === "light"
+          ? stored
+          : systemPrefersDark
+            ? "dark"
+            : "light";
+        document.documentElement.classList.toggle("dark", theme === "dark");
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="/branding/Round_Logo-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/branding/Round_Logo-512.png" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Docita" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="https://docita.work/branding/Dark-background.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://docita.work/branding/Dark-background.png" />
+
+    {noIndex ? <meta name="robots" content="noindex,nofollow" /> : <meta name="robots" content="index,follow" />}
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body class="app-shell-bg min-h-screen bg-background font-sans text-foreground antialiased">
+    <SiteHeader />
+    <main>
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

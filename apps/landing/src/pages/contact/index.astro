@@ -1,0 +1,129 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import { ContactInquiryForm } from "@/components/contact-inquiry-form";
+
+const faqs = [
+  {
+    question: "How do I get started with Docita?",
+    answer:
+      "Create an account, complete onboarding, and begin with a guided rollout. Smaller practices can start quickly with baseline workflows.",
+  },
+  {
+    question: "Is patient data secure?",
+    answer:
+      "Yes. Docita uses layered security controls aligned with healthcare-grade privacy and compliance expectations.",
+  },
+  {
+    question: "Can we migrate from another system?",
+    answer:
+      "Yes. We support structured import paths and can assist with larger clinic migrations.",
+  },
+  {
+    question: "What support options are available?",
+    answer:
+      "All plans include support. Higher tiers include priority support and stronger success coverage.",
+  },
+];
+---
+
+<MainLayout
+  canonicalPath="/contact"
+  title="Contact Docita"
+  description="Reach the Docita team for product demos, onboarding help, pricing guidance, and support."
+>
+  <section class="px-6 py-14">
+    <div class="container mx-auto">
+      <div class="mb-10 text-center">
+        <h1 class="text-4xl font-bold tracking-tight">Contact Us</h1>
+        <p class="mx-auto mt-3 max-w-2xl text-base text-muted-foreground">
+          Have questions about Docita? Reach out and our team will guide you with
+          a practical rollout path.
+        </p>
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <aside class="space-y-6">
+          <article class="rounded-xl border bg-card p-5">
+            <h2 class="text-2xl font-semibold">Email Channels</h2>
+            <div class="mt-4 space-y-3 text-sm text-muted-foreground">
+              <p>
+                <strong class="text-foreground">CEO, Founder:</strong>
+                <a class="ml-2 text-primary hover:underline" href="mailto:vkc@docita.work">vkc@docita.work</a>
+              </p>
+              <p>
+                <strong class="text-foreground">Government, paperwork:</strong>
+                <a class="ml-2 text-primary hover:underline" href="mailto:admin@docita.work">admin@docita.work</a>
+              </p>
+              <p>
+                <strong class="text-foreground">Billing & invoices:</strong>
+                <a class="ml-2 text-primary hover:underline" href="mailto:billing@docita.work">billing@docita.work</a>
+              </p>
+              <p>
+                <strong class="text-foreground">Customer support:</strong>
+                <a class="ml-2 text-primary hover:underline" href="mailto:support@docita.work">support@docita.work</a>
+              </p>
+            </div>
+          </article>
+
+          <article class="rounded-xl border bg-card p-5">
+            <h2 class="text-2xl font-semibold">Support Hours</h2>
+            <div class="mt-4 space-y-2 text-sm text-muted-foreground">
+              <p><strong class="text-foreground">Mon - Fri:</strong> 9:00 AM - 6:00 PM IST</p>
+              <p><strong class="text-foreground">Saturday:</strong> 10:00 AM - 2:00 PM IST</p>
+              <p><strong class="text-foreground">Sunday:</strong> Closed</p>
+            </div>
+          </article>
+
+          <article class="rounded-xl border bg-card p-5">
+            <h2 class="text-2xl font-semibold">Quick Links</h2>
+            <ul class="mt-4 space-y-2 text-sm text-muted-foreground">
+              <li>
+                <a class="transition-colors hover:text-foreground" href="mailto:support@docita.work?subject=Demo%20Request">
+                  Request a Demo
+                </a>
+              </li>
+              <li>
+                <a class="transition-colors hover:text-foreground" href="mailto:support@docita.work?subject=Technical%20Support">
+                  Technical Support
+                </a>
+              </li>
+              <li>
+                <a class="transition-colors hover:text-foreground" href="mailto:admin@docita.work?subject=Government%20or%20Paperwork%20Inquiry">
+                  Government & Paperwork
+                </a>
+              </li>
+            </ul>
+          </article>
+
+          <article class="rounded-xl border bg-card p-5">
+            <h2 class="text-2xl font-semibold">Address</h2>
+            <div class="mt-4 space-y-1 text-sm text-muted-foreground">
+              <p class="font-medium text-foreground">CHANDALURI VAMSI KRISHNA</p>
+              <p>Sole Proprietor, Docita</p>
+              <p>GSTIN: 36CJPPC6222C1ZI</p>
+              <p>Aparna Cyberscape, Nalagandla</p>
+              <p>Hyderabad, Telangana 500019</p>
+              <p>India</p>
+            </div>
+          </article>
+        </aside>
+
+        <div>
+          <ContactInquiryForm client:load />
+        </div>
+      </div>
+
+      <div class="mt-16">
+        <h2 class="text-center text-2xl font-bold">Frequently Asked Questions</h2>
+        <div class="mt-8 grid gap-6 md:grid-cols-2">
+          {faqs.map((faq) => (
+            <article class="rounded-xl border bg-card p-5">
+              <h3 class="text-lg font-semibold">{faq.question}</h3>
+              <p class="mt-2 text-sm text-muted-foreground">{faq.answer}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>

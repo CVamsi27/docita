@@ -28,7 +28,7 @@ describe('PublicStatsController (e2e)', () => {
       .useValue(mockWhatsappService)
       .compile();
 
-    app = moduleFixture.createNestApplication();
+    app = moduleFixture.createNestApplication({ logger: false });
     await app.init();
   });
 

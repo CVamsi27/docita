@@ -4,7 +4,6 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main, develop]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -44,7 +43,9 @@ jobs:
           API_URL: http://127.0.0.1:3001/api/v1
           APP_URL: http://127.0.0.1:3000
           NODE_ENV: test
-        run: pnpm --filter @docita/app exec playwright test e2e/health.spec.ts
+        run: |
+          unset NO_COLOR
+          pnpm --filter @docita/app exec playwright test e2e/health.spec.ts
 
       - name: Upload Playwright report
         if: always()
@@ -52,4 +53,5 @@ jobs:
         with:
           name: playwright-report-smoke
           path: apps/app/playwright-report/
+          if-no-files-found: ignore
           retention-days: 30

@@ -1,0 +1,47 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+import { PricingSection } from "@/components/pricing-section";
+import { AiAutomationSection } from "@/components/sections/ai-automation-section";
+import { AnalyticsSection } from "@/components/sections/analytics-section";
+import { CtaBottomSection } from "@/components/sections/cta-bottom-section";
+import { FaqSection } from "@/components/sections/faq-section";
+import { FeaturesGridSection } from "@/components/sections/features-grid-section";
+import { HeroSection } from "@/components/sections/hero-section";
+import { HowItWorksSection } from "@/components/sections/how-it-works-section";
+import { LabInventorySection } from "@/components/sections/lab-inventory-section";
+import { MedicalCodingSection } from "@/components/sections/medical-coding-section";
+import { QueueSection } from "@/components/sections/queue-section";
+import { SpecialtiesSection } from "@/components/sections/specialties-section";
+import { StatsSection } from "@/components/sections/stats-section";
+import { StickyCta } from "@/components/sections/sticky-cta";
+import { TrustSecuritySection } from "@/components/sections/trust-security-section";
+import { ValuePropsSection } from "@/components/sections/value-props-section";
+import { WhatsappSection } from "@/components/sections/whatsapp-section";
+import { getAppBaseUrl } from "@/lib/public-api";
+
+const appUrl = getAppBaseUrl();
+---
+
+<MainLayout
+  canonicalPath="/"
+  title="Docita - Clinic Management Software | 14-Day Free Trial"
+  description="Docita helps Indian clinics run appointments, prescriptions, records, and billing from one reliable workflow."
+>
+  <HeroSection appUrl={appUrl} />
+  <StatsSection client:load />
+  <HowItWorksSection />
+  <ValuePropsSection />
+  <QueueSection />
+  <MedicalCodingSection />
+  <LabInventorySection />
+  <SpecialtiesSection />
+  <AnalyticsSection />
+  <AiAutomationSection />
+  <WhatsappSection />
+  <FeaturesGridSection />
+  <TrustSecuritySection />
+  <PricingSection appUrl={appUrl} client:load />
+  <FaqSection client:load />
+  <CtaBottomSection appUrl={appUrl} />
+  <StickyCta appUrl={appUrl} client:load />
+</MainLayout>

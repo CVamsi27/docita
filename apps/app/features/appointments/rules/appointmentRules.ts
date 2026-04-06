@@ -5,6 +5,7 @@ import {
   isAfter,
   isBefore,
   isToday,
+  startOfMinute,
   subMinutes,
 } from "date-fns";
 
@@ -52,8 +53,8 @@ export const canCheckIn = (appointment: Appointment): boolean => {
     return false;
   }
 
-  const appointmentDate = new Date(appointment.startTime);
-  const now = new Date();
+  const appointmentDate = startOfMinute(new Date(appointment.startTime));
+  const now = startOfMinute(new Date());
   const earliestAllowedCheckInTime = subMinutes(appointmentDate, 60);
   const latestAllowedCheckInTime = addMinutes(appointmentDate, 15);
 

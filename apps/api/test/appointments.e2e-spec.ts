@@ -113,15 +113,42 @@ describe('AppointmentsController (e2e)', () => {
       expect(response.body.items[0]).toHaveProperty('patient');
     });
 
-    it('should reject doctor query for another doctor id', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/appointments?doctorId=another-doctor-id')
-        .set('Authorization', `Bearer ${jwtToken}`)
-        .expect(403);
+    it('should scope doctor query to the authenticated doctor', async () => {
+      const { user: secondDoctor } = await factories.user({
+        clinicId: clinic.id,
+        role: 'DOCTOR',
+      });
 
-      expect(response.body.message).toContain(
-        'Doctors can only access their appointments',
+      const ownAppointment = await factories.appointment(
+        patient.id,
+        doctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 1800000),
+          endTime: new Date(Date.now() + 3600000),
+        },
       );
+      const otherDoctorAppointment = await factories.appointment(
+        patient.id,
+        secondDoctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 5400000),
+          endTime: new Date(Date.now() + 7200000),
+        },
+      );
+
+      const response = await request(app.getHttpServer())
+        .get(`/appointments?doctorId=${secondDoctor.id}`)
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body.items)).toBeTruthy();
+      const appointmentIds = (response.body.items as Array<{ id: string }>).map(
+        ({ id }) => id,
+      );
+      expect(appointmentIds).toContain(ownAppointment.id);
+      expect(appointmentIds).not.toContain(otherDoctorAppointment.id);
     });
 
     it('should block doctor from fetching another doctor appointment by id', async () => {

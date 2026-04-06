@@ -55,10 +55,25 @@ describe('Clinic Members Lifecycle (e2e)', () => {
   it('onboards clinic admin and performs member create/list/update/delete', async () => {
     const now = Date.now();
     const adminEmail = `e2e.admin.${now}@docita.work`;
-    const adminPassword = 'E2E#Admin#12345';
+    const adminPassword = 'E2E!Admin!12345';
+    const registerResponse = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        firstName: 'E2E',
+        lastName: 'Admin',
+        email: adminEmail,
+        password: adminPassword,
+        role: 'ADMIN',
+      })
+      .expect(201);
+
+    const bootstrapToken =
+      registerResponse.body?.access_token || registerResponse.body?.accessToken;
+    expect(bootstrapToken).toBeDefined();
 
     const initResponse = await request(app.getHttpServer())
       .post('/onboarding/initialize')
+      .set('Authorization', `Bearer ${bootstrapToken}`)
       .expect(201);
 
     const onboardingId = initResponse.body?.onboardingId;
@@ -75,6 +90,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
 
     const completeResponse = await request(app.getHttpServer())
       .post(`/onboarding/${onboardingId}/complete`)
+      .set('Authorization', `Bearer ${bootstrapToken}`)
       .send({
         clinicDetails: {
           name: `E2E Clinic ${now}`,
@@ -154,7 +170,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
       .send({
         name: 'E2E Receptionist',
         email: `e2e.receptionist.${now}@docita.work`,
-        password: 'E2E#Rec#12345',
+        password: 'E2E!Rec!12345',
         phoneNumber: '+919999999999',
       })
       .expect(201);

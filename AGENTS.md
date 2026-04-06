@@ -20,7 +20,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - `apps/api` (NestJS)
   - `apps/app` (Next.js main app)
   - `apps/admin` (Next.js admin)
-  - `apps/landing` (Next.js marketing)
+  - `apps/landing` (Astro marketing)
 - Shared packages:
   - `packages/types` (Zod schemas, source of truth)
   - `packages/data-access` (API clients + React Query)
@@ -60,7 +60,8 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Prefer `@workspace/ui` components over ad-hoc duplicates.
 - Use React Query for server state.
 - Use React Hook Form + Zod for forms.
-- Use Next.js navigation APIs (`Link`, `router.push`) for internal routing.
+- In Next.js apps, use Next.js navigation APIs (`Link`, `router.push`) for internal routing.
+- In Astro pages, prefer native anchors for static routes and hydrate React islands only when interactivity is required.
 - Always handle loading, error, and empty states.
 - Keep components accessible and keyboard-friendly.
 - Never import `@prisma/client` or `@workspace/db` in frontend code.
@@ -73,7 +74,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 ### 4.2 Global styles standard
 
-- All Next.js apps share global styles from `packages/ui/src/styles/global.css`.
+- All web apps share global styles from `packages/ui/src/styles/globals.css`.
 - Do not create app-specific global css variants that diverge from this standard.
 
 ## 5) Backend Rules

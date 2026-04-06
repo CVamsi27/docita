@@ -41,12 +41,13 @@
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^19",
-    "@vitejs/plugin-react": "^5.1.4",
+    "@vitejs/plugin-react": "^4.7.0",
     "axe-playwright": "^2.2.2",
     "@workspace/eslint-config": "workspace:^",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "typescript": "^5",
+    "vite": "^6.4.1",
     "vitest": "^4.0.16",
     "wrangler": "^4.71.0"
   }

@@ -45,6 +45,8 @@ build
 **/.open-next
 out
 **/out
+.astro
+**/.astro
 
 # Turbo cache
 .turbo
