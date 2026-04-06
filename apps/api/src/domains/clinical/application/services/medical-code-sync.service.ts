@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -8,7 +8,7 @@ import {
 } from '@/domains/clinical/core/providers/code-catalog.provider';
 
 @Injectable()
-export class MedicalCodeSyncService implements OnModuleInit {
+export class MedicalCodeSyncService {
   private readonly logger = new Logger(MedicalCodeSyncService.name);
   private static readonly UPDATE_BATCH_SIZE = 100;
 
@@ -17,14 +17,6 @@ export class MedicalCodeSyncService implements OnModuleInit {
     @Inject(CODE_CATALOG_PROVIDER)
     private readonly codeCatalogProvider: CodeCatalogProvider,
   ) {}
-
-  async onModuleInit() {
-    void this.syncCommonCodes().catch((error) => {
-      this.logger.warn(
-        `Initial medical code sync skipped: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    });
-  }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async refreshCommonCodes() {
