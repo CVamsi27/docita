@@ -2,7 +2,7 @@
 
 import { Button } from "@workspace/ui/components/button";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface StickyCtaProps {
   appUrl: string;
@@ -10,6 +10,7 @@ interface StickyCtaProps {
 
 export function StickyCta({ appUrl }: StickyCtaProps) {
   const [showStickyCTA, setShowStickyCTA] = useState(false);
+  const ctaRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,10 +26,33 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const applyBodyOffset = () => {
+      if (!showStickyCTA || !ctaRef.current) {
+        document.body.style.paddingBottom = "";
+        return;
+      }
+
+      const ctaHeight = ctaRef.current.getBoundingClientRect().height;
+      document.body.style.paddingBottom = `${Math.ceil(ctaHeight) + 12}px`;
+    };
+
+    applyBodyOffset();
+    window.addEventListener("resize", applyBodyOffset);
+
+    return () => {
+      window.removeEventListener("resize", applyBodyOffset);
+      document.body.style.paddingBottom = "";
+    };
+  }, [showStickyCTA]);
+
   if (!showStickyCTA) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary text-primary-foreground py-3 px-4 shadow-lg animate-in slide-in-from-bottom duration-300">
+    <div
+      ref={ctaRef}
+      className="fixed bottom-0 left-0 right-0 z-50 bg-primary text-primary-foreground py-3 px-4 shadow-lg animate-in slide-in-from-bottom duration-300"
+    >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         <div>
           <div className="font-bold text-lg hidden sm:block">
