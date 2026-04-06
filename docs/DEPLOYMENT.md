@@ -10,8 +10,8 @@
   - `apps/api`: Fly.io (Mumbai — `bom` region), 1 GB RAM, shared CPU
 - Database
   - AWS RDS PostgreSQL — `ap-south-1` (Mumbai), `db.t4g.micro`
-- Cache / Queues
-  - Upstash Redis — `ap-south-1` (Mumbai)
+- Cache / Background Work
+  - In-process memory cache + in-process background tasks inside the API process
 - Object Storage
   - Cloudflare R2 (`STORAGE_PROVIDER=r2`)
 
@@ -21,8 +21,7 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 
 - Run Prisma migrations before each API deploy (CI does this automatically on push to `main`).
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
-- Use `REDIS_URL` from Upstash for queues and cache in production.
-- In production set `QUEUE_PROVIDER=bull` and `CACHE_PROVIDER=redis`.
+- Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
 - Keep frontend `NEXT_PUBLIC_API_URL` pointed to the Fly.io app URL.
 - Keep each Worker entry bundle under Cloudflare's 3 MB limit. Use
@@ -30,6 +29,17 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 - Deploy order: run DB migrations first, then deploy API, then deploy frontends.
 - Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
+- Keep at least one API machine running; do not scale the API to zero while background work is in-process.
+- Treat bulk import and non-immediate audit logging as best-effort background work tied to the running API instance.
+- Do not rely on multi-machine queue semantics until background work is moved to a durable Postgres-backed worker.
+
+## Background Task Caveat
+
+- Redis/Bull is no longer part of the deployment topology.
+- Search and application cache are memory-backed within each API instance.
+- Bulk import processing is scheduled in-process by the API and does not survive process restarts.
+- Non-immediate audit logging is fire-and-forget in-process and does not provide cross-instance delivery guarantees.
+- If durable jobs, retries across restarts, or multi-machine worker coordination become required, migrate background work to a PostgreSQL-backed worker before scaling out.
 
 ## Fly.io Quick Guide
 
@@ -42,7 +52,7 @@ fly auth login
 
 # First deploy (from repo root)
 fly launch --no-deploy  # imports fly.toml
-fly secrets set DATABASE_URL="postgresql://..." REDIS_URL="rediss://..." JWT_SECRET="..." ENCRYPTION_KEY="..." ...
+fly secrets set DATABASE_URL="postgresql://..." JWT_SECRET="..." ENCRYPTION_KEY="..." ...
 fly deploy
 
 # Subsequent deploys
@@ -55,17 +65,23 @@ fly logs
 fly ssh console
 ```
 
+Fly-specific notes:
+- The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
+- Keep `min_machines_running = 1` while background work remains in-process.
+- Verify the API image locally before infra changes with:
+
+```bash
+docker build -f apps/api/Dockerfile -t docita-api-verify .
+```
+
 Secrets required (set via `fly secrets set KEY=value`):
 - `DATABASE_URL` — AWS RDS connection string
-- `REDIS_URL` — Upstash Redis URL (`rediss://` for TLS)
 - `JWT_SECRET` — minimum 32 characters
 - `ENCRYPTION_KEY` — 64-character hex key
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
 - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
 - `RESEND_API_KEY`
 - `SENTRY_DSN`
-- `QUEUE_PROVIDER=bull`
-- `CACHE_PROVIDER=redis`
 
 ## AWS RDS Quick Guide
 
@@ -83,13 +99,6 @@ Manual migration:
 DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 ```
 
-## Upstash Redis Quick Guide
-
-- Region: `ap-south-1` (Mumbai)
-- Use the `rediss://` (TLS) connection URL from the Upstash console
-- Free tier supports up to 10,000 commands/day; upgrade to Pay-as-you-go if needed
-- Set `QUEUE_PROVIDER=bull` and `CACHE_PROVIDER=redis` in Fly secrets
-
 ## Frontend Quick Guide
 
 - Build `apps/app` with `pnpm build:app:cloudflare`.
@@ -105,12 +114,13 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - `pnpm test`
 - `pnpm --filter @docita/api run test:e2e`
 - `pnpm build:app:cloudflare && pnpm build:admin:cloudflare && pnpm build:landing:cloudflare`
+- `docker build -f apps/api/Dockerfile -t docita-api-verify .`
 
 ## Scaling Path
 
-| Stage | API | Database | Cache |
-|-------|-----|----------|-------|
-| 0–20 clinics | Fly.io 1 GB shared | RDS `db.t4g.micro` | Upstash free |
-| 20–50 clinics | Fly.io 2 GB shared | RDS `db.t3.small` | Upstash Pay-as-you-go |
-| 50–100 clinics | Fly.io 4 GB dedicated | RDS `db.t3.medium` + read replica | Upstash Pay-as-you-go |
-| 100+ clinics | Fly.io multi-machine or ECS | RDS `db.r6g.large` + PgBouncer | ElastiCache |
+| Stage | API | Database | Cache / Background Work |
+|-------|-----|----------|--------------------------|
+| 0–20 clinics | Fly.io 1 GB shared, single machine | RDS `db.t4g.micro` | In-process memory cache + in-process background work |
+| 20–50 clinics | Fly.io 2 GB shared, single machine | RDS `db.t3.small` | In-process memory cache + re-evaluate durable jobs |
+| 50–100 clinics | Fly.io 4 GB dedicated | RDS `db.t3.medium` + read replica | Move background work to PostgreSQL-backed workers before scaling API horizontally |
+| 100+ clinics | Fly.io multi-machine or ECS | RDS `db.r6g.large` + PgBouncer | Durable worker system required; re-evaluate dedicated cache only if needed |

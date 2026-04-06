@@ -13,7 +13,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 - Monorepo: Turborepo + pnpm workspaces.
 - Runtime baseline:
-  - Node.js `>=20`
+  - Node.js `>=22.12.0`
   - Package manager: **pnpm only** (`pnpm@10.30.3`)
   - Do not use npm or yarn in this repo.
 - Apps:
@@ -97,7 +97,6 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - `JWT_SECRET` (minimum 32 characters)
   - `ENCRYPTION_KEY` (64-character hex key)
   - `NEXT_PUBLIC_API_URL`
-  - `REDIS_URL` (or use memory providers for local dev)
 
 ## 7) Logging, Comments, and Code Hygiene
 

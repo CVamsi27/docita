@@ -91,7 +91,7 @@ pnpm --filter @docita/app exec playwright install --with-deps
 ```bash
 # Option 1: Using existing PostgreSQL
 export DATABASE_URL=postgresql://postgres:postgres@localhost:5434/docita_test
-pnpm --filter db exec npx prisma migrate deploy
+pnpm --filter @workspace/db exec npx prisma migrate deploy
 
 # Option 2: Using Docker
 docker run -d \
@@ -108,16 +108,16 @@ docker run -d \
 
 ```bash
 # Run all backend E2E tests
-pnpm --filter api test:e2e
+pnpm --filter @docita/api test:e2e
 
 # Run tests in watch mode (reload on file change)
-pnpm --filter api test:e2e:watch
+pnpm --filter @docita/api test:e2e:watch
 
 # Run tests with coverage report
-pnpm --filter api test:e2e:cov
+pnpm --filter @docita/api test:e2e:cov
 
 # Run specific test file
-pnpm --filter api test:e2e -- auth.e2e-spec.ts
+pnpm --filter @docita/api test:e2e -- auth.e2e-spec.ts
 ```
 
 ### Frontend E2E Tests
@@ -143,7 +143,7 @@ pnpm --filter @docita/app test:e2e:report
 
 ```bash
 # Backend unit + E2E + Frontend E2E
-pnpm --filter api test:all
+pnpm --filter @docita/api test:all
 
 # Full test suite including all packages
 pnpm test
@@ -317,7 +317,6 @@ ngrok http 3001
 DATABASE_URL=postgresql://postgres:postgres@localhost:5434/docita_test
 JWT_SECRET=test-secret-key-change-in-prod
 NODE_ENV=test
-REDIS_URL=redis://localhost:6379/1
 ```
 
 ### Frontend (.env.test)
@@ -440,7 +439,7 @@ lsof -ti:3001 | xargs kill -9
 2. **Run tests**:
 
    ```bash
-   pnpm --filter api test:e2e:watch
+   pnpm --filter @docita/api test:e2e:watch
    ```
 
 3. **View Playwright report**:
