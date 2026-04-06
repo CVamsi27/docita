@@ -1,8 +1,8 @@
 import {
   Injectable,
   Logger,
-  OnModuleInit,
   OnModuleDestroy,
+  OnModuleInit,
 } from '@nestjs/common';
 import { ExtractedText, ParsedMedicalFields } from '@workspace/types';
 import { ImagePreprocessorService } from './image-preprocessor.service';
@@ -38,14 +38,14 @@ export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
   async extractTextFromImage(imagePath: string): Promise<ExtractedText> {
     try {
       if (!this.textExtractor.isAvailable()) {
+        await this.textExtractor.initialize();
+      }
+
+      if (!this.textExtractor.isAvailable()) {
         this.logger.warn(
-          '[OCR] Tesseract.js not available in this build. Using fallback extraction.',
+          '[OCR] Tesseract not available. Using fallback extraction.',
         );
-        return {
-          text: '',
-          confidence: 0.05,
-          documentType: 'GENERAL',
-        };
+        return { text: '', confidence: 0.05, documentType: 'GENERAL' };
       }
 
       const fileExists =
