@@ -1,18 +1,55 @@
 <button
   id="theme-toggle-button"
   type="button"
-  class="inline-flex h-9 items-center justify-center rounded-lg border border-input bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+  class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-input bg-background text-foreground transition-colors hover:bg-accent"
   aria-label="Switch to light mode"
 >
-  Dark
+  <svg
+    id="theme-icon-sun"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="h-4 w-4"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2" />
+    <path d="M12 20v2" />
+    <path d="m4.93 4.93 1.41 1.41" />
+    <path d="m17.66 17.66 1.41 1.41" />
+    <path d="M2 12h2" />
+    <path d="M20 12h2" />
+    <path d="m6.34 17.66-1.41 1.41" />
+    <path d="m19.07 4.93-1.41 1.41" />
+  </svg>
+  <svg
+    id="theme-icon-moon"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="hidden h-4 w-4"
+    aria-hidden="true"
+  >
+    <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" />
+  </svg>
 </button>
 
 <script is:inline>
   (() => {
     const storageKey = "docita-theme";
     const button = document.getElementById("theme-toggle-button");
+    const sunIcon = document.getElementById("theme-icon-sun");
+    const moonIcon = document.getElementById("theme-icon-moon");
 
-    if (!button) {
+    if (!button || !sunIcon || !moonIcon) {
       return;
     }
 
@@ -30,7 +67,8 @@
     const applyTheme = (theme) => {
       root.classList.toggle("dark", theme === "dark");
       root.style.colorScheme = theme;
-      button.textContent = theme === "dark" ? "Dark" : "Light";
+      sunIcon.classList.toggle("hidden", theme !== "light");
+      moonIcon.classList.toggle("hidden", theme !== "dark");
       button.setAttribute(
         "aria-label",
         theme === "dark" ? "Switch to light mode" : "Switch to dark mode",
