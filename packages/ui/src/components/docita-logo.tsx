@@ -35,11 +35,15 @@ function BrandImage({
   alt,
   className,
   frameClassName,
+  width,
+  height,
 }: {
   src: string;
   alt: string;
   className?: string;
   frameClassName?: string;
+  width?: number;
+  height?: number;
 }) {
   return (
     <span
@@ -51,6 +55,8 @@ function BrandImage({
       <img
         src={src}
         alt={alt}
+        width={width}
+        height={height}
         className={cn("relative z-10 block", className)}
         loading="lazy"
         decoding="async"
@@ -64,12 +70,14 @@ export function DocitaIcon({
   className,
   alt = "Docita icon",
 }: DocitaIconProps) {
-  const src = brandAsset("Round_Logo");
+  const src = brandAsset("Round_Logo-192");
 
   return (
     <BrandImage
       src={src}
       alt={alt}
+      width={192}
+      height={192}
       frameClassName={ICON_FRAME_CLASS}
       className={cn(
         "block h-9 w-9 shrink-0 rounded-[var(--radius-xl)] object-contain align-middle ring-1 ring-border/55",
@@ -98,6 +106,8 @@ export function DocitaLogo({
     <BrandImage
       src={ORIGINAL_WORDMARK_ASSET}
       alt="Docita"
+      width={857}
+      height={413}
       frameClassName={WORDMARK_FRAME_CLASS}
       className={cn(
         "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",
@@ -121,6 +131,8 @@ export function DocitaLogoFull({
       <BrandImage
         src={ORIGINAL_WORDMARK_ASSET}
         alt="Docita"
+        width={857}
+        height={413}
         frameClassName={WORDMARK_FRAME_CLASS}
         className={cn(
           "block h-[4.125rem] w-auto max-w-full rounded-[var(--radius-xl)] object-contain",
@@ -155,6 +167,8 @@ export function DocitaWordmark({
     <BrandImage
       src={ORIGINAL_WORDMARK_ASSET}
       alt="Docita"
+      width={857}
+      height={413}
       frameClassName={WORDMARK_FRAME_CLASS}
       className={cn(
         "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",

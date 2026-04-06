@@ -19,7 +19,7 @@ const {
   noIndex = false,
 } = Astro.props;
 
-const siteUrl = "https://docita.work";
+const siteUrl = "https://landing.docita.work";
 const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
 
 const jsonLd = {
@@ -79,12 +79,12 @@ const jsonLd = {
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content="https://docita.work/branding/Dark-background.png" />
+    <meta property="og:image" content="https://landing.docita.work/branding/Dark-background.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content="https://docita.work/branding/Dark-background.png" />
+    <meta name="twitter:image" content="https://landing.docita.work/branding/Dark-background.png" />
 
     {noIndex ? <meta name="robots" content="noindex,nofollow" /> : <meta name="robots" content="index,follow" />}
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

@@ -7,6 +7,13 @@ export interface PlatformStats {
   prescriptions: number;
 }
 
+export const FALLBACK_PLATFORM_STATS: PlatformStats = {
+  clinics: 250,
+  doctors: 1200,
+  patients: 85000,
+  prescriptions: 300000,
+};
+
 export interface TierPricing {
   monthly: number | "custom";
   yearly: number | "custom";
@@ -107,6 +114,10 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
   tiers: FALLBACK_TIERS,
 };
 
+function isLiveLandingDataEnabled(): boolean {
+  return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] === "true";
+}
+
 function parseStatValue(value: unknown): number | null {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
     return null;
@@ -115,6 +126,10 @@ function parseStatValue(value: unknown): number | null {
 }
 
 export async function fetchPlatformStats(): Promise<PlatformStats | null> {
+  if (!isLiveLandingDataEnabled()) {
+    return FALLBACK_PLATFORM_STATS;
+  }
+
   try {
     const payload = await fetchLandingJson<Partial<PlatformStats>>(
       "/public/platform-stats",
@@ -145,37 +160,45 @@ export async function fetchPlatformStats(): Promise<PlatformStats | null> {
   }
 }
 
+function buildFallbackPricingConfig(currencyCode: string): PricingConfig {
+  const symbol =
+    FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
+      (currency) => currency.code === currencyCode,
+    )?.symbol ?? FALLBACK_PRICING_CONFIG.currency.symbol;
+
+  return {
+    ...FALLBACK_PRICING_CONFIG,
+    currency: {
+      code: currencyCode,
+      symbol,
+      name:
+        FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
+          (currency) => currency.code === currencyCode,
+        )?.name ?? "Indian Rupee",
+    },
+    tiers: FALLBACK_TIERS.map((tier) => ({
+      ...tier,
+      pricing: {
+        ...tier.pricing,
+        currency: symbol,
+      },
+    })),
+  };
+}
+
 export async function fetchPricingConfig(
   currencyCode: string,
 ): Promise<PricingConfig> {
+  if (!isLiveLandingDataEnabled()) {
+    return buildFallbackPricingConfig(currencyCode);
+  }
+
   try {
     return await fetchLandingJson<PricingConfig>(
       `/pricing/config?currency=${encodeURIComponent(currencyCode)}`,
     );
   } catch {
-    const symbol =
-      FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
-        (currency) => currency.code === currencyCode,
-      )?.symbol ?? FALLBACK_PRICING_CONFIG.currency.symbol;
-
-    return {
-      ...FALLBACK_PRICING_CONFIG,
-      currency: {
-        code: currencyCode,
-        symbol,
-        name:
-          FALLBACK_PRICING_CONFIG.supportedCurrencies.find(
-            (currency) => currency.code === currencyCode,
-          )?.name ?? "Indian Rupee",
-      },
-      tiers: FALLBACK_TIERS.map((tier) => ({
-        ...tier,
-        pricing: {
-          ...tier.pricing,
-          currency: symbol,
-        },
-      })),
-    };
+    return buildFallbackPricingConfig(currencyCode);
   }
 }
 

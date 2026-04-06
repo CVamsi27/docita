@@ -28,7 +28,7 @@ const appUrl = getAppBaseUrl();
   description="Docita helps Indian clinics run appointments, prescriptions, records, and billing from one reliable workflow."
 >
   <HeroSection appUrl={appUrl} />
-  <StatsSection client:load />
+  <StatsSection />
   <HowItWorksSection />
   <ValuePropsSection />
   <QueueSection />
@@ -40,8 +40,8 @@ const appUrl = getAppBaseUrl();
   <WhatsappSection />
   <FeaturesGridSection />
   <TrustSecuritySection />
-  <PricingSection appUrl={appUrl} client:load />
-  <FaqSection client:load />
+  <PricingSection appUrl={appUrl} client:visible />
+  <FaqSection client:visible />
   <CtaBottomSection appUrl={appUrl} />
-  <StickyCta appUrl={appUrl} client:load />
+  <StickyCta appUrl={appUrl} client:idle />
 </MainLayout>

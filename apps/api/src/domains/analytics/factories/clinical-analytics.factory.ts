@@ -166,6 +166,7 @@ export class ClinicalAnalyticsFactory {
         },
       },
       orderBy: { createdAt: 'asc' },
+      take: 10000,
     });
 
     const timeSeriesData = new Map<string, Map<string, number>>();

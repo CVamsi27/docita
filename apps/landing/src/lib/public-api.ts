@@ -12,7 +12,7 @@ export function getLandingApiBaseUrl(): string {
 }
 
 export function getAppBaseUrl(): string {
-  return import.meta.env["PUBLIC_APP_URL"] || "http://localhost:3000";
+  return import.meta.env["PUBLIC_APP_URL"] || "https://app.docita.work";
 }
 
 function getCsrfTokenFromCookie(): string | null {

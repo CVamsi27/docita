@@ -1,12 +1,13 @@
 ---
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 ---
 
 <footer class="bg-muted text-muted-foreground border-t px-6 py-10">
   <div class="container mx-auto grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
     <div>
-      <a href="/" class="inline-flex h-10 items-center" aria-label="Docita home">
-        <DocitaLogo />
+      <a href="/" class="inline-flex h-10 items-center gap-2" aria-label="Docita home">
+        <DocitaIcon className="h-8 w-8" alt="Docita" />
+        <span class="text-xl font-semibold tracking-tight text-foreground">Docita</span>
       </a>
       <p class="mt-4 text-sm">
         The complete operating system for modern clinics. Simplifying healthcare
