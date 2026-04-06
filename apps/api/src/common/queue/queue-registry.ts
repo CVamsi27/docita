@@ -11,4 +11,6 @@ import { MockBullModule } from '@/common/mocks/mock-bull.module';
  * Usage — queue registration (domain modules):
  *   QueueRegistry.registerQueue({ name: 'audit', ... })
  */
-export const QueueRegistry = process.env.REDIS_URL ? BullModule : MockBullModule;
+export const QueueRegistry = process.env.REDIS_URL
+  ? BullModule
+  : MockBullModule;

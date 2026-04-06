@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   OnModuleDestroy,
+  OnModuleInit,
 } from '@nestjs/common';
 import { ExtractedText, ParsedMedicalFields } from '@workspace/types';
 import { ImagePreprocessorService } from './image-preprocessor.service';
@@ -11,7 +12,7 @@ import { TextParserService } from './text-parser.service';
 import { ConfidenceScorerService } from './confidence-scorer.service';
 
 @Injectable()
-export class OCRFacadeService implements OnModuleDestroy {
+export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OCRFacadeService.name);
 
   constructor(
@@ -21,6 +22,10 @@ export class OCRFacadeService implements OnModuleDestroy {
     private textParser: TextParserService,
     private confidenceScorer: ConfidenceScorerService,
   ) {}
+
+  async onModuleInit() {
+    await this.textExtractor.initialize();
+  }
 
   async onModuleDestroy() {
     await this.textExtractor.cleanup();
