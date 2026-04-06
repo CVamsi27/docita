@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const APP_URL = process.env["APP_URL"] || "http://localhost:3004";
+const APP_URL = process.env["APP_URL"] || "http://localhost:3003";
 
 export default defineConfig({
   testDir: "./e2e",

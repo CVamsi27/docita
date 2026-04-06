@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev --port 3004",
+    "dev": "astro dev --port 3003",
     "build": "astro build",
     "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/ui && astro build",
     "preview:cloudflare": "astro build && wrangler dev",

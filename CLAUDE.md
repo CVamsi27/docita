@@ -26,7 +26,7 @@ docita/
 │   ├── api/          # NestJS backend (port 3001)
 │   ├── app/          # Next.js main product app (port 3000)
 │   ├── admin/        # Next.js admin interface (port 3002)
-│   └── landing/      # Astro marketing site (port 3004)
+│   └── landing/      # Astro marketing site (port 3003)
 ├── packages/
 │   ├── db/           # Prisma schema, migrations, client
 │   ├── types/        # Zod schemas (source of truth)
