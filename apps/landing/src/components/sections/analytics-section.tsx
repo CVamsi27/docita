@@ -13,9 +13,9 @@ export function AnalyticsSection() {
     <section className="px-6 py-24 bg-background">
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">
             <BarChart3 className="h-4 w-4 text-info" />
-            <span className="font-medium text-info">
+            <span className="font-medium text-foreground">
               Data-Driven Insights
             </span>
           </div>

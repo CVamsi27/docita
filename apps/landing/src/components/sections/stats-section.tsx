@@ -27,7 +27,7 @@ export function StatsSection() {
               <p className="text-4xl font-bold">
                 {formatStatValue(statsToRender[card.key])}
               </p>
-              <p className="text-primary-foreground/80 font-medium">{card.label}</p>
+              <p className="text-primary-foreground/95 font-medium">{card.label}</p>
             </article>
           ))}
         </div>

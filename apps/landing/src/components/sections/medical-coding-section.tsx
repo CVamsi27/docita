@@ -9,9 +9,9 @@ export function MedicalCodingSection() {
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">
               <Code2 className="h-4 w-4 text-info" />
-              <span className="font-medium text-info">
+              <span className="font-medium text-foreground">
                 ICD-10 Compliant
               </span>
             </div>
@@ -99,9 +99,9 @@ export function MedicalCodingSection() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 surface-info rounded-lg">
+                  <div className="flex items-center justify-between rounded-lg border border-info/30 bg-info/10 p-3 text-foreground">
                     <div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-foreground/80">
                         Procedure
                       </div>
                       <div className="font-mono text-sm font-medium">99213</div>
@@ -110,7 +110,7 @@ export function MedicalCodingSection() {
                       <div className="font-medium">
                         Office visit - Established
                       </div>
-                      <div className="text-xs text-info">
+                      <div className="text-xs text-foreground/80">
                         Level 3
                       </div>
                     </div>
@@ -118,7 +118,7 @@ export function MedicalCodingSection() {
                 </div>
               </div>
             </div>
-            <div className="absolute -top-4 -right-4 bg-info text-info-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+            <div className="absolute -top-4 -right-4 rounded-full border border-info/30 bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-lg">
               ICD-10 & CPT
             </div>
           </div>
