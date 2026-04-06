@@ -277,22 +277,60 @@ export class OperationalAnalyticsFactory {
 
     const readClient = this.getReadClient();
 
-    const [totalPatients, patientsWithDateOfBirth, genders] = await Promise.all(
-      [
-        readClient.patient.count({ where }),
-        readClient.patient.findMany({
-          where,
-          select: { dateOfBirth: true },
-        }),
-        readClient.patient.groupBy({
-          by: ['gender'],
-          where,
-          _count: { _all: true },
-        }),
-      ],
+    const now = new Date();
+    const age18Cutoff = new Date(
+      now.getFullYear() - 18,
+      now.getMonth(),
+      now.getDate(),
+    );
+    const age35Cutoff = new Date(
+      now.getFullYear() - 35,
+      now.getMonth(),
+      now.getDate(),
+    );
+    const age50Cutoff = new Date(
+      now.getFullYear() - 50,
+      now.getMonth(),
+      now.getDate(),
+    );
+    const age65Cutoff = new Date(
+      now.getFullYear() - 65,
+      now.getMonth(),
+      now.getDate(),
     );
 
-    const patients = patientsWithDateOfBirth as Array<{ dateOfBirth: Date }>;
+    const [
+      totalPatients,
+      genders,
+      age0to18,
+      age18to35,
+      age35to50,
+      age50to65,
+      age65plus,
+    ] = await Promise.all([
+      readClient.patient.count({ where }),
+      readClient.patient.groupBy({
+        by: ['gender'],
+        where,
+        _count: { _all: true },
+      }),
+      readClient.patient.count({
+        where: { ...where, dateOfBirth: { gt: age18Cutoff } },
+      }),
+      readClient.patient.count({
+        where: { ...where, dateOfBirth: { gt: age35Cutoff, lte: age18Cutoff } },
+      }),
+      readClient.patient.count({
+        where: { ...where, dateOfBirth: { gt: age50Cutoff, lte: age35Cutoff } },
+      }),
+      readClient.patient.count({
+        where: { ...where, dateOfBirth: { gt: age65Cutoff, lte: age50Cutoff } },
+      }),
+      readClient.patient.count({
+        where: { ...where, dateOfBirth: { lte: age65Cutoff } },
+      }),
+    ]);
+
     const genderDistribution = {
       MALE: 0,
       FEMALE: 0,
@@ -307,23 +345,13 @@ export class OperationalAnalyticsFactory {
       }
     }
 
-    const now = new Date();
     const ageDistribution = {
-      '0-18': 0,
-      '18-35': 0,
-      '35-50': 0,
-      '50-65': 0,
-      '65+': 0,
+      '0-18': age0to18,
+      '18-35': age18to35,
+      '35-50': age35to50,
+      '50-65': age50to65,
+      '65+': age65plus,
     };
-
-    patients.forEach((p) => {
-      const age = now.getFullYear() - p.dateOfBirth.getFullYear();
-      if (age < 18) ageDistribution['0-18']++;
-      else if (age < 35) ageDistribution['18-35']++;
-      else if (age < 50) ageDistribution['35-50']++;
-      else if (age < 65) ageDistribution['50-65']++;
-      else ageDistribution['65+']++;
-    });
 
     const result = {
       totalPatients,

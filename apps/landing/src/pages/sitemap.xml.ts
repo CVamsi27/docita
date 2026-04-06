@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-const BASE_URL = "https://docita.work";
+const BASE_URL = "https://landing.docita.work";
 
 const routes = [
   { path: "", lastmod: new Date().toISOString().split("T")[0], priority: "1.0", changefreq: "weekly" },
@@ -27,9 +27,12 @@ ${routes
 </urlset>
 `;
 
+  const maxAge = 60 * 60;
   return new Response(body, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": `public, max-age=${maxAge}`,
+      Expires: new Date(Date.now() + maxAge * 1000).toUTCString(),
     },
   });
 };

@@ -12,6 +12,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
       ): {
         isGlobal: boolean;
         ttl: number;
+        max?: number;
         store?: unknown;
         url?: string;
       } => {
@@ -21,6 +22,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
           return {
             isGlobal: true,
             ttl: 300000,
+            max: 500,
           };
         }
 

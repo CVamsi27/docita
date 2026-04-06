@@ -103,14 +103,15 @@ describe('OperationalAnalyticsFactory', () => {
     expect(mockAppointmentCount).toHaveBeenCalledTimes(2);
   });
 
-  it('computes demographics with grouped gender counts and DOB subset', async () => {
+  it('computes demographics with grouped gender counts and age-band counts', async () => {
     mockCacheManager.get.mockResolvedValue(null);
-    mockPatientCount.mockResolvedValue(3);
-    mockPatientFindMany.mockResolvedValue([
-      { dateOfBirth: new Date('2010-01-01') },
-      { dateOfBirth: new Date('1990-01-01') },
-      { dateOfBirth: new Date('1970-01-01') },
-    ]);
+    mockPatientCount
+      .mockResolvedValueOnce(3)
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(0);
     mockPatientGroupBy.mockResolvedValue([
       { gender: 'MALE', _count: { _all: 2 } },
       { gender: 'FEMALE', _count: { _all: 1 } },
@@ -124,11 +125,19 @@ describe('OperationalAnalyticsFactory', () => {
       FEMALE: 1,
       OTHER: 0,
     });
-    expect(result.ageDistribution['0-18']).toBeGreaterThanOrEqual(0);
-    expect(mockPatientFindMany).toHaveBeenCalledWith(
+    expect(result.ageDistribution).toEqual({
+      '0-18': 1,
+      '18-35': 1,
+      '35-50': 1,
+      '50-65': 0,
+      '65+': 0,
+    });
+    expect(mockPatientCount).toHaveBeenCalledTimes(6);
+    expect(mockPatientGroupBy).toHaveBeenCalledWith(
       expect.objectContaining({
-        select: { dateOfBirth: true },
+        by: ['gender'],
       }),
     );
+    expect(mockPatientFindMany).not.toHaveBeenCalled();
   });
 });
