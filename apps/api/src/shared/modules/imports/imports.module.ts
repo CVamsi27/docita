@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
+import { QueueRegistry as BullModule } from '@/common/queue/queue-registry';
 import { ImportsController } from './imports.controller';
 import { BulkImportController } from './bulk-import.controller';
 import { ImportsService } from './imports.service';

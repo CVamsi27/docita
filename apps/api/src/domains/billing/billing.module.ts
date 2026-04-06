@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { DocumentsModule } from '@/domains/documents/documents.module';
-import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
+import { QueueRegistry as BullModule } from '@/common/queue/queue-registry';
 import {
   BillingCalculatorService,
   ClaimValidationService,

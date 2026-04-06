@@ -4,9 +4,7 @@ import { AuditController } from './audit.controller';
 import { AuditEventListener } from './audit-event.listener';
 import { AuditProcessor } from './audit.processor';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { MockBullModule } from '@/common/mocks/mock-bull.module';
-
-const BullModule = MockBullModule;
+import { QueueRegistry as BullModule } from '@/common/queue/queue-registry';
 
 @Module({
   imports: [
