@@ -65,7 +65,6 @@ import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interc
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
-import { QueueRegistry } from './common/queue/queue-registry';
 import { FeedbackModule } from './domains/feedback/feedback.module';
 import { PatientPortalModule } from './domains/patient-portal/patient-portal.module';
 import { PublicModule } from './shared/modules/public/public.module';
@@ -134,13 +133,6 @@ import { LeaveModule } from './domains/leave/leave.module';
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
-    QueueRegistry.forRootAsync(
-      process.env.REDIS_URL
-        ? {
-            useFactory: () => ({ url: process.env.REDIS_URL }),
-          }
-        : {},
-    ),
     ScheduleModule.forRoot(),
     ...(process.env.NODE_ENV === 'production'
       ? []

@@ -1,7 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import * as Papa from 'papaparse';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Gender, Specialization } from '@workspace/db';
@@ -44,7 +42,6 @@ export class BulkImportService {
   constructor(
     private prisma: PrismaService,
     private configService: AppConfigService,
-    @InjectQueue('bulk-import') private bulkImportQueue: Queue,
   ) {}
 
   async startImport(
@@ -113,12 +110,8 @@ export class BulkImportService {
         totalRows: rows.length,
       };
 
-      await this.bulkImportQueue.add('process-import', jobData, {
-        attempts: 1,
-        timeout: 60000 * 10,
-      });
-
       this.lastImportTimes.set(clinicId, Date.now());
+      this.scheduleImport(jobData);
 
       return {
         jobId,
@@ -132,6 +125,17 @@ export class BulkImportService {
       );
       throw error;
     }
+  }
+
+  private scheduleImport(jobData: BulkImportJobData): void {
+    setImmediate(() => {
+      void this.processImport(jobData).catch((error) => {
+        this.logger.error(
+          `Error processing scheduled import job ${jobData.jobId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      });
+    });
   }
 
   async processImport(jobData: BulkImportJobData): Promise<void> {

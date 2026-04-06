@@ -2,23 +2,12 @@ import { Module } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { AuditController } from './audit.controller';
 import { AuditEventListener } from './audit-event.listener';
-import { AuditProcessor } from './audit.processor';
 import { PrismaModule } from '@/prisma/prisma.module';
-import { QueueRegistry as BullModule } from '@/common/queue/queue-registry';
 
 @Module({
-  imports: [
-    PrismaModule,
-    BullModule.registerQueue({
-      name: 'audit',
-      defaultJobOptions: {
-        removeOnComplete: true,
-        attempts: 3,
-      },
-    }),
-  ],
+  imports: [PrismaModule],
   controllers: [AuditController],
-  providers: [AuditService, AuditEventListener, AuditProcessor],
+  providers: [AuditService, AuditEventListener],
   exports: [AuditService],
 })
 export class AuditModule {}

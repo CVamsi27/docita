@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SearchService } from './search.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { RedisCachingService } from '@/shared/modules/services/redis-caching.service';
+import { TaggedCacheService } from '@/shared/modules/services/tagged-cache.service';
 import {
   beforeEach,
   afterEach,
@@ -59,7 +59,7 @@ describe('SearchService', () => {
           },
         },
         {
-          provide: RedisCachingService,
+          provide: TaggedCacheService,
           useValue: {
             get: jest.fn().mockImplementation(async () => null),
             set: jest.fn().mockImplementation(async () => undefined),
@@ -72,7 +72,7 @@ describe('SearchService', () => {
 
     service = module.get<SearchService>(SearchService);
     prisma = module.get<typeof prisma>(PrismaService);
-    cacheService = module.get<typeof cacheService>(RedisCachingService);
+    cacheService = module.get<typeof cacheService>(TaggedCacheService);
   });
 
   afterEach(() => {
@@ -226,7 +226,7 @@ describe('SearchService', () => {
       expect(cacheService.set).toHaveBeenCalledWith(
         'search:clinic-123:test:all:20',
         [],
-        { ttl: 300 },
+        { ttl: 300, tags: ['search:clinic-123'] },
       );
     });
 
@@ -674,7 +674,7 @@ describe('SearchService', () => {
       expect(prisma).toBeDefined();
     });
 
-    it('should inject RedisCachingService', () => {
+    it('should inject TaggedCacheService', () => {
       expect(cacheService).toBeDefined();
     });
   });
