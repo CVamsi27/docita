@@ -20,8 +20,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - `apps/api` (NestJS)
   - `apps/app` (Next.js main app)
   - `apps/admin` (Next.js admin)
-  - `apps/landing-astro` (Astro marketing, primary)
-  - `apps/landing` (Next.js marketing, legacy/deprecated fallback)
+  - `apps/landing` (Astro marketing)
 - Shared packages:
   - `packages/types` (Zod schemas, source of truth)
   - `packages/data-access` (API clients + React Query)

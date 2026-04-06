@@ -1,27 +1,22 @@
 name = "docita-landing"
-compatibility_date = "2026-03-31"
-main = ".open-next/worker.js"
+compatibility_date = "2026-04-05"
+main = "dist/_worker.js"
 compatibility_flags = ["nodejs_compat"]
 
 [[routes]]
 pattern = "landing.docita.work"
 custom_domain = true
 
-[[routes]]
-pattern = "docita.work"
-custom_domain = true
-
 [assets]
-directory = ".open-next/assets"
+directory = "dist"
 binding = "ASSETS"
-
-[[r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "docita-cache"
 
 [vars]
 NODE_ENV = "production"
 DOCITA_CLOUDFLARE = "1"
+PUBLIC_APP_URL = "https://app.docita.work"
+PUBLIC_API_URL = "/api/v1"
+API_PROXY_TARGET = "https://api.docita.work"
 
 [observability]
 enabled = false
