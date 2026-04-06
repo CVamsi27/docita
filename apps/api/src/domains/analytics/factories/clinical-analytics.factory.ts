@@ -5,7 +5,6 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { Prisma, AppointmentStatus } from '@workspace/db';
 import { DiseaseTrendPoint, TopCondition } from '@workspace/types';
-import { toTimeSeriesBucketKey } from './period-bucket.util';
 
 @Injectable()
 export class ClinicalAnalyticsFactory {
@@ -152,38 +151,49 @@ export class ClinicalAnalyticsFactory {
   ) {
     const readClient = this.getReadClient();
 
-    const diagnoses = await readClient.diagnosis.findMany({
-      where: {
-        appointment: { clinicId },
-        createdAt: { gte: startDate, lte: endDate },
-      },
-      select: {
-        createdAt: true,
-        icdCode: {
-          select: {
-            code: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'asc' },
-      take: 10000,
-    });
+    // Build a period expression that matches toTimeSeriesBucketKey output:
+    //   day   -> 'YYYY-MM-DD'
+    //   week  -> 'YYYY-MM-DD' of the Sunday that starts the week
+    //   month -> 'YYYY-MM'
+    const periodSql =
+      groupBy === 'day'
+        ? Prisma.sql`TO_CHAR(DATE_TRUNC('day', d."createdAt"), 'YYYY-MM-DD')`
+        : groupBy === 'week'
+          ? Prisma.sql`TO_CHAR(
+              DATE_TRUNC('day', d."createdAt")
+                - EXTRACT(DOW FROM d."createdAt")::int * INTERVAL '1 day',
+              'YYYY-MM-DD'
+            )`
+          : Prisma.sql`TO_CHAR(DATE_TRUNC('month', d."createdAt"), 'YYYY-MM')`;
+
+    // Aggregate entirely in the DB — no row limit, no data loss.
+    const rows = await readClient.$queryRaw<
+      Array<{ period: string; icd_code: string; count: number }>
+    >`
+      SELECT period, icd_code, COUNT(*)::int AS count
+      FROM (
+        SELECT
+          ${periodSql} AS period,
+          ic.code       AS icd_code
+        FROM "Diagnosis" d
+        JOIN "Appointment" a ON d."appointmentId" = a.id
+        JOIN "IcdCode"    ic ON d."icdCodeId"     = ic.id
+        WHERE a."clinicId"   = ${clinicId}
+          AND d."createdAt" >= ${startDate}
+          AND d."createdAt" <= ${endDate}
+          AND d."icdCodeId" IS NOT NULL
+      ) sub
+      GROUP BY period, icd_code
+      ORDER BY period ASC
+    `;
 
     const timeSeriesData = new Map<string, Map<string, number>>();
-
-    diagnoses.forEach((diagnosis) => {
-      if (!diagnosis.icdCode) return;
-
-      const periodKey = toTimeSeriesBucketKey(diagnosis.createdAt, groupBy);
-
-      if (!timeSeriesData.has(periodKey)) {
-        timeSeriesData.set(periodKey, new Map());
+    for (const row of rows) {
+      if (!timeSeriesData.has(row.period)) {
+        timeSeriesData.set(row.period, new Map());
       }
-
-      const periodData = timeSeriesData.get(periodKey)!;
-      const codeKey = diagnosis.icdCode.code;
-      periodData.set(codeKey, (periodData.get(codeKey) || 0) + 1);
-    });
+      timeSeriesData.get(row.period)!.set(row.icd_code, row.count);
+    }
 
     return Array.from(timeSeriesData.entries()).map(([period, codes]) => ({
       period,
