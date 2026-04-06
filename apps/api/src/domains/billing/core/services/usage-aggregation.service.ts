@@ -9,7 +9,7 @@ export class UsageAggregationService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron('30 0 * * *')
   async aggregateDailyUsage() {
     this.logger.log('Starting daily usage aggregation...');
 

@@ -132,7 +132,7 @@ export class OverageBillingScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron('30 * * * *')
   async notifyUsageThresholds(): Promise<void> {
     if (this.databaseAccessDisabled) return;
 

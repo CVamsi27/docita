@@ -39,7 +39,7 @@ export class MetricsScheduler {
     }
   }
 
-  @Cron('0 3 * * *')
+  @Cron('0 5 * * *')
   async cleanupOldData() {
     try {
       const result = await this.monitoringService.cleanupOldData(30);
