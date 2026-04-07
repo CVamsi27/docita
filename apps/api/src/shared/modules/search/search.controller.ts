@@ -24,7 +24,7 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
   Role.DOCTOR,
   Role.RECEPTIONIST,
   Role.ADMIN_DOCTOR,
-  Role.SUPER_ADMIN,
+  Role.INTERNAL,
 )
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}

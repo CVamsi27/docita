@@ -28,8 +28,8 @@ import {
 } from './dto/super-admin-billing.dto';
 
 @Controller('super-admin/billing')
-@ApiTags('Super Admin - Billing')
-@Roles(Role.SUPER_ADMIN)
+@ApiTags('Internal - Billing')
+@Roles(Role.INTERNAL)
 @ApiBearerAuth()
 export class SuperAdminBillingController {
   constructor(private readonly billingService: SuperAdminBillingService) {}

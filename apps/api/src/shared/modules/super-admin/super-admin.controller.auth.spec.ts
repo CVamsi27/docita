@@ -95,8 +95,8 @@ describe('SuperAdminController - Authorization', () => {
   };
 
   describe('RolesGuard - SuperAdminController', () => {
-    it('should allow SUPER_ADMIN to access super-admin endpoints', () => {
-      const context = createMockExecutionContext(Role.SUPER_ADMIN);
+    it('should allow INTERNAL to access super-admin endpoints', () => {
+      const context = createMockExecutionContext(Role.INTERNAL);
       expect(rolesGuard.canActivate(context)).toBe(true);
     });
 
@@ -127,10 +127,10 @@ describe('SuperAdminController - Authorization', () => {
   });
 
   describe('Controller endpoint structure', () => {
-    it('should have @Roles(SUPER_ADMIN) decorator on controller class', () => {
+    it('should have @Roles(INTERNAL) decorator on controller class', () => {
       const roles = Reflect.getMetadata('roles', SuperAdminController);
       expect(roles).toBeDefined();
-      expect(roles).toEqual([Role.SUPER_ADMIN]);
+      expect(roles).toEqual([Role.INTERNAL]);
     });
   });
 });

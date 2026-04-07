@@ -18,7 +18,7 @@ import { VerifyBackupRequestDto } from '@/common/dto/database-operations.dto';
 @ApiBearerAuth()
 @Controller('api/v1/operations/database')
 @UseGuards(RolesGuard)
-@Roles(Role.SUPER_ADMIN)
+@Roles(Role.INTERNAL)
 export class DatabaseOperationsController {
   private readonly logger = new Logger(DatabaseOperationsController.name);
 

@@ -54,8 +54,8 @@ export async function seedClinicUsers(
     create: {
       email: 'admin@docita.work',
       password: hashedPassword,
-      name: 'Super Admin',
-      role: 'SUPER_ADMIN',
+      name: 'Internal',
+      role: 'INTERNAL',
       clinicId: null,
       signatureUrl: seededSignatures.superAdmin,
       signatureUploadedAt: seededSignatureUploadedAt,

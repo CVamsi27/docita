@@ -66,8 +66,8 @@ describe('RBAC Enforcement (e2e)', () => {
     });
   };
 
-  describe('Super Admin Endpoints', () => {
-    it('should block non-SUPER_ADMIN (e.g., ADMIN) from super-admin endpoints', async () => {
+  describe('Internal Endpoints', () => {
+    it('should block non-INTERNAL (e.g., ADMIN) from super-admin endpoints', async () => {
       const adminToken = await getAuthToken(Role.ADMIN);
       await request(app.getHttpServer())
         .get('/super-admin/clinics')
@@ -75,8 +75,8 @@ describe('RBAC Enforcement (e2e)', () => {
         .expect(403);
     });
 
-    it('should allow SUPER_ADMIN to access super-admin endpoints', async () => {
-      const superAdminToken = await getAuthToken(Role.SUPER_ADMIN);
+    it('should allow INTERNAL to access super-admin endpoints', async () => {
+      const superAdminToken = await getAuthToken(Role.INTERNAL);
       await request(app.getHttpServer())
         .get('/super-admin/clinics')
         .set('Authorization', `Bearer ${superAdminToken}`)

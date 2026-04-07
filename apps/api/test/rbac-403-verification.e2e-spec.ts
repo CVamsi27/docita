@@ -73,9 +73,9 @@ describe('RBAC 403 Verification (e2e)', () => {
     });
   };
 
-  describe('Super Admin Access', () => {
-    it('should allow SUPER_ADMIN to access super-admin clinics endpoint', async () => {
-      const superAdminToken = await getAuthToken(Role.SUPER_ADMIN);
+  describe('Internal Access', () => {
+    it('should allow INTERNAL to access super-admin clinics endpoint', async () => {
+      const superAdminToken = await getAuthToken(Role.INTERNAL);
 
       await request(app.getHttpServer())
         .get('/super-admin/clinics')

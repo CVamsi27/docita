@@ -12,7 +12,7 @@ import { AnyAuditResponseDto } from './dto/audit.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 
 @Controller('audit-logs')
-@Roles(Role.ADMIN, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.INTERNAL)
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
@@ -28,7 +28,7 @@ export class AuditController {
     }
     const userClinicId = req.user?.clinicId;
 
-    if (userRole !== 'SUPER_ADMIN' && userClinicId) {
+    if (userRole !== 'INTERNAL' && userClinicId) {
       filter.clinicId = userClinicId;
     }
 

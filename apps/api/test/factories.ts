@@ -18,7 +18,7 @@ function normalizeRole(role: unknown): Role {
     case Role.DOCTOR:
     case Role.RECEPTIONIST:
     case Role.ADMIN:
-    case Role.SUPER_ADMIN:
+    case Role.INTERNAL:
     case Role.ADMIN_DOCTOR:
     case Role.PATIENT:
       return role;

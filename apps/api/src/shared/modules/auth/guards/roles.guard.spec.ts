@@ -141,7 +141,7 @@ describe('RolesGuard', () => {
         guard.canActivate(
           createExecutionContext({
             id: 'user-1',
-            role: 'SUPER_ADMIN',
+            role: 'INTERNAL',
             clinicId: 'clinic-1',
           }),
         ),

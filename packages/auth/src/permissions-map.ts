@@ -2,7 +2,7 @@ import type { UserRole } from "@workspace/types";
 import type { Permission } from "./auth-context";
 
 export const PERMISSIONS_BY_ROLE: Record<UserRole, Permission[]> = {
-  SUPER_ADMIN: [
+  INTERNAL: [
     "VIEW_PATIENTS",
     "CREATE_PATIENTS",
     "EDIT_PATIENTS",

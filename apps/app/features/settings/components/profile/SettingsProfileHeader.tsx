@@ -10,7 +10,7 @@ const ROLE_LABELS: Record<string, string> = {
   DOCTOR: "Doctor",
   ADMIN: "Admin",
   RECEPTIONIST: "Receptionist",
-  SUPER_ADMIN: "Super Admin",
+  INTERNAL: "Internal",
 };
 
 function getInitials(name: string): string {

@@ -14,7 +14,7 @@ interface RoleGuardProps {
 }
 
 const ROLE_HIERARCHY: Record<UserRole, number> = {
-  SUPER_ADMIN: 5,
+  INTERNAL: 5,
   ADMIN: 4,
   ADMIN_DOCTOR: 3,
   DOCTOR: 2,

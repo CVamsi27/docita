@@ -81,7 +81,7 @@ export class TenantGuard implements CanActivate {
       return true;
     }
 
-    if (user.role === Role.SUPER_ADMIN || user.role === 'SUPER_ADMIN') {
+    if (user.role === Role.INTERNAL || user.role === 'INTERNAL') {
       return true;
     }
 

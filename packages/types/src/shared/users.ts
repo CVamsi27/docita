@@ -4,7 +4,7 @@ export const userRoleSchema = z.enum([
   "DOCTOR",
   "RECEPTIONIST",
   "ADMIN",
-  "SUPER_ADMIN",
+  "INTERNAL",
   "ADMIN_DOCTOR",
   "PATIENT",
 ]);

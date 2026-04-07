@@ -52,7 +52,7 @@ import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { UsePipes } from '@nestjs/common';
 
 @Controller('super-admin')
-@Roles(Role.SUPER_ADMIN)
+@Roles(Role.INTERNAL)
 export class SuperAdminController {
   constructor(
     private readonly clinicService: ClinicManagementService,

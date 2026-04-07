@@ -55,12 +55,12 @@ describe("RoleBasedAccessRule", () => {
     expect(rule.canAccess(context)).toBe(false);
   });
 
-  it("should handle SUPER_ADMIN correctly", () => {
+  it("should handle INTERNAL correctly", () => {
 
     const context = {
       ...baseContext,
       userId: "admin",
-      userRole: "SUPER_ADMIN",
+      userRole: "INTERNAL",
       requiredPermission: "manageTenants" as Permission,
     } as IAccessContext;
     expect(rule.canAccess(context)).toBe(true);

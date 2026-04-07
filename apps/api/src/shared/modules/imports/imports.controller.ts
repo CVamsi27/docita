@@ -45,7 +45,7 @@ function hasSupportedImportExtension(fileName: string): boolean {
 }
 
 @Controller('imports')
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)
 @UseGuards(TierGuard)
 export class ImportsController {
   constructor(

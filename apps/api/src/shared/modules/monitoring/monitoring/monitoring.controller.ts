@@ -41,7 +41,7 @@ import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { ArchivalService } from '@/shared/modules/compliance/archival.service';
 
 @Controller('monitoring')
-@Roles(Role.SUPER_ADMIN)
+@Roles(Role.INTERNAL)
 @UseGuards(TierGuard)
 @RequireFeature(Feature.BASIC_ANALYTICS)
 export class MonitoringController {
