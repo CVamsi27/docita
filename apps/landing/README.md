@@ -32,7 +32,7 @@ Recommended production defaults:
    - route parity (`/`, `/contact`, `/privacy`, `/terms`, `/cookies`, `/refund-policy`)
    - API-backed blocks (pricing, stats, contact inquiry)
    - Playwright critical flows and accessibility smoke checks
-3. Keep existing Next landing on `docita.work` and `landing.docita.work` until sign-off.
+3. Keep existing Next landing on `docita.work`, `www.docita.work`, and `landing.docita.work` until sign-off.
 4. During cutover, move production routes from old worker to this worker.
 
 ## Rollback

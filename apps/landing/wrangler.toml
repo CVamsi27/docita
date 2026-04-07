@@ -4,6 +4,14 @@ main = "dist/_worker.js/index.js"
 compatibility_flags = ["nodejs_compat"]
 
 [[routes]]
+pattern = "docita.work"
+custom_domain = true
+
+[[routes]]
+pattern = "www.docita.work"
+custom_domain = true
+
+[[routes]]
 pattern = "landing.docita.work"
 custom_domain = true
 
