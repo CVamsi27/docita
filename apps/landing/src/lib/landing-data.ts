@@ -7,13 +7,6 @@ export interface PlatformStats {
   prescriptions: number;
 }
 
-export const FALLBACK_PLATFORM_STATS: PlatformStats = {
-  clinics: 250,
-  doctors: 1200,
-  patients: 85000,
-  prescriptions: 300000,
-};
-
 export interface TierPricing {
   monthly: number | "custom";
   yearly: number | "custom";
@@ -127,7 +120,7 @@ function parseStatValue(value: unknown): number | null {
 
 export async function fetchPlatformStats(): Promise<PlatformStats | null> {
   if (!isLiveLandingDataEnabled()) {
-    return FALLBACK_PLATFORM_STATS;
+    return null;
   }
 
   try {

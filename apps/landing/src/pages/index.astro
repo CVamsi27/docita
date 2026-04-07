@@ -17,10 +17,10 @@ import { TrustSecuritySection } from "@/components/sections/trust-security-secti
 import { ValuePropsSection } from "@/components/sections/value-props-section";
 import { WhatsappSection } from "@/components/sections/whatsapp-section";
 import { getAppBaseUrl } from "@/lib/public-api";
-import { FALLBACK_PLATFORM_STATS, fetchPlatformStats } from "@/lib/landing-data";
+import { fetchPlatformStats } from "@/lib/landing-data";
 
 const appUrl = getAppBaseUrl();
-const platformStats = (await fetchPlatformStats()) ?? FALLBACK_PLATFORM_STATS;
+const platformStats = await fetchPlatformStats();
 ---
 
 <MainLayout

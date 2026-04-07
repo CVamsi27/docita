@@ -1,13 +1,12 @@
 import { Building2, FileText, UserCog, Users } from "lucide-react";
 
 import {
-  FALLBACK_PLATFORM_STATS,
   formatStatValue,
   type PlatformStats,
 } from "@/lib/landing-data";
 
 interface StatsSectionProps {
-  stats: PlatformStats;
+  stats: PlatformStats | null;
 }
 
 export function StatsSection({ stats }: StatsSectionProps) {
@@ -17,8 +16,6 @@ export function StatsSection({ stats }: StatsSectionProps) {
     { label: "Patients Managed", icon: Users, key: "patients" as const },
     { label: "Prescriptions", icon: FileText, key: "prescriptions" as const },
   ];
-
-  const statsToRender = stats ?? FALLBACK_PLATFORM_STATS;
 
   return (
     <section className="py-20 bg-primary text-primary-foreground">
@@ -30,7 +27,7 @@ export function StatsSection({ stats }: StatsSectionProps) {
                 <card.icon className="h-8 w-8" />
               </div>
               <p className="text-4xl font-bold">
-                {formatStatValue(statsToRender[card.key])}
+                {stats ? formatStatValue(stats[card.key]) : "—"}
               </p>
               <p className="text-primary-foreground font-medium">{card.label}</p>
             </article>
