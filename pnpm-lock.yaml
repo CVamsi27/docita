@@ -91,7 +91,7 @@ importers:
         specifier: 5.7.3
         version: 5.7.3
 
-  apps/admin:
+  apps/internal:
     dependencies:
       '@sentry/nextjs':
         specifier: ^10.47.0

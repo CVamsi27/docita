@@ -59,7 +59,7 @@ const configs: AuditConfig[] = [
     ],
   },
   {
-    app: "admin",
+    app: "internal",
     port: 3002,
     pages: ["/", "/dashboard", "/users", "/clinics", "/billing", "/settings"],
   },

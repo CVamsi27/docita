@@ -4,7 +4,7 @@
 
 - Frontend
   - `apps/app`: Cloudflare Workers (OpenNext)
-  - `apps/admin`: Cloudflare Workers (OpenNext)
+  - `apps/internal`: Cloudflare Workers (OpenNext)
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
   - `apps/api`: Fly.io (Mumbai — `bom` region), 1 GB RAM, shared CPU
@@ -102,7 +102,7 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 ## Frontend Quick Guide
 
 - Build `apps/app` with `pnpm build:app:cloudflare`.
-- Build `apps/admin` with `pnpm build:admin:cloudflare`.
+- Build `apps/internal` with `pnpm build:internal:cloudflare`.
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
@@ -113,7 +113,7 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - `pnpm build`
 - `pnpm test`
 - `pnpm --filter @docita/api run test:e2e`
-- `pnpm build:app:cloudflare && pnpm build:admin:cloudflare && pnpm build:landing:cloudflare`
+- `pnpm build:app:cloudflare && pnpm build:internal:cloudflare && pnpm build:landing:cloudflare`
 - `docker build -f apps/api/Dockerfile -t docita-api-verify .`
 
 ## Scaling Path

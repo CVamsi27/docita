@@ -7,7 +7,7 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 - **Landing**: [https://docita.work](https://docita.work), [https://www.docita.work](https://www.docita.work), [https://landing.docita.work](https://landing.docita.work)
 - **App**: [https://app.docita.work](https://app.docita.work)
-- **Admin**: [https://admin.docita.work](https://admin.docita.work)
+- **Internal**: [https://internal.docita.work](https://internal.docita.work)
 - **API**: [https://api.docita.work](https://api.docita.work)
 - **Repository**: [https://github.com/CVamsi27/docita](https://github.com/CVamsi27/docita)
 
@@ -28,22 +28,22 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 ```
 Frontend                    Backend
 ---------                   -------
-Cloudflare Workers (app/admin/landing) --> Render (NestJS API)
+Cloudflare Workers (app/internal/landing) --> Render (NestJS API)
 ```
 
 - **Database**: Render PostgreSQL
 - **Backend**: Render Web Service (NestJS)
-- **Frontend**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/admin`)
+- **Frontend**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/internal`)
 
 ## Tech Stack
 
 ### Frontend
 
-- **Frameworks**: Next.js 16 (App Router) for `apps/app` and `apps/admin`, Astro 5 for `apps/landing`
+- **Frameworks**: Next.js 16 (App Router) for `apps/app` and `apps/internal`, Astro 5 for `apps/landing`
 - **UI**: React 19, Tailwind CSS 4, Shadcn UI
 - **Icons**: Lucide Icons
 - **Data Fetching**: TanStack React Query
-- **Hosting**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/admin`)
+- **Hosting**: Cloudflare Workers (`apps/app`, `apps/landing`, `apps/internal`)
 
 ### Backend
 
@@ -123,7 +123,7 @@ pnpm test
 
 1. **Database**: Create Render PostgreSQL in Singapore
 2. **Backend**: Deploy `apps/api` as a Render Web Service
-3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/admin` to Cloudflare Workers
+3. **Frontend**: Deploy `apps/app`, `apps/landing`, and `apps/internal` to Cloudflare Workers
 
 See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment direction.
 

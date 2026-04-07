@@ -60,7 +60,7 @@ for (const file of files) {
         violations.push({file, reason: "@workspace/db imported inside packages/types (types must be DB-agnostic)"});
       } else if (
         file.startsWith('apps/app/') ||
-        file.startsWith('apps/admin/') ||
+        file.startsWith('apps/internal/') ||
         file.startsWith('apps/landing/')
       ) {
         violations.push({file, reason: "@workspace/db imported in frontend code (frontend must remain DB-agnostic)"});
@@ -73,8 +73,8 @@ for (const file of files) {
   const isFrontendConfigFile =
     (file === 'apps/app/package.json' ||
       file === 'apps/app/tsconfig.json' ||
-      file === 'apps/admin/package.json' ||
-      file === 'apps/admin/tsconfig.json' ||
+      file === 'apps/internal/package.json' ||
+      file === 'apps/internal/tsconfig.json' ||
       file === 'apps/landing/package.json' ||
       file === 'apps/landing/tsconfig.json');
 

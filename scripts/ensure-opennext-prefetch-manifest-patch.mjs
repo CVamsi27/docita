@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
-const defaultApps = ["landing", "app", "admin"];
+const defaultApps = ["landing", "app", "internal"];
 
 const explicitAppArg = process.argv.find((arg) => arg.startsWith("--app="));
 const appsToProcess = explicitAppArg
