@@ -11,13 +11,13 @@ function getBaseOrigin(): string {
     return window.location.origin;
   }
 
-  return "https://docita.work";
+  return import.meta.env["PUBLIC_SITE_URL"] || "http://127.0.0.1:3003";
 }
 
-function resolveApiUrl(path: string): string {
+function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): string {
   const baseUrl = getLandingApiBaseUrl();
   if (baseUrl.startsWith("/")) {
-    return new URL(`${baseUrl}${path}`, getBaseOrigin()).toString();
+    return new URL(`${baseUrl}${path}`, baseOrigin).toString();
   }
 
   return `${baseUrl}${path}`;
@@ -73,8 +73,11 @@ export interface ContactInquiryPayload {
   message: string;
 }
 
-export async function fetchLandingJson<T>(path: string): Promise<T> {
-  const response = await fetch(resolveApiUrl(path));
+export async function fetchLandingJson<T>(
+  path: string,
+  baseOrigin?: string,
+): Promise<T> {
+  const response = await fetch(resolveApiUrl(path, baseOrigin));
 
   if (!response.ok) {
     throw new Error("Request failed");

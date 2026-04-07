@@ -20,7 +20,7 @@ import { getAppBaseUrl } from "@/lib/public-api";
 import { fetchPlatformStats } from "@/lib/landing-data";
 
 const appUrl = getAppBaseUrl();
-const platformStats = await fetchPlatformStats();
+const platformStats = await fetchPlatformStats(Astro.url.origin);
 ---
 
 <MainLayout

@@ -118,7 +118,9 @@ function parseStatValue(value: unknown): number | null {
   return Math.floor(value);
 }
 
-export async function fetchPlatformStats(): Promise<PlatformStats | null> {
+export async function fetchPlatformStats(
+  baseOrigin?: string,
+): Promise<PlatformStats | null> {
   if (!isLiveLandingDataEnabled()) {
     return null;
   }
@@ -126,6 +128,7 @@ export async function fetchPlatformStats(): Promise<PlatformStats | null> {
   try {
     const payload = await fetchLandingJson<Partial<PlatformStats>>(
       "/public/platform-stats",
+      baseOrigin,
     );
 
     const clinics = parseStatValue(payload.clinics);
