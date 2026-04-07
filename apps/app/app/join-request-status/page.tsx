@@ -13,6 +13,7 @@ import { typedApi } from '@/lib/api-client';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { useAuth } from '@/lib/auth-context';
 
 interface JoinRequest {
   id: string;
@@ -30,6 +31,7 @@ interface JoinRequest {
 export default function JoinRequestStatusPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { refreshUser } = useAuth();
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   const { data: request, isLoading } = useQuery<JoinRequest | null>({
@@ -58,6 +60,24 @@ export default function JoinRequestStatusPage() {
     }
   }, [request, isLoading, router]);
 
+  useEffect(() => {
+    if (!request || request.status === 'PENDING') return;
+
+    if (request.status === 'APPROVED') {
+      void (async () => {
+        await refreshUser();
+        setRedirectMessage('Your request was approved. Taking you to the dashboard...');
+        router.replace('/dashboard');
+      })();
+      return;
+    }
+
+    if (request.status === 'REJECTED') {
+      setRedirectMessage('Your request was not approved. Returning to choose path...');
+      router.replace('/choose-path');
+    }
+  }, [request, refreshUser, router]);
+
   if (redirectMessage) {
     return (
       <PageTransitionLoader
@@ -72,7 +92,12 @@ export default function JoinRequestStatusPage() {
   }
 
   if (!request || request.status !== 'PENDING') {
-    return null;
+    return (
+      <PageTransitionLoader
+        title="Updating status..."
+        description="Checking the latest review decision..."
+      />
+    );
   }
 
   const getStatusIcon = () => {
