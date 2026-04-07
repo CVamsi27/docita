@@ -115,7 +115,7 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
 };
 
 function isLiveLandingDataEnabled(): boolean {
-  return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] === "true";
+  return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
 }
 
 function parseStatValue(value: unknown): number | null {

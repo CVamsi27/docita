@@ -13,13 +13,14 @@ import { MedicalCodingSection } from "@/components/sections/medical-coding-secti
 import { QueueSection } from "@/components/sections/queue-section";
 import { SpecialtiesSection } from "@/components/sections/specialties-section";
 import { StatsSection } from "@/components/sections/stats-section";
-import { StickyCta } from "@/components/sections/sticky-cta";
 import { TrustSecuritySection } from "@/components/sections/trust-security-section";
 import { ValuePropsSection } from "@/components/sections/value-props-section";
 import { WhatsappSection } from "@/components/sections/whatsapp-section";
 import { getAppBaseUrl } from "@/lib/public-api";
+import { FALLBACK_PLATFORM_STATS, fetchPlatformStats } from "@/lib/landing-data";
 
 const appUrl = getAppBaseUrl();
+const platformStats = (await fetchPlatformStats()) ?? FALLBACK_PLATFORM_STATS;
 ---
 
 <MainLayout
@@ -28,7 +29,7 @@ const appUrl = getAppBaseUrl();
   description="Docita helps Indian clinics run appointments, prescriptions, records, and billing from one reliable workflow."
 >
   <HeroSection appUrl={appUrl} />
-  <StatsSection />
+  <StatsSection stats={platformStats} />
   <HowItWorksSection />
   <ValuePropsSection />
   <QueueSection />
@@ -40,8 +41,7 @@ const appUrl = getAppBaseUrl();
   <WhatsappSection />
   <FeaturesGridSection />
   <TrustSecuritySection />
-  <PricingSection appUrl={appUrl} client:visible />
-  <FaqSection client:visible />
+  <PricingSection appUrl={appUrl} />
+  <FaqSection />
   <CtaBottomSection appUrl={appUrl} />
-  <StickyCta appUrl={appUrl} client:idle />
 </MainLayout>

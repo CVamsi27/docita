@@ -6,6 +6,23 @@ function normalizeBaseUrl(raw: string): string {
   return trimmed;
 }
 
+function getBaseOrigin(): string {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return "https://docita.work";
+}
+
+function resolveApiUrl(path: string): string {
+  const baseUrl = getLandingApiBaseUrl();
+  if (baseUrl.startsWith("/")) {
+    return new URL(`${baseUrl}${path}`, getBaseOrigin()).toString();
+  }
+
+  return `${baseUrl}${path}`;
+}
+
 export function getLandingApiBaseUrl(): string {
   const baseUrl = import.meta.env["PUBLIC_API_URL"] || "/api/v1";
   return normalizeBaseUrl(baseUrl);
@@ -57,7 +74,7 @@ export interface ContactInquiryPayload {
 }
 
 export async function fetchLandingJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${getLandingApiBaseUrl()}${path}`);
+  const response = await fetch(resolveApiUrl(path));
 
   if (!response.ok) {
     throw new Error("Request failed");
