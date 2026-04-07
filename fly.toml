@@ -1,7 +1,6 @@
 app = 'docita-api'
 primary_region = 'bom'
 
-# Docker context is repo root; Dockerfile lives at apps/api/Dockerfile
 [build]
   dockerfile = 'apps/api/Dockerfile'
 
@@ -9,12 +8,6 @@ primary_region = 'bom'
   PORT = '3001'
   NODE_ENV = 'production'
   STORAGE_PROVIDER = 'r2'
-
-# Secrets set via: fly secrets set KEY=value
-# Required: DATABASE_URL, JWT_SECRET, ENCRYPTION_KEY,
-#           R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
-#           RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET
-#           RESEND_API_KEY, SENTRY_DSN
 
 [http_service]
   internal_port = 3001
@@ -28,11 +21,6 @@ primary_region = 'bom'
     hard_limit = 200
     soft_limit = 150
 
-[[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
-
 [checks]
   [checks.health]
     grace_period = '30s'
@@ -42,3 +30,8 @@ primary_region = 'bom'
     port = 3001
     timeout = '5s'
     type = 'http'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
