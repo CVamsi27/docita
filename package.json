@@ -121,6 +121,9 @@
       "ts-node>diff": "4.0.4",
       "webpack": "^5.104.1"
     },
-    "ignoredBuiltDependencies": []
+    "ignoredBuiltDependencies": [],
+    "onlyBuiltDependencies": [
+      "@nestjs/core"
+    ]
   }
 }
