@@ -52,12 +52,9 @@ const jsonLd = {
       (() => {
         const storageKey = "docita-theme";
         const stored = localStorage.getItem(storageKey);
-        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         const theme = stored === "dark" || stored === "light"
           ? stored
-          : systemPrefersDark
-            ? "dark"
-            : "light";
+          : "light";
         document.documentElement.classList.toggle("dark", theme === "dark");
         document.documentElement.style.colorScheme = theme;
       })();

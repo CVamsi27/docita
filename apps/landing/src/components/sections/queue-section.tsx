@@ -15,7 +15,10 @@ export function QueueSection() {
                     <Clock className="h-5 w-5 text-warning" />
                     <span className="font-semibold">Live Queue Status</span>
                   </div>
-                  <span className="rounded-full border border-success/30 bg-success/15 px-2 py-1 text-xs font-medium text-foreground animate-pulse">
+                  <span
+                    className="rounded-full border border-success bg-success px-2 py-1 text-xs font-medium animate-pulse"
+                    style={{ color: "#000000" }}
+                  >
                     Live
                   </span>
                 </div>
