@@ -80,10 +80,10 @@ export default function InternalDashboard() {
   const { token } = useAuth();
 
   const clinicsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.clinics(),
+    queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
       const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/super-admin/clinics",
+        "/internal/clinics",
       );
       return Array.isArray(data) ? data : (data.items ?? []);
     },
@@ -91,14 +91,14 @@ export default function InternalDashboard() {
   });
 
   const statsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.stats(),
-    queryFn: () => client.get<StatsData>("/super-admin/stats"),
+    queryKey: internalQueryKeys.internal.stats(),
+    queryFn: () => client.get<StatsData>("/internal/stats"),
     enabled: Boolean(token),
   });
 
   const billingQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.billingMetrics(),
-    queryFn: () => client.get<BillingMetrics>("/super-admin/billing/metrics"),
+    queryKey: internalQueryKeys.internal.billingMetrics(),
+    queryFn: () => client.get<BillingMetrics>("/internal/billing/metrics"),
     enabled: Boolean(token),
   });
 

@@ -11,13 +11,13 @@ export function useDashboardData() {
   const { token } = useAuth();
 
   const clinicsQuery = useQuery({
-    queryKey: ["super-admin", "dashboard", "clinics", token],
+    queryKey: ["internal", "dashboard", "clinics", token],
     queryFn: fetchDashboardClinics,
     enabled: Boolean(token),
   });
 
   const statsQuery = useQuery({
-    queryKey: ["super-admin", "dashboard", "stats", token],
+    queryKey: ["internal", "dashboard", "stats", token],
     queryFn: fetchDashboardStats,
     enabled: Boolean(token),
   });

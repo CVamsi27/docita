@@ -158,11 +158,11 @@ export function SystemLogsPage({
   ]);
 
   const logsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.logs(logsParams),
+    queryKey: internalQueryKeys.internal.logs(logsParams),
     queryFn: async () => {
       const json = await client.get<
         SystemLog[] | { data?: SystemLog[]; total?: number }
-      >(`/super-admin/logs?${logsParams}`);
+      >(`/internal/logs?${logsParams}`);
       const logsData = Array.isArray(json)
         ? json
         : Array.isArray(json.data)

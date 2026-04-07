@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-interface SuperAdminFiltersState {
+interface InternalFiltersState {
   selectedClinic: string;
   userSearch: string;
   doctorSearch: string;
@@ -15,7 +15,7 @@ interface SuperAdminFiltersState {
 
 const STORAGE_KEY = "docita-internal-shared-filters";
 
-export const useSuperAdminFiltersStore = create<SuperAdminFiltersState>()(
+export const useInternalFiltersStore = create<InternalFiltersState>()(
   persist(
     (set) => ({
       selectedClinic: "all",

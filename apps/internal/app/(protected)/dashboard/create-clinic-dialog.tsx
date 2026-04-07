@@ -154,7 +154,7 @@ export function CreateClinicDialog({
     setLoading(true);
     (async () => {
       try {
-        await client.post("/super-admin/clinics", formData);
+        await client.post("/internal/clinics", formData);
 
         setOpen(false);
         onClinicCreated();

@@ -181,7 +181,7 @@ export function EditClinicDialog({
     setLoading(true);
     (async () => {
       try {
-        await client.patch(`/super-admin/clinics/${clinic.id}`, formData);
+        await client.patch(`/internal/clinics/${clinic.id}`, formData);
         setOpen(false);
         onClinicUpdated();
         toast.success("Clinic updated successfully");

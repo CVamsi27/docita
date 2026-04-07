@@ -82,8 +82,8 @@ export default function SystemMonitoringPage() {
   const { token } = useAuth();
 
   const performanceQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.monitoringPerformance("overview"),
-    queryFn: () => client.get<PerformanceData>("/super-admin/performance"),
+    queryKey: internalQueryKeys.internal.monitoringPerformance("overview"),
+    queryFn: () => client.get<PerformanceData>("/internal/performance"),
     enabled: Boolean(token),
     refetchInterval: autoRefresh && token ? 30000 : false,
   });

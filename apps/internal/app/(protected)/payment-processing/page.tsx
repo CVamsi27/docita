@@ -144,10 +144,10 @@ export default function PaymentProcessingPage() {
   const { token, isInternal } = useAuth();
   const form = useForm<PaymentFormData>();
   const clinicsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.clinics(),
+    queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
       const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/super-admin/clinics",
+        "/internal/clinics",
       );
       return Array.isArray(data) ? data : (data.items ?? []);
     },
@@ -155,11 +155,11 @@ export default function PaymentProcessingPage() {
   });
 
   const tierPricingQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.pricingTiers(),
+    queryKey: internalQueryKeys.internal.pricingTiers(),
     queryFn: async () => {
       try {
         const data = await client.get<{ tiers?: TierPricing[] }>(
-          "/super-admin/tier-pricing",
+          "/internal/tier-pricing",
         );
         return Array.isArray(data.tiers) ? data.tiers : DEFAULT_TIERS;
       } catch {
@@ -178,9 +178,9 @@ export default function PaymentProcessingPage() {
 
     try {
       const data = await queryClient.fetchQuery({
-        queryKey: ["super-admin", "clinic", clinic.id, "tier-info"],
+        queryKey: ["internal", "clinic", clinic.id, "tier-info"],
         queryFn: () =>
-          client.get<TierInfo>(`/super-admin/clinics/${clinic.id}/tier-info`),
+          client.get<TierInfo>(`/internal/clinics/${clinic.id}/tier-info`),
       });
 
       const pricingData = await queryClient.fetchQuery({
@@ -219,7 +219,7 @@ export default function PaymentProcessingPage() {
 
   const processPaymentMutation = useMutation({
     mutationFn: (data: PaymentFormData) =>
-      client.post(`/super-admin/clinics/${selectedClinic?.id}/process-payment`, {
+      client.post(`/internal/clinics/${selectedClinic?.id}/process-payment`, {
         paymentId: `PAY_${Date.now()}`,
         amount: parseFloat(data.amount),
         currency: selectedClinic?.currency || DEFAULT_CURRENCY,

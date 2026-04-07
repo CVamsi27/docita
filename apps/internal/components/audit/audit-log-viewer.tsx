@@ -61,7 +61,7 @@ export function AuditLogViewer() {
   }, [selectedActionType, selectedDate, selectedUserId]);
 
   const logsQuery = useQuery({
-    queryKey: ["super-admin", "audit-logs", params],
+    queryKey: ["internal", "audit-logs", params],
     queryFn: async () => {
       const data = await client.get<AuditLog[] | { logs?: AuditLog[] }>(
         `/audit-logs?${params}`,

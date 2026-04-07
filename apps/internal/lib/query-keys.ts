@@ -3,23 +3,23 @@ export const internalQueryKeys = {
     session: () => ["auth", "session"] as const,
     validate: () => ["auth", "validate"] as const,
   },
-  superAdmin: {
-    root: () => ["super-admin"] as const,
-    clinics: () => ["super-admin", "clinics"] as const,
-    stats: () => ["super-admin", "stats"] as const,
-    billingMetrics: () => ["super-admin", "billing", "metrics"] as const,
+  internal: {
+    root: () => ["internal"] as const,
+    clinics: () => ["internal", "clinics"] as const,
+    stats: () => ["internal", "stats"] as const,
+    billingMetrics: () => ["internal", "billing", "metrics"] as const,
     analytics: (params: string) =>
-      ["super-admin", "analytics", params] as const,
-    logs: (params: string) => ["super-admin", "logs", params] as const,
-    feedback: (params: string) => ["super-admin", "feedback", params] as const,
-    feedbackStats: () => ["super-admin", "feedback", "stats"] as const,
+      ["internal", "analytics", params] as const,
+    logs: (params: string) => ["internal", "logs", params] as const,
+    feedback: (params: string) => ["internal", "feedback", params] as const,
+    feedbackStats: () => ["internal", "feedback", "stats"] as const,
     monitoringPerformance: (params: string) =>
-      ["super-admin", "monitoring", "performance", params] as const,
-    pricingTiers: () => ["super-admin", "pricing", "tiers"] as const,
+      ["internal", "monitoring", "performance", params] as const,
+    pricingTiers: () => ["internal", "pricing", "tiers"] as const,
     clinicDoctors: (clinicId: string) =>
-      ["super-admin", "clinics", clinicId, "doctors"] as const,
+      ["internal", "clinics", clinicId, "doctors"] as const,
     clinicAdmins: (clinicId: string) =>
-      ["super-admin", "clinics", clinicId, "admins"] as const,
+      ["internal", "clinics", clinicId, "admins"] as const,
   },
 } as const;
 

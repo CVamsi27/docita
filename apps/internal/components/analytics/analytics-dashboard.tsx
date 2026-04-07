@@ -88,15 +88,15 @@ export function AnalyticsDashboard() {
   }, [endDate, period, startDate]);
 
   const analyticsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.analytics(analyticsParams),
+    queryKey: internalQueryKeys.internal.analytics(analyticsParams),
     queryFn: () =>
-      client.get<AnalyticsData>(`/super-admin/analytics?${analyticsParams}`),
+      client.get<AnalyticsData>(`/internal/analytics?${analyticsParams}`),
     enabled: Boolean(token),
   });
 
   const billingQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.billingMetrics(),
-    queryFn: () => client.get<BillingMetrics>("/super-admin/billing/metrics"),
+    queryKey: internalQueryKeys.internal.billingMetrics(),
+    queryFn: () => client.get<BillingMetrics>("/internal/billing/metrics"),
     enabled: Boolean(token),
   });
 
@@ -119,7 +119,7 @@ export function AnalyticsDashboard() {
       if (endDate) params.append("endDate", endDate);
 
       const res = await fetch(
-        `${API_URL}/super-admin/analytics/export?${params.toString()}`,
+        `${API_URL}/internal/analytics/export?${params.toString()}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
 

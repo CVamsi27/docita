@@ -82,7 +82,7 @@ export default function FeedbackPage() {
 
   const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
   const feedbacksQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.feedback(filtersKey),
+    queryKey: internalQueryKeys.internal.feedback(filtersKey),
     queryFn: () =>
       feedbackAPI.getAll(
         filters as Record<string, string | number | boolean | undefined>,
@@ -91,7 +91,7 @@ export default function FeedbackPage() {
   });
 
   const statsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.feedbackStats(),
+    queryKey: internalQueryKeys.internal.feedbackStats(),
     queryFn: () => feedbackAPI.getStats(filters.clinicId),
     enabled: Boolean(token),
   });
@@ -115,10 +115,10 @@ export default function FeedbackPage() {
       setAdminNotes("");
       void Promise.all([
         queryClient.invalidateQueries({
-          queryKey: internalQueryKeys.superAdmin.feedback(filtersKey),
+          queryKey: internalQueryKeys.internal.feedback(filtersKey),
         }),
         queryClient.invalidateQueries({
-          queryKey: internalQueryKeys.superAdmin.feedbackStats(),
+          queryKey: internalQueryKeys.internal.feedbackStats(),
         }),
       ]);
     },
@@ -130,10 +130,10 @@ export default function FeedbackPage() {
       setSelectedFeedback(null);
       void Promise.all([
         queryClient.invalidateQueries({
-          queryKey: internalQueryKeys.superAdmin.feedback(filtersKey),
+          queryKey: internalQueryKeys.internal.feedback(filtersKey),
         }),
         queryClient.invalidateQueries({
-          queryKey: internalQueryKeys.superAdmin.feedbackStats(),
+          queryKey: internalQueryKeys.internal.feedbackStats(),
         }),
       ]);
     },

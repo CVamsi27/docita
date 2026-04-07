@@ -16,14 +16,14 @@ export function useUsersData() {
   const [isViewOpen, setIsViewOpen] = useState(false);
 
   const clinicsQuery = useQuery({
-    queryKey: ["super-admin", "users", "clinics", token],
+    queryKey: ["internal", "users", "clinics", token],
     queryFn: fetchClinics,
     enabled: Boolean(token),
   });
 
   const usersQuery = useQuery({
     queryKey: [
-      "super-admin",
+      "internal",
       "users",
       token,
       selectedClinic,

@@ -47,7 +47,7 @@ import {
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
-import { useSuperAdminFiltersStore } from "@/lib/stores/super-admin-filters-store";
+import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
 
 interface Admin {
@@ -74,7 +74,7 @@ const EMPTY_CLINICS: Clinic[] = [];
 export default function AdminsPage() {
   const queryClient = useQueryClient();
   const { adminSearch, selectedClinic, setAdminSearch, setSelectedClinic } =
-    useSuperAdminFiltersStore();
+    useInternalFiltersStore();
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -95,10 +95,10 @@ export default function AdminsPage() {
   const { token } = useAuth();
 
   const clinicsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.clinics(),
+    queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
       const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/super-admin/clinics",
+        "/internal/clinics",
       );
       return Array.isArray(data) ? data : (data.items ?? []);
     },
@@ -119,9 +119,9 @@ export default function AdminsPage() {
   }, [clinics, selectedClinic, setSelectedClinic]);
 
   const adminsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.clinicAdmins(selectedClinic || "none"),
+    queryKey: internalQueryKeys.internal.clinicAdmins(selectedClinic || "none"),
     queryFn: () =>
-      client.get<Admin[]>(`/super-admin/clinics/${selectedClinic}/admins`),
+      client.get<Admin[]>(`/internal/clinics/${selectedClinic}/admins`),
     enabled: Boolean(token && selectedClinic && selectedClinic !== "all"),
   });
 
@@ -129,13 +129,13 @@ export default function AdminsPage() {
 
   const invalidateAdmins = async () => {
     await queryClient.invalidateQueries({
-      queryKey: internalQueryKeys.superAdmin.clinicAdmins(selectedClinic || "none"),
+      queryKey: internalQueryKeys.internal.clinicAdmins(selectedClinic || "none"),
     });
   };
 
   const createAdminMutation = useMutation({
     mutationFn: () =>
-      client.post(`/super-admin/clinics/${selectedClinic}/admins`, {
+      client.post(`/internal/clinics/${selectedClinic}/admins`, {
         name: createForm.name,
         email: createForm.email,
         password: createForm.password,
@@ -158,7 +158,7 @@ export default function AdminsPage() {
 
   const updateAdminMutation = useMutation({
     mutationFn: () =>
-      client.patch(`/super-admin/admins/${selectedAdmin?.id}`, {
+      client.patch(`/internal/admins/${selectedAdmin?.id}`, {
         name: editForm.name,
         email: editForm.email,
         phoneNumber: editForm.phoneNumber || undefined,
@@ -173,7 +173,7 @@ export default function AdminsPage() {
 
   const deleteAdminMutation = useMutation({
     mutationFn: (adminId: string) =>
-      client.patch(`/super-admin/admins/${adminId}/deactivate`, {}),
+      client.patch(`/internal/admins/${adminId}/deactivate`, {}),
     onSuccess: async () => {
       toast.success("Admin deleted successfully");
       await invalidateAdmins();

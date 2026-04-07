@@ -3,7 +3,7 @@ import type { Clinic, User } from "./types";
 
 export async function fetchClinics(): Promise<Clinic[]> {
   const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-    "/super-admin/clinics",
+    "/internal/clinics",
   );
   return Array.isArray(data) ? data : (data.items ?? []);
 }
@@ -11,10 +11,10 @@ export async function fetchClinics(): Promise<Clinic[]> {
 export async function fetchClinicUsers(clinicId: string): Promise<User[]> {
   const [doctorsResponse, adminsResponse] = await Promise.all([
     client
-      .get<User[] | null>(`/super-admin/clinics/${clinicId}/doctors`)
+      .get<User[] | null>(`/internal/clinics/${clinicId}/doctors`)
       .catch(() => []),
     client
-      .get<User[] | null>(`/super-admin/clinics/${clinicId}/admins`)
+      .get<User[] | null>(`/internal/clinics/${clinicId}/admins`)
       .catch(() => []),
   ]);
 

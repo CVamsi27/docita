@@ -48,7 +48,7 @@ import {
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
-import { useSuperAdminFiltersStore } from "@/lib/stores/super-admin-filters-store";
+import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import {
@@ -125,7 +125,7 @@ const EMPTY_CLINICS: Clinic[] = [];
 
 export default function DoctorsPage() {
   const { doctorSearch, selectedClinic, setDoctorSearch, setSelectedClinic } =
-    useSuperAdminFiltersStore();
+    useInternalFiltersStore();
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const { token } = useAuth();
@@ -152,10 +152,10 @@ export default function DoctorsPage() {
   };
 
   const clinicsQuery = useQuery({
-    queryKey: internalQueryKeys.superAdmin.clinics(),
+    queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
       const data = await client.get<Clinic[] | { items?: Clinic[] }>(
-        "/super-admin/clinics",
+        "/internal/clinics",
       );
       return Array.isArray(data) ? data : (data.items ?? []);
     },
@@ -177,7 +177,7 @@ export default function DoctorsPage() {
 
   const doctorsQuery = useQuery({
     queryKey: [
-      "super-admin",
+      "internal",
       "doctors",
       selectedClinic || "none",
       clinics.length,
@@ -187,7 +187,7 @@ export default function DoctorsPage() {
         const allDoctorsArrays = await Promise.all(
           clinics.map(async (clinic) => {
             const clinicDoctors = await client.get<Doctor[]>(
-              `/super-admin/clinics/${clinic.id}/doctors`,
+              `/internal/clinics/${clinic.id}/doctors`,
             );
             return (clinicDoctors ?? []).map((doctor) => ({
               ...doctor,
@@ -200,7 +200,7 @@ export default function DoctorsPage() {
 
       if (!selectedClinic) return [];
       const data = await client.get<Doctor[]>(
-        `/super-admin/clinics/${selectedClinic}/doctors`,
+        `/internal/clinics/${selectedClinic}/doctors`,
       );
       return Array.isArray(data) ? data : [];
     },
@@ -214,7 +214,7 @@ export default function DoctorsPage() {
 
     try {
       const data = await client.get<Doctor>(
-        `/super-admin/clinics/${clinicId}/doctors/${doctorId}`,
+        `/internal/clinics/${clinicId}/doctors/${doctorId}`,
       );
       setSelectedDoctor(data);
     } catch {

@@ -2,9 +2,9 @@ import { client } from "./api-client";
 import { API_URL } from "./api-config";
 import {
   Appointment,
+  InternalBillingPaymentsQuery,
+  InternalBillingSubscriptionsQuery,
   Patient,
-  SuperAdminBillingPaymentsQuery,
-  SuperAdminBillingSubscriptionsQuery,
 } from "@workspace/types";
 
 export { API_URL };
@@ -225,17 +225,17 @@ export const feedbackAPI = {
   getAll: (
     filters?: Record<string, string | number | boolean | undefined>,
   ): Promise<Feedback[]> =>
-    client.get("/super-admin/feedback/all", { params: filters }),
+    client.get("/internal/feedback/all", { params: filters }),
   getStats: (clinicId?: string): Promise<FeedbackStats> =>
-    client.get("/super-admin/feedback/stats", { params: { clinicId } }),
+    client.get("/internal/feedback/stats", { params: { clinicId } }),
   getOne: (id: string): Promise<Feedback> =>
-    client.get(`/super-admin/feedback/${id}`),
+    client.get(`/internal/feedback/${id}`),
   updateStatus: (
     id: string,
     data: Record<string, unknown>,
-  ): Promise<Feedback> => client.patch(`/super-admin/feedback/${id}/status`, data),
+  ): Promise<Feedback> => client.patch(`/internal/feedback/${id}/status`, data),
   delete: (id: string): Promise<void> =>
-    client.delete(`/super-admin/feedback/${id}`),
+    client.delete(`/internal/feedback/${id}`),
 };
 
 export interface SubscriptionOverview {
@@ -324,38 +324,38 @@ export interface PricingOfferRow {
 
 export const billingAPI = {
   getMetrics: (): Promise<BillingMetrics> =>
-    client.get("/super-admin/billing/metrics"),
+    client.get("/internal/billing/metrics"),
   getSubscriptions: (
-    filters?: SuperAdminBillingSubscriptionsQuery,
+    filters?: InternalBillingSubscriptionsQuery,
   ): Promise<SubscriptionOverview[]> =>
-    client.get("/super-admin/billing/subscriptions", { params: filters }),
+    client.get("/internal/billing/subscriptions", { params: filters }),
   getExpiringSubscriptions: (days?: number): Promise<SubscriptionOverview[]> =>
-    client.get("/super-admin/billing/expiring", { params: { days } }),
+    client.get("/internal/billing/expiring", { params: { days } }),
   getPayments: (
-    filters?: SuperAdminBillingPaymentsQuery,
+    filters?: InternalBillingPaymentsQuery,
   ): Promise<PaymentRecord[]> =>
-    client.get("/super-admin/billing/payments", { params: filters }),
+    client.get("/internal/billing/payments", { params: filters }),
   sendReminder: (subscriptionId: string): Promise<void> =>
-    client.post(`/super-admin/billing/subscriptions/${subscriptionId}/remind`),
+    client.post(`/internal/billing/subscriptions/${subscriptionId}/remind`),
   extendGracePeriod: (subscriptionId: string, days: number): Promise<void> =>
     client.post(
-      `/super-admin/billing/subscriptions/${subscriptionId}/extend-grace`,
+      `/internal/billing/subscriptions/${subscriptionId}/extend-grace`,
       { days },
     ),
   getPricingTiers: (): Promise<TierPricingRow[]> =>
-    client.get("/super-admin/billing/pricing/tiers"),
+    client.get("/internal/billing/pricing/tiers"),
   updatePricingTier: (
     tierId: string,
     data: Partial<TierPricingRow>,
   ): Promise<TierPricingRow> =>
-    client.put(`/super-admin/billing/pricing/tiers/${tierId}`, data),
+    client.put(`/internal/billing/pricing/tiers/${tierId}`, data),
   getPricingOffers: (): Promise<PricingOfferRow[]> =>
-    client.get("/super-admin/billing/pricing/offers"),
+    client.get("/internal/billing/pricing/offers"),
   upsertPricingOffer: (
     clinicId: string,
     data: Partial<PricingOfferRow>,
   ): Promise<PricingOfferRow> =>
-    client.put(`/super-admin/billing/pricing/offers/${clinicId}`, data),
+    client.put(`/internal/billing/pricing/offers/${clinicId}`, data),
   deletePricingOffer: (clinicId: string): Promise<void> =>
-    client.delete(`/super-admin/billing/pricing/offers/${clinicId}`),
+    client.delete(`/internal/billing/pricing/offers/${clinicId}`),
 };
