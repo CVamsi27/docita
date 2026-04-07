@@ -65,15 +65,12 @@ import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interc
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
-import { MockBullModule } from './common/mocks/mock-bull.module';
 import { FeedbackModule } from './domains/feedback/feedback.module';
 import { PatientPortalModule } from './domains/patient-portal/patient-portal.module';
 import { PublicModule } from './shared/modules/public/public.module';
 import { MedicalDocumentsModule } from './domains/medical-documents/medical-documents.module';
 import { InventoryModule } from './domains/inventory/inventory.module';
 import { LeaveModule } from './domains/leave/leave.module';
-
-const BullModule = MockBullModule;
 
 @Module({
   imports: [
@@ -136,7 +133,6 @@ const BullModule = MockBullModule;
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
-    BullModule.forRootAsync(),
     ScheduleModule.forRoot(),
     ...(process.env.NODE_ENV === 'production'
       ? []

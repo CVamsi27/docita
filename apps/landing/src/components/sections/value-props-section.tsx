@@ -16,9 +16,9 @@ export function ValuePropsSection() {
           {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 rounded-full badge-success px-4 py-2 text-sm mb-4">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-foreground">
                 <CheckCircle2 className="h-4 w-4 text-success" />
-                <span className="font-medium text-success">
+                <span className="font-medium text-foreground">
                   Eco-Friendly Practice
                 </span>
               </div>
@@ -50,7 +50,7 @@ export function ValuePropsSection() {
                 <div className="aspect-square rounded-xl bg-success p-12 flex items-center justify-center">
                   <FileText className="h-32 w-32 text-white" />
                 </div>
-                <div className="absolute -top-4 -right-4 bg-success text-success-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <div className="absolute -top-4 -right-4 rounded-full border border-success/30 bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-lg">
                   100% Digital
                 </div>
               </div>
@@ -60,9 +60,9 @@ export function ValuePropsSection() {
           {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2">
-              <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">
                 <Users className="h-4 w-4 text-info" />
-                <span className="font-medium text-info">
+                <span className="font-medium text-foreground">
                   Complete Medical Timeline
                 </span>
               </div>
@@ -94,7 +94,7 @@ export function ValuePropsSection() {
                 <div className="aspect-square rounded-xl bg-info p-12 flex items-center justify-center">
                   <Calendar className="h-32 w-32 text-white" />
                 </div>
-                <div className="absolute -top-4 -right-4 bg-info text-info-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <div className="absolute -top-4 -right-4 rounded-full border border-info/30 bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-lg">
                   Complete Timeline
                 </div>
               </div>

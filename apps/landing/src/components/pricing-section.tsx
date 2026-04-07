@@ -236,7 +236,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 billingPeriod === "monthly"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-foreground/80 hover:text-foreground"
               }`}
             >
               Monthly
@@ -246,11 +246,11 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
                 billingPeriod === "annual"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-foreground/80 hover:text-foreground"
               }`}
             >
               Annual
-              <span className="text-xs bg-success text-success-foreground px-2 py-0.5 rounded-full font-semibold">
+              <span className="rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-xs font-semibold text-foreground">
                 2 months free
               </span>
             </button>

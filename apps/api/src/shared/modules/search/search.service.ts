@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { RedisCachingService } from '@/shared/modules/services/redis-caching.service';
+import { TaggedCacheService } from '@/shared/modules/services/tagged-cache.service';
 
 export type SearchEntityType =
   | 'patient'
@@ -39,7 +39,7 @@ export class SearchService {
 
   constructor(
     private prisma: PrismaService,
-    private readonly cacheService: RedisCachingService,
+    private readonly cacheService: TaggedCacheService,
   ) {}
 
   async search(options: SearchOptions): Promise<SearchResult[]> {
@@ -95,6 +95,7 @@ export class SearchService {
 
     await this.cacheService.set(cacheKey, sorted, {
       ttl: this.SEARCH_CACHE_TTL,
+      tags: [`search:${clinicId}`],
     });
 
     return sorted;

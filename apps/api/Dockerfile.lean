@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────
 # SINGLE STAGE - Minimal production image
 # ─────────────────────────────────────────────────────────────
-FROM node:20-alpine
+FROM node:22.12-alpine
 WORKDIR /app
 
 # Install runtime dependencies

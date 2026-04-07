@@ -13,5 +13,4 @@ export type {
   SendAppointmentReminderJobData,
 } from './queue.interface';
 export { InMemoryQueueService } from './in-memory-queue.service';
-export { BullMQQueueService } from './bull-mq-queue.service';
 export { QueueModule } from './queue.module';

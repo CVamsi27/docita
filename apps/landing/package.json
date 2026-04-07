@@ -24,7 +24,7 @@
     "@astrojs/check": "^0.9.4",
     "@tailwindcss/vite": "~4.1.11",
     "tailwindcss": "~4.1.11",
-    "vite": "^6.4.1",
+    "vite": "^6.4.2",
     "@astrojs/cloudflare": "^12.6.0",
     "@astrojs/react": "^4.4.0",
     "@playwright/test": "^1.48.2",

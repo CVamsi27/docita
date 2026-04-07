@@ -15,31 +15,31 @@ export function QueueSection() {
                     <Clock className="h-5 w-5 text-warning" />
                     <span className="font-semibold">Live Queue Status</span>
                   </div>
-                  <span className="text-xs badge-success px-2 py-1 rounded-full font-medium animate-pulse">
+                  <span className="rounded-full border border-success/30 bg-success/15 px-2 py-1 text-xs font-medium text-foreground animate-pulse">
                     Live
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 surface-warning rounded-lg text-center">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                  <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-center text-foreground">
+                    <div className="mb-1 text-xs uppercase tracking-wider text-foreground/80">
                       Current Token
                     </div>
-                    <div className="text-3xl font-bold text-warning">
+                    <div className="text-3xl font-bold text-foreground">
                       A-012
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="mt-1 text-xs text-foreground/80">
                       In Consultation
                     </div>
                   </div>
-                  <div className="p-4 surface-info rounded-lg text-center">
-                    <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                  <div className="rounded-lg border border-info/30 bg-info/10 p-4 text-center text-foreground">
+                    <div className="mb-1 text-xs uppercase tracking-wider text-foreground/80">
                       Next Token
                     </div>
-                    <div className="text-3xl font-bold text-info">
+                    <div className="text-3xl font-bold text-foreground">
                       A-013
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="mt-1 text-xs text-foreground/80">
                       Est. Wait: 10m
                     </div>
                   </div>
@@ -90,9 +90,9 @@ export function QueueSection() {
           </div>
 
           <div className="order-1 lg:order-2">
-            <div className="inline-flex items-center gap-2 rounded-full badge-warning px-4 py-2 text-sm mb-4">
-              <Users className="h-4 w-4 text-warning" />
-              <span className="font-medium text-warning">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/10 px-4 py-2 text-sm text-foreground">
+              <Users className="h-4 w-4 text-foreground" />
+              <span className="font-medium text-foreground">
                 Smart Queue Management
               </span>
             </div>

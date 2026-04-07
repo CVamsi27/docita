@@ -217,24 +217,6 @@ export class AppConfigService {
     return this.getConfig().ANALYTICS_CACHE_TTL;
   }
 
-  getRedisConfig() {
-    return {
-      host: this.getConfig().REDIS_HOST,
-      port: this.getConfig().REDIS_PORT,
-      password: this.getConfig().REDIS_PASSWORD,
-      username: this.getConfig().REDIS_USERNAME,
-      url: this.getConfig().REDIS_URL,
-    };
-  }
-
-  getQueueProvider(): 'bull' | 'memory' {
-    return this.getConfig().QUEUE_PROVIDER;
-  }
-
-  getCacheProvider(): 'redis' | 'memory' {
-    return this.getConfig().CACHE_PROVIDER;
-  }
-
   getBulkImportConfig() {
     return {
       maxFileSize: this.getConfig().BULK_IMPORT_MAX_FILE_SIZE,

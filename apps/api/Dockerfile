@@ -3,7 +3,7 @@
 # This stage invalidates ONLY when package manifests change (~5% of commits)
 # OPTIMIZATION: BuildKit cache mounts reduce install time from 60s to 5s
 # ─────────────────────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:22.12-alpine AS deps
 WORKDIR /app
 
 # Install pnpm
@@ -53,7 +53,7 @@ RUN pnpm --filter @workspace/types run build && \
 # This stage invalidates when source code changes (~95% of commits)
 # but reuses the cached deps layer from Stage 1
 # ─────────────────────────────────────────────────────────────
-FROM node:20-alpine AS runtime
+FROM node:22.12-alpine AS runtime
 WORKDIR /app
 
 # Install ONLY runtime essentials
@@ -134,4 +134,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["node", "dist/main"]
+CMD ["node", "--max-old-space-size=1024", "dist/main"]

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { DocumentsModule } from '@/domains/documents/documents.module';
-import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
 import {
   BillingCalculatorService,
   ClaimValidationService,
@@ -49,9 +48,6 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
     NotificationsModule,
     GatewaysModule,
     WebhooksModule,
-    BullModule.registerQueue({
-      name: 'payment-retry',
-    }),
   ],
   controllers: [
     InvoicesController,

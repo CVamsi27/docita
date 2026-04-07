@@ -1,7 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { Prisma } from '@workspace/db';
 
 export interface AuditLogData {
@@ -31,33 +29,27 @@ export interface AuditLogFilter {
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
 
-  constructor(
-    private prisma: PrismaService,
-    @InjectQueue('audit') private auditQueue: Queue,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async logAction(
     data: AuditLogData,
     immediate: boolean = false,
   ): Promise<void> {
-    try {
-      if (immediate) {
-        await this.createAuditLog(data);
-      } else {
-        await this.auditQueue.add('log-action', data, {
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
-          removeOnComplete: true,
-        });
-      }
-    } catch (error) {
-      this.logger.error(
-        `Failed to queue audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        error instanceof Error ? error.stack : undefined,
-      );
+    if (immediate) {
+      await this.createAuditLog(data).catch((error) => {
+        this.logger.error(
+          `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      });
+    } else {
+      // Fire-and-forget: do not block the caller
+      this.createAuditLog(data).catch((error) => {
+        this.logger.error(
+          `Failed to create audit log: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      });
     }
   }
 

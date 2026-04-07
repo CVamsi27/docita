@@ -4,13 +4,9 @@ import {
   BadRequestException,
   Inject,
 } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
-import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { Cron } from '@nestjs/schedule';
 import { InvoiceStatus } from '@workspace/db';
 import { runWithTenant } from '@/common/middleware/tenant.middleware';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
@@ -31,9 +27,6 @@ export class RetryService {
   constructor(
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly invoiceRepository: IInvoiceRepository,
-    private readonly audit: AuditService,
-    private configService: AppConfigService,
-    @InjectQueue('payment-retry') private readonly paymentRetryQueue: Queue,
   ) {}
 
   async scheduleRetry(data: PaymentRetryData): Promise<void> {
@@ -45,10 +38,6 @@ export class RetryService {
       }
 
       this.logger.log(`Payment retry scheduled for invoice ${data.invoiceId}`);
-
-      await this.paymentRetryQueue.add('schedule-retry', data, {
-        attempts: 1,
-      });
     } catch (error) {
       this.logger.error(
         `Failed to schedule payment retry: ${error instanceof Error ? error.message : 'Unknown error'}`,

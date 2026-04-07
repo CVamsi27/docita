@@ -1,0 +1,37 @@
+app = 'docita-api'
+primary_region = 'bom'
+
+[build]
+  dockerfile = 'apps/api/Dockerfile'
+
+[env]
+  PORT = '3001'
+  NODE_ENV = 'production'
+  STORAGE_PROVIDER = 'r2'
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 200
+    soft_limit = 150
+
+[checks]
+  [checks.health]
+    grace_period = '30s'
+    interval = '15s'
+    method = 'GET'
+    path = '/api/health/live'
+    port = 3001
+    timeout = '5s'
+    type = 'http'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

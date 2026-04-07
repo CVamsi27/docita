@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-import { MockBullModule as BullModule } from '@/common/mocks/mock-bull.module';
 import { ImportsController } from './imports.controller';
 import { BulkImportController } from './bulk-import.controller';
 import { ImportsService } from './imports.service';
@@ -17,17 +16,7 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { AIModule } from '@/shared/modules/ai/ai.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    AIModule,
-    BullModule.registerQueue({
-      name: 'bulk-import',
-      defaultJobOptions: {
-        removeOnComplete: true,
-        attempts: 1,
-      },
-    }),
-  ],
+  imports: [PrismaModule, AIModule],
   controllers: [ImportsController, BulkImportController],
   providers: [
     ImportsService,

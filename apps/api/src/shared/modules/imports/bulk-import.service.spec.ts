@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getQueueToken } from '@nestjs/bull';
 import { BulkImportService, BulkImportEntityType } from './bulk-import.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -8,17 +7,8 @@ import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 describe('BulkImportService', () => {
   let service: BulkImportService;
   let prismaService: PrismaService;
-  let mockQueue: { add: jest.Mock; process: jest.Mock; on: jest.Mock };
 
   beforeEach(async () => {
-    mockQueue = {
-      add: jest
-        .fn<(...args: unknown[]) => Promise<unknown>>()
-        .mockResolvedValue({ id: 'job-1' }),
-      process: jest.fn(),
-      on: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         BulkImportService,
@@ -39,10 +29,6 @@ describe('BulkImportService', () => {
                 .mockResolvedValue({ id: 'user-1' }),
             },
           },
-        },
-        {
-          provide: getQueueToken('bulk-import'),
-          useValue: mockQueue,
         },
         {
           provide: AppConfigService,

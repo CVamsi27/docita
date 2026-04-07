@@ -9,11 +9,8 @@ export interface ICacheProvider {
 }
 
 export interface CacheConfig {
-  provider: 'redis' | 'memory';
+  provider: 'memory';
   ttl: number;
-  host?: string;
-  port?: number;
-  password?: string;
 }
 
 export class CacheKeys {

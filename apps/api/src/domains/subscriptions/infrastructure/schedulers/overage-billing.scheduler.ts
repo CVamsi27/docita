@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
 import { OverageCalculationService } from '@/domains/billing/core/services/overage-calculation.service';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
@@ -132,7 +132,7 @@ export class OverageBillingScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron('30 * * * *')
   async notifyUsageThresholds(): Promise<void> {
     if (this.databaseAccessDisabled) return;
 

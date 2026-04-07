@@ -101,9 +101,9 @@ export function SpecialtiesSection() {
                   {[...Array(16)].map((_, i) => (
                     <div
                       key={i}
-                      className={`h-8 rounded-md flex items-center justify-center text-xs font-mono border ${
+                      className={`h-8 rounded-md flex items-center justify-center border text-xs font-mono ${
                         i % 3 === 0
-                          ? "bg-success text-success-foreground border-success/60"
+                          ? "border-success/30 bg-success/10 text-foreground"
                           : "bg-muted/50 border-muted"
                       }`}
                     >
@@ -111,7 +111,7 @@ export function SpecialtiesSection() {
                     </div>
                   ))}
                 </div>
-                <div className="absolute top-4 left-4 text-xs font-semibold badge-success px-2 py-1 rounded">
+                <div className="absolute top-4 left-4 rounded border border-success/30 bg-success/10 px-2 py-1 text-xs font-semibold text-foreground">
                   Dental Charting
                 </div>
               </div>

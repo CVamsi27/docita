@@ -334,7 +334,7 @@ Required variables are documented in `.env.example`. Key variables:
 - `JWT_SECRET`: Minimum 32 characters
 - `ENCRYPTION_KEY`: 64-character hex key for field encryption
 - `NEXT_PUBLIC_API_URL`: API endpoint for frontend
-- `REDIS_URL`: For caching and queues (use `CACHE_PROVIDER=memory` for local dev)
+- Background jobs and cache are in-process by default; see `.env.example` for the current runtime baseline.
 
 ## Code Quality Rules
 
@@ -664,7 +664,7 @@ pnpm test:e2e -- e2e/patients.spec.ts
 3. **Import aliases**: Use `@/` for app-level imports, not `../../../`
 4. **Zod vs TypeScript**: Always define Zod schemas first, never TypeScript interfaces
 5. **Tenant isolation**: All queries must include `tenantId` filter - enforced by guards
-6. **Redis in dev**: Use `CACHE_PROVIDER=memory` and `QUEUE_PROVIDER=memory` for local dev without Redis
+6. **Local background work**: In-process cache and background tasks are the default local setup
 
 ## Package Manager
 

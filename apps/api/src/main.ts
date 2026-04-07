@@ -26,7 +26,6 @@ import {
   type Request as ExpressRequest,
   type Response as ExpressResponse,
 } from 'express';
-import * as redis from 'redis';
 import { PrismaService } from './prisma/prisma.service';
 
 const config = validateEnv();
@@ -151,7 +150,7 @@ async function waitForDatabase(
 
 async function logExternalDependencyStatus(
   logger: Logger,
-  appConfigService: AppConfigService,
+  _appConfigService: AppConfigService,
   prisma: PrismaService,
 ): Promise<void> {
   if (!ACCESS_AND_ERRORS_ONLY) {
@@ -159,60 +158,6 @@ async function logExternalDependencyStatus(
   }
 
   await waitForDatabase(prisma, logger);
-
-  const redisConfig = appConfigService.getRedisConfig();
-  const cacheProvider = appConfigService.getCacheProvider();
-  const queueProvider = appConfigService.getQueueProvider();
-  const redisConfigured =
-    Boolean(redisConfig.url) || Boolean(redisConfig.host && redisConfig.port);
-  const redisExpected = cacheProvider === 'redis' || queueProvider === 'bull';
-
-  if (!redisConfigured) {
-    if (redisExpected) {
-      logger.error(
-        'Dependency check: redis configuration missing while cache/queue expects redis',
-      );
-    } else if (!ACCESS_AND_ERRORS_ONLY) {
-      logger.warn(
-        'Dependency check: redis not configured (optional in current mode)',
-      );
-    }
-  } else {
-    const redisClient = redis.createClient(
-      redisConfig.url
-        ? { url: redisConfig.url }
-        : {
-            socket: {
-              host: redisConfig.host,
-              port: redisConfig.port,
-            },
-            username: redisConfig.username,
-            password: redisConfig.password,
-          },
-    );
-
-    redisClient.on('error', () => undefined);
-
-    try {
-      await withTimeout(redisClient.connect(), 4000);
-      await withTimeout(redisClient.ping(), 4000);
-      if (!ACCESS_AND_ERRORS_ONLY) {
-        logger.log('Dependency check: redis connected');
-      }
-    } catch (error) {
-      if (redisExpected) {
-        logger.error(
-          `Dependency check: redis unavailable (${error instanceof Error ? error.message : String(error)})`,
-        );
-      } else if (!ACCESS_AND_ERRORS_ONLY) {
-        logger.warn(
-          `Dependency check: redis unavailable (${error instanceof Error ? error.message : String(error)})`,
-        );
-      }
-    } finally {
-      redisClient.disconnect();
-    }
-  }
 }
 
 async function bootstrap() {

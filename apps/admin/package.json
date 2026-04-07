@@ -47,7 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
     "typescript": "^5",
-    "vite": "^6.4.1",
+    "vite": "^6.4.2",
     "vitest": "^4.0.16",
     "wrangler": "^4.71.0"
   }

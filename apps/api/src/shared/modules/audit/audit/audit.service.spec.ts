@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getQueueToken } from '@nestjs/bull';
 import { AuditService } from './audit.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
@@ -20,19 +19,7 @@ describe('AuditService', () => {
     };
     runUnrestricted: ReturnType<typeof jest.fn>;
   };
-  let mockQueue: {
-    add: ReturnType<typeof jest.fn>;
-    process: ReturnType<typeof jest.fn>;
-    on: ReturnType<typeof jest.fn>;
-  };
-
   beforeEach(async () => {
-    mockQueue = {
-      add: jest.fn(async () => ({ id: 'job-1' })),
-      process: jest.fn(),
-      on: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuditService,
@@ -59,10 +46,6 @@ describe('AuditService', () => {
             runUnrestricted: jest.fn((callback: () => unknown) => callback()),
           },
         },
-        {
-          provide: getQueueToken('audit'),
-          useValue: mockQueue,
-        },
       ],
     }).compile();
 
@@ -77,7 +60,7 @@ describe('AuditService', () => {
   });
 
   describe('logAction', () => {
-    it('should queue audit log for async processing', async () => {
+    it('should create audit log in fire-and-forget mode', async () => {
       const logData = {
         clinicId: 'clinic-1',
         userId: 'user-1',
@@ -86,16 +69,11 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
+      jest.spyOn(service, 'createAuditLog').mockResolvedValue({});
+
       await service.logAction(logData);
 
-      expect(mockQueue.add).toHaveBeenCalledWith(
-        'log-action',
-        logData,
-        expect.objectContaining({
-          attempts: 3,
-          removeOnComplete: true,
-        }),
-      );
+      expect(service.createAuditLog).toHaveBeenCalledWith(logData);
     });
 
     it('should log immediately when immediate flag is true', async () => {
@@ -114,7 +92,7 @@ describe('AuditService', () => {
       expect(service.createAuditLog).toHaveBeenCalledWith(logData);
     });
 
-    it('should handle queue errors gracefully', async () => {
+    it('should handle async audit creation errors gracefully', async () => {
       const logData = {
         clinicId: 'clinic-1',
         userId: 'user-1',
@@ -123,11 +101,15 @@ describe('AuditService', () => {
         resourceId: 'patient-1',
       };
 
-      mockQueue.add = jest.fn(async () => {
-        throw new Error('Queue error');
-      });
+      jest
+        .spyOn(service, 'createAuditLog')
+        .mockRejectedValue(new Error('Audit create error'));
 
       await expect(service.logAction(logData)).resolves.toBeUndefined();
+
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(service['logger'].error).toHaveBeenCalled();
     });
   });
 

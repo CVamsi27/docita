@@ -17,7 +17,7 @@ import { SlowQueryLoggingService } from '@/shared/modules/database/slow-query-lo
 import { DatabaseIndexOptimizationService } from '@/shared/modules/database/database-index-optimization.service';
 import { DatabasePoolingService } from '@/shared/modules/database/database-pooling.service';
 import { DatabaseOperationsController } from './controllers/database-operations.controller';
-import { RedisCachingService } from '@/shared/modules/services/redis-caching.service';
+import { TaggedCacheService } from '@/shared/modules/services/tagged-cache.service';
 import { N1QueryDetectionService } from '@/shared/modules/services/n1-query-detection.service';
 import { CursorPaginationService } from '@/shared/modules/services/cursor-pagination.service';
 
@@ -41,7 +41,7 @@ import { CursorPaginationService } from '@/shared/modules/services/cursor-pagina
     SlowQueryLoggingService,
     DatabaseIndexOptimizationService,
     DatabasePoolingService,
-    RedisCachingService,
+    TaggedCacheService,
     N1QueryDetectionService,
     CursorPaginationService,
   ],
@@ -61,7 +61,7 @@ import { CursorPaginationService } from '@/shared/modules/services/cursor-pagina
     SlowQueryLoggingService,
     DatabaseIndexOptimizationService,
     DatabasePoolingService,
-    RedisCachingService,
+    TaggedCacheService,
     N1QueryDetectionService,
     CursorPaginationService,
   ],

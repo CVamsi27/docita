@@ -54,7 +54,7 @@ export function WhatsappSection() {
                     <div className="font-semibold text-sm">
                       Docita
                     </div>
-                    <div className="text-[10px] opacity-80">
+                    <div className="text-[10px] text-primary-foreground/95">
                       Business Account
                     </div>
                   </div>
@@ -71,7 +71,7 @@ export function WhatsappSection() {
                   </div>
                   <div className="bg-success/20 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
                     <p>Thank you doctor! I&apos;ll be there.</p>
-                    <div className="text-[10px] text-muted-foreground text-right mt-1">
+                    <div className="mt-1 text-[10px] text-foreground/80 text-right">
                       09:32 AM
                     </div>
                   </div>
@@ -80,7 +80,7 @@ export function WhatsappSection() {
                       <FileText className="h-8 w-8 text-destructive" />
                       <div>
                         <div className="font-medium">Prescription.pdf</div>
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-[10px] text-foreground/80">
                           1 page • 120 KB
                         </div>
                       </div>
