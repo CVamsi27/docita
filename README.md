@@ -5,7 +5,7 @@ Modern clinic management that rescues your messy records. Start with Excel, scal
 
 ## Live Demo
 
-- **Landing**: [https://landing.docita.work](https://landing.docita.work)
+- **Landing**: [https://docita.work](https://docita.work), [https://www.docita.work](https://www.docita.work), [https://landing.docita.work](https://landing.docita.work)
 - **App**: [https://app.docita.work](https://app.docita.work)
 - **Admin**: [https://admin.docita.work](https://admin.docita.work)
 - **API**: [https://api.docita.work](https://api.docita.work)

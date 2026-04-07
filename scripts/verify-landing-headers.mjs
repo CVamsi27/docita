@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 
-const DEFAULT_BASE_URL = "https://landing.docita.work";
+const DEFAULT_BASE_URL = "https://docita.work";
 
 function parseArgs(argv) {
   const args = {

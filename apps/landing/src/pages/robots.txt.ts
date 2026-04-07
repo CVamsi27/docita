@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-const BASE_URL = "https://landing.docita.work";
+const BASE_URL = "https://docita.work";
 
 export const GET: APIRoute = () => {
   const body = `User-agent: *

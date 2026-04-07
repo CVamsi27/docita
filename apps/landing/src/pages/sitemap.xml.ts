@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-const BASE_URL = "https://landing.docita.work";
+const BASE_URL = "https://docita.work";
 
 const routes = [
   { path: "", lastmod: new Date().toISOString().split("T")[0], priority: "1.0", changefreq: "weekly" },
