@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { SuperAdminController } from './super-admin.controller';
-import { SuperAdminBillingController } from './super-admin-billing.controller';
-import { SuperAdminBillingService } from './super-admin-billing.service';
+import { InternalController } from './internal.controller';
+import { InternalBillingController } from './internal-billing.controller';
+import { InternalBillingService } from './internal-billing.service';
 import { ClinicManagementService } from './clinic-management.service';
-import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
-import { SuperAdminLogService } from './super-admin-log.service';
-import { SuperAdminAiService } from './super-admin-ai.service';
+import { InternalAnalyticsService } from './internal-analytics.service';
+import { InternalLogService } from './internal-log.service';
+import { InternalAiService } from './internal-ai.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ClinicsModule } from '@/domains/clinics/clinics.module';
@@ -25,21 +25,21 @@ import { FeedbackModule } from '@/domains/feedback/feedback.module';
     AuthModule,
     GatewaysModule,
   ],
-  controllers: [SuperAdminController, SuperAdminBillingController],
+  controllers: [InternalController, InternalBillingController],
   providers: [
-    SuperAdminBillingService,
+    InternalBillingService,
     PrismaService,
     ClinicManagementService,
-    SuperAdminAnalyticsService,
-    SuperAdminLogService,
-    SuperAdminAiService,
+    InternalAnalyticsService,
+    InternalLogService,
+    InternalAiService,
   ],
   exports: [
-    SuperAdminBillingService,
+    InternalBillingService,
     ClinicManagementService,
-    SuperAdminAnalyticsService,
-    SuperAdminLogService,
-    SuperAdminAiService,
+    InternalAnalyticsService,
+    InternalLogService,
+    InternalAiService,
   ],
 })
-export class SuperAdminModule {}
+export class InternalModule {}

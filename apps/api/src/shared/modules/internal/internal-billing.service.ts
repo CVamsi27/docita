@@ -22,7 +22,7 @@ interface BillingTierInfo {
 }
 
 @Injectable()
-export class SuperAdminBillingService {
+export class InternalBillingService {
   constructor(private prisma: PrismaService) {}
 
   private toInputJsonValue(value: unknown): Prisma.InputJsonValue {

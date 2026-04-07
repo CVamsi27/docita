@@ -13,32 +13,32 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { ClinicTier } from '@workspace/db';
 import { ClinicManagementService } from './clinic-management.service';
-import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
-import { SuperAdminLogService } from './super-admin-log.service';
-import { SuperAdminAiService } from './super-admin-ai.service';
-import { SuperAdminBillingService } from './super-admin-billing.service';
+import { InternalAnalyticsService } from './internal-analytics.service';
+import { InternalLogService } from './internal-log.service';
+import { InternalAiService } from './internal-ai.service';
+import { InternalBillingService } from './internal-billing.service';
 import {
-  SuperAdminCreateClinicDto,
-  SuperAdminUpdateClinicDto,
+  InternalCreateClinicDto,
+  InternalUpdateClinicDto,
   CreateAdminDto,
   UpdateAdminDto,
 } from './dto/clinic-management.dto';
 import { UpdateAIFeaturesDto } from './dto/ai-management.dto';
 import { ProcessPaymentDto } from './dto/payment.dto';
 import {
-  SuperAdminClinicListQueryDto,
-  SuperAdminGlobalStatsResponseDto as _SuperAdminGlobalStatsResponseDto,
-  SuperAdminAnalyticsResponseDto,
-  SuperAdminPerformanceMetricsResponseDto,
-  SuperAdminAIFeatureCatalogResponseDto,
-  SuperAdminClinicTierInfoResponseDto,
-  SuperAdminTierPricingResponseDto,
-  SuperAdminClinicListResponseDto,
-  SuperAdminLogListResponseDto,
-  SuperAdminUserListResponseDto,
-  SuperAdminUserResponseDto,
+  InternalClinicListQueryDto,
+  InternalGlobalStatsResponseDto as _InternalGlobalStatsResponseDto,
+  InternalAnalyticsResponseDto,
+  InternalPerformanceMetricsResponseDto,
+  InternalAIFeatureCatalogResponseDto,
+  InternalClinicTierInfoResponseDto,
+  InternalTierPricingResponseDto,
+  InternalClinicListResponseDto,
+  InternalLogListResponseDto,
+  InternalUserListResponseDto,
+  InternalUserResponseDto,
   SuccessResponseDto,
-} from './dto/super-admin.dto';
+} from './dto/internal.dto';
 import { ClinicResponseDto } from '@/domains/clinics/application/dto/clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
@@ -51,21 +51,21 @@ import {
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { UsePipes } from '@nestjs/common';
 
-@Controller('super-admin')
+@Controller('internal')
 @Roles(Role.INTERNAL)
-export class SuperAdminController {
+export class InternalController {
   constructor(
     private readonly clinicService: ClinicManagementService,
-    private readonly analyticsService: SuperAdminAnalyticsService,
-    private readonly logService: SuperAdminLogService,
-    private readonly aiService: SuperAdminAiService,
-    private readonly billingService: SuperAdminBillingService,
+    private readonly analyticsService: InternalAnalyticsService,
+    private readonly logService: InternalLogService,
+    private readonly aiService: InternalAiService,
+    private readonly billingService: InternalBillingService,
     private readonly feedbackService: FeedbackService,
   ) {}
 
   @Get('clinics')
-  @ZodSerializerDto(SuperAdminClinicListResponseDto)
-  async getAllClinics(@Query() query?: SuperAdminClinicListQueryDto) {
+  @ZodSerializerDto(InternalClinicListResponseDto)
+  async getAllClinics(@Query() query?: InternalClinicListQueryDto) {
     const { cursor, limit } = query ?? {};
     return this.clinicService.getAllClinics({
       cursor,
@@ -74,7 +74,7 @@ export class SuperAdminController {
   }
 
   @Get('clinics/:id/doctors')
-  @ZodSerializerDto(SuperAdminUserListResponseDto)
+  @ZodSerializerDto(InternalUserListResponseDto)
   async getClinicDoctors(@Param('id') id: string) {
     return this.clinicService.getClinicDoctors(id);
   }
@@ -89,7 +89,7 @@ export class SuperAdminController {
 
   @Post('clinics')
   @ZodSerializerDto(ClinicResponseDto)
-  async createClinic(@Body() data: SuperAdminCreateClinicDto) {
+  async createClinic(@Body() data: InternalCreateClinicDto) {
     return this.clinicService.createClinic(data);
   }
 
@@ -115,7 +115,7 @@ export class SuperAdminController {
   @ZodSerializerDto(ClinicResponseDto)
   async updateClinic(
     @Param('id') id: string,
-    @Body() data: SuperAdminUpdateClinicDto,
+    @Body() data: InternalUpdateClinicDto,
   ) {
     return this.clinicService.updateClinic(id, data);
   }
@@ -126,7 +126,7 @@ export class SuperAdminController {
   }
 
   @Get('analytics')
-  @ZodSerializerDto(SuperAdminAnalyticsResponseDto)
+  @ZodSerializerDto(InternalAnalyticsResponseDto)
   async getAnalytics(
     @Query('period') period?: 'daily' | 'weekly' | 'monthly' | 'yearly',
     @Query('startDate') startDate?: string,
@@ -140,7 +140,7 @@ export class SuperAdminController {
   }
 
   @Get('logs')
-  @ZodSerializerDto(SuperAdminLogListResponseDto)
+  @ZodSerializerDto(InternalLogListResponseDto)
   async getLogs(
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
@@ -208,7 +208,7 @@ export class SuperAdminController {
   }
 
   @Get('performance')
-  @ZodSerializerDto(SuperAdminPerformanceMetricsResponseDto)
+  @ZodSerializerDto(InternalPerformanceMetricsResponseDto)
   async getPerformanceMetrics() {
     return this.analyticsService.getPerformanceMetrics();
   }
@@ -224,13 +224,13 @@ export class SuperAdminController {
   }
 
   @Get('clinics/:id/admins')
-  @ZodSerializerDto(SuperAdminUserListResponseDto)
+  @ZodSerializerDto(InternalUserListResponseDto)
   async getClinicAdmins(@Param('id') id: string) {
     return this.clinicService.getClinicAdmins(id);
   }
 
   @Post('clinics/:id/admins')
-  @ZodSerializerDto(SuperAdminUserResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async createAdmin(
     @Param('id') clinicId: string,
     @Body() data: CreateAdminDto,
@@ -239,25 +239,25 @@ export class SuperAdminController {
   }
 
   @Get('admins/:id')
-  @ZodSerializerDto(SuperAdminUserResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async getAdminDetails(@Param('id') id: string) {
     return this.clinicService.getAdminDetails(id);
   }
 
   @Patch('admins/:id')
-  @ZodSerializerDto(SuperAdminUserResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async updateAdmin(@Param('id') id: string, @Body() data: UpdateAdminDto) {
     return this.clinicService.updateAdmin(id, data);
   }
 
   @Patch('admins/:id/deactivate')
-  @ZodSerializerDto(SuperAdminUserResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async deactivateAdmin(@Param('id') id: string) {
     return this.clinicService.deactivateAdmin(id);
   }
 
   @Patch('admins/:id/activate')
-  @ZodSerializerDto(SuperAdminUserResponseDto)
+  @ZodSerializerDto(InternalUserResponseDto)
   async activateAdmin(@Param('id') id: string) {
     return this.clinicService.activateAdmin(id);
   }
@@ -298,7 +298,7 @@ export class SuperAdminController {
   }
 
   @Get('clinics/:id/tier-info')
-  @ZodSerializerDto(SuperAdminClinicTierInfoResponseDto)
+  @ZodSerializerDto(InternalClinicTierInfoResponseDto)
   async getClinicTierInfo(@Param('id') id: string) {
     return this.billingService.getClinicTierInfo(id);
   }
@@ -322,13 +322,13 @@ export class SuperAdminController {
   }
 
   @Get('tier-pricing')
-  @ZodSerializerDto(SuperAdminTierPricingResponseDto)
+  @ZodSerializerDto(InternalTierPricingResponseDto)
   getTierPricingInfo() {
     return this.billingService.getTierPricingInfo();
   }
 
   @Get('ai-features-catalog')
-  @ZodSerializerDto(SuperAdminAIFeatureCatalogResponseDto)
+  @ZodSerializerDto(InternalAIFeatureCatalogResponseDto)
   getAIFeaturesCatalog() {
     return this.aiService.getAIFeaturesCatalog();
   }

@@ -19,20 +19,20 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 
-import { SuperAdminBillingService } from './super-admin-billing.service';
+import { InternalBillingService } from './internal-billing.service';
 import {
   ExtendGracePeriodRequestDto,
-  SuperAdminBillingExpiringQueryDto,
-  SuperAdminBillingPaymentsQueryDto,
-  SuperAdminBillingSubscriptionsQueryDto,
-} from './dto/super-admin-billing.dto';
+  InternalBillingExpiringQueryDto,
+  InternalBillingPaymentsQueryDto,
+  InternalBillingSubscriptionsQueryDto,
+} from './dto/internal-billing.dto';
 
-@Controller('super-admin/billing')
+@Controller('internal/billing')
 @ApiTags('Internal - Billing')
 @Roles(Role.INTERNAL)
 @ApiBearerAuth()
-export class SuperAdminBillingController {
-  constructor(private readonly billingService: SuperAdminBillingService) {}
+export class InternalBillingController {
+  constructor(private readonly billingService: InternalBillingService) {}
 
   @Get('metrics')
   @ApiOperation({ summary: 'Get billing metrics overview' })
@@ -46,7 +46,7 @@ export class SuperAdminBillingController {
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'billingCycle', required: false })
   async getSubscriptions(
-    @Query() query?: SuperAdminBillingSubscriptionsQueryDto,
+    @Query() query?: InternalBillingSubscriptionsQueryDto,
   ) {
     return this.billingService.getSubscriptions({
       tier: query?.tier,
@@ -59,7 +59,7 @@ export class SuperAdminBillingController {
   @ApiOperation({ summary: 'Get subscriptions expiring soon' })
   @ApiQuery({ name: 'days', required: false, type: Number })
   async getExpiringSubscriptions(
-    @Query() query?: SuperAdminBillingExpiringQueryDto,
+    @Query() query?: InternalBillingExpiringQueryDto,
   ) {
     return this.billingService.getExpiringSubscriptions(query?.days);
   }
@@ -69,7 +69,7 @@ export class SuperAdminBillingController {
   @ApiQuery({ name: 'clinicId', required: false })
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
-  async getPayments(@Query() query?: SuperAdminBillingPaymentsQueryDto) {
+  async getPayments(@Query() query?: InternalBillingPaymentsQueryDto) {
     return this.billingService.getPayments({
       clinicId: query?.clinicId,
       startDate: query?.startDate,

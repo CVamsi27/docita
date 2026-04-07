@@ -74,31 +74,31 @@ describe('RBAC 403 Verification (e2e)', () => {
   };
 
   describe('Internal Access', () => {
-    it('should allow INTERNAL to access super-admin clinics endpoint', async () => {
-      const superAdminToken = await getAuthToken(Role.INTERNAL);
+    it('should allow INTERNAL to access internal clinics endpoint', async () => {
+      const internalToken = await getAuthToken(Role.INTERNAL);
 
       await request(app.getHttpServer())
-        .get('/super-admin/clinics')
-        .set('Authorization', `Bearer ${superAdminToken}`)
+        .get('/internal/clinics')
+        .set('Authorization', `Bearer ${internalToken}`)
         .expect(200);
     });
 
-    it('should return 403 when ADMIN accesses super-admin clinics endpoint', async () => {
+    it('should return 403 when ADMIN accesses internal clinics endpoint', async () => {
       const adminToken = await getAuthToken(Role.ADMIN);
 
       const response = await request(app.getHttpServer())
-        .get('/super-admin/clinics')
+        .get('/internal/clinics')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(403);
 
       expect(response.body).toHaveProperty('message');
     });
 
-    it('should return 403 when DOCTOR accesses super-admin clinics endpoint', async () => {
+    it('should return 403 when DOCTOR accesses internal clinics endpoint', async () => {
       const doctorToken = await getAuthToken(Role.DOCTOR);
 
       await request(app.getHttpServer())
-        .get('/super-admin/clinics')
+        .get('/internal/clinics')
         .set('Authorization', `Bearer ${doctorToken}`)
         .expect(403);
     });

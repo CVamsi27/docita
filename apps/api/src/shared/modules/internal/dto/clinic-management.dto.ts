@@ -1,6 +1,6 @@
 import { ClinicTier } from '@workspace/db';
 
-export class SuperAdminCreateClinicDto {
+export class InternalCreateClinicDto {
   name!: string;
   email!: string;
   phone!: string;
@@ -12,7 +12,7 @@ export class SuperAdminCreateClinicDto {
   type?: string;
 }
 
-export class SuperAdminUpdateClinicDto {
+export class InternalUpdateClinicDto {
   name?: string;
   email?: string;
   phone?: string;

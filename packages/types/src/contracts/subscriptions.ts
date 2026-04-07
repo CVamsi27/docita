@@ -265,17 +265,17 @@ export const subscriptionBillingCancelResponseSchema = z
   })
   .strict();
 
-export const superAdminBillingSubscriptionsQuerySchema = z.object({
+export const internalBillingSubscriptionsQuerySchema = z.object({
   tier: z.string().optional(),
   status: z.string().optional(),
   billingCycle: z.string().optional(),
 }).strict();
 
-export const superAdminBillingExpiringQuerySchema = z.object({
+export const internalBillingExpiringQuerySchema = z.object({
   days: z.coerce.number().int().positive().optional(),
 }).strict();
 
-export const superAdminBillingPaymentsQuerySchema = z.object({
+export const internalBillingPaymentsQuerySchema = z.object({
   clinicId: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
@@ -341,14 +341,14 @@ export type SubscriptionBillingPreviewResponse = z.infer<
 export type PricingEstimateResponse = z.infer<
   typeof pricingEstimateResponseSchema
 >;
-export type SuperAdminBillingSubscriptionsQuery = z.infer<
-  typeof superAdminBillingSubscriptionsQuerySchema
+export type InternalBillingSubscriptionsQuery = z.infer<
+  typeof internalBillingSubscriptionsQuerySchema
 >;
-export type SuperAdminBillingExpiringQuery = z.infer<
-  typeof superAdminBillingExpiringQuerySchema
+export type InternalBillingExpiringQuery = z.infer<
+  typeof internalBillingExpiringQuerySchema
 >;
-export type SuperAdminBillingPaymentsQuery = z.infer<
-  typeof superAdminBillingPaymentsQuerySchema
+export type InternalBillingPaymentsQuery = z.infer<
+  typeof internalBillingPaymentsQuerySchema
 >;
 export type ExtendGracePeriodRequest = z.infer<
   typeof extendGracePeriodRequestSchema

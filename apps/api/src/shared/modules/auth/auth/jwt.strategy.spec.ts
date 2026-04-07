@@ -123,16 +123,16 @@ describe('JwtStrategy', () => {
     });
 
     it('should handle null clinicId for super admin users', async () => {
-      const superAdmin = { ...mockUser, clinicId: null, role: 'INTERNAL' };
-      prisma.$queryRaw.mockResolvedValue([superAdmin]);
+      const internal = { ...mockUser, clinicId: null, role: 'INTERNAL' };
+      prisma.$queryRaw.mockResolvedValue([internal]);
 
-      const payloadForSuperAdmin = {
+      const payloadForInternal = {
         ...validPayload,
         role: 'INTERNAL' as Role,
         clinicId: null,
       };
 
-      const result = await strategy.validate(payloadForSuperAdmin);
+      const result = await strategy.validate(payloadForInternal);
 
       expect(result.clinicId).toBeNull();
       expect(result.role).toBe('INTERNAL');

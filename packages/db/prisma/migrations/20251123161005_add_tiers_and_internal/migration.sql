@@ -1,5 +1,5 @@
 -- AlterEnum
-ALTER TYPE "Role" ADD VALUE 'SUPER_ADMIN';
+ALTER TYPE "Role" ADD VALUE 'INTERNAL';
 
 -- AlterTable
 ALTER TABLE "Clinic" ADD COLUMN     "subscriptionStatus" TEXT NOT NULL DEFAULT 'active';

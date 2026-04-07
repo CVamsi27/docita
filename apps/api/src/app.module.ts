@@ -29,7 +29,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { join } from 'path';
 import { WhatsAppModule } from './domains/whatsapp/whatsapp.module';
-import { SuperAdminModule } from './shared/modules/super-admin/super-admin.module';
+import { InternalModule } from './shared/modules/internal/internal.module';
 import { SubscriptionsModule } from './domains/subscriptions/subscriptions.module';
 import { PrescriptionTemplatesModule } from './domains/prescriptions/prescription-templates/prescription-templates.module';
 import { ClinicalModule } from './domains/clinical/clinical.module';
@@ -158,7 +158,7 @@ import { LeaveModule } from './domains/leave/leave.module';
     DoctorClinicsModule,
     DoctorsModule,
     WhatsAppModule,
-    SuperAdminModule,
+    InternalModule,
     PaymentsModule,
     SubscriptionsModule,
     BillingModule,

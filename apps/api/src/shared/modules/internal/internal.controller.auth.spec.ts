@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SuperAdminController } from './super-admin.controller';
+import { InternalController } from './internal.controller';
 import { ClinicManagementService } from './clinic-management.service';
-import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
-import { SuperAdminLogService } from './super-admin-log.service';
-import { SuperAdminAiService } from './super-admin-ai.service';
-import { SuperAdminBillingService } from './super-admin-billing.service';
+import { InternalAnalyticsService } from './internal-analytics.service';
+import { InternalLogService } from './internal-log.service';
+import { InternalAiService } from './internal-ai.service';
+import { InternalBillingService } from './internal-billing.service';
 import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Reflector } from '@nestjs/core';
@@ -13,8 +13,8 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
-describe('SuperAdminController - Authorization', () => {
-  let controller: SuperAdminController;
+describe('InternalController - Authorization', () => {
+  let controller: InternalController;
   let rolesGuard: RolesGuard;
 
   const mockClinicManagementService = {
@@ -49,26 +49,26 @@ describe('SuperAdminController - Authorization', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [SuperAdminController],
+      controllers: [InternalController],
       providers: [
         {
           provide: ClinicManagementService,
           useValue: mockClinicManagementService,
         },
         {
-          provide: SuperAdminAnalyticsService,
+          provide: InternalAnalyticsService,
           useValue: mockAnalyticsService,
         },
         {
-          provide: SuperAdminLogService,
+          provide: InternalLogService,
           useValue: mockLogService,
         },
         {
-          provide: SuperAdminAiService,
+          provide: InternalAiService,
           useValue: mockAiService,
         },
         {
-          provide: SuperAdminBillingService,
+          provide: InternalBillingService,
           useValue: mockBillingService,
         },
         {
@@ -79,7 +79,7 @@ describe('SuperAdminController - Authorization', () => {
       ],
     }).compile();
 
-    controller = module.get<SuperAdminController>(SuperAdminController);
+    controller = module.get<InternalController>(InternalController);
     rolesGuard = new RolesGuard(module.get<Reflector>(Reflector));
   });
 
@@ -87,40 +87,40 @@ describe('SuperAdminController - Authorization', () => {
     const request = { user: { role: userRole, clinicId: 'clinic-123' } };
     const context = new ExecutionContextHost(
       [request, undefined, undefined],
-      SuperAdminController,
+      InternalController,
       controller.getGlobalStats,
     );
     context.setType('http');
     return context;
   };
 
-  describe('RolesGuard - SuperAdminController', () => {
-    it('should allow INTERNAL to access super-admin endpoints', () => {
+  describe('RolesGuard - InternalController', () => {
+    it('should allow INTERNAL to access internal endpoints', () => {
       const context = createMockExecutionContext(Role.INTERNAL);
       expect(rolesGuard.canActivate(context)).toBe(true);
     });
 
-    it('should deny ADMIN access to super-admin endpoints', () => {
+    it('should deny ADMIN access to internal endpoints', () => {
       const context = createMockExecutionContext(Role.ADMIN);
       expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
-    it('should deny DOCTOR access to super-admin endpoints', () => {
+    it('should deny DOCTOR access to internal endpoints', () => {
       const context = createMockExecutionContext(Role.DOCTOR);
       expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
-    it('should deny RECEPTIONIST access to super-admin endpoints', () => {
+    it('should deny RECEPTIONIST access to internal endpoints', () => {
       const context = createMockExecutionContext(Role.RECEPTIONIST);
       expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
-    it('should deny ADMIN_DOCTOR access to super-admin endpoints', () => {
+    it('should deny ADMIN_DOCTOR access to internal endpoints', () => {
       const context = createMockExecutionContext(Role.ADMIN_DOCTOR);
       expect(() => rolesGuard.canActivate(context)).toThrow();
     });
 
-    it('should deny PATIENT access to super-admin endpoints', () => {
+    it('should deny PATIENT access to internal endpoints', () => {
       const context = createMockExecutionContext(Role.PATIENT);
       expect(() => rolesGuard.canActivate(context)).toThrow();
     });
@@ -128,7 +128,7 @@ describe('SuperAdminController - Authorization', () => {
 
   describe('Controller endpoint structure', () => {
     it('should have @Roles(INTERNAL) decorator on controller class', () => {
-      const roles = Reflect.getMetadata('roles', SuperAdminController);
+      const roles = Reflect.getMetadata('roles', InternalController);
       expect(roles).toBeDefined();
       expect(roles).toEqual([Role.INTERNAL]);
     });

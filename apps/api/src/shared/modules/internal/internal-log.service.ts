@@ -19,8 +19,8 @@ interface LogFilters {
 }
 
 @Injectable()
-export class SuperAdminLogService {
-  private readonly logger = new Logger(SuperAdminLogService.name);
+export class InternalLogService {
+  private readonly logger = new Logger(InternalLogService.name);
 
   constructor(private prisma: PrismaService) {}
 

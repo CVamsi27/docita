@@ -7,7 +7,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import type { UpdateClinicAIFeaturesDto } from '@workspace/types';
 
 @Injectable()
-export class SuperAdminAiService {
+export class InternalAiService {
   constructor(private prisma: PrismaService) {}
 
   async getClinicAIFeatures(clinicId: string) {

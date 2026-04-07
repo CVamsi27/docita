@@ -19,7 +19,7 @@ export async function seedClinicUsers(
 ): Promise<SeedClinicUsersResult> {
   const seededSignatureUploadedAt = new Date('2026-01-01T00:00:00.000Z');
   const seededSignatures = {
-    superAdmin:
+    internal:
       'https://placehold.co/300x100/000000/FFFFFF?text=Super+Admin+Signature',
     clinicAdmin:
       'https://placehold.co/300x100/000000/FFFFFF?text=Clinic+Admin+Signature',
@@ -47,7 +47,7 @@ export async function seedClinicUsers(
   await prisma.user.upsert({
     where: { email: 'admin@docita.work' },
     update: {
-      signatureUrl: seededSignatures.superAdmin,
+      signatureUrl: seededSignatures.internal,
       signatureUploadedAt: seededSignatureUploadedAt,
       emailVerified: true,
     },
@@ -57,7 +57,7 @@ export async function seedClinicUsers(
       name: 'Internal',
       role: 'INTERNAL',
       clinicId: null,
-      signatureUrl: seededSignatures.superAdmin,
+      signatureUrl: seededSignatures.internal,
       signatureUploadedAt: seededSignatureUploadedAt,
       emailVerified: true,
     },

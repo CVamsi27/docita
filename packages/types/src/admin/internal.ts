@@ -55,13 +55,13 @@ export interface UpdateClinicAIFeaturesDto {
   };
 }
 
-export interface SuperAdminPaymentData {
+export interface InternalPaymentData {
   razorpayPaymentId?: string;
   razorpayOrderId?: string;
   razorpaySignature?: string;
 }
 
-export const superAdminGlobalStatsSchema = z.object({
+export const internalGlobalStatsSchema = z.object({
   totalClinics: z.number(),
   activeClinics: z.number(),
   totalDoctors: z.number(),
@@ -70,7 +70,7 @@ export const superAdminGlobalStatsSchema = z.object({
   growthRate: z.number(),
 });
 
-export const superAdminAnalyticsSchema = z.object({
+export const internalAnalyticsSchema = z.object({
   period: z.string(),
   data: z.array(
     z.object({
@@ -81,7 +81,7 @@ export const superAdminAnalyticsSchema = z.object({
   ),
 });
 
-export const superAdminPerformanceMetricsSchema = z.object({
+export const internalPerformanceMetricsSchema = z.object({
   apiLatency: z.number(),
   errorRate: z.number(),
   cpuUsage: z.number(),
@@ -89,7 +89,7 @@ export const superAdminPerformanceMetricsSchema = z.object({
   activeConnections: z.number(),
 });
 
-export const superAdminAIFeatureCatalogSchema = z.array(
+export const internalAIFeatureCatalogSchema = z.array(
   z.object({
     id: z.string(),
     name: z.string(),
@@ -100,7 +100,7 @@ export const superAdminAIFeatureCatalogSchema = z.array(
   }),
 );
 
-export const superAdminClinicTierInfoSchema = z.object({
+export const internalClinicTierInfoSchema = z.object({
   clinicId: z.string(),
   tier: z.string(),
   features: z.array(z.string()),
@@ -108,7 +108,7 @@ export const superAdminClinicTierInfoSchema = z.object({
   billingStatus: z.string(),
 });
 
-export const superAdminTierPricingSchema = z.array(
+export const internalTierPricingSchema = z.array(
   z.object({
     tier: z.string(),
     monthlyPrice: z.number(),
@@ -117,7 +117,7 @@ export const superAdminTierPricingSchema = z.array(
   }),
 );
 
-export const superAdminClinicListResponseSchema = z.object({
+export const internalClinicListResponseSchema = z.object({
   data: z.array(clinicSchema),
   nextCursor: z.string().optional(),
 });

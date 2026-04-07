@@ -14,8 +14,8 @@ import {
 import { paginateWithCursor } from '@/common/pagination.helper';
 import type { CreateAdminDto, UpdateAdminDto } from '@workspace/types';
 import {
-  SuperAdminCreateClinicDto,
-  SuperAdminUpdateClinicDto,
+  InternalCreateClinicDto,
+  InternalUpdateClinicDto,
 } from './dto/clinic-management.dto';
 import { ClinicFactory } from '@/domains/clinics/core/factories/clinic.factory';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
@@ -121,7 +121,7 @@ export class ClinicManagementService {
     return doctor;
   }
 
-  async createClinic(data: SuperAdminCreateClinicDto) {
+  async createClinic(data: InternalCreateClinicDto) {
     const existingClinic = await this.prisma.clinic.findFirst({
       where: { email: data.email },
     });
@@ -194,7 +194,7 @@ export class ClinicManagementService {
     return clinic;
   }
 
-  async updateClinic(id: string, data: SuperAdminUpdateClinicDto) {
+  async updateClinic(id: string, data: InternalUpdateClinicDto) {
     const clinic = await this.prisma.clinic.update({
       where: { id },
       data: data as Prisma.ClinicUpdateInput,

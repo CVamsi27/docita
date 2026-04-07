@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { SuperAdminAnalyticsService } from './super-admin-analytics.service';
+import { InternalAnalyticsService } from './internal-analytics.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { InvoiceStatus } from '@workspace/db';
 
-describe('SuperAdminAnalyticsService', () => {
-  let service: SuperAdminAnalyticsService;
+describe('InternalAnalyticsService', () => {
+  let service: InternalAnalyticsService;
 
   const mockInvoiceAggregate =
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
@@ -52,15 +52,13 @@ describe('SuperAdminAnalyticsService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        SuperAdminAnalyticsService,
+        InternalAnalyticsService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
       ],
     }).compile();
 
-    service = module.get<SuperAdminAnalyticsService>(
-      SuperAdminAnalyticsService,
-    );
+    service = module.get<InternalAnalyticsService>(InternalAnalyticsService);
     jest.clearAllMocks();
     mockPrismaService.getReadClient.mockReturnValue(mockReadClientValue);
   });
@@ -131,7 +129,7 @@ describe('SuperAdminAnalyticsService', () => {
       }),
     );
     expect(mockCacheManager.set).toHaveBeenCalledWith(
-      expect.stringContaining('super-admin:analytics:monthly:'),
+      expect.stringContaining('internal:analytics:monthly:'),
       expect.objectContaining({
         revenue: 2000,
       }),
@@ -165,7 +163,7 @@ describe('SuperAdminAnalyticsService', () => {
     expect(mockAppointmentCount).toHaveBeenCalledTimes(2);
     expect(mockPrescriptionCount).toHaveBeenCalledTimes(2);
     expect(mockCacheManager.set).toHaveBeenCalledWith(
-      'super-admin:usage-metrics',
+      'internal:usage-metrics',
       expect.objectContaining({
         dau: 2,
       }),

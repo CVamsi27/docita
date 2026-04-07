@@ -11,8 +11,8 @@ import { InvoiceStatus, PaymentSessionStatus } from '@workspace/db';
 import { getMonthRange, DEFAULT_TIMEZONE } from '@workspace/utils';
 
 @Injectable()
-export class SuperAdminAnalyticsService {
-  private readonly logger = new Logger(SuperAdminAnalyticsService.name);
+export class InternalAnalyticsService {
+  private readonly logger = new Logger(InternalAnalyticsService.name);
 
   constructor(
     private prisma: PrismaService,
@@ -25,7 +25,7 @@ export class SuperAdminAnalyticsService {
 
   async getGlobalStats(timezone: string = DEFAULT_TIMEZONE) {
     try {
-      const cacheKey = `super-admin:global-stats:${timezone}`;
+      const cacheKey = `internal:global-stats:${timezone}`;
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) return cached;
       const readClient = this.getReadClient();
@@ -145,7 +145,7 @@ export class SuperAdminAnalyticsService {
         ? new Date(startDate)
         : new Date(now.getFullYear(), now.getMonth(), 1);
       const end = endDate ? new Date(endDate) : now;
-      const cacheKey = `super-admin:analytics:${period}:${start.toISOString()}:${end.toISOString()}`;
+      const cacheKey = `internal:analytics:${period}:${start.toISOString()}:${end.toISOString()}`;
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) {
         return cached;
@@ -325,7 +325,7 @@ export class SuperAdminAnalyticsService {
 
   async getUsageMetrics() {
     try {
-      const cacheKey = 'super-admin:usage-metrics';
+      const cacheKey = 'internal:usage-metrics';
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) return cached;
       const readClient = this.getReadClient();
@@ -382,7 +382,7 @@ export class SuperAdminAnalyticsService {
 
   async getTierDistribution() {
     try {
-      const cacheKey = 'super-admin:tier-distribution';
+      const cacheKey = 'internal:tier-distribution';
       const cached = await this.cacheManager.get(cacheKey);
       if (cached) return cached;
       const readClient = this.getReadClient();
