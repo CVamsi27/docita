@@ -30,6 +30,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "var __defProp=Object.defineProperty;var __name=globalThis.__name||function(t,n){if(t.name!==n)try{__defProp(t,'name',{value:n,configurable:true})}catch(e){}return t};globalThis.__name=__name;",
+          }}
+        />
+      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
         <SentryInitializer />
         <ClientErrorReporter />

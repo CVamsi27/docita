@@ -16,6 +16,9 @@ function resolveApiProxyTarget(): string {
       // fall through
     }
   }
+  if (process.env.DOCITA_CLOUDFLARE === "1") {
+    return "https://api.docita.work";
+  }
   return "http://localhost:3001";
 }
 
