@@ -24,9 +24,9 @@ export const sendTemplateRequestSchema = z.object({
 }).strict();
 
 export const whatsappWebhookVerifyQuerySchema = z.object({
-  "hub.mode": z.string(),
-  "hub.verify_token": z.string(),
-  "hub.challenge": z.string(),
+  "hub.mode": z.string().optional(),
+  "hub.verify_token": z.string().optional(),
+  "hub.challenge": z.string().optional(),
 });
 
 export const whatsappWebhookDeliveryStatusSchema = z.object({

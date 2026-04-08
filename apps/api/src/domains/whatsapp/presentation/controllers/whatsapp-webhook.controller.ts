@@ -7,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/handle-webhook.use-case';
@@ -33,11 +34,12 @@ export class WhatsAppWebhookController {
     const verifyToken = this.configService.getMetaConfig().verifyToken;
     if (
       query['hub.mode'] === 'subscribe' &&
-      query['hub.verify_token'] === verifyToken
+      query['hub.verify_token'] === verifyToken &&
+      query['hub.challenge']
     ) {
       return query['hub.challenge'];
     }
-    return 'Verification failed';
+    throw new ForbiddenException('Verification failed');
   }
 
   @Public()
