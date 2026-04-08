@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 
 test("homepage renders primary CTA", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Clinic Ops, Simplified" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Start Free Trial" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Talk to Sales" }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Modern Healthcare/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start trial" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Book a Demo" }).first()).toBeVisible();
 });
 
 test("legal pages are reachable", async ({ page }) => {

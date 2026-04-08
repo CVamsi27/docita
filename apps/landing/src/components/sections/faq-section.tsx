@@ -1,12 +1,4 @@
-"use client";
-
 import { Button } from "@workspace/ui/components/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@workspace/ui/components/accordion";
 
 const faqs = [
   {
@@ -54,29 +46,29 @@ export function FaqSection() {
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="w-full space-y-4">
-          {faqs.map((faq, i) => (
-            <AccordionItem
-              key={i}
-              value={`item-${i}`}
-              className="bg-background rounded-lg border px-6 data-[state=open]:shadow-md transition-shadow"
+        <div className="space-y-4">
+          {faqs.map((faq) => (
+            <details
+              key={faq.question}
+              className="group rounded-lg border bg-background px-6 py-4 shadow-sm transition-shadow open:shadow-md"
             >
-              <AccordionTrigger className="text-left font-medium py-4 hover:no-underline">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground pb-4">
+              <summary className="cursor-pointer list-none text-left font-medium outline-none">
+                <span className="flex items-center justify-between gap-4">
+                  <span>{faq.question}</span>
+                  <span className="text-muted-foreground transition-transform group-open:rotate-45">+</span>
+                </span>
+              </summary>
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">
                 {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
+              </p>
+            </details>
           ))}
-        </Accordion>
+        </div>
 
         <div className="text-center mt-12">
           <p className="text-muted-foreground mb-4">Still have questions?</p>
           <Button asChild variant="outline">
-            <a href="/contact">
-            Contact Support
-            </a>
+            <a href="/contact">Contact Support</a>
           </Button>
         </div>
       </div>

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Building2, FileText, UserCog, Users } from "lucide-react";
 
 import {
-  FALLBACK_PLATFORM_STATS,
   fetchPlatformStats,
   formatStatValue,
   type PlatformStats,
@@ -48,8 +47,6 @@ export function StatsStrip() {
     };
   }, []);
 
-  const statsToRender = stats ?? FALLBACK_PLATFORM_STATS;
-
   return (
     <section className="py-16 bg-primary text-primary-foreground" aria-live="polite">
       <div className="container mx-auto px-6">
@@ -61,7 +58,7 @@ export function StatsStrip() {
             >
               <card.icon className="mx-auto mb-3 h-7 w-7 opacity-90" aria-hidden="true" />
               <div className="text-3xl font-bold md:text-4xl">
-                {isLoading ? "..." : formatStatValue(statsToRender[card.key])}
+                {isLoading ? "..." : stats ? formatStatValue(stats[card.key]) : "—"}
               </div>
               <p className="mt-1 text-sm font-medium text-primary-foreground/80">{card.label}</p>
             </article>
