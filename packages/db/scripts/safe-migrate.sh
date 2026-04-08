@@ -191,62 +191,12 @@ validate_migration() {
 # Function to check data integrity
 check_data_integrity() {
     log "Checking data integrity..."
-    
-    # Run integrity checks via Prisma
-    npx ts-node -e "
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
-async function checkIntegrity() {
-    const checks = [];
-    
-    // Check for orphaned appointments
-    const orphanedAppointments = await prisma.appointment.count({
-        where: {
-            OR: [
-                { patient: null },
-                { doctor: null },
-                { clinic: null }
-            ]
-        }
-    });
-    checks.push({ name: 'Orphaned Appointments', count: orphanedAppointments, ok: orphanedAppointments === 0 });
-    
-    // Check for orphaned prescriptions
-    const orphanedPrescriptions = await prisma.prescription.count({
-        where: {
-            OR: [
-                { patient: null },
-                { doctor: null }
-            ]
-        }
-    });
-    checks.push({ name: 'Orphaned Prescriptions', count: orphanedPrescriptions, ok: orphanedPrescriptions === 0 });
-    
-    // Check for orphaned invoices
-    const orphanedInvoices = await prisma.invoice.count({
-        where: {
-            patient: null
-        }
-    });
-    checks.push({ name: 'Orphaned Invoices', count: orphanedInvoices, ok: orphanedInvoices === 0 });
-    
-    await prisma.\$disconnect();
-    
-    return checks;
-}
+    # Reuse the adapter-aware integrity script and preserve its exit code when logging.
+    pnpm run db:check-integrity 2>&1 | tee -a "$LOG_FILE"
+    local integrity_status=${PIPESTATUS[0]}
 
-checkIntegrity()
-    .then(checks => {
-        const failed = checks.filter(c => !c.ok);
-        process.exit(failed.length > 0 ? 1 : 0);
-    })
-    .catch(err => {
-        process.exit(1);
-    });
-" 2>&1 | tee -a "$LOG_FILE"
-    
-    if [ $? -eq 0 ]; then
+    if [ "$integrity_status" -eq 0 ]; then
         success "Data integrity check passed"
         return 0
     else
