@@ -218,54 +218,50 @@ export class ReminderSchedulerService {
         const thirtyMinFromNow = new Date(now.getTime() + 30 * 60 * 1000);
         const thirtyFiveMinFromNow = new Date(now.getTime() + 35 * 60 * 1000);
 
-        for (const settings of allSettings) {
-          if (!settings.clinicId) {
-            continue;
-          }
+        const clinicIds = allSettings.map((s) => s.clinicId as string);
+        const settingsByClinicId = new Map(
+          allSettings.map((s) => [s.clinicId, s])
+        );
 
-          const appointments = await this.prisma.appointment.findMany({
-            where: {
-              clinicId: settings.clinicId,
-              startTime: {
-                gte: thirtyMinFromNow,
-                lt: thirtyFiveMinFromNow,
-              },
-              status: {
-                in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+        const appointments = await this.prisma.appointment.findMany({
+          where: {
+            clinicId: { in: clinicIds },
+            startTime: {
+              gte: thirtyMinFromNow,
+              lt: thirtyFiveMinFromNow,
+            },
+            status: {
+              in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
+            },
+          },
+          include: {
+            patient: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phoneNumber: true,
+                email: true,
               },
             },
-            include: {
-              patient: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  phoneNumber: true,
-                  email: true,
-                },
-              },
-              doctor: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-              clinic: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
+            doctor: {
+              select: { id: true, name: true },
             },
-          });
+            clinic: {
+              select: { id: true, name: true },
+            },
+          },
+        });
 
-          if (appointments.length > 0) {
-            this.logger.log(
-              `Found ${appointments.length} appointments needing 30-min reminders for clinic ${settings.clinicId}`,
-            );
-          }
+        if (appointments.length > 0) {
+          this.logger.log(
+            `Found ${appointments.length} appointments needing 30-min reminders across ${clinicIds.length} clinics`,
+          );
+        }
 
-          for (const appointment of appointments) {
+        for (const appointment of appointments) {
+          const settings = settingsByClinicId.get(appointment.clinicId);
+          if (!settings) continue;
             const existingReminder =
               await this.prisma.appointmentReminder.findFirst({
                 where: {
@@ -288,7 +284,6 @@ export class ReminderSchedulerService {
               );
             }
           }
-        }
       });
     } catch (error) {
       if (this.isDatabaseAuthError(error)) {
