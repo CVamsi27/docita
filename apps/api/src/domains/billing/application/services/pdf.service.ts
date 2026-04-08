@@ -10,6 +10,7 @@ import {
   PDFInvoiceItem,
   PDFDoctorInfo,
   PDFHospitalConfig,
+  resolvePdfCodePair,
 } from '@workspace/types';
 import PDFDocument from 'pdfkit';
 
@@ -83,11 +84,14 @@ export class PDFService extends BasePdfService {
       currentY = this.renderStatusBadge(doc, data.status, context, currentY);
     }
 
-    // Resolve CPT overrides from hospital config
-    const cptOverrides = data.hospitalConfig?.codeOverrides?.cpt;
+    // Resolve paired hospital overrides first, then fall back to the
+    // per-code legacy override maps and finally the source item codes.
     const resolvedItems = data.items.map((item) => ({
       ...item,
-      cptCode: item.cptCode ?? cptOverrides?.[item.description],
+      ...resolvePdfCodePair(data.hospitalConfig?.codeOverrides, item.description, {
+        cpt: item.cptCode,
+        icd: item.icdCode,
+      }),
     }));
 
     currentY = this.renderItemsTable(doc, resolvedItems, context, currentY);

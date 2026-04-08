@@ -11,6 +11,7 @@ import {
   PDFMedicationInfo,
   PDFDiagnosis,
   PDFHospitalConfig,
+  resolvePdfCodePair,
 } from '@workspace/types';
 import PDFDocument from 'pdfkit';
 
@@ -251,9 +252,16 @@ export class PrescriptionPdfService extends BasePdfService {
       let line = `${prefix}${d.description ?? ''}`;
 
       if (d.icdCode) {
-        const overrideCode = hospitalConfig?.codeOverrides?.icd?.[d.icdCode];
-        const displayCode = overrideCode ?? d.icdCode;
-        const label = overrideCode ? 'Code' : (d.version ?? codeSystem);
+        const resolvedCodes = resolvePdfCodePair(
+          hospitalConfig?.codeOverrides,
+          d.description ?? d.icdCode,
+          {
+            icd: d.icdCode,
+            cpt: d.cptCode,
+          },
+        );
+        const displayCode = resolvedCodes.icd ?? d.icdCode;
+        const label = resolvedCodes.icd !== d.icdCode ? 'Code' : (d.version ?? codeSystem);
         line += ` (${label}: ${displayCode})`;
       }
 
