@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@workspace/auth";
+import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";

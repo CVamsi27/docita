@@ -1,8 +1,19 @@
 import { createBrowserSessionManager } from "@workspace/data-access";
 import { API_URL } from "./api-config";
 
+export const resolveAppLoginPath = (currentPath: string) =>
+  currentPath.startsWith("/portal") ? "/portal/login" : "/login";
+
 export const appSession = createBrowserSessionManager({
   apiUrl: API_URL,
   tokenStorageKey: "docita_token",
   userStorageKey: "docita_user",
+  publicPaths: [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/portal/login",
+  ],
+  resolveLoginPath: resolveAppLoginPath,
 });

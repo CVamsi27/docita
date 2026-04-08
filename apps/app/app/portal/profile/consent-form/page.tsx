@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useAuth } from "@workspace/auth";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
 import { ArrowLeft, Printer } from "lucide-react";
