@@ -9,6 +9,7 @@ import { ReminderNotificationService } from './reminder-notification.service';
 
 interface AppointmentForReminder {
   id: string;
+  clinicId: string;
   startTime: Date;
   type: string;
   patient: {
@@ -220,7 +221,7 @@ export class ReminderSchedulerService {
 
         const clinicIds = allSettings.map((s) => s.clinicId as string);
         const settingsByClinicId = new Map(
-          allSettings.map((s) => [s.clinicId, s])
+          allSettings.map((s) => [s.clinicId, s]),
         );
 
         const appointments = await this.prisma.appointment.findMany({
@@ -262,28 +263,29 @@ export class ReminderSchedulerService {
         for (const appointment of appointments) {
           const settings = settingsByClinicId.get(appointment.clinicId);
           if (!settings) continue;
-            const existingReminder =
-              await this.prisma.appointmentReminder.findFirst({
-                where: {
-                  appointmentId: appointment.id,
-                  type: 'whatsapp_30min',
-                  status: 'sent',
-                },
-              });
 
-            if (existingReminder) {
-              continue;
-            }
+          const existingReminder =
+            await this.prisma.appointmentReminder.findFirst({
+              where: {
+                appointmentId: appointment.id,
+                type: 'whatsapp_30min',
+                status: 'sent',
+              },
+            });
 
-            if (appointment.patient.phoneNumber) {
-              await this.notificationService.sendWhatsappReminder(
-                appointment as AppointmentForReminder,
-                settings,
-                'appointment_reminder_30min',
-                'whatsapp_30min',
-              );
-            }
+          if (existingReminder) {
+            continue;
           }
+
+          if (appointment.patient.phoneNumber) {
+            await this.notificationService.sendWhatsappReminder(
+              appointment as AppointmentForReminder,
+              settings,
+              'appointment_reminder_30min',
+              'whatsapp_30min',
+            );
+          }
+        }
       });
     } catch (error) {
       if (this.isDatabaseAuthError(error)) {
