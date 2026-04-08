@@ -24,11 +24,13 @@ export class CsrfInterceptor implements NestInterceptor {
   }
 
   private setCsrfCookie(response: Response, csrfToken: string): void {
+    const domain = this.configService.getSharedCookieDomain();
     response.cookie('XSRF-TOKEN', csrfToken, {
       path: '/',
       sameSite: 'strict',
       secure: this.configService.isProduction(),
       httpOnly: false,
+      ...(domain ? { domain } : {}),
     });
   }
 

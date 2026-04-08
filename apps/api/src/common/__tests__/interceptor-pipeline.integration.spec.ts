@@ -111,6 +111,9 @@ Get('health')(
       useValue: {
         getConfig: jest.fn().mockReturnValue({}),
         getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+        getFrontendAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+        getApiUrl: jest.fn().mockReturnValue('http://localhost:3001/api/v1'),
+        getSharedCookieDomain: jest.fn().mockReturnValue(undefined),
         getEnvironment: jest.fn().mockReturnValue('test'),
         isProduction: jest.fn().mockReturnValue(false),
         getRequestTimeoutMs: jest.fn().mockReturnValue(5000),
