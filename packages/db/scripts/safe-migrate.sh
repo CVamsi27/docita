@@ -59,6 +59,33 @@ get_db_url() {
     normalize_db_url "${DATABASE_URL:-}"
 }
 
+# Function to remove Prisma-specific query params unsupported by libpq tools.
+get_pg_tool_db_url() {
+    local db_url
+    db_url=$(get_db_url)
+
+    if [ -z "$db_url" ]; then
+        printf '%s\n' ""
+        return 0
+    fi
+
+    DATABASE_URL_INPUT="$db_url" node <<'EOF'
+const raw = process.env.DATABASE_URL_INPUT ?? "";
+
+if (!raw) {
+  process.stdout.write("");
+  process.exit(0);
+}
+
+const url = new URL(raw);
+
+// Prisma accepts `schema`, but libpq tools like pg_dump/psql reject it.
+url.searchParams.delete("schema");
+
+process.stdout.write(url.toString());
+EOF
+}
+
 # Function to extract database name from URL
 get_db_name() {
     local url=$1
@@ -92,7 +119,7 @@ get_pg_dump_major_version() {
 
 get_server_major_version() {
     local db_url
-    db_url=$(get_db_url)
+    db_url=$(get_pg_tool_db_url)
 
     if ! command -v psql &> /dev/null; then
         printf '%s\n' ""
@@ -110,7 +137,7 @@ get_server_major_version() {
 }
 
 create_backup() {
-    local db_url=$(get_db_url)
+    local db_url=$(get_pg_tool_db_url)
     local db_name=$(get_db_name "$db_url")
     local backup_file="${BACKUP_DIR}/${db_name}_${TIMESTAMP}.sql"
     
@@ -259,7 +286,7 @@ rollback() {
         return 0
     fi
     
-    local db_url=$(get_db_url)
+    local db_url=$(get_pg_tool_db_url)
     psql --dbname="$db_url" < "$backup_file"
     
     if [ $? -eq 0 ]; then

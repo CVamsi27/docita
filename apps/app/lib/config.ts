@@ -1,3 +1,14 @@
+const isCloudflareBuild = process.env["DOCITA_CLOUDFLARE"] === "1";
+const defaultApiUrl = isCloudflareBuild
+  ? "https://api.docita.work/api/v1"
+  : "/api/v1";
+const defaultAppUrl = isCloudflareBuild
+  ? "https://app.docita.work"
+  : "http://localhost:3000";
+const defaultSocketUrl = isCloudflareBuild
+  ? "https://api.docita.work"
+  : "http://localhost:3001";
+
 const envApiUrl =
   typeof window !== "undefined"
     ? process.env["NEXT_PUBLIC_API_URL"]
@@ -12,12 +23,12 @@ const envSocketUrl =
     : process.env["NEXT_PUBLIC_SOCKET_URL"];
 
 export const getApiUrl = (): string =>
-  envApiUrl || "/api/v1";
+  envApiUrl || defaultApiUrl;
 
-export const getAppUrl = (): string => envAppUrl || "http://localhost:3000";
+export const getAppUrl = (): string => envAppUrl || defaultAppUrl;
 
 export const getSocketUrl = (): string =>
-  envSocketUrl || "http://localhost:3001";
+  envSocketUrl || defaultSocketUrl;
 
 export const getContactInquiryUrl = (): string =>
   `${getApiUrl()}/contact/inquiry`;

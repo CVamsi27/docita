@@ -5,11 +5,18 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const require = createRequire(import.meta.url);
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
+const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
+  ? "https://api.docita.work/api/v1"
+  : "http://127.0.0.1:3001/api/v1";
 
 let nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui", "@workspace/types"],
 
   compress: !isCloudflareBuild,
+  env: {
+    NEXT_PUBLIC_API_URL:
+      process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_PUBLIC_API_URL,
+  },
 
   images: {
     formats: ["image/avif", "image/webp"],
