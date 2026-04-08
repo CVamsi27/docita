@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 type PlatformStats = {
   clinics: number;
@@ -20,7 +21,21 @@ export class PublicStatsService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly configService: AppConfigService,
   ) {}
+
+  private buildFallbackStats(): PlatformStats {
+    const config = this.configService.getPublicLandingStatsConfig();
+
+    return {
+      clinics: config.clinics ?? 0,
+      doctors: config.doctors ?? 0,
+      patients: config.patients ?? 0,
+      prescriptions: config.prescriptions ?? 0,
+      appointments: config.appointments ?? 0,
+      uptime: config.uptime ?? '99.9%',
+    };
+  }
 
   async getPlatformStats(): Promise<PlatformStats> {
     const cached = await this.cacheManager.get<PlatformStats>(this.cacheKey);
@@ -28,25 +43,27 @@ export class PublicStatsService {
       return cached;
     }
 
-    const [clinics, doctors, patients, prescriptions, appointments] =
-      await this.prisma.runUnrestricted(async () =>
-        Promise.all([
-          this.prisma.clinic.count({ where: { active: true } }),
-          this.prisma.user.count({ where: { role: 'DOCTOR' } }),
-          this.prisma.patient.count(),
-          this.prisma.prescription.count(),
-          this.prisma.appointment.count(),
-        ]),
-      );
+    const result = await this.prisma
+      .runUnrestricted(async () => {
+        const [clinics, doctors, patients, prescriptions, appointments] =
+          await Promise.all([
+            this.prisma.clinic.count({ where: { active: true } }),
+            this.prisma.user.count({ where: { role: 'DOCTOR' } }),
+            this.prisma.patient.count(),
+            this.prisma.prescription.count(),
+            this.prisma.appointment.count(),
+          ]);
 
-    const result: PlatformStats = {
-      clinics,
-      doctors,
-      patients,
-      prescriptions,
-      appointments,
-      uptime: '99.9%',
-    };
+        return {
+          clinics,
+          doctors,
+          patients,
+          prescriptions,
+          appointments,
+          uptime: '99.9%',
+        } satisfies PlatformStats;
+      })
+      .catch(() => this.buildFallbackStats());
 
     await this.cacheManager.set(this.cacheKey, result, this.cacheTtlMs);
     return result;

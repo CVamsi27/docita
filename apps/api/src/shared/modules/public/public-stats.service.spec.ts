@@ -3,6 +3,7 @@ import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PublicStatsService } from './public-stats.service';
 import { asType } from '@/test-utils/as-type';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 describe('PublicStatsService', () => {
   let service: PublicStatsService;
@@ -17,6 +18,9 @@ describe('PublicStatsService', () => {
     patient: { count: jest.Mock };
     prescription: { count: jest.Mock };
     appointment: { count: jest.Mock };
+  };
+  let configService: {
+    getPublicLandingStatsConfig: jest.Mock;
   };
 
   beforeEach(() => {
@@ -38,9 +42,21 @@ describe('PublicStatsService', () => {
       appointment: { count: jest.fn().mockImplementation(async () => 50) },
     };
 
+    configService = {
+      getPublicLandingStatsConfig: jest.fn().mockReturnValue({
+        clinics: 0,
+        doctors: 0,
+        patients: 0,
+        prescriptions: 0,
+        appointments: 0,
+        uptime: '99.9%',
+      }),
+    };
+
     service = new PublicStatsService(
       asType<PrismaService>(prisma),
       asType<Cache>(cacheManager),
+      asType<AppConfigService>(configService),
     );
   });
 
@@ -93,5 +109,31 @@ describe('PublicStatsService', () => {
       result,
       3600 * 1000,
     );
+  });
+
+  it('falls back to configured marketing stats when the database is unavailable', async () => {
+    cacheManager.get.mockImplementation(async () => null);
+    prisma.runUnrestricted.mockImplementation(async () => {
+      throw new Error('database unavailable');
+    });
+    configService.getPublicLandingStatsConfig.mockReturnValue({
+      clinics: 12,
+      doctors: 34,
+      patients: 56,
+      prescriptions: 78,
+      appointments: 90,
+      uptime: '99.95%',
+    });
+
+    const result = await service.getPlatformStats();
+
+    expect(result).toEqual({
+      clinics: 12,
+      doctors: 34,
+      patients: 56,
+      prescriptions: 78,
+      appointments: 90,
+      uptime: '99.95%',
+    });
   });
 });

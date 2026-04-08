@@ -158,6 +158,18 @@ export class AppConfigService {
     return this.getConfig().CPU_COUNT;
   }
 
+  getPublicLandingStatsConfig() {
+    const config = this.getConfig();
+    return {
+      clinics: config.PUBLIC_LANDING_CLINICS,
+      doctors: config.PUBLIC_LANDING_DOCTORS,
+      patients: config.PUBLIC_LANDING_PATIENTS,
+      prescriptions: config.PUBLIC_LANDING_PRESCRIPTIONS,
+      appointments: config.PUBLIC_LANDING_APPOINTMENTS,
+      uptime: config.PUBLIC_LANDING_UPTIME,
+    };
+  }
+
   getDatabaseUrl(): string {
     return this.getConfig().DATABASE_URL;
   }

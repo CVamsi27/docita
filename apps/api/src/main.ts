@@ -312,7 +312,7 @@ async function bootstrap() {
   }
 
   const port = config.PORT;
-  const server = await app.listen(port);
+  const server = await app.listen(port, '0.0.0.0');
 
   const observabilityService = app.get(ObservabilityService);
 
