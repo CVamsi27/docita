@@ -1,4 +1,4 @@
-export * from "./super-admin";
+export * from "./internal";
 export * from "./analytics";
 export * from "./dashboard";
 export * from "./config";

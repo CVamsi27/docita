@@ -15,13 +15,13 @@ export class TenantContextInterceptor implements NestInterceptor {
     const user = request.user;
 
     if (user) {
-      const isSuperAdmin = user.role === 'SUPER_ADMIN';
+      const isInternal = user.role === 'INTERNAL';
 
-      if (user.clinicId || isSuperAdmin) {
+      if (user.clinicId || isInternal) {
         const tenantContext = {
           clinicId: user.clinicId,
           userId: user.id || 'system',
-          bypassed: isSuperAdmin,
+          bypassed: isInternal,
         };
 
         return from(

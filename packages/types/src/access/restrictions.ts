@@ -1,5 +1,5 @@
 export type RestrictionRole =
-  | "SUPER_ADMIN"
+  | "INTERNAL"
   | "ADMIN"
   | "ADMIN_DOCTOR"
   | "DOCTOR"
@@ -25,7 +25,7 @@ export const CLINIC_WIDE_APPOINTMENT_ROLES: ReadonlySet<string> = new Set([
   "ADMIN",
   "ADMIN_DOCTOR",
   "RECEPTIONIST",
-  "SUPER_ADMIN",
+  "INTERNAL",
 ]);
 
 export const isDoctorScopedAppointmentRole = (

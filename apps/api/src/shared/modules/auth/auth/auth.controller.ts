@@ -240,7 +240,7 @@ export class AuthController {
     Role.DOCTOR,
     Role.RECEPTIONIST,
     Role.ADMIN_DOCTOR,
-    Role.SUPER_ADMIN,
+    Role.INTERNAL,
     Role.PATIENT,
   )
   @Throttle({
@@ -276,7 +276,7 @@ export class AuthController {
     Role.DOCTOR,
     Role.RECEPTIONIST,
     Role.ADMIN_DOCTOR,
-    Role.SUPER_ADMIN,
+    Role.INTERNAL,
     Role.PATIENT,
   )
   @Get('validate')
@@ -506,7 +506,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)
   @Throttle({ short: { ttl: 60000, limit: 10 } })
   @Post('api-keys')
   @ApiBearerAuth('JWT-auth')
@@ -526,7 +526,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)
   @Get('api-keys')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'List all API keys for the clinic' })
@@ -538,7 +538,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)
   @Delete('api-keys/:id')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Revoke an API key' })

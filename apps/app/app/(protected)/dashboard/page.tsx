@@ -17,6 +17,7 @@ export default function DashboardPage() {
     currentPatient,
     nextPatients,
     waitingCount,
+    pendingJoinRequests,
     isLoading,
     isError,
     refetch,
@@ -33,6 +34,7 @@ export default function DashboardPage() {
       currentPatient={currentPatient}
       nextPatients={nextPatients}
       waitingCount={waitingCount}
+      pendingJoinRequests={pendingJoinRequests}
       slotDurationMinutes={clinic?.slotDuration ?? 15}
       isLoading={isLoading}
       isError={isError}

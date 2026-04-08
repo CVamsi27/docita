@@ -37,7 +37,7 @@ import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-sub
 import { RequestWithUser } from '@/common/types/common.types';
 
 @Controller('clinics')
-@Roles(Role.SUPER_ADMIN)
+@Roles(Role.INTERNAL)
 export class ClinicsController {
   constructor(
     private readonly clinicsService: ClinicsService,

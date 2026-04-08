@@ -20,7 +20,7 @@ import {
 } from '@/common/dto/common.dto';
 
 @Controller('imports')
-@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.INTERNAL)
 export class BulkImportController {
   constructor(private readonly bulkImportService: BulkImportService) {}
 

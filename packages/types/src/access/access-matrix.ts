@@ -85,7 +85,7 @@ const ALL_STAFF_ROLES: UserRole[] = [
 const ADMIN_BILLING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR"];
 const CLINICAL_CODING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
 const ANALYTICS_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
-const IMPORT_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "SUPER_ADMIN"];
+const IMPORT_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "INTERNAL"];
 
 export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_DASHBOARD]: {

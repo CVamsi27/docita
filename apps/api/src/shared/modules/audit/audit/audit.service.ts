@@ -119,7 +119,7 @@ export class AuditService {
     userRole: string,
   ): Promise<unknown[]> {
     try {
-      if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
+      if (userRole !== 'INTERNAL' && userRole !== 'ADMIN') {
         throw new BadRequestException(
           'Insufficient permissions to view audit logs',
         );

@@ -10,7 +10,7 @@ import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 
 @Controller('performance')
-@Roles(Role.ADMIN, Role.SUPER_ADMIN)
+@Roles(Role.ADMIN, Role.INTERNAL)
 export class PerformanceController {
   constructor(private readonly performanceService: PerformanceService) {}
 

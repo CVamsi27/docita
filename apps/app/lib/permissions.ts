@@ -24,7 +24,7 @@ export type Permission =
   | "manageTenants";
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  SUPER_ADMIN: [],
+  INTERNAL: [],
   ADMIN: [
     "manageStaff",
     "manageClinic",
@@ -88,7 +88,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {
   if (!role) return false;
-  if (role === "SUPER_ADMIN") return true;
+  if (role === "INTERNAL") return true;
   const permissions = ROLE_PERMISSIONS[role] || [];
   return permissions.includes(permission);
 }

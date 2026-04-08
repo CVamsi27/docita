@@ -54,7 +54,7 @@ This is a Monorepo managed by **Turborepo**.
 
 - **`api`**: Backend API (NestJS)
 - **`app`**: Main Patient/Clinic Web Application (Next.js)
-- **`admin`**: Super Admin Dashboard (Next.js)
+- **`internal`**: Internal Dashboard (Next.js)
 - **`landing`**: Marketing Landing Page (Next.js)
 
 ### Packages (`/packages`)
@@ -150,7 +150,7 @@ pnpm --filter @docita/api test      # Run all tests
 pnpm --filter @docita/api test:watch # Watch mode
 ```
 
-#### **Vitest** (Frontend - `apps/app`, `apps/admin`)
+#### **Vitest** (Frontend - `apps/app`, `apps/internal`)
 
 - **Why Vitest?** Lightning-fast unit testing with HMR support
 - Perfect for React component testing and form logic

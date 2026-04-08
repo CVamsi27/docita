@@ -67,7 +67,7 @@ export const userRoleValueSchema = z.enum([
   "RECEPTIONIST",
   "ADMIN",
   "ADMIN_DOCTOR",
-  "SUPER_ADMIN",
+  "INTERNAL",
 ]);
 export type UserRoleValue = z.infer<typeof userRoleValueSchema>;
 

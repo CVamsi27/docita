@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useDashboardStats } from "@/hooks/api/use-dashboard";
 import { useTodayAppointments } from "@/hooks/api/use-appointments";
 import { useRecentPatients } from "@/hooks/api/use-patients";
+import { usePendingJoinRequestCount } from "@/hooks/api/use-notifications";
+import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import {
   DashboardAppointment,
@@ -9,6 +11,7 @@ import {
 } from "@workspace/types";
 
 export const useDashboardLogic = () => {
+  const { isAdmin } = useAuth();
   const { canAccess } = usePermissionStore();
 
   const {
@@ -21,6 +24,8 @@ export const useDashboardLogic = () => {
     useTodayAppointments();
   const { data: recentPatientsResponse, isLoading: loadingPatients } =
     useRecentPatients(5);
+  const { data: pendingJoinRequestsResponse, isLoading: loadingJoinRequests } =
+    usePendingJoinRequestCount(isAdmin);
 
   const stats = useMemo(
     () => ({
@@ -75,7 +80,9 @@ export const useDashboardLogic = () => {
     };
   }, [rawAppointmentsResponse]);
 
-  const isLoading = loadingStats || loadingAppointments || loadingPatients;
+  const isLoading =
+    loadingStats || loadingAppointments || loadingPatients || loadingJoinRequests;
+  const pendingJoinRequests = pendingJoinRequestsResponse?.count ?? 0;
 
   return {
     state: {
@@ -87,6 +94,7 @@ export const useDashboardLogic = () => {
       currentPatient,
       nextPatients,
       waitingCount,
+      pendingJoinRequests,
       isLoading,
       isError,
       refetch,

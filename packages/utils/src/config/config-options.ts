@@ -65,7 +65,7 @@ export const USER_ROLE_OPTIONS = [
   { value: "RECEPTIONIST", label: "Receptionist" },
   { value: "ADMIN", label: "Admin" },
   { value: "ADMIN_DOCTOR", label: "Admin Doctor" },
-  { value: "SUPER_ADMIN", label: "Super Admin" },
+  { value: "INTERNAL", label: "Internal" },
 ] as const;
 
 export const WEEKDAY_OPTIONS = [

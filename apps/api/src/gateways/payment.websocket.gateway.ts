@@ -132,7 +132,7 @@ export class PaymentWebSocketGateway
 
     const user = client.data.user;
 
-    if (user.role !== 'SUPER_ADMIN' && user.clinicId !== clinicId) {
+    if (user.role !== 'INTERNAL' && user.clinicId !== clinicId) {
       this.logger.warn(
         `Unauthorized subscription attempt: User ${user.email} (clinic: ${user.clinicId}) tried to subscribe to clinic: ${clinicId}`,
       );
@@ -153,7 +153,7 @@ export class PaymentWebSocketGateway
 
     const user = client.data.user;
 
-    if (user.role !== 'SUPER_ADMIN') {
+    if (user.role !== 'INTERNAL') {
       const invoice = await this.prisma.invoice.findFirst({
         where: {
           id: invoiceId,

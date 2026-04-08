@@ -35,13 +35,13 @@ describe('TenantGuard', () => {
     expect(allowed).toBe(true);
   });
 
-  it('should allow SUPER_ADMIN without clinicId', () => {
+  it('should allow INTERNAL without clinicId', () => {
     getAllAndOverrideMock
       .mockReturnValueOnce(false) // isPublic
       .mockReturnValueOnce(false); // allowNoClinic
 
     const allowed = guard.canActivate(
-      createContext({ user: { role: Role.SUPER_ADMIN, clinicId: null } }),
+      createContext({ user: { role: Role.INTERNAL, clinicId: null } }),
     );
     expect(allowed).toBe(true);
   });

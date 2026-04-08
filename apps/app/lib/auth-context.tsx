@@ -326,9 +326,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
     }
 
-    if (userData.role === "SUPER_ADMIN") {
+    if (userData.role === "INTERNAL") {
       throw new Error(
-        "Super Admin accounts should use the Admin Console at /admin",
+        "Internal accounts should use the Internal Console at /internal",
       );
     }
 

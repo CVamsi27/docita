@@ -54,7 +54,7 @@ export class ResendService {
       throw new BadRequestException('Patient does not have a phone number');
     }
 
-    const isAuthorized = ['DOCTOR', 'ADMIN', 'SUPER_ADMIN'].includes(role);
+    const isAuthorized = ['DOCTOR', 'ADMIN', 'INTERNAL'].includes(role);
     if (
       !isAuthorized &&
       prescription.approvalStatus !== ApprovalStatus.APPROVED
@@ -155,7 +155,7 @@ export class ResendService {
       throw new BadRequestException('Patient does not have a phone number');
     }
 
-    const isAuthorized = ['DOCTOR', 'ADMIN', 'SUPER_ADMIN'].includes(role);
+    const isAuthorized = ['DOCTOR', 'ADMIN', 'INTERNAL'].includes(role);
     if (!isAuthorized && invoice.approvalStatus !== ApprovalStatus.APPROVED) {
       throw new BadRequestException('Invoice not approved for sharing');
     }

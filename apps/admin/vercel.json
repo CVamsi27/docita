@@ -1,4 +1,0 @@
-{
-  "buildCommand": "turbo build --filter=@docita/admin",
-  "outputDirectory": ".next"
-}

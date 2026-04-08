@@ -281,7 +281,7 @@ describe('AuditService', () => {
       ).rejects.toThrow('Insufficient permissions to view audit logs');
     });
 
-    it('should allow access to SUPER_ADMIN users', async () => {
+    it('should allow access to INTERNAL users', async () => {
       jest
         .spyOn(prismaService.auditLog, 'findMany')
         .mockImplementation(async () => []);
@@ -290,7 +290,7 @@ describe('AuditService', () => {
         {
           clinicId: 'clinic-1',
         },
-        'SUPER_ADMIN',
+        'INTERNAL',
       );
 
       expect(Array.isArray(result)).toBe(true);
@@ -336,12 +336,12 @@ describe('AuditService', () => {
       }
     });
 
-    it('should allow access for ADMIN and SUPER_ADMIN', async () => {
+    it('should allow access for ADMIN and INTERNAL', async () => {
       jest
         .spyOn(prismaService.auditLog, 'findMany')
         .mockImplementation(async () => []);
 
-      const allowedRoles = ['ADMIN', 'SUPER_ADMIN'];
+      const allowedRoles = ['ADMIN', 'INTERNAL'];
 
       for (const role of allowedRoles) {
         await expect(

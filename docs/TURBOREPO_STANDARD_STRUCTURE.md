@@ -35,7 +35,7 @@ Use this as the baseline across all modules to keep architecture consistent and 
 ├── package.json
 └── tsconfig.json
 
-## 2) Web App Structure (apps/app, apps/admin, apps/landing)
+## 2) Web App Structure (apps/app, apps/internal, apps/landing)
 
 apps/app/
 ├── app/                          # App Router routes and layouts
@@ -190,7 +190,7 @@ When adopting this structure in an existing codebase:
 
 ## 9) Suggested Target Mapping for This Repository
 
-- Keep `apps/app` and `apps/admin` as Next.js apps.
+- Keep `apps/app` and `apps/internal` as Next.js apps.
 - Keep `apps/landing` as the primary Astro marketing app.
 - Keep apps/api as NestJS app.
 - Keep packages/db as single source of Prisma schema and DB client.
@@ -208,7 +208,7 @@ This gives a clean separation:
 The following baseline structure has been created to standardize app layout:
 
 - apps/app/tests/{unit,integration,e2e}
-- apps/admin/tests/{unit,integration,e2e}
+- apps/internal/tests/{unit,integration,e2e}
 - apps/landing/{src,public,e2e}
 - apps/api/test/{unit,integration,e2e}
 

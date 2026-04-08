@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock,
   FileText,
+  UserPlus,
   Users,
   Zap,
 } from "lucide-react";
@@ -15,6 +16,7 @@ interface DashboardAlertsContainerProps {
   todayAppointments: number;
   completedAppointments: number;
   pendingReports: number;
+  pendingJoinRequests?: number;
   patientsWaiting?: number;
   nextPatientName?: string;
   nextPatientId?: string;
@@ -25,6 +27,7 @@ export function DashboardAlertsContainer({
   todayAppointments,
   completedAppointments,
   pendingReports,
+  pendingJoinRequests = 0,
   patientsWaiting = 0,
   nextPatientName,
   nextPatientId,
@@ -96,6 +99,18 @@ export function DashboardAlertsContainer({
       });
     }
 
+    if (pendingJoinRequests > 0) {
+      items.push({
+        id: "pending-join-requests",
+        type: "urgent",
+        icon: UserPlus,
+        title: `${pendingJoinRequests} join request${pendingJoinRequests !== 1 ? "s" : ""} waiting for approval`,
+        description: "Open the review queue to approve or reject new staff requests.",
+        action: { label: "Review requests", href: "/settings/team/join-requests" },
+        dismissible: true,
+      });
+    }
+
     if (progressPercentage === 50 && todayAppointments >= 4) {
       items.push({
         id: "halfway-done",
@@ -136,6 +151,7 @@ export function DashboardAlertsContainer({
     todayAppointments,
     completedAppointments,
     pendingReports,
+    pendingJoinRequests,
     patientsWaiting,
     nextPatientName,
     nextPatientId,

@@ -19,7 +19,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Apps:
   - `apps/api` (NestJS)
   - `apps/app` (Next.js main app)
-  - `apps/admin` (Next.js admin)
+  - `apps/internal` (Next.js internal)
   - `apps/landing` (Astro marketing)
 - Shared packages:
   - `packages/types` (Zod schemas, source of truth)
