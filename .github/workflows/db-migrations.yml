@@ -1,5 +1,8 @@
 name: Database Migrations
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
   push:
@@ -17,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_ENV: production
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - uses: actions/checkout@v4
