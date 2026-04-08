@@ -231,8 +231,6 @@ async function bootstrap() {
   const monitoringService = app.get(MonitoringService);
   const prismaService = app.get(PrismaService);
 
-  await logExternalDependencyStatus(logger, appConfigService, prismaService);
-
   app.useGlobalFilters(
     new AllExceptionsFilter(monitoringService, appConfigService),
   );
@@ -313,6 +311,9 @@ async function bootstrap() {
 
   const port = config.PORT;
   const server = await app.listen(port, '0.0.0.0');
+
+  // Verify external dependencies after binding the port to avoid orchestrator timeouts
+  await logExternalDependencyStatus(logger, appConfigService, prismaService);
 
   const observabilityService = app.get(ObservabilityService);
 

@@ -263,7 +263,8 @@ export class WhatsappController {
 
     if (
       mode === 'subscribe' &&
-      token === this.whatsappWebhook.getVerifyToken()
+      token === this.whatsappWebhook.getVerifyToken() &&
+      challenge
     ) {
       this.logger.log('Webhook verified successfully');
       return parseInt(challenge, 10);

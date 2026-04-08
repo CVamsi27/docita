@@ -31,6 +31,7 @@ describe('ReminderSchedulerService', () => {
 
   const mockAppointment = {
     id: 'appt-1',
+    clinicId: 'clinic-1',
     startTime: new Date('2026-04-01T10:00:00.000Z'),
     type: 'consultation',
     patient: {
@@ -83,7 +84,7 @@ describe('ReminderSchedulerService', () => {
       expect(notificationService.sendWhatsappReminder).not.toHaveBeenCalled();
     });
 
-    it('queries reminders per clinic and filters by clinicId + status + 30-min window', async () => {
+    it('queries reminders across enabled clinics and filters by clinicId + status + 30-min window', async () => {
       prisma.reminderSettings.findMany.mockResolvedValue([
         {
           id: 'settings-1',
@@ -104,12 +105,11 @@ describe('ReminderSchedulerService', () => {
 
       await service.checkAndSend30MinReminders();
 
-      expect(prisma.appointment.findMany).toHaveBeenCalledTimes(2);
-      expect(prisma.appointment.findMany).toHaveBeenNthCalledWith(
-        1,
+      expect(prisma.appointment.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            clinicId: 'clinic-1',
+            clinicId: { in: ['clinic-1', 'clinic-2'] },
             startTime: expect.objectContaining({
               gte: expect.any(Date),
               lt: expect.any(Date),
@@ -117,14 +117,6 @@ describe('ReminderSchedulerService', () => {
             status: {
               in: [AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED],
             },
-          }),
-        }),
-      );
-      expect(prisma.appointment.findMany).toHaveBeenNthCalledWith(
-        2,
-        expect.objectContaining({
-          where: expect.objectContaining({
-            clinicId: 'clinic-2',
           }),
         }),
       );
@@ -185,6 +177,7 @@ describe('ReminderSchedulerService', () => {
       prisma.appointment.findMany.mockResolvedValue([
         {
           ...mockAppointment,
+          clinicId: 'clinic-1',
           patient: {
             ...mockAppointment.patient,
             phoneNumber: '',

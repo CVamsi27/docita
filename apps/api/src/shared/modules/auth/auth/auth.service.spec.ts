@@ -553,6 +553,23 @@ describe('AuthService', () => {
         service.checkEmailExists('error@example.com'),
       ).rejects.toThrow('network timeout');
     });
+
+    it('disables lookup and fails closed on database connectivity errors', async () => {
+      jest
+        .spyOn(prismaService, 'runUnrestricted')
+        .mockImplementation(async () => {
+          throw new Error(
+            'Error opening a TLS connection: self-signed certificate in certificate chain',
+          );
+        });
+
+      await expect(
+        service.checkEmailExists('tls-error@example.com'),
+      ).resolves.toBe(false);
+      await expect(
+        service.checkEmailExists('tls-error-2@example.com'),
+      ).resolves.toBe(false);
+    });
   });
 
   describe('refreshTokens', () => {

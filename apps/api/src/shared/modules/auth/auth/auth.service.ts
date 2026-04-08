@@ -84,6 +84,27 @@ export class AuthService {
     );
   }
 
+  private isDatabaseConnectivityError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const candidate = error as { message?: unknown };
+    const message =
+      typeof candidate.message === 'string'
+        ? candidate.message.toLowerCase()
+        : '';
+
+    return (
+      message.includes('self-signed certificate in certificate chain') ||
+      message.includes('error opening a tls connection') ||
+      message.includes('connection refused') ||
+      message.includes('timed out') ||
+      message.includes('database unavailable') ||
+      message.includes('server closed the connection unexpectedly')
+    );
+  }
+
   async checkEmailExists(email: string): Promise<boolean> {
     if (this.emailLookupDisabled) {
       return false;
@@ -98,10 +119,13 @@ export class AuthService {
         return !!user;
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error)) {
+      if (
+        this.isDatabaseAuthError(error) ||
+        this.isDatabaseConnectivityError(error)
+      ) {
         this.emailLookupDisabled = true;
         this.logger.warn(
-          'Disabling email-exists database lookup due to database authentication failure. Verify DATABASE_URL credentials.',
+          'Disabling email-exists database lookup due to database availability failure. Verify DATABASE_URL and TLS configuration.',
         );
         return false;
       }
