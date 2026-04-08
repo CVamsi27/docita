@@ -53,6 +53,19 @@ export class ObservabilityService implements OnModuleDestroy {
   initializeSentry(options?: Sentry.NodeOptions): void {
     const sentryConfig = this.configService.getSentryConfig();
     const nodeEnv = this.configService.getEnvironment();
+    const { integrations: optionIntegrations, ...sentryOptions } =
+      options ?? {};
+    const consoleLoggingIntegration = Sentry.consoleLoggingIntegration({
+      levels: ['log', 'warn', 'error'],
+    });
+    const integrations = (
+      typeof optionIntegrations === 'function'
+        ? (defaultIntegrations: unknown[]) => [
+            consoleLoggingIntegration,
+            ...optionIntegrations(defaultIntegrations as never[]),
+          ]
+        : [consoleLoggingIntegration, ...(optionIntegrations ?? [])]
+    ) as Sentry.NodeOptions['integrations'];
 
     if (!sentryConfig.dsn) {
       this.logger.warn('SENTRY_DSN not configured. Error tracking disabled.');
@@ -66,14 +79,15 @@ export class ObservabilityService implements OnModuleDestroy {
       profilesSampleRate: sentryConfig.profilesSampleRate,
       maxBreadcrumbs: 50,
       attachStacktrace: true,
-      integrations: [],
+      enableLogs: true,
+      integrations,
       initialScope: {
         tags: {
           service: 'docita-api',
           version: this.configService.getAppVersion(),
         },
       },
-      ...options,
+      ...sentryOptions,
     });
 
     this.logger.debug('Sentry initialized');
@@ -224,6 +238,7 @@ export class ObservabilityService implements OnModuleDestroy {
       method,
       status: String(statusCode),
     });
+    Sentry.metrics.distribution('http_request_duration_ms', durationMs);
 
     const percentileKey = `${endpoint}_${method}_${statusCode}`;
     const existingValue = this.metricsBuffer.get(percentileKey)?.value;
@@ -252,6 +267,7 @@ export class ObservabilityService implements OnModuleDestroy {
       operation,
       status: success ? 'success' : 'error',
     });
+    Sentry.metrics.distribution('db_query_duration_ms', durationMs);
   }
 
   async getSystemHealth(): Promise<{
@@ -356,6 +372,7 @@ export class ObservabilityService implements OnModuleDestroy {
 
   sendHeartbeat(): void {
     Sentry.captureMessage('Heartbeat', 'info');
+    Sentry.metrics.count('docita_heartbeat', 1);
   }
 
   async flush(timeout: number = 2000): Promise<boolean> {
