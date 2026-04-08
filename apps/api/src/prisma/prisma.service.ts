@@ -30,30 +30,6 @@ export class PrismaService
     const databaseUrl = configService.getDatabaseUrl();
     const isProduction = configService.isProduction();
 
-    let connectionString = databaseUrl;
-
-    try {
-      if (connectionString) {
-        const url = new URL(connectionString);
-        const sslMode = url.searchParams.get('sslmode');
-        if (
-          sslMode === 'require' ||
-          sslMode === 'prefer' ||
-          sslMode === 'verify-ca'
-        ) {
-          url.searchParams.set('sslmode', 'verify-full');
-          if (!url.port) {
-            url.port = '5434';
-          }
-          connectionString = url.toString();
-        }
-      }
-    } catch {}
-
-    if (!connectionString) {
-      connectionString = databaseUrl;
-    }
-
     const poolMax = isProduction
       ? DATABASE_CONSTANTS.POOL_MAX_PRODUCTION
       : DATABASE_CONSTANTS.POOL_MAX_DEVELOPMENT;
@@ -62,7 +38,7 @@ export class PrismaService
       : DATABASE_CONSTANTS.POOL_IDLE_TIMEOUT_DEVELOPMENT_MS;
 
     const pool = new Pool({
-      connectionString,
+      connectionString: databaseUrl,
       max: poolMax,
       idleTimeoutMillis: poolIdleTimeout,
       connectionTimeoutMillis: DATABASE_CONSTANTS.CONNECTION_TIMEOUT_MS,

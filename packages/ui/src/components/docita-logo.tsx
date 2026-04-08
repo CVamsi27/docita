@@ -72,7 +72,7 @@ export function DocitaIcon({
   className,
   alt = "Docita icon",
 }: DocitaIconProps) {
-  const src = brandAsset("Round_Logo-64");
+  const src = brandAsset("Round_Logo");
 
   return (
     <BrandImage

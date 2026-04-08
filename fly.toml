@@ -1,3 +1,8 @@
+# fly.toml app configuration file generated for docita-api on 2026-04-08T12:28:30+05:30
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
 app = 'docita-api'
 primary_region = 'bom'
 
@@ -5,14 +10,14 @@ primary_region = 'bom'
   dockerfile = 'apps/api/Dockerfile'
 
 [env]
-  PORT = '3001'
   NODE_ENV = 'production'
+  PORT = '3001'
   STORAGE_PROVIDER = 'r2'
 
 [http_service]
   internal_port = 3001
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
 
@@ -23,15 +28,15 @@ primary_region = 'bom'
 
 [checks]
   [checks.health]
-    grace_period = '30s'
+    port = 3001
+    type = 'http'
     interval = '15s'
+    timeout = '5s'
+    grace_period = '30s'
     method = 'GET'
     path = '/api/health/live'
-    port = 3001
-    timeout = '5s'
-    type = 'http'
 
 [[vm]]
   memory = '1gb'
-  cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 1024

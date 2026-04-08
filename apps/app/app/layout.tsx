@@ -8,9 +8,6 @@ import { ClientErrorReporter } from "@/components/common/monitoring/client-error
 
 export const dynamic = "force-dynamic";
 
-const shouldInjectEsbuildNamePolyfill =
-  process.env.DOCITA_CLOUDFLARE === "1";
-
 export const metadata = {
   title: "Docita - Clinic OS",
   description: "The operating system for modern clinics",
@@ -35,12 +32,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
-        {shouldInjectEsbuildNamePolyfill ? (
-          <Script
-            id="esbuild-name-polyfill"
-            strategy="beforeInteractive"
-          >{`var __defProp=Object.defineProperty;var __name=function(t,n){if(t.name!==n)try{__defProp(t,"name",{value:n,configurable:true})}catch(e){}return t};`}</Script>
-        ) : null}
+        <Script
+          id="esbuild-name-polyfill"
+          strategy="beforeInteractive"
+        >{`var __defProp=Object.defineProperty;var __name=globalThis.__name||function(t,n){if(t.name!==n)try{__defProp(t,"name",{value:n,configurable:true})}catch(e){}return t};globalThis.__name=__name;`}</Script>
         <SentryInitializer />
         <ClientErrorReporter />
         <ReactQueryProvider>

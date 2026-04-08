@@ -34,27 +34,7 @@ async function assertSeedSchemaReady(pool: Pool): Promise<void> {
 
 async function main() {
   const env = getEnv();
-  let connectionString = env.DATABASE_URL;
-
-  if (connectionString) {
-    try {
-      const url = new URL(connectionString);
-      const sslMode = url.searchParams.get('sslmode');
-      if (
-        sslMode === 'require' ||
-        sslMode === 'prefer' ||
-        sslMode === 'verify-ca'
-      ) {
-        url.searchParams.set('sslmode', 'verify-full');
-        if (!url.port) {
-          url.port = '5434';
-        }
-        connectionString = url.toString();
-      }
-    } catch {}
-  }
-
-  const pool = new Pool({ connectionString });
+  const pool = new Pool({ connectionString: env.DATABASE_URL });
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
