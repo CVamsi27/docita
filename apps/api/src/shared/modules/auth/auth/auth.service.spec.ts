@@ -555,9 +555,13 @@ describe('AuthService', () => {
     });
 
     it('disables lookup and fails closed on database connectivity errors', async () => {
-      jest.spyOn(prismaService, 'runUnrestricted').mockImplementation(async () => {
-        throw new Error('Error opening a TLS connection: self-signed certificate in certificate chain');
-      });
+      jest
+        .spyOn(prismaService, 'runUnrestricted')
+        .mockImplementation(async () => {
+          throw new Error(
+            'Error opening a TLS connection: self-signed certificate in certificate chain',
+          );
+        });
 
       await expect(
         service.checkEmailExists('tls-error@example.com'),

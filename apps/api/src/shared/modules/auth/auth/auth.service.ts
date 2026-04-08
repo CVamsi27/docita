@@ -119,7 +119,10 @@ export class AuthService {
         return !!user;
       });
     } catch (error) {
-      if (this.isDatabaseAuthError(error) || this.isDatabaseConnectivityError(error)) {
+      if (
+        this.isDatabaseAuthError(error) ||
+        this.isDatabaseConnectivityError(error)
+      ) {
         this.emailLookupDisabled = true;
         this.logger.warn(
           'Disabling email-exists database lookup due to database availability failure. Verify DATABASE_URL and TLS configuration.',
