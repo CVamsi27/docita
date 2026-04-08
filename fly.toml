@@ -32,7 +32,7 @@ primary_region = 'bom'
     type = 'http'
     interval = '15s'
     timeout = '5s'
-    grace_period = '30s'
+    grace_period = '60s'
     method = 'GET'
     path = '/api/health/live'
 
