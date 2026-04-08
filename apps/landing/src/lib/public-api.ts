@@ -6,6 +6,23 @@ function normalizeBaseUrl(raw: string): string {
   return trimmed;
 }
 
+function getBaseOrigin(): string {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return import.meta.env["PUBLIC_SITE_URL"] || "http://127.0.0.1:3003";
+}
+
+function resolveApiUrl(path: string, baseOrigin = getBaseOrigin()): string {
+  const baseUrl = getLandingApiBaseUrl();
+  if (baseUrl.startsWith("/")) {
+    return new URL(`${baseUrl}${path}`, baseOrigin).toString();
+  }
+
+  return `${baseUrl}${path}`;
+}
+
 export function getLandingApiBaseUrl(): string {
   const baseUrl = import.meta.env["PUBLIC_API_URL"] || "/api/v1";
   return normalizeBaseUrl(baseUrl);
@@ -56,8 +73,11 @@ export interface ContactInquiryPayload {
   message: string;
 }
 
-export async function fetchLandingJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${getLandingApiBaseUrl()}${path}`);
+export async function fetchLandingJson<T>(
+  path: string,
+  baseOrigin?: string,
+): Promise<T> {
+  const response = await fetch(resolveApiUrl(path, baseOrigin));
 
   if (!response.ok) {
     throw new Error("Request failed");

@@ -11,8 +11,8 @@
     "deploy:cloudflare": "astro build && printf \"_worker.js\\n\" > dist/.assetsignore && wrangler deploy",
     "lint": "eslint src e2e astro.config.mjs playwright.config.ts --ext .ts,.tsx,.js,.mjs",
     "check-types": "astro check",
-    "audit:accessibility": "playwright test e2e/accessibility.spec.ts",
-    "test:critical-flows": "playwright test e2e/critical-flows.spec.ts"
+    "audit:accessibility": "env -u NO_COLOR FORCE_COLOR=0 playwright test e2e/accessibility.spec.ts",
+    "test:critical-flows": "env -u NO_COLOR FORCE_COLOR=0 playwright test e2e/critical-flows.spec.ts"
   },
   "dependencies": {
     "@workspace/ui": "workspace:*",

@@ -37,6 +37,7 @@ function BrandImage({
   frameClassName,
   width,
   height,
+  loading = "lazy",
 }: {
   src: string;
   alt: string;
@@ -44,6 +45,7 @@ function BrandImage({
   frameClassName?: string;
   width?: number;
   height?: number;
+  loading?: "lazy" | "eager";
 }) {
   return (
     <span
@@ -58,7 +60,7 @@ function BrandImage({
         width={width}
         height={height}
         className={cn("relative z-10 block", className)}
-        loading="lazy"
+        loading={loading}
         decoding="async"
         draggable={false}
       />
@@ -70,15 +72,16 @@ export function DocitaIcon({
   className,
   alt = "Docita icon",
 }: DocitaIconProps) {
-  const src = brandAsset("Round_Logo-192");
+  const src = brandAsset("Round_Logo-64");
 
   return (
     <BrandImage
       src={src}
       alt={alt}
-      width={192}
-      height={192}
+      width={64}
+      height={64}
       frameClassName={ICON_FRAME_CLASS}
+      loading="eager"
       className={cn(
         "block h-9 w-9 shrink-0 rounded-[var(--radius-xl)] object-contain align-middle ring-1 ring-border/55",
         className,
@@ -109,6 +112,7 @@ export function DocitaLogo({
       width={857}
       height={413}
       frameClassName={WORDMARK_FRAME_CLASS}
+      loading="eager"
       className={cn(
         "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",
         className,
@@ -128,16 +132,17 @@ export function DocitaLogoFull({
 }: DocitaLogoFullProps) {
   return (
     <div className={cn("flex flex-col items-center gap-3 text-foreground", className)}>
-      <BrandImage
-        src={ORIGINAL_WORDMARK_ASSET}
-        alt="Docita"
-        width={857}
-        height={413}
-        frameClassName={WORDMARK_FRAME_CLASS}
-        className={cn(
-          "block h-[4.125rem] w-auto max-w-full rounded-[var(--radius-xl)] object-contain",
-          iconClassName,
-          textClassName,
+    <BrandImage
+      src={ORIGINAL_WORDMARK_ASSET}
+      alt="Docita"
+      width={857}
+      height={413}
+      frameClassName={WORDMARK_FRAME_CLASS}
+      loading="eager"
+      className={cn(
+        "block h-[4.125rem] w-auto max-w-full rounded-[var(--radius-xl)] object-contain",
+        iconClassName,
+        textClassName,
         )}
       />
       {tagline && (
@@ -170,6 +175,7 @@ export function DocitaWordmark({
       width={857}
       height={413}
       frameClassName={WORDMARK_FRAME_CLASS}
+      loading="eager"
       className={cn(
         "block h-9 w-auto shrink-0 rounded-[var(--radius-xl)] object-contain align-middle",
         className,

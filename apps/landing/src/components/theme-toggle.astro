@@ -2,7 +2,7 @@
   id="theme-toggle-button"
   type="button"
   class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-input bg-background text-foreground transition-colors hover:bg-accent"
-  aria-label="Switch to light mode"
+  aria-label="Switch to dark mode"
 >
   <svg
     id="theme-icon-sun"
@@ -54,14 +54,13 @@
     }
 
     const root = document.documentElement;
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
 
     const resolveTheme = () => {
       const stored = localStorage.getItem(storageKey);
       if (stored === "dark" || stored === "light") {
         return stored;
       }
-      return media.matches ? "dark" : "light";
+      return "light";
     };
 
     const applyTheme = (theme) => {
@@ -84,11 +83,5 @@
       applyTheme(next);
     });
 
-    media.addEventListener("change", () => {
-      const stored = localStorage.getItem(storageKey);
-      if (stored !== "dark" && stored !== "light") {
-        applyTheme(resolveTheme());
-      }
-    });
   })();
 </script>

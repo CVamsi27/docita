@@ -7,13 +7,6 @@ export interface PlatformStats {
   prescriptions: number;
 }
 
-export const FALLBACK_PLATFORM_STATS: PlatformStats = {
-  clinics: 250,
-  doctors: 1200,
-  patients: 85000,
-  prescriptions: 300000,
-};
-
 export interface TierPricing {
   monthly: number | "custom";
   yearly: number | "custom";
@@ -115,7 +108,7 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
 };
 
 function isLiveLandingDataEnabled(): boolean {
-  return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] === "true";
+  return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
 }
 
 function parseStatValue(value: unknown): number | null {
@@ -125,14 +118,17 @@ function parseStatValue(value: unknown): number | null {
   return Math.floor(value);
 }
 
-export async function fetchPlatformStats(): Promise<PlatformStats | null> {
+export async function fetchPlatformStats(
+  baseOrigin?: string,
+): Promise<PlatformStats | null> {
   if (!isLiveLandingDataEnabled()) {
-    return FALLBACK_PLATFORM_STATS;
+    return null;
   }
 
   try {
     const payload = await fetchLandingJson<Partial<PlatformStats>>(
       "/public/platform-stats",
+      baseOrigin,
     );
 
     const clinics = parseStatValue(payload.clinics);
