@@ -76,11 +76,77 @@ export function resolveCurrencySymbol(clinic: {
 
 // ─── Hospital code config ──────────────────────────────────────────────────────
 
+export interface PDFCodeMapping {
+  key: string;
+  description?: string;
+  icd?: string;
+  cpt?: string;
+}
+
 export interface PDFCodeOverrides {
   // Maps standard ICD code (e.g. "I10") → hospital preferred code
   icd?: Record<string, string>;
   // Maps service description → hospital CPT code
   cpt?: Record<string, string>;
+  // Paired hospital catalog entries that keep CPT and ICD aligned.
+  pairs?: PDFCodeMapping[];
+}
+
+export interface PDFResolvedCodePair {
+  icd?: string;
+  cpt?: string;
+}
+
+const normalizeCodeLookupKey = (value: string) => value.trim().toLowerCase();
+
+const lookupOverride = (
+  overrides: Record<string, string> | undefined,
+  key: string,
+): string | undefined => {
+  if (!overrides) {
+    return undefined;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(overrides, key)) {
+    return overrides[key];
+  }
+
+  const normalizedKey = normalizeCodeLookupKey(key);
+  const entry = Object.entries(overrides).find(
+    ([overrideKey]) => normalizeCodeLookupKey(overrideKey) === normalizedKey,
+  );
+  return entry?.[1];
+};
+
+export function resolvePdfCodePair(
+  overrides: PDFCodeOverrides | undefined,
+  key: string,
+  fallback: PDFResolvedCodePair = {},
+): PDFResolvedCodePair {
+  const normalizedKey = normalizeCodeLookupKey(key);
+  const matchedPair = overrides?.pairs?.find((pair) => {
+    if (normalizeCodeLookupKey(pair.key) === normalizedKey) {
+      return true;
+    }
+
+    return (
+      pair.description !== undefined &&
+      normalizeCodeLookupKey(pair.description) === normalizedKey
+    );
+  });
+
+  return {
+    icd:
+      matchedPair?.icd ??
+      lookupOverride(overrides?.icd, key) ??
+      (fallback.icd ? lookupOverride(overrides?.icd, fallback.icd) : undefined) ??
+      fallback.icd,
+    cpt:
+      matchedPair?.cpt ??
+      lookupOverride(overrides?.cpt, key) ??
+      (fallback.cpt ? lookupOverride(overrides?.cpt, fallback.cpt) : undefined) ??
+      fallback.cpt,
+  };
 }
 
 export interface PDFHospitalConfig {
@@ -136,6 +202,7 @@ export interface PDFPatientInfo {
 
 export interface PDFDiagnosis {
   icdCode?: string;      // e.g. 'I10'
+  cptCode?: string;      // Optional paired CPT code when hospital maps the diagnosis
   description?: string;  // e.g. 'Essential hypertension'
   version?: string;      // 'ICD-10' | 'ICD-11'
   isPrimary?: boolean;
@@ -160,6 +227,7 @@ export interface PDFInvoiceItem {
   amount: number;
   hsnCode?: string;   // Indian GST HSN/SAC code
   cptCode?: string;   // CPT code for insurance billing
+  icdCode?: string;   // Optional paired ICD code when hospital maps the service
   gstRate?: number;
 }
 
