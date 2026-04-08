@@ -88,10 +88,14 @@ export class PDFService extends BasePdfService {
     // per-code legacy override maps and finally the source item codes.
     const resolvedItems = data.items.map((item) => ({
       ...item,
-      ...resolvePdfCodePair(data.hospitalConfig?.codeOverrides, item.description, {
-        cpt: item.cptCode,
-        icd: item.icdCode,
-      }),
+      ...resolvePdfCodePair(
+        data.hospitalConfig?.codeOverrides,
+        item.description,
+        {
+          cpt: item.cptCode,
+          icd: item.icdCode,
+        },
+      ),
     }));
 
     currentY = this.renderItemsTable(doc, resolvedItems, context, currentY);

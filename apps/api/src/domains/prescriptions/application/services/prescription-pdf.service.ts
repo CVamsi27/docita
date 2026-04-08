@@ -261,7 +261,8 @@ export class PrescriptionPdfService extends BasePdfService {
           },
         );
         const displayCode = resolvedCodes.icd ?? d.icdCode;
-        const label = resolvedCodes.icd !== d.icdCode ? 'Code' : (d.version ?? codeSystem);
+        const label =
+          resolvedCodes.icd !== d.icdCode ? 'Code' : (d.version ?? codeSystem);
         line += ` (${label}: ${displayCode})`;
       }
 

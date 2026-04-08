@@ -1,8 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import {
-  resolvePdfCodePair,
-  type PDFCodeOverrides,
-} from '@workspace/types';
+import { resolvePdfCodePair, type PDFCodeOverrides } from '@workspace/types';
 
 describe('resolvePdfCodePair', () => {
   it('prefers paired hospital mappings so CPT and ICD stay aligned', () => {
