@@ -361,6 +361,7 @@ export class ObservabilityService implements OnModuleDestroy {
         size: this.metricsBuffer.size,
       });
     }, this.METRICS_FLUSH_INTERVAL);
+    this.metricsFlushTimer.unref?.();
   }
 
   onModuleDestroy(): void {
