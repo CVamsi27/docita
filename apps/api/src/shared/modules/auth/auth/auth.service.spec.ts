@@ -555,7 +555,7 @@ describe('AuthService', () => {
     });
 
     it('disables lookup and fails closed on database connectivity errors', async () => {
-      jest
+      const runUnrestrictedSpy = jest
         .spyOn(prismaService, 'runUnrestricted')
         .mockImplementation(async () => {
           throw new Error(
@@ -569,6 +569,8 @@ describe('AuthService', () => {
       await expect(
         service.checkEmailExists('tls-error-2@example.com'),
       ).resolves.toBe(false);
+
+      expect(runUnrestrictedSpy).toHaveBeenCalledTimes(1);
     });
   });
 
