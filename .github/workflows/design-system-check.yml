@@ -16,22 +16,6 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'turbo.json'
-  push:
-    branches: [main]
-    paths:
-      - 'apps/app/**'
-      - 'apps/internal/**'
-      - 'apps/landing/**'
-      - 'packages/ui/**'
-      - 'packages/hooks/**'
-      - 'packages/auth/**'
-      - 'packages/data-access/**'
-      - 'packages/types/**'
-      - 'packages/utils/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'turbo.json'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -49,12 +33,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22.12.0'
+          cache: pnpm
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 10.30.3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Run hardcoded color detection
         run: pnpm check:colors
@@ -86,28 +74,3 @@ jobs:
             Run \`pnpm check:colors\` locally to see the full report.
             `
             })
-
-  lint-check:
-    name: ESLint Design System Rules
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run ESLint
-        run: pnpm lint

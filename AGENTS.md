@@ -198,6 +198,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 - Keep pull request workflows focused on the minimum checks required to block unsafe merges.
 - Path-filter expensive workflows so unrelated app or docs changes do not consume full CI minutes.
+- Frontend CI jobs should be scoped by app so `app`, `internal`, and `landing` run independently based on the files that changed.
 - Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
 - Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
 
