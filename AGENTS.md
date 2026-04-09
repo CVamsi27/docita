@@ -193,6 +193,13 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
 - Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 
+## 11.2) CI scope and cost
+
+- Keep pull request workflows focused on the minimum checks required to block unsafe merges.
+- Path-filter expensive workflows so unrelated app or docs changes do not consume full CI minutes.
+- Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
+- Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
+
 ## 12) Design Principles
 
 - Apply SOLID and clean layering pragmatically:

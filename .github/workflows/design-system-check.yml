@@ -2,8 +2,40 @@ name: Design System Compliance
 
 on:
   pull_request:
+    paths:
+      - 'apps/app/**'
+      - 'apps/internal/**'
+      - 'apps/landing/**'
+      - 'packages/ui/**'
+      - 'packages/hooks/**'
+      - 'packages/auth/**'
+      - 'packages/data-access/**'
+      - 'packages/types/**'
+      - 'packages/utils/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
   push:
-    branches: [main, develop]
+    branches: [main]
+    paths:
+      - 'apps/app/**'
+      - 'apps/internal/**'
+      - 'apps/landing/**'
+      - 'packages/ui/**'
+      - 'packages/hooks/**'
+      - 'packages/auth/**'
+      - 'packages/data-access/**'
+      - 'packages/types/**'
+      - 'packages/utils/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check-hardcoded-colors:
@@ -57,6 +89,7 @@ jobs:
 
   lint-check:
     name: ESLint Design System Rules
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:

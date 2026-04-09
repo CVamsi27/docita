@@ -2,8 +2,32 @@ name: End-to-End Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
+    paths:
+      - 'apps/app/**'
+      - 'packages/auth/**'
+      - 'packages/data-access/**'
+      - 'packages/hooks/**'
+      - 'packages/types/**'
+      - 'packages/ui/**'
+      - 'packages/utils/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
   pull_request:
+    paths:
+      - 'apps/app/**'
+      - 'packages/auth/**'
+      - 'packages/data-access/**'
+      - 'packages/hooks/**'
+      - 'packages/types/**'
+      - 'packages/ui/**'
+      - 'packages/utils/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
