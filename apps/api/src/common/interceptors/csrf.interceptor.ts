@@ -63,20 +63,11 @@ export class CsrfInterceptor implements NestInterceptor {
     return Boolean(cookies['access_token'] || cookies['refresh_token']);
   }
 
-  private canBootstrapCsrfForAuthMutation(
-    request: Request,
-    csrfToken: string | undefined,
-    headerToken: string | undefined,
-  ): boolean {
-    if (csrfToken || headerToken) {
-      return false;
-    }
-
-    if (this.hasSessionCookie(request)) {
-      return false;
-    }
-
-    return this.isAuthPath(this.getRequestPath(request));
+  private canBootstrapCsrfForAuthMutation(request: Request): boolean {
+    return (
+      this.isAuthPath(this.getRequestPath(request)) &&
+      !this.hasSessionCookie(request)
+    );
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -104,11 +95,12 @@ export class CsrfInterceptor implements NestInterceptor {
     if (!this.isSafeMethod(request.method)) {
       const headerToken = this.getHeaderToken(request);
 
-      if (
-        this.canBootstrapCsrfForAuthMutation(request, csrfToken, headerToken)
-      ) {
-        csrfToken = randomBytes(24).toString('hex');
-        this.setCsrfCookie(response, csrfToken);
+      if (this.canBootstrapCsrfForAuthMutation(request)) {
+        if (!csrfToken) {
+          csrfToken = randomBytes(24).toString('hex');
+          this.setCsrfCookie(response, csrfToken);
+        }
+
         return next.handle();
       }
 

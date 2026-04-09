@@ -36,10 +36,10 @@ export default function ClinicLayout({
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">
-            You do not have access to this portal
+            Internal users only
           </p>
           <Button onClick={() => router.push("/")} variant="outline">
-            Go to Login
+            Go to Internal Login
           </Button>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function ClinicLayout({
             className="flex h-10 items-center gap-2 font-bold text-lg"
           >
             <DocitaIcon />
-            <span>Docita</span>
+            <span>Docita Internal</span>
           </Link>
         </div>
 
@@ -108,7 +108,7 @@ export default function ClinicLayout({
       {}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:hidden">
-          <span className="font-bold text-lg">Docita</span>
+          <span className="font-bold text-lg">Docita Internal</span>
         </header>
 
         <main className="flex-1 overflow-y-auto">

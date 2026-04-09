@@ -52,7 +52,7 @@ describe('CSRF Protection (e2e)', () => {
     expect(cookies!.some((c) => c.startsWith('XSRF-TOKEN='))).toBe(true);
   });
 
-  it('should block POST request without X-XSRF-TOKEN header', async () => {
+  it('should allow first-touch auth POST requests without X-XSRF-TOKEN header', async () => {
     const getRes = await request(app.getHttpServer()).get('/');
     const cookies = getRes.get('Set-Cookie');
     const csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='));
@@ -62,7 +62,7 @@ describe('CSRF Protection (e2e)', () => {
       .post('/auth/check-email')
       .set('Cookie', [`XSRF-TOKEN=${tokenValue}`])
       .send({ email: 'test@test.com' })
-      .expect(403);
+      .expect(201);
   });
 
   it('should allow POST request with valid X-XSRF-TOKEN header', async () => {

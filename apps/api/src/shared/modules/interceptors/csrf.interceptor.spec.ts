@@ -153,6 +153,17 @@ describe('CsrfInterceptor', () => {
     expect(response.cookie).toHaveBeenCalledTimes(1);
   });
 
+  it('allows auth mutations when a stale CSRF cookie exists but no auth cookie is present', () => {
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      originalUrl: '/api/v1/auth/login',
+      cookies: { 'XSRF-TOKEN': 'stale-token' },
+    });
+
+    expect(() => interceptor.intercept(context, next)).not.toThrow();
+  });
+
   it('seeds host-only and shared-domain CSRF cookies for first-touch auth mutations in production', () => {
     (
       appConfigService.isProduction as jest.MockedFunction<

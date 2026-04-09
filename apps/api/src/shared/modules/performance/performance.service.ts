@@ -12,7 +12,7 @@ export class PerformanceService {
 
     return {
       status: 'connected',
-      queryResponseTime: `${queryTime}ms`,
+      queryResponseTimeMs: queryTime,
       timestamp: new Date().toISOString(),
     };
   }
@@ -23,10 +23,10 @@ export class PerformanceService {
 
     return {
       memory: {
-        rss: `${Math.round(memoryUsage.rss / 1024 / 1024)}MB`,
-        heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
-        heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
-        external: `${Math.round(memoryUsage.external / 1024 / 1024)}MB`,
+        rss: Math.round(memoryUsage.rss / 1024 / 1024),
+        heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024),
+        heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+        external: Math.round(memoryUsage.external / 1024 / 1024),
       },
       uptime: {
         seconds: Math.round(uptime),

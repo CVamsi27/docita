@@ -25,21 +25,21 @@ export const client = getAPIClient({
   },
   onError: async (error) => {
     if (error.status === 401) {
-      const refreshed = await internalSession.refreshAccessToken();
-      if (refreshed) {
-        return;
+      // Only attempt token refresh when we actually have an authenticated
+      // session token. This prevents login failures from triggering refresh
+      // calls (which are guaranteed to fail and can contribute to rate limits).
+      if (internalSession.getToken()) {
+        const refreshed = await internalSession.refreshAccessToken();
+        if (refreshed) {
+          return;
+        }
       }
     }
 
-    if (error.status === 401 || error.status === 403) {
+    if (error.status === 401) {
       internalSession.clearSession();
 
-      const reason =
-        error.status === 401
-          ? "Your session has expired. Please log in again."
-          : "You no longer have access to this resource. Please log in again.";
-
-      authLogoutCallback?.(reason);
+      authLogoutCallback?.("Your session has expired. Please log in again.");
     }
 
     if (error.status === 404) {

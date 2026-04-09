@@ -63,6 +63,7 @@ export const EnvSchema = z.object({
   PUBLIC_LANDING_PRESCRIPTIONS: z.coerce.number().int().min(0).optional(),
   PUBLIC_LANDING_APPOINTMENTS: z.coerce.number().int().min(0).optional(),
   PUBLIC_LANDING_UPTIME: z.string().optional(),
+  SLA_UPTIME_TARGET: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4-turbo'),
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),

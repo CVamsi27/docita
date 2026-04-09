@@ -13,9 +13,14 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { useAuth } from "@/lib/auth";
+import { MAIN_APP_URL } from "@/lib/api-config";
 import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { client } from "@/lib/api-client";
+
+function getMainAppLoginUrl() {
+  return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;
+}
 
 export default function InternalLogin() {
   const [email, setEmail] = useState("");
@@ -80,15 +85,13 @@ export default function InternalLogin() {
         throw new Error("Invalid response from server");
       }
 
-          if (data.user.role !== "INTERNAL") {
-        throw new Error(
-          "Unauthorized access - Internal users only. Clinic admins should use the main app.",
-        );
+      if (data.user.role !== "INTERNAL") {
+        window.location.replace(getMainAppLoginUrl());
+        return;
       }
 
       login(data.access_token ?? null, data.user);
       toast.success("Login successful");
-      router.push("/dashboard");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Login failed");
     } finally {
