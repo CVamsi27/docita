@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   type Admission,
   type Bed,
@@ -10,6 +10,10 @@ import {
 } from "./ipdRules";
 
 describe("IPD Rules", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe("canAdmitPatient", () => {
     it("should allow admission to available bed", () => {
       const bed = { status: "available" } as Bed;
@@ -42,8 +46,11 @@ describe("IPD Rules", () => {
     });
 
     it("should default end date to now if missing", () => {
-      const start = new Date();
-      start.setDate(start.getDate() - 2);
+      const now = new Date("2026-04-09T06:00:00.000Z");
+      vi.useFakeTimers();
+      vi.setSystemTime(now);
+
+      const start = new Date("2026-04-07T06:00:00.000Z");
       expect(calculateLengthOfStay(start)).toBe(2);
     });
   });
