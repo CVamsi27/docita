@@ -1,20 +1,9 @@
-name: Deploy Production API
+name: Deploy Production Apps
 
 on:
   push:
     branches:
       - main
-    paths:
-      - 'apps/api/**'
-      - 'packages/db/**'
-      - 'packages/types/**'
-      - 'packages/utils/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'turbo.json'
-      - 'fly.toml'
-      - '.github/workflows/deploy.yml'
 
 concurrency:
   group: deploy-production-${{ github.ref }}
@@ -22,10 +11,13 @@ concurrency:
 
 jobs:
   changes:
-    name: Detect API Deploy Target
+    name: Detect Deploy Targets
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.filter.outputs.api }}
+      app: ${{ steps.filter.outputs.app }}
+      internal: ${{ steps.filter.outputs.internal }}
+      landing: ${{ steps.filter.outputs.landing }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,8 +35,41 @@ jobs:
               - 'packages/utils/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
               - 'turbo.json'
               - 'fly.toml'
+            app:
+              - 'apps/app/**'
+              - 'packages/auth/**'
+              - 'packages/data-access/**'
+              - 'packages/hooks/**'
+              - 'packages/types/**'
+              - 'packages/ui/**'
+              - 'packages/utils/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+              - 'scripts/ensure-opennext-prefetch-manifest-patch.mjs'
+            internal:
+              - 'apps/internal/**'
+              - 'packages/data-access/**'
+              - 'packages/types/**'
+              - 'packages/ui/**'
+              - 'packages/utils/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+              - 'scripts/ensure-opennext-prefetch-manifest-patch.mjs'
+              - 'scripts/check-worker-size.mjs'
+            landing:
+              - 'apps/landing/**'
+              - 'packages/ui/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
 
   deploy-api:
     name: Deploy API (Fly.io)
@@ -55,19 +80,101 @@ jobs:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Read Fly app from fly.toml
-        id: fly-config
-        run: |
-          app_name="$(ruby -e 'puts File.read("fly.toml")[/^\s*app\s*=\s*["'\'']([^"'\'']+)["'\'']\s*$/, 1]')"
-          if [ -z "$app_name" ]; then
-            echo "Unable to read Fly app name from fly.toml"
-            exit 1
-          fi
-          echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
-
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API to Fly.io
-        run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
+        run: flyctl deploy --config fly.toml --remote-only
+
+  deploy-app:
+    name: Deploy Main App (Cloudflare)
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cloudflare bundle
+        run: pnpm --filter @docita/app run build:cloudflare
+
+      - name: Deploy app worker
+        run: pnpm --filter @docita/app run deploy:cloudflare
+
+  deploy-internal:
+    name: Deploy Internal App (Cloudflare)
+    needs: changes
+    if: needs.changes.outputs.internal == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cloudflare bundle
+        run: pnpm --filter @docita/internal run build:cloudflare
+
+      - name: Deploy internal worker
+        run: pnpm --filter @docita/internal run deploy:cloudflare
+
+  deploy-landing:
+    name: Deploy Landing Site (Cloudflare)
+    needs: changes
+    if: needs.changes.outputs.landing == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Cloudflare bundle
+        run: pnpm --filter @docita/landing run build:cloudflare
+
+      - name: Deploy landing worker
+        run: pnpm --filter @docita/landing run deploy:cloudflare

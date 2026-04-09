@@ -109,7 +109,7 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
-- Frontend production deploys are expected to be managed by Cloudflare Git integration or dashboard settings, not GitHub Actions in this repository.
+- GitHub Actions production deploys use [deploy.yml](/Users/vamsikrishnachandaluri/repos/docita/.github/workflows/deploy.yml) and only run the app jobs whose related source or shared package paths changed on `main`.
 
 ## Release Gates
 
