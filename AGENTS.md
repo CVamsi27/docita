@@ -173,6 +173,8 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
   - relevant tests
   - build checks where change impact is broad
+- When a pull request is already failing a GitHub Actions workflow, run the matching local command for that workflow before committing or pushing.
+- For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing.
 - Before creating a commit or pushing a branch, run the relevant local checks for the touched area and do not push until they pass.
 - For Render/OpenNext or Cloudflare-related app changes, verify the matching local `build:cloudflare` task before pushing.
 
@@ -221,3 +223,4 @@ Before finalizing changes:
 - Typographic hierarchy is preserved (headings > body > sub-points).
 - Changed behavior is covered by appropriate tests/checks.
 - Relevant local tests/builds were run and passed before the final push.
+- If CI was red, the corresponding local workflow commands were run and passed before the final push.
