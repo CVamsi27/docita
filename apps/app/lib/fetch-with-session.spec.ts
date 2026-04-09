@@ -5,6 +5,7 @@ import { appSession } from "@/lib/session";
 vi.mock("@/lib/session", () => ({
   appSession: {
     getToken: vi.fn(),
+    getCsrfToken: vi.fn(),
     refreshAccessToken: vi.fn(),
     clearSession: vi.fn(),
     redirectToLogin: vi.fn(),
@@ -19,6 +20,7 @@ describe("fetchWithSession", () => {
 
   it("attaches bearer token and credentials", async () => {
     vi.mocked(appSession.getToken).mockReturnValue("token-1");
+    vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 200 }));
 
@@ -33,10 +35,26 @@ describe("fetchWithSession", () => {
     );
   });
 
+  it("attaches CSRF header for mutating requests", async () => {
+    vi.mocked(appSession.getToken).mockReturnValue("token-1");
+    vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
+    vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 200 }));
+
+    await fetchWithSession("/imports/preview", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0];
+    expect((init?.headers as Headers).get("x-xsrf-token")).toBe("csrf-1");
+  });
+
   it("retries once when refresh succeeds after 401", async () => {
     vi.mocked(appSession.getToken)
       .mockReturnValueOnce("expired-token")
       .mockReturnValueOnce("fresh-token");
+    vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(true);
     vi.stubGlobal(
       "fetch",
@@ -59,6 +77,7 @@ describe("fetchWithSession", () => {
 
   it("clears session and redirects when still unauthorized", async () => {
     vi.mocked(appSession.getToken).mockReturnValue("expired-token");
+    vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 401 }));
 
@@ -71,6 +90,7 @@ describe("fetchWithSession", () => {
 
   it("returns parsed JSON for successful responses", async () => {
     vi.mocked(appSession.getToken).mockReturnValue("token-1");
+    vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
     vi.stubGlobal(
       "fetch",
@@ -87,6 +107,7 @@ describe("fetchWithSession", () => {
 
   it("throws API message when JSON error payload is provided", async () => {
     vi.mocked(appSession.getToken).mockReturnValue("token-1");
+    vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
     vi.stubGlobal(
       "fetch",
