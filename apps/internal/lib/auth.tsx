@@ -10,7 +10,6 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { client, setAuthLogoutCallback } from "./api-client";
 import { API_URL, MAIN_APP_URL } from "./api-config";
@@ -57,10 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasLoggedOutRef = useRef(false);
 
   const router = useRouter();
-  const validateTokenMutation = useMutation({
-    mutationFn: async () => client.get("/auth/validate"),
-    retry: false,
-  });
+  const validateTokenRequest = useCallback(async () => client.get("/auth/validate"), []);
 
   const isInternalRole = useCallback(
     (role?: string | null) => role === "INTERNAL",
@@ -69,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const validateToken = useCallback(async (): Promise<boolean> => {
     try {
-      await validateTokenMutation.mutateAsync();
+      await validateTokenRequest();
       return true;
     } catch (error) {
       const status =
@@ -90,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return false;
     }
-  }, [validateTokenMutation]);
+  }, [validateTokenRequest]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
