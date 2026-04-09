@@ -103,7 +103,7 @@ const OFFER_TEMPLATES: OfferTemplate[] = [
 ];
 
 export default function PricingPage() {
-  const { token } = useAuth();
+  const { token, isLoading } = useAuth();
   const [tiers, setTiers] = useState<EditableTierRow[]>([]);
   const [offers, setOffers] = useState<PricingOfferRow[]>([]);
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -155,10 +155,14 @@ export default function PricingPage() {
   }, [token]);
 
   useEffect(() => {
-    loadTiers();
-    loadOffers();
-    loadClinics();
-  }, [loadTiers, loadOffers, loadClinics]);
+    if (isLoading || !token) {
+      return;
+    }
+
+    void loadTiers();
+    void loadOffers();
+    void loadClinics();
+  }, [isLoading, token, loadTiers, loadOffers, loadClinics]);
 
   const clinicOptions = useMemo(() => {
     return clinics.map((clinic) => ({
@@ -281,6 +285,14 @@ export default function PricingPage() {
       }
     />
   );
+
+  if (isLoading || !token) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
