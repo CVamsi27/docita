@@ -6,9 +6,10 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { client, setAuthLogoutCallback } from "./api-client";
@@ -52,9 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const logoutInFlightRef = useRef<Promise<void> | null>(null);
 
   const router = useRouter();
-  const pathname = usePathname();
   const validateTokenMutation = useMutation({
     mutationFn: async () => client.get("/auth/validate"),
   });
@@ -80,6 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearAuthStorage();
         return false;
       }
+
+      if (status === 429) {
+        return true;
+      }
+
       return false;
     }
   }, [validateTokenMutation]);
@@ -144,27 +150,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [isInternalRole, validateToken]);
 
-  useEffect(() => {
-    if (isLoading || !isMounted) return;
-
-    const isProtectedRoute = pathname?.startsWith("/dashboard");
-    const isAuthenticatedInternal = !!user && isInternalRole(user.role);
-
-    if (isProtectedRoute && isAuthenticatedInternal) {
-      validateToken().then((isValid) => {
-        if (!isValid) {
-          clearAuthStorage();
-          setToken(null);
-          setUser(null);
-          toast.error("Your session has expired. Please log in again.");
-          router.replace("/");
-        }
-      });
-    } else if (isProtectedRoute && user) {
-      window.location.replace(getMainAppLoginUrl());
-    }
-  }, [isLoading, isMounted, pathname, user, router, validateToken, isInternalRole]);
-
   const login = useCallback((newToken: string | null, newUser: User) => {
     internalSession.setToken(newToken);
     localStorage.setItem(INTERNAL_USER_KEY, JSON.stringify(newUser));
@@ -174,18 +159,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(
     (reason?: string) => {
-      void (async () => {
+      if (logoutInFlightRef.current) {
+        return logoutInFlightRef.current;
+      }
+
+      logoutInFlightRef.current = (async () => {
         try {
-          const csrfToken = internalSession.getCsrfToken();
-          await fetch(`${API_URL}/auth/logout`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
-            },
-            body: JSON.stringify({}),
-          });
+          if (internalSession.getToken()) {
+            const csrfToken = internalSession.getCsrfToken();
+            await fetch(`${API_URL}/auth/logout`, {
+              method: "POST",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+                ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+              },
+              body: JSON.stringify({}),
+            });
+          }
         } catch {
           // Logout should still complete locally if the backend call fails.
         } finally {
@@ -198,8 +189,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           router.replace("/");
+          logoutInFlightRef.current = null;
         }
       })();
+      return logoutInFlightRef.current;
     },
     [router],
   );
