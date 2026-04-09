@@ -69,7 +69,7 @@ fly ssh console
 Fly-specific notes:
 - The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
-- For GitHub Actions API deploys, add `FLY_ACCESS_TOKEN` as a repository secret. For Cloudflare deploys, add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret. For Cloudflare deploys, add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 - Keep `min_machines_running = 1` while background work remains in-process.
 - Verify the API image locally before infra changes with:
 
