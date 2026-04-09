@@ -2,9 +2,12 @@ import { client } from "./api-client";
 import { API_URL } from "./api-config";
 import {
   Appointment,
+  AppPerformanceMetrics,
+  DatabaseStats,
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
   Patient,
+  type HealthCheck as PerformanceHealthCheck,
 } from "@workspace/types";
 
 export { API_URL };
@@ -149,6 +152,15 @@ export const monitoringAPI = {
     errorsDeleted: number;
     metricsDeleted: number;
   }> => client.post("/monitoring/cleanup", { daysToKeep }),
+};
+
+export const performanceAPI = {
+  getMetrics: (): Promise<AppPerformanceMetrics> =>
+    client.get("/performance/metrics"),
+  getDatabaseStats: (): Promise<DatabaseStats> =>
+    client.get("/performance/db-stats"),
+  getHealth: (): Promise<PerformanceHealthCheck> =>
+    client.get("/performance/health"),
 };
 
 export const patientsAPI = {

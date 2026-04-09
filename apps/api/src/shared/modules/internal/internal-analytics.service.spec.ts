@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { InternalAnalyticsService } from './internal-analytics.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { InvoiceStatus } from '@workspace/db';
+import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
+import { HealthService } from '@/shared/modules/monitoring/monitoring/health.service';
 
 describe('InternalAnalyticsService', () => {
   let service: InternalAnalyticsService;
@@ -49,12 +51,22 @@ describe('InternalAnalyticsService', () => {
     set: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
+  const mockMonitoringService = {
+    getSystemHealth: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  };
+
+  const mockHealthService = {
+    getHealth: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         InternalAnalyticsService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
+        { provide: MonitoringService, useValue: mockMonitoringService },
+        { provide: HealthService, useValue: mockHealthService },
       ],
     }).compile();
 

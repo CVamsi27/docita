@@ -253,6 +253,13 @@ export class AppConfigService {
     };
   }
 
+  getSlaAgreementConfig() {
+    const config = this.getConfig();
+    return {
+      uptimeTarget: config.SLA_UPTIME_TARGET,
+    };
+  }
+
   getDatabaseUrl(): string {
     return this.getConfig().DATABASE_URL;
   }

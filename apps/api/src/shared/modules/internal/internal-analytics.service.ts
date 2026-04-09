@@ -7,8 +7,10 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '@/prisma/prisma.service';
-import { InvoiceStatus, PaymentSessionStatus } from '@workspace/db';
+import { InvoiceStatus } from '@workspace/db';
 import { getMonthRange, DEFAULT_TIMEZONE } from '@workspace/utils';
+import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
+import { HealthService } from '@/shared/modules/monitoring/monitoring/health.service';
 
 @Injectable()
 export class InternalAnalyticsService {
@@ -17,6 +19,8 @@ export class InternalAnalyticsService {
   constructor(
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly monitoringService: MonitoringService,
+    private readonly healthService: HealthService,
   ) {}
 
   private getReadClient() {
@@ -228,91 +232,59 @@ export class InternalAnalyticsService {
 
   async getPerformanceMetrics() {
     try {
-      const now = new Date();
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-      const readClient = this.getReadClient();
-
-      const [
-        recentAppointments,
-        totalAppointmentsToday,
-        failedPayments,
-        totalPayments,
-        activeClinicCount,
-        totalClinicCount,
-      ] = await Promise.all([
-        readClient.appointment.count({
-          where: { createdAt: { gte: oneHourAgo } },
-        }),
-        readClient.appointment.count({
-          where: { createdAt: { gte: oneDayAgo } },
-        }),
-        readClient.paymentSession.count({
-          where: {
-            status: PaymentSessionStatus.FAILED,
-            createdAt: { gte: oneDayAgo },
-          },
-        }),
-        readClient.paymentSession.count({
-          where: { createdAt: { gte: oneDayAgo } },
-        }),
-        readClient.clinic.count({ where: { active: true } }),
-        readClient.clinic.count(),
+      const [systemHealth, detailedHealth] = await Promise.all([
+        this.monitoringService.getSystemHealth(),
+        this.healthService.getHealth(),
       ]);
 
       const errorRate =
-        totalPayments > 0
-          ? Number(((failedPayments / totalPayments) * 100).toFixed(2))
+        systemHealth.requestsLastHour > 0
+          ? Number(
+              (
+                (systemHealth.errorsLastHour / systemHealth.requestsLastHour) *
+                100
+              ).toFixed(2),
+            )
           : 0;
 
-      const memoryUsage = process.memoryUsage();
-      const os = await import('os');
-      const totalMemory = os.totalmem();
-      const memoryPercent = Math.round(
-        (memoryUsage.heapUsed / totalMemory) * 100,
-      );
-
-      const cpuUsage = process.cpuUsage();
-      const cpuPercent = Math.round(
-        ((cpuUsage.user + cpuUsage.system) / 1000000) % 100,
-      );
-
-      const uptimeSeconds = process.uptime();
-      const requestsPerMinute = Math.round(recentAppointments * 10);
-
       return {
-        uptime: '99.9%',
-        responseTime: 45,
-        requestsPerMinute,
+        uptimeSeconds: Math.round(systemHealth.uptime / 1000),
+        uptimeFormatted: this.formatDuration(systemHealth.uptime / 1000),
+        avgResponseTime: Number(systemHealth.avgResponseTime.toFixed(2)),
+        requestsLastHour: systemHealth.requestsLastHour,
+        requestsPerMinute: Number(
+          (systemHealth.requestsLastHour / 60).toFixed(2),
+        ),
+        errorsLastHour: systemHealth.errorsLastHour,
         errorRate,
-        activeConnections: activeClinicCount,
-        memoryUsage: Math.min(memoryPercent, 100),
-        cpuUsage: Math.min(cpuPercent, 100),
-        diskUsage: 45,
+        memoryUsage: systemHealth.memoryUsage,
+        cpuUsage: systemHealth.cpuUsage,
+        databaseConnected: systemHealth.databaseConnected,
+        lastErrors: systemHealth.lastErrors,
         healthChecks: [
           {
             name: 'API Server',
-            status: 'healthy',
-            value: 'Running',
-            description: `Uptime: ${Math.round(uptimeSeconds / 3600)} hours`,
+            status: detailedHealth.status,
+            value: detailedHealth.version,
+            description: `Uptime: ${this.formatDuration(detailedHealth.uptime)}`,
           },
           {
             name: 'Database',
-            status: totalClinicCount > 0 ? 'healthy' : 'warning',
-            value: totalClinicCount > 0 ? 'Connected' : 'No data',
-            description: 'PostgreSQL primary',
+            status: systemHealth.databaseConnected ? 'healthy' : 'critical',
+            value: systemHealth.databaseConnected ? 'Connected' : 'Offline',
+            description: `Last hour latency: ${detailedHealth.checks.database.latency ?? 'N/A'}ms`,
           },
           {
-            name: 'Active Clinics',
-            status: activeClinicCount > 0 ? 'healthy' : 'warning',
-            value: `${activeClinicCount} active`,
-            description: `${totalClinicCount} total clinics`,
+            name: 'Memory',
+            status: detailedHealth.checks.memory.status,
+            value: `${detailedHealth.checks.memory.heapUsed}MB used`,
+            description: `${detailedHealth.checks.memory.heapUsagePercent}% heap usage`,
           },
           {
-            name: "Today's Activity",
-            status: totalAppointmentsToday > 0 ? 'healthy' : 'warning',
-            value: `${totalAppointmentsToday} appointments`,
-            description: 'Last 24 hours',
+            name: 'CPU',
+            status: detailedHealth.checks.cpu.status,
+            value: `${detailedHealth.checks.cpu.user + detailedHealth.checks.cpu.system}s`,
+            description: 'Process CPU time since startup',
           },
         ],
       };
@@ -321,6 +293,21 @@ export class InternalAnalyticsService {
         'Failed to fetch performance metrics',
       );
     }
+  }
+
+  private formatDuration(seconds: number): string {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    const parts: string[] = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+
+    return parts.join(' ');
   }
 
   async getUsageMetrics() {

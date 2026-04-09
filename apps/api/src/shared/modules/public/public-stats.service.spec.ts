@@ -49,7 +49,7 @@ describe('PublicStatsService', () => {
         patients: 0,
         prescriptions: 0,
         appointments: 0,
-        uptime: '99.9%',
+        uptime: undefined,
       }),
     };
 
@@ -67,7 +67,7 @@ describe('PublicStatsService', () => {
       patients: 3,
       prescriptions: 4,
       appointments: 5,
-      uptime: '99.9%',
+      uptime: 'cached-uptime',
     }));
 
     const result = await service.getPlatformStats();
@@ -78,7 +78,7 @@ describe('PublicStatsService', () => {
       patients: 3,
       prescriptions: 4,
       appointments: 5,
-      uptime: '99.9%',
+      uptime: 'cached-uptime',
     });
     expect(prisma.runUnrestricted).not.toHaveBeenCalled();
     expect(cacheManager.set).not.toHaveBeenCalled();
@@ -102,7 +102,7 @@ describe('PublicStatsService', () => {
       patients: 30,
       prescriptions: 40,
       appointments: 50,
-      uptime: '99.9%',
+      uptime: expect.any(String),
     });
     expect(cacheManager.set).toHaveBeenCalledWith(
       'public:platform-stats',
@@ -122,7 +122,7 @@ describe('PublicStatsService', () => {
       patients: 56,
       prescriptions: 78,
       appointments: 90,
-      uptime: '99.95%',
+      uptime: undefined,
     });
 
     const result = await service.getPlatformStats();
@@ -133,7 +133,7 @@ describe('PublicStatsService', () => {
       patients: 56,
       prescriptions: 78,
       appointments: 90,
-      uptime: '99.95%',
+      uptime: expect.any(String),
     });
   });
 });
