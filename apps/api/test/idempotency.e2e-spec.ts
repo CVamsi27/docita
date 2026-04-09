@@ -17,8 +17,6 @@ import { PAYMENT_LINK_PROVIDER_TOKEN } from '@/domains/payments/core/ports/payme
 describe('Idempotency (e2e)', () => {
   let app: INestApplication;
   let token: string;
-  let csrfCookie: string;
-  let csrfToken: string;
   let testClinicId: string;
 
   const mockPaymentProvider = {
@@ -60,15 +58,8 @@ describe('Idempotency (e2e)', () => {
       role: Role.ADMIN,
     });
 
-    const getRes = await request(app.getHttpServer()).get('/');
-    const cookies = getRes.get('Set-Cookie');
-    csrfCookie = cookies!.find((c) => c.startsWith('XSRF-TOKEN='))!;
-    csrfToken = csrfCookie.split(';')[0].split('=')[1];
-
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
-      .set('Cookie', [csrfCookie])
-      .set('X-XSRF-TOKEN', csrfToken)
       .send({ email: admin.user.email, password: admin.plainPassword })
       .expect(201);
 
@@ -95,8 +86,6 @@ describe('Idempotency (e2e)', () => {
     const res1 = await request(app.getHttpServer())
       .post('/payments/link')
       .set('Authorization', `Bearer ${token}`)
-      .set('Cookie', [csrfCookie])
-      .set('X-XSRF-TOKEN', csrfToken)
       .set('X-Idempotency-Key', idempotencyKey)
       .send(payload)
       .expect(201);
@@ -106,8 +95,6 @@ describe('Idempotency (e2e)', () => {
     const res2 = await request(app.getHttpServer())
       .post('/payments/link')
       .set('Authorization', `Bearer ${token}`)
-      .set('Cookie', [csrfCookie])
-      .set('X-XSRF-TOKEN', csrfToken)
       .set('X-Idempotency-Key', idempotencyKey)
       .send(payload)
       .expect(201);
@@ -131,16 +118,12 @@ describe('Idempotency (e2e)', () => {
     const p1 = request(app.getHttpServer())
       .post('/payments/link')
       .set('Authorization', `Bearer ${token}`)
-      .set('Cookie', [csrfCookie])
-      .set('X-XSRF-TOKEN', csrfToken)
       .set('X-Idempotency-Key', idempotencyKey)
       .send(payload);
 
     const p2 = request(app.getHttpServer())
       .post('/payments/link')
       .set('Authorization', `Bearer ${token}`)
-      .set('Cookie', [csrfCookie])
-      .set('X-XSRF-TOKEN', csrfToken)
       .set('X-Idempotency-Key', idempotencyKey)
       .send(payload);
 

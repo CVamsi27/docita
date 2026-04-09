@@ -208,14 +208,10 @@ describe('Clinic Members Lifecycle (e2e)', () => {
 
     expect(deleteMemberResponse.body?.success).toBe(true);
 
-    const listAfterDeleteResponse = await request(app.getHttpServer())
-      .get('/clinic/members')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
-
-    const deletedMember = listAfterDeleteResponse.body.find(
-      (member: { id: string }) => member.id === memberId,
-    );
-    expect(deletedMember).toBeUndefined();
+    const deletedMember = await getPrismaInstance().user.findUnique({
+      where: { id: memberId },
+      select: { id: true },
+    });
+    expect(deletedMember).toBeNull();
   });
 });
