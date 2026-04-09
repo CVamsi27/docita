@@ -54,10 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const logoutInFlightRef = useRef<Promise<void> | null>(null);
+  const hasLoggedOutRef = useRef(false);
 
   const router = useRouter();
   const validateTokenMutation = useMutation({
     mutationFn: async () => client.get("/auth/validate"),
+    retry: false,
   });
 
   const isInternalRole = useCallback(
@@ -151,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isInternalRole, validateToken]);
 
   const login = useCallback((newToken: string | null, newUser: User) => {
+    hasLoggedOutRef.current = false;
     internalSession.setToken(newToken);
     localStorage.setItem(INTERNAL_USER_KEY, JSON.stringify(newUser));
     setToken(newToken);
@@ -159,6 +162,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(
     (reason?: string) => {
+      if (hasLoggedOutRef.current && !internalSession.getToken()) {
+        if (reason) {
+          toast.error(reason);
+        }
+        router.replace("/");
+        return Promise.resolve();
+      }
+
       if (logoutInFlightRef.current) {
         return logoutInFlightRef.current;
       }
@@ -183,6 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           clearAuthStorage();
           setToken(null);
           setUser(null);
+          hasLoggedOutRef.current = true;
 
           if (reason) {
             toast.error(reason);
