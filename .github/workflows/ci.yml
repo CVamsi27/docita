@@ -285,6 +285,7 @@ jobs:
 
       - name: Build landing workspace dependencies
         run: |
+          pnpm --filter @workspace/types run build
           pnpm --filter @workspace/utils run build
           pnpm --filter @workspace/hooks run build
           pnpm --filter @workspace/ui run build
