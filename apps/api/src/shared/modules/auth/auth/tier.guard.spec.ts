@@ -87,6 +87,15 @@ describe('TierGuard', () => {
     );
   });
 
+  it('allows INTERNAL users even without a clinicId', async () => {
+    setMetadata(Tier.ENTERPRISE, Feature.BROADCAST_CAMPAIGNS);
+
+    await expect(
+      guard.canActivate(createContext({ role: 'INTERNAL' })),
+    ).resolves.toBe(true);
+    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+  });
+
   it('blocks request when clinic does not exist', async () => {
     setMetadata(Tier.ESSENTIAL, undefined);
     prisma.clinic.findUnique.mockResolvedValue(null);

@@ -45,6 +45,9 @@ export class TierGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !user.clinicId) {
+      if (user?.role === 'INTERNAL') {
+        return true;
+      }
       throw new ForbiddenException('User not associated with a clinic');
     }
 
@@ -59,6 +62,9 @@ export class TierGuard implements CanActivate {
     });
 
     if (!clinic) {
+      if (user.role === 'INTERNAL') {
+        return true;
+      }
       throw new ForbiddenException('Clinic not found');
     }
 
