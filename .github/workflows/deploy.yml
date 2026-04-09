@@ -1,0 +1,73 @@
+name: Deploy Production API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'packages/db/**'
+      - 'packages/types/**'
+      - 'packages/utils/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - 'fly.toml'
+      - '.github/workflows/deploy.yml'
+
+concurrency:
+  group: deploy-production-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    name: Detect API Deploy Target
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed deploy targets
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/db/**'
+              - 'packages/types/**'
+              - 'packages/utils/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+              - 'fly.toml'
+
+  deploy-api:
+    name: Deploy API (Fly.io)
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read Fly app from fly.toml
+        id: fly-config
+        run: |
+          app_name="$(ruby -e 'puts File.read("fly.toml")[/^\s*app\s*=\s*["'\'']([^"'\'']+)["'\'']\s*$/, 1]')"
+          if [ -z "$app_name" ]; then
+            echo "Unable to read Fly app name from fly.toml"
+            exit 1
+          fi
+          echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy API to Fly.io
+        run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only

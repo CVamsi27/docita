@@ -173,6 +173,8 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
   - relevant tests
   - build checks where change impact is broad
+- When a pull request is already failing a GitHub Actions workflow, run the matching local command for that workflow before committing or pushing.
+- For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing.
 - Before creating a commit or pushing a branch, run the relevant local checks for the touched area and do not push until they pass.
 - For Render/OpenNext or Cloudflare-related app changes, verify the matching local `build:cloudflare` task before pushing.
 
@@ -183,6 +185,22 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Avoid generated/runtime artifacts in git (`playwright-report`, `test-results`, logs, etc.).
 - Avoid temporary/untracked project junk (`.txt`, `.log`, scratch artifacts) unless explicitly required.
 - Run `pnpm check:hygiene` and `pnpm verify:standard` when needed.
+
+## 11.1) Deployment workflow scope
+
+- Do not deploy every app on every push to `main`.
+- Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
+- Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
+- Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
+- Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
+
+## 11.2) CI scope and cost
+
+- Keep pull request workflows focused on the minimum checks required to block unsafe merges.
+- Path-filter expensive workflows so unrelated app or docs changes do not consume full CI minutes.
+- Frontend CI jobs should be scoped by app so `app`, `internal`, and `landing` run independently based on the files that changed.
+- Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
+- Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
 
 ## 12) Design Principles
 
@@ -221,3 +239,4 @@ Before finalizing changes:
 - Typographic hierarchy is preserved (headings > body > sub-points).
 - Changed behavior is covered by appropriate tests/checks.
 - Relevant local tests/builds were run and passed before the final push.
+- If CI was red, the corresponding local workflow commands were run and passed before the final push.

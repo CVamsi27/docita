@@ -35,7 +35,7 @@ export function setupTestDatabase() {
   }) as TestPrismaClient;
 
   try {
-    execSync('npx prisma db push --accept-data-loss --force-reset', {
+    execSync('pnpm exec prisma db push --accept-data-loss --force-reset', {
       cwd: path.join(__dirname, '../../..', 'packages/db'),
       env: {
         ...process.env,
