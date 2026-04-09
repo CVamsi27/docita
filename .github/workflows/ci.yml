@@ -244,6 +244,7 @@ jobs:
         run: |
           pnpm --filter @workspace/types run build
           pnpm --filter @workspace/utils run build
+          pnpm --filter @workspace/hooks run build
           pnpm --filter @workspace/ui run build
           pnpm --filter @workspace/data-access run build
 
@@ -283,7 +284,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build landing workspace dependencies
-        run: pnpm --filter @workspace/ui run build
+        run: |
+          pnpm --filter @workspace/utils run build
+          pnpm --filter @workspace/hooks run build
+          pnpm --filter @workspace/ui run build
 
       - name: Lint landing
         run: pnpm --filter @docita/landing run lint
