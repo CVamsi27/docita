@@ -4,6 +4,17 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'apps/api/**'
+      - 'packages/db/**'
+      - 'packages/types/**'
+      - 'packages/utils/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - 'fly.toml'
+      - '.github/workflows/deploy.yml'
 
 concurrency:
   group: deploy-production-${{ github.ref }}
