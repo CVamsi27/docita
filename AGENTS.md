@@ -186,6 +186,12 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Avoid temporary/untracked project junk (`.txt`, `.log`, scratch artifacts) unless explicitly required.
 - Run `pnpm check:hygiene` and `pnpm verify:standard` when needed.
 
+## 11.1) Deployment workflow scope
+
+- Do not deploy every app on every push to `main`.
+- Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
+- Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
+
 ## 12) Design Principles
 
 - Apply SOLID and clean layering pragmatically:

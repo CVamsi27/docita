@@ -20,6 +20,7 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 ## Operational Rules
 
 - Run Prisma migrations before each API deploy (CI does this automatically on push to `main`).
+- Production app deployments from GitHub Actions must be selective: on push to `main`, deploy only the apps whose related paths changed instead of deploying every app.
 - Use `DATABASE_URL` from AWS RDS for API runtime (set via `fly secrets set DATABASE_URL=...`).
 - Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
@@ -106,6 +107,7 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
+- GitHub Actions production deploys use [deploy.yml](/Users/vamsikrishnachandaluri/repos/docita/.github/workflows/deploy.yml) and only run the app jobs whose related source or shared package paths changed on `main`.
 
 ## Release Gates
 
