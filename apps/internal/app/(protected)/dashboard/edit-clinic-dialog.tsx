@@ -99,7 +99,7 @@ function getInitialFormData(clinic: Clinic | null) {
       email: "",
       phone: "",
       address: "",
-      tier: "CAPTURE",
+      tier: "STARTER",
       type: "GENERAL" as ClinicType,
       active: true,
     };

@@ -65,9 +65,11 @@ export default function ClinicDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Clinic Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Internal Admin Dashboard
+        </h1>
         <p className="text-muted-foreground">
-          Manage your clinic, team, and operations
+          Manage clinics, team, and operations
         </p>
       </div>
 

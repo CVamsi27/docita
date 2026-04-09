@@ -63,6 +63,12 @@ export function useUsersData() {
     setIsViewOpen(true);
   };
 
+  const hasError = Boolean(clinicsQuery.error || usersQuery.error);
+  const errorMessage =
+    (clinicsQuery.error as Error | null)?.message ||
+    (usersQuery.error as Error | null)?.message ||
+    "Failed to load team members";
+
   return {
     clinics: clinicsQuery.data ?? [],
     users,
@@ -74,10 +80,15 @@ export function useUsersData() {
     selectedRole,
     selectedUser,
     isViewOpen,
+    hasError,
+    errorMessage,
     setSearchTerm,
     setSelectedClinic,
     setSelectedRole,
     setIsViewOpen,
     handleViewUser,
+    retry: async () => {
+      await Promise.all([clinicsQuery.refetch(), usersQuery.refetch()]);
+    },
   };
 }

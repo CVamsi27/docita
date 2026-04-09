@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
   MessageSquare,
+  Shield,
   Users,
 } from "lucide-react";
 import { MobileNav } from "./dashboard/mobile-nav";
@@ -29,6 +30,11 @@ const sidebarItems = [
     title: "Team",
     href: "/users",
     icon: Users,
+  },
+  {
+    title: "Admins",
+    href: "/admins",
+    icon: Shield,
   },
   {
     title: "Payment Processing",

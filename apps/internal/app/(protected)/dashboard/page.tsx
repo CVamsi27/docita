@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
@@ -77,7 +78,7 @@ export default function InternalDashboard() {
     invoices: 0,
     prescriptions: 0,
   };
-  const { token } = useAuth();
+  const { token, isLoading } = useAuth();
 
   const clinicsQuery = useQuery({
     queryKey: internalQueryKeys.internal.clinics(),
@@ -105,6 +106,14 @@ export default function InternalDashboard() {
   const clinics = clinicsQuery.data ?? [];
   const stats = statsQuery.data ?? defaultStats;
   const billing = billingQuery.data ?? null;
+  const hasError = Boolean(
+    clinicsQuery.error || statsQuery.error || billingQuery.error,
+  );
+  const errorMessage =
+    (clinicsQuery.error as Error | null)?.message ||
+    (statsQuery.error as Error | null)?.message ||
+    (billingQuery.error as Error | null)?.message ||
+    "Failed to load dashboard data";
   const loading =
     Boolean(token) &&
     (clinicsQuery.isLoading || statsQuery.isLoading || billingQuery.isLoading);
@@ -170,12 +179,25 @@ export default function InternalDashboard() {
 
   return (
     <div className="space-y-8">
-      {!token && (
+      {isLoading && (
         <div className="surface-warning rounded-lg p-4">
-          <p className="text-sm">
-            Loading authentication... If this persists, please log in again.
-          </p>
+          <p className="text-sm">Loading authentication...</p>
         </div>
+      )}
+      {hasError && (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-medium text-destructive">
+                Unable to load dashboard data
+              </p>
+              <p className="text-sm text-muted-foreground">{errorMessage}</p>
+            </div>
+            <Button variant="outline" onClick={() => void loadData()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
       )}
       <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>

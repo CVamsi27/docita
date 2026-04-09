@@ -38,6 +38,20 @@ function sanitizeAuthErrorMessage(message: string): string {
   return message;
 }
 
+function formatLockoutMessage(lockoutUntil: number | null): string {
+  if (!lockoutUntil) {
+    return "";
+  }
+
+  const remainingMs = lockoutUntil - Date.now();
+  if (remainingMs <= 0) {
+    return "Your account lockout has expired. You can sign in again.";
+  }
+
+  const minutesRemaining = Math.ceil(remainingMs / 60_000);
+  return `Account is locked due to too many failed login attempts. Try again in ${minutesRemaining} minute(s).`;
+}
+
 export function AuthPageContainer() {
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
@@ -52,7 +66,16 @@ export function AuthPageContainer() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login, register, checkEmail } = useAuth();
+  const {
+    login,
+    register,
+    checkEmail,
+    isLoginLocked,
+    loginLockoutUntil,
+  } = useAuth();
+  const lockoutMessage = isLoginLocked
+    ? formatLockoutMessage(loginLockoutUntil)
+    : "";
 
   const resetErrors = () => {
     setError("");
@@ -193,6 +216,8 @@ export function AuthPageContainer() {
                   fieldErrors={fieldErrors}
                   loading={loading}
                   error={error}
+                  isLocked={isLoginLocked}
+                  lockoutMessage={lockoutMessage}
                   onBack={handleBack}
                   onChangePassword={setPassword}
                   onTogglePassword={() => setShowPassword((prev) => !prev)}

@@ -12,6 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { client, setAuthLogoutCallback } from "./api-client";
+import { API_URL, MAIN_APP_URL } from "./api-config";
 import { INTERNAL_USER_KEY, internalSession } from "./session";
 
 interface User {
@@ -40,6 +41,10 @@ function clearAuthStorage() {
   internalSession.clearSession();
 }
 
+function getMainAppLoginUrl() {
+  return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() =>
@@ -51,8 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const validateTokenMutation = useMutation({
-    mutationFn: async () => client.get("/auth/validate", { skipAuth: true }),
+    mutationFn: async () => client.get("/auth/validate"),
   });
+
+  const isInternalRole = useCallback(
+    (role?: string | null) => role === "INTERNAL",
+    [],
+  );
 
   const validateToken = useCallback(async (): Promise<boolean> => {
     try {
@@ -80,25 +90,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const storedUser = localStorage.getItem(INTERNAL_USER_KEY);
+        const storedToken = internalSession.getToken();
 
         if (storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          if (parsedUser.role === "INTERNAL") {
-            await internalSession.refreshAccessToken();
-            const nextToken = internalSession.getToken();
-            setToken(nextToken);
-            const isValid = await validateToken();
+          if (isInternalRole(parsedUser.role)) {
+            if (storedToken) {
+              setToken(storedToken);
+              const isValid = await validateToken();
 
-            if (isValid) {
-              setUser(parsedUser);
+              if (isValid) {
+                setUser(parsedUser);
+              } else {
+                const refreshed = await internalSession.refreshAccessToken();
+                const nextToken = internalSession.getToken();
+                setToken(nextToken);
+
+                if (refreshed && nextToken && (await validateToken())) {
+                  setUser(parsedUser);
+                } else {
+                  clearAuthStorage();
+                  setToken(null);
+                  setUser(null);
+                  toast.error("Session expired. Please log in again.");
+                }
+              }
             } else {
-              clearAuthStorage();
-              setToken(null);
-              setUser(null);
-              toast.error("Session expired. Please log in again.");
+              const refreshed = await internalSession.refreshAccessToken();
+              const nextToken = internalSession.getToken();
+              setToken(nextToken);
+
+              if (refreshed && nextToken && (await validateToken())) {
+                setUser(parsedUser);
+              } else {
+                clearAuthStorage();
+                setToken(null);
+                setUser(null);
+                toast.error("Session expired. Please log in again.");
+              }
             }
           } else {
             clearAuthStorage();
+            window.location.replace(getMainAppLoginUrl());
           }
         }
       } catch {
@@ -109,14 +142,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [validateToken]);
+  }, [isInternalRole, validateToken]);
 
   useEffect(() => {
     if (isLoading || !isMounted) return;
 
-    const isProtectedRoute =
-      pathname?.startsWith("/dashboard") || pathname?.startsWith("/clinic");
-    const isAuthenticatedInternal = !!user && user.role === "INTERNAL";
+    const isProtectedRoute = pathname?.startsWith("/dashboard");
+    const isAuthenticatedInternal = !!user && isInternalRole(user.role);
 
     if (isProtectedRoute && isAuthenticatedInternal) {
       validateToken().then((isValid) => {
@@ -128,10 +160,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           router.replace("/");
         }
       });
-    } else if (isProtectedRoute && !isAuthenticatedInternal) {
-      router.replace("/");
+    } else if (isProtectedRoute && user) {
+      window.location.replace(getMainAppLoginUrl());
     }
-  }, [isLoading, isMounted, pathname, token, user, router, validateToken]);
+  }, [isLoading, isMounted, pathname, user, router, validateToken, isInternalRole]);
 
   const login = useCallback((newToken: string | null, newUser: User) => {
     internalSession.setToken(newToken);
@@ -142,15 +174,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(
     (reason?: string) => {
-      clearAuthStorage();
-      setToken(null);
-      setUser(null);
+      void (async () => {
+        try {
+          const csrfToken = internalSession.getCsrfToken();
+          await fetch(`${API_URL}/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
+            },
+            body: JSON.stringify({}),
+          });
+        } catch {
+          // Logout should still complete locally if the backend call fails.
+        } finally {
+          clearAuthStorage();
+          setToken(null);
+          setUser(null);
 
-      if (reason) {
-        toast.error(reason);
-      }
+          if (reason) {
+            toast.error(reason);
+          }
 
-      router.replace("/");
+          router.replace("/");
+        }
+      })();
     },
     [router],
   );
@@ -168,8 +217,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  const isInternal = user?.role === "INTERNAL";
-  const isClinicAdmin = user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
+  const isInternal = isInternalRole(user?.role);
+  const isClinicAdmin = isInternal;
 
   return (
     <AuthContext.Provider

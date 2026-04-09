@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from "@workspace/ui/components/sheet";
 import {
+  Activity,
   BarChart3,
   CreditCard,
   FileText,
@@ -21,6 +22,7 @@ import {
   LogOut,
   Menu,
   MessageSquare,
+  Shield,
   Users,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -37,14 +39,34 @@ const sidebarItems = [
     icon: Users,
   },
   {
+    title: "Admins",
+    href: "/admins",
+    icon: Shield,
+  },
+  {
+    title: "Payment Processing",
+    href: "/payment-processing",
+    icon: CreditCard,
+  },
+  {
     title: "Billing",
     href: "/billing",
+    icon: CreditCard,
+  },
+  {
+    title: "Pricing",
+    href: "/pricing",
     icon: CreditCard,
   },
   {
     title: "Analytics",
     href: "/analytics",
     icon: BarChart3,
+  },
+  {
+    title: "System Monitoring",
+    href: "/system-monitoring",
+    icon: Activity,
   },
   {
     title: "Feedback",

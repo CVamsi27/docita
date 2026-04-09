@@ -43,6 +43,8 @@ export function UsersPageContainer() {
     filteredUsers,
     roleStats,
     loading,
+    hasError,
+    errorMessage,
     searchTerm,
     selectedClinic,
     selectedRole,
@@ -53,6 +55,7 @@ export function UsersPageContainer() {
     setSelectedRole,
     setIsViewOpen,
     handleViewUser,
+    retry,
   } = useUsersData();
 
   return (
@@ -65,6 +68,22 @@ export function UsersPageContainer() {
           </p>
         </div>
       </div>
+
+      {hasError && (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="font-medium text-destructive">
+                Unable to load team members
+              </p>
+              <p className="text-sm text-muted-foreground">{errorMessage}</p>
+            </div>
+            <Button variant="outline" onClick={() => void retry()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-5">
         {Object.entries(ROLE_CONFIG).map(([role, config]) => (

@@ -10,21 +10,20 @@ export async function fetchClinics(): Promise<Clinic[]> {
 
 export async function fetchClinicUsers(clinicId: string): Promise<User[]> {
   const [doctorsResponse, adminsResponse] = await Promise.all([
-    client
-      .get<User[] | null>(`/internal/clinics/${clinicId}/doctors`)
-      .catch(() => []),
-    client
-      .get<User[] | null>(`/internal/clinics/${clinicId}/admins`)
-      .catch(() => []),
+    client.get<User[] | null>(`/internal/clinics/${clinicId}/doctors`),
+    client.get<User[] | null>(`/internal/clinics/${clinicId}/admins`),
   ]);
 
   const doctors = Array.isArray(doctorsResponse) ? doctorsResponse : [];
   const admins = Array.isArray(adminsResponse) ? adminsResponse : [];
+  const merged = [...doctors, ...admins];
+  const uniqueUsers = new Map<string, User>();
 
-  return [
-    ...doctors,
-    ...admins,
-  ];
+  for (const user of merged) {
+    uniqueUsers.set(user.id, user);
+  }
+
+  return Array.from(uniqueUsers.values());
 }
 
 export async function fetchUsersForSelection(
