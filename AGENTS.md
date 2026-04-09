@@ -202,6 +202,14 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
 - Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
 
+## 11.3) Branch Promotion Flow
+
+- Use `staging` as the integration branch for pre-production validation.
+- Open feature PRs into `staging` first.
+- After staging checks pass, open a promotion PR from `staging` into `main`.
+- Keep `main` protected and production-only; do not merge feature work directly into `main`.
+- If a hotfix lands on `main`, merge `main` back into `staging` before the next release cycle so both branches stay aligned.
+
 ## 12) Design Principles
 
 - Apply SOLID and clean layering pragmatically:
