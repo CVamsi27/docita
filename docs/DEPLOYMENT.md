@@ -68,6 +68,7 @@ fly ssh console
 
 Fly-specific notes:
 - The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
+- GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - Keep `min_machines_running = 1` while background work remains in-process.
 - Verify the API image locally before infra changes with:
 
