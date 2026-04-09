@@ -1,4 +1,4 @@
-name: Deploy Production Apps
+name: Deploy Production API
 
 on:
   push:
@@ -11,13 +11,10 @@ concurrency:
 
 jobs:
   changes:
-    name: Detect Deploy Targets
+    name: Detect API Deploy Target
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.filter.outputs.api }}
-      app: ${{ steps.filter.outputs.app }}
-      internal: ${{ steps.filter.outputs.internal }}
-      landing: ${{ steps.filter.outputs.landing }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,35 +34,6 @@ jobs:
               - 'pnpm-lock.yaml'
               - 'turbo.json'
               - 'fly.toml'
-            app:
-              - 'apps/app/**'
-              - 'packages/auth/**'
-              - 'packages/data-access/**'
-              - 'packages/hooks/**'
-              - 'packages/types/**'
-              - 'packages/ui/**'
-              - 'packages/utils/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'turbo.json'
-              - 'scripts/ensure-opennext-prefetch-manifest-patch.mjs'
-            internal:
-              - 'apps/internal/**'
-              - 'packages/data-access/**'
-              - 'packages/types/**'
-              - 'packages/ui/**'
-              - 'packages/utils/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'turbo.json'
-              - 'scripts/ensure-opennext-prefetch-manifest-patch.mjs'
-              - 'scripts/check-worker-size.mjs'
-            landing:
-              - 'apps/landing/**'
-              - 'packages/ui/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'turbo.json'
 
   deploy-api:
     name: Deploy API (Fly.io)
@@ -92,96 +60,3 @@ jobs:
 
       - name: Deploy API to Fly.io
         run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
-
-  deploy-app:
-    name: Deploy Main App (Cloudflare)
-    needs: changes
-    if: needs.changes.outputs.app == 'true'
-    runs-on: ubuntu-latest
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.12.0
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Cloudflare bundle
-        run: pnpm --filter @docita/app run build:cloudflare
-
-      - name: Deploy app worker
-        run: pnpm --filter @docita/app run deploy:cloudflare
-
-  deploy-internal:
-    name: Deploy Internal App (Cloudflare)
-    needs: changes
-    if: needs.changes.outputs.internal == 'true'
-    runs-on: ubuntu-latest
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.12.0
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Cloudflare bundle
-        run: pnpm --filter @docita/internal run build:cloudflare
-
-      - name: Deploy internal worker
-        run: pnpm --filter @docita/internal run deploy:cloudflare
-
-  deploy-landing:
-    name: Deploy Landing Site (Cloudflare)
-    needs: changes
-    if: needs.changes.outputs.landing == 'true'
-    runs-on: ubuntu-latest
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.12.0
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Cloudflare bundle
-        run: pnpm --filter @docita/landing run build:cloudflare
-
-      - name: Deploy landing worker
-        run: pnpm --filter @docita/landing run deploy:cloudflare
