@@ -153,6 +153,66 @@ describe('CsrfInterceptor', () => {
     expect(response.cookie).toHaveBeenCalledTimes(1);
   });
 
+  it('seeds host-only and shared-domain CSRF cookies for first-touch auth mutations in production', () => {
+    (
+      appConfigService.isProduction as jest.MockedFunction<
+        typeof appConfigService.isProduction
+      >
+    ).mockReturnValue(true);
+    (
+      appConfigService.getSharedCookieDomain as jest.MockedFunction<
+        typeof appConfigService.getSharedCookieDomain
+      >
+    ).mockReturnValue('docita.work');
+
+    const context = createContext({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      originalUrl: '/api/v1/auth/login',
+    });
+
+    expect(() => interceptor.intercept(context, next)).not.toThrow();
+
+    const response = context.switchToHttp().getResponse();
+    expect(response.cookie).toHaveBeenCalledTimes(2);
+    expect(response.cookie).toHaveBeenNthCalledWith(
+      1,
+      'XSRF-TOKEN',
+      expect.any(String),
+      expect.objectContaining({
+        path: '/',
+        sameSite: 'strict',
+        secure: true,
+        httpOnly: false,
+      }),
+    );
+    expect(response.cookie).toHaveBeenNthCalledWith(
+      2,
+      'XSRF-TOKEN',
+      expect.any(String),
+      expect.objectContaining({
+        path: '/',
+        sameSite: 'strict',
+        secure: true,
+        httpOnly: false,
+        domain: 'docita.work',
+      }),
+    );
+    expect(
+      (
+        response.cookie as jest.MockedFunction<
+          (name: string, value: string, options: unknown) => void
+        >
+      ).mock.calls[0]?.[1],
+    ).toBe(
+      (
+        response.cookie as jest.MockedFunction<
+          (name: string, value: string, options: unknown) => void
+        >
+      ).mock.calls[1]?.[1],
+    );
+  });
+
   it('rejects auth mutations without CSRF token when auth cookies are present', () => {
     const context = createContext({
       method: 'POST',
