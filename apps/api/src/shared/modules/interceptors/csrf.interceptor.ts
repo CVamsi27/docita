@@ -97,8 +97,14 @@ export class CsrfInterceptor implements NestInterceptor {
 
     const existingCsrfToken = request.cookies?.['XSRF-TOKEN'];
     let csrfToken = existingCsrfToken;
-    if (!existingCsrfToken && this.isSafeMethod(request.method)) {
-      csrfToken = randomBytes(24).toString('hex');
+    if (this.isSafeMethod(request.method)) {
+      if (!csrfToken) {
+        csrfToken = randomBytes(24).toString('hex');
+      }
+
+      // Always re-issue the token on safe requests. This keeps the host-only and
+      // shared-domain cookies in sync and helps browsers converge after we
+      // migrate cookie domains in production.
       this.setCsrfCookie(response, csrfToken);
     }
 

@@ -80,6 +80,23 @@ describe('CsrfInterceptor', () => {
     );
   });
 
+  it('re-issues CSRF cookie on safe requests even when one exists', () => {
+    const token = 'csrf-token-existing';
+    const context = createContext({
+      method: 'GET',
+      cookies: { 'XSRF-TOKEN': token },
+    });
+    interceptor.intercept(context, next);
+
+    const response = context.switchToHttp().getResponse();
+    expect(response.cookie).toHaveBeenCalledTimes(1);
+    expect(response.cookie).toHaveBeenCalledWith(
+      'XSRF-TOKEN',
+      token,
+      expect.objectContaining({ path: '/', sameSite: 'strict' }),
+    );
+  });
+
   it('uses the shared cookie domain for production subdomains', () => {
     (
       appConfigService.isProduction as jest.MockedFunction<
@@ -96,6 +113,7 @@ describe('CsrfInterceptor', () => {
     interceptor.intercept(context, next);
 
     const response = context.switchToHttp().getResponse();
+    expect(response.cookie).toHaveBeenCalledTimes(2);
     expect(response.cookie).toHaveBeenCalledWith(
       'XSRF-TOKEN',
       expect.any(String),
