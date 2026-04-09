@@ -50,6 +50,26 @@ describe("fetchWithSession", () => {
     expect((init?.headers as Headers).get("x-xsrf-token")).toBe("csrf-1");
   });
 
+  it("preserves an explicit CSRF header for mutating requests", async () => {
+    vi.mocked(appSession.getToken).mockReturnValue("token-1");
+    vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-from-cookie");
+    vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ status: 200 }));
+
+    await fetchWithSession("/imports/preview", {
+      method: "POST",
+      headers: {
+        "x-xsrf-token": "csrf-explicit",
+      },
+      body: JSON.stringify({}),
+    });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0];
+    expect((init?.headers as Headers).get("x-xsrf-token")).toBe(
+      "csrf-explicit",
+    );
+  });
+
   it("retries once when refresh succeeds after 401", async () => {
     vi.mocked(appSession.getToken)
       .mockReturnValueOnce("expired-token")
