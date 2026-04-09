@@ -69,7 +69,7 @@ fly ssh console
 Fly-specific notes:
 - The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
-- For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret. For Cloudflare deploys, add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+- For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
 - Keep `min_machines_running = 1` while background work remains in-process.
 - Verify the API image locally before infra changes with:
 
@@ -109,7 +109,7 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - Build `apps/landing` with `pnpm build:landing:cloudflare`.
 - Preview each Worker locally with the matching `preview:*:cloudflare` script.
 - Deploy each Worker with the matching `deploy:*:cloudflare` script.
-- GitHub Actions production deploys use [deploy.yml](/Users/vamsikrishnachandaluri/repos/docita/.github/workflows/deploy.yml) and only run the app jobs whose related source or shared package paths changed on `main`.
+- Frontend production deploys are expected to be managed by Cloudflare Git integration or dashboard settings, not GitHub Actions in this repository.
 
 ## Release Gates
 

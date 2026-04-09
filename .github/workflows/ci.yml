@@ -143,9 +143,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Validate App Cloudflare Build
-        run: pnpm --filter @docita/app run build:cloudflare
-
       - name: Test (Unit)
         run: pnpm test -- --coverage
 
