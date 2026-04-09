@@ -14,10 +14,10 @@ import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/h
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   HandleWhatsAppWebhookDto,
-  VerifyWhatsAppWebhookQueryDto,
   WhatsAppWebhookAckResponseDto,
 } from '@/domains/whatsapp/application/dto/whatsapp.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { type WhatsAppWebhookVerifyQuery } from '@workspace/types';
 
 @Controller('webhooks/whatsapp')
 export class WhatsAppWebhookController {
@@ -30,15 +30,21 @@ export class WhatsAppWebhookController {
 
   @Public()
   @Get()
-  verifyWebhook(@Query() query: VerifyWhatsAppWebhookQueryDto) {
+  verifyWebhook(@Query() query: WhatsAppWebhookVerifyQuery = {}) {
     const verifyToken = this.configService.getMetaConfig().verifyToken;
-    if (
-      query['hub.mode'] === 'subscribe' &&
-      query['hub.verify_token'] === verifyToken &&
-      query['hub.challenge']
-    ) {
-      return query['hub.challenge'];
+    const mode = query['hub.mode'];
+    const token = query['hub.verify_token'];
+    const challenge = query['hub.challenge'];
+
+    if (mode === 'subscribe' && token === verifyToken && challenge) {
+      return challenge;
     }
+
+    if (!mode && !token && !challenge) {
+      this.logger.debug('Ignoring non-verification WhatsApp webhook GET');
+      return 'OK';
+    }
+
     throw new ForbiddenException('Verification failed');
   }
 
