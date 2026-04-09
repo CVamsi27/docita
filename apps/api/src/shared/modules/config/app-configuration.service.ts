@@ -187,12 +187,27 @@ export class AppConfigService {
       return undefined;
     }
 
+    const frontendHostname = parseHostname(this.getFrontendAppUrl());
+    const apiHostname = parseHostname(this.getApiUrl());
+    const appHostname = parseHostname(this.getAppUrl());
+
+    // Prefer deriving the shared cookie domain from the two hosts that must
+    // actually share browser-visible cookies (frontend + API). `APP_URL` may
+    // point at a provider URL in production, which would otherwise prevent
+    // us from computing a shared eTLD+1.
+    const frontendApiDomain = resolveSharedCookieDomain(
+      [frontendHostname, apiHostname].filter((hostname): hostname is string =>
+        Boolean(hostname),
+      ),
+    );
+    if (frontendApiDomain) {
+      return frontendApiDomain;
+    }
+
     return resolveSharedCookieDomain(
-      [
-        parseHostname(this.getAppUrl()),
-        parseHostname(this.getFrontendAppUrl()),
-        parseHostname(this.getApiUrl()),
-      ].filter((hostname): hostname is string => Boolean(hostname)),
+      [appHostname, frontendHostname, apiHostname].filter(
+        (hostname): hostname is string => Boolean(hostname),
+      ),
     );
   }
 

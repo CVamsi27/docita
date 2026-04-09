@@ -264,6 +264,8 @@ async function bootstrap() {
       'X-Requested-With',
       'Cache-Control',
       'Pragma',
+      'X-XSRF-TOKEN',
+      'x-xsrf-token',
     ],
     credentials: true,
     maxAge: 86400,
