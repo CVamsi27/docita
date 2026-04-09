@@ -28,6 +28,7 @@ export class OnboardingDataService implements OnModuleDestroy {
 
   constructor() {
     this.cleanupTimer = setInterval(() => this.cleanExpiredSessions(), 3600000);
+    this.cleanupTimer.unref?.();
   }
 
   initializeOnboarding(): { onboardingId: string } {

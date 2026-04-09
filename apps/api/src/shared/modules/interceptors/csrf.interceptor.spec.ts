@@ -43,6 +43,9 @@ describe('CsrfInterceptor', () => {
   appConfigService.isProduction = jest
     .fn<() => boolean>()
     .mockReturnValue(false);
+  appConfigService.getSharedCookieDomain = jest
+    .fn<() => string | undefined>()
+    .mockReturnValue(undefined);
   const next: CallHandler = { handle: () => of({ ok: true }) };
 
   beforeEach(() => {
@@ -56,6 +59,41 @@ describe('CsrfInterceptor', () => {
 
     const response = context.switchToHttp().getResponse();
     expect(response.cookie).toHaveBeenCalledTimes(1);
+    expect(response.cookie).toHaveBeenCalledWith(
+      'XSRF-TOKEN',
+      expect.any(String),
+      expect.objectContaining({
+        path: '/',
+        sameSite: 'strict',
+        httpOnly: false,
+      }),
+    );
+  });
+
+  it('uses the shared cookie domain for production subdomains', () => {
+    (
+      appConfigService.isProduction as jest.MockedFunction<
+        typeof appConfigService.isProduction
+      >
+    ).mockReturnValue(true);
+    (
+      appConfigService.getSharedCookieDomain as jest.MockedFunction<
+        typeof appConfigService.getSharedCookieDomain
+      >
+    ).mockReturnValue('docita.work');
+
+    const context = createContext({ method: 'GET' });
+    interceptor.intercept(context, next);
+
+    const response = context.switchToHttp().getResponse();
+    expect(response.cookie).toHaveBeenCalledWith(
+      'XSRF-TOKEN',
+      expect.any(String),
+      expect.objectContaining({
+        domain: 'docita.work',
+        secure: true,
+      }),
+    );
   });
 
   it('rejects mutating cookie-auth requests without CSRF token', () => {

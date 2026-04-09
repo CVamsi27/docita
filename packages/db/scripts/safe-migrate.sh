@@ -59,7 +59,7 @@ get_db_url() {
     normalize_db_url "${DATABASE_URL:-}"
 }
 
-# Function to remove Prisma-specific query params unsupported by libpq tools.
+# Function to remove unsupported URI query params before invoking libpq tools.
 get_pg_tool_db_url() {
     local db_url
     db_url=$(get_db_url)
@@ -78,9 +78,71 @@ if (!raw) {
 }
 
 const url = new URL(raw);
+const allowedParams = new Set([
+  "application_name",
+  "channel_binding",
+  "client_encoding",
+  "connect_timeout",
+  "dbname",
+  "fallback_application_name",
+  "gssdelegation",
+  "gssencmode",
+  "gsslib",
+  "host",
+  "hostaddr",
+  "keepalives",
+  "keepalives_count",
+  "keepalives_idle",
+  "keepalives_interval",
+  "krbsrvname",
+  "load_balance_hosts",
+  "max_protocol_version",
+  "min_protocol_version",
+  "oauth_client_id",
+  "oauth_client_secret",
+  "oauth_issuer",
+  "oauth_scope",
+  "options",
+  "passfile",
+  "password",
+  "port",
+  "replication",
+  "require_auth",
+  "requirepeer",
+  "scram_client_key",
+  "scram_server_key",
+  "service",
+  "ssl",
+  "sslcert",
+  "sslcrl",
+  "sslcrldir",
+  "sslkey",
+  "sslkeylogfile",
+  "ssl_max_protocol_version",
+  "ssl_min_protocol_version",
+  "sslmode",
+  "sslnegotiation",
+  "sslpassword",
+  "sslrootcert",
+  "sslsni",
+  "target_session_attrs",
+  "tcp_user_timeout",
+  "user",
+]);
 
-// Prisma accepts `schema`, but libpq tools like pg_dump/psql reject it.
-url.searchParams.delete("schema");
+const removedParams = [];
+for (const key of [...url.searchParams.keys()]) {
+  if (!allowedParams.has(key.toLowerCase())) {
+    removedParams.push(key);
+    url.searchParams.delete(key);
+  }
+}
+
+if (removedParams.length > 0) {
+  process.stderr.write(
+    `Skipping unsupported libpq URI params for pg tools: ${removedParams.join(", ")}\n`,
+  );
+}
 
 process.stdout.write(url.toString());
 EOF

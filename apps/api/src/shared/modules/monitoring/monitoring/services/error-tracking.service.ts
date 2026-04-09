@@ -36,6 +36,7 @@ export class ErrorTrackingService implements OnModuleDestroy {
         );
       });
     }, this.FLUSH_INTERVAL);
+    this.flushTimer.unref?.();
   }
 
   onModuleDestroy(): void {

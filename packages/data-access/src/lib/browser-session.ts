@@ -5,6 +5,7 @@ export interface BrowserSessionConfig {
   refreshEndpoint?: string;
   csrfCookieKey?: string;
   loginPath?: string;
+  resolveLoginPath?: (currentPath: string) => string;
   publicPaths?: string[];
   redirectStorageKey?: string;
 }
@@ -45,6 +46,7 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
     refreshEndpoint = "/auth/refresh",
     csrfCookieKey = "XSRF-TOKEN",
     loginPath = "/login",
+    resolveLoginPath,
     publicPaths = ["/login", "/register", "/forgot-password", "/reset-password"],
     redirectStorageKey = "redirectAfterLogin",
   } = config;
@@ -106,7 +108,7 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
     const currentPath = pathname ?? window.location.pathname;
     if (!isPublicPath(currentPath)) {
       sessionStorage.setItem(redirectStorageKey, currentPath);
-      window.location.href = loginPath;
+      window.location.assign(resolveLoginPath?.(currentPath) ?? loginPath);
     }
   };
 
