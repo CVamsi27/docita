@@ -166,35 +166,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (payload: unknown) =>
-      apiFetch<unknown>("/auth/login", {
+    mutationFn: (payload: unknown) => {
+      const csrfToken = appSession.getCsrfToken();
+      return apiFetch<unknown>("/auth/login", {
         method: "POST",
+        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
         body: JSON.stringify(payload),
-      }),
+      });
+    },
   });
 
   const checkEmailMutation = useMutation({
-    mutationFn: (payload: unknown) =>
-      apiFetch<unknown>("/auth/check-email", {
+    mutationFn: (payload: unknown) => {
+      const csrfToken = appSession.getCsrfToken();
+      return apiFetch<unknown>("/auth/check-email", {
         method: "POST",
+        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
         body: JSON.stringify(payload),
-      }),
+      });
+    },
   });
 
   const registerMutation = useMutation({
-    mutationFn: (payload: unknown) =>
-      apiFetch<unknown>("/auth/register", {
+    mutationFn: (payload: unknown) => {
+      const csrfToken = appSession.getCsrfToken();
+      return apiFetch<unknown>("/auth/register", {
         method: "POST",
+        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
         body: JSON.stringify(payload),
-      }),
+      });
+    },
   });
 
   const logoutMutation = useMutation({
-    mutationFn: () =>
-      apiFetch<unknown>("/auth/logout", {
+    mutationFn: () => {
+      const csrfToken = appSession.getCsrfToken();
+      return apiFetch<unknown>("/auth/logout", {
         method: "POST",
+        headers: csrfToken ? { "x-xsrf-token": csrfToken } : undefined,
         body: JSON.stringify({}),
-      }),
+      });
+    },
   });
 
   useEffect(() => {
