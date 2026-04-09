@@ -25,13 +25,23 @@ export class CsrfInterceptor implements NestInterceptor {
 
   private setCsrfCookie(response: Response, csrfToken: string): void {
     const domain = this.configService.getSharedCookieDomain();
-    response.cookie('XSRF-TOKEN', csrfToken, {
+    const baseOptions = {
       path: '/',
       sameSite: 'strict',
       secure: this.configService.isProduction(),
       httpOnly: false,
-      ...(domain ? { domain } : {}),
-    });
+    } as const;
+
+    // Always set a host-only cookie (api host) so existing sessions continue
+    // to work and any legacy host-only cookie is overwritten.
+    response.cookie('XSRF-TOKEN', csrfToken, baseOptions);
+
+    // When we can compute a shared cookie domain (e.g. docita.work), also set
+    // the domain cookie so the frontend app can read it and echo it back in
+    // the X-XSRF-TOKEN header.
+    if (domain) {
+      response.cookie('XSRF-TOKEN', csrfToken, { ...baseOptions, domain });
+    }
   }
 
   private getHeaderToken(request: Request): string | undefined {

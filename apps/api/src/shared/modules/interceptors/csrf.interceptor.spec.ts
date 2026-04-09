@@ -50,6 +50,16 @@ describe('CsrfInterceptor', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (
+      appConfigService.isProduction as jest.MockedFunction<
+        typeof appConfigService.isProduction
+      >
+    ).mockReturnValue(false);
+    (
+      appConfigService.getSharedCookieDomain as jest.MockedFunction<
+        typeof appConfigService.getSharedCookieDomain
+      >
+    ).mockReturnValue(undefined);
     interceptor = new CsrfInterceptor(appConfigService);
   });
 

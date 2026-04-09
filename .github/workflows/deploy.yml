@@ -43,6 +43,7 @@ jobs:
               - 'packages/utils/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
               - 'turbo.json'
               - 'fly.toml'
 
@@ -55,7 +56,6 @@ jobs:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Read Fly app from fly.toml
         id: fly-config
         run: |
@@ -65,7 +65,6 @@ jobs:
             exit 1
           fi
           echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
-
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
