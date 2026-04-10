@@ -192,6 +192,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
 - Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
 - Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
+- Staging API deployments use the Render deploy hook from `.github/workflows/deploy-staging.yml` and should be gated so Prisma migrations land before the new API revision is released.
 - Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
 
 ## 11.2) CI scope and cost
@@ -201,6 +202,14 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Frontend CI jobs should be scoped by app so `app`, `internal`, and `landing` run independently based on the files that changed.
 - Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
 - Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
+
+## 11.3) Branch Promotion Flow
+
+- Use `staging` as the integration branch for pre-production validation.
+- Open feature PRs into `staging` first.
+- After staging checks pass, open a promotion PR from `staging` into `main`.
+- Keep `main` protected and production-only; do not merge feature work directly into `main`.
+- If a hotfix lands on `main`, merge `main` back into `staging` before the next release cycle so both branches stay aligned.
 
 ## 12) Design Principles
 
