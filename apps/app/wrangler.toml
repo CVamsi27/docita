@@ -1,4 +1,4 @@
-name = "docita-app-staging"
+name = "docita-app"
 compatibility_date = "2026-03-09"
 main = ".open-next/worker.js"
 compatibility_flags = ["nodejs_compat"]
@@ -10,7 +10,7 @@ compatibility_flags = ["nodejs_compat"]
 # if your deployment process requires additional bindings.
 
 [[routes]]
-pattern = "staging-app.docita.work"
+pattern = "app.docita.work"
 custom_domain = true
 
 [assets]
@@ -22,37 +22,6 @@ binding = "NEXT_INC_CACHE_R2_BUCKET"
 bucket_name = "docita-cache"
 
 [vars]
-NODE_ENV = "production"
-DOCITA_CLOUDFLARE = "1"
-APP_URL = "https://staging-app.docita.work"
-API_URL = "https://staging-api.docita.work/api/v1"
-API_PROXY_TARGET = "https://staging-api.docita.work"
-NEXT_PUBLIC_API_URL = "https://staging-api.docita.work/api/v1"
-NEXT_PUBLIC_APP_URL = "https://staging-app.docita.work"
-NEXT_PUBLIC_SOCKET_URL = "https://staging-api.docita.work"
-NEXT_PUBLIC_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"
-NEXT_PUBLIC_SENTRY_PROJECT = "javascript-nextjs-staging"
-SENTRY_ORG = "docita"
-NEXT_PUBLIC_ANALYTICS_URL = ""
-NEXT_PUBLIC_ENABLE_CONSOLE_TOASTS = "false"
-NEXT_PUBLIC_CAPTURE_CONSOLE_INFO = "false"
-NEXT_PUBLIC_CAPTURE_CONSOLE_WARNINGS = "false"
-NEXT_PUBLIC_RAZORPAY_KEY_ID = ""
-NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER = "918790311010"
-NEXT_PUBLIC_CLINIC_NAME = "Docita"
-
-[env.production]
-name = "docita-app"
-
-[[env.production.routes]]
-pattern = "app.docita.work"
-custom_domain = true
-
-[[env.production.r2_buckets]]
-binding = "NEXT_INC_CACHE_R2_BUCKET"
-bucket_name = "docita-cache"
-
-[env.production.vars]
 NODE_ENV = "production"
 DOCITA_CLOUDFLARE = "1"
 APP_URL = "https://app.docita.work"
@@ -69,6 +38,37 @@ NEXT_PUBLIC_ENABLE_CONSOLE_TOASTS = "false"
 NEXT_PUBLIC_CAPTURE_CONSOLE_INFO = "false"
 NEXT_PUBLIC_CAPTURE_CONSOLE_WARNINGS = "false"
 NEXT_PUBLIC_RAZORPAY_KEY_ID = "rzp_live_SPNm7w8Ig24OSX"
+NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER = "918790311010"
+NEXT_PUBLIC_CLINIC_NAME = "Docita"
+
+[env.staging]
+name = "docita-app-staging"
+
+[[env.staging.routes]]
+pattern = "staging-app.docita.work"
+custom_domain = true
+
+[[env.staging.r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "docita-cache"
+
+[env.staging.vars]
+NODE_ENV = "production"
+DOCITA_CLOUDFLARE = "1"
+APP_URL = "https://staging-app.docita.work"
+API_URL = "https://staging-api.docita.work/api/v1"
+API_PROXY_TARGET = "https://staging-api.docita.work"
+NEXT_PUBLIC_API_URL = "https://staging-api.docita.work/api/v1"
+NEXT_PUBLIC_APP_URL = "https://staging-app.docita.work"
+NEXT_PUBLIC_SOCKET_URL = "https://staging-api.docita.work"
+NEXT_PUBLIC_SENTRY_DSN = "https://f22671b3cd9222c1c1f8d7ad3b508ea9@o4511121149198336.ingest.de.sentry.io/4511121158242384"
+NEXT_PUBLIC_SENTRY_PROJECT = "javascript-nextjs-staging"
+SENTRY_ORG = "docita"
+NEXT_PUBLIC_ANALYTICS_URL = ""
+NEXT_PUBLIC_ENABLE_CONSOLE_TOASTS = "false"
+NEXT_PUBLIC_CAPTURE_CONSOLE_INFO = "false"
+NEXT_PUBLIC_CAPTURE_CONSOLE_WARNINGS = "false"
+NEXT_PUBLIC_RAZORPAY_KEY_ID = ""
 NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER = "918790311010"
 NEXT_PUBLIC_CLINIC_NAME = "Docita"
 
