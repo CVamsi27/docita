@@ -5,6 +5,7 @@ import type {
   IAccessDecision,
   IAccessRule,
 } from "@/lib/access-control/interfaces";
+import { getSupportContactText } from "@/lib/support-contact";
 import { CLINIC_TYPE_FEATURES, CLINIC_TYPE_LABELS } from "@workspace/types";
 
 export class ClinicTypeBasedAccessRule implements IAccessRule {
@@ -64,7 +65,7 @@ export class ClinicTypeBasedAccessRule implements IAccessRule {
       .trim()
       .toLowerCase();
 
-    return `The ${featureName} feature is not available for ${clinicTypeLabel} clinics. This feature is specific to other clinic types. Please contact support if you need this feature enabled.`;
+    return `The ${featureName} feature is not available for ${clinicTypeLabel} clinics. This feature is specific to other clinic types. Please ${getSupportContactText()} if you need this feature enabled.`;
   }
 
   getDecision(context: IAccessContext): IAccessDecision {

@@ -10,6 +10,7 @@ import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel'
 import { useAuth } from '@/lib/auth-context';
 import { logger } from '@/lib/logger';
 import { API_URL } from '@/lib/api-config';
+import { SupportContact } from "@/components/common/support-contact";
 
 type VerifyState = 'loading' | 'success' | 'error' | 'missing';
 
@@ -155,15 +156,7 @@ export default function VerifyEmailPage() {
             )}
           </div>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Need help?{' '}
-            <a
-              href="mailto:support@docita.work"
-              className="underline underline-offset-4 hover:text-foreground transition-colors"
-            >
-              Contact support
-            </a>
-          </p>
+          <SupportContact />
         </div>
       </div>
     </div>

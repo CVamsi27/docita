@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Building2, Check, Loader2, LogOut, Users } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { cn } from '@workspace/ui/lib/utils';
-import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
 import { logger } from '@/lib/logger';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
@@ -13,6 +12,7 @@ import { DocitaLogo } from '@workspace/ui/components/docita-logo';
 import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel';
 import { useAuth } from '@/lib/auth-context';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { SupportContact } from "@/components/common/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const CREATE_BULLETS = [
@@ -152,15 +152,7 @@ export default function ChoosePathPage() {
             />
           </div>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Need help?{' '}
-            <a
-              href="mailto:support@docita.work"
-              className="underline underline-offset-4 hover:text-foreground transition-colors"
-            >
-              Contact support
-            </a>
-          </p>
+          <SupportContact />
         </div>
       </div>
     </div>

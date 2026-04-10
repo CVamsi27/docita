@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Mail, Loader2, LogOut, RefreshCw } from 'lucide-react';
 import { Button } from '@workspace/ui/components/button';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
@@ -11,11 +10,11 @@ import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel'
 import { useAuth } from '@/lib/auth-context';
 import { apiFetch } from '@/lib/api-client';
 import { logger } from '@/lib/logger';
+import { SupportContact } from "@/components/common/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function VerifyEmailSentPage() {
   const { user, logout } = useAuth();
-  const router = useRouter();
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
 
@@ -120,15 +119,7 @@ export default function VerifyEmailSentPage() {
             </p>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Need help?{' '}
-            <a
-              href="mailto:support@docita.work"
-              className="underline underline-offset-4 hover:text-foreground transition-colors"
-            >
-              Contact support
-            </a>
-          </p>
+          <SupportContact />
         </div>
       </div>
     </div>

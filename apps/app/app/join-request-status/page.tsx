@@ -13,6 +13,7 @@ import { typedApi } from '@/lib/api-client';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { SupportContact } from "@/components/common/support-contact";
 import { useAuth } from '@/lib/auth-context';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -230,13 +231,8 @@ export default function JoinRequestStatusPage() {
           </div>
         </Card>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Need help? Contact support at{' '}
-            <a href="mailto:support@docita.work" className="text-primary hover:underline">
-              support@docita.work
-            </a>
-          </p>
+        <div className="mt-6">
+          <SupportContact className="text-sm" />
         </div>
       </div>
     </div>

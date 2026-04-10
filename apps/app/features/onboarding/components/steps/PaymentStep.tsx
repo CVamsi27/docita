@@ -16,8 +16,8 @@ import {
   Alert,
   AlertDescription,
 } from "@workspace/ui/components/alert";
-import { toast } from "sonner";
 import { api } from "@/lib/api-client";
+import { getSupportContactText } from "@/lib/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface PaymentDetails {
@@ -145,7 +145,7 @@ export function PaymentStep({
             });
           } catch {
             showUserFacingErrorToast(
-              "We could not verify your payment. Please contact support.",
+              `We could not verify your payment. Please ${getSupportContactText()}.`,
             );
             setIsProcessing(false);
           }

@@ -9,6 +9,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { AlertCircle, Home, Mail, RefreshCw } from "lucide-react";
+import {
+  getSupportContactText,
+  SUPPORT_EMAIL,
+} from "@/lib/support-contact";
 
 interface Props {
   children: ReactNode;
@@ -140,8 +144,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
   private getDefaultError(): UserFriendlyError {
     return {
       title: "Something Went Wrong",
-      message:
-        "We couldn't load this page. Please try again.",
+      message: `We couldn't load this page. Please try again. If it continues, ${getSupportContactText()}.`,
       actions: [
         {
           label: "Reload Application",
@@ -149,8 +152,8 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
           icon: <RefreshCw className="h-4 w-4" />,
         },
         {
-          label: "Contact Support",
-              action: () => (window.location.href = "mailto:support@docita.work"),
+          label: `Email ${SUPPORT_EMAIL}`,
+          action: () => (window.location.href = `mailto:${SUPPORT_EMAIL}`),
           variant: "outline",
           icon: <Mail className="h-4 w-4" />,
         },
