@@ -46,21 +46,14 @@ export function AuthPageContainer() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [ownerRole, setOwnerRole] = useState<"ADMIN" | "ADMIN_DOCTOR">(
-    "ADMIN",
-  );
+  const [ownerRole, setOwnerRole] = useState<"ADMIN" | "ADMIN_DOCTOR">("ADMIN");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const {
-    login,
-    register,
-    checkEmail,
-    isLoginLocked,
-    loginLockoutUntil,
-  } = useAuth();
+  const { login, register, checkEmail, isLoginLocked, loginLockoutUntil } =
+    useAuth();
   const lockoutMessage = isLoginLocked
     ? formatLockoutMessage(loginLockoutUntil)
     : "";
@@ -177,15 +170,13 @@ export function AuthPageContainer() {
           </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-            <h1 className="text-2xl font-bold tracking-tight">
-              {STEP_TITLES[step]}
-            </h1>
+            <h1 className="text-3xl font-bold">{STEP_TITLES[step]}</h1>
             <p className="text-muted-foreground text-sm">
               {STEP_DESCRIPTIONS[step]}
             </p>
           </div>
 
-          <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
+          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
             <div
               key={step}
               className="animate-in fade-in slide-in-from-right-4 duration-500"

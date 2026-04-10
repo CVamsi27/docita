@@ -1,61 +1,65 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Building2, Check, Loader2, LogOut, Users } from 'lucide-react';
-import { Button } from '@workspace/ui/components/button';
-import { cn } from '@workspace/ui/lib/utils';
-import { typedApi } from '@/lib/api-client';
-import { logger } from '@/lib/logger';
-import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
-import { DocitaLogo } from '@workspace/ui/components/docita-logo';
-import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel';
-import { useAuth } from '@/lib/auth-context';
-import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Building2, Check, Loader2, LogOut, Users } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { cn } from "@workspace/ui/lib/utils";
+import { typedApi } from "@/lib/api-client";
+import { logger } from "@/lib/logger";
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { AuthBrandingPanel } from "@/features/auth/components/AuthBrandingPanel";
+import { useAuth } from "@/lib/auth-context";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { SupportContact } from "@/components/common/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const CREATE_BULLETS = [
-  'Choose subscription plan',
-  'Configure clinic settings',
-  'Invite team members',
-  'Sign legal agreements',
+  "Choose subscription plan",
+  "Configure clinic settings",
+  "Invite team members",
+  "Sign legal agreements",
 ];
 
 const JOIN_BULLETS = [
-  'Search for your clinic',
-  'Submit join request',
-  'Wait for admin approval',
-  'Start working immediately',
+  "Search for your clinic",
+  "Submit join request",
+  "Wait for admin approval",
+  "Start working immediately",
 ];
 
 export default function ChoosePathPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, logout } = useAuth();
-  const [loadingPath, setLoadingPath] = useState<'CREATE_CLINIC' | 'JOIN_CLINIC' | null>(null);
+  const [loadingPath, setLoadingPath] = useState<
+    "CREATE_CLINIC" | "JOIN_CLINIC" | null
+  >(null);
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
-      setRedirectMessage('Redirecting to login...');
-      router.replace('/login');
+      setRedirectMessage("Redirecting to login...");
+      router.replace("/login");
       return;
     }
-    if (user?.clinicId || user?.onboardingStep === 'COMPLETED') {
-      setRedirectMessage('Account already linked. Redirecting to dashboard...');
-      router.replace('/dashboard');
+    if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
+      setRedirectMessage("Account already linked. Redirecting to dashboard...");
+      router.replace("/dashboard");
     }
   }, [isAuthenticated, isLoading, user, router]);
 
-  const handleChoosePath = async (path: 'CREATE_CLINIC' | 'JOIN_CLINIC') => {
+  const handleChoosePath = async (path: "CREATE_CLINIC" | "JOIN_CLINIC") => {
     setLoadingPath(path);
     try {
       await typedApi.onboarding.choosePath(path);
-      router.push(path === 'CREATE_CLINIC' ? '/onboarding' : '/join-clinic');
+      router.push(path === "CREATE_CLINIC" ? "/onboarding" : "/join-clinic");
     } catch (error) {
-      showUserFacingErrorToast('We could not save your choice. Please try again.');
-      logger.error('Error choosing path', { error });
+      showUserFacingErrorToast(
+        "We could not save your choice. Please try again.",
+      );
+      logger.error("Error choosing path", { error });
       setLoadingPath(null);
     }
   };
@@ -77,7 +81,7 @@ export default function ChoosePathPage() {
     );
   }
 
-  const firstName = user?.name?.split(' ')[0];
+  const firstName = user?.name?.split(" ")[0];
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -88,7 +92,7 @@ export default function ChoosePathPage() {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)',
+              "radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)",
           }}
           aria-hidden="true"
         />
@@ -112,8 +116,8 @@ export default function ChoosePathPage() {
           </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-            <h1 className="text-2xl font-bold tracking-tight">
-              {firstName ? `Welcome, ${firstName}!` : 'Welcome to Docita!'}
+            <h1 className="text-3xl font-bold">
+              {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
             </h1>
             <p className="text-muted-foreground text-sm">
               How would you like to get started?
@@ -122,7 +126,7 @@ export default function ChoosePathPage() {
 
           <div
             className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
-            style={{ animationDelay: '100ms' }}
+            style={{ animationDelay: "100ms" }}
           >
             <PathCard
               icon={<Building2 className="h-7 w-7 text-primary" />}
@@ -132,9 +136,9 @@ export default function ChoosePathPage() {
               bullets={CREATE_BULLETS}
               buttonLabel="Get Started"
               buttonVariant="default"
-              loading={loadingPath === 'CREATE_CLINIC'}
+              loading={loadingPath === "CREATE_CLINIC"}
               disabled={loadingPath !== null}
-              onClick={() => handleChoosePath('CREATE_CLINIC')}
+              onClick={() => handleChoosePath("CREATE_CLINIC")}
               highlight
             />
 
@@ -146,9 +150,9 @@ export default function ChoosePathPage() {
               bullets={JOIN_BULLETS}
               buttonLabel="Search Clinics"
               buttonVariant="outline"
-              loading={loadingPath === 'JOIN_CLINIC'}
+              loading={loadingPath === "JOIN_CLINIC"}
               disabled={loadingPath !== null}
-              onClick={() => handleChoosePath('JOIN_CLINIC')}
+              onClick={() => handleChoosePath("JOIN_CLINIC")}
             />
           </div>
 
@@ -166,7 +170,7 @@ interface PathCardProps {
   description: string;
   bullets: string[];
   buttonLabel: string;
-  buttonVariant: 'default' | 'outline';
+  buttonVariant: "default" | "outline";
   loading: boolean;
   disabled: boolean;
   onClick: () => void;
@@ -189,16 +193,21 @@ function PathCard({
   return (
     <div
       className={cn(
-        'group relative flex flex-col rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-md transition-all duration-200',
-        'hover:shadow-xl hover:-translate-y-0.5',
+        "group relative flex flex-col rounded-lg border bg-card/80 backdrop-blur-sm p-6 shadow-md transition-all duration-200",
+        "hover:shadow-xl hover:-translate-y-0.5",
         highlight
-          ? 'border-primary/30 hover:border-primary'
-          : 'border-border hover:border-muted-foreground/30',
-        disabled && 'pointer-events-none opacity-70',
+          ? "border-primary/30 hover:border-primary"
+          : "border-border hover:border-muted-foreground/30",
+        disabled && "pointer-events-none opacity-70",
       )}
     >
       <div className="space-y-4 flex-1">
-        <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', iconBg)}>
+        <div
+          className={cn(
+            "flex h-12 w-12 items-center justify-center rounded-lg",
+            iconBg,
+          )}
+        >
           {icon}
         </div>
 
@@ -209,7 +218,10 @@ function PathCard({
 
         <ul className="space-y-1.5">
           {bullets.map((item) => (
-            <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+            <li
+              key={item}
+              className="flex items-center gap-2 text-sm text-muted-foreground"
+            >
               <Check className="h-3.5 w-3.5 text-success shrink-0" />
               {item}
             </li>
@@ -223,11 +235,7 @@ function PathCard({
         onClick={onClick}
         disabled={disabled}
       >
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          buttonLabel
-        )}
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : buttonLabel}
       </Button>
     </div>
   );

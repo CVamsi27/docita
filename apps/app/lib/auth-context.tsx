@@ -36,14 +36,19 @@ export interface User {
   role: UserRole;
   clinicId?: string | null;
   onboardingStep?:
-    | 'NOT_STARTED'
-    | 'CHOOSE_PATH'
-    | 'CREATING_CLINIC'
-    | 'JOINING_CLINIC'
-    | 'COMPLETED';
+    | "NOT_STARTED"
+    | "CHOOSE_PATH"
+    | "CREATING_CLINIC"
+    | "JOINING_CLINIC"
+    | "COMPLETED";
   signatureUrl?: string | null;
   registrationNumber?: string | null;
-  verificationStatus?: 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'FAILED';
+  verificationStatus?:
+    | "UNVERIFIED"
+    | "PENDING"
+    | "VERIFIED"
+    | "REJECTED"
+    | "FAILED";
 }
 
 interface AuthContextType {
@@ -54,7 +59,7 @@ interface AuthContextType {
   isDoctor: boolean;
   isLoginLocked: boolean;
   loginLockoutUntil: number | null;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
   login: (email: string, password: string) => Promise<void>;
   register: (
     email: string,
@@ -179,18 +184,13 @@ function isLoginLockoutResponse(status: number, body: unknown): boolean {
   return code === "ACCOUNT_LOCKED" || message.includes("account is locked");
 }
 
-function parseLoginLockoutUntil(
-  status: number,
-  body: unknown,
-): number | null {
+function parseLoginLockoutUntil(status: number, body: unknown): number | null {
   if (!isLoginLockoutResponse(status, body)) {
     return null;
   }
 
   const candidate =
-    body && typeof body === "object"
-      ? (body as { message?: unknown })
-      : null;
+    body && typeof body === "object" ? (body as { message?: unknown }) : null;
   const message =
     typeof candidate?.message === "string" ? candidate.message : "";
 
@@ -233,8 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => readLoginLockoutUntil(),
   );
   const isAuthenticated = !!user;
-  const isLoginLocked =
-    !!loginLockoutUntil && loginLockoutUntil > Date.now();
+  const isLoginLocked = !!loginLockoutUntil && loginLockoutUntil > Date.now();
   const router = useRouter();
   const { setUserRole } = usePermissionStore();
   const hasSetRoleRef = useRef(false);
@@ -379,7 +378,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setUser(retryData.user);
               setUserRole(retryData.user.role);
               hasSetRoleRef.current = true;
-              localStorage.setItem("docita_user", JSON.stringify(retryData.user));
+              localStorage.setItem(
+                "docita_user",
+                JSON.stringify(retryData.user),
+              );
               return;
             }
           } catch {
@@ -410,7 +412,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUserRole("");
           }
         }
-
       } catch {
         // ignore malformed storage entries
       }
@@ -420,7 +421,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", handler);
   }, [setUserRole]);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async (): Promise<User | null> => {
     try {
       const csrfToken = appSession.getCsrfToken();
       const headers = {
@@ -433,7 +434,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
         setUserRole(data.user.role);
         localStorage.setItem("docita_user", JSON.stringify(data.user));
-        return;
+        return data.user;
       }
 
       const refreshed = await refreshAccessToken();
@@ -443,7 +444,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(retryData.user);
           setUserRole(retryData.user.role);
           localStorage.setItem("docita_user", JSON.stringify(retryData.user));
-          return;
+          return retryData.user;
         }
       }
 
@@ -451,7 +452,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore network errors
     }
-  };
+    return null;
+  }, [clearSession, refreshAccessToken, setUserRole, validateAuth]);
 
   const login = async (email: string, password: string) => {
     const payload = loginSchema.parse({ email, password });
@@ -525,7 +527,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ? (error as { data?: unknown }).data
           : null;
       const lockoutUntil =
-        typeof status === "number" ? parseLoginLockoutUntil(status, data) : null;
+        typeof status === "number"
+          ? parseLoginLockoutUntil(status, data)
+          : null;
 
       if (lockoutUntil) {
         setLoginLockoutUntil(lockoutUntil);
@@ -584,9 +588,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (!userData) {
-      throw new Error(
-        "We could not create your account. Please try again.",
-      );
+      throw new Error("We could not create your account. Please try again.");
     }
 
     if (accessToken) {
@@ -598,7 +600,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserRole(userData.role);
     localStorage.setItem("docita_user", JSON.stringify(userData));
 
-    router.push('/verify-email-sent');
+    router.push("/verify-email-sent");
   };
 
   const logout = useCallback(async () => {

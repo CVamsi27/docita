@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Mail, Loader2, LogOut, RefreshCw } from 'lucide-react';
-import { Button } from '@workspace/ui/components/button';
-import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
-import { DocitaLogo } from '@workspace/ui/components/docita-logo';
-import { toast } from 'sonner';
-import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel';
-import { useAuth } from '@/lib/auth-context';
-import { apiFetch } from '@/lib/api-client';
-import { logger } from '@/lib/logger';
+import { useState } from "react";
+import { Mail, Loader2, LogOut, RefreshCw } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { toast } from "sonner";
+import { AuthBrandingPanel } from "@/features/auth/components/AuthBrandingPanel";
+import { useAuth } from "@/lib/auth-context";
+import { apiFetch } from "@/lib/api-client";
+import { logger } from "@/lib/logger";
 import { SupportContact } from "@/components/common/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -21,18 +21,18 @@ export default function VerifyEmailSentPage() {
   const handleResend = async () => {
     setResending(true);
     try {
-      await apiFetch('/auth/resend-verification', { method: 'POST' });
+      await apiFetch("/auth/resend-verification", { method: "POST" });
       setResent(true);
-      toast.success('Verification email resent. Check your inbox.');
+      toast.success("Verification email resent. Check your inbox.");
     } catch (error) {
-      logger.error('Failed to resend verification email', { error });
-      showUserFacingErrorToast('We could not resend email. Please try again.');
+      logger.error("Failed to resend verification email", { error });
+      showUserFacingErrorToast("We could not resend email. Please try again.");
     } finally {
       setResending(false);
     }
   };
 
-  const email = user?.email ?? 'your email';
+  const email = user?.email ?? "your email";
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -43,7 +43,7 @@ export default function VerifyEmailSentPage() {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)',
+              "radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)",
           }}
           aria-hidden="true"
         />
@@ -66,21 +66,22 @@ export default function VerifyEmailSentPage() {
             <DocitaLogo />
           </div>
 
-          <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+              <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10">
                 <Mail className="h-8 w-8 text-primary" />
               </div>
             </div>
 
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
+              <h1 className="text-2xl font-bold">Check your email</h1>
               <p className="text-muted-foreground text-sm">
                 We sent a verification link to
               </p>
               <p className="font-medium text-sm">{email}</p>
               <p className="text-muted-foreground text-sm pt-1">
-                Click the link in the email to verify your account and continue setting up your clinic.
+                Click the link in the email to verify your account and continue
+                setting up your clinic.
               </p>
             </div>
 
@@ -97,7 +98,7 @@ export default function VerifyEmailSentPage() {
                     Sending...
                   </>
                 ) : resent ? (
-                  'Email sent'
+                  "Email sent"
                 ) : (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4" />
@@ -108,7 +109,7 @@ export default function VerifyEmailSentPage() {
             </div>
 
             <p className="text-center text-xs text-muted-foreground">
-              Wrong email?{' '}
+              Wrong email?{" "}
               <button
                 type="button"
                 onClick={logout}
