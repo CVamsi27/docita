@@ -53,7 +53,7 @@ binding = "NEXT_INC_CACHE_R2_BUCKET"
 bucket_name = "docita-cache"
 
 [env.staging.vars]
-NODE_ENV = "staging"
+NODE_ENV = "production"
 DOCITA_CLOUDFLARE = "1"
 APP_URL = "https://staging-app.docita.work"
 API_URL = "https://staging-api.docita.work/api/v1"
