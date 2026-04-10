@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
+const TOAST_DURATION_MS = 7000;
+const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
+
 export function ToasterWrapper() {
   const [mounted, setMounted] = useState(false);
 
@@ -14,5 +17,14 @@ export function ToasterWrapper() {
     return null;
   }
 
-  return <Toaster richColors position="top-right" />;
+  return (
+    <Toaster
+      closeButton
+      duration={TOAST_DURATION_MS}
+      expand
+      richColors
+      position="top-right"
+      visibleToasts={TOAST_VISIBLE_COUNT}
+    />
+  );
 }

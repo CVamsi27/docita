@@ -78,6 +78,7 @@ describe("user-facing error messages", () => {
 
     expect(toast.error).toHaveBeenCalledWith(
       "We could not save your changes. Please try again.",
+      { duration: Number.POSITIVE_INFINITY },
     );
   });
 });

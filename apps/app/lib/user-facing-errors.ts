@@ -9,6 +9,8 @@ import {
 
 export type { UserFacingErrorContext };
 
+const ERROR_TOAST_DURATION_MS = Number.POSITIVE_INFINITY;
+
 export function getUserFacingFormError(
   error: unknown,
   fallback = "Please check this field.",
@@ -36,6 +38,6 @@ export function showUserFacingErrorToast(
       context,
       fallback,
     }),
+    { duration: ERROR_TOAST_DURATION_MS },
   );
 }
-

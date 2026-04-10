@@ -9,6 +9,8 @@ import {
 
 export type { UserFacingErrorContext };
 
+const ERROR_TOAST_DURATION_MS = Number.POSITIVE_INFINITY;
+
 export function getSafeUserMessage(
   message: string | null | undefined,
   fallback = "Something went wrong. Please try again.",
@@ -26,6 +28,6 @@ export function showUserFacingErrorToast(
       context,
       fallback,
     }),
+    { duration: ERROR_TOAST_DURATION_MS },
   );
 }
-

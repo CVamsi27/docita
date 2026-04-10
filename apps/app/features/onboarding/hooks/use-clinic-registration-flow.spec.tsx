@@ -124,6 +124,7 @@ describe("useClinicRegistrationFlow", () => {
 
     expect(mocks.toast.error).toHaveBeenCalledWith(
       "Please complete the required onboarding details before continuing.",
+      { duration: Number.POSITIVE_INFINITY },
     );
     expect(sessionStorage.getItem("docita_onboarding_step")).toBe("1");
   });
@@ -195,6 +196,7 @@ describe("useClinicRegistrationFlow", () => {
 
     expect(mocks.toast.error).toHaveBeenCalledWith(
       "We could not finish registration. Please start again.",
+      { duration: Number.POSITIVE_INFINITY },
     );
   });
 
