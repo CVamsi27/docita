@@ -9,7 +9,7 @@
     "dev:turbopack": "node ./scripts/clean-next.mjs --if-production && next dev --turbopack --port 3000",
     "prestart": "turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access",
     "build": "node ./scripts/clean-next.mjs && next build --webpack",
-    "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build && node ../../scripts/ensure-opennext-prefetch-manifest-patch.mjs --app=app",
+    "build:cloudflare": "DOCITA_CLOUDFLARE=1 turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access && node -e \"require('fs').rmSync('.open-next', { recursive: true, force: true })\" && DOCITA_CLOUDFLARE=1 opennextjs-cloudflare build && node ../../scripts/ensure-opennext-prefetch-manifest-patch.mjs --app=app",
     "build:analyze": "node ./scripts/clean-next.mjs && turbo build --filter=@workspace/hooks --filter=@workspace/utils --filter=@workspace/ui --filter=@workspace/types --filter=@workspace/auth --filter=@workspace/data-access && ANALYZE=true next build --webpack",
     "preview:cloudflare": "opennextjs-cloudflare preview",
     "deploy:cloudflare": "opennextjs-cloudflare deploy",
