@@ -16,7 +16,7 @@ Docita is a healthcare practice management system built as a Turborepo monorepo.
 - **State Management**: React Query (@tanstack/react-query) for server state, Zustand for client state
 - **Forms**: React Hook Form + Zod validation
 - **UI**: Shared component library in @workspace/ui
-- **Deployment**: Staging-first Git flow, Fly.io API, Cloudflare workers for web apps
+- **Deployment**: Staging-first Git flow, Render staging API, Fly.io production API, Cloudflare workers for web apps
 
 ## Repository Structure
 

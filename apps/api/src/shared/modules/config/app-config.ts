@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
-  STAGING_DATABASE_URL: z.string().optional(),
   CPU_COUNT: z.coerce.number().default(4),
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRATION: z.string().default('7d'),
@@ -97,13 +96,6 @@ export function validateEnv(): EnvConfig {
   const envToParse = { ...process.env };
   envToParse.META_BUSINESS_ACCOUNT_ID ??=
     envToParse.WHATSAPP_BUSINESS_ACCOUNT_ID;
-  if (
-    envToParse.NODE_ENV === 'staging' &&
-    !envToParse.DATABASE_URL &&
-    envToParse.STAGING_DATABASE_URL
-  ) {
-    envToParse.DATABASE_URL = envToParse.STAGING_DATABASE_URL;
-  }
 
   if (envToParse.NODE_ENV === 'test') {
     envToParse.DATABASE_URL ??=
@@ -155,9 +147,6 @@ export function validateEnv(): EnvConfig {
   }
 
   validatedEnv = result.data;
-  if (envToParse.NODE_ENV === 'staging' && envToParse.STAGING_DATABASE_URL) {
-    process.env.DATABASE_URL = result.data.DATABASE_URL;
-  }
   return result.data;
 }
 

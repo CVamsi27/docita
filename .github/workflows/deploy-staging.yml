@@ -12,7 +12,6 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - 'turbo.json'
-      - 'fly.staging.toml'
       - '.github/workflows/deploy-staging.yml'
   workflow_run:
     workflows:
@@ -51,12 +50,11 @@ jobs:
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
               - 'turbo.json'
-              - 'fly.staging.toml'
             db:
               - 'packages/db/**'
 
   deploy-api:
-    name: Deploy API (Fly.io Staging)
+    name: Deploy API (Render Staging)
     needs: changes
     if: |
       needs.changes.outputs.api == 'true' &&
@@ -70,33 +68,13 @@ jobs:
       )
     runs-on: ubuntu-latest
     env:
-      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      RENDER_STAGING_DEPLOY_HOOK: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-      - name: Read Fly app from fly.staging.toml
-        id: fly-config
+      - name: Trigger Render deploy
         run: |
-          app_name="$(ruby -e 'puts File.read("fly.staging.toml")[/^\s*app\s*=\s*["'\'']([^"'\'']+)["'\'']\s*$/, 1]')"
-          if [ -z "$app_name" ]; then
-            echo "Unable to read Fly app name from fly.staging.toml"
-            exit 1
-          fi
-          echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
-      - name: Setup Flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Sync staging database secret
-        run: |
-          if [ -z "${{ secrets.STAGING_DATABASE_URL }}" ]; then
-            echo "STAGING_DATABASE_URL secret is required."
+          if [ -z "$RENDER_STAGING_DEPLOY_HOOK" ]; then
+            echo "RENDER_STAGING_DEPLOY_HOOK secret is required."
             exit 1
           fi
 
-          flyctl secrets set \
-            STAGING_DATABASE_URL="${{ secrets.STAGING_DATABASE_URL }}" \
-            --app "${{ steps.fly-config.outputs.app_name }}"
-
-      - name: Deploy API to Fly.io
-        run: flyctl deploy --config fly.staging.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
+          curl -fsSL -X POST "$RENDER_STAGING_DEPLOY_HOOK"

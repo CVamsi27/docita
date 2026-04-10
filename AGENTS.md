@@ -192,6 +192,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
 - Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
 - Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
+- Staging API deployments use the Render deploy hook from `.github/workflows/deploy-staging.yml` and should be gated so Prisma migrations land before the new API revision is released.
 - Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
 
 ## 11.2) CI scope and cost
