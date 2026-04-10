@@ -65,7 +65,7 @@ export default function ClinicDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Internal Admin Dashboard
         </h1>
         <p className="text-muted-foreground">

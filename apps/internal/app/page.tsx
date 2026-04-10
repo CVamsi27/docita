@@ -111,7 +111,7 @@ export default function InternalLogin() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-center">Docita Internal</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-center">Docita Internal</h1>
           <p className="text-sm text-muted-foreground">
             Internal Console - Product Owners & System Admins
           </p>

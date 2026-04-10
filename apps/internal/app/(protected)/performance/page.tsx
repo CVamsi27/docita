@@ -115,7 +115,7 @@ export default function PerformancePage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Performance</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
           <p className="text-muted-foreground">Loading live performance metrics...</p>
         </div>
         <div className="flex items-center justify-center h-40">
@@ -129,7 +129,7 @@ export default function PerformancePage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Performance</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
           <p className="text-muted-foreground">
             Unable to load live performance metrics.
           </p>
@@ -147,7 +147,7 @@ export default function PerformancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Performance</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
         <p className="text-muted-foreground">
           Live runtime, database, and request metrics
         </p>
