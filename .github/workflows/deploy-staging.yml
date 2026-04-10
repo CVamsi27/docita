@@ -87,5 +87,16 @@ jobs:
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Sync staging database secret
+        run: |
+          if [ -z "${{ secrets.STAGING_DATABASE_URL }}" ]; then
+            echo "STAGING_DATABASE_URL secret is required."
+            exit 1
+          fi
+
+          flyctl secrets set \
+            STAGING_DATABASE_URL="${{ secrets.STAGING_DATABASE_URL }}" \
+            --app "${{ steps.fly-config.outputs.app_name }}"
+
       - name: Deploy API to Fly.io
         run: flyctl deploy --config fly.staging.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
