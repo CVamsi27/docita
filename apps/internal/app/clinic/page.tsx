@@ -11,7 +11,6 @@ import {
 } from "@workspace/ui/components/card";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
-import { toast } from "sonner";
 import { Building2, Stethoscope, User, Users } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 

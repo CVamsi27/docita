@@ -29,7 +29,6 @@ import {
 } from "@workspace/ui/components/table";
 import { Badge } from "@workspace/ui/components/badge";
 import { useCodingQueue } from "@/hooks/api/use-medical-coding";
-import { toast } from "sonner";
 import { useState } from "react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {

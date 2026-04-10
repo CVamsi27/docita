@@ -49,7 +49,6 @@ import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
-import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {

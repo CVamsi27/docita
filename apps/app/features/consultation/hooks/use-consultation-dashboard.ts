@@ -5,7 +5,6 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessTarget } from "@/lib/access-policy";

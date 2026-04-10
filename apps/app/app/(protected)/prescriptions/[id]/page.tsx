@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { format } from "date-fns";
 import { usePrescription } from "@/hooks/api/use-clinical";
-import { toast } from "sonner";
 import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
 import { useAuth } from "@/lib/auth-context";

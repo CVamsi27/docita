@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
-import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2, Upload } from "lucide-react";
 import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";

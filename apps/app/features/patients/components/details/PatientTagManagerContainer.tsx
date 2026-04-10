@@ -3,7 +3,6 @@ import { apiFetch } from "@/lib/api-client";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
-import { toast } from "sonner";
 import type { ClinicType } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 

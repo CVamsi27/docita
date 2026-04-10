@@ -15,7 +15,6 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
-import { toast } from "sonner";
 
 import { DashboardAppointment } from "@workspace/types";
 import { useStartConsultation } from "@/hooks/api/use-appointments";

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { fetchClinics, fetchUsersForSelection } from "./api";
 import { calculateRoleStats, filterUsers } from "./utils";

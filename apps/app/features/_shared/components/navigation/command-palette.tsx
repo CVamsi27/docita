@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useStartConsultation, useQueueByDoctor } from "@/hooks/api/use-appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth-context";

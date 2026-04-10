@@ -7,7 +7,6 @@ import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useQueueByDoctor, useStartConsultation } from "@/hooks/api/use-appointments";
-import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { canAccessTarget } from "@/lib/access-policy";
