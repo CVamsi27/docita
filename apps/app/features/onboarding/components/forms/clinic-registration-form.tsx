@@ -430,7 +430,7 @@ export function ClinicRegistrationForm({
             aria-label={`Onboarding progress: ${progressPercent}%`}
           />
         </div>
-        <div className="flex justify-between mt-2">
+        <div className="hidden sm:flex justify-between mt-2">
           {STEPS.map((s) => (
             <span
               key={s.number}

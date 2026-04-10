@@ -135,7 +135,7 @@ export default function JoinRequestsPage() {
   return (
     <div className="container max-w-6xl py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Team Join Requests</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Team Join Requests</h1>
         <p className="text-muted-foreground">
           Review and approve requests from users who want to join your clinic
         </p>

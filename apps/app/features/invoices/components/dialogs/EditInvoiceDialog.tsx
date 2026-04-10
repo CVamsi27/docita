@@ -126,7 +126,7 @@ export function EditInvoiceDialog({
         <div className="space-y-2">
           <Label>Status</Label>
           <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>

@@ -61,7 +61,7 @@ export function PatientsTable({
   };
 
   return (
-    <div className="rounded-md border border-border overflow-hidden">
+    <div className="rounded-md border border-border overflow-x-auto">
       <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
@@ -77,7 +77,7 @@ export function PatientsTable({
               </TableHead>
               <TableHead>Contact</TableHead>
               <TableHead
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className="hidden sm:table-cell cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => onSort("gender")}
               >
                 <div className="flex items-center">
@@ -85,9 +85,9 @@ export function PatientsTable({
                   <SortIcon column="gender" />
                 </div>
               </TableHead>
-              <TableHead>Blood Group</TableHead>
+              <TableHead className="hidden md:table-cell">Blood Group</TableHead>
               <TableHead
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className="hidden md:table-cell cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => onSort("updatedAt")}
               >
                 <div className="flex items-center">
@@ -102,7 +102,7 @@ export function PatientsTable({
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-24 text-center text-muted-foreground"
                 >
                   Loading patients...
@@ -111,7 +111,7 @@ export function PatientsTable({
             ) : patients.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="h-24 text-center text-muted-foreground"
                 >
                   {emptyMessage}
@@ -143,15 +143,15 @@ export function PatientsTable({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="capitalize">{patient.gender}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell capitalize">{patient.gender}</TableCell>
+                  <TableCell className="hidden md:table-cell">
                     {patient.bloodGroup ? (
                       <span className="font-medium">{patient.bloodGroup}</span>
                     ) : (
                       <span className="text-muted-foreground text-xs">--</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     {patient.updatedAt
                       ? format(new Date(patient.updatedAt), "MMM d, yyyy")
                       : "-"}

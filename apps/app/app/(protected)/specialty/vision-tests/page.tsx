@@ -34,7 +34,7 @@ export default function VisionTestsPage() {
           <Eye className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vision Tests</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Vision Tests</h1>
           <p className="text-muted-foreground">
             Comprehensive eye examination and vision assessment
           </p>

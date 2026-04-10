@@ -276,7 +276,7 @@ export function SubscriptionSettings() {
         <Alert className="border-info/40 bg-info/10">
           <Clock className="h-4 w-4 text-info" />
           <AlertTitle>Free Trial Active</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               {trialDaysLeft > 0
                 ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your free CORE trial.`
@@ -286,7 +286,7 @@ export function SubscriptionSettings() {
             <Button
               size="sm"
               onClick={() => router.push("/upgrade")}
-              className="ml-4 shrink-0"
+              className="shrink-0"
             >
               Add Payment
             </Button>
@@ -298,7 +298,7 @@ export function SubscriptionSettings() {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Payment Due</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Your payment is overdue. Update your payment method to avoid
               service interruption.
@@ -307,7 +307,7 @@ export function SubscriptionSettings() {
               size="sm"
               variant="outline"
               onClick={() => router.push("/upgrade")}
-              className="ml-4 shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
+              className="shrink-0 border-destructive-foreground/30 text-destructive-foreground hover:bg-destructive-foreground/10"
             >
               Update Payment
             </Button>
@@ -319,7 +319,7 @@ export function SubscriptionSettings() {
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
           <AlertTitle>Trial Expired</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               Your free trial has ended. Choose a plan to continue using
               Docita.
@@ -327,7 +327,7 @@ export function SubscriptionSettings() {
             <Button
               size="sm"
               onClick={() => router.push("/upgrade")}
-              className="ml-4 shrink-0 bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90"
+              className="shrink-0 bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90"
             >
               Choose a Plan
             </Button>

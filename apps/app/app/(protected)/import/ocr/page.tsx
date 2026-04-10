@@ -46,7 +46,7 @@ export default function OCRPage() {
             </Link>
           </Button>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Smart OCR Digitization
         </h1>
         <p className="text-muted-foreground">

@@ -53,7 +53,7 @@ export function ClinicOnboardingWizard() {
         <div className="flex justify-center mb-6">
           <DocitaLogo />
         </div>
-        <h1 className="text-3xl font-bold">Welcome to Docita</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Welcome to Docita</h1>
         <p className="text-muted-foreground">
           Complete your clinic registration to get started.
         </p>

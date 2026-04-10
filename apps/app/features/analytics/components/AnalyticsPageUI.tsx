@@ -134,7 +134,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
           onValueChange={(nextTab) => onTabChange(nextTab as AnalyticsTab)}
           className="space-y-4"
         >
-          <TabsList>
+          <TabsList className="w-full sm:w-auto overflow-x-auto">
             <TabsTrigger value="disease-trends">Disease Trends</TabsTrigger>
             <TabsTrigger value="cpt-revenue">CPT Revenue</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -176,7 +176,7 @@ const AnalyticsHeader = () => (
         </Link>
       </Button>
     </div>
-    <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics</h1>
     <p className="text-muted-foreground">
       Insights and performance metrics for your clinic
     </p>

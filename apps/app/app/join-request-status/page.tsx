@@ -144,19 +144,19 @@ export default function JoinRequestStatusPage() {
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Join Request Status</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Join Request Status</h1>
           <p className="text-muted-foreground">
             Your request is being reviewed by the clinic administrator
           </p>
         </div>
 
-        <Card className="p-8">
-          <div className="flex items-start gap-4 mb-6">
-            <div className={`p-3 rounded-full ${getStatusColor()} border`}>
+        <Card className="p-4 sm:p-8">
+          <div className="flex items-start gap-3 sm:gap-4 mb-6">
+            <div className={`p-3 rounded-full shrink-0 ${getStatusColor()} border`}>
               {getStatusIcon()}
             </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-semibold mb-2">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-2">
                 Request Under Review
               </h2>
               <p className="text-muted-foreground">
