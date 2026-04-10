@@ -10,6 +10,7 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useAuth } from "@/lib/auth-context";
 import { useClinic } from "@/lib/clinic-context";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
   Appointment,
@@ -230,10 +231,10 @@ export const useAppointmentsLogic = () => {
         });
         router.push(`/consultation/${result.appointmentId}`);
       } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Unable to start this consultation",
+        showUserFacingErrorToast(
+          error,
+          "We could not start this consultation. Please try again.",
+          "save",
         );
       } finally {
         setStartingConsultationId(null);
@@ -250,8 +251,10 @@ export const useAppointmentsLogic = () => {
         toast.success("Patient checked in to queue");
         await refetch();
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to check in",
+        showUserFacingErrorToast(
+          error,
+          "We could not check in the patient. Please try again.",
+          "save",
         );
       } finally {
         setCheckingIn(null);
@@ -269,7 +272,7 @@ export const useAppointmentsLogic = () => {
       toast.success("Appointment cancelled successfully");
       refetch();
     } catch {
-      toast.error("Failed to cancel appointment");
+      showUserFacingErrorToast("We could not cancel appointment. Please try again.");
     }
   };
 
@@ -282,7 +285,7 @@ export const useAppointmentsLogic = () => {
       toast.success("Appointment marked as no-show");
       refetch();
     } catch {
-      toast.error("Failed to mark appointment as no-show");
+      showUserFacingErrorToast("We could not mark appointment as no-show. Please try again.");
     }
   };
 

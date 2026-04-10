@@ -3,6 +3,7 @@ import { useInvoices } from "@/hooks/api/use-billing";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
 import { Invoice, ListInvoicesContractQuery } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const useInvoicesLogic = () => {
   const [filter, setFilter] = useState("all");
@@ -62,7 +63,7 @@ export const useInvoicesLogic = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       window.open(`/api/invoices/${invoiceId}/pdf`, "_blank");
     } catch {
-      toast.error("Failed to download PDF");
+      showUserFacingErrorToast("We could not download PDF. Please try again.");
 
     }
   };

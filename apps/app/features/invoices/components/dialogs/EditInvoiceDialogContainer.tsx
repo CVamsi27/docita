@@ -6,6 +6,7 @@ import { useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useFormOptions } from "@/lib/app-config-context";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 type InvoiceWithPatient = Invoice & { patient: Patient };
 interface EditInvoiceDialogContainerProps {
   invoice: InvoiceWithPatient | null;
@@ -81,7 +82,7 @@ export function EditInvoiceDialogContainer({
         setTimeout(() => onOpenChange(false), 100);
       } catch {
 
-        toast.error("Failed to update invoice");
+        showUserFacingErrorToast("We could not update invoice. Please try again.");
       } finally {
         setLoading(false);
       }

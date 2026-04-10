@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { canAccessTarget } from "@/lib/access-policy";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface FloatingStartConsultationProps {
   patientId?: string;
@@ -87,10 +88,10 @@ export function FloatingStartConsultation({
         });
         router.push(`/consultation/${result.appointmentId}`);
       } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Unable to start this consultation",
+        showUserFacingErrorToast(
+          error,
+          "We could not start this consultation. Please try again.",
+          "save",
         );
       }
     } else if (resolvedPatientId) {
@@ -124,7 +125,7 @@ export function FloatingStartConsultation({
           <Stethoscope className="h-6 w-6" />
         </Button>
       ) : (
-        <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-4 max-w-xs">
+        <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-4 w-[calc(100vw-2rem)] max-w-xs">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />

@@ -3,6 +3,7 @@ import { apiFetch } from "@/lib/api-client";
 import {
   Appointment,
   Document,
+  getUserFacingErrorMessage,
   PatientWithMedicalHistory,
 } from "@workspace/types";
 
@@ -61,7 +62,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       } else {
 
         setPatient(null);
-        setError("Failed to load patient details");
+        setError("We could not load patient details. Please try again.");
       }
 
       const apptItems = appointmentsData && typeof appointmentsData === "object" && "items" in appointmentsData
@@ -97,11 +98,12 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       });
     } catch (err) {
 
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "An error occurred while fetching data";
-      setError(errorMessage);
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not load patient details. Please try again.",
+          context: "load",
+        }),
+      );
     } finally {
       setLoading(false);
     }

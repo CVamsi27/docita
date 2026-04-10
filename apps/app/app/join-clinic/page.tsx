@@ -16,6 +16,7 @@ import { logger } from '@/lib/logger';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { useAuth } from '@/lib/auth-context';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Clinic {
   id: string;
@@ -41,7 +42,7 @@ export default function JoinClinicPage() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      toast.error('Please enter a search query');
+      showUserFacingErrorToast('Please enter a search query');
       return;
     }
 
@@ -54,7 +55,7 @@ export default function JoinClinicPage() {
         toast.info('No clinics found matching your search');
       }
     } catch (error) {
-      toast.error('Failed to search clinics. Please try again.');
+      showUserFacingErrorToast('We could not search clinics. Please try again.');
       logger.error('Search error', { error });
     } finally {
       setIsSearching(false);
@@ -77,7 +78,7 @@ export default function JoinClinicPage() {
       setIsRedirecting(true);
       router.replace('/join-request-status');
     } catch (error) {
-      toast.error('Failed to submit join request. Please try again.');
+      showUserFacingErrorToast('We could not submit join request. Please try again.');
       logger.error('Submit error', { error });
     } finally {
       setIsSubmitting(false);
@@ -124,7 +125,7 @@ export default function JoinClinicPage() {
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Join a Clinic</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Join a Clinic</h1>
           <p className="text-muted-foreground">
             Search for your clinic by name, email, or referral code
           </p>

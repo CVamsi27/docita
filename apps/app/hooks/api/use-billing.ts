@@ -139,7 +139,9 @@ export const useInfiniteInvoices = (options?: {
         }),
       );
 
-      if (!response.ok) throw new Error("Failed to fetch invoices");
+      if (!response.ok) {
+        throw new Error("We could not load invoices. Please try again.");
+      }
       return response.json() as Promise<{
         items: Invoice[];
         nextCursor: string | null;

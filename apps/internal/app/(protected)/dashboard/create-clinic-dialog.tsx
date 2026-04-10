@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/components/select";
 import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -173,8 +174,10 @@ export function CreateClinicDialog({
         });
         toast.success("Clinic created successfully");
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to create clinic",
+        showUserFacingErrorToast(
+          error,
+          "We could not create the clinic. Please try again.",
+          "save",
         );
       } finally {
         setLoading(false);

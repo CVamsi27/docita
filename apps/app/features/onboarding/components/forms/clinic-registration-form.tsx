@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
@@ -244,11 +245,12 @@ export function ClinicRegistrationForm({
         { ...options, currency },
       );
     } catch (error) {
-      const message =
-        error instanceof Error && error.message.trim()
-          ? error.message
-          : "Unable to proceed with the selected plan.";
-      setStepError(message);
+      setStepError(
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not continue with this plan. Please try again.",
+          context: "save",
+        }),
+      );
     }
   };
 
@@ -266,11 +268,12 @@ export function ClinicRegistrationForm({
     try {
       await setTeamMembers(members);
     } catch (error) {
-      const message =
-        error instanceof Error && error.message.trim()
-          ? error.message
-          : "Unable to prepare compliance step.";
-      setStepError(message);
+      setStepError(
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not continue onboarding. Please try again.",
+          context: "save",
+        }),
+      );
     }
   };
 
@@ -279,11 +282,12 @@ export function ClinicRegistrationForm({
     try {
       await setTeamMembers([]);
     } catch (error) {
-      const message =
-        error instanceof Error && error.message.trim()
-          ? error.message
-          : "Unable to prepare compliance step.";
-      setStepError(message);
+      setStepError(
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not continue onboarding. Please try again.",
+          context: "save",
+        }),
+      );
     }
   };
 
@@ -295,7 +299,9 @@ export function ClinicRegistrationForm({
     try {
       await submitRegistration(data, successCallback);
     } catch {
-      setStepError("Registration failed. Please check your details and try again.");
+      setStepError(
+        "We could not complete registration. Please check your details and try again.",
+      );
     }
   };
 

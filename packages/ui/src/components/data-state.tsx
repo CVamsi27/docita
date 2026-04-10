@@ -1,5 +1,6 @@
 import type React from "react";
 import { Inbox, type LucideIcon } from "lucide-react";
+import { sanitizeUserFacingMessage } from "@workspace/types";
 
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { ErrorState } from "@workspace/ui/components/error-state";
@@ -42,7 +43,10 @@ export function DataState({
   if (status === "error") {
     return (
       <ErrorState
-        message={errorMessage}
+        message={sanitizeUserFacingMessage(
+          errorMessage,
+          "Something went wrong. Please try again.",
+        )}
         onRetry={onRetry}
         className={className}
       />

@@ -61,6 +61,7 @@ import { toast } from "sonner";
 import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
 import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
 import { toAbsoluteAppUrl } from "@/lib/url";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const inviteSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -187,7 +188,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           setSelectedMember(null);
         },
         onError: (err) => {
-          toast.error(`Failed to update member: ${err.message}`);
+          showUserFacingErrorToast(
+            err,
+            "We could not update this team member. Please try again.",
+            "save",
+          );
         },
       },
     );
@@ -208,7 +213,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           setSelectedMember(null);
         },
         onError: (err) => {
-          toast.error(`Failed to remove member: ${err.message}`);
+          showUserFacingErrorToast(
+            err,
+            "We could not remove this team member. Please try again.",
+            "delete",
+          );
         },
       },
     );
@@ -224,7 +233,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           toast.success("Signature upload link created");
         },
         onError: (err) => {
-          toast.error(`Failed to create upload link: ${err.message}`);
+          showUserFacingErrorToast(
+            err,
+            "We could not create the upload link. Please try again.",
+            "save",
+          );
         },
       },
     );
@@ -238,7 +251,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           toast.success("Doctor registration reverification triggered");
         },
         onError: (err) => {
-          toast.error(`Failed to reverify doctor: ${err.message}`);
+          showUserFacingErrorToast(
+            err,
+            "We could not start doctor reverification. Please try again.",
+            "save",
+          );
         },
       },
     );
@@ -249,13 +266,13 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       await navigator.clipboard.writeText(url);
       toast.success("Upload link copied");
     } catch {
-      toast.error("Unable to copy upload link");
+      showUserFacingErrorToast("We could not copy the upload link. Please try again.");
     }
   };
 
   const handleCopyClinicCode = async () => {
     if (!clinicReferralCode) {
-      toast.error("Clinic code is not available");
+      showUserFacingErrorToast("Clinic code is not available");
       return;
     }
 
@@ -263,7 +280,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       await navigator.clipboard.writeText(clinicReferralCode);
       toast.success("Clinic code copied");
     } catch {
-      toast.error("Unable to copy clinic code");
+      showUserFacingErrorToast("We could not copy the clinic code. Please try again.");
     }
   };
 
@@ -291,7 +308,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   const onInviteSubmit = (data: InviteFormValues) => {
     if (!clinicId) {
-      toast.error("Missing clinic context. Refresh and try again.");
+      showUserFacingErrorToast("Missing clinic context. Refresh and try again.");
       return;
     }
 
@@ -313,7 +330,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             form.reset();
           },
           onError: (err) => {
-            toast.error(`Failed to invite doctor: ${err.message}`);
+            showUserFacingErrorToast(
+              err,
+              "We could not invite the doctor. Please try again.",
+              "save",
+            );
           },
         },
       );
@@ -334,7 +355,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           form.reset();
         },
         onError: (err) => {
-          toast.error(`Failed to invite receptionist: ${err.message}`);
+          showUserFacingErrorToast(
+            err,
+            "We could not invite the receptionist. Please try again.",
+            "save",
+          );
         },
       },
     );
@@ -370,7 +395,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     return (
       <Card >
         <CardContent className="py-8 text-center text-muted-foreground">
-          Failed to load team members
+          We could not load team members. Please try again.
         </CardContent>
       </Card>
     );

@@ -13,6 +13,7 @@ import { Calendar, Check, X } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface FollowUp {
   id: string;
@@ -61,7 +62,7 @@ export function FollowUpWidget() {
       toast.success("Follow-up marked as completed");
     } catch (err) {
       logger.error("Failed to complete follow-up", { err });
-      toast.error("Failed to complete follow-up");
+      showUserFacingErrorToast("We could not complete follow-up. Please try again.");
     } finally {
       setActioning(null);
     }
@@ -75,7 +76,7 @@ export function FollowUpWidget() {
       toast.success("Follow-up cancelled");
     } catch (err) {
       logger.error("Failed to cancel follow-up", { err });
-      toast.error("Failed to cancel follow-up");
+      showUserFacingErrorToast("We could not cancel follow-up. Please try again.");
     } finally {
       setActioning(null);
     }

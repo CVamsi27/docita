@@ -13,6 +13,7 @@ import { DocitaLogo } from '@workspace/ui/components/docita-logo';
 import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel';
 import { useAuth } from '@/lib/auth-context';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const CREATE_BULLETS = [
   'Choose subscription plan',
@@ -53,7 +54,7 @@ export default function ChoosePathPage() {
       await typedApi.onboarding.choosePath(path);
       router.push(path === 'CREATE_CLINIC' ? '/onboarding' : '/join-clinic');
     } catch (error) {
-      toast.error('Failed to save your choice. Please try again.');
+      showUserFacingErrorToast('We could not save your choice. Please try again.');
       logger.error('Error choosing path', { error });
       setLoadingPath(null);
     }

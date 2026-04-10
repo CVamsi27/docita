@@ -67,37 +67,38 @@ export type AppErrorCode = z.infer<typeof appErrorCodeSchema>;
 
 export const ERROR_MESSAGES: Record<AppErrorCode, string> = {
 
-  UNAUTHORIZED: "Please log in to continue",
+  UNAUTHORIZED: "Please sign in again to continue",
   FORBIDDEN: "You do not have permission to perform this action",
-  TOKEN_EXPIRED: "Your session has expired. Please log in again",
-  INVALID_CREDENTIALS: "Invalid email or password",
+  TOKEN_EXPIRED: "Please sign in again to continue",
+  INVALID_CREDENTIALS: "The email or password is incorrect",
 
-  NOT_FOUND: "The requested resource was not found",
-  PATIENT_NOT_FOUND: "Patient not found",
-  APPOINTMENT_NOT_FOUND: "Appointment not found",
-  DOCTOR_NOT_FOUND: "Doctor not found",
-  CLINIC_NOT_FOUND: "Clinic not found",
-  PRESCRIPTION_NOT_FOUND: "Prescription not found",
-  INVOICE_NOT_FOUND: "Invoice not found",
-  DOCUMENT_NOT_FOUND: "Document not found",
+  NOT_FOUND: "We could not find what you were looking for",
+  PATIENT_NOT_FOUND: "We could not find that patient",
+  APPOINTMENT_NOT_FOUND: "We could not find that appointment",
+  DOCTOR_NOT_FOUND: "We could not find that doctor",
+  CLINIC_NOT_FOUND: "We could not find that clinic",
+  PRESCRIPTION_NOT_FOUND: "We could not find that prescription",
+  INVOICE_NOT_FOUND: "We could not find that invoice",
+  DOCUMENT_NOT_FOUND: "We could not find that document",
 
-  VALIDATION_ERROR: "Please check your input and try again",
-  INVALID_INPUT: "The provided data is invalid",
-  DUPLICATE_ENTRY: "A record with this information already exists",
-  INVALID_DATE_RANGE: "The selected date range is invalid",
+  VALIDATION_ERROR: "Please check the highlighted fields and try again",
+  INVALID_INPUT: "Please check the information and try again",
+  DUPLICATE_ENTRY: "This information already exists",
+  INVALID_DATE_RANGE: "Please choose a valid date range",
 
-  APPOINTMENT_CONFLICT: "This time slot conflicts with an existing appointment",
-  SLOT_UNAVAILABLE: "The selected time slot is no longer available",
-  INSUFFICIENT_PERMISSIONS: "You do not have the required permissions",
+  APPOINTMENT_CONFLICT:
+    "This time is no longer available. Please choose another time",
+  SLOT_UNAVAILABLE: "This time is no longer available. Please choose another time",
+  INSUFFICIENT_PERMISSIONS: "You do not have permission to do that",
   SUBSCRIPTION_LIMIT_REACHED:
-    "You have reached the limit for your subscription tier",
-  LICENSE_EXPIRED: "Your medical license has expired",
-  FEATURE_NOT_AVAILABLE: "This feature is not available in your plan",
+    "Your current plan has reached its limit for this action",
+  LICENSE_EXPIRED: "Please update the license details before continuing",
+  FEATURE_NOT_AVAILABLE: "This feature is not available for your account",
 
-  INTERNAL_ERROR: "An unexpected error occurred. Please try again",
-  DATABASE_ERROR: "A database error occurred. Please try again",
-  EXTERNAL_SERVICE_ERROR: "An external service is unavailable",
-  RATE_LIMIT_EXCEEDED: "Too many requests. Please wait and try again",
+  INTERNAL_ERROR: "Something went wrong. Please try again",
+  DATABASE_ERROR: "Something went wrong. Please try again",
+  EXTERNAL_SERVICE_ERROR: "Something went wrong. Please try again",
+  RATE_LIMIT_EXCEEDED: "Too many attempts. Please wait a moment and try again",
 };
 
 export const apiErrorSchema = z.object({

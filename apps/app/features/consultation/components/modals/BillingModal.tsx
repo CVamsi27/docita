@@ -21,6 +21,7 @@ import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { CreditCard, Plus, X } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface LineItem {
   description: string;
@@ -87,12 +88,12 @@ export function BillingModal({
       const validItems = items.filter((i) => i.description.trim() !== "");
 
       if (validItems.length === 0) {
-        toast.error("Please add at least one line item");
+        showUserFacingErrorToast("Please add at least one line item");
         return;
       }
 
       if (calculations.discountAmount > calculations.subtotal) {
-        toast.error("Discount cannot exceed the subtotal");
+        showUserFacingErrorToast("Discount cannot exceed the subtotal");
         return;
       }
 
@@ -131,7 +132,7 @@ export function BillingModal({
       setTaxRate(0);
       setDiscountValue(0);
     } catch {
-      toast.error("Failed to create invoice");
+      showUserFacingErrorToast("We could not create invoice. Please try again.");
 
     }
   };

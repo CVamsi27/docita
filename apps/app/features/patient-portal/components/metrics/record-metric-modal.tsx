@@ -12,6 +12,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { Loader2 } from "lucide-react";
 import { useRecordPortalMetricValue } from "@/hooks/api/use-patient-portal";
 
@@ -80,7 +81,10 @@ export function RecordMetricModal({
       onClose();
     } catch (err) {
       setLocalError(
-        err instanceof Error ? err.message : "Failed to record metric",
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not record the metric. Please try again.",
+          context: "save",
+        }),
       );
     }
   };

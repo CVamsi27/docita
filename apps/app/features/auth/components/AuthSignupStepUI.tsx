@@ -133,7 +133,7 @@ export function AuthSignupStepUI({
             onChange={(e) => onChangePassword(e.target.value)}
             required
             className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
-            placeholder="••••••••"
+            placeholder="Enter your password"
             aria-invalid={hasFieldError(fieldErrors, "password")}
             aria-describedby={
               hasFieldError(fieldErrors, "password")

@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Calendar, Loader2 } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -140,7 +141,11 @@ export function DoctorAvailabilitySettings() {
         toast.success("Availability updated successfully");
       },
       onError: (err) => {
-        toast.error("Failed to update availability: " + err.message);
+        showUserFacingErrorToast(
+          err,
+          "We could not update availability. Please try again.",
+          "save",
+        );
       },
     });
   };

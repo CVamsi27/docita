@@ -15,6 +15,7 @@ import {
 } from "@/hooks/api/use-clinical";
 import { Pill, Plus, RotateCcw, X } from "lucide-react";
 import { ApiError } from "@/lib/errors";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const getPrescriptionComplianceErrorMessage = (error: unknown): string | null => {
   if (!(error instanceof ApiError)) {
@@ -92,7 +93,7 @@ export function PrescriptionModal({
       setMedications(medicationsFromLastRx);
       toast.success("Loaded medications from last prescription");
     } else {
-      toast.error("No previous prescription found");
+      showUserFacingErrorToast("No previous prescription found");
     }
   };
 
@@ -103,7 +104,7 @@ export function PrescriptionModal({
       const validMedications = medications.filter((m) => m.name.trim() !== "");
 
       if (validMedications.length === 0) {
-        toast.error("Please add at least one medication");
+        showUserFacingErrorToast("Please add at least one medication");
         return;
       }
 
@@ -130,7 +131,7 @@ export function PrescriptionModal({
       ]);
     } catch (err) {
       const complianceMessage = getPrescriptionComplianceErrorMessage(err);
-      toast.error(complianceMessage || "Failed to create prescription");
+      showUserFacingErrorToast(complianceMessage || "We could not create prescription. Please try again.");
 
     }
   };
@@ -179,7 +180,7 @@ export function PrescriptionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -220,7 +221,7 @@ export function PrescriptionModal({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <Input
                     placeholder="Medication Name (e.g. Amoxicillin 500mg)"

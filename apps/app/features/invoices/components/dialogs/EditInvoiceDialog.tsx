@@ -18,6 +18,7 @@ import {
 import { Plus, X } from "lucide-react";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };
 
@@ -100,7 +101,7 @@ export function EditInvoiceDialog({
       setTimeout(() => onOpenChange(false), 100);
     } catch {
 
-      toast.error("Failed to update invoice");
+      showUserFacingErrorToast("We could not update invoice. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -17,6 +17,7 @@ import { MAIN_APP_URL } from "@/lib/api-config";
 import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { client } from "@/lib/api-client";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 function getMainAppLoginUrl() {
   return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;
@@ -82,7 +83,7 @@ export default function InternalLogin() {
       const data = await loginMutation.mutateAsync({ email, password });
 
       if (!data?.user) {
-        throw new Error("Invalid response from server");
+        throw new Error("We could not sign you in. Please try again.");
       }
 
       if (data.user.role !== "INTERNAL") {
@@ -93,7 +94,11 @@ export default function InternalLogin() {
       login(data.access_token ?? null, data.user);
       toast.success("Login successful");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Login failed");
+      showUserFacingErrorToast(
+        err,
+        "We could not sign you in. Please check your details and try again.",
+        "auth",
+      );
     } finally {
       setLoading(false);
     }

@@ -92,7 +92,7 @@ export default function PortalAppointmentsPage() {
       <DataState
         status={state}
         loadingMessage="Loading appointments..."
-        errorMessage="Failed to load appointments."
+        errorMessage="We could not load appointments. Please try again."
         onRetry={() => void refetch()}
         emptyIcon={Calendar}
         emptyTitle="No appointments found"

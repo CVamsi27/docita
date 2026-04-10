@@ -37,6 +37,7 @@ import { buildJsonHeaders } from "@/lib/csrf";
 import { toAbsoluteAppUrl } from "@/lib/url";
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
 import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 type LegalDocumentType = "sla" | "privacy" | "dpa";
 interface ComplianceStepProps {
@@ -302,17 +303,17 @@ export function ComplianceStep({
     }
 
     if (!activeOnboardingId) {
-      throw new Error("Could not initialize onboarding session for QR signature.");
+      throw new Error("We could not create the signature link. Please try again.");
     }
 
     let sessionData: { id: string } | null = null;
-    let errMessage = "Failed to create QR session";
+    let errMessage = "We could not create the signature link. Please try again.";
 
     try {
       sessionData = await createSession(activeOnboardingId);
     } catch (error) {
-      errMessage = error instanceof Error ? error.message : errMessage;
-      const normalizedError = errMessage.toLowerCase();
+      const rawErrorMessage = error instanceof Error ? error.message : "";
+      const normalizedError = rawErrorMessage.toLowerCase();
       const isStaleOnboardingSession = (
         (error instanceof APIRequestError &&
           (error.status === 400 || error.status === 404))
@@ -331,8 +332,8 @@ export function ComplianceStep({
         } catch (retryError) {
           errMessage =
             retryError instanceof Error
-              ? retryError.message
-              : "Failed to create QR session";
+              ? "We could not create the signature link. Please try again."
+              : errMessage;
         }
       }
     }
@@ -384,7 +385,7 @@ export function ComplianceStep({
         toast.message("Still waiting for signature upload");
       }
     } catch {
-      toast.error("Unable to refresh signature status");
+      showUserFacingErrorToast("We could not refresh signature status. Please try again.");
     }
   }, [refreshQrStatus]);
 
@@ -394,10 +395,10 @@ export function ComplianceStep({
       if (copied) {
         toast.success("Link clicked");
       } else {
-        toast.error("Unable to copy link");
+        showUserFacingErrorToast("We could not copy the link. Please try again.");
       }
     } catch {
-      toast.error("Unable to copy link");
+      showUserFacingErrorToast("We could not copy the link. Please try again.");
     }
   }, [copyQrLink]);
 

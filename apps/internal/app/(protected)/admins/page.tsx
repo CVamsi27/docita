@@ -49,6 +49,7 @@ import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Admin {
   id: string;
@@ -184,14 +185,14 @@ export default function AdminsPage() {
     if (!selectedClinic || !token || selectedClinic === "all") return;
 
     if (!createForm.name || !createForm.email || !createForm.password) {
-      toast.error("Please fill in all required fields");
+      showUserFacingErrorToast("Please fill in all required fields");
       return;
     }
 
     try {
       await createAdminMutation.mutateAsync();
     } catch {
-      toast.error("Error creating admin");
+      showUserFacingErrorToast("Error creating admin");
     }
   };
 
@@ -215,14 +216,14 @@ export default function AdminsPage() {
     if (!selectedAdmin || !token) return;
 
     if (!editForm.name || !editForm.email) {
-      toast.error("Please fill in all required fields");
+      showUserFacingErrorToast("Please fill in all required fields");
       return;
     }
 
     try {
       await updateAdminMutation.mutateAsync();
     } catch {
-      toast.error("Error updating admin");
+      showUserFacingErrorToast("Error updating admin");
     }
   };
 
@@ -236,7 +237,7 @@ export default function AdminsPage() {
     try {
       await deleteAdminMutation.mutateAsync(adminId);
     } catch {
-      toast.error("Error deleting admin");
+      showUserFacingErrorToast("Error deleting admin");
     }
   };
 

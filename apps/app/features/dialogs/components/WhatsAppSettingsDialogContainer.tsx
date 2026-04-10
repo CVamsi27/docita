@@ -4,6 +4,7 @@ import {
   useWhatsAppSettings,
 } from "@/hooks/api/use-whatsapp";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   WhatsAppSettings,
   WhatsAppSettingsDialogUI,
@@ -51,7 +52,7 @@ export function WhatsAppSettingsDialogContainer({
         refetch();
       },
       onError: () => {
-        toast.error("Failed to update settings");
+        showUserFacingErrorToast("We could not update settings. Please try again.");
       },
     });
   };

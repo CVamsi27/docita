@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
 import { OCRFormData } from "@/features/ocr/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const useOCR = () => {
   const router = useRouter();
@@ -128,7 +129,7 @@ export const useOCR = () => {
       setScanned(true);
       toast.success("Document scanned successfully");
     } catch {
-      toast.error("Failed to scan document");
+      showUserFacingErrorToast("We could not scan document. Please try again.");
     }
   };
 
@@ -201,11 +202,11 @@ export const useOCR = () => {
       router.push(`/patients/${patient.id}`);
     } catch (error) {
 
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to save record. Please try again.";
-      toast.error(errorMessage);
+      showUserFacingErrorToast(
+        error,
+        "We could not save the record. Please try again.",
+        "save",
+      );
     }
   };
 

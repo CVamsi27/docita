@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { Loader2 } from "lucide-react";
 import { useCreatePortalMetricDefinition } from "@/hooks/api/use-patient-portal";
 
@@ -84,7 +85,10 @@ export function AddMetricDefinitionModal({
       onClose();
     } catch (err) {
       setLocalError(
-        err instanceof Error ? err.message : "Failed to create metric",
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not create the metric. Please try again.",
+          context: "save",
+        }),
       );
     }
   };

@@ -12,6 +12,7 @@ import {
 import { usePatients } from "@/hooks/api/use-patients";
 import { Patient } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -97,11 +98,11 @@ export const useLabTestsLogic = () => {
         toast.success("Lab test order created successfully");
       } catch (error) {
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to create lab test order. Please try again.";
-        toast.error(errorMessage);
+        showUserFacingErrorToast(
+          error,
+          "We could not create the lab test order. Please try again.",
+          "save",
+        );
       }
     },
     [createOrder, form, refetch],

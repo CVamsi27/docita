@@ -9,6 +9,7 @@ import {
   createPatientSchema,
 } from "@workspace/types";
 import { useClinic } from "@/lib/clinic-context";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UsePatientFormProps {
   onPatientAdded: () => void;
@@ -62,6 +63,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
 
         const err = error as { message?: string };
         const errorMessage = err.message || "Failed to create patient";
+        const fallbackMessage = "We could not add the patient. Please try again.";
 
         if (
           errorMessage.includes("Unique constraint") ||
@@ -72,13 +74,17 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
             type: "manual",
             message: "This phone number is already registered.",
           });
-          toast.error("This phone number is already registered.");
+          showUserFacingErrorToast(
+            null,
+            "This phone number is already registered.",
+            "form",
+          );
         } else {
           form.setError("root", {
             type: "manual",
-            message: errorMessage,
+            message: fallbackMessage,
           });
-          toast.error(errorMessage);
+          showUserFacingErrorToast(error, fallbackMessage, "save");
         }
       }
     },

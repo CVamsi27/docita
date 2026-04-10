@@ -80,7 +80,7 @@ export async function fetchLandingJson<T>(
   const response = await fetch(resolveApiUrl(path, baseOrigin));
 
   if (!response.ok) {
-    throw new Error("Request failed");
+    throw new Error("We could not load this information. Please try again.");
   }
 
   return (await response.json()) as T;
@@ -101,6 +101,6 @@ export async function submitContactInquiry(
   });
 
   if (!response.ok) {
-    throw new Error("Failed to send inquiry");
+    throw new Error("We could not send your message. Please try again.");
   }
 }

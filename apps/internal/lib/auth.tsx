@@ -10,10 +10,10 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { client, setAuthLogoutCallback } from "./api-client";
 import { API_URL, MAIN_APP_URL } from "./api-config";
 import { INTERNAL_USER_KEY, internalSession } from "./session";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface User {
   id: string;
@@ -116,7 +116,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   clearAuthStorage();
                   setToken(null);
                   setUser(null);
-                  toast.error("Session expired. Please log in again.");
+                  showUserFacingErrorToast(
+                    null,
+                    "Please sign in again to continue.",
+                    "auth",
+                  );
                 }
               }
             } else {
@@ -130,7 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 clearAuthStorage();
                 setToken(null);
                 setUser(null);
-                toast.error("Session expired. Please log in again.");
+                showUserFacingErrorToast(
+                  null,
+                  "Please sign in again to continue.",
+                  "auth",
+                );
               }
             }
           } else {
@@ -160,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (reason?: string) => {
       if (hasLoggedOutRef.current && !internalSession.getToken()) {
         if (reason) {
-          toast.error(reason);
+          showUserFacingErrorToast(reason, "Please sign in again to continue.", "auth");
         }
         router.replace("/");
         return Promise.resolve();
@@ -193,7 +201,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           hasLoggedOutRef.current = true;
 
           if (reason) {
-            toast.error(reason);
+            showUserFacingErrorToast(
+              reason,
+              "Please sign in again to continue.",
+              "auth",
+            );
           }
 
           router.replace("/");

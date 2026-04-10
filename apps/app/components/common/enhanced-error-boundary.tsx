@@ -84,7 +84,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
       return {
         title: "Connection Issue",
         message:
-          "We couldn't connect to our servers. Please check your internet connection and try again.",
+          "We couldn't connect right now. Please check your internet connection and try again.",
         actions: [
           {
             label: "Retry Connection",
@@ -141,7 +141,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     return {
       title: "Something Went Wrong",
       message:
-        "An unexpected error occurred in the application. We've been notified and are looking into it.",
+        "We couldn't load this page. Please try again.",
       actions: [
         {
           label: "Reload Application",

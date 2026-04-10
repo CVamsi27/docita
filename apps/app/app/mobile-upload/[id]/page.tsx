@@ -11,6 +11,7 @@ import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
 import { apiFetch } from "@/lib/api-client";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function MobileUploadPage() {
   const params = useParams();
@@ -56,36 +57,36 @@ export default function MobileUploadPage() {
         const message =
           "Upload completed, but we could not confirm session status. Please try again.";
         setErrorMessage(message);
-        toast.error(message);
+        showUserFacingErrorToast(null, message, "upload");
       }
     } catch (error) {
       if (error instanceof APIRequestError) {
         if (error.status === 413) {
           const message = "File is too large. Please use a smaller image.";
           setErrorMessage(message);
-          toast.error(message);
+          showUserFacingErrorToast(null, message, "upload");
           return;
         }
         if (error.status === 404) {
           const message = "Session expired. Please scan the QR code again.";
           setErrorMessage(message);
-          toast.error(message);
+          showUserFacingErrorToast(null, message, "upload");
           return;
         }
         if (error.status === 400) {
           const message = "Invalid file type. Please upload an image.";
           setErrorMessage(message);
-          toast.error(message);
+          showUserFacingErrorToast(null, message, "upload");
           return;
         }
 
-        const message = error.message || "Upload failed. Please try again.";
+        const message = "We could not upload the signature. Please try again.";
         setErrorMessage(message);
-        toast.error(message);
+        showUserFacingErrorToast(error, message, "upload");
       } else {
-        const message = "Upload failed. Please check your connection.";
+        const message = "We could not upload the signature. Please try again.";
         setErrorMessage(message);
-        toast.error(message);
+        showUserFacingErrorToast(error, message, "upload");
       }
     }
   };

@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/components/select";
 import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -186,8 +187,10 @@ export function EditClinicDialog({
         onClinicUpdated();
         toast.success("Clinic updated successfully");
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to update clinic",
+        showUserFacingErrorToast(
+          error,
+          "We could not update the clinic. Please try again.",
+          "save",
         );
       } finally {
         setLoading(false);

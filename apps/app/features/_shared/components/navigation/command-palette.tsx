@@ -28,6 +28,7 @@ import {
   Users,
 } from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const navigationItems = [
   {
@@ -184,10 +185,10 @@ export function CommandPalette() {
       const result = await startConsultation.mutateAsync({ appointmentId });
       router.push(`/consultation/${result.appointmentId}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Unable to start this consultation",
+      showUserFacingErrorToast(
+        error,
+        "We could not start this consultation. Please try again.",
+        "save",
       );
       router.push("/consultation");
     }

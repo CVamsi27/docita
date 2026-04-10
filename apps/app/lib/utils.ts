@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]): string {
@@ -37,13 +38,7 @@ export function throttle<T extends (...args: never[]) => unknown>(
 }
 
 export function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  if (typeof error === "string") {
-    return error;
-  }
-  return "An unexpected error occurred";
+  return getUserFacingErrorMessage(error);
 }
 
 export function wait(ms: number): Promise<void> {

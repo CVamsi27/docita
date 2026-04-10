@@ -16,6 +16,7 @@ import {
   type TeamMember,
 } from "@/features/onboarding/components/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface PlanPricing {
   monthly: number | "custom";
@@ -35,11 +36,6 @@ interface OnboardingCheckoutResponse {
 }
 interface EnsureOnboardingIdOptions {
   forceRefresh?: boolean;
-}
-
-function formatMissingRequirements(missing: string[]): string {
-  const unique = [...new Set(missing)];
-  return unique.join(", ");
 }
 
 const SESSION_KEY = "docita_onboarding_step";
@@ -202,7 +198,7 @@ export function useClinicRegistrationFlow() {
           error.statusCode !== 400 &&
           error.statusCode !== 404
         ) {
-          throw new Error(error.message || "Unable to validate onboarding session");
+          throw new Error("We could not continue onboarding. Please try again.");
         }
 
         if (
@@ -302,12 +298,10 @@ export function useClinicRegistrationFlow() {
         const missing: string[] = [];
         if (!user?.email) missing.push("owner email");
         if (!user?.name) missing.push("owner name");
-        toast.error(
-          `Missing required data: ${formatMissingRequirements(missing)}.`,
-          {
-            description:
-              "Update your account profile details before starting payment.",
-          },
+        showUserFacingErrorToast(
+          null,
+          "Please complete your account details before starting payment.",
+          "form",
         );
         return;
       }
@@ -364,7 +358,11 @@ export function useClinicRegistrationFlow() {
         if (message === "Payment was cancelled") {
           toast.info(message);
         } else {
-          toast.error(message);
+          showUserFacingErrorToast(
+            error,
+            "We could not start the payment. Please try again.",
+            "payment",
+          );
         }
       } finally {
         setIsProcessingPayment(false);
@@ -411,12 +409,10 @@ export function useClinicRegistrationFlow() {
       }
 
       if (missingRequirements.length > 0) {
-        toast.error(
-          `Missing required data: ${formatMissingRequirements(missingRequirements)}.`,
-          {
-            description:
-              "Progress could not be restored safely. Starting over from Step 1.",
-          },
+        showUserFacingErrorToast(
+          null,
+          "Please complete the required onboarding details before continuing.",
+          "form",
         );
         restartOnboarding();
         return;
@@ -525,15 +521,19 @@ export function useClinicRegistrationFlow() {
 
         if (shouldRestartOnboarding) {
           restartOnboarding();
-          toast.error("Registration data became invalid", {
-            description: `${message}. Restarted from Step 1.`,
-          });
+          showUserFacingErrorToast(
+            error,
+            "We could not finish registration. Please start again.",
+            "form",
+          );
           return;
         }
 
-        toast.error("Registration Failed", {
-          description: message,
-        });
+        showUserFacingErrorToast(
+          error,
+          "We could not finish registration. Please try again.",
+          "form",
+        );
       }
     },
     [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, restartOnboarding, user?.email, user?.name, user?.role],

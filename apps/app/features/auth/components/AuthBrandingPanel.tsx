@@ -1,8 +1,5 @@
 import { Lock, Server, Shield } from "lucide-react";
-import {
-  DocitaIconMonochrome,
-  DocitaLogo,
-} from "@workspace/ui/components/docita-logo";
+import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 
 export function AuthBrandingPanel() {
   return (
@@ -22,19 +19,6 @@ export function AuthBrandingPanel() {
           place built for Indian clinics.
         </p>
 
-        <div className="relative mt-8 h-32 rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5">
-          <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-primary-foreground/8 px-4 py-3">
-            <DocitaIconMonochrome className="h-9 w-9 shrink-0 text-primary-foreground" />
-            <div className="space-y-1">
-              <p className="text-sm font-semibold tracking-tight text-primary-foreground">
-                Docita for modern clinics
-              </p>
-              <p className="text-xs text-primary-foreground/70">
-                Simple, clear clinic operations from one modern workspace.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="relative z-10 flex flex-col gap-3">

@@ -17,6 +17,7 @@ import { Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function CreateReceptionistPage() {
   const [fieldErrors, setFieldErrors] = useState<{
@@ -69,7 +70,7 @@ export default function CreateReceptionistPage() {
       toast.success("Receptionist created successfully");
       router.push("/clinic/team");
     } catch {
-      toast.error("Error creating receptionist");
+      showUserFacingErrorToast("Error creating receptionist");
     }
   };
 

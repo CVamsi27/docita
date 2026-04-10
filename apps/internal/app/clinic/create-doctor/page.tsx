@@ -25,6 +25,7 @@ import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const SPECIALIZATIONS = Object.entries(SPECIALIZATION_LABELS).map(
   ([value, label]) => ({
@@ -90,7 +91,7 @@ export default function CreateDoctorPage() {
       toast.success("Doctor created successfully");
       router.push("/clinic/team");
     } catch {
-      toast.error("Error creating doctor");
+      showUserFacingErrorToast("Error creating doctor");
     }
   };
 

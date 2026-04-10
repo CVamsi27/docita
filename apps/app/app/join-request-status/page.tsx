@@ -14,6 +14,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 import { useAuth } from '@/lib/auth-context';
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface JoinRequest {
   id: string;
@@ -49,7 +50,7 @@ export default function JoinRequestStatusPage() {
       router.replace('/choose-path');
     },
     onError: () => {
-      toast.error('Failed to withdraw request');
+      showUserFacingErrorToast('We could not withdraw request. Please try again.');
     },
   });
 

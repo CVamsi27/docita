@@ -49,6 +49,7 @@ import { internalQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Clinic {
   id: string;
@@ -213,7 +214,7 @@ export default function PaymentProcessingPage() {
       });
       setShowPaymentDialog(true);
     } catch {
-      toast.error("Failed to load tier information");
+      showUserFacingErrorToast("We could not load tier information. Please try again.");
     }
   };
 
@@ -241,7 +242,7 @@ export default function PaymentProcessingPage() {
     try {
       await processPaymentMutation.mutateAsync(data);
     } catch {
-      toast.error("Failed to process payment");
+      showUserFacingErrorToast("We could not process payment. Please try again.");
     }
   };
 

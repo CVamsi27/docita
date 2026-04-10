@@ -27,6 +27,7 @@ import {
 } from "@/features/_shared/schemas/common.schemas";
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Clinic Name"),
@@ -79,7 +80,11 @@ export function ClinicGeneralSettings() {
         toast.success("Clinic settings updated successfully");
       },
       onError: (error) => {
-        toast.error("Failed to update settings: " + (error as Error).message);
+        showUserFacingErrorToast(
+          error,
+          "We could not update clinic settings. Please try again.",
+          "save",
+        );
       },
     });
   };

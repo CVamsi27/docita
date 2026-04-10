@@ -101,7 +101,7 @@ export const useDownloadPrescriptionPDF = () => {
         `/prescriptions/${prescriptionId}/pdf`,
       );
       if (!response.ok) {
-        throw new Error(`Failed to download PDF: ${response.statusText}`);
+        throw new Error("We could not download the prescription. Please try again.");
       }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);

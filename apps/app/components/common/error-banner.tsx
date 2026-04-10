@@ -3,6 +3,7 @@
 import React from "react";
 import { AlertCircle, X } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { getSafeUserMessage } from "@/lib/user-facing-errors";
 
 interface ErrorBannerProps {
   message?: string;
@@ -19,6 +20,13 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
 }) => {
   if (!message && !title) return null;
 
+  const safeMessage = message
+    ? getSafeUserMessage(message, "Something went wrong. Please try again.")
+    : undefined;
+  const safeDetails = details?.map((detail) =>
+    getSafeUserMessage(detail, "Please check this item."),
+  );
+
   return (
     <div
       role="alert"
@@ -29,10 +37,10 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
         <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
         <div className="flex-1">
           {title && <p className="font-medium text-sm mb-1">{title}</p>}
-          {message && <p className="text-sm">{message}</p>}
-          {details && details.length > 0 && (
+          {safeMessage && <p className="text-sm">{safeMessage}</p>}
+          {safeDetails && safeDetails.length > 0 && (
             <ul className="mt-2 space-y-1 text-xs">
-              {details.map((detail, index) => (
+              {safeDetails.map((detail, index) => (
                 <li key={index} className="flex items-center gap-2">
                   <span className="inline-block w-1 h-1 bg-current rounded-full" />
                   {detail}

@@ -37,6 +37,7 @@ import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface TeamMember {
   id: string;
@@ -143,17 +144,17 @@ export default function TeamPage() {
     e.preventDefault();
 
     if (!formData.name || !formData.email) {
-      toast.error("Please fill in all required fields");
+      showUserFacingErrorToast("Please fill in all required fields");
       return;
     }
 
     if (!editingMember && !formData.password) {
-      toast.error("Password is required when creating a new member");
+      showUserFacingErrorToast("Password is required when creating a new member");
       return;
     }
 
     if (formData.role === "DOCTOR" && !formData.registrationNumber) {
-      toast.error("Registration number is required for doctors");
+      showUserFacingErrorToast("Registration number is required for doctors");
       return;
     }
 
@@ -203,7 +204,7 @@ export default function TeamPage() {
         resetForm();
       }
     } catch {
-      toast.error("Error saving team member");
+      showUserFacingErrorToast("Error saving team member");
     }
   };
 

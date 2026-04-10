@@ -5,6 +5,7 @@ import { useClinicSettings } from "@/hooks/api/use-settings";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { toast } from "sonner";
 import type { ClinicType } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface PatientTagManagerContainerProps {
   patientId: string;
@@ -31,7 +32,7 @@ export function PatientTagManagerContainer({
       const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
       setTags(data);
     } catch {
-      toast.error("Failed to load tags");
+      showUserFacingErrorToast("We could not load tags. Please try again.");
     }
   }, [patientId]);
 
@@ -57,7 +58,7 @@ export function PatientTagManagerContainer({
       setNewColor("#3b82f6");
       onTagsUpdated?.();
     } catch {
-      toast.error("Failed to add tag");
+      showUserFacingErrorToast("We could not add tag. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,7 +74,7 @@ export function PatientTagManagerContainer({
       });
       onTagsUpdated?.();
     } catch {
-      toast.error("Failed to remove tag");
+      showUserFacingErrorToast("We could not remove tag. Please try again.");
       setTags(previousTags);
     }
   };
@@ -97,7 +98,7 @@ export function PatientTagManagerContainer({
       });
       onTagsUpdated?.();
     } catch {
-      toast.error("Failed to update tag");
+      showUserFacingErrorToast("We could not update tag. Please try again.");
       setTags(previousTags);
     }
   };

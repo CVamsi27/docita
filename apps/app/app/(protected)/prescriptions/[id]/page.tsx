@@ -15,6 +15,7 @@ import type { Medication } from "@workspace/types";
 import { PrescriptionHeader } from "@/features/prescriptions/components/view/PrescriptionHeader";
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface DoctorInfo {
   name?: string;
@@ -117,7 +118,7 @@ export default function PrescriptionViewPage() {
   };
 
   if (error) {
-    toast.error("Failed to load prescription");
+    showUserFacingErrorToast("We could not load prescription. Please try again.");
   }
 
   if (isLoading) {

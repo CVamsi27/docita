@@ -20,6 +20,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Loader2, RefreshCw, RotateCcw } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const QueueSettings = () => {
   const { data: queue, isLoading: queueLoading, isRefetching, refetch } = useQueue();
@@ -72,7 +73,11 @@ export const QueueSettings = () => {
           toast.success("Queue configuration saved");
         },
         onError: (error) => {
-          toast.error(`Failed to save: ${error.message}`);
+          showUserFacingErrorToast(
+            error,
+            "We could not save queue settings. Please try again.",
+            "save",
+          );
         },
       },
     );
@@ -90,7 +95,11 @@ export const QueueSettings = () => {
         void refetch();
       },
       onError: (error) => {
-        toast.error(`Failed to reset queue: ${error.message}`);
+        showUserFacingErrorToast(
+          error,
+          "We could not reset the queue. Please try again.",
+          "save",
+        );
       },
     });
   };

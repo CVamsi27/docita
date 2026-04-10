@@ -37,6 +37,7 @@ import {
   FeatureGate,
 } from "@/features/_shared/components/auth/feature-gate";
 import { EmptyState } from "@workspace/ui/components/empty-state";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function CodingQueuePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +50,7 @@ export default function CodingQueuePage() {
   } = useCodingQueue(debouncedSearch);
 
   if (error) {
-    toast.error("Failed to load coding queue");
+    showUserFacingErrorToast("We could not load coding queue. Please try again.");
   }
 
   return (

@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { reportClientError } from "@/lib/client-error-reporting";
-import { toast } from "sonner";
 
 const getConsoleMessage = (args: unknown[]): string => {
   return args
@@ -32,25 +31,6 @@ export function ClientErrorReporter() {
       process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_INFO === "true";
     const captureConsoleWarnings =
       process.env.NEXT_PUBLIC_CAPTURE_CONSOLE_WARNINGS === "true";
-    const showConsoleToasts =
-      process.env.NODE_ENV !== "production" &&
-      process.env.NEXT_PUBLIC_ENABLE_CONSOLE_TOASTS === "true";
-
-    const isInternalRuntimeMessage = (message: string): boolean => {
-      const normalized = message.toLowerCase();
-      return (
-        normalized.includes("fast refresh") ||
-        normalized.includes("rebuild") ||
-        normalized.includes("[hmr]") ||
-        normalized.includes("next.js") ||
-        normalized.includes("turbopack") ||
-        normalized.includes("react-query") ||
-        normalized.includes("cache bypass, force executing") ||
-        normalized.includes("pnpm") ||
-        normalized.includes("next dev")
-      );
-    };
-
     const isMonitoringNoiseMessage = (message: string): boolean => {
       const normalized = message.toLowerCase();
       return (
@@ -136,10 +116,6 @@ export function ClientErrorReporter() {
 
       const message = getConsoleMessage(args);
 
-      if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
-        toast(message);
-      }
-
       if (captureConsoleInfo) {
         report(`console-log:${message}`, {
           type: "ConsoleLog",
@@ -157,10 +133,6 @@ export function ClientErrorReporter() {
       const message = getConsoleMessage(args);
       if (isMonitoringNoiseMessage(message)) {
         return;
-      }
-
-      if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
-        toast.warning(message);
       }
 
       if (captureConsoleWarnings) {
@@ -182,10 +154,6 @@ export function ClientErrorReporter() {
       const message = getConsoleMessage(args);
       if (isMonitoringNoiseMessage(message)) {
         return;
-      }
-
-      if (showConsoleToasts && !isInternalRuntimeMessage(message)) {
-        toast.error(message);
       }
 
       const firstError = args.find((arg): arg is Error => arg instanceof Error);

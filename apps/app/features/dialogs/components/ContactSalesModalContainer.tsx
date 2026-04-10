@@ -7,6 +7,7 @@ import {
   ContactSalesModalUI,
 } from "./ContactSalesModalUI";
 import { useCreateContactInquiry } from "@/hooks/api/use-contact";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 interface ContactSalesModalContainerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -46,9 +47,10 @@ export function ContactSalesModalContainer({
         setTimeout(() => handleClose(), 3000);
       },
       onError: (err: Error) => {
-        const errorMessage = err.message || "Failed to send inquiry";
+        const errorMessage =
+          "We could not send your message. Please try again.";
         setError(errorMessage);
-        toast.error(errorMessage);
+        showUserFacingErrorToast(err, errorMessage, "save");
       },
     });
   };

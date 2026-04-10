@@ -11,13 +11,14 @@ import { useAuth } from '@/lib/auth-context';
 import { useAPIQuery, useAPIMutation } from '@/lib/api-core';
 import { useGenerateSignatureToken } from '@/hooks/api/use-signature-upload';
 import { ApiError } from '@/lib/errors';
-import type { User } from '@workspace/types';
+import { sanitizeUserFacingMessage, type User } from '@workspace/types';
 import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { DocitaLogo } from '@workspace/ui/components/docita-logo';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 import { toAbsoluteAppUrl } from '@/lib/url';
 import { usePhoneSignatureQrFlow } from '@/features/_shared/hooks/use-phone-signature-qr-flow';
 import { PhoneSignatureQrPanel } from '@/features/_shared/components/signature/phone-signature-qr-panel';
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
@@ -107,8 +108,12 @@ export default function VerifyDoctorPage() {
           const fieldErrors = validationErrors as Record<string, unknown>;
           const registrationFieldError = fieldErrors.registrationNumber;
           if (typeof registrationFieldError === 'string' && registrationFieldError.length > 0) {
-            setRegistrationError(registrationFieldError);
-            toast.error(registrationFieldError);
+            const safeMessage = sanitizeUserFacingMessage(
+              registrationFieldError,
+              "Please check the registration number.",
+            );
+            setRegistrationError(safeMessage);
+            showUserFacingErrorToast(null, safeMessage, "form");
             return;
           }
 
@@ -117,17 +122,21 @@ export default function VerifyDoctorPage() {
               typeof value === 'string' && value.length > 0,
           );
           if (firstFieldError) {
-            setRegistrationError(firstFieldError);
-            toast.error(firstFieldError);
+            const safeMessage = sanitizeUserFacingMessage(
+              firstFieldError,
+              "Please check the registration number.",
+            );
+            setRegistrationError(safeMessage);
+            showUserFacingErrorToast(null, safeMessage, "form");
             return;
           }
         }
       }
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to save registration number.',
+      showUserFacingErrorToast(
+        error,
+        "We could not save the registration number. Please try again.",
+        "save",
       );
     } finally {
       setIsSavingReg(false);
@@ -141,7 +150,7 @@ export default function VerifyDoctorPage() {
       router.replace('/dashboard');
     } catch {
       setIsRedirecting(false);
-      toast.error('Unable to continue right now. Please try again.');
+      showUserFacingErrorToast("We could not continue right now. Please try again.");
     }
   };
 
@@ -289,7 +298,7 @@ export default function VerifyDoctorPage() {
                       toast.message('Still waiting for signature upload');
                     }
                   } catch {
-                    toast.error('Unable to refresh signature status');
+                    showUserFacingErrorToast('We could not refresh signature status. Please try again.');
                   }
                 }}
                 onCopyLink={async () => {
@@ -298,10 +307,10 @@ export default function VerifyDoctorPage() {
                     if (copied) {
                       toast.success('Link clicked');
                     } else {
-                      toast.error('Unable to copy link');
+                      showUserFacingErrorToast('We could not copy the link. Please try again.');
                     }
                   } catch {
-                    toast.error('Unable to copy link');
+                    showUserFacingErrorToast('We could not copy the link. Please try again.');
                   }
                 }}
                 successTitle="Signature uploaded successfully."

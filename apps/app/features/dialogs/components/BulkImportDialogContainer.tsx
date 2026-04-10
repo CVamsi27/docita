@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useBulkImport, useBulkImportTemplate } from "@/hooks/api/use-import";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   BulkImportDialogUI,
   BulkImportStep,
@@ -77,7 +78,11 @@ export function BulkImportDialogContainer({
         setStep("result");
       }, 3000);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Import failed");
+      showUserFacingErrorToast(
+        error,
+        "We could not prepare the import. Please try again.",
+        "upload",
+      );
       setStep("upload");
     }
   };

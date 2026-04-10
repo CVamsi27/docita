@@ -17,6 +17,7 @@ import { buildCsrfHeaders } from "@/lib/csrf";
 import { apiFetch } from "@/lib/api-client";
 import { appQueryKeys } from "@/lib/query-keys";
 import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
+import { getUserFacingErrorMessage } from "@workspace/types";
 
 export default function OnboardingSlaUploadPage() {
   const searchParams = useSearchParams();
@@ -112,16 +113,26 @@ export default function OnboardingSlaUploadPage() {
       }
 
       if (err instanceof APIRequestError) {
-        setError(err.message || "Upload failed");
+        setError(
+          getUserFacingErrorMessage(err, {
+            fallback: "We could not upload the signature. Please try again.",
+            context: "upload",
+          }),
+        );
       } else if (err instanceof Error) {
         if (err.message.toLowerCase().includes("already been used")) {
           setAlreadyUploaded(true);
           setUploadComplete(true);
           return;
         }
-        setError(err.message);
+        setError(
+          getUserFacingErrorMessage(err, {
+            fallback: "We could not upload the signature. Please try again.",
+            context: "upload",
+          }),
+        );
       } else {
-        setError("Upload failed");
+        setError("We could not upload the signature. Please try again.");
       }
     }
   };

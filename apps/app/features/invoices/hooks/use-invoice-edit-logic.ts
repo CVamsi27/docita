@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useInvoice, useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useRouter } from "next/navigation";
 import { Invoice } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const invoiceItemSchema = z.object({
   id: z.string().optional(),
@@ -89,7 +90,7 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
       toast.success("Invoice updated successfully");
       router.push(`/invoices/${invoiceId}`);
     } catch {
-      toast.error("Failed to update invoice");
+      showUserFacingErrorToast("We could not update invoice. Please try again.");
 
     } finally {
       setIsSaving(false);

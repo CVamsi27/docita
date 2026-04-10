@@ -19,6 +19,7 @@ import {
 } from "@workspace/ui/components/card";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
+import { getUserFacingErrorMessage } from "@workspace/types";
 
 const resetPasswordSchema = z
   .object({
@@ -64,11 +65,13 @@ export default function ResetPasswordPage() {
       setSubmitted(true);
     } catch (err) {
       logger.error("Password reset failed", { error: err });
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Failed to reset password. The link may have expired.");
-      }
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback:
+            "We could not reset your password. Please request a new reset link.",
+          context: "auth",
+        }),
+      );
     }
   };
 

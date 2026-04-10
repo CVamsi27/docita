@@ -1,5 +1,7 @@
 
 
+import { getUserFacingErrorMessage } from "@workspace/types";
+
 export interface ApiError {
   message: string;
   code?: string;
@@ -20,7 +22,7 @@ export function parseError(error: unknown): ApiError {
 
   if (error instanceof TypeError && error.message.includes("fetch")) {
     return {
-      message: "Network error. Please check your connection.",
+      message: "We could not connect right now. Please check your connection.",
       code: "NETWORK_ERROR",
     };
   }
@@ -29,7 +31,16 @@ export function parseError(error: unknown): ApiError {
     if ("status" in error || "data" in error) {
       const apiError = error as GenericApiError;
       return {
-        message: apiError.data?.message || error.message,
+        message: getUserFacingErrorMessage(
+          {
+            status: apiError.status,
+            data: {
+              message: apiError.data?.message || error.message,
+              code: apiError.data?.code,
+            },
+          },
+          { fallback: "Something went wrong. Please try again." },
+        ),
         code: apiError.data?.code,
         status: apiError.status,
         details: apiError.data?.details,
@@ -37,36 +48,19 @@ export function parseError(error: unknown): ApiError {
     }
 
     return {
-      message: error.message,
+      message: getUserFacingErrorMessage(error),
       code: "UNKNOWN_ERROR",
     };
   }
 
   return {
-    message: "An unexpected error occurred",
+    message: "Something went wrong. Please try again.",
     code: "UNKNOWN_ERROR",
   };
 }
 
 export function getErrorMessage(error: unknown): string {
-  const parsed = parseError(error);
-
-  const statusMessages: Record<number, string> = {
-    400: "Invalid request. Please check your input.",
-    401: "You are not authenticated. Please log in.",
-    403: "You do not have permission to perform this action.",
-    404: "The requested resource was not found.",
-    409: "This action conflicts with the current state.",
-    422: "Validation failed. Please check your input.",
-    429: "Too many requests. Please try again later.",
-    500: "Server error. Please try again later.",
-  };
-
-  if (parsed.status && statusMessages[parsed.status]) {
-    return statusMessages[parsed.status];
-  }
-
-  return parsed.message;
+  return getUserFacingErrorMessage(error);
 }
 
 export function handleError(error: unknown, context?: string): void {

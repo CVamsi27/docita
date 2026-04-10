@@ -84,11 +84,6 @@ export default function GlobalError({
                 Go to home
               </button>
             </div>
-            {error.digest ? (
-              <p style={{ marginTop: 16, fontSize: 12, color: "#64748b" }}>
-                Error ID: {error.digest}
-              </p>
-            ) : null}
           </div>
         </div>
       </body>

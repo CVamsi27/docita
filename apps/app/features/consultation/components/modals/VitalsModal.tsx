@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useSaveVitals } from "@/hooks/api/use-clinical";
 import { HeartPulse } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface VitalsFormData {
   height: string;
@@ -57,7 +58,7 @@ export function VitalsModal({
       });
 
       if (Object.keys(payload).length <= 1) {
-        toast.error("Please enter at least one vital sign");
+        showUserFacingErrorToast("Please enter at least one vital sign");
         return;
       }
 
@@ -77,7 +78,7 @@ export function VitalsModal({
         respiratoryRate: "",
       });
     } catch {
-      toast.error("Failed to record vitals");
+      showUserFacingErrorToast("We could not record vitals. Please try again.");
 
     }
   };
@@ -96,7 +97,7 @@ export function VitalsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
           <div className="space-y-2">
             <Label>Height (cm)</Label>
             <Input

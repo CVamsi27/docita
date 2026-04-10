@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { fetchClinics, fetchUsersForSelection } from "./api";
 import { calculateRoleStats, filterUsers } from "./utils";
 import type { RoleFilter, User } from "./types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export function useUsersData() {
   const { token } = useAuth();
@@ -39,13 +40,13 @@ export function useUsersData() {
 
   useEffect(() => {
     if (clinicsQuery.error) {
-      toast.error("Failed to load clinics");
+      showUserFacingErrorToast("We could not load clinics. Please try again.");
     }
   }, [clinicsQuery.error]);
 
   useEffect(() => {
     if (usersQuery.error) {
-      toast.error("Failed to load users");
+      showUserFacingErrorToast("We could not load users. Please try again.");
     }
   }, [usersQuery.error]);
 

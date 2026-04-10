@@ -17,6 +17,7 @@ import {
   useUpdatePatientConsent,
 } from "@/hooks/api/use-patient-portal";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export function ConsentBanner() {
   const [dismissed, setDismissed] = useState(false);
@@ -44,7 +45,7 @@ export function ConsentBanner() {
 
       setDismissed(true);
     } catch (_error) {
-      toast.error("Failed to save consent preferences");
+      showUserFacingErrorToast("We could not save consent preferences. Please try again.");
     }
   };
 

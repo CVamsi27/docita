@@ -57,14 +57,7 @@ export async function fetchJsonWithSession<T>(
 ): Promise<T> {
   const response = await fetchWithSession(endpoint, init);
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
-    try {
-      const payload = (await response.json()) as { message?: string };
-      if (typeof payload?.message === "string" && payload.message.length > 0) {
-        message = payload.message;
-      }
-    } catch {}
-    throw new Error(message);
+    throw new Error("Something went wrong. Please try again.");
   }
 
   return response.json() as Promise<T>;

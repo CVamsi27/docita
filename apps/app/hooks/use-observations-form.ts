@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAPIMutation } from "@/lib/api-core";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UseObservationsFormProps {
   appointmentId: string;
@@ -53,7 +54,7 @@ export function useObservationsForm({
       toast.success("Notes saved successfully");
     } catch {
 
-      toast.error("Failed to save notes");
+      showUserFacingErrorToast("We could not save notes. Please try again.");
     }
   };
 

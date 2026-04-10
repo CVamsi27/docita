@@ -40,11 +40,6 @@ export default function Error({
             Go to dashboard
           </Button>
         </div>
-        {error.digest && (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Error ID: {error.digest}
-          </p>
-        )}
       </div>
     </div>
   );

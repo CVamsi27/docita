@@ -30,6 +30,7 @@ import {
   Tier,
   TIER_INFO,
   type TierName,
+  getUserFacingErrorMessage,
 } from "@workspace/types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 
@@ -130,7 +131,12 @@ export function TierChangeDialog({
       await onConfirm();
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to change tier");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not change the plan. Please try again.",
+          context: "payment",
+        }),
+      );
     } finally {
       setIsLoading(false);
     }

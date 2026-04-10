@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
 import { formatDistanceToNow } from 'date-fns';
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface JoinRequest {
   id: string;
@@ -58,7 +59,7 @@ export default function JoinRequestsPage() {
       closeDialog();
     },
     onError: () => {
-      toast.error('Failed to approve request');
+      showUserFacingErrorToast('We could not approve request. Please try again.');
     },
   });
 
@@ -71,7 +72,7 @@ export default function JoinRequestsPage() {
       closeDialog();
     },
     onError: () => {
-      toast.error('Failed to reject request');
+      showUserFacingErrorToast('We could not reject request. Please try again.');
     },
   });
 
@@ -110,7 +111,7 @@ export default function JoinRequestsPage() {
 
   const handleReject = () => {
     if (!selectedRequest || !rejectionReason.trim()) {
-      toast.error('Please provide a reason for rejection');
+      showUserFacingErrorToast('Please provide a reason for rejection');
       return;
     }
 

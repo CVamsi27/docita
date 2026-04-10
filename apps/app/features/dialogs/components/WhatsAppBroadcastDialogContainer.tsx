@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { useCreateWhatsAppBroadcast } from "@/hooks/api/use-whatsapp";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   WhatsAppBroadcastDialogUI,
   WhatsAppBroadcastFormData,
@@ -34,7 +35,11 @@ export function WhatsAppBroadcastDialogContainer({
         onSuccess?.();
       },
       onError: (error: Error) => {
-        toast.error(error.message || "Failed to create campaign");
+        showUserFacingErrorToast(
+          error,
+          "We could not create the campaign. Please try again.",
+          "save",
+        );
       },
     });
   };

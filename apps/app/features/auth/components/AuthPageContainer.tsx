@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { ApiValidationError } from "@/lib/api-error";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
@@ -24,19 +25,6 @@ const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
   login: "Sign in to your workspace",
   signup: "Get started with Docita",
 };
-
-function sanitizeAuthErrorMessage(message: string): string {
-  const trimmed = message.trim();
-  if (trimmed.startsWith("[") && trimmed.includes('"code"')) {
-    const zodMessageMatch = trimmed.match(/"message"\s*:\s*"([^"]+)"/);
-    if (zodMessageMatch?.[1]) {
-      return zodMessageMatch[1];
-    }
-
-    return "Please check the highlighted fields and try again.";
-  }
-  return message;
-}
 
 function formatLockoutMessage(lockoutUntil: number | null): string {
   if (!lockoutUntil) {
@@ -85,16 +73,21 @@ export function AuthPageContainer() {
   const handleCatchError = (err: unknown, fallback: string) => {
     if (err instanceof ApiValidationError && err.hasFieldErrors) {
       setFieldErrors(err.fieldErrors);
-      setError(err.message);
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback,
+          context: "form",
+        }),
+      );
       return;
     }
 
-    if (err instanceof Error) {
-      setError(sanitizeAuthErrorMessage(err.message));
-      return;
-    }
-
-    setError(fallback);
+    setError(
+      getUserFacingErrorMessage(err, {
+        fallback,
+        context: "auth",
+      }),
+    );
   };
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

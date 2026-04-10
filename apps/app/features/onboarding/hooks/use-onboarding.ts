@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { useMutation } from "@tanstack/react-query";
 import type { OnboardingData } from "@/features/onboarding/schemas/onboarding.schemas";
 import { apiFetch } from "@/lib/api-client";
@@ -75,7 +76,12 @@ export function useOnboarding(): UseOnboardingReturn {
       setError(null);
       await submitMutation.mutateAsync();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not complete registration. Please try again.",
+          context: "form",
+        }),
+      );
       throw err;
     }
   }, [submitMutation]);

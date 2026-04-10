@@ -123,10 +123,7 @@ describe("useClinicRegistrationFlow", () => {
     });
 
     expect(mocks.toast.error).toHaveBeenCalledWith(
-      expect.stringContaining("Missing required data:"),
-      expect.objectContaining({
-        description: expect.stringContaining("Starting over from Step 1"),
-      }),
+      "Please complete the required onboarding details before continuing.",
     );
     expect(sessionStorage.getItem("docita_onboarding_step")).toBe("1");
   });
@@ -197,10 +194,7 @@ describe("useClinicRegistrationFlow", () => {
     });
 
     expect(mocks.toast.error).toHaveBeenCalledWith(
-      "Registration data became invalid",
-      expect.objectContaining({
-        description: expect.stringContaining("Restarted from Step 1"),
-      }),
+      "We could not finish registration. Please start again.",
     );
   });
 

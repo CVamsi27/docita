@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const AnalyticsDetailedMetricsTable = dynamic(
   () =>
@@ -106,7 +107,7 @@ export function AnalyticsDashboard() {
 
   useEffect(() => {
     if (analyticsQuery.isError || billingQuery.isError) {
-      toast.error("Failed to load analytics data");
+      showUserFacingErrorToast("We could not load analytics data. Please try again.");
     }
   }, [analyticsQuery.isError, billingQuery.isError]);
 
@@ -133,10 +134,10 @@ export function AnalyticsDashboard() {
         window.URL.revokeObjectURL(url);
         toast.success("Report exported successfully");
       } else {
-        toast.error("Failed to export report");
+        showUserFacingErrorToast("We could not export report. Please try again.");
       }
     } catch {
-      toast.error("Failed to export report");
+      showUserFacingErrorToast("We could not export report. Please try again.");
     }
   }, [endDate, period, startDate, token]);
 

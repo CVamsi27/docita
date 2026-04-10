@@ -26,7 +26,7 @@ import {
 } from "@workspace/types";
 
 const AUTH_RESPONSE_ERROR_MESSAGE =
-  "We could not process the sign-in response. Please try again.";
+  "We could not sign you in. Please try again.";
 const LOGIN_LOCKOUT_STORAGE_KEY = "docita_login_lockout_until";
 const DEFAULT_LOGIN_LOCKOUT_MINUTES = 15;
 export interface User {
@@ -534,9 +534,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(message);
       }
 
-      const message =
-        error instanceof Error ? error.message : AUTH_RESPONSE_ERROR_MESSAGE;
-      throw error instanceof Error ? error : new Error(message);
+      throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
     }
   };
 
@@ -587,7 +585,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!userData) {
       throw new Error(
-        "We could not process the registration response. Please try again.",
+        "We could not create your account. Please try again.",
       );
     }
 
@@ -600,23 +598,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserRole(userData.role);
     localStorage.setItem("docita_user", JSON.stringify(userData));
 
-    if (!userData.clinicId) {
-      switch (userData.onboardingStep) {
-        case 'JOINING_CLINIC':
-          router.push('/join-request-status');
-          break;
-        case 'CREATING_CLINIC':
-          router.push('/onboarding');
-          break;
-        case 'CHOOSE_PATH':
-        case 'NOT_STARTED':
-        default:
-          router.push('/choose-path');
-      }
-      return;
-    }
-
-    router.push('/dashboard');
+    router.push('/verify-email-sent');
   };
 
   const logout = useCallback(async () => {

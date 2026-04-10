@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/alert";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface PaymentDetails {
   autoPay: boolean;
@@ -88,7 +89,9 @@ export function PaymentStep({
     try {
       const loaded = await loadRazorpayScript();
       if (!loaded) {
-        toast.error("Payment system unavailable. Please check your connection.");
+        showUserFacingErrorToast(
+          "We could not open payments. Please check your connection and try again.",
+        );
         setIsProcessing(false);
         return;
       }
@@ -141,7 +144,9 @@ export function PaymentStep({
               razorpayPaymentId: response.razorpay_payment_id,
             });
           } catch {
-            toast.error("Payment verification failed. Please contact support.");
+            showUserFacingErrorToast(
+              "We could not verify your payment. Please contact support.",
+            );
             setIsProcessing(false);
           }
         },
@@ -159,18 +164,20 @@ export function PaymentStep({
 
       const RazorpayWidget = window.Razorpay;
       if (!RazorpayWidget) {
-        toast.error("Payment system unavailable. Please refresh and try again.");
+        showUserFacingErrorToast(
+          "We could not open payments. Please refresh and try again.",
+        );
         setIsProcessing(false);
         return;
       }
       const rzp = new RazorpayWidget(options);
       rzp.on?.("payment.failed", () => {
-        toast.error("Payment failed. Please try again.");
+        showUserFacingErrorToast("We could not complete payment. Please try again.");
         setIsProcessing(false);
       });
       rzp.open();
     } catch {
-      toast.error("Unable to initiate payment. Please try again.");
+      showUserFacingErrorToast("We could not start payment. Please try again.");
       setIsProcessing(false);
     }
   };

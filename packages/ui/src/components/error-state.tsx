@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import { sanitizeUserFacingMessage } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -15,6 +16,11 @@ export function ErrorState({
   onRetry,
   className,
 }: ErrorStateProps) {
+  const safeMessage = sanitizeUserFacingMessage(
+    message,
+    "Something went wrong. Please try again.",
+  );
+
   return (
     <div
       className={cn("text-center py-12 text-muted-foreground", className)}
@@ -23,7 +29,7 @@ export function ErrorState({
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 mx-auto mb-4">
         <AlertCircle className="h-8 w-8 text-destructive" />
       </div>
-      <p className="font-medium text-foreground">{message}</p>
+      <p className="font-medium text-foreground">{safeMessage}</p>
       {onRetry && (
         <Button variant="outline" className="mt-4" onClick={onRetry}>
           Try again

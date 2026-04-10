@@ -91,7 +91,7 @@ export default function PatientDetailPage() {
         <DataState
           status="error"
           className="min-h-[50vh]"
-          errorMessage="Failed to load patient details."
+          errorMessage="We could not load patient details. Please try again."
           onRetry={handleRefetch}
         />
       </AppPageScaffold>
@@ -163,23 +163,23 @@ export default function PatientDetailPage() {
         />
 
         <Tabs defaultValue="timeline" className="w-full">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              <TabsTrigger value="timeline">
-                <Clock className="mr-2 h-4 w-4" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="timeline" className="flex-1 sm:flex-none">
+                <Clock className="mr-1.5 h-4 w-4" />
                 Timeline
               </TabsTrigger>
-              <TabsTrigger value="records">
-                <FileText className="mr-2 h-4 w-4" />
+              <TabsTrigger value="records" className="flex-1 sm:flex-none">
+                <FileText className="mr-1.5 h-4 w-4" />
                 Records
               </TabsTrigger>
-              <TabsTrigger value="documents">
-                <FileText className="mr-2 h-4 w-4" />
-                Documents
+              <TabsTrigger value="documents" className="flex-1 sm:flex-none">
+                <FileText className="mr-1.5 h-4 w-4" />
+                Docs
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               <PatientTagManager patientId={patient.id!} />
             </div>
           </div>

@@ -13,6 +13,7 @@ import {
   useFormState,
 } from "react-hook-form";
 
+import { sanitizeUserFacingMessage } from "@workspace/types";
 import { cn } from "@workspace/ui/lib/utils";
 import { Label } from "@workspace/ui/components/label";
 
@@ -144,7 +145,9 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField();
-  const body = error ? String(error?.message ?? "") : props.children;
+  const body = error
+    ? sanitizeUserFacingMessage(String(error?.message ?? ""), "Please check this field.")
+    : props.children;
 
   if (!body) {
     return null;

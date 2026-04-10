@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 import { Building2, Stethoscope, User, Users } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface ClinicStats {
   id: string;
@@ -50,7 +51,7 @@ export default function ClinicDashboard() {
 
   useEffect(() => {
     if (clinicQuery.isError) {
-      toast.error("Failed to load clinic details");
+      showUserFacingErrorToast("We could not load clinic details. Please try again.");
     }
   }, [clinicQuery.isError]);
 

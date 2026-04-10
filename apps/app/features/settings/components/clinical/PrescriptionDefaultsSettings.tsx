@@ -19,6 +19,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { FileText, Save } from "lucide-react";
 import { Checkbox } from "@workspace/ui/components/checkbox";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface PrescriptionDefaultsSettings {
   defaultInstructions: string;
@@ -210,7 +211,11 @@ export function PrescriptionDefaultsSettingsContainer() {
         refetch();
       },
       onError: (error) => {
-        toast.error(error.message || "Failed to save prescription defaults.");
+        showUserFacingErrorToast(
+          error,
+          "We could not save prescription defaults. Please try again.",
+          "save",
+        );
       },
     });
   };

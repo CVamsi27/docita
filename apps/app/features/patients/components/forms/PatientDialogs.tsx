@@ -8,6 +8,7 @@ import { Patient } from "@workspace/types";
 import { useCreatePatient, useUpdatePatient } from "@/hooks/api/use-patients";
 import { Button } from "@workspace/ui/components/button";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface AddPatientDialogProps {
   open?: boolean;
@@ -105,7 +106,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
       onPatientAdded?.();
       onOpenChange?.(false);
     } catch {
-      toast.error("Failed to add patient");
+      showUserFacingErrorToast("We could not add patient. Please try again.");
     }
   };
 
@@ -259,7 +260,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       onPatientUpdated?.();
       onOpenChange?.(false);
     } catch {
-      toast.error("Failed to update patient");
+      showUserFacingErrorToast("We could not update patient. Please try again.");
     }
   };
 

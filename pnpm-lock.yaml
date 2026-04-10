@@ -891,6 +891,9 @@ importers:
       '@workspace/hooks':
         specifier: workspace:*
         version: link:../hooks
+      '@workspace/types':
+        specifier: workspace:*
+        version: link:../types
       '@workspace/utils':
         specifier: workspace:*
         version: link:../utils

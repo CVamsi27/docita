@@ -5,6 +5,7 @@ import { type RazorpayResponse, useRazorpay } from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth-context";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   subscriptionBillingActivateResponseSchema,
   subscriptionBillingCheckoutResponseSchema,
@@ -57,7 +58,7 @@ export function useSubscriptionCheckout(
         );
         const { orderId, amountCents, currency, razorpayKeyId } = createData;
         if (!orderId || !amountCents || !currency || !razorpayKeyId) {
-          throw new Error("Failed to initiate checkout");
+          throw new Error("We could not start checkout. Please try again.");
         }
 
         await openCheckout({
@@ -103,11 +104,17 @@ export function useSubscriptionCheckout(
         });
       } catch (error: unknown) {
         const message =
-          error instanceof Error ? error.message : "Failed to process upgrade";
+          error instanceof Error
+            ? error.message
+            : "We could not process the upgrade. Please try again.";
         if (message === "Payment was cancelled") {
           toast.info(message);
         } else {
-          toast.error(message);
+          showUserFacingErrorToast(
+            error,
+            "We could not process the upgrade. Please try again.",
+            "payment",
+          );
         }
         throw error;
       } finally {

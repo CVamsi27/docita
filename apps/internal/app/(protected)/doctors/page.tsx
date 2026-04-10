@@ -51,6 +51,7 @@ import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   HOSPITAL_ROLE_LABELS,
   type HospitalRole,
@@ -218,7 +219,7 @@ export default function DoctorsPage() {
       );
       setSelectedDoctor(data);
     } catch {
-      toast.error("Failed to load doctor details");
+      showUserFacingErrorToast("We could not load doctor details. Please try again.");
     }
   };
 
@@ -227,7 +228,7 @@ export default function DoctorsPage() {
       doctor.clinicId || (selectedClinic !== "all" ? selectedClinic : "");
 
     if (!clinicId) {
-      toast.error("Clinic context is required to load doctor details");
+      showUserFacingErrorToast("Clinic context is required to load doctor details");
       return;
     }
 

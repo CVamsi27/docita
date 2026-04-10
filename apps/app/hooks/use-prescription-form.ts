@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { fetchAPI } from "@/lib/api-core";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Medication {
   name: string;
@@ -112,7 +113,7 @@ export function usePrescriptionForm({
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error("Please fill in all required medication fields");
+      showUserFacingErrorToast("Please fill in all required medication fields");
       return;
     }
 
@@ -141,7 +142,7 @@ export function usePrescriptionForm({
       if (onSuccess) onSuccess();
     } catch {
 
-      toast.error("Failed to create prescription");
+      showUserFacingErrorToast("We could not create prescription. Please try again.");
     } finally {
       setLoading(false);
     }
