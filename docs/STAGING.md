@@ -75,6 +75,8 @@ NEXT_PUBLIC_APP_URL=https://staging-app.docita.work
 ## Deploy Flow
 
 1. Push changes to `staging`.
-2. GitHub Actions triggers the Render deploy hook for the staging API after the staging database migrations succeed.
+2. Render automatically redeploys the staging API from the connected `staging` branch.
 3. Cloudflare staging routes pick up the staging worker configs.
 4. Run the staging database migration workflow before validating data-dependent flows.
+
+If you need migrations to land before a staging API deploy becomes visible, configure the Render staging service to deploy after the relevant CI checks pass. GitHub Actions does not need a separate deploy hook for the staging API.
