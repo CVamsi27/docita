@@ -30,6 +30,7 @@ const APPROVED_TOAST_WRAPPERS = new Set([
 
 const EXCLUDED_SEGMENTS = [
   "/.next/",
+  "/.open-next/",
   "/coverage/",
   "/dist/",
   "/e2e/",
@@ -94,7 +95,9 @@ const RULES = [
         /(showUserFacingErrorToast|set[A-Za-z0-9_]*Error|errorMessage=|message=)[^\n]*(err|error)\.message/.test(
           line,
         ) &&
-        !/logger\.|captureException|captureMessage|isNetworkError|includes\(/.test(line)
+        !/logger\.|captureException|captureMessage|isNetworkError|includes\(/.test(
+          line,
+        )
       );
     },
   },
