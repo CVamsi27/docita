@@ -85,7 +85,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@hono/node-server": "^1.19.12",
+      "@hono/node-server": "^1.19.13",
       "@rollup/plugin-commonjs>picomatch": "4.0.4",
       "@angular-devkit/core>ajv": "8.18.0",
       "schema-utils>ajv": "^8.18.0",
@@ -102,7 +102,7 @@
       "defu": "^6.1.5",
       "diff": "^4.0.4",
       "handlebars": "^4.7.9",
-      "hono": "^4.12.9",
+      "hono": "^4.12.12",
       "jws": "3.2.3",
       "lodash": "^4.18.1",
       "multer": "^2.1.1",
