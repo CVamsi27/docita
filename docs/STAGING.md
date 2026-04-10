@@ -30,8 +30,6 @@ STORAGE_PROVIDER=local
 ```
 
 The Render staging service must set `DATABASE_URL` directly to the Neon connection string.
-The staging database migration workflow uses `STAGING_DATABASE_URL` as its GitHub secret name,
-but the runtime service itself still reads `DATABASE_URL`.
 
 If you want staging to match production document storage, switch to:
 
