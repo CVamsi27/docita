@@ -51,6 +51,10 @@ name = "docita-app-staging"
 pattern = "staging-app.docita.work"
 custom_domain = true
 
+[[env.staging.r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "docita-cache"
+
 [env.staging.vars]
 NODE_ENV = "production"
 DOCITA_CLOUDFLARE = "1"

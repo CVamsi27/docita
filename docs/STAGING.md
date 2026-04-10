@@ -11,8 +11,7 @@ This repo supports a separate `staging` branch for pre-production validation.
 ## Recommended Staging Topology
 
 - API: Render web service deployed from the `staging` branch
-- App: Cloudflare staging route via [`apps/app/wrangler.staging.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/app/wrangler.staging.toml)
-- Internal: Cloudflare staging route via [`apps/internal/wrangler.staging.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/internal/wrangler.staging.toml)
+- App: Cloudflare staging environment via [`apps/app/wrangler.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/app/wrangler.toml) using `--env staging`
 - Database: Neon PostgreSQL
 
 ## API Environment
@@ -25,7 +24,7 @@ DATABASE_URL=<your Neon connection string>
 APP_URL=https://staging-app.docita.work
 NEXT_PUBLIC_APP_URL=https://staging-app.docita.work
 NEXT_PUBLIC_API_URL=https://staging-api.docita.work/api/v1
-CORS_ORIGINS=https://staging-app.docita.work,https://staging-internal.docita.work
+CORS_ORIGINS=https://staging-app.docita.work
 STORAGE_PROVIDER=local
 ```
 
@@ -57,24 +56,11 @@ NEXT_PUBLIC_APP_URL=https://staging-app.docita.work
 NEXT_PUBLIC_SOCKET_URL=https://staging-api.docita.work
 ```
 
-## Cloudflare Internal Environment
-
-Use these values for the staging internal app:
-
-```env
-APP_URL=https://staging-internal.docita.work
-API_URL=https://staging-api.docita.work/api/v1
-VITE_APP_URL=https://staging-app.docita.work
-VITE_API_URL=https://staging-api.docita.work/api/v1
-NEXT_PUBLIC_API_URL=https://staging-api.docita.work/api/v1
-NEXT_PUBLIC_APP_URL=https://staging-app.docita.work
-```
-
 ## Deploy Flow
 
 1. Push changes to `staging`.
 2. Render automatically redeploys the staging API from the connected `staging` branch.
-3. Cloudflare staging routes pick up the staging worker configs.
+3. Cloudflare staging deployments use `apps/app/wrangler.toml` with `--env staging` for the app.
 4. Run the staging database migration workflow before validating data-dependent flows.
 
 If you need migrations to land before a staging API deploy becomes visible, configure the Render staging service to deploy after the relevant CI checks pass. GitHub Actions does not need a separate deploy hook for the staging API.
