@@ -11,7 +11,7 @@ This repo supports a separate `staging` branch for pre-production validation.
 ## Recommended Staging Topology
 
 - API: Render web service deployed from the `staging` branch
-- App: Cloudflare staging route via [`apps/app/wrangler.staging.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/app/wrangler.staging.toml)
+- App: Cloudflare staging environment via [`apps/app/wrangler.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/app/wrangler.toml) using `--env staging`
 - Internal: Cloudflare staging route via [`apps/internal/wrangler.staging.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/internal/wrangler.staging.toml)
 - Database: Neon PostgreSQL
 
@@ -74,7 +74,7 @@ NEXT_PUBLIC_APP_URL=https://staging-app.docita.work
 
 1. Push changes to `staging`.
 2. Render automatically redeploys the staging API from the connected `staging` branch.
-3. Cloudflare staging routes pick up the staging worker configs.
+3. Cloudflare staging deployments use `apps/app/wrangler.toml` with `--env staging` for the app and `apps/internal/wrangler.staging.toml` for the internal console.
 4. Run the staging database migration workflow before validating data-dependent flows.
 
 If you need migrations to land before a staging API deploy becomes visible, configure the Render staging service to deploy after the relevant CI checks pass. GitHub Actions does not need a separate deploy hook for the staging API.
