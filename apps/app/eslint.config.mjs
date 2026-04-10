@@ -4,6 +4,7 @@ export default [
   {
     ignores: [
       ".next/**",
+      "dist/**",
       ".open-next/**",
       ".wrangler/**",
       "out/**",
