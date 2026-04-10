@@ -1,0 +1,80 @@
+name: Deploy Staging API
+
+on:
+  push:
+    branches:
+      - staging
+    paths:
+      - 'apps/api/**'
+      - 'packages/types/**'
+      - 'packages/utils/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - '.github/workflows/deploy-staging.yml'
+  workflow_run:
+    workflows:
+      - 'Database Migrations Staging'
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    name: Detect API Deploy Target
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      db: ${{ steps.filter.outputs.db }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Detect changed deploy targets
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'apps/api/**'
+              - 'packages/types/**'
+              - 'packages/utils/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+            db:
+              - 'packages/db/**'
+
+  deploy-api:
+    name: Deploy API (Render Staging)
+    needs: changes
+    if: |
+      needs.changes.outputs.api == 'true' &&
+      (
+        (
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'staging'
+        ) ||
+        needs.changes.outputs.db == 'false'
+      )
+    runs-on: ubuntu-latest
+    env:
+      RENDER_STAGING_DEPLOY_HOOK: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          if [ -z "$RENDER_STAGING_DEPLOY_HOOK" ]; then
+            echo "RENDER_STAGING_DEPLOY_HOOK secret is required."
+            exit 1
+          fi
+
+          curl -fsSL -X POST "$RENDER_STAGING_DEPLOY_HOOK"
