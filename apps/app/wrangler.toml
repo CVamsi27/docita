@@ -9,15 +9,22 @@ compatibility_flags = ["nodejs_compat"]
 # Update this file with your Cloudflare account/project specific settings
 # if your deployment process requires additional bindings.
 
-[[routes]]
-pattern = "app.docita.work"
-custom_domain = true
-
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
-[vars]
+[env.production]
+name = "docita-app"
+
+[[env.production.routes]]
+pattern = "app.docita.work"
+custom_domain = true
+
+[[env.production.r2_buckets]]
+binding = "NEXT_INC_CACHE_R2_BUCKET"
+bucket_name = "docita-cache"
+
+[env.production.vars]
 NODE_ENV = "production"
 DOCITA_CLOUDFLARE = "1"
 APP_URL = "https://app.docita.work"
