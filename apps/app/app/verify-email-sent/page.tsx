@@ -16,7 +16,7 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
-const RESEND_VERIFICATION_COOLDOWN_MS = 2 * 60 * 1000;
+const RESEND_VERIFICATION_COOLDOWN_MS = 120 * 1000;
 const RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY =
   "docita_verification_email_resend_available_at";
 

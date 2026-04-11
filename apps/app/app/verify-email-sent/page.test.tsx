@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import VerifyEmailSentPage from "./page";
 
-const RESEND_VERIFICATION_COOLDOWN_MS = 2 * 60 * 1000;
+const RESEND_VERIFICATION_COOLDOWN_MS = 120 * 1000;
 
 const mocks = vi.hoisted(() => ({
   router: {
