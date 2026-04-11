@@ -523,10 +523,21 @@ export class AuthController {
     if (!req.user.clinicId) {
       throw new BadRequestException('No clinic associated with this account');
     }
+    let expiresAt: Date | undefined;
+    if (body.expiresAt) {
+      const parsed = new Date(body.expiresAt);
+      if (isNaN(parsed.getTime())) {
+        throw new BadRequestException(
+          'expiresAt must be a valid ISO date string',
+        );
+      }
+      expiresAt = parsed;
+    }
+
     return this.apiKeyService.createApiKey(req.user.clinicId, req.user.sub, {
       name: body.name,
       scopes: body.scopes,
-      expiresAt: body.expiresAt ? new Date(body.expiresAt) : undefined,
+      expiresAt,
     });
   }
 

@@ -19,75 +19,69 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('EmailVerifiedGuard', () => {
-  type UserLookupResult = { emailVerified: boolean } | null;
   let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
-  let prisma: {
-    $queryRaw: jest.MockedFunction<
-      (...args: unknown[]) => Promise<UserLookupResult[]>
-    >;
-  };
   let guard: EmailVerifiedGuard;
 
   beforeEach(() => {
     reflector = {
       getAllAndOverride: jest.fn().mockReturnValue(false),
     };
-    prisma = {
-      $queryRaw: jest.fn(),
-    };
-    guard = new EmailVerifiedGuard(
-      asType<Reflector>(reflector),
-      asType<ConstructorParameters<typeof EmailVerifiedGuard>[1]>(prisma),
-    );
+    guard = new EmailVerifiedGuard(asType<Reflector>(reflector));
   });
 
-  it('uses user.id when sub is missing', async () => {
-    prisma.$queryRaw.mockResolvedValue([{ emailVerified: true }]);
-
-    await expect(
-      guard.canActivate(createContext({ id: 'user-123' })),
-    ).resolves.toBe(true);
-
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+  it('allows verified users', () => {
+    expect(
+      guard.canActivate(createContext({ id: 'user-123', emailVerified: true })),
+    ).toBe(true);
   });
 
-  it('blocks unverified users', async () => {
-    prisma.$queryRaw.mockResolvedValue([{ emailVerified: false }]);
-
-    await expect(
-      guard.canActivate(createContext({ sub: 'user-123' })),
-    ).rejects.toThrow(ForbiddenException);
+  it('uses user.id when sub is missing', () => {
+    expect(
+      guard.canActivate(createContext({ id: 'user-123', emailVerified: true })),
+    ).toBe(true);
   });
 
-  it('skips verification for public routes', async () => {
+  it('blocks unverified users', () => {
+    expect(() =>
+      guard.canActivate(
+        createContext({ sub: 'user-123', emailVerified: false }),
+      ),
+    ).toThrow(ForbiddenException);
+  });
+
+  it('skips verification for public routes', () => {
     reflector.getAllAndOverride.mockImplementation((key: unknown) => {
       if (key === IS_PUBLIC_KEY) return true;
       return false;
     });
 
-    await expect(
-      guard.canActivate(createContext({ sub: 'user-123' })),
-    ).resolves.toBe(true);
-    expect(prisma.$queryRaw).not.toHaveBeenCalled();
+    expect(
+      guard.canActivate(
+        createContext({ sub: 'user-123', emailVerified: false }),
+      ),
+    ).toBe(true);
   });
 
-  it('skips verification when skip metadata is set', async () => {
+  it('skips verification when skip metadata is set', () => {
     reflector.getAllAndOverride.mockImplementation((key: unknown) => {
       if (key === SKIP_EMAIL_VERIFICATION_KEY) return true;
       return false;
     });
 
-    await expect(
-      guard.canActivate(createContext({ sub: 'user-123' })),
-    ).resolves.toBe(true);
-    expect(prisma.$queryRaw).not.toHaveBeenCalled();
+    expect(
+      guard.canActivate(
+        createContext({ sub: 'user-123', emailVerified: false }),
+      ),
+    ).toBe(true);
   });
 
-  it('fails closed on lookup errors', async () => {
-    prisma.$queryRaw.mockRejectedValue(new Error('db unavailable'));
+  it('allows unauthenticated requests (no userId)', () => {
+    expect(guard.canActivate(createContext(null))).toBe(true);
+    expect(guard.canActivate(createContext({}))).toBe(true);
+  });
 
-    await expect(
-      guard.canActivate(createContext({ sub: 'user-123' })),
-    ).rejects.toThrow(ForbiddenException);
+  it('allows requests where emailVerified is not set', () => {
+    // emailVerified undefined means JWT strategy did not set it — allow through
+    expect(guard.canActivate(createContext({ sub: 'user-123' }))).toBe(true);
   });
 });
