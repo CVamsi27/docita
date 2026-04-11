@@ -33,7 +33,7 @@ interface JoinRequest {
 export default function JoinRequestStatusPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   const { data: request, isLoading } = useQuery<JoinRequest | null>({
@@ -58,11 +58,25 @@ export default function JoinRequestStatusPage() {
   });
 
   useEffect(() => {
-    if (!isLoading && !request) {
+    if (isLoading) return;
+
+    if (!user) {
+      setRedirectMessage('Redirecting to login...');
+      router.replace('/login?next=/join-request-status');
+      return;
+    }
+
+    if (user.clinicId || user.onboardingStep === 'COMPLETED') {
+      setRedirectMessage('Your request is complete. Taking you to the dashboard...');
+      router.replace('/dashboard');
+      return;
+    }
+
+    if (!request) {
       setRedirectMessage('No active request found. Returning to choose path...');
       router.replace('/choose-path');
     }
-  }, [request, isLoading, router]);
+  }, [request, isLoading, router, user]);
 
   useEffect(() => {
     if (!request || request.status === 'PENDING') return;

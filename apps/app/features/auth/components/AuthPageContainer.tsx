@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Shield } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, type User } from "@/lib/auth-context";
 import { ApiValidationError } from "@/lib/api-error";
 import {
   checkEmailSchema,
   getUserFacingErrorMessage,
 } from "@workspace/types";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
@@ -41,6 +42,27 @@ function formatLockoutMessage(lockoutUntil: number | null): string {
   return `Account is locked due to too many failed login attempts. Try again in ${minutesRemaining} minute(s).`;
 }
 
+function getPostAuthPath(user: User): string {
+  if (user.emailVerified === false) {
+    return "/verify-email-sent";
+  }
+
+  if (!user.clinicId) {
+    switch (user.onboardingStep) {
+      case "JOINING_CLINIC":
+        return "/join-request-status";
+      case "CREATING_CLINIC":
+        return "/onboarding";
+      case "CHOOSE_PATH":
+      case "NOT_STARTED":
+      default:
+        return "/choose-path";
+    }
+  }
+
+  return "/dashboard";
+}
+
 export function AuthPageContainer() {
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
@@ -55,9 +77,27 @@ export function AuthPageContainer() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
-  const { login, register, checkEmail, isLoginLocked, loginLockoutUntil } =
-    useAuth();
+  const {
+    user,
+    isAuthenticated,
+    login,
+    register,
+    checkEmail,
+    isLoginLocked,
+    loginLockoutUntil,
+  } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      return;
+    }
+
+    setIsRedirecting(true);
+    router.replace(getPostAuthPath(user));
+  }, [isAuthenticated, router, user]);
+
   const lockoutMessage = isLoginLocked
     ? formatLockoutMessage(loginLockoutUntil)
     : "";
@@ -212,6 +252,15 @@ export function AuthPageContainer() {
   };
 
   const contentMaxWidth = step === "signup" ? "max-w-3xl" : "max-w-md";
+
+  if (isRedirecting) {
+    return (
+      <PageTransitionLoader
+        title="Redirecting..."
+        description="Taking you to your workspace..."
+      />
+    );
+  }
 
   return (
     <PreDashboardShell currentStep={step} contentMaxWidth={contentMaxWidth}>

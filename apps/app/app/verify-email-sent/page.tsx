@@ -1,27 +1,64 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertTriangle, CheckCircle2, Mail, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { toast } from "sonner";
 import {
   useAuth,
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
+  type User,
 } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
+function getNextPathForVerifiedUser(user: User | null): string {
+  if (!user) {
+    return "/login?next=/verify-email-sent";
+  }
+
+  if (user.clinicId || user.onboardingStep === "COMPLETED") {
+    return "/dashboard";
+  }
+
+  switch (user.onboardingStep) {
+    case "JOINING_CLINIC":
+      return "/join-request-status";
+    case "CREATING_CLINIC":
+      return "/onboarding";
+    default:
+      return "/choose-path";
+  }
+}
+
 export default function VerifyEmailSentPage() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
   const [deliveryStatus, setDeliveryStatus] = useState<"pending" | "failed">(
     "pending",
   );
+  const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) {
+      setRedirectMessage("Redirecting to login...");
+      router.replace("/login?next=/verify-email-sent");
+      return;
+    }
+
+    if (user.emailVerified === true) {
+      const nextPath = getNextPathForVerifiedUser(user);
+      setRedirectMessage("Email verified. Taking you to the next step...");
+      router.replace(nextPath);
+      return;
+    }
+
     if (typeof window === "undefined") {
       return;
     }
@@ -35,7 +72,11 @@ export default function VerifyEmailSentPage() {
     }
 
     setDeliveryStatus("pending");
-  }, []);
+  }, [router, user]);
+
+  if (redirectMessage) {
+    return <PageTransitionLoader title="Redirecting..." description={redirectMessage} />;
+  }
 
   const handleResend = async () => {
     setResending(true);

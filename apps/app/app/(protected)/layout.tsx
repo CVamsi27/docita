@@ -196,6 +196,11 @@ export default function ProtectedLayout({
       router.replace("/login");
       return;
     }
+    if (user.emailVerified === false) {
+      setRedirectMessage("Please verify your email before continuing...");
+      router.replace("/verify-email-sent");
+      return;
+    }
     if (!user.clinicId) {
       if (user.onboardingStep === "JOINING_CLINIC") {
         setRedirectMessage("Taking you to your join request status...");

@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import VerifyEmailSentPage from "./page";
 
 const mocks = vi.hoisted(() => ({
+  router: {
+    replace: vi.fn(),
+  },
   apiFetch: vi.fn(),
   logout: vi.fn(),
   loggerError: vi.fn(),
@@ -10,7 +13,14 @@ const mocks = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
   user: {
     email: "owner@example.com",
+    emailVerified: false,
+    clinicId: null,
+    onboardingStep: "CHOOSE_PATH",
   },
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => mocks.router,
 }));
 
 vi.mock("@/lib/auth-context", () => ({
@@ -50,6 +60,7 @@ vi.mock("@/features/auth/components/PreDashboardShell", () => ({
 describe("VerifyEmailSentPage", () => {
   beforeEach(() => {
     sessionStorage.clear();
+    mocks.router.replace.mockReset();
     mocks.apiFetch.mockReset();
     mocks.logout.mockReset();
     mocks.loggerError.mockReset();
@@ -57,6 +68,9 @@ describe("VerifyEmailSentPage", () => {
     mocks.toastSuccess.mockReset();
     mocks.user = {
       email: "owner@example.com",
+      emailVerified: false,
+      clinicId: null,
+      onboardingStep: "CHOOSE_PATH",
     };
   });
 
@@ -121,5 +135,20 @@ describe("VerifyEmailSentPage", () => {
       "failed",
     );
     expect(mocks.loggerError).toHaveBeenCalled();
+  });
+
+  it("redirects already verified users to the next setup step", async () => {
+    mocks.user = {
+      email: "owner@example.com",
+      emailVerified: true,
+      clinicId: null,
+      onboardingStep: "CHOOSE_PATH",
+    };
+
+    render(<VerifyEmailSentPage />);
+
+    await waitFor(() => {
+      expect(mocks.router.replace).toHaveBeenCalledWith("/choose-path");
+    });
   });
 });

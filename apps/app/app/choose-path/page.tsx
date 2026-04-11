@@ -45,6 +45,16 @@ export default function ChoosePathPage() {
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
       setRedirectMessage("Account already linked. Redirecting to dashboard...");
       router.replace("/dashboard");
+      return;
+    }
+    if (user?.onboardingStep === "JOINING_CLINIC") {
+      setRedirectMessage("Taking you to your join request status...");
+      router.replace("/join-request-status");
+      return;
+    }
+    if (user?.onboardingStep === "CREATING_CLINIC") {
+      setRedirectMessage("Taking you back to onboarding...");
+      router.replace("/onboarding");
     }
   }, [isAuthenticated, isLoading, user, router]);
 
