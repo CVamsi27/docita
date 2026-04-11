@@ -18,6 +18,7 @@ import {
   BarChart3,
   CreditCard,
   FileText,
+  Inbox,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -72,6 +73,11 @@ const sidebarItems = [
     title: "Feedback",
     href: "/feedback",
     icon: MessageSquare,
+  },
+  {
+    title: "Support Inbox",
+    href: "/support",
+    icon: Inbox,
   },
   {
     title: "System Logs",

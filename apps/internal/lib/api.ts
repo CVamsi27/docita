@@ -7,8 +7,9 @@ import {
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
   Patient,
-  type HealthCheck as PerformanceHealthCheck,
+  SupportInquiry,
 } from "@workspace/types";
+type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
 export { API_URL };
 
@@ -248,6 +249,11 @@ export const feedbackAPI = {
   ): Promise<Feedback> => client.patch(`/internal/feedback/${id}/status`, data),
   delete: (id: string): Promise<void> =>
     client.delete(`/internal/feedback/${id}`),
+};
+
+export const supportAPI = {
+  getInquiries: (limit = 100): Promise<SupportInquiry[]> =>
+    client.get(`/internal/support/inquiries?limit=${limit}`),
 };
 
 export interface SubscriptionOverview {

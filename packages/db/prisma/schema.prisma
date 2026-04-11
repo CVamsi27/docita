@@ -1281,6 +1281,24 @@ model WhatsappLog {
   @@index([status])
 }
 
+model SupportInquiry {
+  id            String               @id @default(cuid())
+  name          String
+  email         String
+  clinic        String?
+  message       String
+  status        SupportInquiryStatus @default(NEW)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  reviewedAt    DateTime?
+  reviewedBy    String?
+  internalNotes String?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+}
+
 // WhatsApp Message Templates (for button-first approach)
 model WhatsappTemplate {
   id             String                   @id @default(cuid())
@@ -1447,6 +1465,13 @@ enum WhatsappLogStatus {
   DELIVERED
   FAILED
   READ
+}
+
+enum SupportInquiryStatus {
+  NEW
+  REVIEWED
+  RESOLVED
+  ARCHIVED
 }
 
 enum OcrDocumentStatus {

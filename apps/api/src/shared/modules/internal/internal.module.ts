@@ -14,6 +14,7 @@ import { BillingModule } from '@/domains/billing/billing.module';
 import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { GatewaysModule } from '@/gateways/gateways.module';
 import { FeedbackModule } from '@/domains/feedback/feedback.module';
+import { ContactModule } from '@/shared/modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { FeedbackModule } from '@/domains/feedback/feedback.module';
     UsersModule,
     BillingModule,
     FeedbackModule,
+    ContactModule,
     AuthModule,
     GatewaysModule,
   ],
