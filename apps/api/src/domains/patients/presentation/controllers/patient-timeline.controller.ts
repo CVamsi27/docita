@@ -11,6 +11,7 @@ import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
+import { parsePaginationInt } from '@/common/utils/string.utils';
 
 @ApiTags('patient-timeline')
 @Controller('patients/:patientId/timeline')
@@ -52,8 +53,8 @@ export class PatientTimelineController {
       eventTypes,
       from: query.from,
       to: query.to,
-      limit: query.limit ? parseInt(query.limit, 10) : undefined,
-      offset: query.offset ? parseInt(query.offset, 10) : undefined,
+      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+      offset: parsePaginationInt(query.offset, { min: 0 }),
     });
   }
 

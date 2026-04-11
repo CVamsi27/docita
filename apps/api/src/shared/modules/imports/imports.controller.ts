@@ -31,6 +31,7 @@ import {
 } from './dto/imports.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { createTempDiskStorage } from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 interface AuthRequest {
   user: {
@@ -94,13 +95,14 @@ export class ImportsController {
       throw new BadRequestException('File is required');
     }
 
-    const preview = await this.importsService.previewImport(file.path);
-    const sessionId = this.sessionService.createSession(file.path);
-
-    return {
-      sessionId,
-      ...preview,
-    };
+    try {
+      const preview = await this.importsService.previewImport(file.path);
+      const sessionId = this.sessionService.createSession(file.path);
+      return { sessionId, ...preview };
+    } catch (error) {
+      await unlink(file.path).catch(() => {});
+      throw error;
+    }
   }
 
   @Post('patients/:sessionId')
@@ -153,10 +155,14 @@ export class ImportsController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    return this.importsService.processPatientImport(
-      file.path,
-      req.user.clinicId,
-    );
+    try {
+      return await this.importsService.processPatientImport(
+        file.path,
+        req.user.clinicId,
+      );
+    } finally {
+      await unlink(file.path).catch(() => {});
+    }
   }
 
   @Post('ocr/process')
@@ -188,9 +194,13 @@ export class ImportsController {
       throw new BadRequestException('File is required');
     }
 
-    return await this.importsService.extractFromMedicalDocumentBasic(
-      file.path,
-      _req.user?.clinicId,
-    );
+    try {
+      return await this.importsService.extractFromMedicalDocumentBasic(
+        file.path,
+        _req.user?.clinicId,
+      );
+    } finally {
+      await unlink(file.path).catch(() => {});
+    }
   }
 }

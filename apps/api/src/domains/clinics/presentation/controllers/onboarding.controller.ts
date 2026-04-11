@@ -40,6 +40,7 @@ import {
   assertAllowedFileSignature,
   createTempDiskStorage,
 } from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -206,28 +207,35 @@ export class OnboardingController {
       throw new BadRequestException('Signature file is required');
     }
 
-    await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
+    try {
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
 
-    if (
-      req?.user &&
-      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
-    ) {
-      throw new ForbiddenException(
-        'Signature upload not allowed for existing clinics',
+      if (
+        req?.user &&
+        (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+      ) {
+        throw new ForbiddenException(
+          'Signature upload not allowed for existing clinics',
+        );
+      }
+
+      return await this.onboardingService.uploadSlaSignature(
+        onboardingId,
+        sessionId,
+        file,
+        {
+          modifiedBy: req?.user?.id,
+          modifiedByRole: req?.user?.role,
+          ipAddress: req?.ip || req?.socket?.remoteAddress,
+          userAgent: req?.headers?.['user-agent'],
+        },
       );
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
     }
-
-    return this.onboardingService.uploadSlaSignature(
-      onboardingId,
-      sessionId,
-      file,
-      {
-        modifiedBy: req?.user?.id,
-        modifiedByRole: req?.user?.role,
-        ipAddress: req?.ip || req?.socket?.remoteAddress,
-        userAgent: req?.headers?.['user-agent'],
-      },
-    );
   }
 
   @Post('choose-path')

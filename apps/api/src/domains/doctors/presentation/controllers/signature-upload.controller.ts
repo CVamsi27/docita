@@ -19,6 +19,7 @@ import {
   assertAllowedFileSignature,
   createTempDiskStorage,
 } from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('doctors/signature')
 export class SignatureUploadController {
@@ -80,9 +81,15 @@ export class SignatureUploadController {
       throw new BadRequestException('File is required');
     }
 
-    await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
-
-    return this.signatureUploadService.uploadSignature(token, file);
+    try {
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
+      return await this.signatureUploadService.uploadSignature(token, file);
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
+    }
   }
 
   @Get('active-tokens')

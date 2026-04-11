@@ -60,11 +60,16 @@ export class SearchController {
       ? (types.split(',') as SearchEntityType[])
       : ['all' as SearchEntityType];
 
+    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const safeLimit = Number.isFinite(parsedLimit)
+      ? Math.min(Math.max(parsedLimit, 1), 100)
+      : 20;
+
     return this.searchService.search({
       clinicId: req.user.clinicId,
       query,
       types: searchTypes,
-      limit: limit ? parseInt(limit, 10) : 20,
+      limit: safeLimit,
     });
   }
 }

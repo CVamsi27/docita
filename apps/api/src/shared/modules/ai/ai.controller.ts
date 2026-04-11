@@ -29,6 +29,7 @@ import {
 } from './dto/ai.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { createTempDiskStorage } from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('ai')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
@@ -93,6 +94,12 @@ export class AIController {
       throw new BadRequestException('File is required');
     }
 
-    return this.aiService.extractFromMedicalDocument(file.path, true);
+    try {
+      return await this.aiService.extractFromMedicalDocument(file.path, true);
+    } finally {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+    }
   }
 }

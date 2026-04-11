@@ -3,6 +3,7 @@ import type { StorageFile } from '@/domains/documents/infrastructure/storage.pro
 import { extname, join } from 'path';
 import { mkdirSync } from 'fs';
 import { open } from 'fs/promises';
+import { randomBytes } from 'crypto';
 import { diskStorage } from 'multer';
 
 const TEMP_UPLOAD_DIR = join(process.cwd(), 'uploads', 'temp');
@@ -13,12 +14,10 @@ export function createTempDiskStorage() {
   return diskStorage({
     destination: TEMP_UPLOAD_DIR,
     filename: (_req, file, cb) => {
-      const randomName = Array(32)
-        .fill(null)
-        .map(() => Math.round(Math.random() * 16).toString(16))
-        .join('');
-
-      cb(null, `${randomName}${extname(file.originalname)}`);
+      cb(
+        null,
+        `${randomBytes(16).toString('hex')}${extname(file.originalname)}`,
+      );
     },
   });
 }

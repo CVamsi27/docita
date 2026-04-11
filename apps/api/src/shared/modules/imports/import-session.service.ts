@@ -6,6 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import * as fs from 'fs';
+import { randomBytes } from 'crypto';
 
 export interface ImportSession {
   filePath: string;
@@ -36,10 +37,7 @@ export class ImportSessionService implements OnModuleInit, OnModuleDestroy {
   }
 
   createSession(filePath: string): string {
-    const sessionId = Array(16)
-      .fill(null)
-      .map(() => Math.round(Math.random() * 16).toString(16))
-      .join('');
+    const sessionId = randomBytes(16).toString('hex');
 
     this.pendingImports.set(sessionId, {
       filePath,

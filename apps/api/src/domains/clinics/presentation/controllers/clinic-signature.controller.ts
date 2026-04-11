@@ -20,6 +20,7 @@ import {
   assertAllowedFileSignature,
   createTempDiskStorage,
 } from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('clinics/signature')
 export class ClinicSignatureController {
@@ -29,15 +30,13 @@ export class ClinicSignatureController {
 
   @Post('generate-token')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
-  async generateToken(
-    @Request() req: RequestWithUser,
-    @Query('clinicId') clinicId: string,
-  ) {
+  async generateToken(@Request() req: RequestWithUser) {
     if (!req.user?.id) {
       throw new BadRequestException('User ID is required');
     }
+    const clinicId = req.user.clinicId;
     if (!clinicId) {
-      throw new BadRequestException('clinicId is required');
+      throw new BadRequestException('Clinic context required');
     }
 
     return this.signatureUploadService.generateUploadToken(req.user.id, {
@@ -85,9 +84,15 @@ export class ClinicSignatureController {
       throw new BadRequestException('File is required');
     }
 
-    await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
-
-    return this.signatureUploadService.uploadSignature(token, file);
+    try {
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
+      return await this.signatureUploadService.uploadSignature(token, file);
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
+    }
   }
 
   @Get('active-tokens')

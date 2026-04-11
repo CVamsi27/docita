@@ -106,7 +106,7 @@ export class RateLimitInterceptor implements NestInterceptor {
   private generateKey(
     request: Record<string, unknown> & {
       ip?: string;
-      connection?: { remoteAddress?: string };
+      socket?: { remoteAddress?: string };
       user?: { id?: string };
     },
     options: RateLimitOptions,
@@ -115,7 +115,7 @@ export class RateLimitInterceptor implements NestInterceptor {
       return options.keyGenerator(request);
     }
 
-    const ip = request.ip || request.connection?.remoteAddress || 'unknown';
+    const ip = request.ip || request.socket?.remoteAddress || 'unknown';
     const userId = request.user?.id || 'anonymous';
     return `${ip}:${userId}`;
   }

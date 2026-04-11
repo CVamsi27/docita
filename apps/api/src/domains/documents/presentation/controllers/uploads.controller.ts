@@ -20,6 +20,7 @@ import {
   assertAllowedFileSignature,
   createTempDiskStorage,
 } from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('uploads')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -76,14 +77,21 @@ export class UploadsController {
       throw new BadRequestException('File is required');
     }
 
-    await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp']);
+    try {
+      await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp']);
 
-    return this.uploadsService.updateSession(id, file, {
-      modifiedBy: req.user?.id,
-      modifiedByRole: req.user?.role,
-      authMethod: req.user ? 'session-auth' : 'anonymous-upload',
-      ipAddress: req.ip || req.socket?.remoteAddress,
-      userAgent: req.headers?.['user-agent'],
-    });
+      return await this.uploadsService.updateSession(id, file, {
+        modifiedBy: req.user?.id,
+        modifiedByRole: req.user?.role,
+        authMethod: req.user ? 'session-auth' : 'anonymous-upload',
+        ipAddress: req.ip || req.socket?.remoteAddress,
+        userAgent: req.headers?.['user-agent'],
+      });
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
+    }
   }
 }

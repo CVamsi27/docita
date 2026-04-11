@@ -81,7 +81,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.updateCondition(id, dto);
+    return this.medicalHistoryService.updateCondition(id, patientId, dto);
   }
 
   @Delete('conditions/:id')
@@ -91,7 +91,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.deleteCondition(id);
+    return this.medicalHistoryService.deleteCondition(id, patientId);
   }
 
   @Get('allergies')
@@ -102,6 +102,7 @@ export class MedicalHistoryController {
     await this.verifyPatientAccess(patientId, req);
     return this.medicalHistoryService.getAllergies(patientId);
   }
+  @Post('allergies')
   async createAllergy(
     @Param('patientId') patientId: string,
     @Body() dto: CreateAllergyDto,
@@ -119,7 +120,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.updateAllergy(id, dto);
+    return this.medicalHistoryService.updateAllergy(id, patientId, dto);
   }
 
   @Delete('allergies/:id')
@@ -129,7 +130,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.deleteAllergy(id);
+    return this.medicalHistoryService.deleteAllergy(id, patientId);
   }
 
   @Get('family')
@@ -159,7 +160,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.updateFamilyHistory(id, dto);
+    return this.medicalHistoryService.updateFamilyHistory(id, patientId, dto);
   }
 
   @Delete('family/:id')
@@ -169,7 +170,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.deleteFamilyHistory(id);
+    return this.medicalHistoryService.deleteFamilyHistory(id, patientId);
   }
 
   @Get('social')
@@ -230,7 +231,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.updateSurgicalHistory(id, dto);
+    return this.medicalHistoryService.updateSurgicalHistory(id, patientId, dto);
   }
 
   @Delete('surgical/:id')
@@ -240,7 +241,7 @@ export class MedicalHistoryController {
     @Request() req: RequestWithUser,
   ) {
     await this.verifyPatientAccess(patientId, req);
-    return this.medicalHistoryService.deleteSurgicalHistory(id);
+    return this.medicalHistoryService.deleteSurgicalHistory(id, patientId);
   }
 
   @Get()
