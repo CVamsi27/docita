@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Query,
   UseGuards as _UseGuards,
@@ -51,6 +52,10 @@ export class SearchController {
     @Query('types') types?: string,
     @Query('limit') limit?: string,
   ) {
+    if (!req.user.clinicId) {
+      throw new ForbiddenException('Search requires a clinic context');
+    }
+
     const searchTypes = types
       ? (types.split(',') as SearchEntityType[])
       : ['all' as SearchEntityType];

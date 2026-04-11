@@ -18,8 +18,6 @@ import {
   Feature,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { RateLimit } from '@/common/interceptors/rate-limit.interceptor';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import {
   AIAnalysisResponseDto,
   DiagnosisSuggestionListResponseDto,
@@ -30,6 +28,7 @@ import {
   AnalyzePrescriptionDto,
 } from './dto/ai.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { createTempDiskStorage } from '@/common/utils/upload.utils';
 
 @Controller('ai')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.ADMIN_DOCTOR)
@@ -74,16 +73,7 @@ export class AIController {
   @ZodSerializerDto(ExtractionResultResponseDto)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/temp',
-        filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: createTempDiskStorage(),
       fileFilter: (_req, file, cb) => {
         if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif|webp)/)) {
           return cb(

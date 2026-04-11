@@ -1,4 +1,10 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import * as fs from 'fs';
 
 export interface ImportSession {
@@ -7,9 +13,27 @@ export interface ImportSession {
 }
 
 @Injectable()
-export class ImportSessionService {
+export class ImportSessionService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(ImportSessionService.name);
   private readonly pendingImports = new Map<string, ImportSession>();
+  private cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+  onModuleInit(): void {
+    this.cleanupTimer = setInterval(
+      () => {
+        this.cleanupExpiredSessions();
+      },
+      5 * 60 * 1000,
+    );
+    this.cleanupTimer.unref?.();
+  }
+
+  onModuleDestroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
+  }
 
   createSession(filePath: string): string {
     const sessionId = Array(16)
@@ -50,6 +74,7 @@ export class ImportSessionService {
     const session = this.pendingImports.get(sessionId);
     if (session) {
       this.pendingImports.delete(sessionId);
+      this.deleteFile(session.filePath);
     }
   }
 

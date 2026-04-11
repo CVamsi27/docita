@@ -12,13 +12,13 @@ export interface ErrorStateProps {
 }
 
 export function ErrorState({
-  message = "Something went wrong. Please try again.",
+  message = "We could not load this section. Please try again.",
   onRetry,
   className,
 }: ErrorStateProps) {
   const safeMessage = sanitizeUserFacingMessage(
     message,
-    "Something went wrong. Please try again.",
+    "We could not load this section. Please try again.",
   );
 
   return (

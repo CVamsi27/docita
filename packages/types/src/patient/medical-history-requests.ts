@@ -20,7 +20,7 @@ export type CreateMedicalConditionInput = z.infer<
 export const updateMedicalConditionSchema = createMedicalConditionSchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
-    message: "At least one field must be provided",
+    message: "Update at least one field before saving.",
   });
 export type UpdateMedicalConditionInput = z.infer<
   typeof updateMedicalConditionSchema
@@ -40,7 +40,7 @@ export type CreatePatientAllergyInput = z.infer<typeof createPatientAllergySchem
 export const updatePatientAllergySchema = createPatientAllergySchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
-    message: "At least one field must be provided",
+    message: "Update at least one field before saving.",
   });
 export type UpdatePatientAllergyInput = z.infer<typeof updatePatientAllergySchema>;
 
@@ -57,7 +57,7 @@ export type CreatePatientFamilyHistoryInput = z.infer<
 export const updatePatientFamilyHistorySchema = createPatientFamilyHistorySchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
-    message: "At least one field must be provided",
+    message: "Update at least one field before saving.",
   });
 export type UpdatePatientFamilyHistoryInput = z.infer<
   typeof updatePatientFamilyHistorySchema
@@ -88,7 +88,7 @@ export const updatePatientSurgicalHistorySchema =
   createPatientSurgicalHistorySchema.partial().refine(
     (data) => Object.keys(data).length > 0,
     {
-      message: "At least one field must be provided",
+      message: "Update at least one field before saving.",
     },
   );
 export type UpdatePatientSurgicalHistoryInput = z.infer<

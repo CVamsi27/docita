@@ -31,6 +31,7 @@ export class IpRateLimitService {
   private readonly BAN_WINDOW_MS = 10 * 60 * 1000;
 
   private readonly bannedIps = new Map<string, number>();
+  private nextCleanupAt = 0;
 
   getClientIp(req: Request): string {
     const forwarded = getForwardedForHeader(req);
@@ -44,6 +45,7 @@ export class IpRateLimitService {
   }
 
   isIpBanned(ip: string): boolean {
+    this.cleanupExpiredEntries(Date.now());
     const banTime = this.bannedIps.get(ip);
     if (!banTime) return false;
 
@@ -65,11 +67,13 @@ export class IpRateLimitService {
   }
 
   checkRateLimit(ip: string): boolean {
+    const now = Date.now();
+    this.cleanupExpiredEntries(now);
+
     if (this.isIpBanned(ip)) {
       return false;
     }
 
-    const now = Date.now();
     const tracker = this.ipAttempts.get(ip);
 
     if (!tracker || now > tracker.resetTime) {
@@ -96,11 +100,13 @@ export class IpRateLimitService {
   }
 
   getAttemptCount(ip: string): number {
+    const now = Date.now();
+    this.cleanupExpiredEntries(now);
     const tracker = this.ipAttempts.get(ip);
     if (!tracker) return 0;
 
-    const now = Date.now();
     if (now > tracker.resetTime) {
+      this.ipAttempts.delete(ip);
       return 0;
     }
 
@@ -115,5 +121,25 @@ export class IpRateLimitService {
   reset(): void {
     this.ipAttempts.clear();
     this.bannedIps.clear();
+  }
+
+  private cleanupExpiredEntries(now: number): void {
+    if (now < this.nextCleanupAt) {
+      return;
+    }
+
+    this.nextCleanupAt = now + this.WINDOW_MS;
+
+    for (const [ip, tracker] of this.ipAttempts.entries()) {
+      if (now > tracker.resetTime) {
+        this.ipAttempts.delete(ip);
+      }
+    }
+
+    for (const [ip, banTime] of this.bannedIps.entries()) {
+      if (now > banTime) {
+        this.bannedIps.delete(ip);
+      }
+    }
   }
 }

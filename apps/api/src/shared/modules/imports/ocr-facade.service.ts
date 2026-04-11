@@ -23,8 +23,8 @@ export class OCRFacadeService implements OnModuleInit, OnModuleDestroy {
     private confidenceScorer: ConfidenceScorerService,
   ) {}
 
-  async onModuleInit() {
-    await this.textExtractor.initialize();
+  async onModuleInit(): Promise<void> {
+    // OCR workers initialize lazily on first use to keep API startup memory low.
   }
 
   async onModuleDestroy() {

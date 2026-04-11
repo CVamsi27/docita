@@ -16,6 +16,13 @@ describe('JwtStrategy', () => {
     role: string;
     name: string;
     clinicId: string | null;
+    emailVerified: boolean;
+    onboardingStep:
+      | 'NOT_STARTED'
+      | 'CHOOSE_PATH'
+      | 'CREATING_CLINIC'
+      | 'JOINING_CLINIC'
+      | 'COMPLETED';
   };
 
   const mockPrisma = {
@@ -58,6 +65,8 @@ describe('JwtStrategy', () => {
     role: 'ADMIN',
     name: 'Test Admin',
     clinicId: 'clinic-456',
+    emailVerified: false,
+    onboardingStep: 'CHOOSE_PATH' as const,
   };
 
   describe('validate', () => {
@@ -82,6 +91,8 @@ describe('JwtStrategy', () => {
         role: 'ADMIN',
         name: 'Test Admin',
         clinicId: 'clinic-456',
+        emailVerified: false,
+        onboardingStep: 'CHOOSE_PATH',
         patientId: undefined,
       });
     });

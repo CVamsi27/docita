@@ -80,7 +80,7 @@ describe("DataState", () => {
     );
 
     expect(
-      screen.getByText("Something went wrong. Please try again."),
+      screen.getByText("We could not load this section. Please try again."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Prisma/i)).not.toBeInTheDocument();
   });

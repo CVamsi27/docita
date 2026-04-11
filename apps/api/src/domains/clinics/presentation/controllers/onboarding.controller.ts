@@ -33,11 +33,13 @@ import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
-import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
 import { RequestWithUser } from '@/common/types/common.types';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { MAX_FILE_SIZE } from '@workspace/utils';
+import {
+  assertAllowedFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -171,7 +173,7 @@ export class OnboardingController {
   @Post(':onboardingId/sla-signature-session/:sessionId')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage(),
+      storage: createTempDiskStorage(),
       limits: { fileSize: MAX_FILE_SIZE },
       fileFilter: (_req, file, cb) => {
         const allowedMimes = [
@@ -204,6 +206,8 @@ export class OnboardingController {
       throw new BadRequestException('Signature file is required');
     }
 
+    await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
+
     if (
       req?.user &&
       (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
@@ -231,7 +235,6 @@ export class OnboardingController {
   @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
-  @SkipEmailVerification()
   async choosePath(
     @Request() req: RequestWithUser,
     @Body() dto: { path: string },

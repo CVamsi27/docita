@@ -8,7 +8,7 @@ import type { patientResponseSchema } from "../contracts/patients";
 import type { userSchema } from "./users";
 import type { clinicSchema } from "./clinics";
 
-export const UuidSchema = z.string().uuid("Invalid UUID format");
+export const UuidSchema = z.string().uuid("Enter a valid ID.");
 export const TimestampSchema = z.coerce.date();
 
 export const BaseEntitySchema = z.object({

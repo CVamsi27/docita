@@ -14,12 +14,12 @@ export interface UserFacingErrorOptions {
   context?: UserFacingErrorContext;
 }
 
-const DEFAULT_ERROR_MESSAGE = "Something went wrong. Please try again.";
+const DEFAULT_ERROR_MESSAGE = "We could not complete this right now. Please try again.";
 
 const CONTEXT_FALLBACKS: Record<UserFacingErrorContext, string> = {
   generic: DEFAULT_ERROR_MESSAGE,
   auth: "We could not sign you in. Please check your details and try again.",
-  load: "We could not load this information. Please try again.",
+  load: "We could not load this right now. Please refresh or try again.",
   save: "We could not save your changes. Please try again.",
   delete: "We could not remove this item. Please try again.",
   upload: "We could not upload the file. Please try again.",
@@ -82,6 +82,15 @@ const CODE_MESSAGES: Record<string, string> = {
 };
 
 const TECHNICAL_MESSAGE_PATTERNS = [
+  /^\s*error\s*$/i,
+  /^\s*network(?:\s+error)?\s*$/i,
+  /^\s*something went wrong\.?\s*(please try again\.?)?\s*$/i,
+  /^\s*unknown error\s*$/i,
+  /^\s*unexpected error\s*$/i,
+  /^\s*we encountered an unexpected error\.?\s*(please try again\.?)?\s*$/i,
+  /^\s*we could not load this information\.?\s*(please try again\.?)?\s*$/i,
+  /^\s*we could not complete this action\.?\s*(please try again\.?)?\s*$/i,
+  /^\s*we could not continue right now\.?\s*(please try again\.?)?\s*$/i,
   /\bapi\b/i,
   /\bbackend\b/i,
   /\bdatabase\b/i,

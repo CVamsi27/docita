@@ -12,11 +12,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SignatureUploadService } from '@/domains/doctors/application/services/signature-upload.service';
-import { memoryStorage } from 'multer';
 import { Role, SignaturePurpose } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import {
+  assertAllowedFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
 
 @Controller('clinics/signature')
 export class ClinicSignatureController {
@@ -53,7 +56,7 @@ export class ClinicSignatureController {
   @Public()
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage(),
+      storage: createTempDiskStorage(),
       limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
         const allowedMimes = [
@@ -82,23 +85,7 @@ export class ClinicSignatureController {
       throw new BadRequestException('File is required');
     }
 
-    const buffer = file.buffer;
-    const header = buffer.toString('hex', 0, 4).toUpperCase();
-    const webpHeader = buffer.toString('hex', 8, 12).toUpperCase();
-
-    const signatures = { PNG: '89504E47', JPEG: 'FFD8FF', RIFF: '52494646' };
-
-    let isValid = false;
-    if (header === signatures.PNG) isValid = true;
-    else if (header.startsWith(signatures.JPEG)) isValid = true;
-    else if (header === signatures.RIFF && webpHeader === '57454250')
-      isValid = true;
-
-    if (!isValid) {
-      throw new BadRequestException(
-        'Invalid file content. The file type does not match its extension/MIME type.',
-      );
-    }
+    await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
 
     return this.signatureUploadService.uploadSignature(token, file);
   }

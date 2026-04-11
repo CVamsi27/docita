@@ -13,7 +13,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
 import { ImportSessionService } from './import-session.service';
-import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
@@ -31,6 +30,7 @@ import {
   ColumnMappingRequestDto,
 } from './dto/imports.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { createTempDiskStorage } from '@/common/utils/upload.utils';
 
 interface AuthRequest {
   user: {
@@ -72,16 +72,7 @@ export class ImportsController {
   @RequireFeature(Feature.EXCEL_IMPORT)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/temp',
-        filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: createTempDiskStorage(),
       fileFilter: (_req, file, cb) => {
         if (!hasSupportedImportExtension(file.originalname)) {
           return cb(
@@ -138,16 +129,7 @@ export class ImportsController {
   @RequireFeature(Feature.EXCEL_IMPORT)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/temp',
-        filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: createTempDiskStorage(),
       fileFilter: (_req, file, cb) => {
         if (!hasSupportedImportExtension(file.originalname)) {
           return cb(
@@ -182,16 +164,7 @@ export class ImportsController {
   @RequireFeature(Feature.OCR_BASIC)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/temp',
-        filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: createTempDiskStorage(),
       fileFilter: (_req, file, cb) => {
         if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif|webp)/)) {
           return cb(

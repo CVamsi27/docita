@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { userSchema } from "../shared/users";
 
+const onboardingStepSchema = z.enum([
+  "NOT_STARTED",
+  "CHOOSE_PATH",
+  "CREATING_CLINIC",
+  "JOINING_CLINIC",
+  "COMPLETED",
+]);
+
 const authUserSchema = userSchema
   .pick({
     id: true,
@@ -13,35 +21,37 @@ const authUserSchema = userSchema
   })
   .extend({
     clinicId: z.string().nullable().optional(),
+    emailVerified: z.boolean().optional(),
+    onboardingStep: onboardingStepSchema.optional(),
     createdAt: z.string().or(z.date()).optional(),
     updatedAt: z.string().or(z.date()).optional(),
   });
 
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "Enter a password."),
 });
 
 export const registerSchema = z.object({
   firstName: z
     .string()
-    .min(1, "First name is required")
-    .min(2, "First name must be at least 2 characters"),
+    .min(1, "Enter your first name.")
+    .min(2, "Use at least 2 characters."),
   lastName: z
     .string()
-    .min(1, "Last name is required")
-    .min(2, "Last name must be at least 2 characters"),
+    .min(1, "Enter your last name.")
+    .min(2, "Use at least 2 characters."),
   email: z.string().email("Please enter a valid email address"),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
+    .min(8, "Use at least 8 characters.")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
-      "Password must contain uppercase, lowercase, number, and special character",
+      "Use uppercase, lowercase, a number, and a special character.",
     ),
   clinicName: z
     .string()
-    .min(2, "Clinic name must be at least 2 characters")
+    .min(2, "Use at least 2 characters.")
     .optional()
     .or(z.literal("")),
   role: z.enum(["ADMIN", "ADMIN_DOCTOR"]).optional(),
@@ -61,13 +71,13 @@ export const logoutSchema = z.object({
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1),
+    currentPassword: z.string().min(1, "Enter your current password."),
     newPassword: z
       .string()
-      .min(8)
+      .min(8, "Use at least 8 characters.")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
-        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character",
+        "Use uppercase, lowercase, a number, and a special character.",
       ),
   })
   .refine((data) => data.currentPassword !== data.newPassword, {
@@ -84,17 +94,20 @@ export const loginResponseSchema = z.object({
 export const registerResponseSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
+  verificationEmailSent: z.boolean().optional(),
   user: authUserSchema,
 });
 
 export const validateSessionResponseSchema = z.object({
   valid: z.boolean(),
-  user: userSchema.pick({
+  user: authUserSchema.pick({
     id: true,
     email: true,
     name: true,
     role: true,
     clinicId: true,
+    emailVerified: true,
+    onboardingStep: true,
   }),
 });
 

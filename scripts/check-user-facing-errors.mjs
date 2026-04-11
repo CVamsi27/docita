@@ -54,11 +54,12 @@ const EXCLUDED_FILE_PATTERNS = [
 ];
 
 const VISIBLE_SINK_LINE_PATTERN =
-  /(showUserFacingErrorToast|toast\.error|set[A-Za-z0-9_]*Error|errorMessage=|message=|<ErrorState|<DataState|<ErrorBanner|<AlertDescription|throw new Error)/;
+  /(showUserFacingErrorToast|toast\.error|set[A-Za-z0-9_]*Error|errorMessage=|errorMessage:|message=|<ErrorState|<DataState|<ErrorBanner|<AlertDescription|throw new Error)/;
 
 const BANNED_VISIBLE_TERMS = [
   /\bAPI\b/,
   /\bbackend\b/i,
+  /\bclinic id\b/i,
   /\bdatabase\b/i,
   /\bdigest\b/i,
   /\berror id\b/i,
@@ -70,6 +71,7 @@ const BANNED_VISIBLE_TERMS = [
   /\bPrisma\b/,
   /\brequest failed\b/i,
   /\bresponse validation\b/i,
+  /\bSDK\b/,
   /\bschema\b/i,
   /\bserver\b/i,
   /\bstatus code\b/i,
@@ -92,7 +94,7 @@ const RULES = [
     name: "raw Error.message must not be passed into visible error sinks",
     test(line) {
       return (
-        /(showUserFacingErrorToast|set[A-Za-z0-9_]*Error|errorMessage=|message=)[^\n]*(err|error)\.message/.test(
+        /(showUserFacingErrorToast|set[A-Za-z0-9_]*Error|errorMessage:|errorMessage=|message=)[^\n]*(err|error)\.message/.test(
           line,
         ) &&
         !/logger\.|captureException|captureMessage|isNetworkError|includes\(/.test(
@@ -143,6 +145,35 @@ const RULES = [
           line,
         )
       );
+    },
+  },
+  {
+    name: "visible error copy must not use vague error wording",
+    test(line) {
+      return (
+        VISIBLE_SINK_LINE_PATTERN.test(line) &&
+        /["'`](An error occurred|Unknown error|Something went wrong|We could not load this information|We could not complete this action|We could not continue right now|unexpected error|Please fill in all required fields|Invalid input)\b/i.test(
+          line,
+        )
+      );
+    },
+  },
+  {
+    name: "visible error copy must not expose internal context wording",
+    test(line) {
+      return (
+        VISIBLE_SINK_LINE_PATTERN.test(line) &&
+        /["'`](Missing .*context|.*context is required)\b/i.test(line)
+      );
+    },
+  },
+  {
+    name: "route error pages must use clear page-load copy",
+    appliesTo(relativePath) {
+      return /(^|\/)(global-)?error\.tsx$/.test(relativePath) || /error-boundary\.tsx$/.test(relativePath);
+    },
+    test(line) {
+      return /Something went wrong|unexpected error/i.test(line);
     },
   },
 ];

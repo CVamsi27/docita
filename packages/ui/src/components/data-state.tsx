@@ -28,7 +28,7 @@ export function DataState({
   status,
   children,
   loadingMessage = "Loading...",
-  errorMessage = "Something went wrong. Please try again.",
+  errorMessage = "We could not load this section. Please try again.",
   onRetry,
   emptyTitle = "Nothing to show",
   emptyDescription,
@@ -45,7 +45,7 @@ export function DataState({
       <ErrorState
         message={sanitizeUserFacingMessage(
           errorMessage,
-          "Something went wrong. Please try again.",
+          "We could not load this section. Please try again.",
         )}
         onRetry={onRetry}
         className={className}

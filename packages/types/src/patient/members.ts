@@ -20,8 +20,8 @@ export const doctorDetailsSchema = z.object({
 export type DoctorDetails = z.infer<typeof doctorDetailsSchema>;
 
 export const memberFormDataSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email"),
+  name: z.string().min(1, "Enter the team member's name."),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().optional(),
   phoneNumber: z.string().optional(),
   role: userRoleSchema.optional(),
@@ -71,9 +71,9 @@ export const clinicReceptionistSchema = z.object({
 export type ClinicReceptionist = z.infer<typeof clinicReceptionistSchema>;
 
 export const createMemberSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1, "Enter the team member's name."),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Use at least 6 characters."),
   phoneNumber: z.string().optional(),
   role: z.literal("DOCTOR").or(z.literal("RECEPTIONIST")).optional(),
 
@@ -88,8 +88,8 @@ export const createMemberSchema = z.object({
 export type CreateMemberPayload = z.infer<typeof createMemberSchema>;
 
 export const updateMemberSchema = z.object({
-  name: z.string().min(1, "Name is required").optional(),
-  email: z.string().email("Invalid email").optional(),
+  name: z.string().min(1, "Enter the team member's name.").optional(),
+  email: z.string().email("Please enter a valid email address").optional(),
   password: z.string().optional(),
   phoneNumber: z.string().optional(),
 

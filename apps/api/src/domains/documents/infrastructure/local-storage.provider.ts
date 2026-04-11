@@ -73,8 +73,13 @@ export class LocalStorageProvider extends StorageProvider {
 
     try {
       if (file.mimetype.startsWith('image/')) {
-        const buffer = file.buffer || fs.readFileSync(file.path!);
-        await sharp(buffer)
+        const source = file.path ?? file.buffer;
+        if (!source) {
+          throw new BadRequestException('Uploaded file could not be read');
+        }
+
+        const pipeline = sharp(source);
+        await pipeline
           .rotate()
           .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
           .toFile(filePath);
@@ -91,6 +96,16 @@ export class LocalStorageProvider extends StorageProvider {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to upload file: ${errorMsg}`);
       throw new BadRequestException('Invalid file format or upload failed');
+    } finally {
+      if (file.path && file.path !== filePath && fs.existsSync(file.path)) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (error) {
+          this.logger.warn(
+            `Failed to delete temp upload ${file.path}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
     }
   }
 

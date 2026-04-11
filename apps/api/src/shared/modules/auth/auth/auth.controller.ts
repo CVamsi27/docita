@@ -286,6 +286,9 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ZodSerializerDto(ValidateSessionResponseDto)
   validate(@Request() req: AuthenticatedRequest) {
+    const emailVerified =
+      'emailVerified' in req.user ? req.user.emailVerified : undefined;
+
     return {
       valid: true,
       user: {
@@ -294,6 +297,8 @@ export class AuthController {
         name: req.user.name,
         role: req.user.role,
         clinicId: req.user.clinicId,
+        emailVerified,
+        onboardingStep: req.user.onboardingStep,
       },
     };
   }

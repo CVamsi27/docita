@@ -10,12 +10,14 @@ import {
 } from "../contracts/prescriptions";
 import { createLabTestRequestSchema } from "../contracts/lab-tests";
 
-export const IdSchema = z.string().uuid("Invalid ID format");
-export const EmailSchema = z.string().email("Invalid email address");
+export const IdSchema = z.string().uuid("Enter a valid ID.");
+export const EmailSchema = z
+  .string()
+  .email("Please enter a valid email address");
 export const PhoneSchema = z
   .string()
-  .regex(/^\+?[\d\s\-()]{10,}$/, "Invalid phone number");
-export const URLSchema = z.string().url("Invalid URL");
+  .regex(/^\+?[\d\s\-()]{10,}$/, "Enter a valid phone number.");
+export const URLSchema = z.string().url("Enter a valid website address.");
 export const DateTimeSchema = z.coerce.date();
 export const PositiveIntSchema = z.number().int().positive();
 export const NonNegativeIntSchema = z.number().int().nonnegative();
@@ -132,13 +134,13 @@ export const SignUpSchema = z.object({
   email: EmailSchema,
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain uppercase letter")
-    .regex(/[a-z]/, "Password must contain lowercase letter")
-    .regex(/[0-9]/, "Password must contain number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain special character"),
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
+    .min(8, "Use at least 8 characters.")
+    .regex(/[A-Z]/, "Use at least one uppercase letter.")
+    .regex(/[a-z]/, "Use at least one lowercase letter.")
+    .regex(/[0-9]/, "Use at least one number.")
+    .regex(/[^A-Za-z0-9]/, "Use at least one special character."),
+  firstName: z.string().min(1, "Enter your first name."),
+  lastName: z.string().min(1, "Enter your last name."),
   clinicId: IdSchema,
 });
 
@@ -155,10 +157,10 @@ export const ChangePasswordSchema = z.object({
   currentPassword: z.string(),
   newPassword: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain uppercase letter")
-    .regex(/[a-z]/, "Password must contain lowercase letter")
-    .regex(/[0-9]/, "Password must contain number"),
+    .min(8, "Use at least 8 characters.")
+    .regex(/[A-Z]/, "Use at least one uppercase letter.")
+    .regex(/[a-z]/, "Use at least one lowercase letter.")
+    .regex(/[0-9]/, "Use at least one number."),
 });
 
 export type ChangePassword = z.infer<typeof ChangePasswordSchema>;

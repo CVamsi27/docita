@@ -95,9 +95,9 @@ export const ERROR_MESSAGES: Record<AppErrorCode, string> = {
   LICENSE_EXPIRED: "Please update the license details before continuing",
   FEATURE_NOT_AVAILABLE: "This feature is not available for your account",
 
-  INTERNAL_ERROR: "Something went wrong. Please try again",
-  DATABASE_ERROR: "Something went wrong. Please try again",
-  EXTERNAL_SERVICE_ERROR: "Something went wrong. Please try again",
+  INTERNAL_ERROR: "We could not complete this right now. Please try again",
+  DATABASE_ERROR: "We could not complete this right now. Please try again",
+  EXTERNAL_SERVICE_ERROR: "We could not complete this right now. Please try again",
   RATE_LIMIT_EXCEEDED: "Too many attempts. Please wait a moment and try again",
 };
 

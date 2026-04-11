@@ -54,7 +54,7 @@ export class ImagePreprocessorService {
 
   async verifyImageFileExists(imagePath: string): Promise<boolean> {
     try {
-      await fs.readFile(imagePath);
+      await fs.access(imagePath);
       return true;
     } catch {
       return false;
