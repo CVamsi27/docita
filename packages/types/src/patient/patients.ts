@@ -45,15 +45,15 @@ export type ComprehensiveVitals = z.infer<typeof comprehensiveVitalsSchema>;
 export const patientSchema = z.object({
   id: z.string().optional(),
   mrn: z.string().max(50).nullable().optional(), 
-  firstName: z.string().min(1, "First name is required").max(100),
-  lastName: z.string().min(1, "Last name is required").max(100),
+  firstName: z.string().min(1, "Enter the patient's first name.").max(100),
+  lastName: z.string().min(1, "Enter the patient's last name.").max(100),
   preferredName: z.string().max(100).nullable().optional(),
   pronouns: z.string().max(50).nullable().optional(),
   dateOfBirth: z.string().or(z.date()),
   gender: genderSchema,
   phoneNumber: z
     .string()
-    .min(10, "Phone number must be at least 10 digits")
+    .min(10, "Enter at least 10 digits.")
     .max(20),
   email: z.string().email().max(255).nullable().optional().or(z.literal("")),
   address: z.string().max(500).nullable().optional().transform(stripHtmlTags),
@@ -191,7 +191,7 @@ export type ConditionSourceType = z.infer<typeof conditionSourceTypeSchema>;
 export const patientMedicalConditionSchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
-  conditionName: z.string().min(1, "Condition name is required").max(255),
+  conditionName: z.string().min(1, "Enter the condition name.").max(255),
   icdCode: z.string().max(20).optional(),
   conditionType: medicalConditionTypeSchema.default("CHRONIC"),
   status: conditionStatusSchema.default("ACTIVE"),
@@ -257,7 +257,7 @@ export const patientAllergySchema = z.object({
   patientId: z.string(),
   allergen: z
     .string()
-    .min(1, "Allergen is required")
+    .min(1, "Enter the allergen.")
     .max(255)
     .transform(stripHtmlTags),
   allergyType: allergyTypeSchema.default("DRUG"),
@@ -276,10 +276,10 @@ export type PatientAllergy = z.infer<typeof patientAllergySchema>;
 export const patientFamilyHistorySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
-  condition: z.string().min(1, "Condition is required").max(255),
+  condition: z.string().min(1, "Enter the condition.").max(255),
   relationship: z
     .string()
-    .min(1, "Relationship is required")
+    .min(1, "Enter the relationship.")
     .max(100)
     .transform(stripHtmlTags),
   ageAtOnset: z.number().optional(),
@@ -343,7 +343,7 @@ export type PatientSocialHistory = z.infer<typeof patientSocialHistorySchema>;
 export const patientSurgicalHistorySchema = z.object({
   id: z.string().optional(),
   patientId: z.string(),
-  procedureName: z.string().min(1, "Procedure name is required").max(255),
+  procedureName: z.string().min(1, "Enter the procedure name.").max(255),
   procedureDate: z.string().or(z.date()).optional(),
   hospital: z.string().max(255).optional(),
   surgeon: z.string().max(100).optional(),

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { useAuth } from "@/lib/auth";
 import { fetchClinics, fetchUsersForSelection } from "./api";
 import { calculateRoleStats, filterUsers } from "./utils";
 import type { RoleFilter, User } from "./types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export function useUsersData() {
   const { token } = useAuth();
@@ -39,13 +40,13 @@ export function useUsersData() {
 
   useEffect(() => {
     if (clinicsQuery.error) {
-      toast.error("Failed to load clinics");
+      showUserFacingErrorToast("We could not load clinics. Please try again.");
     }
   }, [clinicsQuery.error]);
 
   useEffect(() => {
     if (usersQuery.error) {
-      toast.error("Failed to load users");
+      showUserFacingErrorToast("We could not load users. Please try again.");
     }
   }, [usersQuery.error]);
 
@@ -64,10 +65,13 @@ export function useUsersData() {
   };
 
   const hasError = Boolean(clinicsQuery.error || usersQuery.error);
-  const errorMessage =
-    (clinicsQuery.error as Error | null)?.message ||
-    (usersQuery.error as Error | null)?.message ||
-    "Failed to load team members";
+  const errorSource = clinicsQuery.error ?? usersQuery.error ?? null;
+  const errorMessage = errorSource
+    ? getUserFacingErrorMessage(errorSource, {
+        context: "load",
+        fallback: "We could not load your team members. Please refresh and try again.",
+      })
+    : "We could not load your team members. Please refresh and try again.";
 
   return {
     clinics: clinicsQuery.data ?? [],

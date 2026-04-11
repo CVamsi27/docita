@@ -9,9 +9,23 @@ import {
   createPatientSchema,
 } from "@workspace/types";
 import { useClinic } from "@/lib/clinic-context";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { ApiError } from "@/lib/errors";
 
 interface UsePatientFormProps {
   onPatientAdded: () => void;
+}
+
+function isDuplicatePatientError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) {
+    return false;
+  }
+
+  if (error.statusCode === 409 || error.code === "DUPLICATE_ENTRY") {
+    return true;
+  }
+
+  return /already exists|duplicate/i.test(error.message);
 }
 
 export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
@@ -59,26 +73,24 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
         }
         toast.success("Patient added successfully");
       } catch (error: unknown) {
+        const fallbackMessage = "We could not add this patient. Please try again.";
 
-        const err = error as { message?: string };
-        const errorMessage = err.message || "Failed to create patient";
-
-        if (
-          errorMessage.includes("Unique constraint") ||
-          errorMessage.includes("Duplicate") ||
-          errorMessage.includes("already exists")
-        ) {
+        if (isDuplicatePatientError(error)) {
           form.setError("phoneNumber", {
             type: "manual",
             message: "This phone number is already registered.",
           });
-          toast.error("This phone number is already registered.");
+          showUserFacingErrorToast(
+            null,
+            "This phone number is already registered.",
+            "form",
+          );
         } else {
           form.setError("root", {
             type: "manual",
-            message: errorMessage,
+            message: fallbackMessage,
           });
-          toast.error(errorMessage);
+          showUserFacingErrorToast(error, fallbackMessage, "save");
         }
       }
     },

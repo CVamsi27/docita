@@ -81,21 +81,22 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={goBack}
+            className="shrink-0"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back
           </Button>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Invoice {invoice.id}
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
           </h1>
           <StatusBadge status={invoice.status} />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => handlePrint()}>
             <Printer className="h-4 w-4 mr-2" />
             Print

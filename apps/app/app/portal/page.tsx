@@ -40,7 +40,7 @@ export default function PortalDashboardPage() {
       <DataState
         status={isLoading ? "loading" : isError ? "error" : "success"}
         loadingMessage="Loading your dashboard..."
-        errorMessage="Failed to load your dashboard."
+        errorMessage="We could not load your health overview. Please try again."
         onRetry={() => void refetch()}
       >
         <div className="grid gap-4 md:grid-cols-3">

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { addMonths, addWeeks, format } from "date-fns";
 import { FollowUpDetails, FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
 import { useConstants } from "@/features/_shared/hooks/use-constants";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface FollowUpSchedulerContainerProps {
   _patientId: string;
@@ -46,7 +47,7 @@ export function FollowUpSchedulerContainer({
 
   const handleSchedule = async () => {
     if (!selectedDate) {
-      toast.error("Please select a date");
+      showUserFacingErrorToast("Choose a follow-up date before scheduling.");
       return;
     }
 
@@ -79,7 +80,9 @@ export function FollowUpSchedulerContainer({
       setSelectedDate(undefined);
       setNotes("");
     } catch {
-      toast.error("Failed to schedule follow-up");
+      showUserFacingErrorToast(
+        "We could not schedule this follow-up. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

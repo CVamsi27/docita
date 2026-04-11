@@ -11,6 +11,7 @@ import {
   OcrRawData,
 } from '@workspace/types';
 import * as fs from 'fs';
+import sharp from 'sharp';
 
 @Injectable()
 export class OcrExtractionService {
@@ -63,7 +64,7 @@ export class OcrExtractionService {
     if (!this.openaiService.client)
       throw new ServiceUnavailableException('OpenAI Vision API not configured');
 
-    const imageData = fs.readFileSync(imagePath);
+    const imageData = await this.prepareImageForVision(imagePath);
     const base64Image = imageData.toString('base64');
     const content: Array<
       | { type: 'image_url'; image_url: { url: string } }
@@ -91,6 +92,21 @@ export class OcrExtractionService {
     });
 
     return response.choices[0]?.message?.content || '';
+  }
+
+  private async prepareImageForVision(imagePath: string): Promise<Buffer> {
+    try {
+      return await sharp(imagePath)
+        .rotate()
+        .resize(2048, 2048, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80, mozjpeg: true })
+        .toBuffer();
+    } catch (error) {
+      this.logger.warn(
+        `Falling back to original OCR image: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return fs.readFileSync(imagePath);
+    }
   }
 
   private async parseOcrText(

@@ -1,7 +1,7 @@
 "use client";
 
 export default function GlobalError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -37,11 +37,10 @@ export default function GlobalError({
               !
             </div>
             <h1 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: 700 }}>
-              Something went wrong
+              We could not load this page
             </h1>
             <p style={{ margin: "0 0 24px", color: "#475569", lineHeight: 1.6 }}>
-              We encountered an unexpected error. Please try again or return to
-              the home page.
+              Please try again or return to the home page.
             </p>
             <div
               style={{
@@ -84,11 +83,6 @@ export default function GlobalError({
                 Go to home
               </button>
             </div>
-            {error.digest ? (
-              <p style={{ marginTop: 16, fontSize: 12, color: "#64748b" }}>
-                Error ID: {error.digest}
-              </p>
-            ) : null}
           </div>
         </div>
       </body>

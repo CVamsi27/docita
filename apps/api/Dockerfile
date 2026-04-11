@@ -134,4 +134,5 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 ENTRYPOINT ["dumb-init", "--"]
 
-CMD ["node", "--max-old-space-size=1024", "dist/main"]
+# Leave headroom for native allocations, request buffers, and the OS on small Fly VMs.
+CMD ["sh", "-c", "exec node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE_MB:-768} dist/main"]

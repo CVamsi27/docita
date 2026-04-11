@@ -75,7 +75,7 @@ export function AuthLoginStepUI({
             autoComplete="current-password"
             required
             className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
-            placeholder="••••••••"
+            placeholder="Enter your password"
             autoFocus
             aria-invalid={hasFieldError(fieldErrors, "password")}
             aria-describedby={

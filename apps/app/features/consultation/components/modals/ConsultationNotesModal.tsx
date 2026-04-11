@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useUpdateAppointment } from "@/hooks/api/use-appointments";
 import { StickyNote } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface ConsultationNotesModalProps extends Omit<
   ModalProps,
@@ -43,7 +44,9 @@ export function ConsultationNotesModal({
       onOpenChange?.(false);
       setNotes("");
     } catch {
-      toast.error("Failed to save notes");
+      showUserFacingErrorToast(
+        "We could not save these notes. Please try again.",
+      );
 
     }
   };
@@ -64,7 +67,7 @@ export function ConsultationNotesModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Enter clinical observations, diagnosis, and plan..."
-              className="min-h-[200px]"
+              className="min-h-[120px] sm:min-h-[200px]"
             />
           </div>
         </div>

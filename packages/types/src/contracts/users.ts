@@ -6,7 +6,7 @@ export const updateProfileRequestSchema = z
     email: z.string().email().optional(),
   })
   .refine((data) => data.name || data.email, {
-    message: "At least one field (name or email) is required",
+    message: "Update at least one field before saving.",
   });
 
 export const userProfileResponseSchema = z.object({

@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
 import { formatDistanceToNow } from 'date-fns';
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface JoinRequest {
   id: string;
@@ -58,7 +59,9 @@ export default function JoinRequestsPage() {
       closeDialog();
     },
     onError: () => {
-      toast.error('Failed to approve request');
+      showUserFacingErrorToast(
+        "We could not approve this join request. Please try again.",
+      );
     },
   });
 
@@ -71,7 +74,9 @@ export default function JoinRequestsPage() {
       closeDialog();
     },
     onError: () => {
-      toast.error('Failed to reject request');
+      showUserFacingErrorToast(
+        "We could not reject this join request. Please try again.",
+      );
     },
   });
 
@@ -110,7 +115,9 @@ export default function JoinRequestsPage() {
 
   const handleReject = () => {
     if (!selectedRequest || !rejectionReason.trim()) {
-      toast.error('Please provide a reason for rejection');
+      showUserFacingErrorToast(
+        "Add a reason so the team member knows why this request was declined.",
+      );
       return;
     }
 
@@ -134,7 +141,7 @@ export default function JoinRequestsPage() {
   return (
     <div className="container max-w-6xl py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Team Join Requests</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Team Join Requests</h1>
         <p className="text-muted-foreground">
           Review and approve requests from users who want to join your clinic
         </p>

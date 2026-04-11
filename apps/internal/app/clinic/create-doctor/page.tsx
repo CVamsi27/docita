@@ -25,6 +25,7 @@ import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const SPECIALIZATIONS = Object.entries(SPECIALIZATION_LABELS).map(
   ([value, label]) => ({
@@ -69,15 +70,15 @@ export default function CreateDoctorPage() {
 
     const errors: { name?: string; email?: string; password?: string } = {};
     if (!form.name.trim()) {
-      errors.name = "Full name is required";
+      errors.name = "Enter the doctor's full name.";
     }
     if (!form.email.trim()) {
-      errors.email = "Email is required";
+      errors.email = "Enter an email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errors.email = "Enter a valid email address";
     }
     if (!form.password.trim()) {
-      errors.password = "Password is required";
+      errors.password = "Enter a password.";
     }
 
     setFieldErrors(errors);
@@ -90,14 +91,14 @@ export default function CreateDoctorPage() {
       toast.success("Doctor created successfully");
       router.push("/clinic/team");
     } catch {
-      toast.error("Error creating doctor");
+      showUserFacingErrorToast("We could not create this doctor account. Please try again.");
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Create Doctor</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Create Doctor</h1>
         <p className="text-muted-foreground">
           Add a new doctor to your clinic team
         </p>

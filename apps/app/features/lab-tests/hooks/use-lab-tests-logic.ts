@@ -12,6 +12,7 @@ import {
 import { usePatients } from "@/hooks/api/use-patients";
 import { Patient } from "@workspace/types";
 import { useDebounce } from "@workspace/hooks/use-debounce";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -21,8 +22,8 @@ export interface PaginatedResponse<T> {
 }
 
 export const createLabTestOrderSchema = z.object({
-  patientId: z.string().min(1, "Patient is required"),
-  labTestId: z.string().min(1, "Test is required"),
+  patientId: z.string().min(1, "Select a patient."),
+  labTestId: z.string().min(1, "Select a test."),
   appointmentId: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -97,11 +98,11 @@ export const useLabTestsLogic = () => {
         toast.success("Lab test order created successfully");
       } catch (error) {
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to create lab test order. Please try again.";
-        toast.error(errorMessage);
+        showUserFacingErrorToast(
+          error,
+          "We could not create this lab test order right now. Please try again.",
+          "save",
+        );
       }
     },
     [createOrder, form, refetch],

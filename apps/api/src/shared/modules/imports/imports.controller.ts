@@ -13,7 +13,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportsService, PATIENT_FIELD_MAPPINGS } from './imports.service';
 import { ImportSessionService } from './import-session.service';
-import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
@@ -31,6 +30,8 @@ import {
   ColumnMappingRequestDto,
 } from './dto/imports.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { createTempDiskStorage } from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 interface AuthRequest {
   user: {
@@ -72,16 +73,7 @@ export class ImportsController {
   @RequireFeature(Feature.EXCEL_IMPORT)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/temp',
-        filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: createTempDiskStorage(),
       fileFilter: (_req, file, cb) => {
         if (!hasSupportedImportExtension(file.originalname)) {
           return cb(
@@ -103,13 +95,14 @@ export class ImportsController {
       throw new BadRequestException('File is required');
     }
 
-    const preview = await this.importsService.previewImport(file.path);
-    const sessionId = this.sessionService.createSession(file.path);
-
-    return {
-      sessionId,
-      ...preview,
-    };
+    try {
+      const preview = await this.importsService.previewImport(file.path);
+      const sessionId = this.sessionService.createSession(file.path);
+      return { sessionId, ...preview };
+    } catch (error) {
+      await unlink(file.path).catch(() => {});
+      throw error;
+    }
   }
 
   @Post('patients/:sessionId')
@@ -138,16 +131,7 @@ export class ImportsController {
   @RequireFeature(Feature.EXCEL_IMPORT)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/temp',
-        filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: createTempDiskStorage(),
       fileFilter: (_req, file, cb) => {
         if (!hasSupportedImportExtension(file.originalname)) {
           return cb(
@@ -171,10 +155,14 @@ export class ImportsController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    return this.importsService.processPatientImport(
-      file.path,
-      req.user.clinicId,
-    );
+    try {
+      return await this.importsService.processPatientImport(
+        file.path,
+        req.user.clinicId,
+      );
+    } finally {
+      await unlink(file.path).catch(() => {});
+    }
   }
 
   @Post('ocr/process')
@@ -182,16 +170,7 @@ export class ImportsController {
   @RequireFeature(Feature.OCR_BASIC)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/temp',
-        filename: (_req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: createTempDiskStorage(),
       fileFilter: (_req, file, cb) => {
         if (!file.mimetype.match(/image\/(jpeg|jpg|png|gif|webp)/)) {
           return cb(
@@ -215,9 +194,13 @@ export class ImportsController {
       throw new BadRequestException('File is required');
     }
 
-    return await this.importsService.extractFromMedicalDocumentBasic(
-      file.path,
-      _req.user?.clinicId,
-    );
+    try {
+      return await this.importsService.extractFromMedicalDocumentBasic(
+        file.path,
+        _req.user?.clinicId,
+      );
+    } finally {
+      await unlink(file.path).catch(() => {});
+    }
   }
 }

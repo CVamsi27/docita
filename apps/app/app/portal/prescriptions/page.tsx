@@ -78,7 +78,7 @@ export default function PortalPrescriptionsPage() {
       <DataState
         status={state}
         loadingMessage="Loading prescriptions..."
-        errorMessage="Failed to load prescriptions."
+        errorMessage="We could not load your prescription list. Please try again."
         onRetry={() => void refetch()}
         emptyIcon={FileText}
         emptyTitle="No prescriptions found"

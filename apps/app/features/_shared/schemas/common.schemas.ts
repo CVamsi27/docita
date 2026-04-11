@@ -1,33 +1,38 @@
 import { z } from "zod";
 
 export const requiredStringSchema = (fieldName: string) =>
-  z.string().min(1, `${fieldName} is required`);
+  z.string().min(1, `Enter ${fieldName.toLowerCase()}.`);
 
 export const emailSchema = z
   .string()
-  .min(1, "Email is required")
-  .email("Invalid email address");
+  .min(1, "Enter an email address.")
+  .email("Please enter a valid email address");
 
 export const phoneSchema = z
   .string()
-  .min(10, "Phone number must be at least 10 digits")
-
-  .regex(/^\+?[\d\s-()]+$/, "Invalid phone number format");
+  .min(1, "Enter a phone number.")
+  .min(10, "Enter at least 10 digits.")
+  .regex(/^\+?[\d\s-()]+$/, "Enter a valid phone number.");
 
 export const addressSchema = z.object({
-  street: z.string().min(1, "Street address is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State/Province is required"),
-  zipCode: z.string().min(1, "ZIP/Postal code is required"),
-  country: z.string().min(1, "Country is required"),
+  street: z.string().min(1, "Enter the street address."),
+  city: z.string().min(1, "Enter the city."),
+  state: z.string().min(1, "Enter the state or province."),
+  zipCode: z.string().min(1, "Enter the ZIP or postal code."),
+  country: z.string().min(1, "Enter the country."),
 });
 
 export const patientBasicInfoSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  firstName: z
+    .string()
+    .min(1, "Enter the first name.")
+    .min(2, "Use at least 2 characters."),
+  lastName: z
+    .string()
+    .min(1, "Enter the last name.")
+    .min(2, "Use at least 2 characters."),
   email: emailSchema.optional().or(z.literal("")),
   phone: phoneSchema,
   gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
   dateOfBirth: z.date().optional(),
 });
-

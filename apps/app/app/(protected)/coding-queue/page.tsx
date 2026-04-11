@@ -29,7 +29,6 @@ import {
 } from "@workspace/ui/components/table";
 import { Badge } from "@workspace/ui/components/badge";
 import { useCodingQueue } from "@/hooks/api/use-medical-coding";
-import { toast } from "sonner";
 import { useState } from "react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
@@ -37,6 +36,7 @@ import {
   FeatureGate,
 } from "@/features/_shared/components/auth/feature-gate";
 import { EmptyState } from "@workspace/ui/components/empty-state";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function CodingQueuePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,7 +49,7 @@ export default function CodingQueuePage() {
   } = useCodingQueue(debouncedSearch);
 
   if (error) {
-    toast.error("Failed to load coding queue");
+    showUserFacingErrorToast("We could not load this coding queue. Please try again.");
   }
 
   return (
@@ -57,7 +57,7 @@ export default function CodingQueuePage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Coding Queue</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Coding Queue</h1>
             <p className="text-muted-foreground">
               Completed visits that are missing diagnosis codes.
             </p>

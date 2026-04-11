@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const AnalyticsDetailedMetricsTable = dynamic(
   () =>
@@ -106,7 +107,9 @@ export function AnalyticsDashboard() {
 
   useEffect(() => {
     if (analyticsQuery.isError || billingQuery.isError) {
-      toast.error("Failed to load analytics data");
+      showUserFacingErrorToast(
+        "We could not load this analytics view. Please try again.",
+      );
     }
   }, [analyticsQuery.isError, billingQuery.isError]);
 
@@ -133,10 +136,14 @@ export function AnalyticsDashboard() {
         window.URL.revokeObjectURL(url);
         toast.success("Report exported successfully");
       } else {
-        toast.error("Failed to export report");
+        showUserFacingErrorToast(
+          "We could not export the report. Please try again.",
+        );
       }
     } catch {
-      toast.error("Failed to export report");
+      showUserFacingErrorToast(
+        "We could not export the report. Please try again.",
+      );
     }
   }, [endDate, period, startDate, token]);
 
@@ -243,7 +250,7 @@ export function AnalyticsDashboard() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Analytics Dashboard
           </h1>
           <p className="text-muted-foreground">
@@ -372,7 +379,7 @@ export function AnalyticsDashboard() {
               <div className="text-muted-foreground">{metric.icon}</div>
             </div>
             <div className="space-y-1">
-              <p className="text-3xl font-bold text-foreground">
+              <p className="text-2xl sm:text-3xl font-bold text-foreground">
                 {metric.value}
               </p>
               {metric.change && (

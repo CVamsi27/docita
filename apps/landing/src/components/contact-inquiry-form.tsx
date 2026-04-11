@@ -41,21 +41,21 @@ function validateForm(data: ContactFormData): ContactErrors {
   const errors: ContactErrors = {};
 
   if (!data.name.trim()) {
-    errors.name = "Name is required";
+    errors.name = "Enter your name.";
   }
 
   if (!data.email.trim()) {
-    errors.email = "Email is required";
+    errors.email = "Enter your email address.";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Enter a valid email address";
+    errors.email = "Please enter a valid email address.";
   }
 
   if (!data.clinic.trim()) {
-    errors.clinic = "Clinic name is required";
+    errors.clinic = "Enter your clinic name.";
   }
 
   if (!data.message.trim()) {
-    errors.message = "Message is required";
+    errors.message = "Enter your message.";
   }
 
   return errors;
@@ -97,7 +97,7 @@ export function ContactInquiryForm() {
       await submitContactInquiry(formData);
       setIsSubmitted(true);
     } catch {
-      setSubmitError("We could not send your message. Please try again in a few minutes.");
+      setSubmitError("We could not send your message right now. Please try again in a few minutes.");
     } finally {
       setIsSubmitting(false);
     }

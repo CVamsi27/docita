@@ -127,7 +127,7 @@ export function PatientsPageUI({
             </div>
           )}
 
-          <div className="overflow-hidden rounded-md border border-border">
+          <div className="overflow-x-auto rounded-md border border-border">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-muted/50">
@@ -146,7 +146,7 @@ export function PatientsPageUI({
                     Contact
                   </TableHead>
                   <TableHead
-                    className="cursor-pointer transition-colors hover:bg-muted/50"
+                    className="hidden sm:table-cell cursor-pointer transition-colors hover:bg-muted/50"
                     onClick={() => onSort("gender")}
                     aria-sort={getAriaSort("gender")}
                   >
@@ -159,7 +159,7 @@ export function PatientsPageUI({
                     Blood Group
                   </TableHead>
                   <TableHead
-                    className="cursor-pointer transition-colors hover:bg-muted/50"
+                    className="hidden md:table-cell cursor-pointer transition-colors hover:bg-muted/50"
                     onClick={() => onSort("updatedAt")}
                     aria-sort={getAriaSort("updatedAt")}
                   >
@@ -236,7 +236,7 @@ export function PatientsPageUI({
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="capitalize">
+                        <TableCell className="hidden sm:table-cell capitalize">
                           {patient.gender}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
@@ -250,7 +250,7 @@ export function PatientsPageUI({
                             </span>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           {patient.updatedAt
                             ? format(new Date(patient.updatedAt), "MMM d, yyyy")
                             : "-"}

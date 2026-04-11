@@ -52,12 +52,12 @@ export function PortalOtpLoginUI() {
             )}
           </div>
           <CardTitle className="text-2xl">
-            {step === "phone" ? "Patient Portal" : "Enter OTP"}
+            {step === "phone" ? "Patient Portal" : "Enter Verification Code"}
           </CardTitle>
           <CardDescription>
             {step === "phone"
-              ? "Enter your registered mobile number to receive an OTP"
-              : `We sent a 6-digit OTP to ${phoneNumber}`}
+              ? "Enter your registered mobile number to receive a verification code"
+              : `We sent a 6-digit verification code to ${phoneNumber}`}
           </CardDescription>
         </CardHeader>
 
@@ -91,24 +91,24 @@ export function PortalOtpLoginUI() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending OTP...
+                    Sending code...
                   </>
                 ) : (
-                  "Send OTP"
+                  "Send Code"
                 )}
               </Button>
             </form>
           ) : (
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="otp">One-Time Password</Label>
+                <Label htmlFor="otp">Verification Code</Label>
                 <Input
                   id="otp"
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={6}
-                  placeholder="Enter 6-digit OTP"
+                  placeholder="Enter 6-digit code"
                   value={otp}
                   onChange={(e) =>
                     setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
@@ -129,7 +129,7 @@ export function PortalOtpLoginUI() {
                     Verifying...
                   </>
                 ) : (
-                  "Verify OTP"
+                  "Verify Code"
                 )}
               </Button>
               <div className="flex items-center justify-between text-sm">
@@ -151,7 +151,7 @@ export function PortalOtpLoginUI() {
                   onClick={resendOtp}
                   disabled={isLoading}
                 >
-                  Resend OTP
+                  Resend Code
                 </Button>
               </div>
             </form>

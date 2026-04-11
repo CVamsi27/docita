@@ -7,6 +7,9 @@ import { type ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 
+const TOAST_DURATION_MS = 7000;
+const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
+
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -38,7 +41,14 @@ export function Providers({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           {children}
-          <Toaster richColors position="top-right" />
+          <Toaster
+            closeButton
+            duration={TOAST_DURATION_MS}
+            expand
+            richColors
+            position="top-right"
+            visibleToasts={TOAST_VISIBLE_COUNT}
+          />
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>

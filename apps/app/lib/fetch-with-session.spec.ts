@@ -125,7 +125,7 @@ describe("fetchWithSession", () => {
     expect(payload.id).toBe("abc");
   });
 
-  it("throws API message when JSON error payload is provided", async () => {
+  it("throws safe copy when JSON error payload is provided", async () => {
     vi.mocked(appSession.getToken).mockReturnValue("token-1");
     vi.mocked(appSession.getCsrfToken).mockReturnValue("csrf-1");
     vi.mocked(appSession.refreshAccessToken).mockResolvedValue(false);
@@ -139,7 +139,7 @@ describe("fetchWithSession", () => {
     );
 
     await expect(fetchJsonWithSession("/test")).rejects.toThrow(
-      "Invalid payload",
+      "We could not load the requested details. Please try again.",
     );
   });
 });

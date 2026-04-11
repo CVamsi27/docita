@@ -27,6 +27,7 @@ import {
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { toast } from "sonner";
 import { Textarea } from "@workspace/ui/components/textarea";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function PatientProfilePage() {
   const [deletionReason, setDeletionReason] = useState("");
@@ -46,18 +47,24 @@ export default function PatientProfilePage() {
 
       toast.success("Your consent preferences have been saved.");
     } catch (_error) {
-      toast.error("Failed to update preferences");
+      showUserFacingErrorToast(
+        "We could not save your preferences. Please try again.",
+      );
     }
   };
 
   const handleDeleteAccount = async () => {
     if (!deletionReason.trim()) {
-      toast.error("Please provide a reason for deletion");
+      showUserFacingErrorToast(
+        "Tell us why you want to delete your account before continuing.",
+      );
       return;
     }
 
     if (!confirmDeletion) {
-      toast.error("Please confirm that you want to delete your account");
+      showUserFacingErrorToast(
+        "Please confirm that you want to delete your account before submitting.",
+      );
       return;
     }
 
@@ -71,7 +78,9 @@ export default function PatientProfilePage() {
         "Account deletion requested. Your account will be deleted within 30 days.",
       );
     } catch (_error) {
-      toast.error("Failed to submit deletion request");
+      showUserFacingErrorToast(
+        "We could not submit this deletion request. Please try again.",
+      );
     }
   };
 

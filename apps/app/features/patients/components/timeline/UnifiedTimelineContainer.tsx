@@ -56,7 +56,7 @@ export function UnifiedTimelineContainer({
     return (
       <DataState
         status="error"
-        errorMessage="Failed to load timeline."
+        errorMessage="We could not load this timeline. Please try again."
         onRetry={() => refetch()}
       />
     );

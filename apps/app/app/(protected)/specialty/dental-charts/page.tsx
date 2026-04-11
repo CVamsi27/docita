@@ -25,6 +25,7 @@ import {
   type DentalChartValue,
 } from "@/features/consultation/components/specialty/DentalChartUI";
 import type { Patient } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function DentalChartsPage() {
   const { clinic } = useClinic();
@@ -73,7 +74,11 @@ export default function DentalChartsPage() {
           setIsDirty(false);
         },
         onError: (err) => {
-          toast.error(`Failed to save: ${err.message}`);
+          showUserFacingErrorToast(
+            err,
+            "We could not save this dental chart. Please try again.",
+            "save",
+          );
         },
       },
     );

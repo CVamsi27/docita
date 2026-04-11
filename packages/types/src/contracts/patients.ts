@@ -20,8 +20,8 @@ export const patientResponseSchema = z.object({
 
 export const createPatientRequestSchema = z.object({
   mrn: z.string().max(50).nullable().optional(),
-  firstName: z.string().min(1, "First name is required").max(100),
-  lastName: z.string().min(1, "Last name is required").max(100),
+  firstName: z.string().min(1, "Enter the patient's first name.").max(100),
+  lastName: z.string().min(1, "Enter the patient's last name.").max(100),
   email: z
     .string()
     .email("Please enter a valid email address")

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import {
   type AppointmentWithRelations,
   usePatientAppointments,
@@ -168,10 +169,15 @@ export function usePatientPortalData(patientId?: string | null) {
 
   const error = useMemo(() => {
     if (!hasPatientId) {
-      return "Open the portal with a patient context (for example: /portal?patientId=<id>).";
+      return "We could not open this page. Please go back to your portal home and try again.";
     }
-    return appointmentsError?.message || null;
-  }, [appointmentsError?.message, hasPatientId]);
+    return appointmentsError
+      ? getUserFacingErrorMessage(appointmentsError, {
+          context: "load",
+          fallback: "We could not load your portal information. Please try again.",
+        })
+      : null;
+  }, [appointmentsError, hasPatientId]);
 
   return {
     isLoading: hasPatientId ? isAppointmentsLoading : false,

@@ -33,11 +33,14 @@ import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
-import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
 import { RequestWithUser } from '@/common/types/common.types';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { MAX_FILE_SIZE } from '@workspace/utils';
+import {
+  assertAllowedFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('onboarding')
 export class OnboardingController {
@@ -171,7 +174,7 @@ export class OnboardingController {
   @Post(':onboardingId/sla-signature-session/:sessionId')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage(),
+      storage: createTempDiskStorage(),
       limits: { fileSize: MAX_FILE_SIZE },
       fileFilter: (_req, file, cb) => {
         const allowedMimes = [
@@ -204,26 +207,35 @@ export class OnboardingController {
       throw new BadRequestException('Signature file is required');
     }
 
-    if (
-      req?.user &&
-      (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
-    ) {
-      throw new ForbiddenException(
-        'Signature upload not allowed for existing clinics',
-      );
-    }
+    try {
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
 
-    return this.onboardingService.uploadSlaSignature(
-      onboardingId,
-      sessionId,
-      file,
-      {
-        modifiedBy: req?.user?.id,
-        modifiedByRole: req?.user?.role,
-        ipAddress: req?.ip || req?.socket?.remoteAddress,
-        userAgent: req?.headers?.['user-agent'],
-      },
-    );
+      if (
+        req?.user &&
+        (req.user.clinicId || req.user.onboardingStep === 'COMPLETED')
+      ) {
+        throw new ForbiddenException(
+          'Signature upload not allowed for existing clinics',
+        );
+      }
+
+      return await this.onboardingService.uploadSlaSignature(
+        onboardingId,
+        sessionId,
+        file,
+        {
+          modifiedBy: req?.user?.id,
+          modifiedByRole: req?.user?.role,
+          ipAddress: req?.ip || req?.socket?.remoteAddress,
+          userAgent: req?.headers?.['user-agent'],
+        },
+      );
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
+    }
   }
 
   @Post('choose-path')
@@ -231,7 +243,6 @@ export class OnboardingController {
   @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
-  @SkipEmailVerification()
   async choosePath(
     @Request() req: RequestWithUser,
     @Body() dto: { path: string },

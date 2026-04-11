@@ -23,11 +23,10 @@ export default function AppointmentsError({
           <AlertCircle className="h-8 w-8 text-destructive" />
         </div>
         <h2 className="mb-2 text-xl font-semibold">
-          Error loading appointments
+          We could not load appointments
         </h2>
         <p className="mb-6 text-muted-foreground">
-          We couldn&apos;t load the appointments workspace. Please retry in a
-          moment.
+          We could not load this appointments page. Please try again in a moment.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>

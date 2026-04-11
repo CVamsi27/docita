@@ -30,6 +30,7 @@ import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface MedicalDocument {
   id: string;
@@ -77,7 +78,9 @@ export function MedicalDocumentList({ patientId }: Props) {
       setDocuments(data);
     } catch (err) {
       logger.error("Failed to load medical documents", { err });
-      toast.error("Failed to load medical documents");
+      showUserFacingErrorToast(
+        "We could not load these medical documents. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -94,7 +97,9 @@ export function MedicalDocumentList({ patientId }: Props) {
       await load();
     } catch (err) {
       logger.error("Failed to sign document", { err });
-      toast.error("Failed to sign document");
+      showUserFacingErrorToast(
+        "We could not sign this document. Please try again.",
+      );
     }
   };
 
@@ -105,13 +110,17 @@ export function MedicalDocumentList({ patientId }: Props) {
       await load();
     } catch (err) {
       logger.error("Failed to revoke document", { err });
-      toast.error("Failed to revoke document");
+      showUserFacingErrorToast(
+        "We could not revoke this document. Please try again.",
+      );
     }
   };
 
   const handleCreate = async () => {
     if (!newTitle.trim()) {
-      toast.error("Please enter a title");
+      showUserFacingErrorToast(
+        "Enter a document title before creating it.",
+      );
       return;
     }
     setCreating(true);
@@ -130,7 +139,9 @@ export function MedicalDocumentList({ patientId }: Props) {
       await load();
     } catch (err) {
       logger.error("Failed to create document", { err });
-      toast.error("Failed to create document");
+      showUserFacingErrorToast(
+        "We could not create this document. Please try again.",
+      );
     } finally {
       setCreating(false);
     }

@@ -12,7 +12,7 @@ export async function searchGlobal(
   const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
 
   if (!response.ok) {
-    throw new Error("Search failed");
+    throw new Error("We could not load these search results. Please try again.");
   }
 
   return (await response.json()) as SearchResult[];

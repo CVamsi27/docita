@@ -49,8 +49,8 @@ import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
-import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   HOSPITAL_ROLE_LABELS,
   type HospitalRole,
@@ -218,7 +218,9 @@ export default function DoctorsPage() {
       );
       setSelectedDoctor(data);
     } catch {
-      toast.error("Failed to load doctor details");
+      showUserFacingErrorToast(
+        "We could not load these doctor details. Please try again.",
+      );
     }
   };
 
@@ -227,7 +229,9 @@ export default function DoctorsPage() {
       doctor.clinicId || (selectedClinic !== "all" ? selectedClinic : "");
 
     if (!clinicId) {
-      toast.error("Clinic context is required to load doctor details");
+      showUserFacingErrorToast(
+        "Choose a clinic before opening doctor details.",
+      );
       return;
     }
 
@@ -249,7 +253,7 @@ export default function DoctorsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Doctors</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Doctors</h1>
           <p className="text-muted-foreground">
             Monitor doctor profiles, specializations, and credentials
           </p>

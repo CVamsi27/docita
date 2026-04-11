@@ -30,7 +30,7 @@ export default function ImportPage() {
   return (
     <div className="flex-1 space-y-6 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Import Data</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Import Data</h1>
         <p className="text-muted-foreground">
           Digitize your clinic records by importing from Excel or scanning
           documents.

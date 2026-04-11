@@ -22,6 +22,7 @@ import {
 } from "@workspace/ui/components/table";
 import { toast } from "sonner";
 import { client } from "@/lib/api-client";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface AuditLog {
   id: string;
@@ -74,7 +75,7 @@ export function AuditLogViewer() {
   const logs = logsQuery.data ?? [];
   const isLoading = logsQuery.isLoading;
   const errorMessage = logsQuery.isError
-    ? "Failed to load audit logs. Please try again."
+    ? "We could not load these audit logs. Please try again."
     : null;
 
   const actionTypes = Array.from(
@@ -166,7 +167,9 @@ export function AuditLogViewer() {
           <Button
             onClick={() => {
               logsQuery.refetch().catch(() => {
-                toast.error("Failed to load audit logs. Please try again.");
+                showUserFacingErrorToast(
+                  "We could not load these audit logs. Please try again.",
+                );
               });
             }}
             disabled={isLoading}

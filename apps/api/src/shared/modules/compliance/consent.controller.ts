@@ -61,7 +61,7 @@ export class ConsentController {
     @Body(new ZodValidationPipe(recordConsentSchema)) data: RecordConsentDto,
     @Req() req: Request,
   ) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.socket?.remoteAddress;
     return this.dpdpService.recordConsent(data, ipAddress);
   }
 
@@ -82,7 +82,7 @@ export class ConsentController {
     data: WithdrawConsentDto,
     @Req() req: Request,
   ) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.socket?.remoteAddress;
     return this.dpdpService.withdrawConsent(
       consentId,
       data.reason,
@@ -99,7 +99,7 @@ export class ConsentController {
     @Body() dto: DeletePatientDataDto,
     @Req() req: Request,
   ) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.socket?.remoteAddress;
     return this.dpdpService.handleErasureRequest(
       {
         patientId,

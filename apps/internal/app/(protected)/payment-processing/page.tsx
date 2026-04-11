@@ -49,6 +49,7 @@ import { internalQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Clinic {
   id: string;
@@ -213,7 +214,9 @@ export default function PaymentProcessingPage() {
       });
       setShowPaymentDialog(true);
     } catch {
-      toast.error("Failed to load tier information");
+      showUserFacingErrorToast(
+        "We could not load these plan details. Please try again.",
+      );
     }
   };
 
@@ -241,7 +244,9 @@ export default function PaymentProcessingPage() {
     try {
       await processPaymentMutation.mutateAsync(data);
     } catch {
-      toast.error("Failed to process payment");
+      showUserFacingErrorToast(
+        "We could not process this payment. Please try again.",
+      );
     }
   };
 
@@ -275,7 +280,7 @@ export default function PaymentProcessingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Payment Processing
         </h1>
         <p className="text-muted-foreground">

@@ -402,7 +402,7 @@ function SidebarContent({
 
       {/* Customize sheet */}
       <Sheet open={customizeOpen} onOpenChange={setCustomizeOpen}>
-        <SheetContent side="left" className="w-72">
+        <SheetContent side="left" className="sm:w-72">
           <SheetHeader>
             <SheetTitle>Customize Sidebar</SheetTitle>
           </SheetHeader>

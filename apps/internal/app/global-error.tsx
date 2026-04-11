@@ -1,20 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 
 export default function GlobalError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-
-  }, [error]);
-
   return (
     <html>
       <body>
@@ -24,11 +19,10 @@ export default function GlobalError({
               <AlertCircle className="h-8 w-8" />
             </div>
             <h1 className="mb-2 text-2xl font-bold tracking-tight">
-              Something went wrong
+              We could not load this page
             </h1>
             <p className="mb-6 text-muted-foreground">
-              We encountered an unexpected error. Please try again or contact
-              support if the problem persists.
+              Please try again or contact support if the problem persists.
             </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
               <Button onClick={() => reset()}>
@@ -42,11 +36,6 @@ export default function GlobalError({
                 Go to home
               </Button>
             </div>
-            {error.digest && (
-              <p className="mt-4 text-xs text-muted-foreground">
-                Error ID: {error.digest}
-              </p>
-            )}
           </div>
         </div>
       </body>

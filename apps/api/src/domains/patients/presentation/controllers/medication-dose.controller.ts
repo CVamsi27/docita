@@ -15,6 +15,7 @@ import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
+import { parsePaginationInt } from '@/common/utils/string.utils';
 
 @ApiTags('medication-doses')
 @Controller('patients/:patientId/medication-doses')
@@ -140,8 +141,8 @@ export class MedicationDoseController {
       status: query.status as Parameters<
         typeof this.medicationDoseService.getDoseHistory
       >[2]['status'],
-      limit: query.limit ? parseInt(query.limit, 10) : undefined,
-      offset: query.offset ? parseInt(query.offset, 10) : undefined,
+      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+      offset: parsePaginationInt(query.offset, { min: 0 }),
     });
   }
 

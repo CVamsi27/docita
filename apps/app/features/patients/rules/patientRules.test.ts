@@ -72,7 +72,7 @@ describe("Patient Business Rules", () => {
         lastName: "Doe",
         phoneNumber: "123",
       });
-      expect(errors).toContain("First name is required");
+      expect(errors).toContain("Enter the patient's first name.");
     });
 
     it("should require lastName", () => {
@@ -80,7 +80,7 @@ describe("Patient Business Rules", () => {
         firstName: "John",
         phoneNumber: "123",
       });
-      expect(errors).toContain("Last name is required");
+      expect(errors).toContain("Enter the patient's last name.");
     });
 
     it("should require phoneNumber", () => {
@@ -88,7 +88,7 @@ describe("Patient Business Rules", () => {
         firstName: "John",
         lastName: "Doe",
       });
-      expect(errors).toContain("Phone number is required");
+      expect(errors).toContain("Enter the patient's phone number.");
     });
 
     it("should validate email format", () => {
@@ -98,7 +98,7 @@ describe("Patient Business Rules", () => {
         phoneNumber: "123",
         email: "invalid-email",
       });
-      expect(errors).toContain("Invalid email format");
+      expect(errors).toContain("Enter a valid email address.");
     });
 
     it("should pass valid data", () => {

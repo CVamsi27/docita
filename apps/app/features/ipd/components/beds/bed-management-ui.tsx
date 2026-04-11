@@ -66,15 +66,15 @@ export function BedManagementUI({
 
   return (
     <div className="space-y-6 container mx-auto py-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Bed Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Bed Management</h1>
           <p className="text-muted-foreground mt-1">
             Real-time status of wards and beds
           </p>
         </div>
-        <div className="flex gap-3">
-          <div className="relative w-64">
+        <div className="flex flex-wrap gap-3">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"

@@ -18,6 +18,7 @@ import {
   validateToken,
 } from "@/hooks/api/use-signature-upload";
 import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
+import { getUserFacingErrorMessage } from "@workspace/types";
 
 export default function UploadSignaturePage() {
   const params = useParams();
@@ -38,7 +39,12 @@ export default function UploadSignaturePage() {
         setTokenValid(true);
         setDoctorName(validation.doctor?.name ?? "");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Invalid or expired token");
+        setError(
+          getUserFacingErrorMessage(err, {
+            fallback: "This upload link is no longer available.",
+            context: "verification",
+          }),
+        );
         setTokenValid(false);
       } finally {
         setValidating(false);
@@ -59,7 +65,12 @@ export default function UploadSignaturePage() {
       setUploadResult(result);
       setUploadComplete(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not upload this signature. Please try again.",
+          context: "upload",
+        }),
+      );
     } finally {
       setUploading(false);
     }
@@ -87,7 +98,7 @@ export default function UploadSignaturePage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              <CardTitle>Invalid Upload Link</CardTitle>
+              <CardTitle>Upload Link Expired</CardTitle>
             </div>
           </CardHeader>
           <CardContent>

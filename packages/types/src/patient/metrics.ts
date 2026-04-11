@@ -89,7 +89,7 @@ export const createPatientMetricValueSchema = z
       dto.optionId !== undefined ||
       (dto.optionIds !== undefined && dto.optionIds.length > 0),
     {
-      message: "At least one metric value must be provided",
+      message: "Enter at least one metric value.",
     },
   );
 export type CreatePatientMetricValueInput = z.infer<

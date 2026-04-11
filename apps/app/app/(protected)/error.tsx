@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
+import { SupportContact } from "@/components/common/support-contact";
 import { captureException } from "@/lib/sentry.client.config";
 
 export default function Error({
@@ -22,11 +23,11 @@ export default function Error({
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircle className="h-8 w-8 text-destructive" />
         </div>
-        <h2 className="mb-2 text-xl font-semibold">Something went wrong</h2>
+        <h2 className="mb-2 text-xl font-semibold">We could not load this page</h2>
         <p className="mb-6 text-muted-foreground">
-          We had trouble loading this page. Please try again or contact support
-          if the problem persists.
+          We had trouble loading this page. Please try again.
         </p>
+        <SupportContact className="mb-6" />
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -40,11 +41,6 @@ export default function Error({
             Go to dashboard
           </Button>
         </div>
-        {error.digest && (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Error ID: {error.digest}
-          </p>
-        )}
       </div>
     </div>
   );

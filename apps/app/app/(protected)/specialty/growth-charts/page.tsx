@@ -18,7 +18,7 @@ export default function GrowthChartsPage() {
           <Baby className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Growth Charts</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Growth Charts</h1>
           <p className="text-muted-foreground">
             Pediatric growth tracking and developmental milestones
           </p>
