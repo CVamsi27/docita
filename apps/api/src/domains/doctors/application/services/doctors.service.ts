@@ -440,14 +440,27 @@ export class DoctorsService {
   async updateEducation(
     educationId: string,
     data: Partial<CreateEducationData>,
+    doctorId?: string,
   ) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorEducation.findFirst({
+        where: { id: educationId, doctorId },
+      });
+      if (!existing) throw new NotFoundException('Education record not found');
+    }
     return this.prisma.doctorEducation.update({
       where: { id: educationId },
       data,
     });
   }
 
-  async removeEducation(educationId: string) {
+  async removeEducation(educationId: string, doctorId?: string) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorEducation.findFirst({
+        where: { id: educationId, doctorId },
+      });
+      if (!existing) throw new NotFoundException('Education record not found');
+    }
     await this.prisma.doctorEducation.delete({
       where: { id: educationId },
     });
@@ -473,14 +486,29 @@ export class DoctorsService {
   async updateCertification(
     certificationId: string,
     data: Partial<CreateCertificationData>,
+    doctorId?: string,
   ) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorCertification.findFirst({
+        where: { id: certificationId, doctorId },
+      });
+      if (!existing)
+        throw new NotFoundException('Certification record not found');
+    }
     return this.prisma.doctorCertification.update({
       where: { id: certificationId },
       data,
     });
   }
 
-  async removeCertification(certificationId: string) {
+  async removeCertification(certificationId: string, doctorId?: string) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorCertification.findFirst({
+        where: { id: certificationId, doctorId },
+      });
+      if (!existing)
+        throw new NotFoundException('Certification record not found');
+    }
     await this.prisma.doctorCertification.delete({
       where: { id: certificationId },
     });

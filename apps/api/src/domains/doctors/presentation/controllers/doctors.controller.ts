@@ -141,71 +141,103 @@ export class DoctorsController {
     );
   }
 
-  async getEducation(@Param('id') id: string) {
+  @Get(':id/education')
+  async getEducation(@Param('id') id: string, @Request() req: RequestWithUser) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
     return this.doctorsService.getEducationHistory(id);
   }
 
   @Post(':id/education')
   async addEducation(
     @Param('id') id: string,
+    @Request() req: RequestWithUser,
     @Body(new ZodValidationPipe(CreateEducationSchema)) dto: CreateEducationDto,
   ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
     return this.doctorsService.addEducation(id, dto);
   }
 
   @Put(':id/education/:educationId')
   async updateEducation(
+    @Param('id') id: string,
     @Param('educationId') educationId: string,
+    @Request() req: RequestWithUser,
     @Body(new ZodValidationPipe(CreateEducationSchema))
     dto: Partial<CreateEducationDto>,
   ) {
-    return this.doctorsService.updateEducation(educationId, dto);
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
+    return this.doctorsService.updateEducation(educationId, dto, id);
   }
 
   @Delete(':id/education/:educationId')
-  async removeEducation(@Param('educationId') educationId: string) {
-    return this.doctorsService.removeEducation(educationId);
+  async removeEducation(
+    @Param('id') id: string,
+    @Param('educationId') educationId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
+    return this.doctorsService.removeEducation(educationId, id);
   }
 
   @Get(':id/certifications')
-  async getCertifications(@Param('id') id: string) {
+  async getCertifications(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
     return this.doctorsService.getCertifications(id);
   }
 
   @Post(':id/certifications')
   async addCertification(
     @Param('id') id: string,
+    @Request() req: RequestWithUser,
     @Body(new ZodValidationPipe(CreateCertificationSchema))
     dto: CreateCertificationDto,
   ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
     return this.doctorsService.addCertification(id, dto);
   }
 
   @Put(':id/certifications/:certificationId')
   async updateCertification(
+    @Param('id') id: string,
     @Param('certificationId') certificationId: string,
+    @Request() req: RequestWithUser,
     @Body(new ZodValidationPipe(CreateCertificationSchema))
     dto: Partial<CreateCertificationDto>,
   ) {
-    return this.doctorsService.updateCertification(certificationId, dto);
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
+    return this.doctorsService.updateCertification(certificationId, dto, id);
   }
 
   @Delete(':id/certifications/:certificationId')
-  async removeCertification(@Param('certificationId') certificationId: string) {
-    return this.doctorsService.removeCertification(certificationId);
+  async removeCertification(
+    @Param('id') id: string,
+    @Param('certificationId') certificationId: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
+    return this.doctorsService.removeCertification(certificationId, id);
   }
 
   @Get(':id/specializations')
-  async getSpecializations(@Param('id') id: string) {
+  async getSpecializations(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
     return this.doctorsService.getSpecializations(id);
   }
 
   @Post(':id/specializations')
   async addSpecialization(
     @Param('id') id: string,
+    @Request() req: RequestWithUser,
     @Body(new ZodValidationPipe(AddSpecializationSchema))
     dto: AddSpecializationDto,
   ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
     return this.doctorsService.addSpecialization(
       id,
       dto.specialization,
@@ -217,7 +249,9 @@ export class DoctorsController {
   async removeSpecialization(
     @Param('id') id: string,
     @Param('specialization') specialization: Specialization,
+    @Request() req: RequestWithUser,
   ) {
+    await this.doctorsService.findOne(id, req.user?.clinicId || undefined);
     return this.doctorsService.removeSpecialization(id, specialization);
   }
 }

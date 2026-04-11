@@ -28,9 +28,13 @@ export class PaymentsController {
   @Post('link')
   @Idempotent()
   @ZodSerializerDto(PaymentLinkResponseDto)
-  async createPaymentLink(@Body() dto: CreatePaymentLinkDto) {
+  async createPaymentLink(
+    @Body() dto: CreatePaymentLinkDto,
+    @Request() req: RequestWithUser,
+  ) {
     return this.paymentsService.createPaymentLink({
       ...dto,
+      clinicId: req.user!.clinicId!,
       currency: dto.currency || this.configService.getCurrencyCode(),
     });
   }

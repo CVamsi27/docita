@@ -46,12 +46,13 @@ export class DoctorAvailabilityService {
       slotDuration?: number;
       isActive?: boolean;
     },
+    clinicId?: string,
   ) {
-    return this.scheduleService.updateSchedule(id, data);
+    return this.scheduleService.updateSchedule(id, data, clinicId);
   }
 
-  async deleteSchedule(id: string) {
-    return this.scheduleService.deleteSchedule(id);
+  async deleteSchedule(id: string, clinicId?: string) {
+    return this.scheduleService.deleteSchedule(id, clinicId);
   }
 
   async bulkUpsertSchedules(
@@ -92,8 +93,8 @@ export class DoctorAvailabilityService {
     return this.scheduleService.createTimeOff(data);
   }
 
-  async deleteTimeOff(id: string) {
-    return this.scheduleService.deleteTimeOff(id);
+  async deleteTimeOff(id: string, clinicId?: string) {
+    return this.scheduleService.deleteTimeOff(id, clinicId);
   }
 
   async getAvailableSlots(

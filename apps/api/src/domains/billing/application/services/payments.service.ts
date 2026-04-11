@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   BadRequestException,
+  NotFoundException,
   Inject,
 } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -212,8 +213,8 @@ export class PaymentsService {
     notes?: string;
   }) {
     const invoice = await this.invoiceRepository.findById(data.invoiceId);
-    if (!invoice) {
-      throw new BadRequestException('Invoice not found');
+    if (!invoice || invoice.patient?.clinic?.id !== data.clinicId) {
+      throw new NotFoundException('Invoice not found');
     }
 
     await this.invoiceRepository.update(invoice.id, {

@@ -9,6 +9,7 @@ import {
   Request,
   UseGuards,
   Delete as _Delete,
+  NotFoundException,
 } from '@nestjs/common';
 import { ClinicalService } from '@/domains/clinical/application/services/clinical.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
@@ -61,8 +62,15 @@ export class LabTestsController {
   }
 
   @Get('orders/:id')
-  async getOrderById(@Param('id') id: string): Promise<LabOrder> {
-    return await this.clinicalService.getOrderById(id);
+  async getOrderById(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ): Promise<LabOrder> {
+    const order = await this.clinicalService.getOrderById(id);
+    if (order.clinicId !== req.user!.clinicId!) {
+      throw new NotFoundException('Lab order not found');
+    }
+    return order;
   }
 
   @Post('orders')
@@ -79,15 +87,27 @@ export class LabTestsController {
   @Put('orders/:id/status')
   async updateOrderStatus(
     @Param('id') id: string,
+    @Request() req: RequestWithUser,
     @Body() body: UpdateLabTestOrderDto,
   ): Promise<LabOrder> {
+    const order = await this.clinicalService.getOrderById(id);
+    if (order.clinicId !== req.user!.clinicId!) {
+      throw new NotFoundException('Lab order not found');
+    }
     const status = (body.status || 'ORDERED') as LabTestOrderStatus;
     return await this.clinicalService.updateOrderStatus(id, status);
   }
 
   @Get(':id')
-  async getTestById(@Param('id') id: string): Promise<LabTest> {
-    return await this.clinicalService.getTestById(id);
+  async getTestById(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ): Promise<LabTest> {
+    const test = await this.clinicalService.getTestById(id);
+    if (test.clinicId !== req.user!.clinicId!) {
+      throw new NotFoundException('Lab test not found');
+    }
+    return test;
   }
 
   @Post()
