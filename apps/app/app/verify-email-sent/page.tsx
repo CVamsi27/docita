@@ -16,6 +16,10 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
+const RESEND_VERIFICATION_COOLDOWN_MS = 2 * 60 * 1000;
+const RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY =
+  "docita_verification_email_resend_available_at";
+
 function getNextPathForVerifiedUser(user: User | null): string {
   if (!user) {
     return "/login?next=/verify-email-sent";
@@ -35,15 +39,26 @@ function getNextPathForVerifiedUser(user: User | null): string {
   }
 }
 
+function formatCooldown(remainingMs: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
+}
+
 export default function VerifyEmailSentPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [resending, setResending] = useState(false);
-  const [resent, setResent] = useState(false);
   const [deliveryStatus, setDeliveryStatus] = useState<"pending" | "failed">(
     "pending",
   );
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
+  const [resendAvailableAt, setResendAvailableAt] = useState<number | null>(
+    null,
+  );
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!user) {
@@ -66,6 +81,26 @@ export default function VerifyEmailSentPage() {
     const storedStatus = window.sessionStorage.getItem(
       VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
     );
+    const storedResendAvailableAt = window.sessionStorage.getItem(
+      RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+    );
+    const resendAvailableAtValue = storedResendAvailableAt
+      ? Number(storedResendAvailableAt)
+      : null;
+
+    if (
+      typeof resendAvailableAtValue === "number" &&
+      Number.isFinite(resendAvailableAtValue) &&
+      resendAvailableAtValue > Date.now()
+    ) {
+      setResendAvailableAt(resendAvailableAtValue);
+    } else {
+      window.sessionStorage.removeItem(
+        RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+      );
+      setResendAvailableAt(null);
+    }
+
     if (storedStatus === "failed") {
       setDeliveryStatus("failed");
       return;
@@ -74,20 +109,61 @@ export default function VerifyEmailSentPage() {
     setDeliveryStatus("pending");
   }, [router, user]);
 
+  useEffect(() => {
+    if (!resendAvailableAt) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    const timeoutId = window.setTimeout(() => {
+      setResendAvailableAt(null);
+      window.sessionStorage.removeItem(
+        RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+      );
+      setNow(Date.now());
+    }, Math.max(resendAvailableAt - Date.now(), 0));
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [resendAvailableAt]);
+
+  const isResendCoolingDown =
+    resendAvailableAt !== null && resendAvailableAt > now;
+  const resendCooldownRemainingMs = isResendCoolingDown
+    ? resendAvailableAt - now
+    : 0;
+
   if (redirectMessage) {
-    return <PageTransitionLoader title="Redirecting..." description={redirectMessage} />;
+    return (
+      <PageTransitionLoader
+        title="Redirecting..."
+        description={redirectMessage}
+      />
+    );
   }
 
   const handleResend = async () => {
     setResending(true);
     try {
       await apiFetch("/auth/resend-verification", { method: "POST" });
+      const availableAt =
+        Date.now() + RESEND_VERIFICATION_COOLDOWN_MS;
+      window.sessionStorage.setItem(
+        RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+        String(availableAt),
+      );
       window.sessionStorage.setItem(
         VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
         "pending",
       );
+      setResendAvailableAt(availableAt);
       setDeliveryStatus("pending");
-      setResent(true);
+      setNow(Date.now());
       toast.success("Verification email resent. Check your inbox.");
     } catch (error) {
       logger.error("Failed to resend verification email", { error });
@@ -158,24 +234,29 @@ export default function VerifyEmailSentPage() {
             variant="outline"
             className="w-full h-11"
             onClick={handleResend}
-            disabled={resending || resent}
+            disabled={resending || isResendCoolingDown}
           >
             {resending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Sending...
               </>
-            ) : resent ? (
-              "Verification email sent"
             ) : (
               <>
                 <RefreshCw className="mr-2 h-4 w-4" />
-                {deliveryStatus === "failed"
-                  ? "Send verification email again"
-                  : "Resend verification email"}
+                {isResendCoolingDown
+                  ? "Verification email sent"
+                  : deliveryStatus === "failed"
+                    ? "Send verification email again"
+                    : "Resend verification email"}
               </>
             )}
           </Button>
+          {isResendCoolingDown && (
+            <p className="text-center text-xs text-muted-foreground">
+              You can resend again in {formatCooldown(resendCooldownRemainingMs)}.
+            </p>
+          )}
         </div>
 
         <p className="text-center text-xs text-muted-foreground">

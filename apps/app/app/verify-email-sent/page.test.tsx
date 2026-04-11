@@ -1,6 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import VerifyEmailSentPage from "./page";
+
+const RESEND_VERIFICATION_COOLDOWN_MS = 2 * 60 * 1000;
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -59,6 +61,7 @@ vi.mock("@/features/auth/components/PreDashboardShell", () => ({
 
 describe("VerifyEmailSentPage", () => {
   beforeEach(() => {
+    vi.useRealTimers();
     sessionStorage.clear();
     mocks.router.replace.mockReset();
     mocks.apiFetch.mockReset();
@@ -72,6 +75,40 @@ describe("VerifyEmailSentPage", () => {
       clinicId: null,
       onboardingStep: "CHOOSE_PATH",
     };
+  });
+
+  it("re-enables resend after the cooldown expires", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+    mocks.apiFetch.mockResolvedValue({ message: "Verification email sent" });
+
+    render(<VerifyEmailSentPage />);
+
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole("button", { name: /resend verification email/i }),
+      );
+    });
+
+    expect(mocks.apiFetch).toHaveBeenCalledWith(
+      "/auth/resend-verification",
+      { method: "POST" },
+    );
+
+    expect(
+      screen.getByRole("button", { name: /verification email sent/i }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText(/you can resend again in 2m 00s\./i),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(RESEND_VERIFICATION_COOLDOWN_MS);
+    });
+
+    expect(
+      screen.getByRole("button", { name: /resend verification email/i }),
+    ).toBeEnabled();
   });
 
   it("shows the failed-delivery state from session storage", async () => {
@@ -150,5 +187,9 @@ describe("VerifyEmailSentPage", () => {
     await waitFor(() => {
       expect(mocks.router.replace).toHaveBeenCalledWith("/choose-path");
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 });
