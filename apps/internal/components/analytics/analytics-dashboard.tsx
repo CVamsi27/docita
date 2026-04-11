@@ -107,7 +107,9 @@ export function AnalyticsDashboard() {
 
   useEffect(() => {
     if (analyticsQuery.isError || billingQuery.isError) {
-      showUserFacingErrorToast("We could not load analytics data. Please try again.");
+      showUserFacingErrorToast(
+        "We could not load this analytics view. Please try again.",
+      );
     }
   }, [analyticsQuery.isError, billingQuery.isError]);
 
@@ -134,10 +136,14 @@ export function AnalyticsDashboard() {
         window.URL.revokeObjectURL(url);
         toast.success("Report exported successfully");
       } else {
-        showUserFacingErrorToast("We could not export report. Please try again.");
+        showUserFacingErrorToast(
+          "We could not export the report. Please try again.",
+        );
       }
     } catch {
-      showUserFacingErrorToast("We could not export report. Please try again.");
+      showUserFacingErrorToast(
+        "We could not export the report. Please try again.",
+      );
     }
   }, [endDate, period, startDate, token]);
 

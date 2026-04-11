@@ -214,7 +214,9 @@ export default function PaymentProcessingPage() {
       });
       setShowPaymentDialog(true);
     } catch {
-      showUserFacingErrorToast("We could not load tier information. Please try again.");
+      showUserFacingErrorToast(
+        "We could not load these plan details. Please try again.",
+      );
     }
   };
 
@@ -242,7 +244,9 @@ export default function PaymentProcessingPage() {
     try {
       await processPaymentMutation.mutateAsync(data);
     } catch {
-      showUserFacingErrorToast("We could not process payment. Please try again.");
+      showUserFacingErrorToast(
+        "We could not process this payment. Please try again.",
+      );
     }
   };
 

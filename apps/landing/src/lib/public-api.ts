@@ -80,7 +80,7 @@ export async function fetchLandingJson<T>(
   const response = await fetch(resolveApiUrl(path, baseOrigin));
 
   if (!response.ok) {
-    throw new Error("We could not load this information. Please try again.");
+    throw new Error("We could not load this section. Please refresh and try again.");
   }
 
   return (await response.json()) as T;

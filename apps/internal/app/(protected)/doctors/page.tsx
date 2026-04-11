@@ -218,7 +218,9 @@ export default function DoctorsPage() {
       );
       setSelectedDoctor(data);
     } catch {
-      showUserFacingErrorToast("We could not load doctor details. Please try again.");
+      showUserFacingErrorToast(
+        "We could not load these doctor details. Please try again.",
+      );
     }
   };
 
@@ -227,7 +229,9 @@ export default function DoctorsPage() {
       doctor.clinicId || (selectedClinic !== "all" ? selectedClinic : "");
 
     if (!clinicId) {
-      showUserFacingErrorToast("Clinic context is required to load doctor details");
+      showUserFacingErrorToast(
+        "Choose a clinic before opening doctor details.",
+      );
       return;
     }
 

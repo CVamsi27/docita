@@ -152,14 +152,14 @@ export function EditClinicDialog({
       address?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Clinic name is required";
+    if (!formData.name.trim()) errors.name = "Enter the clinic name.";
     if (!formData.email.trim()) {
-      errors.email = "Email is required";
+      errors.email = "Enter an email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Enter a valid email address";
     }
-    if (!formData.phone.trim()) errors.phone = "Phone is required";
-    if (!formData.address.trim()) errors.address = "Address is required";
+    if (!formData.phone.trim()) errors.phone = "Enter a phone number.";
+    if (!formData.address.trim()) errors.address = "Enter the clinic address.";
 
     return errors;
   };
@@ -189,7 +189,7 @@ export function EditClinicDialog({
       } catch (error) {
         showUserFacingErrorToast(
           error,
-          "We could not update the clinic. Please try again.",
+          "We could not save these clinic details. Please try again.",
           "save",
         );
       } finally {

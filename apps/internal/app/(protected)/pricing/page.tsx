@@ -238,7 +238,7 @@ export default function PricingPage() {
       });
       setOfferForm(DEFAULT_OFFER_FORM);
     } catch {
-      setSaveError("We could not save the clinic offer. Please try again.");
+      setSaveError("We could not save this clinic offer. Please try again.");
     } finally {
       setSavingId(null);
     }

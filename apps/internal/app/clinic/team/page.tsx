@@ -144,17 +144,23 @@ export default function TeamPage() {
     e.preventDefault();
 
     if (!formData.name || !formData.email) {
-      showUserFacingErrorToast("Please fill in all required fields");
+      showUserFacingErrorToast(
+        "Enter the team member's name and email before continuing.",
+      );
       return;
     }
 
     if (!editingMember && !formData.password) {
-      showUserFacingErrorToast("Password is required when creating a new member");
+      showUserFacingErrorToast(
+        "Enter a password before creating this team member.",
+      );
       return;
     }
 
     if (formData.role === "DOCTOR" && !formData.registrationNumber) {
-      showUserFacingErrorToast("Registration number is required for doctors");
+      showUserFacingErrorToast(
+        "Enter the doctor's registration number before continuing.",
+      );
       return;
     }
 
@@ -204,7 +210,11 @@ export default function TeamPage() {
         resetForm();
       }
     } catch {
-      showUserFacingErrorToast("Error saving team member");
+      showUserFacingErrorToast(
+        editingMember
+          ? "We could not save this team member. Please try again."
+          : "We could not add this team member. Please try again.",
+      );
     }
   };
 
@@ -274,7 +284,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Full Name"
             required
-            error={formData.name ? undefined : "Name is required"}
+            error={formData.name ? undefined : "Enter the team member's name."}
           >
             <Input
               id="name"
@@ -290,7 +300,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Email"
             required
-            error={formData.email ? undefined : "Email is required"}
+            error={formData.email ? undefined : "Enter an email address."}
           >
             <Input
               id="email"
@@ -308,7 +318,7 @@ export default function TeamPage() {
         <FormFieldGroup
           label="Role"
           required
-          error={formData.role ? undefined : "Role is required"}
+          error={formData.role ? undefined : "Choose a role."}
         >
           <Select
             value={formData.role}
@@ -333,7 +343,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Password"
             required
-            error={formData.password ? undefined : "Password is required"}
+            error={formData.password ? undefined : "Enter a password."}
           >
             <Input
               id="password"
@@ -423,7 +433,7 @@ export default function TeamPage() {
               error={
                 formData.registrationNumber
                   ? undefined
-                  : "Registration number is required for doctors"
+                  : "Enter the doctor's registration number."
               }
             >
               <Input

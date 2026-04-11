@@ -74,7 +74,7 @@ export function UsersPageContainer() {
           <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="font-medium text-destructive">
-                Unable to load team members
+                We could not load your team members
               </p>
               <p className="text-sm text-muted-foreground">{errorMessage}</p>
             </div>

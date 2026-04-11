@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { sanitizeUserFacingMessage } from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -620,7 +621,10 @@ export default function SystemMonitoringPage() {
                                 </p>
                                 {checkData.error && (
                                   <p className="text-sm text-muted-foreground">
-                                    {checkData.error}
+                                    {sanitizeUserFacingMessage(
+                                      checkData.error,
+                                      "This check did not complete.",
+                                    )}
                                   </p>
                                 )}
                               </div>
@@ -646,7 +650,7 @@ export default function SystemMonitoringPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <ShieldAlert className="h-4 w-4" />
-                  Unable to load health data
+                  We could not load this health data. Please try again.
                 </div>
               </CardContent>
             </Card>

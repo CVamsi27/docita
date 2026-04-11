@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { RefreshCw } from "lucide-react";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { useAuth } from "@/lib/auth";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { client } from "@/lib/api-client";
@@ -185,7 +186,12 @@ export function SystemLogsPage({
   );
   const totalCount = logsQuery.data?.total ?? 0;
   const loading = logsQuery.isLoading;
-  const errorMessage = logsQuery.isError ? "Failed to fetch logs" : null;
+  const errorMessage = logsQuery.isError
+    ? getUserFacingErrorMessage(logsQuery.error, {
+        context: "load",
+        fallback: "We could not load these logs. Please try again.",
+      })
+    : null;
 
   const handleRefresh = () => {
     setRefreshing(true);

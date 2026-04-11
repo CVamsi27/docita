@@ -143,7 +143,7 @@ export default function ClinicDashboard() {
         <Card>
           <CardContent className="pt-6">
             <p className="text-muted-foreground text-center">
-              Unable to load clinic information
+              We could not load clinic information. Please refresh and try again.
             </p>
           </CardContent>
         </Card>

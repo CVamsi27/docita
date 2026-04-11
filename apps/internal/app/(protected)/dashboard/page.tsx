@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import {
   Card,
   CardContent,
@@ -109,11 +110,14 @@ export default function InternalDashboard() {
   const hasError = Boolean(
     clinicsQuery.error || statsQuery.error || billingQuery.error,
   );
-  const errorMessage =
-    (clinicsQuery.error as Error | null)?.message ||
-    (statsQuery.error as Error | null)?.message ||
-    (billingQuery.error as Error | null)?.message ||
-    "Failed to load dashboard data";
+  const errorSource =
+    clinicsQuery.error ?? statsQuery.error ?? billingQuery.error ?? null;
+  const errorMessage = errorSource
+    ? getUserFacingErrorMessage(errorSource, {
+        context: "load",
+        fallback: "We could not load this dashboard. Please refresh and try again.",
+      })
+    : "We could not load this dashboard. Please refresh and try again.";
   const loading =
     Boolean(token) &&
     (clinicsQuery.isLoading || statsQuery.isLoading || billingQuery.isLoading);
@@ -189,7 +193,7 @@ export default function InternalDashboard() {
           <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="font-medium text-destructive">
-                Unable to load dashboard data
+                We could not load this dashboard
               </p>
               <p className="text-sm text-muted-foreground">{errorMessage}</p>
             </div>

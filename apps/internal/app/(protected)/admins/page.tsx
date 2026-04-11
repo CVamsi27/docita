@@ -185,14 +185,18 @@ export default function AdminsPage() {
     if (!selectedClinic || !token || selectedClinic === "all") return;
 
     if (!createForm.name || !createForm.email || !createForm.password) {
-      showUserFacingErrorToast("Please fill in all required fields");
+      showUserFacingErrorToast(
+        "Enter the admin's name, email, and password before continuing.",
+      );
       return;
     }
 
     try {
       await createAdminMutation.mutateAsync();
     } catch {
-      showUserFacingErrorToast("Error creating admin");
+      showUserFacingErrorToast(
+        "We could not create this admin account. Please try again.",
+      );
     }
   };
 
@@ -216,14 +220,18 @@ export default function AdminsPage() {
     if (!selectedAdmin || !token) return;
 
     if (!editForm.name || !editForm.email) {
-      showUserFacingErrorToast("Please fill in all required fields");
+      showUserFacingErrorToast(
+        "Enter the admin's name and email before saving.",
+      );
       return;
     }
 
     try {
       await updateAdminMutation.mutateAsync();
     } catch {
-      showUserFacingErrorToast("Error updating admin");
+      showUserFacingErrorToast(
+        "We could not save this admin account. Please try again.",
+      );
     }
   };
 
@@ -237,7 +245,9 @@ export default function AdminsPage() {
     try {
       await deleteAdminMutation.mutateAsync(adminId);
     } catch {
-      showUserFacingErrorToast("Error deleting admin");
+      showUserFacingErrorToast(
+        "We could not remove this admin account. Please try again.",
+      );
     }
   };
 

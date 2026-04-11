@@ -75,7 +75,7 @@ export function AuditLogViewer() {
   const logs = logsQuery.data ?? [];
   const isLoading = logsQuery.isLoading;
   const errorMessage = logsQuery.isError
-    ? "Failed to load audit logs. Please try again."
+    ? "We could not load these audit logs. Please try again."
     : null;
 
   const actionTypes = Array.from(
@@ -167,7 +167,9 @@ export function AuditLogViewer() {
           <Button
             onClick={() => {
               logsQuery.refetch().catch(() => {
-                showUserFacingErrorToast("We could not load audit logs. Please try again.");
+                showUserFacingErrorToast(
+                  "We could not load these audit logs. Please try again.",
+                );
               });
             }}
             disabled={isLoading}

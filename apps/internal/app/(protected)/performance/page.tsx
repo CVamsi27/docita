@@ -131,7 +131,7 @@ export default function PerformancePage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
           <p className="text-muted-foreground">
-            Unable to load live performance metrics.
+            We could not load these live performance metrics. Please try again.
           </p>
         </div>
       </div>

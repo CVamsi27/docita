@@ -63,13 +63,13 @@ export default function InternalLogin() {
     const errors: { email?: string; password?: string } = {};
 
     if (!email.trim()) {
-      errors.email = "Email is required";
+      errors.email = "Enter an email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = "Enter a valid email address";
     }
 
     if (!password.trim()) {
-      errors.password = "Password is required";
+      errors.password = "Enter a password.";
     }
 
     setFieldErrors(errors);

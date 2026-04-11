@@ -49,15 +49,15 @@ export default function CreateReceptionistPage() {
 
     const errors: { name?: string; email?: string; password?: string } = {};
     if (!form.name.trim()) {
-      errors.name = "Full name is required";
+      errors.name = "Enter the receptionist's full name.";
     }
     if (!form.email.trim()) {
-      errors.email = "Email is required";
+      errors.email = "Enter an email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errors.email = "Enter a valid email address";
     }
     if (!form.password.trim()) {
-      errors.password = "Password is required";
+      errors.password = "Enter a password.";
     }
 
     setFieldErrors(errors);
@@ -70,7 +70,7 @@ export default function CreateReceptionistPage() {
       toast.success("Receptionist created successfully");
       router.push("/clinic/team");
     } catch {
-      showUserFacingErrorToast("Error creating receptionist");
+      showUserFacingErrorToast("We could not create this receptionist account. Please try again.");
     }
   };
 
