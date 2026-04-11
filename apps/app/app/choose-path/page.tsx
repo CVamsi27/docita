@@ -29,7 +29,7 @@ const JOIN_BULLETS = [
 
 export default function ChoosePathPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
   const [loadingPath, setLoadingPath] = useState<
     "CREATE_CLINIC" | "JOIN_CLINIC" | null
   >(null);
@@ -47,11 +47,6 @@ export default function ChoosePathPage() {
       router.replace("/dashboard");
       return;
     }
-    if (user?.onboardingStep === "JOINING_CLINIC") {
-      setRedirectMessage("Taking you to your join request status...");
-      router.replace("/join-request-status");
-      return;
-    }
     if (user?.onboardingStep === "CREATING_CLINIC") {
       setRedirectMessage("Taking you back to onboarding...");
       router.replace("/onboarding");
@@ -62,6 +57,7 @@ export default function ChoosePathPage() {
     setLoadingPath(path);
     try {
       await typedApi.onboarding.choosePath(path);
+      await refreshUser();
       router.push(path === "CREATE_CLINIC" ? "/onboarding" : "/join-clinic");
     } catch (error) {
       showUserFacingErrorToast(

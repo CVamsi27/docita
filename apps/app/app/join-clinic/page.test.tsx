@@ -17,6 +17,17 @@ const mocks = vi.hoisted(() => ({
     isAuthenticated: true,
     isLoading: false,
   },
+  shellProps: {
+    currentStep: "",
+    contentMaxWidth: "",
+    contentAlignment: "",
+    showSignOut: false,
+  } as {
+    currentStep: string;
+    contentMaxWidth?: string;
+    contentAlignment?: string;
+    showSignOut?: boolean;
+  },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -54,9 +65,19 @@ vi.mock("@/components/common/loaders/page-transition-loader", () => ({
 }));
 
 vi.mock("@/features/auth/components/PreDashboardShell", () => ({
-  PreDashboardShell: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="pre-dashboard-shell">{children}</div>
-  ),
+  PreDashboardShell: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode;
+    currentStep: string;
+    contentMaxWidth?: string;
+    contentAlignment?: string;
+    showSignOut?: boolean;
+  }) => {
+    mocks.shellProps = props;
+    return <div data-testid="pre-dashboard-shell">{children}</div>;
+  },
 }));
 
 vi.mock("@/lib/logger", () => ({
@@ -80,6 +101,12 @@ describe("JoinClinicPage", () => {
   beforeEach(() => {
     mocks.router.replace.mockReset();
     mocks.router.push.mockReset();
+    mocks.shellProps = {
+      currentStep: "",
+      contentMaxWidth: "",
+      contentAlignment: "",
+      showSignOut: false,
+    };
     mocks.auth = {
       user: {
         id: "user-1",
@@ -98,5 +125,13 @@ describe("JoinClinicPage", () => {
     await waitFor(() => {
       expect(mocks.router.replace).toHaveBeenCalledWith("/join-request-status");
     });
+  });
+
+  it("requests top-aligned content in the pre-dashboard shell", () => {
+    render(<JoinClinicPage />);
+
+    expect(mocks.shellProps.contentAlignment).toBe("start");
+    expect(mocks.shellProps.contentMaxWidth).toBe("max-w-2xl");
+    expect(mocks.shellProps.currentStep).toBe("join-clinic");
   });
 });

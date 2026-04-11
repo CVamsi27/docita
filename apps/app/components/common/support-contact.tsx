@@ -12,6 +12,7 @@ export function SupportContact({ className }: { className?: string }) {
   const supportPhone = getSupportPhoneNumber();
   const supportPhoneDigits = getPhoneDigits(supportPhone);
   const supportPhoneDisplay = getSupportPhoneDisplay();
+  const hasPhoneSupport = supportPhoneDigits.length > 0;
 
   return (
     <p className={cn("text-center text-xs text-muted-foreground", className)}>
@@ -22,14 +23,21 @@ export function SupportContact({ className }: { className?: string }) {
       >
         {SUPPORT_EMAIL}
       </a>{" "}
-      or call{" "}
-      <a
-        href={`tel:+${supportPhoneDigits}`}
-        className="underline underline-offset-4 hover:text-foreground transition-colors"
-      >
-        {supportPhoneDisplay}
-      </a>
-      .
+      {hasPhoneSupport ? (
+        <>
+          {" "}
+          or call{" "}
+          <a
+            href={`tel:+${supportPhoneDigits}`}
+            className="underline underline-offset-4 transition-colors hover:text-foreground"
+          >
+            {supportPhoneDisplay}
+          </a>
+          .
+        </>
+      ) : (
+        "."
+      )}
     </p>
   );
 }

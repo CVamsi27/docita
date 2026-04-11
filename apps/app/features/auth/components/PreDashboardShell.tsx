@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { cn } from "@workspace/ui/lib/utils";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
@@ -43,6 +44,8 @@ interface PreDashboardShellProps {
   children: React.ReactNode;
   /** Tailwind max-width class for the content container. Default: "max-w-md" */
   contentMaxWidth?: string;
+  /** Align the main content vertically within the scroll area. Default: center */
+  contentAlignment?: "center" | "start";
   /** Show sign-out button in the top-right corner */
   showSignOut?: boolean;
 }
@@ -51,6 +54,7 @@ export function PreDashboardShell({
   currentStep,
   children,
   contentMaxWidth = "max-w-md",
+  contentAlignment = "center",
   showSignOut = false,
 }: PreDashboardShellProps) {
   const router = useRouter();
@@ -109,7 +113,13 @@ export function PreDashboardShell({
 
         {/* Scrollable content area — my-auto centers when short, collapses to top when tall */}
         <div className="flex-1 flex flex-col items-center px-4 pb-10 relative z-10">
-          <div className={`my-auto w-full ${contentMaxWidth} flex flex-col gap-5 py-4`}>
+          <div
+            className={cn(
+              "w-full flex flex-col gap-5 py-4",
+              contentMaxWidth,
+              contentAlignment === "center" ? "my-auto" : "pt-4",
+            )}
+          >
             {/* Step progress indicator */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">

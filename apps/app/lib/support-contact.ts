@@ -1,10 +1,8 @@
 export const SUPPORT_EMAIL = "support@docita.work";
 
-const FALLBACK_SUPPORT_PHONE = "918790311010";
-
 export function getSupportPhoneNumber(): string {
   const configuredPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER?.trim();
-  return configuredPhone || FALLBACK_SUPPORT_PHONE;
+  return configuredPhone || "";
 }
 
 export function getPhoneDigits(phoneNumber: string): string {
@@ -30,5 +28,11 @@ export function getSupportPhoneDisplay(): string {
 }
 
 export function getSupportContactText(): string {
-  return `email ${SUPPORT_EMAIL} or call ${getSupportPhoneDisplay()}`;
+  const supportPhoneDisplay = getSupportPhoneDisplay();
+
+  if (supportPhoneDisplay) {
+    return `email ${SUPPORT_EMAIL} or call ${supportPhoneDisplay}`;
+  }
+
+  return `email ${SUPPORT_EMAIL}`;
 }

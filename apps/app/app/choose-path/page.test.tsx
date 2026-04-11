@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ChoosePathPage from "./page";
 
@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
     } | null,
     isAuthenticated: false,
     isLoading: false,
+    refreshUser: vi.fn(),
   },
 }));
 
@@ -73,10 +74,52 @@ describe("ChoosePathPage", () => {
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      refreshUser: vi.fn(),
     };
   });
 
-  it("redirects join-request users to request status", async () => {
+  it("refreshes auth and navigates to onboarding after choosing create clinic", async () => {
+    mocks.auth = {
+      user: {
+        id: "user-1",
+        clinicId: null,
+        onboardingStep: "CHOOSE_PATH",
+      },
+      isAuthenticated: true,
+      isLoading: false,
+      refreshUser: vi.fn().mockResolvedValue({
+        id: "user-1",
+        clinicId: null,
+        onboardingStep: "CREATING_CLINIC",
+      }),
+    };
+
+    const { typedApi } = await import("@/lib/api-client");
+    vi.mocked(typedApi.onboarding.choosePath).mockResolvedValue({
+      success: true,
+    });
+
+    render(<ChoosePathPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /get started/i })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /get started/i }));
+
+    await waitFor(() => {
+      expect(typedApi.onboarding.choosePath).toHaveBeenCalledWith(
+        "CREATE_CLINIC",
+      );
+    });
+
+    await waitFor(() => {
+      expect(mocks.auth.refreshUser).toHaveBeenCalledTimes(1);
+      expect(mocks.router.push).toHaveBeenCalledWith("/onboarding");
+    });
+  });
+
+  it("keeps join-request users on the choose-path page", async () => {
     mocks.auth = {
       user: {
         id: "user-1",
@@ -85,17 +128,17 @@ describe("ChoosePathPage", () => {
       },
       isAuthenticated: true,
       isLoading: false,
+      refreshUser: vi.fn(),
     };
 
     render(<ChoosePathPage />);
 
     await waitFor(() => {
-      expect(mocks.router.replace).toHaveBeenCalledWith("/join-request-status");
+      expect(screen.getByRole("button", { name: /get started/i })).toBeEnabled();
+      expect(screen.getByRole("button", { name: /search clinics/i })).toBeEnabled();
     });
 
-    expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
-    );
+    expect(mocks.router.replace).not.toHaveBeenCalled();
   });
 
   it("redirects clinic creators back to onboarding", async () => {
@@ -107,6 +150,7 @@ describe("ChoosePathPage", () => {
       },
       isAuthenticated: true,
       isLoading: false,
+      refreshUser: vi.fn(),
     };
 
     render(<ChoosePathPage />);

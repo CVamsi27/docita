@@ -8,6 +8,11 @@ const mocks = vi.hoisted(() => ({
     push: vi.fn(),
   },
   refreshUser: vi.fn(),
+  queryOptions: null as {
+    queryKey?: unknown;
+    retry?: boolean;
+    refetchInterval?: number;
+  } | null,
   query: {
     data: null as unknown,
     isLoading: false,
@@ -26,7 +31,14 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: () => mocks.query,
+  useQuery: (options: {
+    queryKey?: unknown;
+    retry?: boolean;
+    refetchInterval?: number;
+  }) => {
+    mocks.queryOptions = options;
+    return mocks.query;
+  },
   useMutation: () => mocks.mutation,
   useQueryClient: () => mocks.queryClient,
 }));
@@ -91,6 +103,7 @@ describe("JoinRequestStatusPage", () => {
     mocks.router.replace.mockReset();
     mocks.router.push.mockReset();
     mocks.refreshUser.mockReset();
+    mocks.queryOptions = null;
     mocks.query.invalidateQueries?.mockReset?.();
     mocks.mutation.mutate.mockReset();
     mocks.query = {
@@ -103,11 +116,18 @@ describe("JoinRequestStatusPage", () => {
     };
   });
 
-  it("redirects linked users to the dashboard when no active request exists", async () => {
+  it("redirects completed users to the dashboard", async () => {
     render(<JoinRequestStatusPage />);
 
     await waitFor(() => {
       expect(mocks.router.replace).toHaveBeenCalledWith("/dashboard");
     });
+  });
+
+  it("disables retries for the join request fetch", async () => {
+    render(<JoinRequestStatusPage />);
+
+    expect(mocks.queryOptions?.retry).toBe(false);
+    expect(mocks.queryOptions?.refetchInterval).toBe(10000);
   });
 });

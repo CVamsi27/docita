@@ -39,6 +39,7 @@ export default function JoinRequestStatusPage() {
   const { data: request, isLoading } = useQuery<JoinRequest | null>({
     queryKey: ['my-join-request'],
     queryFn: () => typedApi.joinRequests.getMine(),
+    retry: false,
     refetchInterval: 10000,
   });
 

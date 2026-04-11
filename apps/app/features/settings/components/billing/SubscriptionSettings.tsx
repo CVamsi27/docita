@@ -12,6 +12,7 @@ import {
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
+import { getSupportPhoneNumber } from "@/lib/support-contact";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
 import { PaymentSuccessModal } from "@/features/subscription/components";
 import {
@@ -201,7 +202,7 @@ export function SubscriptionSettings() {
     planName: "",
   });
 
-  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
+  const supportPhone = getSupportPhoneNumber();
 
   useSubscriptionCheckout((data) => {
     setSuccessData(data);
@@ -362,7 +363,6 @@ export function SubscriptionSettings() {
                 message="Hi Docita team, I need help with billing and onboarding."
                 label="Message support"
                 variant="default"
-                allowGenericLink
               />
             </div>
           </div>

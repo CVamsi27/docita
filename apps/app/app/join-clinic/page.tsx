@@ -133,6 +133,7 @@ export default function JoinClinicPage() {
     <PreDashboardShell
       currentStep="join-clinic"
       contentMaxWidth="max-w-2xl"
+      contentAlignment="start"
       showSignOut
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
