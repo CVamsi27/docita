@@ -42,7 +42,7 @@ function sanitizeFieldErrors(value: unknown): Record<string, string> {
 
 export async function parseApiErrorResponse(
   response: Response,
-  fallbackMessage = "Something went wrong. Please try again.",
+  fallbackMessage = "Please review the information on this screen and try again.",
 ): Promise<ApiValidationError | Error> {
   try {
     const data = await response.json();

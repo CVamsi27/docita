@@ -57,7 +57,7 @@ export async function fetchJsonWithSession<T>(
 ): Promise<T> {
   const response = await fetchWithSession(endpoint, init);
   if (!response.ok) {
-    throw new Error("Something went wrong. Please try again.");
+    throw new Error("We could not load the requested details. Please try again.");
   }
 
   return response.json() as Promise<T>;

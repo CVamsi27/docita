@@ -62,7 +62,7 @@ export function SecuritySettings() {
         onError: (error) => {
           showUserFacingErrorToast(
             error,
-            "We could not save security settings. Please try again.",
+            "We could not save your security settings. Please try again.",
             "save",
           );
         },

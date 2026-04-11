@@ -79,7 +79,7 @@ export function BulkImportDialogContainer({
     } catch (error) {
       showUserFacingErrorToast(
         error,
-        "We could not prepare the import. Please try again.",
+        "We could not prepare this import. Please try again.",
         "upload",
       );
       setStep("upload");

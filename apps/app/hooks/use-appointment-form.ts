@@ -277,7 +277,7 @@ export function useAppointmentForm({
 
         showUserFacingErrorToast(
           error,
-          "We could not schedule the appointment. Please try again.",
+          "We could not schedule this appointment. Please try again.",
           "save",
         );
       }

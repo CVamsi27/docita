@@ -60,11 +60,11 @@ export function AddMetricDefinitionModal({
     setLocalError(null);
 
     if (!label.trim()) {
-      setLocalError("Please enter a metric name");
+      setLocalError("Enter a metric name.");
       return;
     }
     if (!categoryId) {
-      setLocalError("Please select a category");
+      setLocalError("Choose a category.");
       return;
     }
 
@@ -86,7 +86,7 @@ export function AddMetricDefinitionModal({
     } catch (err) {
       setLocalError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not create the metric. Please try again.",
+          fallback: "We could not create this metric. Please try again.",
           context: "save",
         }),
       );

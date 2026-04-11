@@ -180,7 +180,7 @@ export const ReminderSettingsUI: FC = () => {
         onError: (error) => {
           showUserFacingErrorToast(
             error,
-            "We could not save reminder settings. Please try again.",
+            "We could not save these reminder settings. Please try again.",
             "save",
           );
         },

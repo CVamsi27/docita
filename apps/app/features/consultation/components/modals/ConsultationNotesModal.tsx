@@ -44,7 +44,9 @@ export function ConsultationNotesModal({
       onOpenChange?.(false);
       setNotes("");
     } catch {
-      showUserFacingErrorToast("We could not save notes. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save these notes. Please try again.",
+      );
 
     }
   };

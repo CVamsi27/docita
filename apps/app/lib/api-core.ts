@@ -132,7 +132,7 @@ export async function fetchAPI<T>(
     if (error instanceof APIRequestError) {
       throw new ApiError(
         getUserFacingErrorMessage(error, {
-          fallback: "Something went wrong. Please try again.",
+          fallback: "Please review the information on this screen and try again.",
         }),
         error.status ?? 500,
         error.code ?? "API_ERROR",
@@ -144,7 +144,7 @@ export async function fetchAPI<T>(
     }
     throw new ApiError(
       getUserFacingErrorMessage(error, {
-        fallback: "Something went wrong. Please try again.",
+        fallback: "We could not load this right now. Please refresh or try again.",
         context: "load",
       }),
       500,

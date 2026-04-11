@@ -47,7 +47,7 @@ export function FollowUpSchedulerContainer({
 
   const handleSchedule = async () => {
     if (!selectedDate) {
-      showUserFacingErrorToast("Please select a date");
+      showUserFacingErrorToast("Choose a follow-up date before scheduling.");
       return;
     }
 
@@ -80,7 +80,9 @@ export function FollowUpSchedulerContainer({
       setSelectedDate(undefined);
       setNotes("");
     } catch {
-      showUserFacingErrorToast("We could not schedule follow-up. Please try again.");
+      showUserFacingErrorToast(
+        "We could not schedule this follow-up. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

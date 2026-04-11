@@ -93,7 +93,9 @@ export const useMobileUpload = () => {
         setShowQr(true);
         pollSession(data.id, onUploadComplete);
       } catch (_error) {
-        showUserFacingErrorToast("We could not start mobile upload. Please try again.");
+        showUserFacingErrorToast(
+          "We could not start the mobile upload right now. Please try again.",
+        );
       }
     },
     [pollSession],

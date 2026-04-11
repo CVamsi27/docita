@@ -1,28 +1,54 @@
 import {
   Building2,
-  CalendarCheck,
+  Check,
   FileCheck2,
   KeyRound,
+  LayoutDashboard,
   ShieldCheck,
   Stethoscope,
+  UserCheck,
 } from "lucide-react";
 import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { cn } from "@workspace/ui/lib/utils";
+import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
-const setupSteps = [
+interface SetupStep {
+  icon: typeof KeyRound;
+  title: string;
+  description: string;
+  authSteps: readonly AuthBrandingStep[];
+}
+
+const setupSteps: readonly SetupStep[] = [
+  {
+    icon: FileCheck2,
+    title: "Set up your account",
+    description: "Enter your details or sign in to continue.",
+    authSteps: ["email", "login", "signup", "forgot-password", "reset-password"],
+  },
   {
     icon: KeyRound,
     title: "Verify access",
-    description: "Confirm the email that protects your workspace.",
+    description: "Confirm your email before moving ahead.",
+    authSteps: ["verify-email", "verify-email-sent"],
   },
   {
     icon: Building2,
     title: "Choose your path",
-    description: "Create a clinic or request access to an existing one.",
+    description: "Create a new clinic or join an existing one.",
+    authSteps: ["choose-path"],
   },
   {
-    icon: CalendarCheck,
+    icon: UserCheck,
+    title: "Complete setup",
+    description: "Finish onboarding, team setup, and profile verification.",
+    authSteps: ["onboarding", "join-clinic", "join-request-status", "verify-doctor"],
+  },
+  {
+    icon: LayoutDashboard,
     title: "Start the day",
     description: "Open appointments, patients, prescriptions, and billing.",
+    authSteps: [],
   },
 ];
 
@@ -41,10 +67,18 @@ const assuranceItems = [
   },
 ];
 
-export function AuthBrandingPanel() {
+export interface AuthBrandingPanelProps {
+  currentStep: AuthBrandingStep;
+}
+
+export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
+  const activeStepIndex = setupSteps.findIndex((step) =>
+    step.authSteps.includes(currentStep),
+  );
+
   return (
     <aside
-      className="relative hidden min-h-screen overflow-hidden border-r bg-card lg:flex lg:w-1/2 lg:flex-col lg:justify-between"
+      className="relative hidden h-full overflow-hidden border-r bg-card lg:flex lg:w-1/2 lg:flex-col lg:justify-between"
       aria-label="Docita setup overview"
     >
       <div
@@ -72,48 +106,94 @@ export function AuthBrandingPanel() {
       </div>
 
       <div className="relative z-10 px-10">
-        <div className="max-w-xl space-y-5">
-          <p className="text-sm font-medium text-primary">Account setup</p>
-          <h2 className="text-5xl font-bold leading-[1.05] text-foreground">
-            One secure start for every clinic workflow.
+        <div className="max-w-xl space-y-4">
+          <p className="text-sm font-medium text-primary">Getting started</p>
+          <h2 className="text-4xl font-bold leading-[1.1] text-foreground">
+            Everything in one guided path to your clinic.
           </h2>
-          <p className="max-w-md text-base leading-7 text-muted-foreground">
-            Verify your account, choose how you work with a clinic, and continue
-            into a workspace built for daily care.
+          <p className="max-w-md text-sm leading-6 text-muted-foreground">
+            Account setup, email verification, onboarding — each step unlocks the next.
+            You only do this once.
           </p>
         </div>
 
-        <div className="mt-10 max-w-lg rounded-lg border bg-background/85 p-4 shadow-sm backdrop-blur">
-          <div className="mb-4 flex items-center justify-between border-b pb-3">
+        <div className="mt-8 max-w-lg rounded-lg border bg-background/85 p-4 shadow-sm backdrop-blur">
+          <div className="mb-3 flex items-center justify-between border-b pb-3">
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Setup rhythm
+                Your setup journey
               </p>
               <p className="text-xs text-muted-foreground">
-                Clear steps before patient work begins.
+                {activeStepIndex >= 0 ? `Step ${activeStepIndex + 1} of ${setupSteps.length} — keep going` : "Ready to begin"}
               </p>
             </div>
-            <span className="rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
-              Guided
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              {activeStepIndex >= 0 ? `${Math.round(((activeStepIndex) / (setupSteps.length - 1)) * 100)}% there` : "Start"}
             </span>
           </div>
 
-          <ol className="space-y-3">
+          <ol className="space-y-2">
             {setupSteps.map((step, index) => {
               const Icon = step.icon;
+              const isActive = index === activeStepIndex;
+              const isComplete =
+                activeStepIndex >= 0 && index < activeStepIndex;
+              const isUpcoming = activeStepIndex >= 0 && index > activeStepIndex;
 
               return (
-                <li key={step.title} className="flex gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border bg-card text-primary">
-                    <Icon className="h-4 w-4" aria-hidden="true" />
+                <li
+                  key={step.title}
+                  aria-current={isActive ? "step" : undefined}
+                  className={cn(
+                    "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
+                    isActive
+                      ? "border-primary/40 bg-primary/5 shadow-sm"
+                      : isComplete
+                        ? "border-success/20 bg-success/5"
+                        : "border-transparent",
+                    isUpcoming && "opacity-50",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                      isActive
+                        ? "border-primary/40 bg-background text-primary"
+                        : isComplete
+                          ? "border-success/30 bg-success/10 text-success"
+                          : "border-border/50 bg-card/50 text-muted-foreground",
+                    )}
+                  >
+                    {isComplete ? (
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">
-                      {index + 1}. {step.title}
-                    </p>
-                    <p className="text-xs leading-5 text-muted-foreground">
-                      {step.description}
-                    </p>
+                  <div className="min-w-0 flex items-center gap-2 flex-1">
+                    <div className="flex-1">
+                      <p className={cn(
+                        "text-sm font-semibold leading-tight",
+                        isComplete ? "text-muted-foreground" : "text-foreground",
+                      )}>
+                        {step.title}
+                      </p>
+                      {isActive && (
+                        <p className="text-xs leading-4 text-muted-foreground mt-0.5">
+                          {step.description}
+                        </p>
+                      )}
+                    </div>
+                    {isActive && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
+                        Now
+                      </span>
+                    )}
+                    {isComplete && (
+                      <span className="text-[10px] font-medium text-success shrink-0">
+                        Done
+                      </span>
+                    )}
                   </div>
                 </li>
               );

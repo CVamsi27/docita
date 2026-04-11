@@ -22,8 +22,8 @@ export interface PaginatedResponse<T> {
 }
 
 export const createLabTestOrderSchema = z.object({
-  patientId: z.string().min(1, "Patient is required"),
-  labTestId: z.string().min(1, "Test is required"),
+  patientId: z.string().min(1, "Select a patient."),
+  labTestId: z.string().min(1, "Select a test."),
   appointmentId: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -100,7 +100,7 @@ export const useLabTestsLogic = () => {
 
         showUserFacingErrorToast(
           error,
-          "We could not create the lab test order. Please try again.",
+          "We could not create this lab test order right now. Please try again.",
           "save",
         );
       }

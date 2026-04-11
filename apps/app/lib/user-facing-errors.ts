@@ -23,14 +23,14 @@ export function getUserFacingFormError(
 
 export function getSafeUserMessage(
   message: string | null | undefined,
-  fallback = "Something went wrong. Please try again.",
+  fallback = "Please review the information on this screen and try again.",
 ): string {
   return sanitizeUserFacingMessage(message, fallback);
 }
 
 export function showUserFacingErrorToast(
   error: unknown,
-  fallback = "Something went wrong. Please try again.",
+  fallback = "Please review the information on this screen and try again.",
   context: UserFacingErrorContext = "generic",
 ): void {
   toast.error(

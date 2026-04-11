@@ -54,7 +54,7 @@ export function DoctorDashboardCardsUI({
     } catch (error) {
       showUserFacingErrorToast(
         error,
-        "We could not start this consultation. Please try again.",
+        "We could not open this consultation. Please try again.",
         "save",
       );
     } finally {

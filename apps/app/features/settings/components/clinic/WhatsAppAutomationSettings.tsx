@@ -73,7 +73,7 @@ export function WhatsAppAutomationSettings() {
       onError: (error) => {
         showUserFacingErrorToast(
           error,
-          "We could not save WhatsApp automation settings. Please try again.",
+          "We could not save your WhatsApp automation settings. Please try again.",
           "save",
         );
       },

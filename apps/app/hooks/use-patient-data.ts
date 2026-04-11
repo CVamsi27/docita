@@ -62,7 +62,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
       } else {
 
         setPatient(null);
-        setError("We could not load patient details. Please try again.");
+        setError("We could not open this patient record. Please try again.");
       }
 
       const apptItems = appointmentsData && typeof appointmentsData === "object" && "items" in appointmentsData
@@ -100,7 +100,7 @@ export function usePatientData(patientId: string): UsePatientDataReturn {
 
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not load patient details. Please try again.",
+          fallback: "We could not open this patient record. Please try again.",
           context: "load",
         }),
       );

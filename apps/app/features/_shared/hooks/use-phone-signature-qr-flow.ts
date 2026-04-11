@@ -153,7 +153,7 @@ export function usePhoneSignatureQrFlow({
         setError(
           getUserFacingErrorMessage(err, {
             fallback:
-              "We could not create the signature link. Please try again.",
+              "We could not create this signature link. Please try again.",
             context: "upload",
           }),
         );

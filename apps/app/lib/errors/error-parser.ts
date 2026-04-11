@@ -39,7 +39,9 @@ export function parseError(error: unknown): ApiError {
               code: apiError.data?.code,
             },
           },
-          { fallback: "Something went wrong. Please try again." },
+          {
+            fallback: "Please review the information on this screen and try again.",
+          },
         ),
         code: apiError.data?.code,
         status: apiError.status,
@@ -54,7 +56,7 @@ export function parseError(error: unknown): ApiError {
   }
 
   return {
-    message: "Something went wrong. Please try again.",
+    message: "Please review the information on this screen and try again.",
     code: "UNKNOWN_ERROR",
   };
 }

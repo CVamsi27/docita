@@ -195,7 +195,7 @@ describe("useClinicRegistrationFlow", () => {
     });
 
     expect(mocks.toast.error).toHaveBeenCalledWith(
-      "We could not finish registration. Please start again.",
+      "We could not finish setup. Please start again.",
       { duration: Number.POSITIVE_INFINITY },
     );
   });

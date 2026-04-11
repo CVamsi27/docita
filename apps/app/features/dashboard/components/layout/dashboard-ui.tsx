@@ -71,7 +71,7 @@ export function DashboardUI({
         <DataState
           status="error"
           className="min-h-[50vh]"
-          errorMessage="We could not load the dashboard. Please try again."
+          errorMessage="We could not load your dashboard. Please try again."
           onRetry={onRetry}
         />
       </AppPageScaffold>

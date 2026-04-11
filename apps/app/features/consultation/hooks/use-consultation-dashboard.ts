@@ -66,7 +66,7 @@ export const useConsultationDashboard = () => {
     } catch (error) {
       showUserFacingErrorToast(
         error,
-        "We could not start this consultation. Please try again.",
+        "We could not open this consultation right now. Please try again.",
         "save",
       );
     }

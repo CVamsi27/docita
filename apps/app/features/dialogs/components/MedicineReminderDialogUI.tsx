@@ -20,7 +20,7 @@ import {
 const medicineReminderSchema = z.object({
   medicineName: requiredStringSchema("Medicine Name"),
   dosage: requiredStringSchema("Dosage"),
-  frequency: z.string().min(1, "Frequency is required"),
+  frequency: z.string().min(1, "Select how often the reminder should be sent."),
   reminderTime: requiredStringSchema("Reminder Time"),
   patientPhone: phoneSchema.optional().or(z.literal("")),
 });

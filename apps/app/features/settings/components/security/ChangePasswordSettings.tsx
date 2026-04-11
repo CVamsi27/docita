@@ -22,7 +22,7 @@ import { PasswordStrengthIndicator } from "@/features/auth/components/AuthShared
 const changePasswordSchema = z
   .object({
     currentPassword: requiredStringSchema("Current Password"),
-    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    newPassword: z.string().min(8, "Use at least 8 characters."),
     confirmPassword: requiredStringSchema("Confirm Password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

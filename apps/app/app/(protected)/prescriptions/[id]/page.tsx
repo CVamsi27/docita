@@ -117,7 +117,9 @@ export default function PrescriptionViewPage() {
   };
 
   if (error) {
-    showUserFacingErrorToast("We could not load prescription. Please try again.");
+    showUserFacingErrorToast(
+      "We could not load this prescription. Please try again.",
+    );
   }
 
   if (isLoading) {

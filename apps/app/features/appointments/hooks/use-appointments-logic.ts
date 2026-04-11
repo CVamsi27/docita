@@ -233,7 +233,7 @@ export const useAppointmentsLogic = () => {
       } catch (error) {
         showUserFacingErrorToast(
           error,
-          "We could not start this consultation. Please try again.",
+          "We could not open this consultation right now. Please try again.",
           "save",
         );
       } finally {
@@ -253,7 +253,7 @@ export const useAppointmentsLogic = () => {
       } catch (error) {
         showUserFacingErrorToast(
           error,
-          "We could not check in the patient. Please try again.",
+          "We could not check this patient in. Please try again.",
           "save",
         );
       } finally {
@@ -272,7 +272,9 @@ export const useAppointmentsLogic = () => {
       toast.success("Appointment cancelled successfully");
       refetch();
     } catch {
-      showUserFacingErrorToast("We could not cancel appointment. Please try again.");
+      showUserFacingErrorToast(
+        "We could not cancel this appointment. Please try again.",
+      );
     }
   };
 
@@ -285,7 +287,9 @@ export const useAppointmentsLogic = () => {
       toast.success("Appointment marked as no-show");
       refetch();
     } catch {
-      showUserFacingErrorToast("We could not mark appointment as no-show. Please try again.");
+      showUserFacingErrorToast(
+        "We could not mark this appointment as missed. Please try again.",
+      );
     }
   };
 

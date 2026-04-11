@@ -30,7 +30,7 @@ export default function ProfilePage() {
 
   const handleSaveChanges = async () => {
     if (!formData.name.trim()) {
-      showUserFacingErrorToast("Please enter your name");
+      showUserFacingErrorToast("Enter your name before saving.");
       return;
     }
 
@@ -41,7 +41,9 @@ export default function ProfilePage() {
       });
       toast.success("Profile updated successfully");
     } catch {
-      showUserFacingErrorToast("We could not update profile. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save your profile changes. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }

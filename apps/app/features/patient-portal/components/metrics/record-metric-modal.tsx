@@ -47,7 +47,7 @@ export function RecordMetricModal({
     setLocalError(null);
 
     if (!value.trim()) {
-      setLocalError("Please enter a value");
+      setLocalError("Enter a value.");
       return;
     }
 
@@ -64,7 +64,7 @@ export function RecordMetricModal({
       ) {
         const num = parseFloat(value);
         if (isNaN(num)) {
-          setLocalError("Please enter a valid number");
+          setLocalError("Enter a valid number.");
           return;
         }
         payload.valueNumber = num;
@@ -82,7 +82,7 @@ export function RecordMetricModal({
     } catch (err) {
       setLocalError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not record the metric. Please try again.",
+          fallback: "We could not save this metric reading. Please try again.",
           context: "save",
         }),
       );

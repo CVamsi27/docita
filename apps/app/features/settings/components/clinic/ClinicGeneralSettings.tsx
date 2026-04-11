@@ -82,7 +82,7 @@ export function ClinicGeneralSettings() {
       onError: (error) => {
         showUserFacingErrorToast(
           error,
-          "We could not update clinic settings. Please try again.",
+          "We could not save your clinic details. Please try again.",
           "save",
         );
       },

@@ -143,7 +143,7 @@ export function DoctorAvailabilitySettings() {
       onError: (err) => {
         showUserFacingErrorToast(
           err,
-          "We could not update availability. Please try again.",
+          "We could not save this doctor's availability. Please try again.",
           "save",
         );
       },

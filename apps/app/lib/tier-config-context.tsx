@@ -76,7 +76,7 @@ export function TierConfigProvider({
     ? null
     : tierConfigQuery.error && !isNetworkError(tierConfigQuery.error)
       ? getUserFacingErrorMessage(tierConfigQuery.error, {
-          fallback: "We could not load plan details. Please try again.",
+          fallback: "We could not load your plan details. Please try again.",
           context: "load",
         })
       : null;

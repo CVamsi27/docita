@@ -37,11 +37,10 @@ export default function GlobalError({
               !
             </div>
             <h1 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: 700 }}>
-              Something went wrong
+              We could not load this page
             </h1>
             <p style={{ margin: "0 0 24px", color: "#475569", lineHeight: 1.6 }}>
-              We encountered an unexpected error. Please try again or return to
-              the home page.
+              Please try again or return to the home page.
             </p>
             <div
               style={{

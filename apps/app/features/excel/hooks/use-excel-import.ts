@@ -129,7 +129,7 @@ export const useExcelImport = () => {
       });
 
       if (!response.ok) {
-        throw new Error("We could not preview the file. Please try again.");
+        throw new Error("We could not preview this file. Please try again.");
       }
 
       const data: ImportPreview = await response.json();
@@ -140,7 +140,7 @@ export const useExcelImport = () => {
     } catch (error) {
       showUserFacingErrorToast(
         error,
-        "We could not preview the file. Please try again.",
+        "We could not preview this file. Please try again.",
         "upload",
       );
     } finally {
@@ -195,7 +195,7 @@ export const useExcelImport = () => {
       setImportProgress(100);
 
       if (!response.ok) {
-        throw new Error("We could not import the file. Please try again.");
+        throw new Error("We could not import this file. Please try again.");
       }
 
       const result: ImportResult = await response.json();
@@ -213,7 +213,7 @@ export const useExcelImport = () => {
     } catch (error) {
       showUserFacingErrorToast(
         error,
-        "We could not import the file. Please try again.",
+        "We could not import this file. Please try again.",
         "upload",
       );
       setStep("mapping");

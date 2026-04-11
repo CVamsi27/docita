@@ -62,7 +62,9 @@ export function FollowUpWidget() {
       toast.success("Follow-up marked as completed");
     } catch (err) {
       logger.error("Failed to complete follow-up", { err });
-      showUserFacingErrorToast("We could not complete follow-up. Please try again.");
+      showUserFacingErrorToast(
+        "We could not complete this follow-up. Please try again.",
+      );
     } finally {
       setActioning(null);
     }
@@ -76,7 +78,9 @@ export function FollowUpWidget() {
       toast.success("Follow-up cancelled");
     } catch (err) {
       logger.error("Failed to cancel follow-up", { err });
-      showUserFacingErrorToast("We could not cancel follow-up. Please try again.");
+      showUserFacingErrorToast(
+        "We could not cancel this follow-up. Please try again.",
+      );
     } finally {
       setActioning(null);
     }

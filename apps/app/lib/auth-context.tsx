@@ -12,7 +12,6 @@ import React, {
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import { isNetworkError } from "@/lib/network-error";
 import { apiFetch } from "@/lib/api-client";
 import { appSession } from "@/lib/session";
 import {
@@ -26,8 +25,10 @@ import {
 } from "@workspace/types";
 
 const AUTH_RESPONSE_ERROR_MESSAGE =
-  "We could not sign you in. Please try again.";
+  "We could not sign you in right now. Please try again.";
 const LOGIN_LOCKOUT_STORAGE_KEY = "docita_login_lockout_until";
+export const VERIFICATION_EMAIL_STATUS_STORAGE_KEY =
+  "docita_verification_email_status";
 const DEFAULT_LOGIN_LOCKOUT_MINUTES = 15;
 export interface User {
   id: string;
@@ -35,6 +36,7 @@ export interface User {
   email: string;
   role: UserRole;
   clinicId?: string | null;
+  emailVerified?: boolean;
   onboardingStep?:
     | "NOT_STARTED"
     | "CHOOSE_PATH"
@@ -76,6 +78,7 @@ interface AuthContextType {
 
 interface AuthPayload {
   access_token?: string;
+  verificationEmailSent?: boolean;
   user: User;
 }
 
@@ -95,37 +98,51 @@ function getStoredUser(): User | null {
 }
 
 function extractAuthPayload(raw: unknown): AuthPayload | null {
+  const directRegister = registerResponseSchema.safeParse(raw);
+  if (directRegister.success) {
+    const registerData = directRegister.data as {
+      access_token: string;
+      user: User;
+      verificationEmailSent?: boolean;
+    };
+    return {
+      access_token: registerData.access_token,
+      verificationEmailSent: registerData.verificationEmailSent,
+      user: registerData.user,
+    };
+  }
+
   const directLogin = loginResponseSchema.safeParse(raw);
   if (directLogin.success) {
     return {
       access_token: directLogin.data.access_token,
+      verificationEmailSent: undefined,
       user: directLogin.data.user,
-    };
-  }
-
-  const directRegister = registerResponseSchema.safeParse(raw);
-  if (directRegister.success) {
-    return {
-      access_token: directRegister.data.access_token,
-      user: directRegister.data.user,
     };
   }
 
   if (raw && typeof raw === "object" && "data" in raw) {
     const nested = (raw as { data?: unknown }).data;
+    const nestedRegister = registerResponseSchema.safeParse(nested);
+    if (nestedRegister.success) {
+      const registerData = nestedRegister.data as {
+        access_token: string;
+        user: User;
+        verificationEmailSent?: boolean;
+      };
+      return {
+        access_token: registerData.access_token,
+        verificationEmailSent: registerData.verificationEmailSent,
+        user: registerData.user,
+      };
+    }
+
     const nestedLogin = loginResponseSchema.safeParse(nested);
     if (nestedLogin.success) {
       return {
         access_token: nestedLogin.data.access_token,
+        verificationEmailSent: undefined,
         user: nestedLogin.data.user,
-      };
-    }
-
-    const nestedRegister = registerResponseSchema.safeParse(nested);
-    if (nestedRegister.success) {
-      return {
-        access_token: nestedRegister.data.access_token,
-        user: nestedRegister.data.user,
       };
     }
   }
@@ -223,6 +240,32 @@ function formatLockoutMessage(lockoutUntil: number): string {
   return `Account is locked due to too many failed login attempts. Try again in ${minutesRemaining} minute(s).`;
 }
 
+function isAuthFailure(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const status =
+    "status" in error && typeof error.status === "number"
+      ? error.status
+      : undefined;
+
+  return status === 401 || status === 403;
+}
+
+function persistVerificationEmailStatus(status: "pending" | "failed" | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (!status) {
+    window.sessionStorage.removeItem(VERIFICATION_EMAIL_STATUS_STORAGE_KEY);
+    return;
+  }
+
+  window.sessionStorage.setItem(VERIFICATION_EMAIL_STATUS_STORAGE_KEY, status);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => {
@@ -270,6 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistToken(null);
     appSession.clearSession();
     setUserRole("");
+    persistVerificationEmailStatus(null);
     setLoginLockoutUntil(null);
     persistLoginLockoutUntil(null);
     hasSetRoleRef.current = false;
@@ -369,23 +413,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           return;
         }
-      } catch {
+      } catch (error) {
+        if (!isAuthFailure(error)) {
+          return;
+        }
+
         const refreshed = await refreshAccessToken();
-        if (refreshed) {
-          try {
-            const retryData = await validateAuth(undefined);
-            if (retryData?.user) {
-              setUser(retryData.user);
-              setUserRole(retryData.user.role);
-              hasSetRoleRef.current = true;
-              localStorage.setItem(
-                "docita_user",
-                JSON.stringify(retryData.user),
-              );
-              return;
-            }
-          } catch {
-            // ignore retry failures
+        if (!refreshed) {
+          clearSession();
+          return;
+        }
+
+        try {
+          const retryData = await validateAuth(undefined);
+          if (retryData?.user) {
+            setUser(retryData.user);
+            setUserRole(retryData.user.role);
+            hasSetRoleRef.current = true;
+            localStorage.setItem("docita_user", JSON.stringify(retryData.user));
+            return;
+          }
+          clearSession();
+        } catch (retryError) {
+          if (isAuthFailure(retryError)) {
+            clearSession();
           }
         }
       } finally {
@@ -394,7 +445,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     void validateSession();
-  }, [refreshAccessToken, setUserRole, validateAuth]);
+  }, [clearSession, refreshAccessToken, setUserRole, validateAuth]);
 
   // Listen for auth changes in other tabs/windows and update in-memory state
   useEffect(() => {
@@ -497,6 +548,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoginLockoutUntil(null);
       persistLoginLockoutUntil(null);
 
+      if (userData.emailVerified === false) {
+        persistVerificationEmailStatus("pending");
+        router.push("/verify-email-sent");
+        return;
+      }
+
+      persistVerificationEmailStatus(null);
       if (!userData.clinicId) {
         switch (userData.onboardingStep) {
           case "JOINING_CLINIC":
@@ -543,19 +601,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const checkEmail = async (email: string): Promise<boolean> => {
-    try {
-      const payload = checkEmailSchema.parse({ email });
-      const data = checkEmailResponseSchema.parse(
-        await checkEmailMutation.mutateAsync(payload),
-      );
-      return data.exists;
-    } catch (error) {
-      if (isNetworkError(error)) {
-        return false;
-      }
-
-      throw error;
-    }
+    const payload = checkEmailSchema.parse({ email });
+    const data = checkEmailResponseSchema.parse(
+      await checkEmailMutation.mutateAsync(payload),
+    );
+    return data.exists;
   };
 
   const register = async (
@@ -578,6 +628,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await registerMutation.mutateAsync(payload),
     );
     const accessToken = authPayload?.access_token ?? null;
+    const verificationEmailSent = authPayload?.verificationEmailSent;
     let userData = authPayload?.user ?? null;
 
     if (!userData) {
@@ -588,7 +639,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     if (!userData) {
-      throw new Error("We could not create your account. Please try again.");
+      throw new Error("We could not finish creating your account. Please try again.");
     }
 
     if (accessToken) {
@@ -600,7 +651,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserRole(userData.role);
     localStorage.setItem("docita_user", JSON.stringify(userData));
 
-    router.push("/verify-email-sent");
+    if (userData.emailVerified === false) {
+      persistVerificationEmailStatus(
+        verificationEmailSent === false ? "failed" : "pending",
+      );
+      router.push("/verify-email-sent");
+      return;
+    }
+
+    persistVerificationEmailStatus(null);
+    if (!userData.clinicId) {
+      router.push("/choose-path");
+      return;
+    }
+
+    router.push("/dashboard");
   };
 
   const logout = useCallback(async () => {

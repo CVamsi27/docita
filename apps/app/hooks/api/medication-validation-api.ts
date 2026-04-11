@@ -1,3 +1,8 @@
+import {
+  getUserFacingErrorMessage,
+  sanitizeUserFacingMessage,
+} from "@workspace/types";
+
 export interface ValidationResult {
   isValid: boolean;
   message?: string;
@@ -32,10 +37,74 @@ interface ApiErrorResponse {
   message?: string | string[];
 }
 
+function sanitizeValidationResult(
+  result: ValidationResult,
+): ValidationResult {
+  return {
+    ...result,
+    message: result.message
+      ? sanitizeUserFacingMessage(
+          result.message,
+          "Please review this dosage before continuing.",
+        )
+      : undefined,
+    suggestion: result.suggestion
+      ? sanitizeUserFacingMessage(
+          result.suggestion,
+          "Please review this dosage before continuing.",
+        )
+      : undefined,
+  };
+}
+
+function sanitizeContraindicationResult(
+  result: ContraindicationResult,
+): ContraindicationResult {
+  return {
+    ...result,
+    message: sanitizeUserFacingMessage(
+      result.message,
+      "Please review this medicine before continuing.",
+    ),
+    recommendation: sanitizeUserFacingMessage(
+      result.recommendation,
+      "Please review this medicine before continuing.",
+    ),
+    alternatives: result.alternatives?.map((alternative) =>
+      sanitizeUserFacingMessage(alternative, alternative),
+    ),
+  };
+}
+
+function sanitizeComprehensiveCheckResult(
+  result: ComprehensiveCheckResult,
+): ComprehensiveCheckResult {
+  return {
+    ...result,
+    dosageValidations: result.dosageValidations.map(sanitizeValidationResult),
+    contraindications: result.contraindications.map(
+      sanitizeContraindicationResult,
+    ),
+    warnings: result.warnings.map((warning) =>
+      sanitizeUserFacingMessage(
+        warning,
+        "Please review this medicine before continuing.",
+      ),
+    ),
+    errors: result.errors.map((error) =>
+      sanitizeUserFacingMessage(
+        error,
+        "Please review this medicine before continuing.",
+      ),
+    ),
+  };
+}
+
 async function postMedicationValidation<T>(
   endpoint: string,
   payload: unknown,
   fallbackMessage: string,
+  sanitizeResult?: (result: T) => T,
 ): Promise<T> {
   const response = await fetch(endpoint, {
     method: "POST",
@@ -50,10 +119,16 @@ async function postMedicationValidation<T>(
     const errorMessage = Array.isArray(errorBody.message)
       ? errorBody.message.join(", ")
       : errorBody.message;
-    throw new Error(errorMessage || fallbackMessage);
+    throw new Error(
+      getUserFacingErrorMessage(errorMessage, {
+        fallback: fallbackMessage,
+        context: "form",
+      }),
+    );
   }
 
-  return (await response.json()) as T;
+  const result = (await response.json()) as T;
+  return sanitizeResult ? sanitizeResult(result) : result;
 }
 
 export function validateMedicationDosage(payload: {
@@ -63,7 +138,8 @@ export function validateMedicationDosage(payload: {
   return postMedicationValidation<ValidationResult>(
     "/api/medications/validate-dosage",
     payload,
-    "Dosage validation failed",
+    "We could not check this dosage. Please try again.",
+    sanitizeValidationResult,
   );
 }
 
@@ -77,7 +153,8 @@ export function checkMedicationContraindications(payload: {
   return postMedicationValidation<ContraindicationResult[]>(
     "/api/medications/check-contraindications",
     payload,
-    "Contraindication check failed",
+    "We could not review this medicine right now. Please try again.",
+    (results) => results.map(sanitizeContraindicationResult),
   );
 }
 
@@ -88,7 +165,7 @@ export function checkMedicationInteractions(payload: {
   return postMedicationValidation<unknown>(
     "/api/medications/check-interactions",
     payload,
-    "Interaction check failed",
+    "We could not review these medicine interactions. Please try again.",
   );
 }
 
@@ -104,6 +181,7 @@ export function runMedicationComprehensiveCheck(payload: {
   return postMedicationValidation<ComprehensiveCheckResult>(
     "/api/medications/comprehensive-check",
     payload,
-    "Comprehensive check failed",
+    "We could not complete this medicine review. Please try again.",
+    sanitizeComprehensiveCheckResult,
   );
 }

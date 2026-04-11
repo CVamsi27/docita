@@ -23,11 +23,11 @@ const getPrescriptionComplianceErrorMessage = (error: unknown): string | null =>
   }
 
   if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
-    return "Doctor signature is required before creating a prescription.";
+    return "Add your signature before creating a prescription.";
   }
 
   if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
-    return "Doctor government verification is required before creating a prescription.";
+    return "Finish your doctor verification before creating a prescription.";
   }
 
   return null;
@@ -93,7 +93,9 @@ export function PrescriptionModal({
       setMedications(medicationsFromLastRx);
       toast.success("Loaded medications from last prescription");
     } else {
-      showUserFacingErrorToast("No previous prescription found");
+      showUserFacingErrorToast(
+        "There is no previous prescription to copy for this patient.",
+      );
     }
   };
 
@@ -104,7 +106,9 @@ export function PrescriptionModal({
       const validMedications = medications.filter((m) => m.name.trim() !== "");
 
       if (validMedications.length === 0) {
-        showUserFacingErrorToast("Please add at least one medication");
+        showUserFacingErrorToast(
+          "Add at least one medicine before saving this prescription.",
+        );
         return;
       }
 
@@ -131,7 +135,10 @@ export function PrescriptionModal({
       ]);
     } catch (err) {
       const complianceMessage = getPrescriptionComplianceErrorMessage(err);
-      showUserFacingErrorToast(complianceMessage || "We could not create prescription. Please try again.");
+      showUserFacingErrorToast(
+        complianceMessage ||
+          "We could not create this prescription. Please try again.",
+      );
 
     }
   };

@@ -1,7 +1,11 @@
 import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { type RazorpayResponse, useRazorpay } from "@/hooks/use-razorpay";
+import {
+  isPaymentCanceledError,
+  type RazorpayResponse,
+  useRazorpay,
+} from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth-context";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -43,7 +47,7 @@ export function useSubscriptionCheckout(
   const checkoutTier = useCallback(
     async ({ tier, billingCycle }: TierCheckoutParams) => {
       if (!token) {
-        throw new Error("Please sign in to continue");
+        throw new Error("Please sign in to manage your subscription.");
       }
       setIsProcessing(true);
       setProcessingId(`tier-${tier}`);
@@ -58,7 +62,7 @@ export function useSubscriptionCheckout(
         );
         const { orderId, amountCents, currency, razorpayKeyId } = createData;
         if (!orderId || !amountCents || !currency || !razorpayKeyId) {
-          throw new Error("We could not start checkout. Please try again.");
+          throw new Error("We could not start checkout right now. Please try again.");
         }
 
         await openCheckout({
@@ -103,16 +107,12 @@ export function useSubscriptionCheckout(
           theme: { color: "#0F172A" },
         });
       } catch (error: unknown) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "We could not process the upgrade. Please try again.";
-        if (message === "Payment was cancelled") {
-          toast.info(message);
+        if (isPaymentCanceledError(error)) {
+          toast.info("Payment was canceled. No charge was made.");
         } else {
           showUserFacingErrorToast(
             error,
-            "We could not process the upgrade. Please try again.",
+            "We could not finish this plan change. Please try again.",
             "payment",
           );
         }

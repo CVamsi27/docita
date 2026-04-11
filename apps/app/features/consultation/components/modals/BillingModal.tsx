@@ -88,7 +88,9 @@ export function BillingModal({
       const validItems = items.filter((i) => i.description.trim() !== "");
 
       if (validItems.length === 0) {
-        showUserFacingErrorToast("Please add at least one line item");
+        showUserFacingErrorToast(
+          "Add at least one billing item before saving the invoice.",
+        );
         return;
       }
 
@@ -132,7 +134,9 @@ export function BillingModal({
       setTaxRate(0);
       setDiscountValue(0);
     } catch {
-      showUserFacingErrorToast("We could not create invoice. Please try again.");
+      showUserFacingErrorToast(
+        "We could not create the invoice. Please try again.",
+      );
 
     }
   };

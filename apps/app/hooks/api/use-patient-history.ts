@@ -83,7 +83,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
           }
         },
         onError: () => {
-          showUserFacingErrorToast("We could not update medical history. Please try again.");
+          showUserFacingErrorToast("We could not update this medical history. Please try again.");
         },
       });
     },

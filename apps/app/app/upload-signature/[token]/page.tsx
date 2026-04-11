@@ -67,7 +67,7 @@ export default function UploadSignaturePage() {
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not upload the signature. Please try again.",
+          fallback: "We could not upload this signature. Please try again.",
           context: "upload",
         }),
       );
@@ -98,7 +98,7 @@ export default function UploadSignaturePage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              <CardTitle>Invalid Upload Link</CardTitle>
+              <CardTitle>Upload Link Expired</CardTitle>
             </div>
           </CardHeader>
           <CardContent>

@@ -92,7 +92,7 @@ export function PortalHistoryTimelineUI({
         <DataState
           status={timelineStatus}
           loadingMessage="Loading your timeline..."
-          errorMessage="We could not load your timeline. Please try again."
+          errorMessage="We could not load your health timeline. Please try again."
           onRetry={() => void refetch()}
           emptyIcon={History}
           emptyTitle="No timeline records found"

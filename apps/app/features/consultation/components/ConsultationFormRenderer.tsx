@@ -110,7 +110,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
       }
       return (
         <div className="flex items-center justify-center rounded-md border border-dashed p-8 text-muted-foreground">
-          Patient data not available for medical history.
+          We could not load this patient&apos;s medical history.
         </div>
       );
     case "examination":

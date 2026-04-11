@@ -47,7 +47,9 @@ export function InventoryAddItemDialogContainer({
           onSuccess();
         },
         onError: () => {
-          showUserFacingErrorToast("We could not add item. Please try again.");
+          showUserFacingErrorToast(
+            "We could not add this item. Please try again.",
+          );
         },
       },
     );

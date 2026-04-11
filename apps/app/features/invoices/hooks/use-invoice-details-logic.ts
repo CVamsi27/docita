@@ -42,14 +42,18 @@ export const useInvoiceDetailsLogic = (
         toast.success("PDF Downloaded successfully");
       }, 1500);
     } catch {
-      showUserFacingErrorToast("We could not download PDF. Please try again.");
+      showUserFacingErrorToast(
+        "We could not download this invoice. Please try again.",
+      );
 
     }
   };
 
   const handleShareWhatsApp = () => {
     if (!invoice?.patient?.phoneNumber) {
-      showUserFacingErrorToast("Patient phone number not available");
+      showUserFacingErrorToast(
+        "Add this patient's phone number before sharing the invoice on WhatsApp.",
+      );
       return;
     }
 

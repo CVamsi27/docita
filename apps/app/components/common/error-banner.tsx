@@ -21,7 +21,10 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
   if (!message && !title) return null;
 
   const safeMessage = message
-    ? getSafeUserMessage(message, "Something went wrong. Please try again.")
+    ? getSafeUserMessage(
+        message,
+        "Please review the information on this screen and try again.",
+      )
     : undefined;
   const safeDetails = details?.map((detail) =>
     getSafeUserMessage(detail, "Please check this item."),

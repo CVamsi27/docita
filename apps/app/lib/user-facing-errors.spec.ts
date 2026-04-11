@@ -20,7 +20,7 @@ describe("user-facing error messages", () => {
     [409, "This information changed. Please refresh and try again."],
     [422, "Please check the highlighted fields and try again."],
     [429, "Too many attempts. Please wait a moment and try again."],
-    [500, "Something went wrong. Please try again."],
+    [500, "We could not complete this right now. Please try again."],
   ])("maps status %s to safe English copy", (status, message) => {
     expect(getUserFacingErrorMessage({ status })).toBe(message);
   });
@@ -42,7 +42,7 @@ describe("user-facing error messages", () => {
           message: "PrismaClientKnownRequestError: database constraint failed",
         },
       }),
-    ).toBe("Something went wrong. Please try again.");
+    ).toBe("We could not complete this right now. Please try again.");
   });
 
   it("polishes rough but non-technical messages", () => {
@@ -56,6 +56,7 @@ describe("user-facing error messages", () => {
     "Zod schema parser error at /app/page.tsx",
     "PrismaClientKnownRequestError: database error",
     "TypeError: Cannot read properties of undefined",
+    "Something went wrong. Please try again.",
     "token expired for provider",
     "Error: boom\n    at Component (/app/page.tsx:10:5)",
   ])("detects technical messages: %s", (message) => {

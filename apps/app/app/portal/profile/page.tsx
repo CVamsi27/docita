@@ -47,18 +47,24 @@ export default function PatientProfilePage() {
 
       toast.success("Your consent preferences have been saved.");
     } catch (_error) {
-      showUserFacingErrorToast("We could not update preferences. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save your preferences. Please try again.",
+      );
     }
   };
 
   const handleDeleteAccount = async () => {
     if (!deletionReason.trim()) {
-      showUserFacingErrorToast("Please provide a reason for deletion");
+      showUserFacingErrorToast(
+        "Tell us why you want to delete your account before continuing.",
+      );
       return;
     }
 
     if (!confirmDeletion) {
-      showUserFacingErrorToast("Please confirm that you want to delete your account");
+      showUserFacingErrorToast(
+        "Please confirm that you want to delete your account before submitting.",
+      );
       return;
     }
 
@@ -72,7 +78,9 @@ export default function PatientProfilePage() {
         "Account deletion requested. Your account will be deleted within 30 days.",
       );
     } catch (_error) {
-      showUserFacingErrorToast("We could not submit deletion request. Please try again.");
+      showUserFacingErrorToast(
+        "We could not submit this deletion request. Please try again.",
+      );
     }
   };
 

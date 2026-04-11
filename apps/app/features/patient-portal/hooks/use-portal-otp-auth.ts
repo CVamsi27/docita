@@ -32,7 +32,7 @@ export function usePortalOtpAuth() {
 
   const requestOtp = async () => {
     if (!phoneNumber.trim()) {
-      setError("Please enter your phone number");
+      setError("Please enter your phone number.");
       return;
     }
 
@@ -53,7 +53,7 @@ export function usePortalOtpAuth() {
       setError(
         getUserFacingErrorMessage(err, {
           fallback:
-            "We could not send the verification code. Please try again.",
+            "We could not send your verification code right now. Please try again.",
           context: "verification",
         }),
       );
@@ -64,7 +64,7 @@ export function usePortalOtpAuth() {
 
   const verifyOtp = async () => {
     if (!otp.trim()) {
-      setError("Please enter the verification code");
+      setError("Please enter your verification code.");
       return;
     }
 
@@ -90,7 +90,8 @@ export function usePortalOtpAuth() {
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not verify the code. Please try again.",
+          fallback:
+            "We could not verify your code right now. Please try again.",
           context: "verification",
         }),
       );

@@ -52,7 +52,9 @@ export function DoseTracker({
       );
       setNotes("");
     } catch {
-      showUserFacingErrorToast("We could not record dose. Please try again.");
+      showUserFacingErrorToast(
+        "We could not record this dose. Please try again.",
+      );
     }
   };
 

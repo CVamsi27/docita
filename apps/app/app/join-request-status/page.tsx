@@ -11,11 +11,11 @@ import { Badge } from '@workspace/ui/components/badge';
 import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
 import { formatDistanceToNow, format } from 'date-fns';
-import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 import { SupportContact } from "@/components/common/support-contact";
 import { useAuth } from '@/lib/auth-context';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
 
 interface JoinRequest {
   id: string;
@@ -39,7 +39,7 @@ export default function JoinRequestStatusPage() {
   const { data: request, isLoading } = useQuery<JoinRequest | null>({
     queryKey: ['my-join-request'],
     queryFn: () => typedApi.joinRequests.getMine(),
-    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchInterval: 10000,
   });
 
   const withdrawMutation = useMutation({
@@ -51,7 +51,9 @@ export default function JoinRequestStatusPage() {
       router.replace('/choose-path');
     },
     onError: () => {
-      showUserFacingErrorToast('We could not withdraw request. Please try again.');
+      showUserFacingErrorToast(
+        "We could not withdraw this request. Please try again.",
+      );
     },
   });
 
@@ -129,37 +131,40 @@ export default function JoinRequestStatusPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-muted/30 p-4 md:p-8">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-      <div className="container max-w-3xl mx-auto">
+    <PreDashboardShell
+      currentStep="join-request-status"
+      contentMaxWidth="max-w-2xl"
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => router.push('/choose-path')}
-          className="mb-6"
+          className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-1.5" />
           Back
         </Button>
+        <h1 className="text-2xl sm:text-3xl font-bold">Join Request Status</h1>
+        <p className="text-muted-foreground text-sm">
+          Your request is being reviewed by the clinic administrator
+        </p>
+      </div>
 
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Join Request Status</h1>
-          <p className="text-muted-foreground">
-            Your request is being reviewed by the clinic administrator
-          </p>
-        </div>
-
-        <Card className="p-4 sm:p-8">
+      <div
+        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        style={{ animationDelay: "100ms" }}
+      >
+        <Card className="p-5 sm:p-6 bg-card/80 backdrop-blur-sm shadow-xl">
           <div className="flex items-start gap-3 sm:gap-4 mb-6">
             <div className={`p-3 rounded-full shrink-0 ${getStatusColor()} border`}>
               {getStatusIcon()}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl sm:text-2xl font-semibold mb-2">
+              <h2 className="text-lg sm:text-xl font-semibold mb-1">
                 Request Under Review
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 You requested to join{' '}
                 <span className="font-semibold text-foreground">
                   {request.clinic.name}
@@ -167,30 +172,30 @@ export default function JoinRequestStatusPage() {
                 as a <span className="font-semibold text-foreground">{request.requestedRole}</span>
               </p>
             </div>
-            <Badge variant="secondary" className="text-sm px-3 py-1">
+            <Badge variant="secondary" className="text-xs px-2.5 py-1 shrink-0">
               {request.status}
             </Badge>
           </div>
 
-          <div className="border-t pt-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border-t pt-5 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Submitted</p>
-                <p className="font-medium">
+                <p className="text-xs text-muted-foreground mb-1">Submitted</p>
+                <p className="text-sm font-medium">
                   {formatDistanceToNow(new Date(request.requestedAt), { addSuffix: true })}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {format(new Date(request.requestedAt), 'PPpp')}
                 </p>
               </div>
 
               {request.expiresAt && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Expires</p>
-                  <p className="font-medium">
+                  <p className="text-xs text-muted-foreground mb-1">Expires</p>
+                  <p className="text-sm font-medium">
                     {formatDistanceToNow(new Date(request.expiresAt), { addSuffix: true })}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {format(new Date(request.expiresAt), 'PPpp')}
                   </p>
                 </div>
@@ -199,30 +204,27 @@ export default function JoinRequestStatusPage() {
 
             {request.message && (
               <div>
-                <p className="text-sm text-muted-foreground mb-2">Your Message</p>
-                <Card className="p-4 bg-muted/50">
+                <p className="text-xs text-muted-foreground mb-2">Your Message</p>
+                <Card className="p-3 bg-muted/50">
                   <p className="text-sm">{request.message}</p>
                 </Card>
               </div>
             )}
           </div>
 
-          <Alert className="mt-6">
+          <Alert className="mt-5">
             <Building2 className="h-4 w-4" />
             <AlertTitle>What happens next?</AlertTitle>
-            <AlertDescription className="space-y-2 mt-2">
-              <p>
-                The clinic administrator will review your request and respond within 7 days.
-              </p>
-              <p>
-                You will receive notifications via WhatsApp and email when your request is reviewed.
-              </p>
+            <AlertDescription className="space-y-1.5 mt-1.5 text-sm">
+              <p>The clinic administrator will review your request and respond within 7 days.</p>
+              <p>You will receive notifications via WhatsApp and email when your request is reviewed.</p>
             </AlertDescription>
           </Alert>
 
-          <div className="flex justify-end mt-6">
+          <div className="flex justify-end mt-5">
             <Button
               variant="destructive"
+              size="sm"
               onClick={() => withdrawMutation.mutate(request.id)}
               disabled={withdrawMutation.isPending}
             >
@@ -231,10 +233,8 @@ export default function JoinRequestStatusPage() {
           </div>
         </Card>
 
-        <div className="mt-6">
-          <SupportContact className="text-sm" />
-        </div>
+        <SupportContact className="text-sm" />
       </div>
-    </div>
+    </PreDashboardShell>
   );
 }

@@ -64,9 +64,9 @@ import { toAbsoluteAppUrl } from "@/lib/url";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const inviteSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().min(1, "Enter the team member's name."),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Use at least 8 characters."),
   role: z.enum(["DOCTOR", "RECEPTIONIST"]),
   phoneNumber: z.string().optional(),
   specialization: z.string().optional(),
@@ -235,7 +235,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         onError: (err) => {
           showUserFacingErrorToast(
             err,
-            "We could not create the upload link. Please try again.",
+            "We could not create this upload link right now. Please try again.",
             "save",
           );
         },
@@ -253,7 +253,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         onError: (err) => {
           showUserFacingErrorToast(
             err,
-            "We could not start doctor reverification. Please try again.",
+            "We could not restart this doctor's verification. Please try again.",
             "save",
           );
         },
@@ -266,13 +266,17 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       await navigator.clipboard.writeText(url);
       toast.success("Upload link copied");
     } catch {
-      showUserFacingErrorToast("We could not copy the upload link. Please try again.");
+      showUserFacingErrorToast(
+        "We could not copy this upload link. Please try again.",
+      );
     }
   };
 
   const handleCopyClinicCode = async () => {
     if (!clinicReferralCode) {
-      showUserFacingErrorToast("Clinic code is not available");
+      showUserFacingErrorToast(
+        "The clinic code is not ready yet. Please refresh and try again.",
+      );
       return;
     }
 
@@ -280,7 +284,9 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       await navigator.clipboard.writeText(clinicReferralCode);
       toast.success("Clinic code copied");
     } catch {
-      showUserFacingErrorToast("We could not copy the clinic code. Please try again.");
+      showUserFacingErrorToast(
+        "We could not copy this clinic code. Please try again.",
+      );
     }
   };
 
@@ -308,7 +314,9 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   const onInviteSubmit = (data: InviteFormValues) => {
     if (!clinicId) {
-      showUserFacingErrorToast("Missing clinic context. Refresh and try again.");
+      showUserFacingErrorToast(
+        "We could not identify this clinic. Please refresh and try again.",
+      );
       return;
     }
 
@@ -330,12 +338,12 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             form.reset();
           },
           onError: (err) => {
-            showUserFacingErrorToast(
-              err,
-              "We could not invite the doctor. Please try again.",
-              "save",
-            );
-          },
+          showUserFacingErrorToast(
+            err,
+            "We could not send this doctor invitation. Please try again.",
+            "save",
+          );
+        },
         },
       );
       return;
@@ -357,7 +365,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         onError: (err) => {
           showUserFacingErrorToast(
             err,
-            "We could not invite the receptionist. Please try again.",
+            "We could not send this receptionist invitation. Please try again.",
             "save",
           );
         },
@@ -395,7 +403,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     return (
       <Card >
         <CardContent className="py-8 text-center text-muted-foreground">
-          We could not load team members. Please try again.
+          We could not load your team members. Please try again.
         </CardContent>
       </Card>
     );

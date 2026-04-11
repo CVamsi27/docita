@@ -47,7 +47,7 @@ export const useTemplatesSettingsLogic = () => {
         onError: (err) =>
           showUserFacingErrorToast(
             err,
-            "We could not duplicate the template. Please try again.",
+            "We could not copy this template. Please try again.",
             "save",
           ),
       },
@@ -62,7 +62,7 @@ export const useTemplatesSettingsLogic = () => {
       onError: (err) =>
         showUserFacingErrorToast(
           err,
-          "We could not delete the template. Please try again.",
+          "We could not remove this template. Please try again.",
           "delete",
         ),
       },
@@ -84,7 +84,7 @@ export const useTemplatesSettingsLogic = () => {
           onError: (err) =>
             showUserFacingErrorToast(
               err,
-              "We could not update the template. Please try again.",
+              "We could not save this template. Please try again.",
               "save",
             ),
         },
@@ -98,7 +98,7 @@ export const useTemplatesSettingsLogic = () => {
         onError: (err) =>
           showUserFacingErrorToast(
             err,
-            "We could not create the template. Please try again.",
+            "We could not save this template. Please try again.",
             "save",
           ),
       });

@@ -52,7 +52,9 @@ export function WhatsAppSettingsDialogContainer({
         refetch();
       },
       onError: () => {
-        showUserFacingErrorToast("We could not update settings. Please try again.");
+        showUserFacingErrorToast(
+          "We could not save these WhatsApp settings. Please try again.",
+        );
       },
     });
   };

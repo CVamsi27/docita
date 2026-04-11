@@ -49,7 +49,7 @@ export default function CodingQueuePage() {
   } = useCodingQueue(debouncedSearch);
 
   if (error) {
-    showUserFacingErrorToast("We could not load coding queue. Please try again.");
+    showUserFacingErrorToast("We could not load this coding queue. Please try again.");
   }
 
   return (

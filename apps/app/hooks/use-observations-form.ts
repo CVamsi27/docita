@@ -53,8 +53,9 @@ export function useObservationsForm({
       }
       toast.success("Notes saved successfully");
     } catch {
-
-      showUserFacingErrorToast("We could not save notes. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save these notes. Please try again.",
+      );
     }
   };
 

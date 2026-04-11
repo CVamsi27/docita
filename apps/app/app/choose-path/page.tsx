@@ -2,18 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Check, Loader2, LogOut, Users } from "lucide-react";
+import { Building2, Check, Loader2, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { typedApi } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
-import { AuthBrandingPanel } from "@/features/auth/components/AuthBrandingPanel";
 import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { SupportContact } from "@/components/common/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
 const CREATE_BULLETS = [
   "Choose subscription plan",
@@ -31,7 +29,7 @@ const JOIN_BULLETS = [
 
 export default function ChoosePathPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [loadingPath, setLoadingPath] = useState<
     "CREATE_CLINIC" | "JOIN_CLINIC" | null
   >(null);
@@ -57,7 +55,7 @@ export default function ChoosePathPage() {
       router.push(path === "CREATE_CLINIC" ? "/onboarding" : "/join-clinic");
     } catch (error) {
       showUserFacingErrorToast(
-        "We could not save your choice. Please try again.",
+        "We could not save this selection. Please try again.",
       );
       logger.error("Error choosing path", { error });
       setLoadingPath(null);
@@ -84,82 +82,54 @@ export default function ChoosePathPage() {
   const firstName = user?.name?.split(" ")[0];
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AuthBrandingPanel />
+    <PreDashboardShell
+      currentStep="choose-path"
+      contentMaxWidth="max-w-xl"
+      showSignOut
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          How would you like to get started?
+        </p>
+      </div>
 
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 py-10 relative">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)",
-          }}
-          aria-hidden="true"
+      <div
+        className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        style={{ animationDelay: "100ms" }}
+      >
+        <PathCard
+          icon={<Building2 className="h-7 w-7 text-primary" />}
+          iconBg="bg-primary/10"
+          title="Create New Clinic"
+          description="Set up your own clinic and choose a plan."
+          bullets={CREATE_BULLETS}
+          buttonLabel="Get Started"
+          buttonVariant="default"
+          loading={loadingPath === "CREATE_CLINIC"}
+          disabled={loadingPath !== null}
+          onClick={() => handleChoosePath("CREATE_CLINIC")}
+          highlight
         />
 
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={logout}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4 mr-1.5" />
-            Sign out
-          </Button>
-          <ThemeToggle />
-        </div>
-
-        <div className="w-full max-w-xl space-y-8 relative z-10">
-          <div className="lg:hidden flex justify-center">
-            <DocitaLogo />
-          </div>
-
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              How would you like to get started?
-            </p>
-          </div>
-
-          <div
-            className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
-            style={{ animationDelay: "100ms" }}
-          >
-            <PathCard
-              icon={<Building2 className="h-7 w-7 text-primary" />}
-              iconBg="bg-primary/10"
-              title="Create New Clinic"
-              description="Set up your own clinic and choose a plan."
-              bullets={CREATE_BULLETS}
-              buttonLabel="Get Started"
-              buttonVariant="default"
-              loading={loadingPath === "CREATE_CLINIC"}
-              disabled={loadingPath !== null}
-              onClick={() => handleChoosePath("CREATE_CLINIC")}
-              highlight
-            />
-
-            <PathCard
-              icon={<Users className="h-7 w-7 text-info" />}
-              iconBg="bg-info/10"
-              title="Join Existing Clinic"
-              description="Request access to a clinic in your organization."
-              bullets={JOIN_BULLETS}
-              buttonLabel="Search Clinics"
-              buttonVariant="outline"
-              loading={loadingPath === "JOIN_CLINIC"}
-              disabled={loadingPath !== null}
-              onClick={() => handleChoosePath("JOIN_CLINIC")}
-            />
-          </div>
-
-          <SupportContact />
-        </div>
+        <PathCard
+          icon={<Users className="h-7 w-7 text-info" />}
+          iconBg="bg-info/10"
+          title="Join Existing Clinic"
+          description="Request access to a clinic in your organization."
+          bullets={JOIN_BULLETS}
+          buttonLabel="Search Clinics"
+          buttonVariant="outline"
+          loading={loadingPath === "JOIN_CLINIC"}
+          disabled={loadingPath !== null}
+          onClick={() => handleChoosePath("JOIN_CLINIC")}
+        />
       </div>
-    </div>
+
+      <SupportContact />
+    </PreDashboardShell>
   );
 }
 

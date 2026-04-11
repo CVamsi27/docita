@@ -98,10 +98,14 @@ export function usePrescriptionForm({
   const validateForm = () => {
     const newValidations: MedicationValidation[] = medications.map((med) => {
       const v: MedicationValidation = {};
-      if (!med.name.trim()) v.name = "Required";
-      if (!med.dosage.trim()) v.dosage = "Required";
-      if (!med.frequency.trim()) v.frequency = "Required";
-      if (!med.duration.trim()) v.duration = "Required";
+      if (!med.name.trim()) v.name = "Enter the medicine name.";
+      if (!med.dosage.trim()) v.dosage = "Enter the dosage.";
+      if (!med.frequency.trim()) {
+        v.frequency = "Enter how often it should be taken.";
+      }
+      if (!med.duration.trim()) {
+        v.duration = "Enter how long it should be taken.";
+      }
       return v;
     });
 
@@ -113,7 +117,9 @@ export function usePrescriptionForm({
     e.preventDefault();
 
     if (!validateForm()) {
-      showUserFacingErrorToast("Please fill in all required medication fields");
+      showUserFacingErrorToast(
+        "Complete the medicine name, dosage, frequency, and duration for each entry.",
+      );
       return;
     }
 
@@ -141,8 +147,9 @@ export function usePrescriptionForm({
       resetForm();
       if (onSuccess) onSuccess();
     } catch {
-
-      showUserFacingErrorToast("We could not create prescription. Please try again.");
+      showUserFacingErrorToast(
+        "We could not create this prescription. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

@@ -58,7 +58,9 @@ export function VitalsModal({
       });
 
       if (Object.keys(payload).length <= 1) {
-        showUserFacingErrorToast("Please enter at least one vital sign");
+        showUserFacingErrorToast(
+          "Enter at least one vital sign before saving.",
+        );
         return;
       }
 
@@ -78,7 +80,9 @@ export function VitalsModal({
         respiratoryRate: "",
       });
     } catch {
-      showUserFacingErrorToast("We could not record vitals. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save these vital signs. Please try again.",
+      );
 
     }
   };

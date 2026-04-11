@@ -91,7 +91,7 @@ export default function PatientDetailPage() {
         <DataState
           status="error"
           className="min-h-[50vh]"
-          errorMessage="We could not load patient details. Please try again."
+          errorMessage="We could not open this patient record. Please try again."
           onRetry={handleRefetch}
         />
       </AppPageScaffold>

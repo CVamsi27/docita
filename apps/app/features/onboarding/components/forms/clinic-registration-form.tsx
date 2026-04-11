@@ -247,7 +247,7 @@ export function ClinicRegistrationForm({
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {
-          fallback: "We could not continue with this plan. Please try again.",
+          fallback: "We could not continue with this plan right now. Please try again.",
           context: "save",
         }),
       );
@@ -270,7 +270,7 @@ export function ClinicRegistrationForm({
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {
-          fallback: "We could not continue onboarding. Please try again.",
+          fallback: "We could not continue setup. Please try again.",
           context: "save",
         }),
       );
@@ -284,7 +284,7 @@ export function ClinicRegistrationForm({
     } catch (error) {
       setStepError(
         getUserFacingErrorMessage(error, {
-          fallback: "We could not continue onboarding. Please try again.",
+          fallback: "We could not continue setup. Please try again.",
           context: "save",
         }),
       );
@@ -300,7 +300,7 @@ export function ClinicRegistrationForm({
       await submitRegistration(data, successCallback);
     } catch {
       setStepError(
-        "We could not complete registration. Please check your details and try again.",
+        "We could not complete setup. Please check your details and try again.",
       );
     }
   };

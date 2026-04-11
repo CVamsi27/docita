@@ -51,11 +51,10 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertCircle className="w-8 h-8 text-destructive" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight mb-2">
-            Something went wrong
+            We could not load this section
           </h2>
           <p className="text-muted-foreground max-w-md mb-4">
-            An unexpected error occurred while rendering this section. Our team
-            has been notified and will investigate.
+            Please try again or go back to the home page.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3">

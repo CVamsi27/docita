@@ -81,8 +81,9 @@ export function EditInvoiceDialogContainer({
         onInvoiceUpdated();
         setTimeout(() => onOpenChange(false), 100);
       } catch {
-
-        showUserFacingErrorToast("We could not update invoice. Please try again.");
+        showUserFacingErrorToast(
+          "We could not save this invoice. Please try again.",
+        );
       } finally {
         setLoading(false);
       }

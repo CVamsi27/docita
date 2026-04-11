@@ -78,9 +78,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.firstName.trim()) e.firstName = "First name is required";
-    if (!form.lastName.trim()) e.lastName = "Last name is required";
-    if (!form.gender) e.gender = "Gender is required";
+    if (!form.firstName.trim()) e.firstName = "Enter the patient's first name.";
+    if (!form.lastName.trim()) e.lastName = "Enter the patient's last name.";
+    if (!form.gender) e.gender = "Choose a gender.";
     return e;
   };
 
@@ -106,7 +106,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
       onPatientAdded?.();
       onOpenChange?.(false);
     } catch {
-      showUserFacingErrorToast("We could not add patient. Please try again.");
+      showUserFacingErrorToast(
+        "We could not add this patient. Please try again.",
+      );
     }
   };
 
@@ -260,7 +262,9 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       onPatientUpdated?.();
       onOpenChange?.(false);
     } catch {
-      showUserFacingErrorToast("We could not update patient. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save this patient. Please try again.",
+      );
     }
   };
 

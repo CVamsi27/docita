@@ -71,7 +71,7 @@ const client = getAPIClient({
     const fallback =
       error.status && error.status >= 400 && error.status < 500
         ? "Please check the information and try again."
-        : "Something went wrong. Please try again.";
+        : "Please review the information on this screen and try again.";
 
     if (!shouldSuppressDevToast(error.message || "")) {
       showUserFacingErrorToast(
@@ -169,7 +169,11 @@ export const typedApi = {
 };
 
 export const handleApiError = (error: unknown, fallbackMessage?: string) => {
-  return fallbackMessage || "Something went wrong. Please try again.";
+  void error;
+  return (
+    fallbackMessage ||
+    "Please review the information on this screen and try again."
+  );
 };
 
 export { API_ROUTES };

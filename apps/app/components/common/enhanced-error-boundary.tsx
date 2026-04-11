@@ -143,7 +143,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
   private getDefaultError(): UserFriendlyError {
     return {
-      title: "Something Went Wrong",
+      title: "We could not load this page",
       message: `We couldn't load this page. Please try again. If it continues, ${getSupportContactText()}.`,
       actions: [
         {
@@ -198,19 +198,6 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                   </Button>
                 ))}
               </div>
-
-              {process.env.NODE_ENV === "development" && this.state.error && (
-                <div className="mt-8 text-left p-4 bg-muted rounded-md overflow-hidden">
-                  <p className="text-xs font-mono text-destructive font-bold mb-2">
-                    Developer Info (Visible in Dev Only):
-                  </p>
-                  <pre className="text-[10px] font-mono whitespace-pre-wrap max-h-40 overflow-y-auto opacity-70">
-                    {this.state.error.toString()}
-                    {"\n\nComponent Stack:\n"}
-                    {this.state.errorInfo?.componentStack}
-                  </pre>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

@@ -87,7 +87,7 @@ export function DashboardHeaderUI({
             title={
               clinicCode
                 ? "Quick share clinic join code"
-                : "Clinic code not available"
+                : "Clinic code is not ready yet"
             }
           >
             {shared ? (

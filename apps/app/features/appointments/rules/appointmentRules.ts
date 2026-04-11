@@ -87,22 +87,22 @@ export const validateAppointmentData = (
   const errors: string[] = [];
 
   if (!data.patientId) {
-    errors.push("Patient is required");
+    errors.push("Select a patient.");
   }
 
   if (!data.doctorId) {
-    errors.push("Doctor is required");
+    errors.push("Select a doctor.");
   }
 
   if (!data.startTime) {
-    errors.push("Start time is required");
+    errors.push("Choose a start time.");
   }
 
   if (data.startTime && data.endTime) {
     const start = new Date(data.startTime);
     const end = new Date(data.endTime);
     if (isAfter(start, end)) {
-      errors.push("End time must be after start time");
+      errors.push("Choose an end time after the start time.");
     }
   }
 

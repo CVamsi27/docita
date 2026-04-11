@@ -45,7 +45,9 @@ export function ConsentBanner() {
 
       setDismissed(true);
     } catch (_error) {
-      showUserFacingErrorToast("We could not save consent preferences. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save your consent preferences. Please try again.",
+      );
     }
   };
 

@@ -78,7 +78,7 @@ export function useOnboarding(): UseOnboardingReturn {
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not complete registration. Please try again.",
+          fallback: "We could not complete setup. Please try again.",
           context: "form",
         }),
       );

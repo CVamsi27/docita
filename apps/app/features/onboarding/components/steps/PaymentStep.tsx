@@ -172,12 +172,12 @@ export function PaymentStep({
       }
       const rzp = new RazorpayWidget(options);
       rzp.on?.("payment.failed", () => {
-        showUserFacingErrorToast("We could not complete payment. Please try again.");
+        showUserFacingErrorToast("We could not complete this payment. Please try again.");
         setIsProcessing(false);
       });
       rzp.open();
     } catch {
-      showUserFacingErrorToast("We could not start payment. Please try again.");
+      showUserFacingErrorToast("We could not start payment right now. Please try again.");
       setIsProcessing(false);
     }
   };

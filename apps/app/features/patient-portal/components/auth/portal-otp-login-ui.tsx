@@ -101,7 +101,7 @@ export function PortalOtpLoginUI() {
           ) : (
             <form onSubmit={handleOtpSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="otp">One-Time Password</Label>
+                <Label htmlFor="otp">Verification Code</Label>
                 <Input
                   id="otp"
                   type="text"

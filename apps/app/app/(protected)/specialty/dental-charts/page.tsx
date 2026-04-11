@@ -76,7 +76,7 @@ export default function DentalChartsPage() {
         onError: (err) => {
           showUserFacingErrorToast(
             err,
-            "We could not save the dental chart. Please try again.",
+            "We could not save this dental chart. Please try again.",
             "save",
           );
         },

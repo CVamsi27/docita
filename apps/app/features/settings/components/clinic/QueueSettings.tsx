@@ -75,7 +75,7 @@ export const QueueSettings = () => {
         onError: (error) => {
           showUserFacingErrorToast(
             error,
-            "We could not save queue settings. Please try again.",
+            "We could not save your queue settings. Please try again.",
             "save",
           );
         },
@@ -97,7 +97,7 @@ export const QueueSettings = () => {
       onError: (error) => {
         showUserFacingErrorToast(
           error,
-          "We could not reset the queue. Please try again.",
+          "We could not reset today's queue. Please try again.",
           "save",
         );
       },

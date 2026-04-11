@@ -139,7 +139,7 @@ describe("fetchWithSession", () => {
     );
 
     await expect(fetchJsonWithSession("/test")).rejects.toThrow(
-      "Something went wrong. Please try again.",
+      "We could not load the requested details. Please try again.",
     );
   });
 });

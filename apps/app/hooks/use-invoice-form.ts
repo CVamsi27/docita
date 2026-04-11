@@ -173,8 +173,9 @@ export function useInvoiceForm({
       }
       toast.success("Invoice created successfully");
     } catch {
-
-      showUserFacingErrorToast("We could not create invoice. Please try again.");
+      showUserFacingErrorToast(
+        "We could not create this invoice. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

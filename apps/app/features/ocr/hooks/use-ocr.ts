@@ -129,7 +129,9 @@ export const useOCR = () => {
       setScanned(true);
       toast.success("Document scanned successfully");
     } catch {
-      showUserFacingErrorToast("We could not scan document. Please try again.");
+      showUserFacingErrorToast(
+        "We could not scan this document. Please try again.",
+      );
     }
   };
 
@@ -204,7 +206,7 @@ export const useOCR = () => {
 
       showUserFacingErrorToast(
         error,
-        "We could not save the record. Please try again.",
+        "We could not save this record. Please try again.",
         "save",
       );
     }

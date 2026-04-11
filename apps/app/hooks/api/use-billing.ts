@@ -140,7 +140,7 @@ export const useInfiniteInvoices = (options?: {
       );
 
       if (!response.ok) {
-        throw new Error("We could not load invoices. Please try again.");
+        throw new Error("We could not load your invoices. Please try again.");
       }
       return response.json() as Promise<{
         items: Invoice[];

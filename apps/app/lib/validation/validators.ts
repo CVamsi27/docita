@@ -24,26 +24,25 @@ export function hasMaxLength(value: string, maxLength: number): boolean {
 
 export const validators = {
   email: (email: string) => {
-    if (!isNotEmpty(email)) return "Email is required";
-    if (!isValidEmail(email)) return "Invalid email address";
+    if (!isNotEmpty(email)) return "Enter an email address.";
+    if (!isValidEmail(email)) return "Please enter a valid email address";
     return null;
   },
 
   phone: (phone: string) => {
-    if (!isNotEmpty(phone)) return "Phone number is required";
-    if (!isValidPhoneNumber(phone)) return "Invalid phone number";
+    if (!isNotEmpty(phone)) return "Enter a phone number.";
+    if (!isValidPhoneNumber(phone)) return "Enter a valid phone number.";
     return null;
   },
 
   password: (password: string) => {
-    if (!isNotEmpty(password)) return "Password is required";
-    if (!hasMinLength(password, 8))
-      return "Password must be at least 8 characters";
+    if (!isNotEmpty(password)) return "Enter a password.";
+    if (!hasMinLength(password, 8)) return "Use at least 8 characters.";
     return null;
   },
 
   required: (value: string, fieldName: string) => {
-    if (!isNotEmpty(value)) return `${fieldName} is required`;
+    if (!isNotEmpty(value)) return `Enter ${fieldName.toLowerCase()}.`;
     return null;
   },
 };

@@ -64,7 +64,7 @@ export function DoctorProfileSettings() {
               <PenLine className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">No signature uploaded yet.</p>
               <p className="text-xs text-muted-foreground mt-1">
-                A signature is required to generate prescriptions.
+                Add your signature to generate prescriptions.
               </p>
             </div>
           )}

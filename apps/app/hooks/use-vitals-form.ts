@@ -140,8 +140,9 @@ export function useVitalsForm({
       }
       toast.success("Vitals saved successfully");
     } catch {
-
-      showUserFacingErrorToast("We could not save vitals. Please try again.");
+      showUserFacingErrorToast(
+        "We could not save these vital signs. Please try again.",
+      );
     }
   };
 

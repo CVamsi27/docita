@@ -133,7 +133,7 @@ export function TierChangeDialog({
     } catch (err) {
       setError(
         getUserFacingErrorMessage(err, {
-          fallback: "We could not change the plan. Please try again.",
+          fallback: "We could not change your plan right now. Please try again.",
           context: "payment",
         }),
       );

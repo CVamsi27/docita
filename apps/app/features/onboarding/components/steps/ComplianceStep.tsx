@@ -54,6 +54,18 @@ interface QrSessionStatusResponse {
   fileUrl?: string | null;
 }
 
+function isStaleOnboardingSessionError(error: unknown): boolean {
+  if (!(error instanceof APIRequestError)) {
+    return false;
+  }
+
+  if (error.status !== 400 && error.status !== 404) {
+    return false;
+  }
+
+  return /onboarding session not found|expired/i.test(error.message);
+}
+
 // Reusable legal agreement card with scroll-to-enable
 function LegalCard({
   index,
@@ -303,26 +315,16 @@ export function ComplianceStep({
     }
 
     if (!activeOnboardingId) {
-      throw new Error("We could not create the signature link. Please try again.");
+      throw new Error("We could not create the signature link right now. Please try again.");
     }
 
     let sessionData: { id: string } | null = null;
-    let errMessage = "We could not create the signature link. Please try again.";
+    let errMessage = "We could not create the signature link right now. Please try again.";
 
     try {
       sessionData = await createSession(activeOnboardingId);
     } catch (error) {
-      const rawErrorMessage = error instanceof Error ? error.message : "";
-      const normalizedError = rawErrorMessage.toLowerCase();
-      const isStaleOnboardingSession = (
-        (error instanceof APIRequestError &&
-          (error.status === 400 || error.status === 404))
-      ) && (
-        normalizedError.includes("onboarding session not found") ||
-        normalizedError.includes("expired")
-      );
-
-      if (isStaleOnboardingSession && ensureOnboardingId) {
+      if (isStaleOnboardingSessionError(error) && ensureOnboardingId) {
         const refreshedOnboardingId = await ensureOnboardingId({
           forceRefresh: true,
         });
@@ -332,7 +334,7 @@ export function ComplianceStep({
         } catch (retryError) {
           errMessage =
             retryError instanceof Error
-              ? "We could not create the signature link. Please try again."
+              ? "We could not create the signature link right now. Please try again."
               : errMessage;
         }
       }
@@ -382,10 +384,10 @@ export function ComplianceStep({
       if (isUploaded) {
         toast.success("Signature synced");
       } else {
-        toast.message("Still waiting for signature upload");
+        toast.message("We have not received the signature yet.");
       }
     } catch {
-      showUserFacingErrorToast("We could not refresh signature status. Please try again.");
+      showUserFacingErrorToast("We could not refresh the signature status. Please try again.");
     }
   }, [refreshQrStatus]);
 
@@ -393,12 +395,12 @@ export function ComplianceStep({
     try {
       const copied = await copyQrLink();
       if (copied) {
-        toast.success("Link clicked");
+        toast.success("Link copied");
       } else {
-        showUserFacingErrorToast("We could not copy the link. Please try again.");
+        showUserFacingErrorToast("We could not copy this link. Please try again.");
       }
     } catch {
-      showUserFacingErrorToast("We could not copy the link. Please try again.");
+      showUserFacingErrorToast("We could not copy this link. Please try again.");
     }
   }, [copyQrLink]);
 

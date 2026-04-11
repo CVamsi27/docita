@@ -3,9 +3,9 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
 const ClinicOnboardingWizard = dynamic(
   () =>
@@ -40,11 +40,21 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="relative min-h-screen bg-background py-8 md:py-10">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
+    <PreDashboardShell
+      currentStep="onboarding"
+      contentMaxWidth="max-w-3xl"
+      showSignOut
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-bold">Set up your clinic</h1>
+        <p className="text-muted-foreground text-sm">
+          Complete your clinic registration to get started.
+        </p>
       </div>
-      <ClinicOnboardingWizard />
-    </main>
+
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: "100ms" }}>
+        <ClinicOnboardingWizard />
+      </div>
+    </PreDashboardShell>
   );
 }

@@ -30,9 +30,8 @@ export async function parseApiError(response: Response): Promise<{
       fieldErrors,
     };
   } catch {
-
     return {
-      message: "An error occurred. Please try again.",
+      message: "Please check the information and try again.",
       fieldErrors: {},
     };
   }
@@ -48,7 +47,7 @@ export function formatFieldError(error: unknown): string {
       typeof errorObj?.message === "string" ? errorObj.message : undefined;
     return getSafeUserMessage(message, "Please check this field.");
   }
-  return "Invalid input";
+  return "Please enter a valid value.";
 }
 
 export function hasFieldError(

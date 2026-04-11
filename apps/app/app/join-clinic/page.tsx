@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Building2, Mail, Phone, MapPin, ArrowLeft, LogOut } from 'lucide-react';
+import { Search, Building2, Mail, Phone, MapPin, ArrowLeft } from 'lucide-react';
 import { Input } from '@workspace/ui/components/input';
 import { Button } from '@workspace/ui/components/button';
 import { Card } from '@workspace/ui/components/card';
@@ -13,10 +13,9 @@ import { Badge } from '@workspace/ui/components/badge';
 import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
 import { logger } from '@/lib/logger';
-import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
-import { useAuth } from '@/lib/auth-context';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
 
 interface Clinic {
   id: string;
@@ -30,7 +29,6 @@ interface Clinic {
 
 export default function JoinClinicPage() {
   const router = useRouter();
-  const { logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -42,7 +40,7 @@ export default function JoinClinicPage() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      showUserFacingErrorToast('Please enter a search query');
+      showUserFacingErrorToast('Enter a clinic name before searching.');
       return;
     }
 
@@ -55,7 +53,7 @@ export default function JoinClinicPage() {
         toast.info('No clinics found matching your search');
       }
     } catch (error) {
-      showUserFacingErrorToast('We could not search clinics. Please try again.');
+      showUserFacingErrorToast('We could not search for clinics right now. Please try again.');
       logger.error('Search error', { error });
     } finally {
       setIsSearching(false);
@@ -78,7 +76,9 @@ export default function JoinClinicPage() {
       setIsRedirecting(true);
       router.replace('/join-request-status');
     } catch (error) {
-      showUserFacingErrorToast('We could not submit join request. Please try again.');
+      showUserFacingErrorToast(
+        "We could not submit this join request. Please try again.",
+      );
       logger.error('Submit error', { error });
     } finally {
       setIsSubmitting(false);
@@ -101,37 +101,32 @@ export default function JoinClinicPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-muted/30 p-4 md:p-8">
-      <div className="absolute top-4 right-4 flex items-center gap-2">
+    <PreDashboardShell
+      currentStep="join-clinic"
+      contentMaxWidth="max-w-2xl"
+      showSignOut
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <Button
           variant="ghost"
           size="sm"
-          onClick={logout}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <LogOut className="h-4 w-4 mr-1.5" />
-          Sign out
-        </Button>
-        <ThemeToggle />
-      </div>
-      <div className="container max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
           onClick={() => router.push('/choose-path')}
-          className="mb-6"
+          className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-1.5" />
           Back to Choose Path
         </Button>
+        <h1 className="text-2xl sm:text-3xl font-bold">Join a Clinic</h1>
+        <p className="text-muted-foreground text-sm">
+          Search for your clinic by name, email, or referral code
+        </p>
+      </div>
 
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Join a Clinic</h1>
-          <p className="text-muted-foreground">
-            Search for your clinic by name, email, or referral code
-          </p>
-        </div>
-
-        <div className="flex gap-2 mb-6">
+      <div
+        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        style={{ animationDelay: "100ms" }}
+      >
+        <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -139,52 +134,52 @@ export default function JoinClinicPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="pl-10"
+              className="pl-10 h-11"
             />
           </div>
-          <Button onClick={handleSearch} disabled={isSearching}>
+          <Button onClick={handleSearch} disabled={isSearching} className="h-11">
             {isSearching ? 'Searching...' : 'Search'}
           </Button>
         </div>
 
         {clinics.length === 0 && searchQuery && !isSearching && (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">
+          <Card className="p-8 text-center bg-card/80 backdrop-blur-sm">
+            <p className="text-muted-foreground text-sm">
               No clinics found. Try searching with a different term.
             </p>
           </Card>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {clinics.map((clinic) => (
-            <Card key={clinic.id} className="p-6">
-              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+            <Card key={clinic.id} className="p-5 bg-card/80 backdrop-blur-sm shadow-md">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-primary/10 rounded">
-                      <Building2 className="h-5 w-5 text-primary" />
+                    <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                      <Building2 className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{clinic.name}</h3>
+                      <h3 className="font-semibold">{clinic.name}</h3>
                       {clinic.existingRequestStatus && (
-                        <Badge variant="secondary" className="mt-1">
+                        <Badge variant="secondary" className="mt-1 text-xs">
                           Request {clinic.existingRequestStatus}
                         </Badge>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-2 text-sm text-muted-foreground ml-11">
+                  <div className="space-y-1.5 text-sm text-muted-foreground ml-11">
                     <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
+                      <Mail className="h-3.5 w-3.5" />
                       <span>{clinic.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
+                      <Phone className="h-3.5 w-3.5" />
                       <span>{clinic.phone}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
+                      <MapPin className="h-3.5 w-3.5" />
                       <span>{clinic.address}</span>
                     </div>
                   </div>
@@ -193,7 +188,8 @@ export default function JoinClinicPage() {
                 <Button
                   onClick={() => setSelectedClinic(clinic)}
                   disabled={!clinic.canJoin}
-                  className="md:min-w-[150px]"
+                  size="sm"
+                  className="sm:min-w-[140px] shrink-0"
                 >
                   {clinic.canJoin ? 'Request to Join' : 'Request Pending'}
                 </Button>
@@ -201,63 +197,63 @@ export default function JoinClinicPage() {
             </Card>
           ))}
         </div>
-
-        <Dialog open={!!selectedClinic} onOpenChange={() => setSelectedClinic(null)}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Request to Join {selectedClinic?.name}</DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Your Role</label>
-                <Select value={requestedRole} onValueChange={setRequestedRole}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="DOCTOR">Doctor</SelectItem>
-                    <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                    <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Select the role you will have in this clinic
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  Message to Admin <span className="text-muted-foreground">(Optional)</span>
-                </label>
-                <Textarea
-                  placeholder="Introduce yourself or explain why you want to join..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  maxLength={500}
-                  rows={4}
-                />
-                <p className="text-xs text-muted-foreground text-right">
-                  {message.length}/500
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setSelectedClinic(null)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSubmitRequest} disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Submit Request'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
-    </div>
+
+      <Dialog open={!!selectedClinic} onOpenChange={() => setSelectedClinic(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Request to Join {selectedClinic?.name}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Your Role</label>
+              <Select value={requestedRole} onValueChange={setRequestedRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DOCTOR">Doctor</SelectItem>
+                  <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
+                  <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Select the role you will have in this clinic
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Message to Admin <span className="text-muted-foreground">(Optional)</span>
+              </label>
+              <Textarea
+                placeholder="Introduce yourself or explain why you want to join..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                maxLength={500}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {message.length}/500
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedClinic(null)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitRequest} disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Submit Request'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </PreDashboardShell>
   );
 }

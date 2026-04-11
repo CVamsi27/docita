@@ -119,7 +119,7 @@ export function AppointmentsListUI({
         ) : isError ? (
           <div className="p-6">
             <ErrorState
-              message="We could not load appointments. Please try again."
+              message="We could not load these appointments. Please try again."
               onRetry={onRetry}
             />
           </div>

@@ -44,7 +44,7 @@ export function MedicineReminderDialogContainer({
         onError: (error: Error) => {
           showUserFacingErrorToast(
             error,
-            "We could not create the reminder. Please try again.",
+            "We could not create this medicine reminder. Please try again.",
             "save",
           );
         },

@@ -54,7 +54,7 @@ export default function MobileUploadPage() {
         setSuccess(true);
       } else {
         const message =
-          "Upload completed, but we could not confirm session status. Please try again.";
+          "Your upload finished, but we could not confirm it. Please try again.";
         setErrorMessage(message);
         showUserFacingErrorToast(null, message, "upload");
       }
@@ -73,17 +73,17 @@ export default function MobileUploadPage() {
           return;
         }
         if (error.status === 400) {
-          const message = "Invalid file type. Please upload an image.";
+          const message = "Please upload an image file.";
           setErrorMessage(message);
           showUserFacingErrorToast(null, message, "upload");
           return;
         }
 
-        const message = "We could not upload the signature. Please try again.";
+        const message = "We could not upload this image. Please try again.";
         setErrorMessage(message);
         showUserFacingErrorToast(error, message, "upload");
       } else {
-        const message = "We could not upload the signature. Please try again.";
+        const message = "We could not upload this image. Please try again.";
         setErrorMessage(message);
         showUserFacingErrorToast(error, message, "upload");
       }

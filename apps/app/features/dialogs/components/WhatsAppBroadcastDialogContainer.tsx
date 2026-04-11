@@ -37,7 +37,7 @@ export function WhatsAppBroadcastDialogContainer({
       onError: (error: Error) => {
         showUserFacingErrorToast(
           error,
-          "We could not create the campaign. Please try again.",
+          "We could not create this message campaign. Please try again.",
           "save",
         );
       },

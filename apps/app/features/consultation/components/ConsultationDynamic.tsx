@@ -59,11 +59,11 @@ function getPrescriptionComplianceErrorMessage(error: unknown): string | null {
   }
 
   if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
-    return "Doctor signature is required before creating a prescription.";
+    return "Add your signature before creating a prescription.";
   }
 
   if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
-    return "Doctor government verification is required before creating a prescription.";
+    return "Finish your doctor verification before creating a prescription.";
   }
 
   return null;
@@ -345,7 +345,10 @@ export const ClinicalDocumentationDynamic: FC<
       toast.success("Consultation saved successfully");
     } catch (error: unknown) {
       const complianceMessage = getPrescriptionComplianceErrorMessage(error);
-      showUserFacingErrorToast(complianceMessage || "We could not save consultation. Please try again.");
+      showUserFacingErrorToast(
+        complianceMessage ||
+          "We could not save this consultation. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }

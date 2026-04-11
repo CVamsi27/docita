@@ -48,7 +48,7 @@ export function ContactSalesModalContainer({
       },
       onError: (err: Error) => {
         const errorMessage =
-          "We could not send your message. Please try again.";
+          "We could not send this message. Please try again.";
         setError(errorMessage);
         showUserFacingErrorToast(err, errorMessage, "save");
       },

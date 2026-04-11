@@ -78,7 +78,9 @@ export function MedicalDocumentList({ patientId }: Props) {
       setDocuments(data);
     } catch (err) {
       logger.error("Failed to load medical documents", { err });
-      showUserFacingErrorToast("We could not load medical documents. Please try again.");
+      showUserFacingErrorToast(
+        "We could not load these medical documents. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -95,7 +97,9 @@ export function MedicalDocumentList({ patientId }: Props) {
       await load();
     } catch (err) {
       logger.error("Failed to sign document", { err });
-      showUserFacingErrorToast("We could not sign document. Please try again.");
+      showUserFacingErrorToast(
+        "We could not sign this document. Please try again.",
+      );
     }
   };
 
@@ -106,13 +110,17 @@ export function MedicalDocumentList({ patientId }: Props) {
       await load();
     } catch (err) {
       logger.error("Failed to revoke document", { err });
-      showUserFacingErrorToast("We could not revoke document. Please try again.");
+      showUserFacingErrorToast(
+        "We could not revoke this document. Please try again.",
+      );
     }
   };
 
   const handleCreate = async () => {
     if (!newTitle.trim()) {
-      showUserFacingErrorToast("Please enter a title");
+      showUserFacingErrorToast(
+        "Enter a document title before creating it.",
+      );
       return;
     }
     setCreating(true);
@@ -131,7 +139,9 @@ export function MedicalDocumentList({ patientId }: Props) {
       await load();
     } catch (err) {
       logger.error("Failed to create document", { err });
-      showUserFacingErrorToast("We could not create document. Please try again.");
+      showUserFacingErrorToast(
+        "We could not create this document. Please try again.",
+      );
     } finally {
       setCreating(false);
     }

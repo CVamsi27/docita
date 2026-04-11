@@ -59,7 +59,9 @@ export default function JoinRequestsPage() {
       closeDialog();
     },
     onError: () => {
-      showUserFacingErrorToast('We could not approve request. Please try again.');
+      showUserFacingErrorToast(
+        "We could not approve this join request. Please try again.",
+      );
     },
   });
 
@@ -72,7 +74,9 @@ export default function JoinRequestsPage() {
       closeDialog();
     },
     onError: () => {
-      showUserFacingErrorToast('We could not reject request. Please try again.');
+      showUserFacingErrorToast(
+        "We could not reject this join request. Please try again.",
+      );
     },
   });
 
@@ -111,7 +115,9 @@ export default function JoinRequestsPage() {
 
   const handleReject = () => {
     if (!selectedRequest || !rejectionReason.trim()) {
-      showUserFacingErrorToast('Please provide a reason for rejection');
+      showUserFacingErrorToast(
+        "Add a reason so the team member knows why this request was declined.",
+      );
       return;
     }
 

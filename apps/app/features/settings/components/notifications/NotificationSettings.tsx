@@ -79,16 +79,16 @@ export function NotificationSettings() {
         whatsappMedicineReminders: data.whatsappNotifications,
       },
       {
-      onSuccess: () => {
-        toast.success("Notification preferences saved successfully");
-      },
-      onError: (error) => {
-        showUserFacingErrorToast(
-          error,
-          "We could not save notification preferences. Please try again.",
-          "save",
-        );
-      },
+        onSuccess: () => {
+          toast.success("Notification preferences saved successfully");
+        },
+        onError: (error) => {
+          showUserFacingErrorToast(
+            error,
+            "We could not save your notification settings. Please try again.",
+            "save",
+          );
+        },
       },
     );
   };

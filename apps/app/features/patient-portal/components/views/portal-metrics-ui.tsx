@@ -161,7 +161,7 @@ export function PortalMetricsUI({
       <DataState
         status={status}
         loadingMessage="Loading metrics..."
-        errorMessage="We could not load metrics. Please try again."
+        errorMessage="We could not load your health metrics. Please try again."
         onRetry={handleRetry}
         emptyIcon={Activity}
         emptyTitle="No metric categories available"

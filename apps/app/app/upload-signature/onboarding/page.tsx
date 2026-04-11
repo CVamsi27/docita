@@ -35,7 +35,9 @@ export default function OnboardingSlaUploadPage() {
     enabled: Boolean(onboardingId && sessionId),
     queryFn: async () => {
       if (!onboardingId || !sessionId) {
-        throw new Error("Invalid upload link");
+        throw new Error(
+          "This signature link is incomplete. Please open the full link again.",
+        );
       }
 
       return await apiFetch<{
@@ -53,10 +55,27 @@ export default function OnboardingSlaUploadPage() {
     retry: false,
   });
 
+  const getCompletedSignatureState = (data: {
+    status?: string;
+    uploaded?: boolean;
+    fileUrl?: string | null;
+  } | undefined) => {
+    const status = data?.status?.toLowerCase();
+
+    return Boolean(
+      data?.uploaded ||
+        data?.fileUrl ||
+        status === "uploaded" ||
+        status === "completed",
+    );
+  };
+
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!onboardingId || !sessionId) {
-        throw new Error("Invalid upload link. Missing required parameters.");
+        throw new Error(
+          "This signature link is incomplete. Please open the full link again.",
+        );
       }
 
       const formData = new FormData();
@@ -74,20 +93,15 @@ export default function OnboardingSlaUploadPage() {
 
   useEffect(() => {
     if (!onboardingId || !sessionId) {
-      setError("Invalid upload link. Missing required parameters.");
+      setError(
+        "This signature link is incomplete. Please open the full link again.",
+      );
       return;
     }
 
     const data = statusQuery.data;
     if (!data) return;
-
-    const status = data.status?.toLowerCase();
-    const isUploaded = Boolean(
-      data.uploaded ||
-        data.fileUrl ||
-        status === "uploaded" ||
-        status === "completed",
-    );
+    const isUploaded = getCompletedSignatureState(data);
 
     if (isUploaded) {
       setAlreadyUploaded(true);
@@ -103,10 +117,8 @@ export default function OnboardingSlaUploadPage() {
       await uploadMutation.mutateAsync(file);
       setUploadComplete(true);
     } catch (err) {
-      if (
-        err instanceof APIRequestError &&
-        err.message.toLowerCase().includes("already been used")
-      ) {
+      const latestStatus = await statusQuery.refetch();
+      if (getCompletedSignatureState(latestStatus.data)) {
         setAlreadyUploaded(true);
         setUploadComplete(true);
         return;
@@ -115,24 +127,19 @@ export default function OnboardingSlaUploadPage() {
       if (err instanceof APIRequestError) {
         setError(
           getUserFacingErrorMessage(err, {
-            fallback: "We could not upload the signature. Please try again.",
+            fallback: "We could not upload this signature. Please try again.",
             context: "upload",
           }),
         );
       } else if (err instanceof Error) {
-        if (err.message.toLowerCase().includes("already been used")) {
-          setAlreadyUploaded(true);
-          setUploadComplete(true);
-          return;
-        }
         setError(
           getUserFacingErrorMessage(err, {
-            fallback: "We could not upload the signature. Please try again.",
+            fallback: "We could not upload this signature. Please try again.",
             context: "upload",
           }),
         );
       } else {
-        setError("We could not upload the signature. Please try again.");
+        setError("We could not upload this signature. Please try again.");
       }
     }
   };
@@ -170,6 +177,32 @@ export default function OnboardingSlaUploadPage() {
     );
   }
 
+  if (statusQuery.isError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <CardTitle>Link not available</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="destructive">
+              <AlertDescription>
+                {getUserFacingErrorMessage(statusQuery.error, {
+                  fallback:
+                    "This signature link is no longer available. Please request a new one.",
+                  context: "load",
+                })}
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!onboardingId || !sessionId) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
@@ -177,12 +210,15 @@ export default function OnboardingSlaUploadPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              <CardTitle>Invalid Link</CardTitle>
+              <CardTitle>Link not available</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <Alert variant="destructive">
-              <AlertDescription>{error ?? "This link is invalid or expired."}</AlertDescription>
+              <AlertDescription>
+                {error ??
+                  "This signature link is no longer available. Please request a new one."}
+              </AlertDescription>
             </Alert>
           </CardContent>
         </Card>
