@@ -106,20 +106,33 @@ export class R2StorageProvider extends StorageProvider {
     const filename = `${nanoid()}${ext}`;
     const objectKey = `${folder}/${filename}`;
 
-    const buffer =
-      file.buffer ?? (file.path ? fs.readFileSync(file.path) : Buffer.alloc(0));
+    const body =
+      file.buffer ??
+      (file.path ? fs.createReadStream(file.path) : Buffer.alloc(0));
 
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: objectKey,
-        Body: buffer,
-        ContentType: file.mimetype,
-        Metadata: this.toObjectMetadata(options),
-      }),
-    );
+    try {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: objectKey,
+          Body: body,
+          ContentType: file.mimetype,
+          Metadata: this.toObjectMetadata(options),
+        }),
+      );
 
-    return objectKey;
+      return objectKey;
+    } finally {
+      if (file.path && fs.existsSync(file.path)) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (error) {
+          this.logger.warn(
+            `Failed to delete temp upload ${file.path}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+    }
   }
 
   async delete(objectKey: string): Promise<void> {

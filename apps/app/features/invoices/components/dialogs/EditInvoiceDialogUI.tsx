@@ -63,7 +63,7 @@ export function EditInvoiceDialogUI({
         <div className="space-y-2">
           <Label>Status</Label>
           <Select value={status} onValueChange={onStatusChange}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
@@ -93,7 +93,7 @@ export function EditInvoiceDialogUI({
             {items.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30"
+                className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 border rounded-lg bg-muted/30"
               >
                 <div className="flex-1">
                   <Input
@@ -104,46 +104,48 @@ export function EditInvoiceDialogUI({
                     }
                   />
                 </div>
-                <div className="w-20">
-                  <Input
-                    type="number"
-                    min="1"
-                    placeholder="Qty"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      onUpdateItem(
-                        index,
-                        "quantity",
-                        parseInt(e.target.value) || 1,
-                      )
-                    }
-                  />
+                <div className="flex gap-2 sm:contents">
+                  <div className="flex-1 sm:w-20 sm:flex-none">
+                    <Input
+                      type="number"
+                      min="1"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) =>
+                        onUpdateItem(
+                          index,
+                          "quantity",
+                          parseInt(e.target.value) || 1,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="flex-1 sm:w-28 sm:flex-none">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Price"
+                      value={item.price}
+                      onChange={(e) =>
+                        onUpdateItem(
+                          index,
+                          "price",
+                          parseFloat(e.target.value) || 0,
+                        )
+                      }
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRemoveItem(index)}
+                    className="text-destructive hover:text-destructive shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div className="w-28">
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Price"
-                    value={item.price}
-                    onChange={(e) =>
-                      onUpdateItem(
-                        index,
-                        "price",
-                        parseFloat(e.target.value) || 0,
-                      )
-                    }
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRemoveItem(index)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
             ))}
             {items.length === 0 && (

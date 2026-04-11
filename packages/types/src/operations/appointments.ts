@@ -38,9 +38,9 @@ export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
 
 export const appointmentSchema = z.object({
   id: z.string().optional(),
-  patientId: z.string().min(1, "Patient is required"),
-  doctorId: z.string().min(1, "Doctor is required"),
-  clinicId: z.string().min(1, "Clinic is required"),
+  patientId: z.string().min(1, "Select a patient."),
+  doctorId: z.string().min(1, "Select a doctor."),
+  clinicId: z.string().min(1, "Select a clinic."),
   startTime: z.string().or(z.date()),
   endTime: z.string().or(z.date()),
   status: appointmentStatusSchema,

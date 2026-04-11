@@ -1,0 +1,74 @@
+import { render, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PreDashboardShell } from "./PreDashboardShell";
+
+const mocks = vi.hoisted(() => ({
+  router: {
+    replace: vi.fn(),
+  },
+  logout: vi.fn(),
+  user: null as
+    | null
+    | {
+        emailVerified?: boolean;
+      },
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => mocks.router,
+}));
+
+vi.mock("@/lib/auth-context", () => ({
+  useAuth: () => ({
+    logout: mocks.logout,
+    user: mocks.user,
+  }),
+}));
+
+vi.mock("./AuthBrandingPanel", () => ({
+  AuthBrandingPanel: () => <div data-testid="branding-panel" />,
+}));
+
+vi.mock("@workspace/ui/components/theme-toggle", () => ({
+  ThemeToggle: () => <button type="button">Theme</button>,
+}));
+
+vi.mock("@workspace/ui/components/docita-logo", () => ({
+  DocitaLogo: () => <div data-testid="docita-logo" />,
+}));
+
+describe("PreDashboardShell", () => {
+  beforeEach(() => {
+    mocks.router.replace.mockReset();
+    mocks.logout.mockReset();
+    mocks.user = null;
+  });
+
+  it("redirects unverified users away from choose-path", async () => {
+    mocks.user = { emailVerified: false };
+
+    render(
+      <PreDashboardShell currentStep="choose-path">
+        <div>Choose path</div>
+      </PreDashboardShell>,
+    );
+
+    await waitFor(() => {
+      expect(mocks.router.replace).toHaveBeenCalledWith("/verify-email-sent");
+    });
+  });
+
+  it("does not redirect while already on verify-email-sent", async () => {
+    mocks.user = { emailVerified: false };
+
+    render(
+      <PreDashboardShell currentStep="verify-email-sent">
+        <div>Verify email</div>
+      </PreDashboardShell>,
+    );
+
+    await waitFor(() => {
+      expect(mocks.router.replace).not.toHaveBeenCalled();
+    });
+  });
+});

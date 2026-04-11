@@ -78,6 +78,8 @@ describe('AuthController', () => {
     sub: 'user-1',
     name: 'Test User',
     clinicId: 'clinic-1',
+    emailVerified: false,
+    onboardingStep: 'CHOOSE_PATH',
     role: Role.DOCTOR,
     email: 'test@example.com',
   };
@@ -393,6 +395,8 @@ describe('AuthController', () => {
           name: 'Test User',
           role: Role.DOCTOR,
           clinicId: 'clinic-1',
+          emailVerified: false,
+          onboardingStep: 'CHOOSE_PATH',
         },
       });
     });

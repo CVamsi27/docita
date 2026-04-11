@@ -40,7 +40,7 @@ export function InventoryFilters({
         />
       </div>
       <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full md:w-[180px]">
           <SelectValue placeholder="Category" />
         </SelectTrigger>
         <SelectContent>
@@ -53,7 +53,7 @@ export function InventoryFilters({
         </SelectContent>
       </Select>
       <Select value={stockFilter} onValueChange={setStockFilter}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full md:w-[180px]">
           <SelectValue placeholder="Stock Status" />
         </SelectTrigger>
         <SelectContent>

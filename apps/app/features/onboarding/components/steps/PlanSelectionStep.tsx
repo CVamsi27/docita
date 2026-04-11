@@ -130,7 +130,7 @@ export function PlanSelectionStep({
       <Card>
         <CardContent className="py-8 text-center">
           <p className="text-muted-foreground">
-            Unable to load pricing. Please try again later.
+            We could not load pricing right now. Please try again shortly.
           </p>
         </CardContent>
       </Card>

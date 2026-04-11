@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAppConfig } from "@/lib/app-config-context";
 import { fetchWithSession } from "@/lib/fetch-with-session";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface ColumnMapping {
   excelColumn: string;
@@ -128,8 +129,7 @@ export const useExcelImport = () => {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to preview file");
+        throw new Error("We could not preview this file. Please try again.");
       }
 
       const data: ImportPreview = await response.json();
@@ -138,7 +138,11 @@ export const useExcelImport = () => {
       setStep("mapping");
       toast.success(`Found ${data.totalRows} rows to import`);
     } catch (error) {
-      toast.error((error as Error).message || "Failed to upload file");
+      showUserFacingErrorToast(
+        error,
+        "We could not preview this file. Please try again.",
+        "upload",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -191,8 +195,7 @@ export const useExcelImport = () => {
       setImportProgress(100);
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Import failed");
+        throw new Error("We could not import this file. Please try again.");
       }
 
       const result: ImportResult = await response.json();
@@ -208,7 +211,11 @@ export const useExcelImport = () => {
         );
       }
     } catch (error) {
-      toast.error((error as Error).message || "Import failed");
+      showUserFacingErrorToast(
+        error,
+        "We could not import this file. Please try again.",
+        "upload",
+      );
       setStep("mapping");
     } finally {
       setIsImporting(false);

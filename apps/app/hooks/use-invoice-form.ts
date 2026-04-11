@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { LineItem, type Specialization } from "@workspace/types";
 import { fetchAPI } from "@/lib/api-core";
 import { useQueryClient } from "@tanstack/react-query";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const SPECIALTY_CONSULTATION_FEES: Record<Specialization, number> = {
   GENERAL_PRACTICE: 500,
@@ -172,8 +173,9 @@ export function useInvoiceForm({
       }
       toast.success("Invoice created successfully");
     } catch {
-
-      toast.error("Failed to create invoice");
+      showUserFacingErrorToast(
+        "We could not create this invoice. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

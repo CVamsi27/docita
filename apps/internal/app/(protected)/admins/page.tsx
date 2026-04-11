@@ -49,6 +49,7 @@ import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Admin {
   id: string;
@@ -184,14 +185,18 @@ export default function AdminsPage() {
     if (!selectedClinic || !token || selectedClinic === "all") return;
 
     if (!createForm.name || !createForm.email || !createForm.password) {
-      toast.error("Please fill in all required fields");
+      showUserFacingErrorToast(
+        "Enter the admin's name, email, and password before continuing.",
+      );
       return;
     }
 
     try {
       await createAdminMutation.mutateAsync();
     } catch {
-      toast.error("Error creating admin");
+      showUserFacingErrorToast(
+        "We could not create this admin account. Please try again.",
+      );
     }
   };
 
@@ -215,14 +220,18 @@ export default function AdminsPage() {
     if (!selectedAdmin || !token) return;
 
     if (!editForm.name || !editForm.email) {
-      toast.error("Please fill in all required fields");
+      showUserFacingErrorToast(
+        "Enter the admin's name and email before saving.",
+      );
       return;
     }
 
     try {
       await updateAdminMutation.mutateAsync();
     } catch {
-      toast.error("Error updating admin");
+      showUserFacingErrorToast(
+        "We could not save this admin account. Please try again.",
+      );
     }
   };
 
@@ -236,7 +245,9 @@ export default function AdminsPage() {
     try {
       await deleteAdminMutation.mutateAsync(adminId);
     } catch {
-      toast.error("Error deleting admin");
+      showUserFacingErrorToast(
+        "We could not remove this admin account. Please try again.",
+      );
     }
   };
 
@@ -265,7 +276,7 @@ export default function AdminsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admins</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admins</h1>
           <p className="text-muted-foreground">
             Manage clinic administrators and admin doctors
           </p>

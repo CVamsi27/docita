@@ -1,0 +1,66 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { AuthSignupStepUI } from "./AuthSignupStepUI";
+
+const baseProps = {
+  email: "owner@clinic.com",
+  firstName: "Jane",
+  lastName: "Doe",
+  password: "Password@123",
+  confirmPassword: "Password@123",
+  ownerRole: null,
+  showPassword: false,
+  fieldErrors: {},
+  loading: false,
+  error: "",
+  onBack: () => {},
+  onChangeFirstName: () => {},
+  onChangeLastName: () => {},
+  onChangePassword: () => {},
+  onChangeConfirmPassword: () => {},
+  onTogglePassword: () => {},
+  onSubmit: () => {},
+};
+
+describe("AuthSignupStepUI", () => {
+  it("renders a usage-based owner account question", () => {
+    render(
+      <AuthSignupStepUI
+        {...baseProps}
+        onChangeOwnerRole={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByText("Will you personally treat patients with this account?"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("radio", { name: /yes, i'll also see patients/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("radio", { name: /no, i'll only manage the clinic/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Create Account" }),
+    ).toBeDisabled();
+    expect(screen.getByLabelText("Re-enter Password")).toBeInTheDocument();
+    expect(screen.getByText("Recommended")).toBeInTheDocument();
+  });
+
+  it("updates the selected owner role when a card is chosen", () => {
+    const onChangeOwnerRole = vi.fn();
+
+    render(
+      <AuthSignupStepUI
+        {...baseProps}
+        onChangeOwnerRole={onChangeOwnerRole}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("radio", { name: /yes, i'll also see patients/i }),
+    );
+
+    expect(onChangeOwnerRole).toHaveBeenCalledWith("ADMIN_DOCTOR");
+  });
+});

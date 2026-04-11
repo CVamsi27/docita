@@ -18,7 +18,7 @@ export default function PrenatalCarePage() {
           <Baby className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Prenatal Care</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Prenatal Care</h1>
           <p className="text-muted-foreground">
             Pregnancy tracking and obstetric management
           </p>

@@ -15,10 +15,10 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
-import { toast } from "sonner";
 
 import { DashboardAppointment } from "@workspace/types";
 import { useStartConsultation } from "@/hooks/api/use-appointments";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface QueueStats {
   waiting: number;
@@ -52,10 +52,10 @@ export function DoctorDashboardCardsUI({
       const result = await startConsultation.mutateAsync({ appointmentId });
       router.push(`/consultation/${result.appointmentId}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Unable to start this consultation",
+      showUserFacingErrorToast(
+        error,
+        "We could not open this consultation. Please try again.",
+        "save",
       );
     } finally {
       setStartingAppointmentId(null);
@@ -63,8 +63,8 @@ export function DoctorDashboardCardsUI({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <Card className="border border-border shadow-sm bg-card lg:col-span-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card className="border border-border shadow-sm bg-card md:col-span-2 lg:col-span-2">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

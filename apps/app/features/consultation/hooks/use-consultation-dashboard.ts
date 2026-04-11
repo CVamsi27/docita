@@ -5,12 +5,12 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const useConsultationDashboard = () => {
   const router = useRouter();
@@ -64,10 +64,10 @@ export const useConsultationDashboard = () => {
       const result = await startConsultation.mutateAsync({ appointmentId });
       router.push(`/consultation/${result.appointmentId}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Unable to start this consultation",
+      showUserFacingErrorToast(
+        error,
+        "We could not open this consultation right now. Please try again.",
+        "save",
       );
     }
   };

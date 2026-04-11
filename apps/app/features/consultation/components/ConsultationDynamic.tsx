@@ -39,6 +39,7 @@ import {
   ConsultationProgressUI,
   ConsultationStep,
 } from "./ConsultationProgressUI";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   normalizeConsultationTab,
   getConsultationTabIds,
@@ -58,11 +59,11 @@ function getPrescriptionComplianceErrorMessage(error: unknown): string | null {
   }
 
   if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
-    return "Doctor signature is required before creating a prescription.";
+    return "Add your signature before creating a prescription.";
   }
 
   if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
-    return "Doctor government verification is required before creating a prescription.";
+    return "Finish your doctor verification before creating a prescription.";
   }
 
   return null;
@@ -344,7 +345,10 @@ export const ClinicalDocumentationDynamic: FC<
       toast.success("Consultation saved successfully");
     } catch (error: unknown) {
       const complianceMessage = getPrescriptionComplianceErrorMessage(error);
-      toast.error(complianceMessage || "Failed to save consultation");
+      showUserFacingErrorToast(
+        complianceMessage ||
+          "We could not save this consultation. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }

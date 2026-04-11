@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Calendar, Loader2 } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -140,7 +141,11 @@ export function DoctorAvailabilitySettings() {
         toast.success("Availability updated successfully");
       },
       onError: (err) => {
-        toast.error("Failed to update availability: " + err.message);
+        showUserFacingErrorToast(
+          err,
+          "We could not save this doctor's availability. Please try again.",
+          "save",
+        );
       },
     });
   };
@@ -177,7 +182,7 @@ export function DoctorAvailabilitySettings() {
             <div className="space-y-2">
               <Label>Select Doctor</Label>
               <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
-                <SelectTrigger className="w-64">
+                <SelectTrigger className="w-full sm:w-64">
                   <SelectValue placeholder="Select a doctor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -209,7 +214,7 @@ export function DoctorAvailabilitySettings() {
             {daySchedules.map((day) => (
               <div
                 key={day.dayOfWeek}
-                className="grid grid-cols-[120px_1fr] gap-4 items-start rounded-lg border p-3"
+                className="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-3 sm:gap-4 items-start rounded-lg border p-3"
               >
                 <div className="flex items-center gap-2 pt-1">
                   <Switch
@@ -230,8 +235,8 @@ export function DoctorAvailabilitySettings() {
                 <div
                   className={
                     day.isActive
-                      ? "grid grid-cols-3 gap-3"
-                      : "grid grid-cols-3 gap-3 opacity-40 pointer-events-none"
+                      ? "grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3"
+                      : "grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-3 opacity-40 pointer-events-none"
                   }
                 >
                   <div className="space-y-1">

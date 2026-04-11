@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getUserFacingErrorMessage } from "@workspace/types";
 
 export interface PhoneSignatureQrSession {
   sessionId: string;
@@ -150,7 +151,11 @@ export function usePhoneSignatureQrFlow({
     } catch (err) {
       if (isMountedRef.current) {
         setError(
-          err instanceof Error ? err.message : "Failed to generate QR code",
+          getUserFacingErrorMessage(err, {
+            fallback:
+              "We could not create this signature link. Please try again.",
+            context: "upload",
+          }),
         );
       }
     } finally {

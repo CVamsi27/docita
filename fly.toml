@@ -11,6 +11,7 @@ primary_region = 'bom'
 
 [env]
   NODE_ENV = 'production'
+  NODE_MAX_OLD_SPACE_SIZE_MB = '768'
   PORT = '3001'
   STORAGE_PROVIDER = 'r2'
 

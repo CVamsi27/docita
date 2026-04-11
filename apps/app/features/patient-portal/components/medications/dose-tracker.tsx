@@ -13,6 +13,7 @@ import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { usePortalDoseHistory, useRecordPortalDose } from "@/hooks/api/use-patient-portal";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface DoseTrackerProps {
   medicationId: string;
@@ -51,7 +52,9 @@ export function DoseTracker({
       );
       setNotes("");
     } catch {
-      toast.error("Failed to record dose");
+      showUserFacingErrorToast(
+        "We could not record this dose. Please try again.",
+      );
     }
   };
 

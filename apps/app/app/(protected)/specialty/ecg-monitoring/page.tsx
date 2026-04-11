@@ -34,7 +34,7 @@ export default function ECGMonitoringPage() {
           <Heart className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">ECG Monitoring</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">ECG Monitoring</h1>
           <p className="text-muted-foreground">
             Cardiac rhythm analysis and vital tracking
           </p>

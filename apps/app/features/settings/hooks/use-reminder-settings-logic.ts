@@ -5,6 +5,7 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export interface ReminderSettingsState {
   reminderBefore: string;
@@ -47,7 +48,11 @@ export const useReminderSettingsLogic = () => {
           toast.success("Reminder settings saved successfully");
         },
         onError: (error) => {
-          toast.error(`Failed to save settings: ${error.message}`);
+          showUserFacingErrorToast(
+            error,
+            "We could not save your reminder settings. Please try again.",
+            "save",
+          );
         },
       },
     );

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const useInvoiceDetailsLogic = (
   invoiceId: string,
@@ -41,14 +42,18 @@ export const useInvoiceDetailsLogic = (
         toast.success("PDF Downloaded successfully");
       }, 1500);
     } catch {
-      toast.error("Failed to download PDF");
+      showUserFacingErrorToast(
+        "We could not download this invoice. Please try again.",
+      );
 
     }
   };
 
   const handleShareWhatsApp = () => {
     if (!invoice?.patient?.phoneNumber) {
-      toast.error("Patient phone number not available");
+      showUserFacingErrorToast(
+        "Add this patient's phone number before sharing the invoice on WhatsApp.",
+      );
       return;
     }
 

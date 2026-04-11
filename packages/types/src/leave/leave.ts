@@ -44,8 +44,8 @@ export type StaffLeave = z.infer<typeof staffLeaveSchema>;
 
 export const createLeaveRequestSchema = z.object({
   leaveType: leaveTypeSchema,
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
+  startDate: z.string().min(1, "Choose a start date."),
+  endDate: z.string().min(1, "Choose an end date."),
   reason: z.string().max(500).optional(),
   staffId: z.string().optional(),
 });

@@ -86,7 +86,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch subscription: ${response.statusText}`);
+      throw new Error("We could not load your subscription details. Please try again.");
     }
 
     const data = (await response.json()) as RawSubscriptionData;
@@ -121,7 +121,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       if (response.status === 404) {
         return [];
       }
-      throw new Error(`Failed to fetch add-ons: ${response.statusText}`);
+      throw new Error("We could not load your subscription details. Please try again.");
     }
 
     const data = (await response.json()) as IAddOn[];
@@ -151,7 +151,7 @@ export class SubscriptionRepository implements ISubscriptionRepository {
       if (response.status === 404) {
         return [];
       }
-      throw new Error(`Failed to fetch overrides: ${response.statusText}`);
+      throw new Error("We could not load your subscription details. Please try again.");
     }
 
     const data = (await response.json()) as RawOverrideData[];

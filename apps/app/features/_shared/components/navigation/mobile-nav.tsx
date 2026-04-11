@@ -78,7 +78,7 @@ export function MobileNav() {
             className="fixed inset-0 z-40 bg-black/50"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-xl">
+          <div className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-xs bg-background shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
               <Link
                 href="/dashboard"

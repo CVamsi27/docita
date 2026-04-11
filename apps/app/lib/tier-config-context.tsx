@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
-import { Tier, TIER_INFO } from "@workspace/types";
+import { getUserFacingErrorMessage, Tier, TIER_INFO } from "@workspace/types";
 import { Feature, FEATURE_TIER_MAP } from "./stores/permission-store";
 
 import {
@@ -75,9 +75,10 @@ export function TierConfigProvider({
   const error = shouldSkipTierFetch
     ? null
     : tierConfigQuery.error && !isNetworkError(tierConfigQuery.error)
-      ? tierConfigQuery.error instanceof Error
-        ? tierConfigQuery.error.message
-        : "Unknown error"
+      ? getUserFacingErrorMessage(tierConfigQuery.error, {
+          fallback: "We could not load your plan details. Please try again.",
+          context: "load",
+        })
       : null;
 
   const fetchConfig = useCallback(async () => {

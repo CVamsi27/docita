@@ -70,7 +70,7 @@ export const appointmentDomainCreateSchema = createAppointmentRequestSchema
   }));
 
 export const appointmentCancelRequestSchema = z.object({
-  reason: z.string().min(1, "Cancellation reason is required"),
+  reason: z.string().min(1, "Enter a reason for canceling the appointment."),
 });
 
 export const appointmentRescheduleRequestSchema = z

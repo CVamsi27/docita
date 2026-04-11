@@ -8,6 +8,7 @@ import { Patient } from "@workspace/types";
 import { useCreatePatient, useUpdatePatient } from "@/hooks/api/use-patients";
 import { Button } from "@workspace/ui/components/button";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface AddPatientDialogProps {
   open?: boolean;
@@ -77,9 +78,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.firstName.trim()) e.firstName = "First name is required";
-    if (!form.lastName.trim()) e.lastName = "Last name is required";
-    if (!form.gender) e.gender = "Gender is required";
+    if (!form.firstName.trim()) e.firstName = "Enter the patient's first name.";
+    if (!form.lastName.trim()) e.lastName = "Enter the patient's last name.";
+    if (!form.gender) e.gender = "Choose a gender.";
     return e;
   };
 
@@ -105,7 +106,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
       onPatientAdded?.();
       onOpenChange?.(false);
     } catch {
-      toast.error("Failed to add patient");
+      showUserFacingErrorToast(
+        "We could not add this patient. Please try again.",
+      );
     }
   };
 
@@ -259,7 +262,9 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       onPatientUpdated?.();
       onOpenChange?.(false);
     } catch {
-      toast.error("Failed to update patient");
+      showUserFacingErrorToast(
+        "We could not save this patient. Please try again.",
+      );
     }
   };
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { toAbsoluteAppUrl } from "@/lib/url";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 function resolveUploadedFileUrl(fileUrl: string): string {
   if (/^https?:\/\//i.test(fileUrl)) {
@@ -92,7 +93,9 @@ export const useMobileUpload = () => {
         setShowQr(true);
         pollSession(data.id, onUploadComplete);
       } catch (_error) {
-        toast.error("Could not start mobile upload session");
+        showUserFacingErrorToast(
+          "We could not start the mobile upload right now. Please try again.",
+        );
       }
     },
     [pollSession],

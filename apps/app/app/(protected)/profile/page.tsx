@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useUpdateProfile } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 import { ChangePasswordSettings } from "@/features/settings/components";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -29,7 +30,7 @@ export default function ProfilePage() {
 
   const handleSaveChanges = async () => {
     if (!formData.name.trim()) {
-      toast.error("Please enter your name");
+      showUserFacingErrorToast("Enter your name before saving.");
       return;
     }
 
@@ -40,7 +41,9 @@ export default function ProfilePage() {
       });
       toast.success("Profile updated successfully");
     } catch {
-      toast.error("Failed to update profile");
+      showUserFacingErrorToast(
+        "We could not save your profile changes. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -49,7 +52,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Profile</h1>
         <p className="text-muted-foreground">
           Manage your account settings and preferences.
         </p>

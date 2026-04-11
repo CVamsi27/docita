@@ -21,6 +21,7 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   Form,
   FormControl,
@@ -78,12 +79,16 @@ export function NotificationSettings() {
         whatsappMedicineReminders: data.whatsappNotifications,
       },
       {
-      onSuccess: () => {
-        toast.success("Notification preferences saved successfully");
-      },
-      onError: (error) => {
-        toast.error(`Failed to save preferences: ${error.message}`);
-      },
+        onSuccess: () => {
+          toast.success("Notification preferences saved successfully");
+        },
+        onError: (error) => {
+          showUserFacingErrorToast(
+            error,
+            "We could not save your notification settings. Please try again.",
+            "save",
+          );
+        },
       },
     );
   };

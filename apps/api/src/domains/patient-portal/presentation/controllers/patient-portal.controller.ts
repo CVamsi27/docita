@@ -18,6 +18,7 @@ import { RequestWithUser } from '@/common/types/common.types';
 import { PatientPortalService } from '@/domains/patient-portal/application/services/patient-portal.service';
 import { PatientPortalContextService } from '@/domains/patient-portal/application/services/patient-portal-context.service';
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
+import { parsePaginationInt } from '@/common/utils/string.utils';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
 
 @ApiTags('patient-portal')
@@ -57,8 +58,8 @@ export class PatientPortalController {
       status: query.status,
       startDate: query.startDate,
       endDate: query.endDate,
-      limit: query.limit ? parseInt(query.limit, 10) : undefined,
-      offset: query.offset ? parseInt(query.offset, 10) : undefined,
+      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+      offset: parsePaginationInt(query.offset, { min: 0 }),
     });
   }
 
@@ -78,8 +79,8 @@ export class PatientPortalController {
     @Query() query: { limit?: string; offset?: string },
   ) {
     return this.portalService.getPrescriptions(req.user!.id, {
-      limit: query.limit ? parseInt(query.limit, 10) : undefined,
-      offset: query.offset ? parseInt(query.offset, 10) : undefined,
+      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+      offset: parsePaginationInt(query.offset, { min: 0 }),
     });
   }
 
@@ -100,8 +101,8 @@ export class PatientPortalController {
   ) {
     return this.portalService.getInvoices(req.user!.id, {
       status: query.status,
-      limit: query.limit ? parseInt(query.limit, 10) : undefined,
-      offset: query.offset ? parseInt(query.offset, 10) : undefined,
+      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+      offset: parsePaginationInt(query.offset, { min: 0 }),
     });
   }
 
@@ -179,8 +180,8 @@ export class PatientPortalController {
       eventTypes,
       from: query.from,
       to: query.to,
-      limit: query.limit ? parseInt(query.limit, 10) : undefined,
-      offset: query.offset ? parseInt(query.offset, 10) : undefined,
+      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+      offset: parsePaginationInt(query.offset, { min: 0 }),
     });
   }
 
@@ -226,8 +227,8 @@ export class PatientPortalController {
       status: query.status as Parameters<
         typeof this.medicationDoseService.getDoseHistory
       >[2]['status'],
-      limit: query.limit ? parseInt(query.limit, 10) : undefined,
-      offset: query.offset ? parseInt(query.offset, 10) : undefined,
+      limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
+      offset: parsePaginationInt(query.offset, { min: 0 }),
     });
   }
 

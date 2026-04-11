@@ -7,13 +7,14 @@ import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { usePatients } from "@/hooks/api/use-patients";
 import { useRouter } from "next/navigation";
 import { invoiceItemSchema } from "./use-invoice-edit-logic";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const createInvoiceSchema = z.object({
-  patientId: z.string().min(1, "Patient is required"),
+  patientId: z.string().min(1, "Select a patient."),
   status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),
   discount: z.number().min(0),
   notes: z.string().optional(),
-  items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
+  items: z.array(invoiceItemSchema).min(1, "Add at least one item."),
 });
 
 export type CreateInvoiceFormValues = z.infer<typeof createInvoiceSchema>;
@@ -74,7 +75,9 @@ export const useInvoiceCreateLogic = () => {
         router.push(`/invoices/${result.id}`);
       });
     } catch {
-      toast.error("Failed to create invoice");
+      showUserFacingErrorToast(
+        "We could not create this invoice. Please try again.",
+      );
 
     } finally {
       setIsSaving(false);

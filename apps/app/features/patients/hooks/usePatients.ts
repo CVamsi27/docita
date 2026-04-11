@@ -71,7 +71,7 @@ export function useCreatePatientMetricCategory(id: string) {
       patientsApi.createMetricCategory(id, data),
     invalidateKeys: [queryKeys.patients.metrics.categories(id)],
     successMessage: "Metric category added",
-    errorMessage: "Failed to create metric category",
+    errorMessage: "We could not add this metric category. Please try again.",
   });
 }
 
@@ -84,7 +84,7 @@ export function useCreatePatientMetricDefinition(id: string) {
       queryKeys.patients.metrics.selected(id),
     ],
     successMessage: "Metric definition added",
-    errorMessage: "Failed to create metric definition",
+    errorMessage: "We could not add this metric. Please try again.",
   });
 }
 
@@ -94,7 +94,7 @@ export function useUpdatePatientSelectedMetrics(id: string) {
       patientsApi.updateSelectedMetrics(id, data),
     invalidateKeys: [queryKeys.patients.metrics.selected(id)],
     successMessage: "Tracked metrics updated",
-    errorMessage: "Failed to update tracked metrics",
+    errorMessage: "We could not update this patient's tracked metrics. Please try again.",
   });
 }
 
@@ -104,7 +104,7 @@ export function useRecordPatientMetricValue(id: string) {
       patientsApi.recordMetricValue(id, data),
     invalidateKeys: [queryKeys.patients.metrics.historyRoot(id)],
     successMessage: "Metric value recorded",
-    errorMessage: "Failed to record metric value",
+    errorMessage: "We could not save this metric value. Please try again.",
   });
 }
 
@@ -113,7 +113,7 @@ export function useCreatePatient() {
     mutationFn: (data: CreatePatientInput) => patientsApi.create(data),
     invalidateKeys: [queryKeys.patients.all()],
     successMessage: "Patient created successfully",
-    errorMessage: "Failed to create patient",
+    errorMessage: "We could not add this patient. Please try again.",
   });
 }
 
@@ -122,7 +122,7 @@ export function useUpdatePatient(id: string) {
     mutationFn: (data: UpdatePatientInput) => patientsApi.update(id, data),
     invalidateKeys: [queryKeys.patients.all(), queryKeys.patients.detail(id)],
     successMessage: "Patient updated successfully",
-    errorMessage: "Failed to update patient",
+    errorMessage: "We could not update this patient. Please try again.",
   });
 }
 
@@ -131,6 +131,6 @@ export function useDeletePatient(id: string) {
     mutationFn: () => patientsApi.delete(id),
     invalidateKeys: [queryKeys.patients.all()],
     successMessage: "Patient deleted successfully",
-    errorMessage: "Failed to delete patient",
+    errorMessage: "We could not remove this patient. Please try again.",
   });
 }

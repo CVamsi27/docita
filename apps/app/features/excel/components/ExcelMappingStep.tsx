@@ -64,21 +64,21 @@ export const ExcelMappingStep = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {preview.columns.map((col) => (
-            <div key={col.excelColumn} className="flex items-center gap-4">
+            <div key={col.excelColumn} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <div className="flex-1">
                 <Label className="text-sm font-medium">{col.excelColumn}</Label>
                 <p className="text-xs text-muted-foreground truncate">
                   e.g., {col.sampleValues.slice(0, 2).join(", ")}
                 </p>
               </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              <ArrowRight className="hidden sm:block h-4 w-4 text-muted-foreground shrink-0" />
               <Select
                 value={columnMappings[col.excelColumn] || ""}
                 onValueChange={(value) =>
                   onUpdateMapping(col.excelColumn, value || null)
                 }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Select field" />
                 </SelectTrigger>
                 <SelectContent>

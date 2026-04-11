@@ -213,7 +213,7 @@ export class AccessControlService implements IAccessControlService {
       case "canceled":
         return "Your subscription has been canceled. Please reactivate to access features.";
       default:
-        return "Unable to verify subscription status";
+        return "We could not confirm your subscription status right now.";
     }
   }
 }

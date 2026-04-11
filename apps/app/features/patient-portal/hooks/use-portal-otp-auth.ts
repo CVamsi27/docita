@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { fetchAPI } from "@/lib/api-core";
 import { appSession } from "@/lib/session";
 
@@ -31,7 +32,7 @@ export function usePortalOtpAuth() {
 
   const requestOtp = async () => {
     if (!phoneNumber.trim()) {
-      setError("Please enter your phone number");
+      setError("Please enter your phone number.");
       return;
     }
 
@@ -50,9 +51,11 @@ export function usePortalOtpAuth() {
       setStep("otp");
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to send OTP. Please try again.",
+        getUserFacingErrorMessage(err, {
+          fallback:
+            "We could not send your verification code right now. Please try again.",
+          context: "verification",
+        }),
       );
     } finally {
       setIsLoading(false);
@@ -61,7 +64,7 @@ export function usePortalOtpAuth() {
 
   const verifyOtp = async () => {
     if (!otp.trim()) {
-      setError("Please enter the OTP");
+      setError("Please enter your verification code.");
       return;
     }
 
@@ -86,9 +89,11 @@ export function usePortalOtpAuth() {
       window.location.href = "/portal";
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Invalid OTP. Please try again.",
+        getUserFacingErrorMessage(err, {
+          fallback:
+            "We could not verify your code right now. Please try again.",
+          context: "verification",
+        }),
       );
     } finally {
       setIsLoading(false);

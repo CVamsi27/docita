@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { useCreateMedicineReminder } from "@/hooks/api/use-whatsapp";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   MedicineReminderDialogUI,
   MedicineReminderFormData,
@@ -41,7 +42,11 @@ export function MedicineReminderDialogContainer({
           onClose();
         },
         onError: (error: Error) => {
-          toast.error(error.message || "Failed to create reminder");
+          showUserFacingErrorToast(
+            error,
+            "We could not create this medicine reminder. Please try again.",
+            "save",
+          );
         },
       },
     );

@@ -20,11 +20,11 @@ export class DefaultPasswordPolicy implements IPasswordPolicy {
     const hasUppercase = /[A-Z]/.test(password);
     const hasLowercase = /[a-z]/.test(password);
     const hasNumber = /\d/.test(password);
-    const hasSpecial = /[@$!%*?&]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
 
     if (!hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
       throw new BadRequestException(
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)',
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
       );
     }
 

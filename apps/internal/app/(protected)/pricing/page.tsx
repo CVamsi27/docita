@@ -208,7 +208,7 @@ export default function PricingPage() {
         ),
       );
     } catch {
-      setSaveError(`Failed to save ${tier.name}`);
+      setSaveError(`We could not save ${tier.name}. Please try again.`);
     } finally {
       setSavingId(null);
     }
@@ -238,7 +238,7 @@ export default function PricingPage() {
       });
       setOfferForm(DEFAULT_OFFER_FORM);
     } catch {
-      setSaveError("Failed to save the clinic offer.");
+      setSaveError("We could not save this clinic offer. Please try again.");
     } finally {
       setSavingId(null);
     }
@@ -254,7 +254,7 @@ export default function PricingPage() {
         setOfferForm(DEFAULT_OFFER_FORM);
       }
     } catch {
-      setSaveError("Failed to delete the clinic offer.");
+      setSaveError("We could not delete the clinic offer. Please try again.");
     } finally {
       setSavingId(null);
     }

@@ -102,7 +102,7 @@ export function DocumentsPageUI({
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Documents</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Documents</h1>
           <p className="text-muted-foreground">
             View and manage all uploaded documents.
           </p>
@@ -110,7 +110,7 @@ export function DocumentsPageUI({
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by patient, file name, or type..."
@@ -128,21 +128,21 @@ export function DocumentsPageUI({
             A list of all documents uploaded for patients
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-muted/50">
-                <TableHead>Document ID</TableHead>
+                <TableHead className="hidden md:table-cell">Document ID</TableHead>
                 <TableHead>
                   <SortableHeader column="filename" label="File Name" />
                 </TableHead>
                 <TableHead>
                   <SortableHeader column="patient" label="Patient" />
                 </TableHead>
-                <TableHead>
+                <TableHead className="hidden sm:table-cell">
                   <SortableHeader column="type" label="Type" />
                 </TableHead>
-                <TableHead>
+                <TableHead className="hidden sm:table-cell">
                   <SortableHeader column="date" label="Date" />
                 </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -170,13 +170,13 @@ export function DocumentsPageUI({
               ) : (
                 documents.map((document) => (
                   <TableRow key={document.id} className="hover:bg-muted/50">
-                    <TableCell className="font-mono text-sm">
+                    <TableCell className="font-mono text-sm hidden md:table-cell">
                       {(document.id || "").slice(0, 8).toUpperCase()}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium truncate max-w-[200px]">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium truncate max-w-[150px] sm:max-w-[200px]">
                           {document.name || document.filename || document.title}
                         </span>
                       </div>
@@ -186,12 +186,12 @@ export function DocumentsPageUI({
                         document.patient?.firstName ||
                         "-"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant={getTypeColor(document.type)}>
                         {document.type}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {format(new Date(document.createdAt), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell className="text-right">
@@ -199,26 +199,28 @@ export function DocumentsPageUI({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleView(document)}
-                        className="gap-2"
+                        className="gap-1.5"
+                        title="View document"
                       >
                         <Eye className="h-4 w-4" />
-                        View
+                        <span className="hidden sm:inline">View</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDownload(document)}
-                        className="gap-2"
+                        className="gap-1.5"
+                        title="Download document"
                       >
                         <Download className="h-4 w-4" />
-                        Download
+                        <span className="hidden sm:inline">Download</span>
                       </Button>
                       {document.url && (
                         <Button
                           variant="ghost"
                           size="sm"
                           asChild
-                          className="gap-2"
+                          className="gap-1.5"
                         >
                           <a
                             href={document.url}

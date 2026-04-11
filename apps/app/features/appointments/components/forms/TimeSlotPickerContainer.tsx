@@ -53,7 +53,7 @@ export function TimeSlotPickerContainer({
         setTimeSlots(mapped);
       } catch (err) {
         logger.error("Failed to fetch time slots", { error: err });
-        setError("Failed to load available time slots. Please try again.");
+        setError("We could not load available time slots. Please try again.");
         setTimeSlots([]);
       } finally {
         setLoading(false);

@@ -105,9 +105,13 @@ export class MedicalHistoryService {
     });
   }
 
-  async updateCondition(id: string, dto: UpdateMedicalConditionInput) {
-    const existing = await this.prisma.patientMedicalCondition.findUnique({
-      where: { id },
+  async updateCondition(
+    id: string,
+    patientId: string,
+    dto: UpdateMedicalConditionInput,
+  ) {
+    const existing = await this.prisma.patientMedicalCondition.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Medical condition with ID ${id} not found`);
@@ -131,9 +135,9 @@ export class MedicalHistoryService {
     });
   }
 
-  async deleteCondition(id: string) {
-    const existing = await this.prisma.patientMedicalCondition.findUnique({
-      where: { id },
+  async deleteCondition(id: string, patientId: string) {
+    const existing = await this.prisma.patientMedicalCondition.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Medical condition with ID ${id} not found`);
@@ -167,9 +171,13 @@ export class MedicalHistoryService {
     });
   }
 
-  async updateAllergy(id: string, dto: UpdatePatientAllergyInput) {
-    const existing = await this.prisma.patientAllergy.findUnique({
-      where: { id },
+  async updateAllergy(
+    id: string,
+    patientId: string,
+    dto: UpdatePatientAllergyInput,
+  ) {
+    const existing = await this.prisma.patientAllergy.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Allergy with ID ${id} not found`);
@@ -188,9 +196,9 @@ export class MedicalHistoryService {
     });
   }
 
-  async deleteAllergy(id: string) {
-    const existing = await this.prisma.patientAllergy.findUnique({
-      where: { id },
+  async deleteAllergy(id: string, patientId: string) {
+    const existing = await this.prisma.patientAllergy.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Allergy with ID ${id} not found`);
@@ -225,9 +233,13 @@ export class MedicalHistoryService {
     });
   }
 
-  async updateFamilyHistory(id: string, dto: UpdatePatientFamilyHistoryInput) {
-    const existing = await this.prisma.patientFamilyHistory.findUnique({
-      where: { id },
+  async updateFamilyHistory(
+    id: string,
+    patientId: string,
+    dto: UpdatePatientFamilyHistoryInput,
+  ) {
+    const existing = await this.prisma.patientFamilyHistory.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Family history with ID ${id} not found`);
@@ -244,9 +256,9 @@ export class MedicalHistoryService {
     });
   }
 
-  async deleteFamilyHistory(id: string) {
-    const existing = await this.prisma.patientFamilyHistory.findUnique({
-      where: { id },
+  async deleteFamilyHistory(id: string, patientId: string) {
+    const existing = await this.prisma.patientFamilyHistory.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Family history with ID ${id} not found`);
@@ -350,10 +362,11 @@ export class MedicalHistoryService {
 
   async updateSurgicalHistory(
     id: string,
+    patientId: string,
     dto: UpdatePatientSurgicalHistoryInput,
   ) {
-    const existing = await this.prisma.patientSurgicalHistory.findUnique({
-      where: { id },
+    const existing = await this.prisma.patientSurgicalHistory.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Surgical history with ID ${id} not found`);
@@ -374,9 +387,9 @@ export class MedicalHistoryService {
     });
   }
 
-  async deleteSurgicalHistory(id: string) {
-    const existing = await this.prisma.patientSurgicalHistory.findUnique({
-      where: { id },
+  async deleteSurgicalHistory(id: string, patientId: string) {
+    const existing = await this.prisma.patientSurgicalHistory.findFirst({
+      where: { id, patientId },
     });
     if (!existing) {
       throw new NotFoundException(`Surgical history with ID ${id} not found`);

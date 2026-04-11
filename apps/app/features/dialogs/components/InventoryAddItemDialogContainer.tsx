@@ -7,6 +7,7 @@ import {
 } from "./InventoryAddItemDialogUI";
 import { useCreateInventoryItem } from "@/hooks/api/use-inventory";
 import { useConstants } from "@/features/_shared/hooks/use-constants";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface InventoryAddItemDialogContainerProps {
   isOpen: boolean;
@@ -46,7 +47,9 @@ export function InventoryAddItemDialogContainer({
           onSuccess();
         },
         onError: () => {
-          toast.error("Failed to add item");
+          showUserFacingErrorToast(
+            "We could not add this item. Please try again.",
+          );
         },
       },
     );

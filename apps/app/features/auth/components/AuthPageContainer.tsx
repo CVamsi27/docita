@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { Lock, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ApiValidationError } from "@/lib/api-error";
-import { DocitaLogo } from "@workspace/ui/components/docita-logo";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import {
+  checkEmailSchema,
+  getUserFacingErrorMessage,
+} from "@workspace/types";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
 import { AuthSignupStepUI } from "./AuthSignupStepUI";
-import { AuthBrandingPanel } from "./AuthBrandingPanel";
+import { PreDashboardShell } from "./PreDashboardShell";
 import type { AuthStep, FieldErrors } from "@/features/auth/types/auth";
 
 const STEP_TITLES: Record<AuthStep, string> = {
@@ -24,19 +26,6 @@ const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
   login: "Sign in to your workspace",
   signup: "Get started with Docita",
 };
-
-function sanitizeAuthErrorMessage(message: string): string {
-  const trimmed = message.trim();
-  if (trimmed.startsWith("[") && trimmed.includes('"code"')) {
-    const zodMessageMatch = trimmed.match(/"message"\s*:\s*"([^"]+)"/);
-    if (zodMessageMatch?.[1]) {
-      return zodMessageMatch[1];
-    }
-
-    return "Please check the highlighted fields and try again.";
-  }
-  return message;
-}
 
 function formatLockoutMessage(lockoutUntil: number | null): string {
   if (!lockoutUntil) {
@@ -56,23 +45,19 @@ export function AuthPageContainer() {
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [ownerRole, setOwnerRole] = useState<"ADMIN" | "ADMIN_DOCTOR">(
-    "ADMIN",
+  const [ownerRole, setOwnerRole] = useState<"ADMIN" | "ADMIN_DOCTOR" | null>(
+    null,
   );
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const {
-    login,
-    register,
-    checkEmail,
-    isLoginLocked,
-    loginLockoutUntil,
-  } = useAuth();
+  const { login, register, checkEmail, isLoginLocked, loginLockoutUntil } =
+    useAuth();
   const lockoutMessage = isLoginLocked
     ? formatLockoutMessage(loginLockoutUntil)
     : "";
@@ -82,31 +67,77 @@ export function AuthPageContainer() {
     setFieldErrors({});
   };
 
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) {
+        return prev;
+      }
+
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const handleOwnerRoleChange = (value: "ADMIN" | "ADMIN_DOCTOR") => {
+    setOwnerRole(value);
+    clearFieldError("ownerRole");
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    clearFieldError("confirmPassword");
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    clearFieldError("confirmPassword");
+  };
+
   const handleCatchError = (err: unknown, fallback: string) => {
     if (err instanceof ApiValidationError && err.hasFieldErrors) {
       setFieldErrors(err.fieldErrors);
-      setError(err.message);
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback,
+          context: "form",
+        }),
+      );
       return;
     }
 
-    if (err instanceof Error) {
-      setError(sanitizeAuthErrorMessage(err.message));
-      return;
-    }
-
-    setError(fallback);
+    setError(
+      getUserFacingErrorMessage(err, {
+        fallback,
+        context: "auth",
+      }),
+    );
   };
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetErrors();
+
+    const normalizedEmail = email.trim();
+    const validation = checkEmailSchema.safeParse({ email: normalizedEmail });
+    if (!validation.success) {
+      const emailIssue = validation.error.issues.find(
+        (issue) => issue.path[0] === "email",
+      );
+      setFieldErrors({
+        email: emailIssue?.message ?? "Please enter a valid email address",
+      });
+      return;
+    }
+
     setLoading(true);
+    setEmail(normalizedEmail);
 
     try {
-      const exists = await checkEmail(email);
+      const exists = await checkEmail(normalizedEmail);
       setStep(exists ? "login" : "signup");
     } catch (err) {
-      handleCatchError(err, "An error occurred checking email");
+      handleCatchError(err, "We could not check this email right now. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -120,7 +151,7 @@ export function AuthPageContainer() {
     try {
       await login(email, password);
     } catch (err) {
-      handleCatchError(err, "An error occurred during login");
+      handleCatchError(err, "We could not sign you in right now. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -129,6 +160,25 @@ export function AuthPageContainer() {
   const handleSignupSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetErrors();
+
+    const nextFieldErrors: FieldErrors = {};
+
+    if (!confirmPassword) {
+      nextFieldErrors.confirmPassword = "Please re-enter your password.";
+    } else if (password !== confirmPassword) {
+      nextFieldErrors.confirmPassword = "Passwords do not match.";
+    }
+
+    if (!ownerRole) {
+      nextFieldErrors.ownerRole =
+        "Choose how you will use this owner account.";
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -137,11 +187,11 @@ export function AuthPageContainer() {
         password,
         firstName,
         lastName,
-        ownerRole,
+        ownerRole ?? undefined,
         undefined,
       );
     } catch (err) {
-      handleCatchError(err, "An error occurred during registration");
+      handleCatchError(err, "We could not finish creating your account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -154,113 +204,93 @@ export function AuthPageContainer() {
   const handleBack = () => {
     setStep("email");
     setPassword("");
+    setConfirmPassword("");
     setFirstName("");
     setLastName("");
-    setOwnerRole("ADMIN");
+    setOwnerRole(null);
     resetErrors();
   };
 
+  const contentMaxWidth = step === "signup" ? "max-w-3xl" : "max-w-md";
+
   return (
-    <div className="flex min-h-screen bg-background">
-      <AuthBrandingPanel />
+    <PreDashboardShell currentStep={step} contentMaxWidth={contentMaxWidth}>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold">{STEP_TITLES[step]}</h1>
+        <p className="text-muted-foreground text-sm">
+          {STEP_DESCRIPTIONS[step]}
+        </p>
+      </div>
 
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 py-8 relative">
+      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
         <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)",
-          }}
-          aria-hidden="true"
-        />
+          key={step}
+          className="animate-in fade-in slide-in-from-right-4 duration-500"
+        >
+          {step === "email" && (
+            <AuthEmailStepUI
+              email={email}
+              fieldErrors={fieldErrors}
+              loading={loading}
+              error={error}
+              onChangeEmail={setEmail}
+              onSubmit={handleEmailSubmit}
+            />
+          )}
 
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
+          {step === "login" && (
+            <AuthLoginStepUI
+              email={email}
+              password={password}
+              showPassword={showPassword}
+              fieldErrors={fieldErrors}
+              loading={loading}
+              error={error}
+              isLocked={isLoginLocked}
+              lockoutMessage={lockoutMessage}
+              onBack={handleBack}
+              onChangePassword={setPassword}
+              onTogglePassword={() => setShowPassword((prev) => !prev)}
+              onSubmit={handleLoginSubmit}
+              onForgotPassword={handleForgotPassword}
+            />
+          )}
 
-        <div className="w-full max-w-md space-y-6 relative z-10">
-          <div className="lg:hidden flex justify-center mb-2">
-            <DocitaLogo />
-          </div>
-
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-            <h1 className="text-2xl font-bold tracking-tight">
-              {STEP_TITLES[step]}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {STEP_DESCRIPTIONS[step]}
-            </p>
-          </div>
-
-          <div className="rounded-2xl border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
-            <div
-              key={step}
-              className="animate-in fade-in slide-in-from-right-4 duration-500"
-            >
-              {step === "email" && (
-                <AuthEmailStepUI
-                  email={email}
-                  fieldErrors={fieldErrors}
-                  loading={loading}
-                  error={error}
-                  onChangeEmail={setEmail}
-                  onSubmit={handleEmailSubmit}
-                />
-              )}
-
-              {step === "login" && (
-                <AuthLoginStepUI
-                  email={email}
-                  password={password}
-                  showPassword={showPassword}
-                  fieldErrors={fieldErrors}
-                  loading={loading}
-                  error={error}
-                  isLocked={isLoginLocked}
-                  lockoutMessage={lockoutMessage}
-                  onBack={handleBack}
-                  onChangePassword={setPassword}
-                  onTogglePassword={() => setShowPassword((prev) => !prev)}
-                  onSubmit={handleLoginSubmit}
-                  onForgotPassword={handleForgotPassword}
-                />
-              )}
-
-              {step === "signup" && (
-                <AuthSignupStepUI
-                  email={email}
-                  firstName={firstName}
-                  lastName={lastName}
-                  password={password}
-                  ownerRole={ownerRole}
-                  showPassword={showPassword}
-                  fieldErrors={fieldErrors}
-                  loading={loading}
-                  error={error}
-                  onBack={handleBack}
-                  onChangeFirstName={setFirstName}
-                  onChangeLastName={setLastName}
-                  onChangePassword={setPassword}
-                  onChangeOwnerRole={setOwnerRole}
-                  onTogglePassword={() => setShowPassword((prev) => !prev)}
-                  onSubmit={handleSignupSubmit}
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="lg:hidden flex justify-center gap-6 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Shield className="h-3 w-3" />
-              Data Encrypted
-            </span>
-            <span className="flex items-center gap-1">
-              <Lock className="h-3 w-3" />
-              HIPAA Ready
-            </span>
-          </div>
+          {step === "signup" && (
+            <AuthSignupStepUI
+              email={email}
+              firstName={firstName}
+              lastName={lastName}
+              password={password}
+              confirmPassword={confirmPassword}
+              ownerRole={ownerRole}
+              showPassword={showPassword}
+              fieldErrors={fieldErrors}
+              loading={loading}
+              error={error}
+              onBack={handleBack}
+              onChangeFirstName={setFirstName}
+              onChangeLastName={setLastName}
+              onChangePassword={handlePasswordChange}
+              onChangeConfirmPassword={handleConfirmPasswordChange}
+              onChangeOwnerRole={handleOwnerRoleChange}
+              onTogglePassword={() => setShowPassword((prev) => !prev)}
+              onSubmit={handleSignupSubmit}
+            />
+          )}
         </div>
       </div>
-    </div>
+
+      <div className="lg:hidden flex justify-center gap-6 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <Shield className="h-3 w-3" />
+          Data Encrypted
+        </span>
+        <span className="flex items-center gap-1">
+          <Lock className="h-3 w-3" />
+          HIPAA Ready
+        </span>
+      </div>
+    </PreDashboardShell>
   );
 }

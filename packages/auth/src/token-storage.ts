@@ -27,7 +27,7 @@ export const tokenStorage = {
     });
 
     if (!response.ok) {
-      throw new Error("Token refresh failed");
+      throw new Error("Please sign in again to continue.");
     }
   },
 

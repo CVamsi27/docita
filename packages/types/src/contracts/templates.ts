@@ -8,9 +8,9 @@ export const templateFieldSchema = z.object({
 });
 
 export const createTemplateRequestSchema = z.object({
-  name: z.string().min(1, "Template name required"),
-  speciality: z.string().min(1, "Speciality required"),
-  fields: z.array(z.record(z.unknown())).min(1, "At least one field required"),
+  name: z.string().min(1, "Enter a template name."),
+  speciality: z.string().min(1, "Choose a specialty."),
+  fields: z.array(z.record(z.unknown())).min(1, "Add at least one field."),
   defaultObservations: z.string().optional(),
   clinicId: z.string().optional(),
 });

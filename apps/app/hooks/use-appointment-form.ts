@@ -14,6 +14,7 @@ import {
 import { DEFAULT_TIMEZONE, toLocalISOString } from "@workspace/utils";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UseAppointmentFormProps {
   onAppointmentAdded: () => void;
@@ -274,11 +275,11 @@ export function useAppointmentForm({
         toast.success("Appointment scheduled successfully");
       } catch (error) {
 
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to schedule appointment. Please try again.";
-        toast.error(errorMessage);
+        showUserFacingErrorToast(
+          error,
+          "We could not schedule this appointment. Please try again.",
+          "save",
+        );
       }
     },
     [form, onAppointmentAdded, createAppointment, defaultDuration, queryClient],

@@ -6,19 +6,20 @@ import { toast } from "sonner";
 import { useInvoice, useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useRouter } from "next/navigation";
 import { Invoice } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const invoiceItemSchema = z.object({
   id: z.string().optional(),
-  description: z.string().min(1, "Description is required"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  price: z.number().min(0, "Price must be positive"),
+  description: z.string().min(1, "Enter a description."),
+  quantity: z.number().min(1, "Enter a quantity of at least 1."),
+  price: z.number().min(0, "Enter a valid price."),
 });
 
 export const invoiceSchema = z.object({
   status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED", "PARTIALLY_PAID"]),
   discount: z.number().min(0),
   notes: z.string().optional(),
-  items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
+  items: z.array(invoiceItemSchema).min(1, "Add at least one item."),
 });
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>;
@@ -89,7 +90,9 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
       toast.success("Invoice updated successfully");
       router.push(`/invoices/${invoiceId}`);
     } catch {
-      toast.error("Failed to update invoice");
+      showUserFacingErrorToast(
+        "We could not save this invoice. Please try again.",
+      );
 
     } finally {
       setIsSaving(false);

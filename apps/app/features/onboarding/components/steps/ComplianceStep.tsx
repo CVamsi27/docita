@@ -37,6 +37,7 @@ import { buildJsonHeaders } from "@/lib/csrf";
 import { toAbsoluteAppUrl } from "@/lib/url";
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
 import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 type LegalDocumentType = "sla" | "privacy" | "dpa";
 interface ComplianceStepProps {
@@ -51,6 +52,18 @@ interface QrSessionStatusResponse {
   status?: string;
   uploaded?: boolean;
   fileUrl?: string | null;
+}
+
+function isStaleOnboardingSessionError(error: unknown): boolean {
+  if (!(error instanceof APIRequestError)) {
+    return false;
+  }
+
+  if (error.status !== 400 && error.status !== 404) {
+    return false;
+  }
+
+  return /onboarding session not found|expired/i.test(error.message);
 }
 
 // Reusable legal agreement card with scroll-to-enable
@@ -302,26 +315,16 @@ export function ComplianceStep({
     }
 
     if (!activeOnboardingId) {
-      throw new Error("Could not initialize onboarding session for QR signature.");
+      throw new Error("We could not create the signature link right now. Please try again.");
     }
 
     let sessionData: { id: string } | null = null;
-    let errMessage = "Failed to create QR session";
+    let errMessage = "We could not create the signature link right now. Please try again.";
 
     try {
       sessionData = await createSession(activeOnboardingId);
     } catch (error) {
-      errMessage = error instanceof Error ? error.message : errMessage;
-      const normalizedError = errMessage.toLowerCase();
-      const isStaleOnboardingSession = (
-        (error instanceof APIRequestError &&
-          (error.status === 400 || error.status === 404))
-      ) && (
-        normalizedError.includes("onboarding session not found") ||
-        normalizedError.includes("expired")
-      );
-
-      if (isStaleOnboardingSession && ensureOnboardingId) {
+      if (isStaleOnboardingSessionError(error) && ensureOnboardingId) {
         const refreshedOnboardingId = await ensureOnboardingId({
           forceRefresh: true,
         });
@@ -331,8 +334,8 @@ export function ComplianceStep({
         } catch (retryError) {
           errMessage =
             retryError instanceof Error
-              ? retryError.message
-              : "Failed to create QR session";
+              ? "We could not create the signature link right now. Please try again."
+              : errMessage;
         }
       }
     }
@@ -381,10 +384,10 @@ export function ComplianceStep({
       if (isUploaded) {
         toast.success("Signature synced");
       } else {
-        toast.message("Still waiting for signature upload");
+        toast.message("We have not received the signature yet.");
       }
     } catch {
-      toast.error("Unable to refresh signature status");
+      showUserFacingErrorToast("We could not refresh the signature status. Please try again.");
     }
   }, [refreshQrStatus]);
 
@@ -392,12 +395,12 @@ export function ComplianceStep({
     try {
       const copied = await copyQrLink();
       if (copied) {
-        toast.success("Link clicked");
+        toast.success("Link copied");
       } else {
-        toast.error("Unable to copy link");
+        showUserFacingErrorToast("We could not copy this link. Please try again.");
       }
     } catch {
-      toast.error("Unable to copy link");
+      showUserFacingErrorToast("We could not copy this link. Please try again.");
     }
   }, [copyQrLink]);
 

@@ -30,7 +30,7 @@ export default function WhatsAppPage() {
       {}
       <div className="flex-1 space-y-6 max-w-4xl mx-auto">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             WhatsApp Integration
           </h1>
           <p className="text-muted-foreground">

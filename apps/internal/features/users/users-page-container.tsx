@@ -62,7 +62,7 @@ export function UsersPageContainer() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team Members</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team Members</h1>
           <p className="text-muted-foreground mt-1">
             View and manage all users across clinics
           </p>
@@ -74,7 +74,7 @@ export function UsersPageContainer() {
           <CardContent className="flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="font-medium text-destructive">
-                Unable to load team members
+                We could not load your team members
               </p>
               <p className="text-sm text-muted-foreground">{errorMessage}</p>
             </div>

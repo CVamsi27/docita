@@ -42,7 +42,7 @@ export default function PatientHistoryPage({
               Back to Patient
             </Button>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Medical History</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Medical History</h1>
           <p className="text-muted-foreground">{patientName}</p>
         </div>
       </div>

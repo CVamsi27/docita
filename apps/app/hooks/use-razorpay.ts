@@ -44,6 +44,35 @@ export interface RazorpayResponse {
   [key: string]: unknown;
 }
 
+export interface RazorpayCheckoutError extends Error {
+  paymentCanceled?: boolean;
+}
+
+function createPaymentCanceledError(): RazorpayCheckoutError {
+  const error = new Error(
+    "Payment was canceled. No charge was made.",
+  ) as RazorpayCheckoutError;
+  error.paymentCanceled = true;
+  return error;
+}
+
+function createPaymentFailedError(): RazorpayCheckoutError {
+  return new Error(
+    "We could not complete this payment. Please try again.",
+  ) as RazorpayCheckoutError;
+}
+
+export function isPaymentCanceledError(
+  error: unknown,
+): error is RazorpayCheckoutError {
+  return Boolean(
+    error &&
+      typeof error === "object" &&
+      "paymentCanceled" in error &&
+      (error as RazorpayCheckoutError).paymentCanceled,
+  );
+}
+
 export function useRazorpay() {
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -72,7 +101,9 @@ export function useRazorpay() {
     async (options: RazorpayOptions) => {
       const loaded = await loadRazorpay();
       if (!loaded) {
-        throw new Error("Razorpay SDK failed to load. Are you online?");
+        throw new Error(
+          "We could not open payment right now. Please check your connection and try again.",
+        );
       }
 
       await new Promise<void>((resolve, reject) => {
@@ -90,7 +121,7 @@ export function useRazorpay() {
             ...options.modal,
             ondismiss: () => {
               options.modal?.ondismiss?.();
-              reject(new Error("Payment was cancelled"));
+              reject(createPaymentCanceledError());
             },
           },
         });
@@ -98,13 +129,8 @@ export function useRazorpay() {
         rzp.on?.(
           "payment.failed",
           (...args: unknown[]) => {
-            const response = (args[0] || {}) as {
-              error?: Record<string, unknown>;
-            };
-            const description = response.error?.description;
-            const message =
-              typeof description === "string" ? description : "Payment failed";
-            reject(new Error(message));
+            void args;
+            reject(createPaymentFailedError());
           },
         );
 

@@ -76,7 +76,7 @@ export function PortalHistoryTimelineUI({
     <div className="space-y-6">
       {showHeader ? (
         <div>
-          <h1 className="text-3xl font-bold">My Health History</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">My Health History</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             A complete record of your health journey in one place.
           </p>
@@ -92,7 +92,7 @@ export function PortalHistoryTimelineUI({
         <DataState
           status={timelineStatus}
           loadingMessage="Loading your timeline..."
-          errorMessage="Failed to load your timeline."
+          errorMessage="We could not load your health timeline. Please try again."
           onRetry={() => void refetch()}
           emptyIcon={History}
           emptyTitle="No timeline records found"

@@ -134,6 +134,36 @@ describe('EmailService', () => {
     });
   });
 
+  describe('sendVerificationEmail', () => {
+    it('sends a branded verification email with a signed footer', async () => {
+      const result = await service.sendVerificationEmail(
+        'user@example.com',
+        'John Doe',
+        'verify-token-123',
+      );
+
+      expect(result).toEqual({ success: true, messageId: 'msg-1' });
+      const call = emailProvider.send.mock.calls.at(-1)?.[0];
+      expect(call?.subject).toBe('Verify Your Email - Docita');
+      expect(call?.replyTo).toBe('support@docita.work');
+      expect(call?.html).toContain('Docita Care Team');
+      expect(call?.html).toContain('support@docita.work');
+      expect(call?.html).toContain('verify-token-123');
+      expect(call?.text).toContain('Warm regards,');
+    });
+
+    it('escapes the recipient name in the verification email', async () => {
+      await service.sendVerificationEmail(
+        'user@example.com',
+        '<script>alert("xss")</script>',
+        'verify-token-123',
+      );
+
+      const call = emailProvider.send.mock.calls.at(-1)?.[0];
+      expect(call?.html).not.toContain('<script>');
+    });
+  });
+
   describe('sendAppointmentReminder', () => {
     it('should send appointment reminder with correct details', async () => {
       const appointmentDate = new Date('2024-12-25T15:00:00Z');

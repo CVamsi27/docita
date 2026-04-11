@@ -20,7 +20,7 @@ export function InvoiceHeader({
   clinic,
 }: InvoiceHeaderProps) {
   return (
-    <CardHeader className="flex flex-row justify-between items-start border-b pb-6">
+    <CardHeader className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b pb-6">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-3">
           {clinic?.logo ? (

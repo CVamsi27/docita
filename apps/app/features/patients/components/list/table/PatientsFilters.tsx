@@ -37,7 +37,7 @@ export function PatientsFilters({
           <Tabs
             value={filterType}
             onValueChange={(v) => onFilterChange(v as "all" | "recent" | "new")}
-            className="w-[400px]"
+            className="w-full md:w-[400px]"
           >
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all">All</TabsTrigger>

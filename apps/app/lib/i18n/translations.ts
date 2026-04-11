@@ -66,7 +66,7 @@ const translations: Record<AppLocale, Record<TranslationKey, string>> = {
     upgrade: "Upgrade",
     loading: "Loading...",
     offlineBanner:
-      "You are offline. Viewing cached pages is available, but API-backed actions will resume after reconnection.",
+      "You are offline. Saved pages may still work. Actions will resume after you reconnect.",
   },
   hi: {
     language: "भाषा",
@@ -98,7 +98,7 @@ const translations: Record<AppLocale, Record<TranslationKey, string>> = {
     upgrade: "अपग्रेड",
     loading: "लोड हो रहा है...",
     offlineBanner:
-      "आप ऑफलाइन हैं। कैश किए गए पेज देखे जा सकते हैं, लेकिन API आधारित क्रियाएँ कनेक्शन लौटने के बाद फिर शुरू होंगी।",
+      "You are offline. Saved pages may still work. Actions will resume after you reconnect.",
   },
 };
 

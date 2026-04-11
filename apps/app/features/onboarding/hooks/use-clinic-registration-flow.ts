@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useRazorpay, type RazorpayResponse } from "@/hooks/use-razorpay";
+import {
+  isPaymentCanceledError,
+  useRazorpay,
+  type RazorpayResponse,
+} from "@/hooks/use-razorpay";
 import { apiFetch } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 import { buildCsrfHeaders, buildJsonHeaders } from "@/lib/csrf";
@@ -15,7 +19,9 @@ import {
   defaultClinicRegistrationData,
   type TeamMember,
 } from "@/features/onboarding/components/types";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface PlanPricing {
   monthly: number | "custom";
@@ -36,15 +42,33 @@ interface OnboardingCheckoutResponse {
 interface EnsureOnboardingIdOptions {
   forceRefresh?: boolean;
 }
-
-function formatMissingRequirements(missing: string[]): string {
-  const unique = [...new Set(missing)];
-  return unique.join(", ");
+interface RestartableOnboardingError extends Error {
+  restartOnboarding?: boolean;
 }
 
 const SESSION_KEY = "docita_onboarding_step";
 const SESSION_ONBOARDING_ID_KEY = "docita_onboarding_id";
 const SESSION_FORM_DATA_KEY = "docita_onboarding_form_data";
+const RESTARTABLE_ONBOARDING_ERROR =
+  /onboarding session not found|expired|validation|missing required/i;
+
+function isRestartableOnboardingError(error: unknown): boolean {
+  if (
+    error &&
+    typeof error === "object" &&
+    "restartOnboarding" in error &&
+    (error as RestartableOnboardingError).restartOnboarding === true
+  ) {
+    return true;
+  }
+
+  if (error instanceof ApiError) {
+    return error.statusCode === 400 || error.statusCode === 404;
+  }
+
+  const rawMessage = error instanceof Error ? error.message : String(error ?? "");
+  return RESTARTABLE_ONBOARDING_ERROR.test(rawMessage);
+}
 
 function getPersistedStep(): number {
   if (typeof sessionStorage === "undefined") return 1;
@@ -202,13 +226,10 @@ export function useClinicRegistrationFlow() {
           error.statusCode !== 400 &&
           error.statusCode !== 404
         ) {
-          throw new Error(error.message || "Unable to validate onboarding session");
+          throw new Error("We could not continue setup right now. Please try again.");
         }
 
-        if (
-          error instanceof Error &&
-          !error.message.toLowerCase().includes("onboarding")
-        ) {
+        if (!isRestartableOnboardingError(error)) {
           throw error;
         }
       }
@@ -302,12 +323,10 @@ export function useClinicRegistrationFlow() {
         const missing: string[] = [];
         if (!user?.email) missing.push("owner email");
         if (!user?.name) missing.push("owner name");
-        toast.error(
-          `Missing required data: ${formatMissingRequirements(missing)}.`,
-          {
-            description:
-              "Update your account profile details before starting payment.",
-          },
+        showUserFacingErrorToast(
+          null,
+          "Please complete your account details before starting payment.",
+          "form",
         );
         return;
       }
@@ -359,12 +378,14 @@ export function useClinicRegistrationFlow() {
           theme: { color: "#0F172A" },
         });
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Payment failed";
-        if (message === "Payment was cancelled") {
-          toast.info(message);
+        if (isPaymentCanceledError(error)) {
+          toast.info("Payment was canceled. No charge was made.");
         } else {
-          toast.error(message);
+          showUserFacingErrorToast(
+            error,
+            "We could not start payment right now. Please try again.",
+            "payment",
+          );
         }
       } finally {
         setIsProcessingPayment(false);
@@ -411,12 +432,10 @@ export function useClinicRegistrationFlow() {
       }
 
       if (missingRequirements.length > 0) {
-        toast.error(
-          `Missing required data: ${formatMissingRequirements(missingRequirements)}.`,
-          {
-            description:
-              "Progress could not be restored safely. Starting over from Step 1.",
-          },
+        showUserFacingErrorToast(
+          null,
+          "Please complete the required onboarding details before continuing.",
+          "form",
         );
         restartOnboarding();
         return;
@@ -482,11 +501,18 @@ export function useClinicRegistrationFlow() {
         });
 
         if (responseData.success === false) {
-          throw new Error(
-            responseData.errors?.[0] ||
-              responseData.message ||
-              "Registration failed",
+          const rawFailureMessage =
+            responseData.errors?.[0] ?? responseData.message ?? "";
+          const shouldRestartOnboarding =
+            RESTARTABLE_ONBOARDING_ERROR.test(rawFailureMessage);
+
+          const onboardingError: RestartableOnboardingError = new Error(
+            shouldRestartOnboarding
+              ? "We could not finish setup. Please start again."
+              : "We could not finish setup. Please try again.",
           );
+          onboardingError.restartOnboarding = shouldRestartOnboarding;
+          throw onboardingError;
         }
 
         if (responseData.access_token && responseData.user) {
@@ -517,23 +543,24 @@ export function useClinicRegistrationFlow() {
 
         onSuccess();
       } catch (error) {
-        const message = (error as Error).message;
-        const shouldRestartOnboarding =
-          /onboarding session not found|expired|validation|missing required/i.test(
-            message,
-          );
-
-        if (shouldRestartOnboarding) {
+        if (isRestartableOnboardingError(error)) {
           restartOnboarding();
-          toast.error("Registration data became invalid", {
-            description: `${message}. Restarted from Step 1.`,
-          });
+          showUserFacingErrorToast(
+            null,
+            "We could not finish setup. Please start again.",
+            "form",
+          );
           return;
         }
 
-        toast.error("Registration Failed", {
-          description: message,
-        });
+        showUserFacingErrorToast(
+          error,
+          getUserFacingErrorMessage(error, {
+            fallback: "We could not finish setup. Please try again.",
+            context: "form",
+          }),
+          "form",
+        );
       }
     },
     [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, restartOnboarding, user?.email, user?.name, user?.role],
