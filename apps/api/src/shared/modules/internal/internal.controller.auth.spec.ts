@@ -7,6 +7,7 @@ import { InternalAiService } from './internal-ai.service';
 import { InternalBillingService } from './internal-billing.service';
 import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
 import { ContactService } from '@/shared/modules/contact/contact.service';
+import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
@@ -53,6 +54,11 @@ describe('InternalController - Authorization', () => {
     submitInquiry: jest.fn(),
   };
 
+  const mockSupportWhatsAppInboxService = {
+    listMessages: jest.fn(),
+    recordIncomingMessages: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [InternalController],
@@ -84,6 +90,10 @@ describe('InternalController - Authorization', () => {
         {
           provide: ContactService,
           useValue: mockContactService,
+        },
+        {
+          provide: SupportWhatsAppInboxService,
+          useValue: mockSupportWhatsAppInboxService,
         },
         Reflector,
       ],
