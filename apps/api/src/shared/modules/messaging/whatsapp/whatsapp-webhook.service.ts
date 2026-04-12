@@ -136,7 +136,20 @@ export class WhatsappWebhookService {
           });
         }
       } catch (error) {
-        this.logger.error('Error processing status update:', error);
+        this.logger.error(
+          'Error processing WhatsApp log status update:',
+          error,
+        );
+      }
+
+      try {
+        await this.supportInboxService.updateMessageStatus(
+          status.id,
+          status.status,
+          status.errors?.[0],
+        );
+      } catch (error) {
+        this.logger.error('Error updating support inbox status:', error);
       }
     }
   }

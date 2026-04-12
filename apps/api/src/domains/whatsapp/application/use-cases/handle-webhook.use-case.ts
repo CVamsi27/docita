@@ -41,6 +41,11 @@ export class HandleWebhookUseCase {
           const status = statusObj.status;
 
           await this.processStatusUpdate(externalId, status, statusObj.errors);
+          await this.supportInboxService.updateMessageStatus(
+            externalId,
+            status,
+            statusObj.errors?.[0],
+          );
         }
       }
     }

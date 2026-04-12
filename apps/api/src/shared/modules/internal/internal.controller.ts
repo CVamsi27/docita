@@ -46,6 +46,12 @@ import { ContactService } from '@/shared/modules/contact/contact.service';
 import {
   SupportWhatsAppInboxService,
   SupportWhatsAppMessageListResponseDto,
+  SupportWhatsAppReadResponseDto,
+  SupportWhatsAppReplyDto,
+  SupportWhatsAppReplyResponseDto,
+  SupportWhatsAppThreadListResponseDto,
+  SupportWhatsAppThreadMessagesQueryDto,
+  SupportWhatsAppThreadsQueryDto,
 } from '@/shared/modules/support-whatsapp';
 import {
   FeedbackListResponseDto,
@@ -224,10 +230,59 @@ export class InternalController {
   }
 
   @Get('support/whatsapp')
+  @ZodSerializerDto(SupportWhatsAppThreadListResponseDto)
+  async getSupportWhatsAppThreads(
+    @Query() query?: SupportWhatsAppThreadsQueryDto,
+  ) {
+    const parsedLimit =
+      parsePaginationInt(String(query?.limit ?? ''), {
+        min: 1,
+        max: 200,
+      }) ?? 100;
+    return this.supportWhatsAppInboxService.listThreads(parsedLimit);
+  }
+
+  @Get('support/whatsapp/:threadPhoneNumber/messages')
   @ZodSerializerDto(SupportWhatsAppMessageListResponseDto)
-  async getSupportWhatsAppMessages(@Query('limit') limit?: string) {
-    const parsedLimit = parsePaginationInt(limit, { min: 1, max: 200 }) ?? 100;
-    return this.supportWhatsAppInboxService.listMessages(parsedLimit);
+  async getSupportWhatsAppThreadMessages(
+    @Param('threadPhoneNumber') threadPhoneNumber: string,
+    @Query() query?: SupportWhatsAppThreadMessagesQueryDto,
+  ) {
+    const parsedLimit =
+      parsePaginationInt(String(query?.limit ?? ''), {
+        min: 1,
+        max: 500,
+      }) ?? 500;
+    return this.supportWhatsAppInboxService.listThreadMessages(
+      threadPhoneNumber,
+      parsedLimit,
+    );
+  }
+
+  @Patch('support/whatsapp/:threadPhoneNumber/read')
+  @ZodSerializerDto(SupportWhatsAppReadResponseDto)
+  async markSupportWhatsAppThreadRead(
+    @Param('threadPhoneNumber') threadPhoneNumber: string,
+  ) {
+    const updatedCount =
+      await this.supportWhatsAppInboxService.markThreadAsRead(
+        threadPhoneNumber,
+      );
+
+    return { updatedCount };
+  }
+
+  @Post('support/whatsapp/:threadPhoneNumber/reply')
+  @ZodSerializerDto(SupportWhatsAppReplyResponseDto)
+  async replyToSupportWhatsAppThread(
+    @Param('threadPhoneNumber') threadPhoneNumber: string,
+    @Body() dto: SupportWhatsAppReplyDto,
+  ) {
+    return this.supportWhatsAppInboxService.replyToThread(
+      threadPhoneNumber,
+      dto.message,
+      dto.replyToProviderMessageId,
+    );
   }
 
   @Get('performance')

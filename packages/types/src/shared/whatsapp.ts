@@ -27,7 +27,7 @@ export const whatsappTemplateParameterSchema = z.object({
 export const whatsappTemplateComponentSchema = z.object({
   type: z.enum(["HEADER", "BODY", "FOOTER", "BUTTON"]),
   parameters: z.array(whatsappTemplateParameterSchema).optional(),
-  text: z.string().optional(), 
+  text: z.string().optional(),
 });
 
 export const whatsappTemplateSchema = z.object({
@@ -56,35 +56,90 @@ export const whatsappLogSchema = z.object({
   createdAt: z.date().or(z.string()),
 });
 
+export const supportWhatsAppMessageDirectionSchema = z.enum([
+  "INBOUND",
+  "OUTBOUND",
+]);
+
 export const supportWhatsAppMessageStatusSchema = z.enum([
+  "PENDING",
   "NEW",
   "READ",
   "REPLIED",
   "ARCHIVED",
+  "SENT",
+  "DELIVERED",
+  "FAILED",
 ]);
 
 export const supportWhatsAppMessageSchema = z.object({
   id: z.string(),
   providerMessageId: z.string(),
+  providerSentMessageId: z.string().nullable().optional(),
+  threadPhoneNumber: z.string(),
   supportPhoneNumber: z.string(),
   senderPhoneNumber: z.string(),
   senderName: z.string().nullable().optional(),
+  direction: supportWhatsAppMessageDirectionSchema,
   messageType: z.string(),
   messageBody: z.string(),
   status: supportWhatsAppMessageStatusSchema,
   receivedAt: z.date().or(z.string()),
   respondedAt: z.date().or(z.string()).nullable().optional(),
+  replyToProviderMessageId: z.string().nullable().optional(),
+  errorMessage: z.string().nullable().optional(),
+});
+
+export const supportWhatsAppThreadSummarySchema = z.object({
+  threadPhoneNumber: z.string(),
+  supportPhoneNumber: z.string(),
+  senderName: z.string().nullable().optional(),
+  lastMessageId: z.string(),
+  lastMessageBody: z.string(),
+  lastMessageType: z.string(),
+  lastMessageDirection: supportWhatsAppMessageDirectionSchema,
+  lastMessageStatus: supportWhatsAppMessageStatusSchema,
+  lastMessageAt: z.date().or(z.string()),
+  messageCount: z.number().int().min(0),
+  unreadCount: z.number().int().min(0),
 });
 
 export const supportWhatsAppMessageListResponseSchema = z.array(
   supportWhatsAppMessageSchema,
 );
 
+export const supportWhatsAppThreadListResponseSchema = z.array(
+  supportWhatsAppThreadSummarySchema,
+);
+
+export const supportWhatsAppReplyRequestSchema = z
+  .object({
+    message: z.string().trim().min(1).max(4000),
+    replyToProviderMessageId: z.string().optional(),
+  })
+  .strict();
+
+export const supportWhatsAppReplyResponseSchema =
+  supportWhatsAppMessageSchema;
+
+export const supportWhatsAppReadResponseSchema = z.object({
+  updatedCount: z.number().int().min(0),
+});
+
 export type SupportWhatsAppMessage = z.infer<
   typeof supportWhatsAppMessageSchema
 >;
+export type SupportWhatsAppMessageDirection = z.infer<
+  typeof supportWhatsAppMessageDirectionSchema
+>;
 export type SupportWhatsAppMessageStatus = z.infer<
   typeof supportWhatsAppMessageStatusSchema
+>;
+export type SupportWhatsAppThreadSummary = z.infer<
+  typeof supportWhatsAppThreadSummarySchema
+>;
+export type SupportWhatsAppReplyRequest = z.infer<
+  typeof supportWhatsAppReplyRequestSchema
 >;
 
 export const whatsappStatsSchema = z.object({

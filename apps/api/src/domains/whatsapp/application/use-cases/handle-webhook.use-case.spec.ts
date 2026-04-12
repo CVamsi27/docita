@@ -84,6 +84,8 @@ describe('HandleWebhookUseCase', () => {
     jest.fn<IWhatsAppRepository['isAutomationEnabled']>();
   const recordIncomingMessagesMock =
     jest.fn<SupportWhatsAppInboxService['recordIncomingMessages']>();
+  const updateMessageStatusMock =
+    jest.fn<SupportWhatsAppInboxService['updateMessageStatus']>();
 
   const mockRepository: IWhatsAppRepository = {
     saveMessage: saveMessageMock,
@@ -97,6 +99,7 @@ describe('HandleWebhookUseCase', () => {
   };
   const mockSupportInboxService = {
     recordIncomingMessages: recordIncomingMessagesMock,
+    updateMessageStatus: updateMessageStatusMock,
   };
 
   beforeEach(() => {
@@ -111,6 +114,7 @@ describe('HandleWebhookUseCase', () => {
     listTemplatesByClinicMock.mockResolvedValue([] as WhatsAppTemplate[]);
     isAutomationEnabledMock.mockResolvedValue(true);
     recordIncomingMessagesMock.mockResolvedValue();
+    updateMessageStatusMock.mockResolvedValue();
 
     useCase = new HandleWebhookUseCase(
       mockRepository,
@@ -125,6 +129,11 @@ describe('HandleWebhookUseCase', () => {
       expect(findMessageByExternalIdMock).toHaveBeenCalledWith('wamid.ext001');
       const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.SENT);
+      expect(updateMessageStatusMock).toHaveBeenCalledWith(
+        'wamid.ext001',
+        'sent',
+        undefined,
+      );
     });
 
     it('should update message status to DELIVERED', async () => {
@@ -132,6 +141,11 @@ describe('HandleWebhookUseCase', () => {
 
       const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.DELIVERED);
+      expect(updateMessageStatusMock).toHaveBeenCalledWith(
+        'wamid.ext001',
+        'delivered',
+        undefined,
+      );
     });
 
     it('should update message status to READ', async () => {
@@ -139,6 +153,11 @@ describe('HandleWebhookUseCase', () => {
 
       const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.READ);
+      expect(updateMessageStatusMock).toHaveBeenCalledWith(
+        'wamid.ext001',
+        'read',
+        undefined,
+      );
     });
 
     it('should update message status to FAILED', async () => {
@@ -146,6 +165,11 @@ describe('HandleWebhookUseCase', () => {
 
       const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.FAILED);
+      expect(updateMessageStatusMock).toHaveBeenCalledWith(
+        'wamid.ext001',
+        'failed',
+        undefined,
+      );
     });
 
     it('should set error code and message on FAILED with errors', async () => {
@@ -161,6 +185,15 @@ describe('HandleWebhookUseCase', () => {
 
       const saved = saveMessageMock.mock.calls[0][0] as WhatsAppMessage;
       expect(saved.status).toBe(WhatsAppMessageStatus.FAILED);
+      expect(updateMessageStatusMock).toHaveBeenCalledWith(
+        'wamid.ext001',
+        'failed',
+        {
+          code: 131026,
+          title: 'Message undeliverable',
+          message: 'Message undeliverable',
+        },
+      );
     });
 
     it('should skip update when external ID not found in repository', async () => {

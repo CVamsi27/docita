@@ -9,6 +9,8 @@ import {
   Patient,
   SupportInquiry,
   SupportWhatsAppMessage,
+  SupportWhatsAppReplyRequest,
+  SupportWhatsAppThreadSummary,
 } from "@workspace/types";
 type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
@@ -255,10 +257,32 @@ export const feedbackAPI = {
 export const supportAPI = {
   getInquiries: (limit = 100): Promise<SupportInquiry[]> =>
     client.get(`/internal/support/inquiries?limit=${limit}`),
-  getWhatsAppMessages: (
+  getWhatsAppThreads: (
     limit = 100,
-  ): Promise<SupportWhatsAppMessage[]> =>
+  ): Promise<SupportWhatsAppThreadSummary[]> =>
     client.get(`/internal/support/whatsapp?limit=${limit}`),
+  getWhatsAppThreadMessages: (
+    threadPhoneNumber: string,
+    limit = 500,
+  ): Promise<SupportWhatsAppMessage[]> =>
+    client.get(
+      `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/messages?limit=${limit}`,
+    ),
+  markWhatsAppThreadRead: (
+    threadPhoneNumber: string,
+  ): Promise<{ updatedCount: number }> =>
+    client.patch(
+      `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/read`,
+      {},
+    ),
+  replyToWhatsAppThread: (
+    threadPhoneNumber: string,
+    data: SupportWhatsAppReplyRequest,
+  ): Promise<SupportWhatsAppMessage> =>
+    client.post(
+      `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/reply`,
+      data,
+    ),
 };
 
 export interface SubscriptionOverview {

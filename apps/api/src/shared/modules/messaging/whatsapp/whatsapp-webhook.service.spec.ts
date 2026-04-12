@@ -25,6 +25,7 @@ describe('WhatsappWebhookService', () => {
   let mockWhatsappClient: { AppSecret: string; VerifyToken: string };
   let mockSupportInboxService: {
     recordIncomingMessages: ReturnType<typeof jest.fn>;
+    updateMessageStatus: ReturnType<typeof jest.fn>;
   };
   let mockResponseHandler: {
     handlePatientResponse: ReturnType<typeof jest.fn>;
@@ -61,6 +62,7 @@ describe('WhatsappWebhookService', () => {
       recordIncomingMessages: jest
         .fn()
         .mockImplementation(async () => undefined),
+      updateMessageStatus: jest.fn().mockImplementation(async () => undefined),
     };
     mockResponseHandler = {
       handlePatientResponse: jest
@@ -169,6 +171,9 @@ describe('WhatsappWebhookService', () => {
         '919876543210',
         'wamid.msg123',
       );
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should process interactive button_reply message', async () => {
@@ -197,6 +202,9 @@ describe('WhatsappWebhookService', () => {
         '919876543210',
         'wamid.btn123',
       );
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should process interactive list_reply message', async () => {
@@ -223,6 +231,9 @@ describe('WhatsappWebhookService', () => {
         expect.any(String),
         expect.any(String),
       );
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should process button message type', async () => {
@@ -249,6 +260,9 @@ describe('WhatsappWebhookService', () => {
         expect.any(String),
         expect.any(String),
       );
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should not call responseHandler for media messages (no text/button response)', async () => {
@@ -261,6 +275,9 @@ describe('WhatsappWebhookService', () => {
       );
 
       expect(mockResponseHandler.handlePatientResponse).not.toHaveBeenCalled();
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should log warning and not call responseHandler when no appointment found', async () => {
@@ -279,6 +296,9 @@ describe('WhatsappWebhookService', () => {
       );
 
       expect(mockResponseHandler.handlePatientResponse).not.toHaveBeenCalled();
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should not call responseHandler when patient is not found', async () => {
@@ -296,6 +316,9 @@ describe('WhatsappWebhookService', () => {
       );
 
       expect(mockResponseHandler.handlePatientResponse).not.toHaveBeenCalled();
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should catch and not rethrow errors from responseHandler', async () => {
@@ -355,6 +378,11 @@ describe('WhatsappWebhookService', () => {
           deliveredAt: expect.any(Date),
         }),
       });
+      expect(mockSupportInboxService.updateMessageStatus).toHaveBeenCalledWith(
+        'wamid.delivered123',
+        'delivered',
+        undefined,
+      );
     });
 
     it('should update WhatsappLog status to READ with deliveredAt timestamp', async () => {
@@ -378,6 +406,11 @@ describe('WhatsappWebhookService', () => {
           deliveredAt: expect.any(Date),
         }),
       });
+      expect(mockSupportInboxService.updateMessageStatus).toHaveBeenCalledWith(
+        'wamid.read123',
+        'read',
+        undefined,
+      );
     });
 
     it('should update WhatsappLog with FAILED status and errorMessage', async () => {
@@ -403,6 +436,14 @@ describe('WhatsappWebhookService', () => {
           errorMessage: expect.stringContaining('131030'),
         }),
       });
+      expect(mockSupportInboxService.updateMessageStatus).toHaveBeenCalledWith(
+        'wamid.failed123',
+        'failed',
+        {
+          code: 131030,
+          title: 'Recipient phone number not in allowed list',
+        },
+      );
     });
 
     it('should not call update when no matching log record found', async () => {
@@ -419,6 +460,11 @@ describe('WhatsappWebhookService', () => {
       );
 
       expect(mockPrisma.whatsappLog.update).not.toHaveBeenCalled();
+      expect(mockSupportInboxService.updateMessageStatus).toHaveBeenCalledWith(
+        'wamid.unknown',
+        'delivered',
+        undefined,
+      );
     });
 
     it('should handle empty statuses array gracefully', async () => {
@@ -432,6 +478,9 @@ describe('WhatsappWebhookService', () => {
       } as Parameters<typeof service.processStatusUpdates>[0]);
 
       expect(mockPrisma.whatsappLog.update).not.toHaveBeenCalled();
+      expect(
+        mockSupportInboxService.updateMessageStatus,
+      ).not.toHaveBeenCalled();
     });
 
     it('should catch and not rethrow errors during status update processing', async () => {
@@ -450,6 +499,11 @@ describe('WhatsappWebhookService', () => {
           >[0],
         ),
       ).resolves.not.toThrow();
+      expect(mockSupportInboxService.updateMessageStatus).toHaveBeenCalledWith(
+        'wamid.dberr',
+        'delivered',
+        undefined,
+      );
     });
   });
 });

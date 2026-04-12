@@ -230,6 +230,7 @@ model DoctorSchedule {
   @@index([doctorId])
   @@index([clinicId])
   @@index([dayOfWeek])
+  @@index([clinicId, dayOfWeek, isActive], map: "DoctorSchedule_clinicId_dayOfWeek_isActive_idx")
 }
 
 model DoctorTimeOff {
@@ -377,6 +378,7 @@ model PatientMedicalCondition {
   @@index([conditionType])
   @@index([status])
   @@index([icdCode])
+  @@index([patientId, status], map: "PatientMedicalCondition_patientId_status_idx")
 }
 
 // Detailed allergy tracking with severity and reactions
@@ -400,6 +402,7 @@ model PatientAllergy {
   @@index([patientId])
   @@index([allergyType])
   @@index([severity])
+  @@index([patientId, severity], map: "PatientAllergy_patientId_severity_idx")
 }
 
 // Family medical history
@@ -785,6 +788,7 @@ model MedicationDose {
   @@index([prescriptionId])
   @@index([clinicId, patientId])
   @@index([status])
+  @@index([patientId, clinicId, scheduledAt(sort: Desc)], map: "MedicationDose_patientId_clinicId_scheduledAt_idx")
 }
 
 enum MedicationDoseStatus {
@@ -1279,6 +1283,7 @@ model WhatsappLog {
   @@index([invoiceId])
   @@index([prescriptionId])
   @@index([status])
+  @@index([clinicId, status, createdAt], map: "WhatsappLog_clinicId_status_createdAt_idx")
 }
 
 model SupportInquiry {
@@ -1300,22 +1305,29 @@ model SupportInquiry {
 }
 
 model SupportWhatsAppMessage {
-  id                String                       @id @default(cuid())
-  providerMessageId String                       @unique
-  supportPhoneNumber String
-  senderPhoneNumber  String
-  senderName         String?
-  messageType        String
-  messageBody        String
-  status             SupportWhatsAppMessageStatus @default(NEW)
-  receivedAt         DateTime                     @default(now())
-  respondedAt        DateTime?
-  rawPayload         Json?
-  createdAt          DateTime                     @default(now())
-  updatedAt          DateTime                     @updatedAt
+  id                        String                       @id @default(cuid())
+  providerMessageId         String                       @unique
+  providerSentMessageId      String?                      @unique
+  threadPhoneNumber         String
+  supportPhoneNumber        String
+  senderPhoneNumber         String
+  senderName                String?
+  direction                 SupportWhatsAppMessageDirection @default(INBOUND)
+  messageType               String
+  messageBody               String
+  status                    SupportWhatsAppMessageStatus @default(NEW)
+  receivedAt                DateTime                     @default(now())
+  respondedAt               DateTime?
+  replyToProviderMessageId  String?
+  errorMessage              String?
+  rawPayload                Json?
+  createdAt                 DateTime                     @default(now())
+  updatedAt                 DateTime                     @updatedAt
 
   @@index([status])
-  @@index([receivedAt])
+  @@index([direction, receivedAt])
+  @@index([threadPhoneNumber, receivedAt])
+  @@index([threadPhoneNumber, status])
   @@index([senderPhoneNumber])
   @@index([supportPhoneNumber])
 }
@@ -1496,10 +1508,19 @@ enum SupportInquiryStatus {
 }
 
 enum SupportWhatsAppMessageStatus {
+  PENDING
   NEW
   READ
   REPLIED
   ARCHIVED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum SupportWhatsAppMessageDirection {
+  INBOUND
+  OUTBOUND
 }
 
 enum OcrDocumentStatus {
@@ -1806,6 +1827,7 @@ model LabTestOrder {
   @@index([patientId])
   @@index([status])
   @@index([patientId, clinicId, status])
+  @@index([appointmentId], map: "LabTestOrder_appointmentId_idx")
 }
 
 model WhatsappFlow {
@@ -2205,6 +2227,7 @@ model Immunization {
   @@index([patientId])
   @@index([cvxCode])
   @@index([administeredDate])
+  @@index([patientId, administeredDate(sort: Desc)], map: "Immunization_patientId_administeredDate_idx")
 }
 
 // ============================================================================
@@ -2263,6 +2286,7 @@ model Consent {
   @@index([consentType])
   @@index([status])
   @@index([validUntil])
+  @@index([clinicId, status], map: "Consent_clinicId_status_idx")
 }
 
 model ConsentTemplate {

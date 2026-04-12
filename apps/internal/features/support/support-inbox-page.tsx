@@ -1,23 +1,42 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { Textarea } from "@workspace/ui/components/textarea";
+import {
+  getUserFacingErrorMessage,
+  SupportWhatsAppMessage,
+} from "@workspace/types";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { supportAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { Inbox, MessageSquare, Phone, Search } from "lucide-react";
+import {
+  Inbox,
+  Loader2,
+  MessageSquare,
+  Phone,
+  Search,
+  Send,
+} from "lucide-react";
 
-function getSenderLabel(message: {
+const THREAD_LIMIT = 100;
+const THREAD_MESSAGES_LIMIT = 500;
+
+function getThreadLabel(thread: {
   senderName?: string | null;
-  senderPhoneNumber: string;
+  threadPhoneNumber: string;
 }) {
-  return message.senderName?.trim() || message.senderPhoneNumber;
+  return thread.senderName?.trim() || thread.threadPhoneNumber;
 }
 
 function getWhatsAppLink(phoneNumber: string) {
@@ -34,74 +53,194 @@ function formatMessageType(messageType: string) {
     .join(" ");
 }
 
+function formatStatusBadgeVariant(status: string) {
+  if (status === "PENDING") return "secondary";
+  if (status === "NEW") return "default";
+  if (status === "FAILED") return "destructive";
+  return "secondary";
+}
+
+function getMessageAuthor(
+  message: Pick<
+    SupportWhatsAppMessage,
+    "direction" | "senderName" | "senderPhoneNumber"
+  >,
+) {
+  if (message.direction === "OUTBOUND") {
+    return "You";
+  }
+
+  return message.senderName?.trim() || message.senderPhoneNumber;
+}
+
 export function SupportInboxPage() {
   const { token } = useAuth();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedThreadPhoneNumber, setSelectedThreadPhoneNumber] = useState<
+    string | null
+  >(null);
+  const [replyMessage, setReplyMessage] = useState("");
+  const deferredSearch = useDeferredValue(search);
 
-  const supportQuery = useQuery({
-    queryKey: internalQueryKeys.internal.supportWhatsAppMessages(100),
-    queryFn: () => supportAPI.getWhatsAppMessages(100),
+  const threadsQueryKey = internalQueryKeys.internal.supportWhatsAppThreads(
+    THREAD_LIMIT,
+  );
+  const selectedThreadKey = selectedThreadPhoneNumber
+    ? internalQueryKeys.internal.supportWhatsAppThreadMessages(
+        selectedThreadPhoneNumber,
+        THREAD_MESSAGES_LIMIT,
+      )
+    : null;
+
+  const threadsQuery = useQuery({
+    queryKey: threadsQueryKey,
+    queryFn: () => supportAPI.getWhatsAppThreads(THREAD_LIMIT),
     enabled: Boolean(token),
   });
 
-  const messages = useMemo(() => supportQuery.data ?? [], [supportQuery.data]);
+  const threadMessagesQuery = useQuery({
+    queryKey: selectedThreadKey ?? ["internal", "support", "whatsapp", "thread", ""],
+    queryFn: () =>
+      supportAPI.getWhatsAppThreadMessages(
+        selectedThreadPhoneNumber ?? "",
+        THREAD_MESSAGES_LIMIT,
+      ),
+    enabled: Boolean(token && selectedThreadPhoneNumber),
+  });
 
-  const filteredMessages = useMemo(() => {
-    const normalized = search.trim().toLowerCase();
-    if (!normalized) return messages;
+  const markReadMutation = useMutation({
+    mutationFn: (threadPhoneNumber: string) =>
+      supportAPI.markWhatsAppThreadRead(threadPhoneNumber),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: threadsQueryKey }),
+        selectedThreadKey
+          ? queryClient.invalidateQueries({ queryKey: selectedThreadKey })
+          : Promise.resolve(),
+      ]);
+    },
+  });
 
-    return messages.filter((message) => {
+  const replyMutation = useMutation({
+    mutationFn: ({
+      threadPhoneNumber,
+      message,
+    }: {
+      threadPhoneNumber: string;
+      message: string;
+    }) => supportAPI.replyToWhatsAppThread(threadPhoneNumber, { message }),
+    onSuccess: async () => {
+      setReplyMessage("");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: threadsQueryKey }),
+        selectedThreadKey
+          ? queryClient.invalidateQueries({ queryKey: selectedThreadKey })
+          : Promise.resolve(),
+      ]);
+    },
+  });
+
+  const threads = useMemo(
+    () => threadsQuery.data ?? [],
+    [threadsQuery.data],
+  );
+
+  const filteredThreads = useMemo(() => {
+    const normalized = deferredSearch.trim().toLowerCase();
+    if (!normalized) return threads;
+
+    return threads.filter((thread) => {
       return [
-        message.senderName,
-        message.senderPhoneNumber,
-        message.supportPhoneNumber,
-        message.messageType,
-        message.messageBody,
+        thread.senderName,
+        thread.threadPhoneNumber,
+        thread.supportPhoneNumber,
+        thread.lastMessageBody,
+        thread.lastMessageType,
+        thread.lastMessageStatus,
+        thread.lastMessageDirection,
       ]
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(normalized));
     });
-  }, [messages, search]);
+  }, [deferredSearch, threads]);
 
   useEffect(() => {
-    if (filteredMessages.length === 0) {
-      if (selectedMessageId !== null) {
-        setSelectedMessageId(null);
-      }
+    if (filteredThreads.length === 0) {
+      setSelectedThreadPhoneNumber(null);
       return;
     }
 
-    const hasSelectedMessage = filteredMessages.some(
-      (message) => message.id === selectedMessageId,
+    setSelectedThreadPhoneNumber((current) =>
+      current &&
+      filteredThreads.some((thread) => thread.threadPhoneNumber === current)
+        ? current
+        : filteredThreads[0]?.threadPhoneNumber ?? null,
     );
+  }, [filteredThreads]);
 
-    if (!hasSelectedMessage) {
-      setSelectedMessageId(filteredMessages[0]?.id ?? null);
+  useEffect(() => {
+    if (!selectedThreadPhoneNumber) {
+      return;
     }
-  }, [filteredMessages, selectedMessageId]);
 
-  const selectedMessage = useMemo(() => {
-    if (!filteredMessages.length) {
+    markReadMutation.mutate(selectedThreadPhoneNumber);
+  }, [markReadMutation, selectedThreadPhoneNumber]);
+
+  const selectedThread = useMemo(() => {
+    if (!filteredThreads.length) {
       return null;
     }
 
     return (
-      filteredMessages.find((message) => message.id === selectedMessageId) ??
-      filteredMessages[0] ??
-      null
+      filteredThreads.find(
+        (thread) => thread.threadPhoneNumber === selectedThreadPhoneNumber,
+      ) ?? filteredThreads[0] ?? null
     );
-  }, [filteredMessages, selectedMessageId]);
+  }, [filteredThreads, selectedThreadPhoneNumber]);
 
-  const total = messages.length;
-  const newCount = messages.filter((message) => message.status === "NEW").length;
-  const loading = supportQuery.isLoading;
-  const errorMessage = supportQuery.isError
-    ? getUserFacingErrorMessage(supportQuery.error, {
+  const threadMessages = useMemo(
+    () => threadMessagesQuery.data ?? [],
+    [threadMessagesQuery.data],
+  );
+
+  const totalThreads = threads.length;
+  const unreadMessages = threads.reduce(
+    (total, thread) => total + thread.unreadCount,
+    0,
+  );
+
+  const threadsLoading = threadsQuery.isLoading;
+  const threadsErrorMessage = threadsQuery.isError
+    ? getUserFacingErrorMessage(threadsQuery.error, {
         context: "load",
         fallback: "We could not load WhatsApp messages right now. Please try again.",
       })
     : null;
+
+  const threadMessagesErrorMessage = threadMessagesQuery.isError
+    ? getUserFacingErrorMessage(threadMessagesQuery.error, {
+        context: "load",
+        fallback: "We could not load this conversation right now. Please try again.",
+      })
+    : null;
+
+  const handleReply = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedThreadPhoneNumber) {
+      return;
+    }
+
+    const trimmedMessage = replyMessage.trim();
+    if (!trimmedMessage) {
+      return;
+    }
+
+    await replyMutation.mutateAsync({
+      threadPhoneNumber: selectedThreadPhoneNumber,
+      message: trimmedMessage,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -112,11 +251,12 @@ export function SupportInboxPage() {
             WhatsApp Inbox
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               Incoming Messages
             </h1>
             <p className="text-sm text-muted-foreground">
-              Live WhatsApp messages received on the onboarding support line.
+              Live WhatsApp conversations received on the onboarding support
+              line, with replies sent directly from the internal portal.
             </p>
           </div>
         </div>
@@ -125,55 +265,55 @@ export function SupportInboxPage() {
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Total
+                Threads
               </p>
-              <p className="text-2xl font-bold">{total}</p>
+              <p className="text-2xl font-bold">{totalThreads}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                New
+                Unread
               </p>
-              <p className="text-2xl font-bold">{newCount}</p>
+              <p className="text-2xl font-bold">{unreadMessages}</p>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {loading && (
+      {threadsLoading && (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading WhatsApp messages...
+            Loading WhatsApp conversations...
           </CardContent>
         </Card>
       )}
 
-      {errorMessage && (
+      {threadsErrorMessage && (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="p-6 text-sm text-destructive">
-            {errorMessage}
+            {threadsErrorMessage}
           </CardContent>
         </Card>
       )}
 
-      {!loading && !errorMessage && (
+      {!threadsLoading && !threadsErrorMessage && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <Card className="min-w-0">
             <CardHeader className="space-y-4 border-b bg-muted/20">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">Messages</CardTitle>
+                  <CardTitle className="text-lg">Threads</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Select a message to review the full details.
+                    Select a conversation to review the full WhatsApp history.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 text-right">
                   <Badge variant="secondary" className="w-fit self-end">
-                    {total} total
+                    {totalThreads} total
                   </Badge>
                   <Badge variant="default" className="w-fit self-end">
-                    {newCount} new
+                    {unreadMessages} unread
                   </Badge>
                 </div>
               </div>
@@ -190,21 +330,24 @@ export function SupportInboxPage() {
             </CardHeader>
 
             <CardContent className="space-y-3 p-4 sm:p-5">
-              {filteredMessages.length === 0 ? (
+              {filteredThreads.length === 0 ? (
                 <div className="rounded-xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                   {search.trim()
-                    ? "No WhatsApp messages matched your search."
+                    ? "No WhatsApp conversations matched your search."
                     : "No incoming WhatsApp messages yet."}
                 </div>
               ) : (
-                filteredMessages.map((message) => {
-                  const isSelected = message.id === selectedMessage?.id;
+                filteredThreads.map((thread) => {
+                  const isSelected =
+                    thread.threadPhoneNumber === selectedThread?.threadPhoneNumber;
 
                   return (
                     <button
-                      key={message.id}
+                      key={thread.threadPhoneNumber}
                       type="button"
-                      onClick={() => setSelectedMessageId(message.id)}
+                      onClick={() =>
+                        setSelectedThreadPhoneNumber(thread.threadPhoneNumber)
+                      }
                       className={[
                         "w-full rounded-xl border p-4 text-left transition-colors",
                         "hover:border-primary/40 hover:bg-muted/30",
@@ -217,23 +360,25 @@ export function SupportInboxPage() {
                         <div className="min-w-0 space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="truncate text-sm font-semibold">
-                              {getSenderLabel(message)}
+                              {getThreadLabel(thread)}
                             </p>
-                            <Badge
-                              variant={message.status === "NEW" ? "default" : "secondary"}
-                            >
-                              {message.status}
-                            </Badge>
+                            {thread.unreadCount > 0 && (
+                              <Badge variant="default">{thread.unreadCount} new</Badge>
+                            )}
                           </div>
                           <p className="truncate text-xs text-muted-foreground">
-                            {message.senderPhoneNumber}
+                            {thread.threadPhoneNumber}
                           </p>
                           <p className="line-clamp-2 text-sm text-muted-foreground">
-                            {message.messageBody}
+                            {thread.lastMessageBody}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatMessageType(thread.lastMessageType)} on{" "}
+                            {thread.lastMessageDirection.toLowerCase()}
                           </p>
                         </div>
                         <div className="shrink-0 text-right text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(message.receivedAt), {
+                          {formatDistanceToNow(new Date(thread.lastMessageAt), {
                             addSuffix: true,
                           })}
                         </div>
@@ -246,24 +391,24 @@ export function SupportInboxPage() {
           </Card>
 
           <Card className="min-w-0">
-            {selectedMessage ? (
+            {selectedThread ? (
               <>
                 <CardHeader className="space-y-4 border-b bg-muted/20">
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <CardTitle className="text-lg">
-                          {getSenderLabel(selectedMessage)}
+                          {getThreadLabel(selectedThread)}
                         </CardTitle>
-                        <Badge
-                          variant={selectedMessage.status === "NEW" ? "default" : "secondary"}
-                        >
-                          {selectedMessage.status}
-                        </Badge>
+                        {selectedThread.unreadCount > 0 && (
+                          <Badge variant="default">
+                            {selectedThread.unreadCount} unread
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex flex-col gap-1 text-sm text-muted-foreground">
                         <a
-                          href={getWhatsAppLink(selectedMessage.senderPhoneNumber)}
+                          href={getWhatsAppLink(selectedThread.threadPhoneNumber)}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-2 hover:text-foreground"
@@ -273,24 +418,23 @@ export function SupportInboxPage() {
                         </a>
                         <p className="inline-flex items-center gap-2">
                           <Phone className="h-4 w-4" />
-                          {selectedMessage.senderPhoneNumber}
+                          {selectedThread.threadPhoneNumber}
                         </p>
-                        <p>Support line: {selectedMessage.supportPhoneNumber}</p>
-                        <p>Type: {formatMessageType(selectedMessage.messageType)}</p>
+                        <p>Support line: {selectedThread.supportPhoneNumber}</p>
                         <p>
-                          Received{" "}
-                          {formatDistanceToNow(new Date(selectedMessage.receivedAt), {
+                          Last activity{" "}
+                          {formatDistanceToNow(new Date(selectedThread.lastMessageAt), {
                             addSuffix: true,
                           })}
                           {" "}
-                          ({format(new Date(selectedMessage.receivedAt), "PPpp")})
+                          ({format(new Date(selectedThread.lastMessageAt), "PPpp")})
                         </p>
                       </div>
                     </div>
 
                     <Button asChild variant="outline" size="sm">
                       <a
-                        href={getWhatsAppLink(selectedMessage.senderPhoneNumber)}
+                        href={getWhatsAppLink(selectedThread.threadPhoneNumber)}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -300,19 +444,119 @@ export function SupportInboxPage() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-3 p-5">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <MessageSquare className="h-4 w-4" />
-                    Message
+                <CardContent className="space-y-4 p-5">
+                  <div className="space-y-3">
+                    {threadMessagesQuery.isLoading && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading conversation...
+                      </div>
+                    )}
+
+                    {threadMessagesErrorMessage && (
+                      <Card className="border-destructive/30 bg-destructive/5">
+                        <CardContent className="p-4 text-sm text-destructive">
+                          {threadMessagesErrorMessage}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {!threadMessagesQuery.isLoading && !threadMessagesErrorMessage && (
+                      <div className="space-y-3">
+                        {threadMessages.length === 0 ? (
+                          <div className="rounded-xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                            This conversation has no stored messages yet.
+                          </div>
+                        ) : (
+                          threadMessages.map((message) => {
+                            const isOutbound = message.direction === "OUTBOUND";
+
+                            return (
+                              <div
+                                key={message.id}
+                                className={`flex ${
+                                  isOutbound ? "justify-end" : "justify-start"
+                                }`}
+                              >
+                                <div
+                                  className={[
+                                    "max-w-[90%] rounded-2xl border p-4 shadow-sm",
+                                    isOutbound
+                                      ? "border-primary/20 bg-primary/5"
+                                      : "border-border bg-muted/30",
+                                  ].join(" ")}
+                                >
+                                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                    <span className="font-medium text-foreground">
+                                      {getMessageAuthor(message)}
+                                    </span>
+                                    <Badge
+                                      variant={
+                                        message.status === "NEW"
+                                          ? "default"
+                                          : formatStatusBadgeVariant(message.status)
+                                      }
+                                    >
+                                      {message.status}
+                                    </Badge>
+                                    <span>{formatMessageType(message.messageType)}</span>
+                                    <span>
+                                      {formatDistanceToNow(
+                                        new Date(message.receivedAt),
+                                        {
+                                          addSuffix: true,
+                                        },
+                                      )}
+                                    </span>
+                                  </div>
+                                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-foreground">
+                                    {message.messageBody}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">
-                    {selectedMessage.messageBody}
-                  </p>
+
+                  <form onSubmit={handleReply} className="space-y-3 border-t pt-4">
+                    <Textarea
+                      value={replyMessage}
+                      onChange={(event) => setReplyMessage(event.target.value)}
+                      placeholder="Type a reply to send through WhatsApp"
+                      rows={4}
+                      className="resize-none"
+                    />
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        Replies are sent from the configured WhatsApp support
+                        number and stored in the conversation history.
+                      </p>
+                      <Button
+                        type="submit"
+                        disabled={
+                          !selectedThreadPhoneNumber ||
+                          !replyMessage.trim() ||
+                          replyMutation.isPending
+                        }
+                        className="gap-2"
+                      >
+                        {replyMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                        Send reply
+                      </Button>
+                    </div>
+                  </form>
                 </CardContent>
               </>
             ) : (
               <CardContent className="p-8 text-center text-sm text-muted-foreground">
-                No message selected.
+                No thread selected.
               </CardContent>
             )}
           </Card>
