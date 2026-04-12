@@ -7,11 +7,17 @@ import {
   Body,
   Param,
   Request,
+  UseGuards,
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { DoctorsService } from '@/domains/doctors/application/services/doctors.service';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  Feature,
+  RequireFeature,
+} from '@/shared/modules/auth/auth/tier.decorator';
 import { Role } from '@workspace/db';
 
 import {
@@ -36,6 +42,7 @@ import { RequestWithUser } from '@/common/types/common.types';
 import { Specialization } from '@workspace/db';
 
 @Controller('doctors')
+@UseGuards(TierGuard)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
@@ -66,6 +73,7 @@ export class DoctorsController {
   }
 
   @Post()
+  @RequireFeature(Feature.ROLE_MANAGEMENT)
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @ZodSerializerDto(DoctorResponseDto)
   async create(
@@ -112,6 +120,7 @@ export class DoctorsController {
   }
 
   @Delete(':id')
+  @RequireFeature(Feature.ROLE_MANAGEMENT)
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async remove(@Request() req: RequestWithUser, @Param('id') id: string) {
     return this.doctorsService.remove(id, req.user?.clinicId || undefined);

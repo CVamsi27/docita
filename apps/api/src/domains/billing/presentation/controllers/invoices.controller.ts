@@ -38,6 +38,7 @@ interface AuthRequest {
 
 @Controller('invoices')
 @UseGuards(TierGuard)
+@RequireFeature(Feature.INVOICING)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
@@ -64,7 +65,6 @@ export class InvoicesController {
   }
 
   @Post()
-  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({
@@ -74,7 +74,6 @@ export class InvoicesController {
   }
 
   @Patch(':id')
-  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   update(
     @Request() req: AuthRequest,
@@ -90,7 +89,6 @@ export class InvoicesController {
   }
 
   @Post(':id/submit-claim')
-  @RequireFeature(Feature.INVOICING)
   submitClaim(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.invoicesService.submitClaim(id, req.user.clinicId);
   }

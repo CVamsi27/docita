@@ -15,8 +15,12 @@ import {
 export class PrismaClinicDataRepository implements IClinicDataRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findByReferralCode(code: string): Promise<{ id: string } | null> {
-    return this.prisma.clinic.findUnique({
+    return this.getReadClient().clinic.findUnique({
       where: { referralCode: code },
       select: { id: true },
     });
@@ -40,7 +44,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
   }
 
   async findAll() {
-    return this.prisma.clinic.findMany({
+    return this.getReadClient().clinic.findMany({
       where: { active: true },
       include: {
         _count: {
@@ -56,7 +60,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
   }
 
   async findById(id: string) {
-    return this.prisma.clinic.findUnique({
+    return this.getReadClient().clinic.findUnique({
       where: { id },
       include: {
         users: {
@@ -101,7 +105,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
   }
 
   async findDoctorClinics(doctorId: string) {
-    return this.prisma.doctorClinic.findMany({
+    return this.getReadClient().doctorClinic.findMany({
       where: { doctorId, active: true },
       select: {
         clinic: {
@@ -130,11 +134,12 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
+    const readClient = this.getReadClient();
     const [totalPatients, totalAppointments, todayAppointments] =
       await Promise.all([
-        this.prisma.patient.count({ where: { clinicId } }),
-        this.prisma.appointment.count({ where: { clinicId } }),
-        this.prisma.appointment.count({
+        readClient.patient.count({ where: { clinicId } }),
+        readClient.appointment.count({ where: { clinicId } }),
+        readClient.appointment.count({
           where: {
             clinicId,
             startTime: { gte: startOfDay, lte: endOfDay },
@@ -146,7 +151,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
   }
 
   async findUserForJoin(userId: string): Promise<UserForClinicJoin | null> {
-    return this.prisma.user.findUnique({
+    return this.getReadClient().user.findUnique({
       where: { id: userId },
       select: { id: true, role: true, clinicId: true },
     });
@@ -156,7 +161,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
     code?: string,
     email?: string,
   ): Promise<ClinicLookup | null> {
-    return this.prisma.clinic.findFirst({
+    return this.getReadClient().clinic.findFirst({
       where: {
         active: true,
         ...(code ? { referralCode: code } : { email }),
@@ -198,7 +203,7 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
 
   async searchActive(query: string): Promise<ClinicSearchResult[]> {
     const searchTerm = query.toLowerCase().trim();
-    return this.prisma.clinic.findMany({
+    return this.getReadClient().clinic.findMany({
       where: {
         active: true,
         OR: [

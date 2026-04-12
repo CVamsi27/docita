@@ -9,7 +9,6 @@ import {
 import {
   LabTestOrderStatus,
   Prisma,
-  Patient,
   LabTest as PrismaLabTest,
   LabTestOrder as PrismaLabTestOrder,
   IcdCode,
@@ -18,26 +17,25 @@ import {
   Appointment,
 } from '@workspace/db';
 
-type PatientSubset = Pick<
-  Patient,
-  'id' | 'firstName' | 'lastName' | 'phoneNumber'
->;
-
 @Injectable()
 export class PrismaClinicalRepository
   implements ILabRepository, IMedicalCodingRepository
 {
   constructor(private prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findAllTests(clinicId: string): Promise<LabTest[]> {
-    const tests = await this.prisma.labTest.findMany({
+    const tests = await this.getReadClient().labTest.findMany({
       where: { clinicId },
     });
     return tests.map((t) => this.mapToLabTest(t));
   }
 
   async findTestById(id: string): Promise<LabTest | null> {
-    const test = await this.prisma.labTest.findUnique({
+    const test = await this.getReadClient().labTest.findUnique({
       where: { id },
     });
     return test ? this.mapToLabTest(test) : null;
@@ -78,8 +76,10 @@ export class PrismaClinicalRepository
       ...(params?.status && { status: params.status as LabTestOrderStatus }),
     };
 
+    const readClient = this.getReadClient();
+
     if (params?.search) {
-      const matchingPatients = await this.prisma.patient.findMany({
+      const matchingPatients = await readClient.patient.findMany({
         where: {
           clinicId,
           OR: [
@@ -92,56 +92,23 @@ export class PrismaClinicalRepository
       where.patientId = { in: matchingPatients.map((p) => p.id) };
     }
 
-    const orders = await this.prisma.labTestOrder.findMany({
+    const orders = await readClient.labTestOrder.findMany({
       where,
-      include: {
-        labTest: true,
-      },
+      include: { labTest: true },
       orderBy: { createdAt: 'desc' },
     });
 
-    const patientIds = Array.from(new Set(orders.map((o) => o.patientId)));
-    const patients = await this.prisma.patient.findMany({
-      where: { id: { in: patientIds } },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        phoneNumber: true,
-      },
-    });
-
-    const patientMap = new Map<string, PatientSubset>(
-      patients.map((p) => [p.id, p]),
-    );
-
-    return orders.map((o) => {
-      const patient = patientMap.get(o.patientId);
-      return this.mapToLabOrder(o, patient);
-    });
+    return orders.map((o) => this.mapToLabOrder(o));
   }
 
   async findOrderById(id: string): Promise<LabOrder | null> {
-    const order = await this.prisma.labTestOrder.findUnique({
+    const order = await this.getReadClient().labTestOrder.findUnique({
       where: { id },
-      include: {
-        labTest: true,
-      },
+      include: { labTest: true },
     });
 
     if (!order) return null;
-
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: order.patientId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        phoneNumber: true,
-      },
-    });
-
-    return this.mapToLabOrder(order, patient);
+    return this.mapToLabOrder(order);
   }
 
   async saveOrder(order: LabOrder): Promise<LabOrder> {
@@ -161,22 +128,10 @@ export class PrismaClinicalRepository
       where: { id: order.id || 'new' },
       create: data,
       update: data,
-      include: {
-        labTest: true,
-      },
+      include: { labTest: true },
     });
 
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: saved.patientId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        phoneNumber: true,
-      },
-    });
-
-    return this.mapToLabOrder(saved, patient);
+    return this.mapToLabOrder(saved);
   }
 
   async deleteOrder(id: string): Promise<void> {
@@ -192,7 +147,7 @@ export class PrismaClinicalRepository
     urgent: number;
     total: number;
   }> {
-    const counts = await this.prisma.labTestOrder.groupBy({
+    const counts = await this.getReadClient().labTestOrder.groupBy({
       by: ['status'],
       where: { clinicId },
       _count: true,
@@ -218,7 +173,7 @@ export class PrismaClinicalRepository
   }
 
   async getFavorites(userId: string): Promise<IcdCode[]> {
-    const favorites = await this.prisma.doctorFavoriteCode.findMany({
+    const favorites = await this.getReadClient().doctorFavoriteCode.findMany({
       where: { userId, icdCodeId: { not: null } },
       include: { icdCode: true },
     });
@@ -226,7 +181,7 @@ export class PrismaClinicalRepository
   }
 
   async getCommonIcdCodes(limit = 50): Promise<IcdCode[]> {
-    return this.prisma.icdCode.findMany({
+    return this.getReadClient().icdCode.findMany({
       where: { isCommon: true },
       orderBy: [{ category: 'asc' }, { code: 'asc' }],
       take: limit,
@@ -256,7 +211,7 @@ export class PrismaClinicalRepository
   }
 
   async getCptFavorites(userId: string): Promise<CptCode[]> {
-    const favorites = await this.prisma.doctorFavoriteCode.findMany({
+    const favorites = await this.getReadClient().doctorFavoriteCode.findMany({
       where: { userId, cptCodeId: { not: null } },
       include: { cptCode: true },
     });
@@ -264,7 +219,7 @@ export class PrismaClinicalRepository
   }
 
   async getCommonCptCodes(limit = 50): Promise<CptCode[]> {
-    return this.prisma.cptCode.findMany({
+    return this.getReadClient().cptCode.findMany({
       where: { isCommon: true },
       orderBy: [{ category: 'asc' }, { code: 'asc' }],
       take: limit,
@@ -297,7 +252,7 @@ export class PrismaClinicalRepository
     clinicId: string,
     search?: string,
   ): Promise<Appointment[]> {
-    const visits = await this.prisma.appointment.findMany({
+    const visits = await this.getReadClient().appointment.findMany({
       where: {
         clinicId,
         status: 'COMPLETED',
@@ -334,10 +289,7 @@ export class PrismaClinicalRepository
     );
   }
 
-  private mapToLabOrder(
-    prismaOrder: PrismaLabTestOrder,
-    _patient?: PatientSubset | null,
-  ): LabOrder {
+  private mapToLabOrder(prismaOrder: PrismaLabTestOrder): LabOrder {
     const normalizedResult =
       prismaOrder.result &&
       typeof prismaOrder.result === 'object' &&

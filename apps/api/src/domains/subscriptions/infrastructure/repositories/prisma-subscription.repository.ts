@@ -13,6 +13,10 @@ import { SubscriptionStatus, Prisma } from '@workspace/db';
 export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async save(subscription: Subscription): Promise<void> {
     try {
       const data = SubscriptionMapper.toPersistence(subscription);
@@ -53,9 +57,10 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
 
   async findById(id: string): Promise<Subscription | null> {
     try {
-      const prismaSubscription = await this.prisma.subscription.findUnique({
-        where: { id },
-      });
+      const prismaSubscription =
+        await this.getReadClient().subscription.findUnique({
+          where: { id },
+        });
 
       if (!prismaSubscription) {
         return null;
@@ -71,9 +76,10 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
 
   async findByClinicId(clinicId: string): Promise<Subscription | null> {
     try {
-      const prismaSubscription = await this.prisma.subscription.findUnique({
-        where: { clinicId },
-      });
+      const prismaSubscription =
+        await this.getReadClient().subscription.findUnique({
+          where: { clinicId },
+        });
 
       if (!prismaSubscription) {
         return null;
@@ -89,9 +95,10 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
 
   async findByStatus(status: string): Promise<Subscription[]> {
     try {
-      const prismaSubscriptions = await this.prisma.subscription.findMany({
-        where: { status: status as SubscriptionStatus },
-      });
+      const prismaSubscriptions =
+        await this.getReadClient().subscription.findMany({
+          where: { status: status as SubscriptionStatus },
+        });
 
       return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
     } catch (error) {
@@ -106,15 +113,16 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       const renewalDate = new Date();
       renewalDate.setDate(renewalDate.getDate() + daysThreshold);
 
-      const prismaSubscriptions = await this.prisma.subscription.findMany({
-        where: {
-          currentPeriodEnd: {
-            lte: renewalDate,
-            gte: new Date(),
+      const prismaSubscriptions =
+        await this.getReadClient().subscription.findMany({
+          where: {
+            currentPeriodEnd: {
+              lte: renewalDate,
+              gte: new Date(),
+            },
+            status: 'ACTIVE',
           },
-          status: 'ACTIVE',
-        },
-      });
+        });
 
       return prismaSubscriptions.map((s) => SubscriptionMapper.toDomain(s));
     } catch (error) {
@@ -248,7 +256,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   ): Promise<
     Prisma.SubscriptionPaymentGetPayload<Prisma.SubscriptionPaymentDefaultArgs>[]
   > {
-    return this.prisma.subscriptionPayment.findMany({
+    return this.getReadClient().subscriptionPayment.findMany({
       where: { clinicId },
       orderBy: { createdAt: 'desc' },
       take: limit,

@@ -19,15 +19,19 @@ const ACTIVE_TOKEN_SELECT = {
 export class PrismaSignatureUploadRepository implements ISignatureUploadRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findUserById(userId: string) {
-    return this.prisma.user.findUnique({
+    return this.getReadClient().user.findUnique({
       where: { id: userId },
       select: { id: true, role: true, name: true, email: true },
     });
   }
 
   async findClinicById(clinicId: string) {
-    return this.prisma.clinic.findUnique({
+    return this.getReadClient().clinic.findUnique({
       where: { id: clinicId },
       select: { id: true, name: true },
     });
@@ -79,13 +83,13 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   }
 
   async findTokenById(id: string, doctorId: string) {
-    return this.prisma.signatureUploadToken.findFirst({
+    return this.getReadClient().signatureUploadToken.findFirst({
       where: { id, doctorId },
     });
   }
 
   async findClinicTokenById(id: string, clinicId: string) {
-    return this.prisma.signatureUploadToken.findFirst({
+    return this.getReadClient().signatureUploadToken.findFirst({
       where: { id, clinicId },
     });
   }
@@ -93,7 +97,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   async findActiveTokensByDoctor(
     doctorId: string,
   ): Promise<ActiveTokenSummary[]> {
-    return this.prisma.signatureUploadToken.findMany({
+    return this.getReadClient().signatureUploadToken.findMany({
       where: {
         doctorId,
         purpose: SignaturePurpose.DOCTOR_PRESCRIPTION,
@@ -108,7 +112,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   async findActiveTokensByClinic(
     clinicId: string,
   ): Promise<ActiveTokenSummary[]> {
-    return this.prisma.signatureUploadToken.findMany({
+    return this.getReadClient().signatureUploadToken.findMany({
       where: {
         clinicId,
         purpose: SignaturePurpose.SLA_ACCEPTANCE,

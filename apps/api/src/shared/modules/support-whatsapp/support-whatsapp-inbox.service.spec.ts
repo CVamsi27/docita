@@ -1,20 +1,215 @@
 import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { JsonValue } from '@workspace/types';
 import { SupportWhatsAppInboxService } from './support-whatsapp-inbox.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from '@/shared/modules/messaging/whatsapp/whatsapp-client.service';
+import type {
+  SupportWhatsAppMessage,
+  SupportWhatsAppMessageStatus,
+} from '@workspace/types';
+
+type SupportWhatsAppDirection = 'INBOUND' | 'OUTBOUND';
+type SupportWhatsAppStatus = SupportWhatsAppMessageStatus;
+interface WebhookMessage {
+  from: string;
+  id: string;
+  timestamp: string;
+  type: 'text';
+  text: { body: string };
+}
+
+interface WebhookValue {
+  messaging_product: 'whatsapp';
+  metadata: {
+    display_phone_number: string;
+    phone_number_id: string;
+  };
+  contacts: Array<{
+    profile: { name: string };
+    wa_id: string;
+  }>;
+  messages: WebhookMessage[];
+}
+
+type SupportWhatsAppMessageRow = SupportWhatsAppMessage;
+type SupportWhatsAppMessageLookup = Pick<
+  SupportWhatsAppMessage,
+  'providerMessageId' | 'supportPhoneNumber'
+>;
+
+function makeSupportWhatsAppMessageRow(
+  overrides: Partial<SupportWhatsAppMessageRow> &
+    Pick<
+      SupportWhatsAppMessageRow,
+      | 'id'
+      | 'providerMessageId'
+      | 'threadPhoneNumber'
+      | 'supportPhoneNumber'
+      | 'senderPhoneNumber'
+      | 'direction'
+      | 'messageType'
+      | 'messageBody'
+      | 'status'
+      | 'receivedAt'
+    >,
+): SupportWhatsAppMessageRow {
+  return {
+    providerSentMessageId: null,
+    senderName: null,
+    respondedAt: null,
+    replyToProviderMessageId: null,
+    errorMessage: null,
+    ...overrides,
+  };
+}
+
+interface SupportWhatsAppMessageBaseData {
+  threadPhoneNumber: string;
+  supportPhoneNumber: string;
+  senderPhoneNumber: string;
+  senderName: string | null;
+  direction: SupportWhatsAppDirection;
+  messageType: string;
+  messageBody: string;
+  rawPayload?: JsonValue;
+}
+
+interface SupportWhatsAppMessageUpsertCreateData extends SupportWhatsAppMessageBaseData {
+  providerMessageId: string;
+  receivedAt: Date;
+  status: SupportWhatsAppStatus;
+}
+
+type SupportWhatsAppMessageUpsertUpdateData = SupportWhatsAppMessageBaseData;
+
+interface SupportWhatsAppMessageCreateData extends SupportWhatsAppMessageBaseData {
+  providerMessageId: string;
+  providerSentMessageId: string | null;
+  receivedAt: Date;
+  status: SupportWhatsAppStatus;
+  replyToProviderMessageId?: string | null;
+  errorMessage?: string | null;
+  respondedAt?: Date | null;
+}
+
+interface SupportWhatsAppMessageUpsertArgs {
+  where: { providerMessageId: string };
+  update: SupportWhatsAppMessageUpsertUpdateData;
+  create: SupportWhatsAppMessageUpsertCreateData;
+}
+
+interface SupportWhatsAppMessageCreateArgs {
+  data: SupportWhatsAppMessageCreateData;
+  select: Record<string, boolean>;
+}
+
+interface SupportWhatsAppMessageUpdateArgs {
+  where: { providerMessageId: string };
+  data: Partial<
+    Pick<
+      SupportWhatsAppMessageRow,
+      'providerSentMessageId' | 'status' | 'respondedAt' | 'errorMessage'
+    >
+  > & {
+    rawPayload?: JsonValue;
+  };
+  select?: Record<string, boolean>;
+}
+
+interface SupportWhatsAppMessageFindManyArgs {
+  orderBy: Array<
+    { receivedAt: 'asc' | 'desc' } | { createdAt: 'asc' | 'desc' }
+  >;
+  take: number;
+  select: Record<string, boolean>;
+  where?: {
+    threadPhoneNumber?: string;
+    direction?: SupportWhatsAppDirection;
+    status?: SupportWhatsAppStatus | { in: SupportWhatsAppStatus[] };
+    OR?: Array<
+      { providerMessageId: string } | { providerSentMessageId: string }
+    >;
+  };
+}
+
+interface SupportWhatsAppMessageFindFirstArgs {
+  where: {
+    threadPhoneNumber?: string;
+    direction?: SupportWhatsAppDirection;
+  };
+  orderBy: Array<
+    { receivedAt: 'asc' | 'desc' } | { createdAt: 'asc' | 'desc' }
+  >;
+  select: {
+    providerMessageId: boolean;
+    supportPhoneNumber: boolean;
+  };
+}
+
+interface SupportWhatsAppClientMock {
+  sendMessage: jest.Mock<
+    (args: { to: string; message: string }) => Promise<{
+      success: boolean;
+      messageId: string;
+    }>
+  >;
+  AppSecret: string;
+  VerifyToken: string;
+}
 
 describe('SupportWhatsAppInboxService', () => {
   let service: SupportWhatsAppInboxService;
 
-  const supportWhatsAppMessageUpsert = jest.fn();
-  const supportWhatsAppMessageFindMany = jest.fn();
-  const supportWhatsAppMessageFindFirst = jest.fn();
-  const supportWhatsAppMessageCreate = jest.fn();
-  const supportWhatsAppMessageUpdate = jest.fn();
-  const supportWhatsAppMessageUpdateMany = jest.fn();
-  const mockWhatsappClient = {
-    sendMessage: jest.fn(),
+  const supportWhatsAppMessageUpsert =
+    jest.fn<(args: SupportWhatsAppMessageUpsertArgs) => Promise<void>>();
+  const supportWhatsAppMessageFindMany =
+    jest.fn<
+      (
+        args: SupportWhatsAppMessageFindManyArgs,
+      ) => Promise<SupportWhatsAppMessageRow[]>
+    >();
+  const supportWhatsAppMessageFindFirst =
+    jest.fn<
+      (
+        args: SupportWhatsAppMessageFindFirstArgs,
+      ) => Promise<SupportWhatsAppMessageLookup | null>
+    >();
+  const supportWhatsAppMessageCreate =
+    jest.fn<
+      (
+        args: SupportWhatsAppMessageCreateArgs,
+      ) => Promise<SupportWhatsAppMessageRow>
+    >();
+  const supportWhatsAppMessageUpdate =
+    jest.fn<
+      (
+        args: SupportWhatsAppMessageUpdateArgs,
+      ) => Promise<SupportWhatsAppMessageRow>
+    >();
+  const supportWhatsAppMessageUpdateMany = jest.fn<
+    (args: {
+      where: {
+        threadPhoneNumber?: string;
+        direction?: SupportWhatsAppDirection;
+        status?: SupportWhatsAppStatus | { in: SupportWhatsAppStatus[] };
+        OR?: Array<
+          { providerMessageId: string } | { providerSentMessageId: string }
+        >;
+      };
+      data: {
+        status: SupportWhatsAppStatus;
+        respondedAt?: Date;
+      };
+    }) => Promise<{ count: number }>
+  >();
+  const mockWhatsappClient: SupportWhatsAppClientMock = {
+    sendMessage: jest.fn<
+      (args: { to: string; message: string }) => Promise<{
+        success: boolean;
+        messageId: string;
+      }>
+    >(),
     AppSecret: 'app-secret',
     VerifyToken: 'verify-token',
   };
@@ -37,21 +232,44 @@ describe('SupportWhatsAppInboxService', () => {
     supportWhatsAppMessageFindMany.mockResolvedValue([]);
     supportWhatsAppMessageFindFirst.mockResolvedValue(null);
     supportWhatsAppMessageCreate.mockImplementation(
-      async (args: { data: Record<string, unknown> }) => ({
-        id: 'msg-created',
-        ...args.data,
-      }),
+      async (args: SupportWhatsAppMessageCreateArgs) =>
+        makeSupportWhatsAppMessageRow({
+          id: 'msg-created',
+          providerMessageId: args.data.providerMessageId,
+          providerSentMessageId: args.data.providerSentMessageId ?? null,
+          threadPhoneNumber: args.data.threadPhoneNumber,
+          supportPhoneNumber: args.data.supportPhoneNumber,
+          senderPhoneNumber: args.data.senderPhoneNumber,
+          senderName: args.data.senderName,
+          direction: args.data.direction,
+          messageType: args.data.messageType,
+          messageBody: args.data.messageBody,
+          status: args.data.status,
+          receivedAt: args.data.receivedAt,
+          respondedAt: args.data.respondedAt ?? null,
+          replyToProviderMessageId: args.data.replyToProviderMessageId ?? null,
+          errorMessage: args.data.errorMessage ?? null,
+        }),
     );
     supportWhatsAppMessageUpdate.mockImplementation(
-      async (args: {
-        where: { providerMessageId: string };
-        data: Record<string, unknown>;
-      }) => ({
-        id: 'msg-updated',
-        providerMessageId: args.where.providerMessageId,
-        direction: 'OUTBOUND',
-        ...args.data,
-      }),
+      async (args: SupportWhatsAppMessageUpdateArgs) =>
+        makeSupportWhatsAppMessageRow({
+          id: 'msg-updated',
+          providerMessageId: 'draft-001',
+          providerSentMessageId: args.data.providerSentMessageId ?? null,
+          threadPhoneNumber: '919876543210',
+          supportPhoneNumber: '918790311010',
+          senderPhoneNumber: '918790311010',
+          senderName: null,
+          direction: 'OUTBOUND',
+          messageType: 'text',
+          messageBody: 'We are looking into this now.',
+          status: args.data.status ?? 'SENT',
+          receivedAt: new Date('2026-04-12T12:31:00Z'),
+          respondedAt: args.data.respondedAt ?? null,
+          replyToProviderMessageId: 'wamid.inbound-001',
+          errorMessage: args.data.errorMessage ?? null,
+        }),
     );
     supportWhatsAppMessageUpdateMany.mockResolvedValue({ count: 0 });
     mockWhatsappClient.sendMessage.mockResolvedValue({
@@ -71,7 +289,15 @@ describe('SupportWhatsAppInboxService', () => {
   });
 
   it('persists inbound webhook messages with thread metadata', async () => {
-    await service.recordIncomingMessages({
+    const inboundMessage: WebhookMessage = {
+      from: '919876543210',
+      id: 'wamid.inbound-001',
+      timestamp: '1712923200',
+      type: 'text',
+      text: { body: 'Need onboarding help' },
+    };
+
+    const rawPayload: WebhookValue = {
       messaging_product: 'whatsapp',
       metadata: {
         display_phone_number: '918790311010',
@@ -83,43 +309,44 @@ describe('SupportWhatsAppInboxService', () => {
           wa_id: '919876543210',
         },
       ],
-      messages: [
-        {
-          from: '919876543210',
-          id: 'wamid.inbound-001',
-          timestamp: '1712923200',
-          type: 'text',
-          text: { body: 'Need onboarding help' },
-        },
-      ],
-    });
+      messages: [inboundMessage],
+    };
+    const storedRawPayload = {
+      metadata: rawPayload.metadata,
+      contacts: rawPayload.contacts,
+      message: inboundMessage,
+    };
 
-    expect(supportWhatsAppMessageUpsert).toHaveBeenCalledWith({
-      where: { providerMessageId: 'wamid.inbound-001' },
-      update: {
-        threadPhoneNumber: '919876543210',
-        supportPhoneNumber: '918790311010',
-        senderPhoneNumber: '919876543210',
-        senderName: 'Rahul Sharma',
-        direction: 'INBOUND',
-        messageType: 'text',
-        messageBody: 'Need onboarding help',
-        rawPayload: expect.any(Object),
-      },
-      create: {
-        providerMessageId: 'wamid.inbound-001',
-        threadPhoneNumber: '919876543210',
-        supportPhoneNumber: '918790311010',
-        senderPhoneNumber: '919876543210',
-        senderName: 'Rahul Sharma',
-        direction: 'INBOUND',
-        messageType: 'text',
-        messageBody: 'Need onboarding help',
-        receivedAt: expect.any(Date),
-        status: 'NEW',
-        rawPayload: expect.any(Object),
-      },
+    await service.recordIncomingMessages(rawPayload);
+
+    const upsertCall = supportWhatsAppMessageUpsert.mock.calls[0]?.[0];
+    expect(upsertCall).toBeDefined();
+    expect(upsertCall?.where).toEqual({
+      providerMessageId: 'wamid.inbound-001',
     });
+    expect(upsertCall?.update).toMatchObject({
+      threadPhoneNumber: '919876543210',
+      supportPhoneNumber: '918790311010',
+      senderPhoneNumber: '919876543210',
+      senderName: 'Rahul Sharma',
+      direction: 'INBOUND',
+      messageType: 'text',
+      messageBody: 'Need onboarding help',
+      rawPayload: storedRawPayload,
+    });
+    expect(upsertCall?.create).toMatchObject({
+      providerMessageId: 'wamid.inbound-001',
+      threadPhoneNumber: '919876543210',
+      supportPhoneNumber: '918790311010',
+      senderPhoneNumber: '919876543210',
+      senderName: 'Rahul Sharma',
+      direction: 'INBOUND',
+      messageType: 'text',
+      messageBody: 'Need onboarding help',
+      status: 'NEW',
+      rawPayload: storedRawPayload,
+    });
+    expect(upsertCall?.create.receivedAt).toBeInstanceOf(Date);
   });
 
   it('lists thread summaries newest first and clamps the requested limit', async () => {

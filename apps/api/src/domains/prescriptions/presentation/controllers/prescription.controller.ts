@@ -38,6 +38,7 @@ interface AuthRequest {
 
 @Controller('prescriptions')
 @UseGuards(TierGuard)
+@RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class PrescriptionsController {
   constructor(private readonly prescriptionsService: PrescriptionsService) {}
@@ -62,7 +63,6 @@ export class PrescriptionsController {
   }
 
   @Post()
-  @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
   @ZodSerializerDto(PrescriptionResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))
   create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {

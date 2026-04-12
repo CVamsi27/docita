@@ -1,3 +1,8 @@
+import {
+  TemplateButton,
+  TemplateVariable,
+} from '../services/default-templates.service';
+
 export enum WhatsAppTemplateStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
@@ -11,6 +16,11 @@ export enum WhatsAppTemplateCategory {
   UTILITY = 'UTILITY',
 }
 
+export type WhatsAppTemplateButtonType =
+  | 'NONE'
+  | 'QUICK_REPLY'
+  | 'CALL_TO_ACTION';
+
 export interface WhatsAppTemplateProps {
   id: string;
   clinicId: string;
@@ -18,9 +28,9 @@ export interface WhatsAppTemplateProps {
   category: WhatsAppTemplateCategory;
   content: string;
   status: WhatsAppTemplateStatus;
-  buttons?: Record<string, unknown>;
-  variables?: Record<string, unknown>;
-  buttonType?: string;
+  buttons?: TemplateButton[];
+  variables?: TemplateVariable[];
+  buttonType?: WhatsAppTemplateButtonType;
   metaTemplateId?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -51,13 +61,13 @@ export class WhatsAppTemplate {
   get content(): string {
     return this.props.content;
   }
-  get variables(): Record<string, unknown> | undefined {
+  get variables(): TemplateVariable[] | undefined {
     return this.props.variables;
   }
-  get buttons(): Record<string, unknown> | undefined {
+  get buttons(): TemplateButton[] | undefined {
     return this.props.buttons;
   }
-  get buttonType(): string | undefined {
+  get buttonType(): WhatsAppTemplateButtonType | undefined {
     return this.props.buttonType;
   }
   get metaTemplateId(): string | undefined {
@@ -90,7 +100,7 @@ export class WhatsAppTemplate {
     this.props.updatedAt = new Date();
   }
 
-  updateContent(content: string, buttons?: Record<string, unknown>): void {
+  updateContent(content: string, buttons?: TemplateButton[]): void {
     this.props.content = content;
     this.props.buttons = buttons;
     this.props.updatedAt = new Date();
