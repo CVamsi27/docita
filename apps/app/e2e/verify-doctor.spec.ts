@@ -42,44 +42,15 @@ function readDatabaseUrl(): string {
 }
 
 async function fetchVerificationToken(email: string): Promise<string | null> {
-  const script = [
-    'const { PrismaClient } = require("@workspace/db");',
-    'const { PrismaPg } = require("@prisma/adapter-pg");',
-    'const { Pool } = require("pg");',
-    "",
-    "(async () => {",
-    "  const email = process.argv[1];",
-    "  const databaseUrl = process.env.DATABASE_URL;",
-    "  if (!databaseUrl) {",
-    '    throw new Error("DATABASE_URL is required");',
-    "  }",
-    "  const pool = new Pool({ connectionString: databaseUrl });",
-    "  const adapter = new PrismaPg(pool);",
-    "  const prisma = new PrismaClient({ adapter });",
-    "  try {",
-    "    const user = await prisma.user.findUnique({",
-    "      where: { email },",
-    "      select: { emailVerificationToken: true, emailVerified: true },",
-    "    });",
-    "    process.stdout.write(JSON.stringify(user));",
-    "  } finally {",
-    "    await prisma.$disconnect();",
-    "    await pool.end();",
-    "  }",
-    "})().catch((error) => {",
-    "  console.error(error);",
-    "  process.exit(1);",
-    "});",
-  ].join("\n");
-
   const output = execFileSync(
-    "pnpm",
-    ["--filter", "@docita/api", "exec", "node", "-e", script, email],
+    "node",
+    ["-r", "ts-node/register/transpile-only", "apps/api/scripts/fetch-verification-token.ts"],
     {
       cwd: getRepoRoot(),
       env: {
         ...process.env,
         DATABASE_URL: readDatabaseUrl(),
+        VERIFICATION_EMAIL: email,
       },
       encoding: "utf8",
     },
