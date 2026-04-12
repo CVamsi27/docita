@@ -23,10 +23,12 @@ UPDATE "SupportWhatsAppMessage"
 SET "threadPhoneNumber" = COALESCE("threadPhoneNumber", "senderPhoneNumber");
 
 UPDATE "SupportWhatsAppMessage"
-SET "direction" = CASE
-  WHEN "senderPhoneNumber" = "supportPhoneNumber" THEN 'OUTBOUND'
-  ELSE 'INBOUND'
-END::"SupportWhatsAppMessageDirection"
+SET "direction" = (
+  CASE
+    WHEN "senderPhoneNumber" = "supportPhoneNumber" THEN 'OUTBOUND'
+    ELSE 'INBOUND'
+  END
+)::"SupportWhatsAppMessageDirection"
 WHERE "direction" IS NULL;
 
 ALTER TABLE "SupportWhatsAppMessage"
