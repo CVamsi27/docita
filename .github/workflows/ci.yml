@@ -67,10 +67,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
@@ -96,10 +96,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
@@ -140,10 +140,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
@@ -174,10 +174,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
@@ -217,10 +217,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
@@ -256,10 +256,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
@@ -304,10 +304,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
@@ -350,10 +350,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Use Node.js 22.12.0
         uses: actions/setup-node@v5
