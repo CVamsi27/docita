@@ -1325,6 +1325,7 @@ model SupportWhatsAppMessage {
   updatedAt                 DateTime                     @updatedAt
 
   @@index([status])
+  @@index([receivedAt])
   @@index([direction, receivedAt])
   @@index([threadPhoneNumber, receivedAt])
   @@index([threadPhoneNumber, status])
