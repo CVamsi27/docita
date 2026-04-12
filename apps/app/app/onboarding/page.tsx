@@ -28,9 +28,11 @@ export default function OnboardingPage() {
       return;
     }
 
-    if (user?.clinicId || user?.onboardingStep === 'COMPLETED') {
-      setRedirectMessage("Registration successful. Taking you to your dashboard...");
-      router.replace('/dashboard');
+    if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
+      setRedirectMessage(
+        "Registration successful. Taking you to your dashboard...",
+      );
+      router.replace("/dashboard");
       return;
     }
 
@@ -40,7 +42,10 @@ export default function OnboardingPage() {
       return;
     }
 
-    if (user?.onboardingStep === "CHOOSE_PATH" || user?.onboardingStep === "NOT_STARTED") {
+    if (
+      user?.onboardingStep === "CHOOSE_PATH" ||
+      user?.onboardingStep === "NOT_STARTED"
+    ) {
       setRedirectMessage("Taking you to clinic setup choices...");
       router.replace("/choose-path");
     }
@@ -59,6 +64,7 @@ export default function OnboardingPage() {
     <PreDashboardShell
       currentStep="onboarding"
       contentMaxWidth="max-w-3xl"
+      contentAlignment="start"
       showSignOut
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
@@ -68,7 +74,10 @@ export default function OnboardingPage() {
         </p>
       </div>
 
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: "100ms" }}>
+      <div
+        className="animate-in fade-in slide-in-from-bottom-4 duration-700"
+        style={{ animationDelay: "100ms" }}
+      >
         <ClinicOnboardingWizard />
       </div>
     </PreDashboardShell>

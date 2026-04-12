@@ -12,10 +12,7 @@ import { useAuth } from "@/lib/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
 // Derives the user's position in the 4-step pre-dashboard journey
-const STEP_META: Record<
-  AuthBrandingStep,
-  { index: number; label: string }
-> = {
+const STEP_META: Record<AuthBrandingStep, { index: number; label: string }> = {
   email: { index: 0, label: "Account setup" },
   login: { index: 0, label: "Account setup" },
   signup: { index: 0, label: "Account setup" },
@@ -72,11 +69,11 @@ export function PreDashboardShell({
   }, [currentStep, router, user?.emailVerified]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="grid h-screen grid-cols-1 overflow-hidden bg-background lg:grid-cols-[40%_60%]">
       <AuthBrandingPanel currentStep={currentStep} />
 
-      {/* Right panel — independent scroll so branding stays locked */}
-      <div className="w-full lg:w-1/2 h-full overflow-y-auto relative flex flex-col">
+      {/* Right panel keeps its own scroll so the branding rail stays fixed */}
+      <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden">
         {/* Radial ambient glow */}
         <div
           className="pointer-events-none absolute inset-0 z-0"
@@ -112,10 +109,10 @@ export function PreDashboardShell({
         </div>
 
         {/* Scrollable content area — my-auto centers when short, collapses to top when tall */}
-        <div className="flex-1 flex flex-col items-center px-4 pb-10 relative z-10">
+        <div className="flex-1 relative z-10 flex min-w-0 flex-col items-center px-4 pb-10">
           <div
             className={cn(
-              "w-full flex flex-col gap-5 py-4",
+              "w-full min-w-0 flex flex-col gap-5 py-4",
               contentMaxWidth,
               contentAlignment === "center" ? "my-auto" : "pt-4",
             )}

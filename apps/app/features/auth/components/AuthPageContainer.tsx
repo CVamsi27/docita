@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import { Lock, Shield } from "lucide-react";
 import { useAuth, type User } from "@/lib/auth-context";
 import { ApiValidationError } from "@/lib/api-error";
-import {
-  checkEmailSchema,
-  getUserFacingErrorMessage,
-} from "@workspace/types";
+import { checkEmailSchema, getUserFacingErrorMessage } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
@@ -101,6 +98,7 @@ export function AuthPageContainer() {
   const lockoutMessage = isLoginLocked
     ? formatLockoutMessage(loginLockoutUntil)
     : "";
+  const contentAlignment = step === "signup" ? "start" : "center";
 
   const resetErrors = () => {
     setError("");
@@ -177,7 +175,10 @@ export function AuthPageContainer() {
       const exists = await checkEmail(normalizedEmail);
       setStep(exists ? "login" : "signup");
     } catch (err) {
-      handleCatchError(err, "We could not check this email right now. Please try again.");
+      handleCatchError(
+        err,
+        "We could not check this email right now. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -191,7 +192,10 @@ export function AuthPageContainer() {
     try {
       await login(email, password);
     } catch (err) {
-      handleCatchError(err, "We could not sign you in right now. Please try again.");
+      handleCatchError(
+        err,
+        "We could not sign you in right now. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -210,8 +214,7 @@ export function AuthPageContainer() {
     }
 
     if (!ownerRole) {
-      nextFieldErrors.ownerRole =
-        "Choose how you will use this owner account.";
+      nextFieldErrors.ownerRole = "Choose how you will use this owner account.";
     }
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -231,7 +234,10 @@ export function AuthPageContainer() {
         undefined,
       );
     } catch (err) {
-      handleCatchError(err, "We could not finish creating your account. Please try again.");
+      handleCatchError(
+        err,
+        "We could not finish creating your account. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -263,7 +269,11 @@ export function AuthPageContainer() {
   }
 
   return (
-    <PreDashboardShell currentStep={step} contentMaxWidth={contentMaxWidth}>
+    <PreDashboardShell
+      currentStep={step}
+      contentMaxWidth={contentMaxWidth}
+      contentAlignment={contentAlignment}
+    >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
         <h1 className="text-2xl sm:text-3xl font-bold">{STEP_TITLES[step]}</h1>
         <p className="text-muted-foreground text-sm">
