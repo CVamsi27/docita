@@ -4,24 +4,27 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/app/**'
-      - 'apps/api/**'
-      - 'packages/auth/**'
-      - 'packages/data-access/**'
-      - 'packages/db/**'
-      - 'packages/hooks/**'
-      - 'packages/types/**'
-      - 'packages/ui/**'
-      - 'packages/utils/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'turbo.json'
+      - "apps/app/**"
+      - "apps/api/**"
+      - "packages/auth/**"
+      - "packages/data-access/**"
+      - "packages/db/**"
+      - "packages/hooks/**"
+      - "packages/types/**"
+      - "packages/ui/**"
+      - "packages/utils/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   frontend-onboarding-verification:
