@@ -28,27 +28,20 @@ jobs:
     name: Detect API Deploy Target
     runs-on: ubuntu-latest
     outputs:
-      api: ${{ steps.filter.outputs.api }}
+      api: ${{ steps.detect.outputs.api }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Detect changed deploy targets
-        id: filter
-        uses: dorny/paths-filter@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          filters: |
-            api:
-              - 'apps/api/**'
-              - 'packages/db/**'
-              - 'packages/types/**'
-              - 'packages/utils/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-              - 'fly.toml'
+          node-version: 22.12.0
+
+      - name: Detect changed deploy targets
+        id: detect
+        run: node scripts/detect-workflow-scope.mjs deploy
 
   deploy-api:
     name: Deploy API (Fly.io)
@@ -58,7 +51,7 @@ jobs:
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Read Fly app from fly.toml
         id: fly-config
         run: |

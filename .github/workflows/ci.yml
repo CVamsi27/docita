@@ -39,86 +39,32 @@ jobs:
     name: Detect CI Scope
     runs-on: ubuntu-latest
     outputs:
-      dependencies: ${{ steps.filter.outputs.dependencies }}
-      api: ${{ steps.filter.outputs.api }}
-      app: ${{ steps.filter.outputs.app }}
-      internal: ${{ steps.filter.outputs.internal }}
-      landing: ${{ steps.filter.outputs.landing }}
-      db: ${{ steps.filter.outputs.db }}
+      dependencies: ${{ steps.detect.outputs.dependencies }}
+      api: ${{ steps.detect.outputs.api }}
+      app: ${{ steps.detect.outputs.app }}
+      internal: ${{ steps.detect.outputs.internal }}
+      landing: ${{ steps.detect.outputs.landing }}
+      db: ${{ steps.detect.outputs.db }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Detect changed areas
-        id: filter
-        uses: dorny/paths-filter@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          filters: |
-            dependencies:
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'apps/**/package.json'
-              - 'packages/**/package.json'
-            api:
-              - 'apps/api/**'
-              - 'packages/db/**'
-              - 'packages/types/**'
-              - 'packages/utils/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-              - 'fly.toml'
-            app:
-              - 'apps/app/**'
-              - 'packages/auth/**'
-              - 'packages/data-access/**'
-              - 'packages/hooks/**'
-              - 'packages/types/**'
-              - 'packages/ui/**'
-              - 'packages/utils/**'
-              - 'scripts/ensure-opennext-prefetch-manifest-patch.mjs'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-            internal:
-              - 'apps/internal/**'
-              - 'packages/data-access/**'
-              - 'packages/types/**'
-              - 'packages/ui/**'
-              - 'packages/utils/**'
-              - 'scripts/ensure-opennext-prefetch-manifest-patch.mjs'
-              - 'scripts/check-worker-size.mjs'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-            landing:
-              - 'apps/landing/**'
-              - 'packages/ui/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-            db:
-              - 'apps/api/**'
-              - 'packages/db/**'
-              - 'packages/types/**'
-              - 'packages/utils/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
+          node-version: 22.12.0
+
+      - name: Detect changed areas
+        id: detect
+        run: node scripts/detect-workflow-scope.mjs ci
 
   repo-standards:
     name: Repository Standards
     needs: changes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -126,7 +72,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -147,7 +93,7 @@ jobs:
     if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -155,7 +101,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -191,7 +137,7 @@ jobs:
     if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -199,7 +145,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -225,7 +171,7 @@ jobs:
     if: needs.changes.outputs.internal == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -233,7 +179,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -268,7 +214,7 @@ jobs:
     if: needs.changes.outputs.landing == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -276,7 +222,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -307,7 +253,7 @@ jobs:
     if: needs.changes.outputs.dependencies == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -315,7 +261,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -355,7 +301,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -363,7 +309,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
@@ -401,7 +347,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -409,7 +355,7 @@ jobs:
           version: 10.30.3
 
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
