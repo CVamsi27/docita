@@ -1,5 +1,6 @@
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import type { DentalChartData } from '@workspace/types';
 
 export interface AppointmentListItem {
   id?: string;
@@ -13,6 +14,7 @@ export interface AppointmentListItem {
   consultationNotes?: string;
   observations?: string;
   chiefComplaint?: string;
+  dentalChart?: DentalChartData;
   type?: string;
   createdAt?: Date;
   updatedAt?: Date;

@@ -4,7 +4,7 @@ export type JsonValue =
   | number
   | boolean
   | null
-  | { [key: string]: JsonValue }
+  | { [key: string]: JsonValue | undefined }
   | JsonValue[];
 
 export type PrismaQuery = Record<string, unknown>;
