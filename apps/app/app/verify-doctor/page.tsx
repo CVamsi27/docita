@@ -11,13 +11,32 @@ import { useAuth } from '@/lib/auth-context';
 import { useAPIQuery, useAPIMutation } from '@/lib/api-core';
 import { useGenerateSignatureToken } from '@/hooks/api/use-signature-upload';
 import { ApiError } from '@/lib/errors';
-import { sanitizeUserFacingMessage, type User } from '@workspace/types';
+import { sanitizeUserFacingMessage, type Clinic, type User } from '@workspace/types';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
-import { toAbsoluteAppUrl } from '@/lib/url';
+import { toAbsoluteApiUrl, toAbsoluteAppUrl } from '@/lib/url';
 import { usePhoneSignatureQrFlow } from '@/features/_shared/hooks/use-phone-signature-qr-flow';
 import { PhoneSignatureQrPanel } from '@/features/_shared/components/signature/phone-signature-qr-panel';
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { showUserFacingErrorToast } from '@/lib/user-facing-errors';
 import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
+
+function getOnboardingSignatureUrl(clinic: Clinic | undefined): string | null {
+  const settings = clinic?.settings;
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    return clinic?.slaSignatureUrl ?? null;
+  }
+
+  const sla = settings.sla;
+  if (!sla || typeof sla !== 'object' || Array.isArray(sla)) {
+    return clinic?.slaSignatureUrl ?? null;
+  }
+
+  const signatureUrl = sla.signatureUrl;
+  if (typeof signatureUrl === 'string' && signatureUrl.trim().length > 0) {
+    return signatureUrl;
+  }
+
+  return clinic?.slaSignatureUrl ?? null;
+}
 
 export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
@@ -25,8 +44,10 @@ export default function VerifyDoctorPage() {
   const [registrationNumber, setRegistrationNumber] = useState('');
   const [registrationError, setRegistrationError] = useState<string | null>(null);
   const [isSavingReg, setIsSavingReg] = useState(false);
+  const [isApplyingOnboardingSignature, setIsApplyingOnboardingSignature] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const isDoctor = user?.role === 'DOCTOR' || user?.role === 'ADMIN_DOCTOR';
+  const isAdminDoctor = user?.role === 'ADMIN_DOCTOR';
   const generateSignatureToken = useGenerateSignatureToken();
 
   const { data: doctorProfile, isLoading: profileLoading, refetch } = useAPIQuery<User>(
@@ -34,9 +55,19 @@ export default function VerifyDoctorPage() {
     `/doctors/${user?.id}`,
     { enabled: !!user?.id && isDoctor },
   );
+  const { data: clinic, isLoading: clinicLoading } = useAPIQuery<Clinic>(
+    ['clinic-settings', user?.clinicId ?? ''],
+    '/clinic/settings',
+    { enabled: !!user?.clinicId && isDoctor },
+  );
 
-  const updateDoctor = useAPIMutation<User, { registrationNumber: string }>(
+  const updateDoctorRegistration = useAPIMutation<User, { registrationNumber: string }>(
     `/doctors/${user?.id}/registration-number`,
+    'PUT',
+    { invalidateKeys: [['doctor-profile', user?.id ?? '']] },
+  );
+  const updateDoctorSignature = useAPIMutation<User, { signatureUrl: string }>(
+    `/doctors/${user?.id}`,
     'PUT',
     { invalidateKeys: [['doctor-profile', user?.id ?? '']] },
   );
@@ -45,6 +76,16 @@ export default function VerifyDoctorPage() {
   const hasSignature = !!profile?.signatureUrl;
   const hasRegistration = !!profile?.registrationNumber;
   const canContinue = hasSignature && hasRegistration;
+  const onboardingSignatureUrl = getOnboardingSignatureUrl(clinic);
+  const resolvedOnboardingSignatureUrl = onboardingSignatureUrl
+    ? toAbsoluteApiUrl(onboardingSignatureUrl)
+    : null;
+  const resolvedProfileSignatureUrl = profile?.signatureUrl
+    ? toAbsoluteApiUrl(profile.signatureUrl)
+    : null;
+  const canUseOnboardingSignature =
+    isAdminDoctor && Boolean(resolvedOnboardingSignatureUrl) && !hasSignature;
+  const shouldDeferQrAutoStart = isAdminDoctor && clinicLoading;
 
   const createSignatureSession = useCallback(async () => {
     const token = await generateSignatureToken.mutateAsync();
@@ -67,7 +108,7 @@ export default function VerifyDoctorPage() {
       toast.success('Signature received from your phone.');
     },
     persistenceKey: `docita_verify_doctor_qr_session_${user?.id ?? "anonymous"}`,
-    autoStart: !hasSignature,
+    autoStart: !hasSignature && !canUseOnboardingSignature && !shouldDeferQrAutoStart,
     initialUploaded: hasSignature,
   });
 
@@ -92,12 +133,34 @@ export default function VerifyDoctorPage() {
     }
   }, [authLoading, user, isDoctor, canContinue, router]);
 
+  const handleUseOnboardingSignature = async () => {
+    if (!resolvedOnboardingSignatureUrl) return;
+
+    setIsApplyingOnboardingSignature(true);
+    try {
+      await updateDoctorSignature.mutateAsync({
+        signatureUrl: resolvedOnboardingSignatureUrl,
+      });
+      toast.success('Onboarding signature added to your profile.');
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        'We could not use the signature uploaded during onboarding. Please try again.',
+        'save',
+      );
+    } finally {
+      setIsApplyingOnboardingSignature(false);
+    }
+  };
+
   const handleSaveRegistration = async () => {
     if (!registrationNumber.trim()) return;
     setIsSavingReg(true);
     setRegistrationError(null);
     try {
-      await updateDoctor.mutateAsync({ registrationNumber: registrationNumber.trim() });
+      await updateDoctorRegistration.mutateAsync({
+        registrationNumber: registrationNumber.trim(),
+      });
       await refetch();
       toast.success('Registration number saved.');
       setRegistrationNumber('');
@@ -214,7 +277,6 @@ export default function VerifyDoctorPage() {
         className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
         style={{ animationDelay: "100ms" }}
       >
-        {/* Progress */}
         <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-4 shadow-md">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">Setup Progress</span>
@@ -244,7 +306,6 @@ export default function VerifyDoctorPage() {
           </div>
         </div>
 
-        {/* Step 1: Signature */}
         <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
           <div className="flex items-center gap-2">
             {hasSignature ? (
@@ -260,11 +321,11 @@ export default function VerifyDoctorPage() {
                 <CheckCircle2 className="h-4 w-4 shrink-0" />
                 Signature uploaded successfully.
               </div>
-              {profile?.signatureUrl && (
+              {resolvedProfileSignatureUrl && (
                 <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={profile.signatureUrl}
+                    src={resolvedProfileSignatureUrl}
                     alt="Your uploaded signature"
                     className="max-h-24 max-w-full object-contain"
                   />
@@ -278,46 +339,101 @@ export default function VerifyDoctorPage() {
               </p>
             </div>
           ) : (
-            <PhoneSignatureQrPanel
-              loading={signatureQrFlow.isLoading}
-              uploaded={signatureQrFlow.isUploaded}
-              polling={signatureQrFlow.isPolling}
-              error={signatureQrFlow.error}
-              qrUrl={signatureQrFlow.session?.qrUrl ?? null}
-              onRetry={() => {
-                void signatureQrFlow.retrySession();
-              }}
-              onRefreshStatus={async () => {
-                try {
-                  const synced = await signatureQrFlow.refreshStatus();
-                  if (synced) {
-                    toast.success('Signature synced');
-                  } else {
-                    toast.message('We have not received the signature yet.');
-                  }
-                } catch {
-                  showUserFacingErrorToast('We could not refresh signature status. Please try again.');
-                }
-              }}
-              onCopyLink={async () => {
-                try {
-                  const copied = await signatureQrFlow.copyLink();
-                  if (copied) {
-                    toast.success('Link copied');
-                  } else {
-                    showUserFacingErrorToast('We could not copy this link. Please try again.');
-                  }
-                } catch {
-                  showUserFacingErrorToast('We could not copy this link. Please try again.');
-                }
-              }}
-              successTitle="Signature uploaded successfully."
-              successDescription="Your signature has been saved and verified."
-            />
+            <div className="space-y-3">
+              {canUseOnboardingSignature && resolvedOnboardingSignatureUrl && (
+                <div className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-primary">
+                        Signature uploaded during onboarding
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        You can reuse the same signature for your doctor profile.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center rounded-lg border bg-white p-4 min-h-[100px]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={resolvedOnboardingSignatureUrl}
+                      alt="Onboarding signature preview"
+                      className="max-h-24 max-w-full object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      type="button"
+                      className="flex-1"
+                      onClick={() => void handleUseOnboardingSignature()}
+                      disabled={isApplyingOnboardingSignature || signatureQrFlow.isLoading}
+                    >
+                      {isApplyingOnboardingSignature ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Applying...
+                        </>
+                      ) : (
+                        'Use onboarding signature'
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => void signatureQrFlow.retrySession()}
+                      disabled={isApplyingOnboardingSignature || signatureQrFlow.isLoading}
+                    >
+                      Use a different signature
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {(!canUseOnboardingSignature ||
+                signatureQrFlow.session ||
+                signatureQrFlow.isLoading ||
+                signatureQrFlow.error) && (
+                <PhoneSignatureQrPanel
+                  loading={signatureQrFlow.isLoading}
+                  uploaded={signatureQrFlow.isUploaded}
+                  polling={signatureQrFlow.isPolling}
+                  error={signatureQrFlow.error}
+                  qrUrl={signatureQrFlow.session?.qrUrl ?? null}
+                  onRetry={() => {
+                    void signatureQrFlow.retrySession();
+                  }}
+                  onRefreshStatus={async () => {
+                    try {
+                      const synced = await signatureQrFlow.refreshStatus();
+                      if (synced) {
+                        toast.success('Signature synced');
+                      } else {
+                        toast.message('We have not received the signature yet.');
+                      }
+                    } catch {
+                      showUserFacingErrorToast('We could not refresh signature status. Please try again.');
+                    }
+                  }}
+                  onCopyLink={async () => {
+                    try {
+                      const copied = await signatureQrFlow.copyLink();
+                      if (copied) {
+                        toast.success('Link copied');
+                      } else {
+                        showUserFacingErrorToast('We could not copy this link. Please try again.');
+                      }
+                    } catch {
+                      showUserFacingErrorToast('We could not copy this link. Please try again.');
+                    }
+                  }}
+                  successTitle="Signature uploaded successfully."
+                  successDescription="Your signature has been saved and verified."
+                />
+              )}
+            </div>
           )}
         </div>
 
-        {/* Step 2: Registration Number */}
         <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
           <div className="flex items-center gap-2">
             {hasRegistration ? (
