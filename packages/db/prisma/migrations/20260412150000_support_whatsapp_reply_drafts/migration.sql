@@ -26,7 +26,7 @@ UPDATE "SupportWhatsAppMessage"
 SET "direction" = CASE
   WHEN "senderPhoneNumber" = "supportPhoneNumber" THEN 'OUTBOUND'
   ELSE 'INBOUND'
-END
+END::"SupportWhatsAppMessageDirection"
 WHERE "direction" IS NULL;
 
 ALTER TABLE "SupportWhatsAppMessage"
