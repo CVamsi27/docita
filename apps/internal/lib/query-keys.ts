@@ -17,6 +17,8 @@ export const internalQueryKeys = {
     feedbackStats: () => ["internal", "feedback", "stats"] as const,
     supportInquiries: (limit: number) =>
       ["internal", "support", "inquiries", limit] as const,
+    supportWhatsAppMessages: (limit: number) =>
+      ["internal", "support", "whatsapp", limit] as const,
     monitoringPerformance: (params: string) =>
       ["internal", "monitoring", "performance", params] as const,
     performanceMetrics: () => ["internal", "performance", "metrics"] as const,

@@ -8,6 +8,7 @@ import {
   InternalBillingSubscriptionsQuery,
   Patient,
   SupportInquiry,
+  SupportWhatsAppMessage,
 } from "@workspace/types";
 type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
@@ -254,6 +255,10 @@ export const feedbackAPI = {
 export const supportAPI = {
   getInquiries: (limit = 100): Promise<SupportInquiry[]> =>
     client.get(`/internal/support/inquiries?limit=${limit}`),
+  getWhatsAppMessages: (
+    limit = 100,
+  ): Promise<SupportWhatsAppMessage[]> =>
+    client.get(`/internal/support/whatsapp?limit=${limit}`),
 };
 
 export interface SubscriptionOverview {

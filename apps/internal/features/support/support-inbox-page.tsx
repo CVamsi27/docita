@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import { Badge } from "@workspace/ui/components/badge";
@@ -11,58 +11,95 @@ import { getUserFacingErrorMessage } from "@workspace/types";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { supportAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { Inbox, Mail, MessageSquare, Search } from "lucide-react";
+import { Inbox, MessageSquare, Phone, Search } from "lucide-react";
 
-function getReplySubject(inquiry: {
-  name: string;
-  clinic?: string | null;
+function getSenderLabel(message: {
+  senderName?: string | null;
+  senderPhoneNumber: string;
 }) {
-  const clinicSuffix = inquiry.clinic ? ` - ${inquiry.clinic}` : "";
-  return `Re: Support inquiry from ${inquiry.name}${clinicSuffix}`;
+  return message.senderName?.trim() || message.senderPhoneNumber;
 }
 
-function getReplyBody(inquiry: {
-  name: string;
-  email: string;
-  clinic?: string | null;
-  message: string;
-}) {
-  const clinicLine = inquiry.clinic ? `Clinic: ${inquiry.clinic}\n` : "";
-  return encodeURIComponent(
-    `Hi ${inquiry.name},\n\nThanks for reaching out to Docita.\n\n${clinicLine}Original message:\n${inquiry.message}\n\nBest regards,\nDocita Support`,
-  );
+function getWhatsAppLink(phoneNumber: string) {
+  const digits = phoneNumber.replace(/\D/g, "");
+  return digits ? `https://wa.me/${digits}` : "#";
+}
+
+function formatMessageType(messageType: string) {
+  if (!messageType) return "Message";
+
+  return messageType
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 export function SupportInboxPage() {
   const { token } = useAuth();
   const [search, setSearch] = useState("");
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
 
   const supportQuery = useQuery({
-    queryKey: internalQueryKeys.internal.supportInquiries(100),
-    queryFn: () => supportAPI.getInquiries(100),
+    queryKey: internalQueryKeys.internal.supportWhatsAppMessages(100),
+    queryFn: () => supportAPI.getWhatsAppMessages(100),
     enabled: Boolean(token),
   });
 
-  const inquiries = useMemo(() => supportQuery.data ?? [], [supportQuery.data]);
+  const messages = useMemo(() => supportQuery.data ?? [], [supportQuery.data]);
 
-  const filteredInquiries = useMemo(() => {
+  const filteredMessages = useMemo(() => {
     const normalized = search.trim().toLowerCase();
-    if (!normalized) return inquiries;
+    if (!normalized) return messages;
 
-    return inquiries.filter((inquiry) => {
-      return [inquiry.name, inquiry.email, inquiry.clinic, inquiry.message]
+    return messages.filter((message) => {
+      return [
+        message.senderName,
+        message.senderPhoneNumber,
+        message.supportPhoneNumber,
+        message.messageType,
+        message.messageBody,
+      ]
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(normalized));
     });
-  }, [inquiries, search]);
+  }, [messages, search]);
 
-  const total = inquiries.length;
-  const newCount = inquiries.filter((inquiry) => inquiry.status === "NEW").length;
+  useEffect(() => {
+    if (filteredMessages.length === 0) {
+      if (selectedMessageId !== null) {
+        setSelectedMessageId(null);
+      }
+      return;
+    }
+
+    const hasSelectedMessage = filteredMessages.some(
+      (message) => message.id === selectedMessageId,
+    );
+
+    if (!hasSelectedMessage) {
+      setSelectedMessageId(filteredMessages[0]?.id ?? null);
+    }
+  }, [filteredMessages, selectedMessageId]);
+
+  const selectedMessage = useMemo(() => {
+    if (!filteredMessages.length) {
+      return null;
+    }
+
+    return (
+      filteredMessages.find((message) => message.id === selectedMessageId) ??
+      filteredMessages[0] ??
+      null
+    );
+  }, [filteredMessages, selectedMessageId]);
+
+  const total = messages.length;
+  const newCount = messages.filter((message) => message.status === "NEW").length;
   const loading = supportQuery.isLoading;
   const errorMessage = supportQuery.isError
     ? getUserFacingErrorMessage(supportQuery.error, {
         context: "load",
-        fallback: "We could not load support inquiries right now. Please try again.",
+        fallback: "We could not load WhatsApp messages right now. Please try again.",
       })
     : null;
 
@@ -72,14 +109,14 @@ export function SupportInboxPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
             <Inbox className="h-3.5 w-3.5" />
-            Support Inbox
+            WhatsApp Inbox
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Incoming Messages
             </h1>
             <p className="text-sm text-muted-foreground">
-              Messages submitted from the public contact form and onboarding support paths.
+              Live WhatsApp messages received on the onboarding support line.
             </p>
           </div>
         </div>
@@ -104,22 +141,10 @@ export function SupportInboxPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name, email, clinic, or message"
-            className="pl-10"
-          />
-        </div>
-      </div>
-
       {loading && (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading support inquiries...
+            Loading WhatsApp messages...
           </CardContent>
         </Card>
       )}
@@ -132,78 +157,167 @@ export function SupportInboxPage() {
         </Card>
       )}
 
-      {!loading && !errorMessage && filteredInquiries.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center text-sm text-muted-foreground">
-            {search.trim()
-              ? "No support inquiries matched your search."
-              : "No incoming support messages yet."}
-          </CardContent>
-        </Card>
-      )}
+      {!loading && !errorMessage && (
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+          <Card className="min-w-0">
+            <CardHeader className="space-y-4 border-b bg-muted/20">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg">Messages</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Select a message to review the full details.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 text-right">
+                  <Badge variant="secondary" className="w-fit self-end">
+                    {total} total
+                  </Badge>
+                  <Badge variant="default" className="w-fit self-end">
+                    {newCount} new
+                  </Badge>
+                </div>
+              </div>
 
-      <div className="space-y-4">
-        {filteredInquiries.map((inquiry) => {
-          const replySubject = getReplySubject(inquiry);
-          const replyBody = getReplyBody(inquiry);
-          return (
-            <Card key={inquiry.id} className="overflow-hidden">
-              <CardHeader className="space-y-4 border-b bg-muted/20">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <CardTitle className="text-lg">{inquiry.name}</CardTitle>
-                      <Badge
-                        variant={inquiry.status === "NEW" ? "default" : "secondary"}
-                      >
-                        {inquiry.status}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                      <a
-                        href={`mailto:${inquiry.email}`}
-                        className="inline-flex items-center gap-2 hover:text-foreground"
-                      >
-                        <Mail className="h-4 w-4" />
-                        {inquiry.email}
-                      </a>
-                      {inquiry.clinic && <p>Clinic: {inquiry.clinic}</p>}
-                      <p>
-                        Received{" "}
-                        {formatDistanceToNow(new Date(inquiry.createdAt), {
-                          addSuffix: true,
-                        })}
-                        {" "}
-                        ({format(new Date(inquiry.createdAt), "PPpp")})
-                      </p>
-                    </div>
-                  </div>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search by name, phone, or message"
+                  className="pl-10"
+                />
+              </div>
+            </CardHeader>
 
-                  <Button asChild variant="outline" size="sm">
-                    <a
-                      href={`mailto:${inquiry.email}?subject=${encodeURIComponent(
-                        replySubject,
-                      )}&body=${replyBody}`}
+            <CardContent className="space-y-3 p-4 sm:p-5">
+              {filteredMessages.length === 0 ? (
+                <div className="rounded-xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                  {search.trim()
+                    ? "No WhatsApp messages matched your search."
+                    : "No incoming WhatsApp messages yet."}
+                </div>
+              ) : (
+                filteredMessages.map((message) => {
+                  const isSelected = message.id === selectedMessage?.id;
+
+                  return (
+                    <button
+                      key={message.id}
+                      type="button"
+                      onClick={() => setSelectedMessageId(message.id)}
+                      className={[
+                        "w-full rounded-xl border p-4 text-left transition-colors",
+                        "hover:border-primary/40 hover:bg-muted/30",
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border bg-background",
+                      ].join(" ")}
                     >
-                      Reply by email
-                    </a>
-                  </Button>
-                </div>
-              </CardHeader>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-semibold">
+                              {getSenderLabel(message)}
+                            </p>
+                            <Badge
+                              variant={message.status === "NEW" ? "default" : "secondary"}
+                            >
+                              {message.status}
+                            </Badge>
+                          </div>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {message.senderPhoneNumber}
+                          </p>
+                          <p className="line-clamp-2 text-sm text-muted-foreground">
+                            {message.messageBody}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(message.receivedAt), {
+                            addSuffix: true,
+                          })}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
 
-              <CardContent className="space-y-3 p-5">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <MessageSquare className="h-4 w-4" />
-                  Message
-                </div>
-                <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">
-                  {inquiry.message}
-                </p>
+          <Card className="min-w-0">
+            {selectedMessage ? (
+              <>
+                <CardHeader className="space-y-4 border-b bg-muted/20">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CardTitle className="text-lg">
+                          {getSenderLabel(selectedMessage)}
+                        </CardTitle>
+                        <Badge
+                          variant={selectedMessage.status === "NEW" ? "default" : "secondary"}
+                        >
+                          {selectedMessage.status}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                        <a
+                          href={getWhatsAppLink(selectedMessage.senderPhoneNumber)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 hover:text-foreground"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          Open WhatsApp
+                        </a>
+                        <p className="inline-flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          {selectedMessage.senderPhoneNumber}
+                        </p>
+                        <p>Support line: {selectedMessage.supportPhoneNumber}</p>
+                        <p>Type: {formatMessageType(selectedMessage.messageType)}</p>
+                        <p>
+                          Received{" "}
+                          {formatDistanceToNow(new Date(selectedMessage.receivedAt), {
+                            addSuffix: true,
+                          })}
+                          {" "}
+                          ({format(new Date(selectedMessage.receivedAt), "PPpp")})
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button asChild variant="outline" size="sm">
+                      <a
+                        href={getWhatsAppLink(selectedMessage.senderPhoneNumber)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open chat
+                      </a>
+                    </Button>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="space-y-3 p-5">
+                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <MessageSquare className="h-4 w-4" />
+                    Message
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">
+                    {selectedMessage.messageBody}
+                  </p>
+                </CardContent>
+              </>
+            ) : (
+              <CardContent className="p-8 text-center text-sm text-muted-foreground">
+                No message selected.
               </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

@@ -44,6 +44,10 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
 import { ContactService } from '@/shared/modules/contact/contact.service';
 import {
+  SupportWhatsAppInboxService,
+  SupportWhatsAppMessageListResponseDto,
+} from '@/shared/modules/support-whatsapp';
+import {
   FeedbackListResponseDto,
   FeedbackResponseDto,
   UpdateFeedbackStatusDto,
@@ -65,6 +69,7 @@ export class InternalController {
     private readonly billingService: InternalBillingService,
     private readonly feedbackService: FeedbackService,
     private readonly contactService: ContactService,
+    private readonly supportWhatsAppInboxService: SupportWhatsAppInboxService,
   ) {}
 
   @Get('clinics')
@@ -216,6 +221,13 @@ export class InternalController {
   async getSupportInquiries(@Query('limit') limit?: string) {
     const parsedLimit = parsePaginationInt(limit, { min: 1, max: 200 }) ?? 100;
     return this.contactService.listInquiries(parsedLimit);
+  }
+
+  @Get('support/whatsapp')
+  @ZodSerializerDto(SupportWhatsAppMessageListResponseDto)
+  async getSupportWhatsAppMessages(@Query('limit') limit?: string) {
+    const parsedLimit = parsePaginationInt(limit, { min: 1, max: 200 }) ?? 100;
+    return this.supportWhatsAppInboxService.listMessages(parsedLimit);
   }
 
   @Get('performance')

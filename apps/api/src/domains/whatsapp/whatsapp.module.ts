@@ -13,10 +13,11 @@ import { WhatsAppWebhookController } from './presentation/controllers/whatsapp-w
 import { PrismaModule } from '@/prisma/prisma.module';
 import { DefaultTemplatesService } from './core/services/default-templates.service';
 import { TemplateResolverService } from './core/services/template-resolver.service';
+import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 
 @Global()
 @Module({
-  imports: [PrismaModule, ConfigModule],
+  imports: [PrismaModule, ConfigModule, SupportWhatsAppModule],
   controllers: [WhatsAppController, WhatsAppWebhookController],
   providers: [
     SendMessageUseCase,

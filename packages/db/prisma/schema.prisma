@@ -1299,6 +1299,27 @@ model SupportInquiry {
   @@index([email])
 }
 
+model SupportWhatsAppMessage {
+  id                String                       @id @default(cuid())
+  providerMessageId String                       @unique
+  supportPhoneNumber String
+  senderPhoneNumber  String
+  senderName         String?
+  messageType        String
+  messageBody        String
+  status             SupportWhatsAppMessageStatus @default(NEW)
+  receivedAt         DateTime                     @default(now())
+  respondedAt        DateTime?
+  rawPayload         Json?
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+
+  @@index([status])
+  @@index([receivedAt])
+  @@index([senderPhoneNumber])
+  @@index([supportPhoneNumber])
+}
+
 // WhatsApp Message Templates (for button-first approach)
 model WhatsappTemplate {
   id             String                   @id @default(cuid())
@@ -1471,6 +1492,13 @@ enum SupportInquiryStatus {
   NEW
   REVIEWED
   RESOLVED
+  ARCHIVED
+}
+
+enum SupportWhatsAppMessageStatus {
+  NEW
+  READ
+  REPLIED
   ARCHIVED
 }
 

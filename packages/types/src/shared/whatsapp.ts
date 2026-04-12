@@ -56,6 +56,37 @@ export const whatsappLogSchema = z.object({
   createdAt: z.date().or(z.string()),
 });
 
+export const supportWhatsAppMessageStatusSchema = z.enum([
+  "NEW",
+  "READ",
+  "REPLIED",
+  "ARCHIVED",
+]);
+
+export const supportWhatsAppMessageSchema = z.object({
+  id: z.string(),
+  providerMessageId: z.string(),
+  supportPhoneNumber: z.string(),
+  senderPhoneNumber: z.string(),
+  senderName: z.string().nullable().optional(),
+  messageType: z.string(),
+  messageBody: z.string(),
+  status: supportWhatsAppMessageStatusSchema,
+  receivedAt: z.date().or(z.string()),
+  respondedAt: z.date().or(z.string()).nullable().optional(),
+});
+
+export const supportWhatsAppMessageListResponseSchema = z.array(
+  supportWhatsAppMessageSchema,
+);
+
+export type SupportWhatsAppMessage = z.infer<
+  typeof supportWhatsAppMessageSchema
+>;
+export type SupportWhatsAppMessageStatus = z.infer<
+  typeof supportWhatsAppMessageStatusSchema
+>;
+
 export const whatsappStatsSchema = z.object({
   sent: z.number(),
   delivered: z.number(),

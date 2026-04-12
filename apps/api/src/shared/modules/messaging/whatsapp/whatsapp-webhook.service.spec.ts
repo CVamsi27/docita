@@ -3,6 +3,7 @@ import { WhatsappWebhookService } from './whatsapp-webhook.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { ResponseHandlerService } from './response-handler.service';
+import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { Logger } from '@nestjs/common';
 import {
   beforeEach,
@@ -22,6 +23,9 @@ describe('WhatsappWebhookService', () => {
   let service: WhatsappWebhookService;
   let mockPrisma: ReturnType<typeof buildMockPrisma>;
   let mockWhatsappClient: { AppSecret: string; VerifyToken: string };
+  let mockSupportInboxService: {
+    recordIncomingMessages: ReturnType<typeof jest.fn>;
+  };
   let mockResponseHandler: {
     handlePatientResponse: ReturnType<typeof jest.fn>;
   };
@@ -53,6 +57,11 @@ describe('WhatsappWebhookService', () => {
       AppSecret: 'test-app-secret',
       VerifyToken: 'test-verify-token',
     };
+    mockSupportInboxService = {
+      recordIncomingMessages: jest
+        .fn()
+        .mockImplementation(async () => undefined),
+    };
     mockResponseHandler = {
       handlePatientResponse: jest
         .fn()
@@ -68,6 +77,10 @@ describe('WhatsappWebhookService', () => {
         WhatsappWebhookService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
+        {
+          provide: SupportWhatsAppInboxService,
+          useValue: mockSupportInboxService,
+        },
         { provide: ResponseHandlerService, useValue: mockResponseHandler },
       ],
     }).compile();
@@ -149,6 +162,7 @@ describe('WhatsappWebhookService', () => {
         >[0],
       );
 
+      expect(mockSupportInboxService.recordIncomingMessages).toHaveBeenCalled();
       expect(mockResponseHandler.handlePatientResponse).toHaveBeenCalledWith(
         'appt-123',
         'yes',
@@ -176,6 +190,7 @@ describe('WhatsappWebhookService', () => {
         >[0],
       );
 
+      expect(mockSupportInboxService.recordIncomingMessages).toHaveBeenCalled();
       expect(mockResponseHandler.handlePatientResponse).toHaveBeenCalledWith(
         'appt-456',
         'btn_confirm',

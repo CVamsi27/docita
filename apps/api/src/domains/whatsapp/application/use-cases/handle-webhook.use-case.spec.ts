@@ -1,6 +1,8 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { HandleWebhookUseCase } from './handle-webhook.use-case';
 import { IWhatsAppRepository } from '../ports/whatsapp.repository.port';
+import { asType } from '@/test-utils/as-type';
+import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import {
   WhatsAppMessage,
   WhatsAppMessageStatus,
@@ -80,6 +82,8 @@ describe('HandleWebhookUseCase', () => {
     jest.fn<IWhatsAppRepository['listTemplatesByClinic']>();
   const isAutomationEnabledMock =
     jest.fn<IWhatsAppRepository['isAutomationEnabled']>();
+  const recordIncomingMessagesMock =
+    jest.fn<SupportWhatsAppInboxService['recordIncomingMessages']>();
 
   const mockRepository: IWhatsAppRepository = {
     saveMessage: saveMessageMock,
@@ -90,6 +94,9 @@ describe('HandleWebhookUseCase', () => {
     findTemplateByName: findTemplateByNameMock,
     listTemplatesByClinic: listTemplatesByClinicMock,
     isAutomationEnabled: isAutomationEnabledMock,
+  };
+  const mockSupportInboxService = {
+    recordIncomingMessages: recordIncomingMessagesMock,
   };
 
   beforeEach(() => {
@@ -103,8 +110,12 @@ describe('HandleWebhookUseCase', () => {
     findTemplateByNameMock.mockResolvedValue(null);
     listTemplatesByClinicMock.mockResolvedValue([] as WhatsAppTemplate[]);
     isAutomationEnabledMock.mockResolvedValue(true);
+    recordIncomingMessagesMock.mockResolvedValue();
 
-    useCase = new HandleWebhookUseCase(mockRepository);
+    useCase = new HandleWebhookUseCase(
+      mockRepository,
+      asType<SupportWhatsAppInboxService>(mockSupportInboxService),
+    );
   });
 
   describe('status update processing', () => {
@@ -264,6 +275,56 @@ describe('HandleWebhookUseCase', () => {
       });
 
       expect(saveMessageMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('should persist incoming messages from webhook payloads', async () => {
+      await useCase.execute({
+        payload: {
+          object: 'whatsapp_business_account',
+          entry: [
+            {
+              id: 'entry-1',
+              changes: [
+                {
+                  field: 'messages',
+                  value: {
+                    messaging_product: 'whatsapp',
+                    metadata: {
+                      display_phone_number: '919876543210',
+                      phone_number_id: 'phone-id',
+                    },
+                    contacts: [
+                      {
+                        profile: { name: 'Rahul Sharma' },
+                        wa_id: '919876543210',
+                      },
+                    ],
+                    messages: [
+                      {
+                        from: '919876543210',
+                        id: 'wamid.inbound001',
+                        timestamp: '123',
+                        type: 'text',
+                        text: { body: 'I need help' },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      expect(recordIncomingMessagesMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          messages: [
+            expect.objectContaining({
+              id: 'wamid.inbound001',
+            }),
+          ],
+        }),
+      );
     });
   });
 });
