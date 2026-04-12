@@ -2,6 +2,8 @@
 
 import { Suspense } from "react";
 import { LoadingState } from "@workspace/ui/components/empty-state";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { Feature } from "@workspace/types";
 import { PatientsPageContainer } from "@/features/patients/components";
 
 function PatientsPageFallback() {
@@ -10,8 +12,10 @@ function PatientsPageFallback() {
 
 export default function PatientsPage() {
   return (
-    <Suspense fallback={<PatientsPageFallback />}>
-      <PatientsPageContainer />
-    </Suspense>
+    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
+      <Suspense fallback={<PatientsPageFallback />}>
+        <PatientsPageContainer />
+      </Suspense>
+    </FeatureGate>
   );
 }

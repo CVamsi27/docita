@@ -13,6 +13,7 @@ import {
   Heart,
   LayoutDashboard,
   type LucideIcon,
+  MessageCircle,
   Pill,
   Receipt,
   Settings2,
@@ -112,6 +113,13 @@ export const navItems: NavItem[] = [
     icon: FileInput,
     label: "Import Data",
     accessTarget: APP_ACCESS_TARGETS.PAGE_IMPORT,
+  },
+  {
+    href: "/whatsapp",
+    icon: MessageCircle,
+    label: "WhatsApp Inbox",
+    feature: Feature.WHATSAPP_MESSAGING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
   },
 ];
 

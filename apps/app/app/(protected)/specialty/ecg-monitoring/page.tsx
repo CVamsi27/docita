@@ -1,6 +1,8 @@
 "use client";
 
 import { AlertCircle, Heart } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import {
   Card,
   CardContent,
@@ -14,14 +16,22 @@ import { useClinic } from "@/lib/clinic-context";
 export default function ECGMonitoringPage() {
   const { clinic } = useClinic();
 
-  if (clinic?.type && clinic.type !== "CARDIOLOGY") {
+  return (
+    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
+      <ECGMonitoringContent clinicType={clinic?.type} />
+    </FeatureGate>
+  );
+}
+
+function ECGMonitoringContent({ clinicType }: { clinicType?: string }) {
+  if (clinicType && clinicType !== "CARDIOLOGY") {
     return (
       <div className="container mx-auto py-8 max-w-2xl text-center space-y-4">
         <Heart className="h-12 w-12 text-muted-foreground mx-auto" />
         <h1 className="text-2xl font-bold tracking-tight">ECG Monitoring</h1>
         <p className="text-muted-foreground">
           ECG monitoring is only available for cardiology clinics. Your clinic
-          is configured as <strong>{clinic.type}</strong>.
+          is configured as <strong>{clinicType}</strong>.
         </p>
       </div>
     );

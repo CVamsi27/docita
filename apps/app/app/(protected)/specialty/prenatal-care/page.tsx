@@ -1,6 +1,8 @@
 "use client";
 
 import { AlertCircle, Baby } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import {
   Card,
   CardContent,
@@ -12,6 +14,7 @@ import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 
 export default function PrenatalCarePage() {
   return (
+    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -74,5 +77,6 @@ export default function PrenatalCarePage() {
         </Card>
       </div>
     </div>
+    </FeatureGate>
   );
 }

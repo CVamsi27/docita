@@ -1,6 +1,8 @@
 "use client";
 
 import { AlertCircle, Eye } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import {
   Card,
   CardContent,
@@ -14,14 +16,22 @@ import { useClinic } from "@/lib/clinic-context";
 export default function VisionTestsPage() {
   const { clinic } = useClinic();
 
-  if (clinic?.type && clinic.type !== "OPHTHALMOLOGY") {
+  return (
+    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
+      <VisionTestsContent clinicType={clinic?.type} />
+    </FeatureGate>
+  );
+}
+
+function VisionTestsContent({ clinicType }: { clinicType?: string }) {
+  if (clinicType && clinicType !== "OPHTHALMOLOGY") {
     return (
       <div className="container mx-auto py-8 max-w-2xl text-center space-y-4">
         <Eye className="h-12 w-12 text-muted-foreground mx-auto" />
         <h1 className="text-2xl font-bold tracking-tight">Vision Tests</h1>
         <p className="text-muted-foreground">
           Vision testing is only available for ophthalmology clinics. Your
-          clinic is configured as <strong>{clinic.type}</strong>.
+          clinic is configured as <strong>{clinicType}</strong>.
         </p>
       </div>
     );
