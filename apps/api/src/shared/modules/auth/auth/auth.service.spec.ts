@@ -57,6 +57,9 @@ describe('AuthService', () => {
     sendVerificationEmail: jest.MockedFunction<
       (...args: unknown[]) => Promise<unknown>
     >;
+    sendPasswordResetEmail: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
   };
   let passwordPolicy: {
     validate: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
@@ -234,6 +237,9 @@ describe('AuthService', () => {
             sendVerificationEmail: jest
               .fn()
               .mockImplementation(async () => ({ messageId: 'test' })),
+            sendPasswordResetEmail: jest
+              .fn()
+              .mockImplementation(async () => ({ success: true })),
           },
         },
       ],
@@ -778,7 +784,7 @@ describe('AuthService', () => {
       expect(prismaService.user.update).not.toHaveBeenCalled();
     });
 
-    it('stores reset token and expiry for known user', async () => {
+    it('stores reset token and sends email for known user', async () => {
       jest
         .spyOn(prismaService.user, 'findUnique')
         .mockResolvedValue({ id: 'user-123' });
@@ -797,6 +803,10 @@ describe('AuthService', () => {
           passwordResetExpiresAt: expect.any(Date),
         },
       });
+      expect(emailService.sendPasswordResetEmail).toHaveBeenCalledWith(
+        'test@example.com',
+        expect.any(String),
+      );
     });
   });
 });
