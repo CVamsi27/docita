@@ -1,8 +1,9 @@
 export const SUPPORT_EMAIL = "support@docita.work";
+const FALLBACK_SUPPORT_PHONE = "918790311010";
 
 export function getSupportPhoneNumber(): string {
   const configuredPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER?.trim();
-  return configuredPhone || "";
+  return configuredPhone || FALLBACK_SUPPORT_PHONE;
 }
 
 export function getPhoneDigits(phoneNumber: string): string {

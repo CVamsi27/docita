@@ -18,4 +18,14 @@ describe("SupportContact", () => {
     expect(email).toHaveAttribute("href", "mailto:support@docita.work");
     expect(phone).toHaveAttribute("href", "tel:+918790311010");
   });
+
+  it("falls back to the canonical support number when env is missing", () => {
+    render(<SupportContact />);
+
+    expect(screen.getByRole("link", { name: "support@docita.work" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "+91 87903 11010" })).toHaveAttribute(
+      "href",
+      "tel:+918790311010",
+    );
+  });
 });
