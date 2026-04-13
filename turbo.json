@@ -1,20 +1,20 @@
 {
   "$schema": "https://v2-8-12.turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["NODE_ENV", "ANALYZE", "NEXT_RUNTIME", "JWT_SECRET", "API_PROXY_TARGET", "API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "CI", "DOCITA_CLOUDFLARE", "DOCITA_ENV"],
+  "globalEnv": ["NODE_ENV", "ANALYZE", "NEXT_RUNTIME", "JWT_SECRET", "API_PROXY_TARGET", "API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "ENABLE_SCHEDULERS", "CI", "DOCITA_CLOUDFLARE", "DOCITA_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build", "check-types", "lint"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"],
-      "env": ["NODE_ENV", "API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "CI", "SENTRY_ORG", "SENTRY_PROJECT", "DOCITA_CLOUDFLARE", "DOCITA_ENV"]
+      "env": ["NODE_ENV", "API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "ENABLE_SCHEDULERS", "CI", "SENTRY_ORG", "SENTRY_PROJECT", "DOCITA_CLOUDFLARE", "DOCITA_ENV"]
     },
     "db:generate": {
       "cache": false
     },
     "lint": {
       "dependsOn": ["^lint"],
-      "env": ["API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "CI", "DOCITA_CLOUDFLARE", "DOCITA_ENV"]
+      "env": ["API_URL", "APP_URL", "PUBLIC_API_URL", "PUBLIC_APP_URL", "PUBLIC_ANALYTICS_URL", "NEXT_PUBLIC_API_URL", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_SOCKET_URL", "ENABLE_SCHEDULERS", "CI", "DOCITA_CLOUDFLARE", "DOCITA_ENV"]
     },
     "check-types": {
       "dependsOn": ["^build", "^check-types"]
@@ -28,7 +28,7 @@
         "test/**/*.ts",
         "test/**/*.tsx"
       ],
-      "env": ["API_URL", "APP_URL", "CI"]
+      "env": ["API_URL", "APP_URL", "ENABLE_SCHEDULERS", "CI"]
     },
     "dev": {
       "cache": false,
