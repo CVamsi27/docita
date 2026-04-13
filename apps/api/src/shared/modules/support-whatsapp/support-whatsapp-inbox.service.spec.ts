@@ -422,27 +422,11 @@ describe('SupportWhatsAppInboxService', () => {
     });
   });
 
-  it('returns thread messages ordered oldest first', async () => {
+  it('fetches the newest thread messages and returns them oldest first', async () => {
     supportWhatsAppMessageFindMany.mockResolvedValue([
       {
         id: 'msg-1',
         providerMessageId: 'wamid.1',
-        threadPhoneNumber: '919876543210',
-        supportPhoneNumber: '918790311010',
-        senderPhoneNumber: '919876543210',
-        senderName: 'Rahul Sharma',
-        direction: 'INBOUND',
-        messageType: 'text',
-        messageBody: 'Need help',
-        status: 'READ',
-        receivedAt: new Date('2026-04-12T12:00:00Z'),
-        respondedAt: null,
-        replyToProviderMessageId: null,
-        errorMessage: null,
-      },
-      {
-        id: 'msg-2',
-        providerMessageId: 'wamid.2',
         threadPhoneNumber: '919876543210',
         supportPhoneNumber: '918790311010',
         senderPhoneNumber: '918790311010',
@@ -456,13 +440,29 @@ describe('SupportWhatsAppInboxService', () => {
         replyToProviderMessageId: 'wamid.1',
         errorMessage: null,
       },
+      {
+        id: 'msg-2',
+        providerMessageId: 'wamid.2',
+        threadPhoneNumber: '919876543210',
+        supportPhoneNumber: '918790311010',
+        senderPhoneNumber: '919876543210',
+        senderName: 'Rahul Sharma',
+        direction: 'INBOUND',
+        messageType: 'text',
+        messageBody: 'Need help',
+        status: 'READ',
+        receivedAt: new Date('2026-04-12T12:00:00Z'),
+        respondedAt: null,
+        replyToProviderMessageId: null,
+        errorMessage: null,
+      },
     ]);
 
     const messages = await service.listThreadMessages('919876543210', 500);
 
     expect(supportWhatsAppMessageFindMany).toHaveBeenCalledWith({
       where: { threadPhoneNumber: '919876543210' },
-      orderBy: [{ receivedAt: 'asc' }, { createdAt: 'asc' }],
+      orderBy: [{ receivedAt: 'desc' }, { createdAt: 'desc' }],
       take: 500,
       select: {
         id: true,
@@ -483,8 +483,8 @@ describe('SupportWhatsAppInboxService', () => {
       },
     });
     expect(messages).toHaveLength(2);
-    expect(messages[0].id).toBe('msg-1');
-    expect(messages[1].id).toBe('msg-2');
+    expect(messages[0].id).toBe('msg-2');
+    expect(messages[1].id).toBe('msg-1');
   });
 
   it('marks unread inbound thread messages as read', async () => {
