@@ -12,13 +12,6 @@ type SyncedCodeRecord = {
   isCommon: boolean;
 };
 
-type SyncedCodeRecord = {
-  code: string;
-  description: string;
-  category: string;
-  isCommon: boolean;
-};
-
 @Injectable()
 export class MedicalCodeSyncService {
   private readonly logger = new Logger(MedicalCodeSyncService.name);
