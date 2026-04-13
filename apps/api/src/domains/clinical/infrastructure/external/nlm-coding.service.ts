@@ -38,6 +38,7 @@ const NLM_ICD_URL = 'https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search';
 const NLM_HCPCS_URL = 'https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/search';
 const NLM_ICD_REQUEST_TIMEOUT_MS = 5000;
 const NLM_HCPCS_REQUEST_TIMEOUT_MS = 5000;
+const NLM_SYNC_REQUEST_TIMEOUT_MS = 15000;
 const NLM_FAILURE_COOLDOWN_MS = 5 * 60 * 1000;
 const NLM_SYNC_PAGE_SIZE = 500;
 const NLM_SYNC_MAX_OFFSET = 7500;
@@ -195,22 +196,34 @@ export class NlmCodingService {
     const uniqueCodes = new Map<string, T>();
 
     for (const prefix of prefixes) {
+      if (this.isSearchTemporarilyDisabled(system)) {
+        break;
+      }
+
       let offset = 0;
 
       while (offset < NLM_SYNC_MAX_OFFSET) {
-        const { total, rows } = await this.fetchNlmRows(
-          system,
-          endpoint,
-          {
-            terms: prefix,
-            sf: params.sf,
-            df: params.df,
-            count: String(NLM_SYNC_PAGE_SIZE),
-            offset: String(offset),
-            ...(params.q ? { q: params.q } : {}),
-          },
-          timeoutMs,
-        );
+        let total = 0;
+        let rows: NlmCodeRow[] = [];
+
+        try {
+          ({ total, rows } = await this.fetchNlmRows(
+            system,
+            endpoint,
+            {
+              terms: prefix,
+              sf: params.sf,
+              df: params.df,
+              count: String(NLM_SYNC_PAGE_SIZE),
+              offset: String(offset),
+              ...(params.q ? { q: params.q } : {}),
+            },
+            timeoutMs,
+          ));
+        } catch (err) {
+          this.markSearchUnavailable(system, err);
+          return Array.from(uniqueCodes.values());
+        }
 
         if (rows.length === 0) {
           break;
@@ -299,7 +312,7 @@ export class NlmCodingService {
       NLM_ICD_URL,
       ICD_SYNC_PREFIXES,
       { sf: 'code', df: 'code,name' },
-      NLM_ICD_REQUEST_TIMEOUT_MS,
+      NLM_SYNC_REQUEST_TIMEOUT_MS,
       (code, description) => this.mapIcd(code, description, true),
     );
   }
@@ -314,7 +327,7 @@ export class NlmCodingService {
         df: 'code,display',
         q: ACTIVE_HCPCS_FILTER,
       },
-      NLM_HCPCS_REQUEST_TIMEOUT_MS,
+      NLM_SYNC_REQUEST_TIMEOUT_MS,
       (code, description) => this.mapCpt(code, description, true),
     );
   }
