@@ -19,6 +19,11 @@ export default function ClinicSelectionPage() {
       return;
     }
 
+    if (user.emailVerified === false) {
+      router.replace("/verify-email-sent");
+      return;
+    }
+
     if (user.clinicId) {
       router.replace("/dashboard");
       return;

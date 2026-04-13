@@ -10,7 +10,10 @@ import { tenantStorage } from '@/common/middleware/tenant.middleware';
 
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+  intercept<TResponse>(
+    context: ExecutionContext,
+    next: CallHandler<TResponse>,
+  ): Observable<TResponse> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
@@ -29,8 +32,6 @@ export class TenantContextInterceptor implements NestInterceptor {
         );
       }
 
-      // User is authenticated but has no clinic yet (onboarding flow).
-      // Wrap in a bypassed context so runUnrestricted() works correctly.
       return from(
         tenantStorage.run({ bypassed: true, userId: user.id }, () =>
           lastValueFrom(next.handle()),

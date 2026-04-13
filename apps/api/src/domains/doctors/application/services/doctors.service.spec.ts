@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DoctorsService } from './doctors.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorVerificationService } from './doctor-verification.service';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { NotFoundException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
@@ -20,6 +21,8 @@ describe('DoctorsService', () => {
     qualification: 'MBBS, MD',
     registrationNumber: 'REG123',
     phoneNumber: '1234567890',
+    signatureUrl: 'https://example.com/signature.png',
+    signatureStoredUrl: 'https://example.com/signature.png',
     clinicId: 'clinic-123',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -83,6 +86,20 @@ describe('DoctorsService', () => {
       jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
+  const mockStoredFileUrlResolver = {
+    resolveWithStoredUrl: jest
+      .fn<
+        (url: string | null | undefined) => Promise<{
+          url: string | null;
+          storedUrl: string | null;
+        }>
+      >()
+      .mockImplementation(async (url) => ({
+        url: url ?? null,
+        storedUrl: url ?? null,
+      })),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -94,6 +111,10 @@ describe('DoctorsService', () => {
         {
           provide: DoctorVerificationService,
           useValue: mockDoctorVerificationService,
+        },
+        {
+          provide: StoredFileUrlResolverService,
+          useValue: mockStoredFileUrlResolver,
         },
       ],
     }).compile();

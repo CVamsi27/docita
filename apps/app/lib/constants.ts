@@ -1,13 +1,9 @@
 import {
-  Baby,
   Bed,
-  Brain,
   Calendar,
   CalendarCheck,
-  Eye,
   FileText,
   FlaskConical,
-  Heart,
   LayoutDashboard,
   LucideIcon,
   MessageSquare,
@@ -31,7 +27,7 @@ export interface SidebarItem {
   tier?: Tier;
   badge?: string;
   facilityType?: "CLINIC" | "HOSPITAL";
-  clinicTypes?: ClinicType[]; 
+  clinicTypes?: ClinicType[];
 }
 
 export const sidebarItems: SidebarItem[] = [
@@ -130,46 +126,6 @@ export const sidebarItems: SidebarItem[] = [
     roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
     clinicTypes: ["DENTAL"],
     badge: "Dental",
-  },
-  {
-    title: "Growth Charts",
-    href: "/specialty/growth-charts",
-    icon: Baby,
-    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
-    clinicTypes: ["PEDIATRIC"],
-    badge: "Pediatric",
-  },
-  {
-    title: "ECG Monitoring",
-    href: "/specialty/ecg-monitoring",
-    icon: Heart,
-    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
-    clinicTypes: ["CARDIOLOGY"],
-    badge: "Cardio",
-  },
-  {
-    title: "Vision Tests",
-    href: "/specialty/vision-tests",
-    icon: Eye,
-    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
-    clinicTypes: ["OPHTHALMOLOGY"],
-    badge: "Eye",
-  },
-  {
-    title: "Prenatal Care",
-    href: "/specialty/prenatal-care",
-    icon: Baby,
-    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
-    clinicTypes: ["GYNECOLOGY"],
-    badge: "OB/GYN",
-  },
-  {
-    title: "Mental Health",
-    href: "/specialty/mental-health",
-    icon: Brain,
-    roles: ["DOCTOR", "ADMIN", "ADMIN_DOCTOR"],
-    clinicTypes: ["PSYCHIATRY"],
-    badge: "Psych",
   },
 
   {

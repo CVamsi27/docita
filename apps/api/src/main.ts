@@ -223,6 +223,7 @@ async function bootstrap() {
       noSniff: true,
       xssFilter: true,
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
 

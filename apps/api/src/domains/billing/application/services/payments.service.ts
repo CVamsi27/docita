@@ -2,18 +2,19 @@ import {
   Injectable,
   Logger,
   BadRequestException,
+  NotFoundException,
   Inject,
 } from '@nestjs/common';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PushNotificationService } from '@/shared/modules/messaging/notifications/push-notification.service';
-import { PaymentWebSocketGateway } from '@/gateways/payment.websocket.gateway';
 import {
   IPaymentLinkProvider,
   PAYMENT_LINK_PROVIDER_TOKEN,
 } from '@/domains/payments/core/ports/payment-link-provider.port';
 import { Money } from '@/domains/payments/core/value-objects/money.vo';
 import { PaymentSessionStatus, Prisma, InvoiceStatus } from '@workspace/db';
+import type { PaymentWebhookPayload } from '@workspace/types';
 import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
@@ -34,7 +35,6 @@ export class PaymentsService {
     private readonly invoiceRepository: IInvoiceRepository,
     private sendMessage: SendMessageUseCase,
     private pushNotifications: PushNotificationService,
-    private paymentGateway: PaymentWebSocketGateway,
     private configService: AppConfigService,
     @Inject(PAYMENT_LINK_PROVIDER_TOKEN)
     private paymentLinkProvider: IPaymentLinkProvider,
@@ -212,8 +212,8 @@ export class PaymentsService {
     notes?: string;
   }) {
     const invoice = await this.invoiceRepository.findById(data.invoiceId);
-    if (!invoice) {
-      throw new BadRequestException('Invoice not found');
+    if (!invoice || invoice.patient?.clinic?.id !== data.clinicId) {
+      throw new NotFoundException('Invoice not found');
     }
 
     await this.invoiceRepository.update(invoice.id, {
@@ -249,7 +249,7 @@ export class PaymentsService {
     return { success: true };
   }
 
-  handleRazorpayWebhook(_payload: Record<string, unknown>, signature: string) {
+  handleRazorpayWebhook(_payload: PaymentWebhookPayload, signature: string) {
     this.logger.log(`Received Razorpay webhook with signature: ${signature}`);
 
     return { status: 'ok' };

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Smile, Search, Save, Loader2 } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import {
   Card,
   CardContent,
@@ -24,7 +26,7 @@ import {
   DentalChartUI,
   type DentalChartValue,
 } from "@/features/consultation/components/specialty/DentalChartUI";
-import type { Patient } from "@workspace/types";
+import type { Patient, UpdateAppointmentRequest } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function DentalChartsPage() {
@@ -50,12 +52,10 @@ export default function DentalChartsPage() {
   const appointments = patientAppointments?.items ?? [];
 
   const handleSelectAppointment = (appointmentId: string) => {
-    const appt = appointments.find((a) => a.id === appointmentId);
-    if (!appt) return;
+    const appointment = appointments.find((item) => item.id === appointmentId);
+    if (!appointment) return;
     setSelectedAppointmentId(appointmentId);
-    setChartData(
-      (appt as { dentalChart?: DentalChartValue }).dentalChart ?? {},
-    );
+    setChartData(appointment.dentalChart ?? {});
     setIsDirty(false);
   };
 
@@ -67,7 +67,7 @@ export default function DentalChartsPage() {
   const handleSave = () => {
     if (!selectedAppointmentId) return;
     updateAppointment(
-      { dentalChart: chartData } as Parameters<typeof updateAppointment>[0],
+      { dentalChart: chartData } satisfies UpdateAppointmentRequest,
       {
         onSuccess: () => {
           toast.success("Dental chart saved");
@@ -98,166 +98,170 @@ export default function DentalChartsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6 max-w-5xl">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <Smile className="h-5 w-5 text-primary" />
+    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
+      <div className="container mx-auto py-6 space-y-6 max-w-5xl">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Smile className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">
+                Dental Charts
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Interactive tooth charting and documentation
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Dental Charts
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Interactive tooth charting and documentation
-            </p>
-          </div>
-        </div>
-        {selectedAppointmentId && (
-          <Button onClick={handleSave} disabled={!isDirty || isSaving}>
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Save Chart
-          </Button>
-        )}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Patient & Appointment Selection */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Select Patient</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or phone..."
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setSelectedPatient(null);
-                    setSelectedAppointmentId(null);
-                  }}
-                  className="pl-9"
-                />
-              </div>
-
-              {patientsLoading && search.length >= 2 && (
-                <div className="space-y-2">
-                  <Skeleton className="h-9 w-full" />
-                  <Skeleton className="h-9 w-full" />
-                </div>
+          {selectedAppointmentId && (
+            <Button
+              data-testid="dental-chart-save-button"
+              onClick={handleSave}
+              disabled={!isDirty || isSaving}
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
               )}
+              Save Chart
+            </Button>
+          )}
+        </div>
 
-              {search.length >= 2 &&
-                !patientsLoading &&
-                (patientsData?.items ?? []).map((patient) => (
-                  <button
-                    key={patient.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedPatient(patient);
-                      setSelectedAppointmentId(null);
-                      setChartData({});
-                      setSearch(
-                        `${patient.firstName} ${patient.lastName}`.trim(),
-                      );
-                    }}
-                    className="w-full text-left rounded-lg border px-3 py-2 hover:bg-muted/50 transition-colors"
-                  >
-                    <p className="text-sm font-medium">
-                      {patient.firstName} {patient.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {patient.phoneNumber}
-                    </p>
-                  </button>
-                ))}
-            </CardContent>
-          </Card>
-
-          {selectedPatient && (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Appointments</CardTitle>
-                <CardDescription className="text-xs">
-                  Select an appointment to view or edit its dental chart
-                </CardDescription>
+                <CardTitle className="text-sm">Select Patient</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {appointmentsLoading ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-16 w-full" />
-                    <Skeleton className="h-16 w-full" />
-                  </div>
-                ) : appointments.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-4">
-                    No appointments found
-                  </p>
-                ) : (
-                  appointments.slice(0, 10).map((appt) => {
-                    const hasChart = !!(
-                      appt as { dentalChart?: unknown }
-                    ).dentalChart;
-                    return (
-                      <button
-                        key={appt.id}
-                        type="button"
-                        onClick={() => appt.id && handleSelectAppointment(appt.id)}
-                        className={`w-full text-left rounded-lg border px-3 py-2 transition-colors ${
-                          selectedAppointmentId === appt.id
-                            ? "border-primary bg-primary/5"
-                            : "hover:bg-muted/50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs font-medium">
-                            {new Date(appt.startTime as string).toLocaleDateString()}
-                          </p>
-                          {hasChart && (
-                            <Badge variant="secondary" className="text-xs">
-                              Has chart
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {appt.status}
-                        </p>
-                      </button>
-                    );
-                  })
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              <CardContent className="space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name or phone..."
+                    data-testid="dental-chart-patient-search"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setSelectedPatient(null);
+                      setSelectedAppointmentId(null);
+                    }}
+                    className="pl-9"
+                  />
+                </div>
 
-        {/* Dental Chart */}
-        <div className="lg:col-span-2">
-          {selectedAppointmentId ? (
-            <DentalChartUI
-              value={chartData}
-              onChange={handleChartChange}
-            />
-          ) : (
-            <Card className="h-full min-h-[400px] flex items-center justify-center">
-              <CardContent className="text-center space-y-2 py-12">
-                <Smile className="h-12 w-12 text-muted-foreground/40 mx-auto" />
-                <p className="text-sm text-muted-foreground">
-                  {selectedPatient
-                    ? "Select an appointment to view the dental chart"
-                    : "Search for a patient to get started"}
-                </p>
+                {patientsLoading && search.length >= 2 && (
+                  <div className="space-y-2">
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                  </div>
+                )}
+
+                {search.length >= 2 &&
+                  !patientsLoading &&
+                  (patientsData?.items ?? []).map((patient) => (
+                    <button
+                      key={patient.id}
+                      type="button"
+                      data-testid="dental-chart-patient-result"
+                      onClick={() => {
+                        setSelectedPatient(patient);
+                        setSelectedAppointmentId(null);
+                        setChartData({});
+                        setSearch(
+                          `${patient.firstName} ${patient.lastName}`.trim(),
+                        );
+                      }}
+                      className="w-full text-left rounded-lg border px-3 py-2 hover:bg-muted/50 transition-colors"
+                    >
+                      <p className="text-sm font-medium">
+                        {patient.firstName} {patient.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {patient.phoneNumber}
+                      </p>
+                    </button>
+                  ))}
               </CardContent>
             </Card>
-          )}
+
+            {selectedPatient && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Appointments</CardTitle>
+                  <CardDescription className="text-xs">
+                    Select an appointment to view or edit its dental chart
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {appointmentsLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-16 w-full" />
+                      <Skeleton className="h-16 w-full" />
+                    </div>
+                  ) : appointments.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      No appointments found
+                    </p>
+                  ) : (
+                    appointments.slice(0, 10).map((appt) => {
+                      const hasChart = !!appt.dentalChart;
+                      return (
+                        <button
+                          key={appt.id}
+                          type="button"
+                          data-testid="dental-chart-appointment"
+                          onClick={() =>
+                            appt.id && handleSelectAppointment(appt.id)
+                          }
+                          className={`w-full text-left rounded-lg border px-3 py-2 transition-colors ${
+                            selectedAppointmentId === appt.id
+                              ? "border-primary bg-primary/5"
+                              : "hover:bg-muted/50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-medium">
+                              {new Date(appt.startTime).toLocaleDateString()}
+                            </p>
+                            {hasChart && (
+                              <Badge variant="secondary" className="text-xs">
+                                Has chart
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground capitalize">
+                            {appt.status}
+                          </p>
+                        </button>
+                      );
+                    })
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <div className="lg:col-span-2">
+            {selectedAppointmentId ? (
+              <DentalChartUI value={chartData} onChange={handleChartChange} />
+            ) : (
+              <Card className="h-full min-h-[400px] flex items-center justify-center">
+                <CardContent className="text-center space-y-2 py-12">
+                  <Smile className="h-12 w-12 text-muted-foreground/40 mx-auto" />
+                  <p className="text-sm text-muted-foreground">
+                    {selectedPatient
+                      ? "Select an appointment to view the dental chart"
+                      : "Search for a patient to get started"}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </FeatureGate>
   );
 }

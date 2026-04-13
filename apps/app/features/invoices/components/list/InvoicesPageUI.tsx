@@ -132,7 +132,21 @@ export const InvoicesPageUI: FC = () => {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex items-center gap-2 flex-1">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select value={filter} onValueChange={setFilter}>
+                <Select
+                  value={filter}
+                  onValueChange={(value) => {
+                    if (
+                      value === "all" ||
+                      value === "PENDING" ||
+                      value === "CANCELLED" ||
+                      value === "PAID" ||
+                      value === "OVERDUE" ||
+                      value === "PARTIALLY_PAID"
+                    ) {
+                      setFilter(value);
+                    }
+                  }}
+                >
                   <SelectTrigger className="w-full md:w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
@@ -141,7 +155,9 @@ export const InvoicesPageUI: FC = () => {
                     <SelectItem value="PAID">Paid</SelectItem>
                     <SelectItem value="PENDING">Pending</SelectItem>
                     <SelectItem value="OVERDUE">Overdue</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="PARTIALLY_PAID">
+                      Partially Paid
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

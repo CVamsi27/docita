@@ -41,7 +41,10 @@ export function DoctorProfileSettings() {
               </CardDescription>
             </div>
             {hasSignature && (
-              <Badge variant="outline" className="gap-1.5 border-primary/30 text-primary">
+              <Badge
+                variant="outline"
+                className="gap-1.5 border-primary/30 text-primary"
+              >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Uploaded
               </Badge>
@@ -51,7 +54,6 @@ export function DoctorProfileSettings() {
         <CardContent className="space-y-4">
           {hasSignature && profile?.signatureUrl && (
             <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={profile.signatureUrl}
                 alt="Your current signature"
@@ -62,7 +64,9 @@ export function DoctorProfileSettings() {
           {!hasSignature && (
             <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-center">
               <PenLine className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No signature uploaded yet.</p>
+              <p className="text-sm text-muted-foreground">
+                No signature uploaded yet.
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
                 Add your signature to generate prescriptions.
               </p>
@@ -76,13 +80,18 @@ export function DoctorProfileSettings() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Medical Registration Number</CardTitle>
+              <CardTitle className="text-lg">
+                Medical Registration Number
+              </CardTitle>
               <CardDescription>
                 Your council registration number for regulatory compliance.
               </CardDescription>
             </div>
             {hasRegistration && (
-              <Badge variant="outline" className="gap-1.5 border-primary/30 text-primary">
+              <Badge
+                variant="outline"
+                className="gap-1.5 border-primary/30 text-primary"
+              >
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Verified
               </Badge>
@@ -92,7 +101,9 @@ export function DoctorProfileSettings() {
         <CardContent>
           {hasRegistration ? (
             <div className="flex items-center gap-3 rounded-lg border bg-muted/30 px-4 py-3">
-              <span className="text-sm text-muted-foreground">Registration Number</span>
+              <span className="text-sm text-muted-foreground">
+                Registration Number
+              </span>
               <span className="font-mono text-sm font-medium text-foreground">
                 {profile?.registrationNumber}
               </span>

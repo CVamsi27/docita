@@ -1,5 +1,11 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { PrismaWhatsAppRepository } from './prisma-whatsapp.repository';
+import {
+  PrismaWhatsAppRepository,
+  type PrismaWhatsAppMessageRecord,
+  type PrismaWhatsAppReadClient,
+  type PrismaWhatsAppTemplateRecord,
+  type PrismaWhatsAppDatabase,
+} from './prisma-whatsapp.repository';
 import {
   WhatsAppMessage,
   WhatsAppMessageStatus,
@@ -9,22 +15,35 @@ import {
   WhatsAppTemplateStatus,
   WhatsAppTemplateCategory,
 } from '../../core/entities/whatsapp-template.entity';
+import {
+  Prisma,
+  WhatsappButtonType as PrismaButtonType,
+  WhatsappMessageStatus as PrismaMessageStatus,
+  WhatsappTemplateCategory as PrismaTemplateCategory,
+  WhatsappTemplateStatus as PrismaTemplateStatus,
+} from '@workspace/db';
+import type { SupportWhatsAppMessage } from '@workspace/types';
 
 const NOW = new Date('2026-01-01T00:00:00.000Z');
 
-function makePrismaMessage(overrides: Record<string, unknown> = {}) {
+type SupportWhatsAppMessageLookup = Pick<
+  SupportWhatsAppMessage,
+  'providerMessageId' | 'supportPhoneNumber'
+>;
+
+function makePrismaMessage(
+  overrides: Partial<PrismaWhatsAppMessageRecord> = {},
+): PrismaWhatsAppMessageRecord {
   return {
     id: 'msg-db-001',
     conversationId: 'conv-001',
     content: 'Hello patient',
-    status: 'SENT',
+    status: PrismaMessageStatus.SENT,
     providerMsgId: 'wamid.ext001',
     direction: 'OUTBOUND',
     messageType: 'TEXT',
     createdAt: NOW,
-    updatedAt: NOW,
     conversation: {
-      id: 'conv-001',
       clinicId: 'clinic-123',
       patientId: 'patient-001',
     },
@@ -32,14 +51,17 @@ function makePrismaMessage(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function makePrismaTemplate(overrides: Record<string, unknown> = {}) {
+function makePrismaTemplate(
+  overrides: Partial<PrismaWhatsAppTemplateRecord> = {},
+): PrismaWhatsAppTemplateRecord {
   return {
     id: 'tmpl-db-001',
     clinicId: 'clinic-123',
     name: 'appointment_reminder',
-    category: 'UTILITY',
+    category: PrismaTemplateCategory.STAFF_NOTIFICATION,
     content: 'Hello {{patientName}}',
-    status: 'APPROVED',
+    status: PrismaTemplateStatus.APPROVED,
+    buttonType: PrismaButtonType.NONE,
     buttons: null,
     variables: null,
     metaTemplateId: null,
@@ -51,44 +73,150 @@ function makePrismaTemplate(overrides: Record<string, unknown> = {}) {
 
 describe('PrismaWhatsAppRepository', () => {
   let repository: PrismaWhatsAppRepository;
-  let mockPrisma: Record<string, Record<string, jest.MockedFunction<any>>>;
+  let mockPrisma: jest.Mocked<PrismaWhatsAppDatabase>;
+  let mockReadClient: jest.Mocked<PrismaWhatsAppReadClient>;
 
   beforeEach(() => {
-    mockPrisma = {
+    mockReadClient = {
       whatsappMessage: {
-        upsert: jest.fn<() => Promise<any>>().mockResolvedValue({}),
         findUnique: jest
-          .fn<() => Promise<any>>()
+          .fn<
+            (args: {
+              where: { id: string };
+              include: { conversation: true };
+            }) => Promise<PrismaWhatsAppMessageRecord | null>
+          >()
           .mockResolvedValue(makePrismaMessage()),
         findFirst: jest
-          .fn<() => Promise<any>>()
+          .fn<
+            (args: {
+              where: { providerMsgId: string };
+              include: { conversation: true };
+            }) => Promise<PrismaWhatsAppMessageRecord | null>
+          >()
           .mockResolvedValue(makePrismaMessage()),
-      },
-      whatsappTemplate: {
-        upsert: jest.fn<() => Promise<any>>().mockResolvedValue({}),
-        findUnique: jest
-          .fn<() => Promise<any>>()
-          .mockResolvedValue(makePrismaTemplate()),
-        findFirst: jest
-          .fn<() => Promise<any>>()
-          .mockResolvedValue(makePrismaTemplate()),
-        findMany: jest
-          .fn<() => Promise<any[]>>()
-          .mockResolvedValue([makePrismaTemplate()]),
       },
       patient: {
         findUnique: jest
-          .fn<() => Promise<any>>()
-          .mockResolvedValue({ phoneNumber: '919876543210' }),
+          .fn<
+            (args: {
+              where: { id: string };
+              select: { phoneNumber: true };
+            }) => Promise<{ phoneNumber: string } | null>
+          >()
+          .mockResolvedValue({
+            phoneNumber: '919876543210',
+          }),
+      },
+      whatsappTemplate: {
+        findUnique: jest
+          .fn<
+            (args: {
+              where: { id: string };
+            }) => Promise<PrismaWhatsAppTemplateRecord | null>
+          >()
+          .mockResolvedValue(makePrismaTemplate()),
+        findFirst: jest
+          .fn<
+            (args: {
+              where: { clinicId: string; name: string };
+            }) => Promise<PrismaWhatsAppTemplateRecord | null>
+          >()
+          .mockResolvedValue(makePrismaTemplate()),
+        findMany: jest
+          .fn<
+            (args: {
+              where: { clinicId: string };
+            }) => Promise<PrismaWhatsAppTemplateRecord[]>
+          >()
+          .mockResolvedValue([makePrismaTemplate()]),
       },
       clinic: {
-        findUnique: jest.fn<() => Promise<any>>().mockResolvedValue({
-          whatsappAutomation: { enabled: true },
-        }),
+        findUnique: jest
+          .fn<
+            (args: {
+              where: { id: string };
+              select: { whatsappAutomation: true };
+            }) => Promise<{
+              whatsappAutomation: { enabled?: boolean } | null;
+            } | null>
+          >()
+          .mockResolvedValue({
+            whatsappAutomation: { enabled: true },
+          }),
       },
     };
 
-    repository = new PrismaWhatsAppRepository(mockPrisma as any);
+    mockPrisma = {
+      getReadClient: jest
+        .fn<() => PrismaWhatsAppReadClient>()
+        .mockReturnValue(mockReadClient),
+      whatsappMessage: {
+        upsert: jest
+          .fn<
+            (args: {
+              where: { id: string };
+              update: {
+                status: PrismaMessageStatus;
+                providerMsgId: string | undefined;
+              };
+              create: {
+                id: string;
+                conversationId: string;
+                content: string;
+                status: PrismaMessageStatus;
+                providerMsgId: string | undefined;
+                direction: 'OUTBOUND';
+                messageType: 'TEXT' | 'TEMPLATE';
+              };
+            }) => Promise<PrismaWhatsAppMessageRecord>
+          >()
+          .mockResolvedValue(makePrismaMessage()),
+      },
+      whatsappTemplate: {
+        upsert: jest
+          .fn<
+            (args: {
+              where: { id: string };
+              update: {
+                status: PrismaTemplateStatus;
+                content: string;
+                variables:
+                  | Prisma.InputJsonValue
+                  | Prisma.NullableJsonNullValueInput;
+                buttons:
+                  | Prisma.InputJsonValue
+                  | Prisma.NullableJsonNullValueInput;
+                buttonType: PrismaButtonType;
+                category: PrismaTemplateCategory;
+                metaTemplateId: string | null;
+                updatedAt: Date;
+              };
+              create: {
+                id: string;
+                clinicId: string;
+                name: string;
+                category: PrismaTemplateCategory;
+                content: string;
+                status: PrismaTemplateStatus;
+                variables:
+                  | Prisma.InputJsonValue
+                  | Prisma.NullableJsonNullValueInput;
+                buttons:
+                  | Prisma.InputJsonValue
+                  | Prisma.NullableJsonNullValueInput;
+                buttonType: PrismaButtonType;
+                metaTemplateId: string | null;
+                createdAt: Date;
+                updatedAt: Date;
+              };
+            }) => Promise<PrismaWhatsAppTemplateRecord>
+          >()
+          .mockResolvedValue(makePrismaTemplate()),
+      },
+    };
+
+    repository = new PrismaWhatsAppRepository(mockPrisma);
   });
 
   describe('saveMessage', () => {
@@ -138,7 +266,7 @@ describe('PrismaWhatsAppRepository', () => {
     it('should return a domain message when found', async () => {
       const message = await repository.findMessageByExternalId('wamid.ext001');
 
-      expect(mockPrisma.whatsappMessage.findFirst).toHaveBeenCalledWith(
+      expect(mockReadClient.whatsappMessage.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({ where: { providerMsgId: 'wamid.ext001' } }),
       );
       expect(message).toBeInstanceOf(WhatsAppMessage);
@@ -146,7 +274,7 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should return null when not found', async () => {
-      mockPrisma.whatsappMessage.findFirst.mockResolvedValue(null);
+      mockReadClient.whatsappMessage.findFirst.mockResolvedValue(null);
 
       const message =
         await repository.findMessageByExternalId('wamid.nonexistent');
@@ -154,7 +282,7 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should handle missing patient phone gracefully', async () => {
-      mockPrisma.patient.findUnique.mockResolvedValue(null);
+      mockReadClient.patient.findUnique.mockResolvedValue(null);
 
       const message = await repository.findMessageByExternalId('wamid.ext001');
       expect(message).not.toBeNull();
@@ -165,14 +293,14 @@ describe('PrismaWhatsAppRepository', () => {
     it('should return domain message when found', async () => {
       const message = await repository.findMessageById('msg-db-001');
 
-      expect(mockPrisma.whatsappMessage.findUnique).toHaveBeenCalledWith(
+      expect(mockReadClient.whatsappMessage.findUnique).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: 'msg-db-001' } }),
       );
       expect(message).toBeInstanceOf(WhatsAppMessage);
     });
 
     it('should return null when not found', async () => {
-      mockPrisma.whatsappMessage.findUnique.mockResolvedValue(null);
+      mockReadClient.whatsappMessage.findUnique.mockResolvedValue(null);
 
       const message = await repository.findMessageById('nonexistent');
       expect(message).toBeNull();
@@ -188,7 +316,7 @@ describe('PrismaWhatsAppRepository', () => {
         category: WhatsAppTemplateCategory.UTILITY,
         content: 'Hello {{patientName}}',
         status: WhatsAppTemplateStatus.APPROVED,
-        buttons: {},
+        buttons: [],
         createdAt: NOW,
         updatedAt: NOW,
       });
@@ -212,7 +340,7 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should return null for unknown template id', async () => {
-      mockPrisma.whatsappTemplate.findUnique.mockResolvedValue(null);
+      mockReadClient.whatsappTemplate.findUnique.mockResolvedValue(null);
 
       const template = await repository.findTemplateById('nonexistent');
       expect(template).toBeNull();
@@ -224,7 +352,7 @@ describe('PrismaWhatsAppRepository', () => {
         'appointment_reminder',
       );
 
-      expect(mockPrisma.whatsappTemplate.findFirst).toHaveBeenCalledWith(
+      expect(mockReadClient.whatsappTemplate.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { clinicId: 'clinic-123', name: 'appointment_reminder' },
         }),
@@ -235,7 +363,7 @@ describe('PrismaWhatsAppRepository', () => {
     it('should list templates for a clinic', async () => {
       const templates = await repository.listTemplatesByClinic('clinic-123');
 
-      expect(mockPrisma.whatsappTemplate.findMany).toHaveBeenCalledWith(
+      expect(mockReadClient.whatsappTemplate.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: { clinicId: 'clinic-123' } }),
       );
       expect(templates).toHaveLength(1);
@@ -243,8 +371,10 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should map PENDING_APPROVAL Prisma status to PENDING domain status', async () => {
-      mockPrisma.whatsappTemplate.findUnique.mockResolvedValue(
-        makePrismaTemplate({ status: 'PENDING_APPROVAL' }),
+      mockReadClient.whatsappTemplate.findUnique.mockResolvedValue(
+        makePrismaTemplate({
+          status: PrismaTemplateStatus.PENDING_APPROVAL,
+        }),
       );
 
       const template = await repository.findTemplateById('tmpl-001');
@@ -252,8 +382,8 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should map REJECTED Prisma status correctly', async () => {
-      mockPrisma.whatsappTemplate.findUnique.mockResolvedValue(
-        makePrismaTemplate({ status: 'REJECTED' }),
+      mockReadClient.whatsappTemplate.findUnique.mockResolvedValue(
+        makePrismaTemplate({ status: PrismaTemplateStatus.REJECTED }),
       );
 
       const template = await repository.findTemplateById('tmpl-001');
@@ -268,7 +398,7 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should return false when whatsappAutomation.enabled is false', async () => {
-      mockPrisma.clinic.findUnique.mockResolvedValue({
+      mockReadClient.clinic.findUnique.mockResolvedValue({
         whatsappAutomation: { enabled: false },
       });
 
@@ -277,14 +407,14 @@ describe('PrismaWhatsAppRepository', () => {
     });
 
     it('should default to true when clinic not found', async () => {
-      mockPrisma.clinic.findUnique.mockResolvedValue(null);
+      mockReadClient.clinic.findUnique.mockResolvedValue(null);
 
       const enabled = await repository.isAutomationEnabled('clinic-123');
       expect(enabled).toBe(true);
     });
 
     it('should default to true when whatsappAutomation is null', async () => {
-      mockPrisma.clinic.findUnique.mockResolvedValue({
+      mockReadClient.clinic.findUnique.mockResolvedValue({
         whatsappAutomation: null,
       });
 

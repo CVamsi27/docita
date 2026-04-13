@@ -14,7 +14,11 @@ import {
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Prisma, Role, VitalSign } from '@workspace/db';
+import {
+  Prisma,
+  Role,
+  AppointmentStatus as PrismaAppointmentStatus,
+} from '@workspace/db';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -59,6 +63,28 @@ const parseAppointmentStatus = (
     case 'noshow':
     case 'no-show':
       return AppointmentStatusEnum.NOSHOW;
+    default:
+      return undefined;
+  }
+};
+
+const mapAppointmentStatusToPrisma = (
+  status: string | undefined,
+): PrismaAppointmentStatus | undefined => {
+  switch (status) {
+    case 'scheduled':
+      return PrismaAppointmentStatus.SCHEDULED;
+    case 'confirmed':
+    case 'checked-in':
+      return PrismaAppointmentStatus.CONFIRMED;
+    case 'in-progress':
+      return PrismaAppointmentStatus.IN_PROGRESS;
+    case 'completed':
+      return PrismaAppointmentStatus.COMPLETED;
+    case 'cancelled':
+      return PrismaAppointmentStatus.CANCELLED;
+    case 'no-show':
+      return PrismaAppointmentStatus.NO_SHOW;
     default:
       return undefined;
   }
@@ -170,10 +196,15 @@ export class AppointmentsController {
     @Request() req: RequestWithUser,
     @Body() body: UpdateAppointmentDto,
   ) {
+    const { status, ...rest } = body;
+    const data: Prisma.AppointmentUpdateInput = {
+      ...rest,
+      ...(status ? { status: mapAppointmentStatusToPrisma(status) } : {}),
+    };
     return this.appointmentService.updateAppointmentDetails(
       id,
       req.user!.clinicId!,
-      body as Prisma.AppointmentUpdateInput,
+      data,
       this.getAccessContext(req),
     );
   }
@@ -199,10 +230,17 @@ export class AppointmentsController {
     @Request() req: RequestWithUser,
     @Body() body: VitalsDto,
   ) {
+    const {
+      id: _id,
+      appointmentId: _appointmentId,
+      createdAt: _createdAt,
+      updatedAt: _updatedAt,
+      ...vitals
+    } = body;
     return this.appointmentService.createVitals(
       id,
       req.user!.clinicId!,
-      body as Partial<VitalSign>,
+      vitals,
       this.getAccessContext(req),
     );
   }
@@ -214,12 +252,41 @@ export class AppointmentsController {
     @Request() req: RequestWithUser,
     @Body() body: VitalsDto,
   ) {
+    const {
+      id: _id,
+      appointmentId: _appointmentId,
+      createdAt: _createdAt,
+      updatedAt: _updatedAt,
+      ...vitals
+    } = body;
     return this.appointmentService.updateVitals(
       id,
       req.user!.clinicId!,
-      body as Partial<VitalSign>,
+      vitals,
       this.getAccessContext(req),
     );
+  }
+
+  @Post(':id/diagnoses')
+  @ApiOperation({ summary: 'Sync ICD-10 diagnoses for an appointment' })
+  async syncDiagnoses(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body()
+    body: {
+      diagnoses: Array<{
+        icdCodeId?: string;
+        notes?: string;
+        isPrimary?: boolean;
+      }>;
+    },
+  ) {
+    await this.appointmentService.syncDiagnoses(
+      id,
+      req.user!.clinicId!,
+      body.diagnoses ?? [],
+    );
+    return { success: true };
   }
 
   @Patch(':id/cancel')

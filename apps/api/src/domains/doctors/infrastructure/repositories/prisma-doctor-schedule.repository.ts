@@ -7,13 +7,17 @@ import { Prisma, DayOfWeek } from '@workspace/db';
 export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository {
   constructor(private prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findSchedules(doctorId: string, clinicId?: string) {
     const where: Prisma.DoctorScheduleWhereInput = { doctorId };
     if (clinicId) {
       where.clinicId = clinicId;
     }
 
-    return this.prisma.doctorSchedule.findMany({
+    return this.getReadClient().doctorSchedule.findMany({
       where,
       orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       include: {
@@ -28,7 +32,7 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
   }
 
   async findSchedulesByClinic(clinicId: string) {
-    return this.prisma.doctorSchedule.findMany({
+    return this.getReadClient().doctorSchedule.findMany({
       where: { clinicId, isActive: true },
       orderBy: [
         { doctorId: 'asc' },
@@ -48,7 +52,7 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
     clinicId: string,
     dayOfWeek: string,
   ) {
-    return this.prisma.doctorSchedule.findUnique({
+    return this.getReadClient().doctorSchedule.findUnique({
       where: {
         doctorId_clinicId_dayOfWeek: {
           doctorId,
@@ -60,7 +64,7 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
   }
 
   async findSchedulesForSlotGeneration(where: Prisma.DoctorScheduleWhereInput) {
-    return this.prisma.doctorSchedule.findMany({
+    return this.getReadClient().doctorSchedule.findMany({
       where,
       include: {
         doctor: {
@@ -94,7 +98,7 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
   }
 
   async findScheduleById(id: string) {
-    return this.prisma.doctorSchedule.findUnique({
+    return this.getReadClient().doctorSchedule.findUnique({
       where: { id },
     });
   }
@@ -116,7 +120,7 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
   }
 
   async findTimeOffs(where: Prisma.DoctorTimeOffWhereInput) {
-    return this.prisma.doctorTimeOff.findMany({
+    return this.getReadClient().doctorTimeOff.findMany({
       where,
       orderBy: { startDate: 'asc' },
       include: {
@@ -131,7 +135,7 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
   }
 
   async findTimeOffsForSlots(where: Prisma.DoctorTimeOffWhereInput) {
-    return this.prisma.doctorTimeOff.findMany({
+    return this.getReadClient().doctorTimeOff.findMany({
       where,
     });
   }
@@ -148,7 +152,7 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
   }
 
   async findTimeOffById(id: string) {
-    return this.prisma.doctorTimeOff.findUnique({
+    return this.getReadClient().doctorTimeOff.findUnique({
       where: { id },
     });
   }

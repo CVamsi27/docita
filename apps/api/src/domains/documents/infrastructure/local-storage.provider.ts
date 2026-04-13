@@ -9,21 +9,33 @@ import * as path from 'path';
 import sharp from 'sharp';
 import { nanoid } from 'nanoid';
 
+export interface LocalStorageProviderOptions {
+  apiUrl?: string;
+  rootDir?: string;
+}
+
 @Injectable()
 export class LocalStorageProvider extends StorageProvider {
   readonly supportsSignedUrls = false;
 
   private readonly logger = new Logger(LocalStorageProvider.name);
-  private readonly uploadDir = path.join(process.cwd(), 'uploads');
+  private readonly uploadDir: string;
+  private readonly apiOrigin: string;
 
-  constructor() {
+  constructor(options: LocalStorageProviderOptions = {}) {
     super();
+    this.uploadDir = options.rootDir ?? path.join(process.cwd(), 'uploads');
+    this.apiOrigin = new URL(
+      options.apiUrl ?? 'http://localhost:3001',
+      'http://localhost:3001',
+    ).origin;
+
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
     }
   }
 
-  private resolveSafeUploadPath(rawPath: string): string {
+  private normalizeStorageKey(rawPath: string): string {
     const decoded = decodeURIComponent(rawPath).trim();
     const normalized = path.posix.normalize(decoded).replace(/^\/+/, '');
     if (
@@ -34,6 +46,11 @@ export class LocalStorageProvider extends StorageProvider {
       throw new BadRequestException('Invalid file path');
     }
 
+    return normalized;
+  }
+
+  private resolveSafeUploadPath(rawPath: string): string {
+    const normalized = this.normalizeStorageKey(rawPath);
     const resolvedPath = path.resolve(this.uploadDir, normalized);
     const uploadRoot = `${path.resolve(this.uploadDir)}${path.sep}`;
     if (!resolvedPath.startsWith(uploadRoot)) {
@@ -41,6 +58,11 @@ export class LocalStorageProvider extends StorageProvider {
     }
 
     return resolvedPath;
+  }
+
+  private getPublicUploadUrl(objectKey: string): string {
+    const normalized = this.normalizeStorageKey(objectKey);
+    return `${this.apiOrigin}/uploads/${normalized}`;
   }
 
   private sanitizeFolder(folder: string): string {
@@ -54,6 +76,16 @@ export class LocalStorageProvider extends StorageProvider {
     }
 
     return normalized;
+  }
+
+  private async writeImageToFile(
+    source: Buffer | string,
+    filePath: string,
+  ): Promise<void> {
+    await sharp(source)
+      .rotate()
+      .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
+      .toFile(filePath);
   }
 
   async upload(
@@ -78,11 +110,7 @@ export class LocalStorageProvider extends StorageProvider {
           throw new BadRequestException('Uploaded file could not be read');
         }
 
-        const pipeline = sharp(source);
-        await pipeline
-          .rotate()
-          .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
-          .toFile(filePath);
+        await this.writeImageToFile(source, filePath);
       } else {
         if (file.path) {
           fs.renameSync(file.path, filePath);
@@ -110,7 +138,20 @@ export class LocalStorageProvider extends StorageProvider {
   }
 
   async delete(url: string): Promise<void> {
-    const relativePath = url.replace(/^\/uploads\//, '');
+    const parsedUrl = (() => {
+      try {
+        return new URL(url);
+      } catch {
+        return null;
+      }
+    })();
+
+    const relativePath =
+      parsedUrl?.pathname.replace(/^\/uploads\//, '') ??
+      url
+        .replace(/^https?:\/\/[^/]+\/uploads\//i, '')
+        .replace(/^\/uploads\//, '')
+        .replace(/^uploads\//, '');
     const filePath = this.resolveSafeUploadPath(relativePath);
 
     if (fs.existsSync(filePath)) {
@@ -119,22 +160,26 @@ export class LocalStorageProvider extends StorageProvider {
   }
 
   async uploadBuffer(
-    _buffer: Buffer,
-    _objectKey: string,
+    buffer: Buffer,
+    objectKey: string,
     _contentType: string,
     _options?: StorageUploadOptions,
   ): Promise<string> {
-    throw new Error(
-      'uploadBuffer is not supported by local storage. Set STORAGE_PROVIDER=r2 to enable PDF storage.',
-    );
+    const safeObjectKey = this.normalizeStorageKey(objectKey);
+    const filePath = this.resolveSafeUploadPath(safeObjectKey);
+    const fileDir = path.dirname(filePath);
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true });
+    }
+
+    await fs.promises.writeFile(filePath, buffer);
+    return safeObjectKey;
   }
 
   async generateSignedUrl(
-    _objectKey: string,
+    objectKey: string,
     _expiresInSeconds: number,
   ): Promise<string> {
-    throw new Error(
-      'generateSignedUrl is not supported by local storage. Set STORAGE_PROVIDER=r2 to enable PDF storage.',
-    );
+    return this.getPublicUploadUrl(objectKey);
   }
 }

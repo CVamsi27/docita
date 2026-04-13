@@ -27,7 +27,7 @@
     "test:cov": "vitest run --coverage",
     "test:e2e": "playwright test e2e",
     "test:e2e:api": "SKIP_SERVER=true playwright test e2e",
-    "test:e2e:api:smoke": "SKIP_SERVER=true playwright test e2e/health.spec.ts e2e/analytics.spec.ts e2e/prescriptions.spec.ts e2e/invoices.spec.ts e2e/documents.spec.ts e2e/clinics.spec.ts e2e/queue.spec.ts e2e/medical-coding.spec.ts e2e/lab-tests.spec.ts e2e/inventory.spec.ts",
+    "test:e2e:api:smoke": "SKIP_SERVER=true playwright test e2e/health.spec.ts e2e/analytics.spec.ts e2e/prescriptions.spec.ts e2e/invoices.spec.ts e2e/dental-charts.spec.ts e2e/documents.spec.ts e2e/clinics.spec.ts e2e/queue.spec.ts e2e/medical-coding.spec.ts e2e/lab-tests.spec.ts e2e/inventory.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",

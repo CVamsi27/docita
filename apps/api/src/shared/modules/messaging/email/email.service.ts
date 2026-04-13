@@ -107,76 +107,36 @@ export class EmailService {
 
   async sendVerificationEmail(
     email: string,
-    name: string,
+    _name: string,
     verificationToken: string,
   ): Promise<EmailSendResult> {
     const verifyUrl = `${this.configService.getAppUrl()}/verify-email?token=${verificationToken}`;
-    const safeName = escapeHtml(name);
 
     return this.emailProvider.send({
       to: email,
       subject: 'Verify Your Email - Docita',
       replyTo: this.supportEmail,
       html: `
-        <div style="margin:0; background:#f4f7fb; padding:32px 16px; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-          <div style="max-width:600px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:20px; overflow:hidden; box-shadow:0 20px 45px rgba(15,23,42,0.08);">
-            <div style="padding:24px 28px; background:linear-gradient(135deg,#0f766e 0%,#0f4c81 100%); color:#ffffff;">
-              <p style="margin:0 0 10px; font-size:12px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.85;">Docita account security</p>
-              <h1 style="margin:0; font-size:28px; line-height:1.2; font-weight:700;">Verify your email address</h1>
-              <p style="margin:12px 0 0; font-size:15px; line-height:1.6; color:rgba(255,255,255,0.88);">
-                Confirm your owner account before continuing with clinic setup.
-              </p>
-            </div>
-
-            <div style="padding:32px 28px;">
-              <p style="margin:0 0 16px; font-size:16px; line-height:1.7;">Hi ${safeName},</p>
-              <p style="margin:0 0 16px; font-size:16px; line-height:1.7; color:#334155;">
-                Thanks for starting your Docita account. Please confirm that this email belongs to you before you continue to choose your path and set up your clinic workspace.
-              </p>
-
-              <div style="margin:24px 0; border:1px solid #dbe4f0; border-radius:16px; background:#f8fafc; padding:20px;">
-                <p style="margin:0 0 14px; font-size:14px; line-height:1.6; color:#475569;">
-                  This verification link stays active for 24 hours.
-                </p>
-                <a href="${verifyUrl}"
-                   style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">
-                  Verify email
-                </a>
-                <p style="margin:14px 0 0; font-size:13px; line-height:1.6; color:#64748b;">
-                  If the button does not open, copy and paste this link into your browser:<br />
-                  <a href="${verifyUrl}" style="color:#0f4c81; word-break:break-all;">${verifyUrl}</a>
-                </p>
-              </div>
-
-              <p style="margin:0 0 16px; font-size:14px; line-height:1.7; color:#475569;">
-                If you did not create a Docita account, you can safely ignore this email.
-              </p>
-
-              <div style="margin-top:28px; padding-top:20px; border-top:1px solid #e2e8f0;">
-                <p style="margin:0 0 8px; font-size:15px; line-height:1.6;">Warm regards,</p>
-                <p style="margin:0; font-size:15px; line-height:1.6; font-weight:600;">Docita Care Team</p>
-                <p style="margin:4px 0 0; font-size:14px; line-height:1.6; color:#64748b;">
-                  Need help? Reply to this email or contact
-                  <a href="mailto:${this.supportEmail}" style="color:#0f4c81; text-decoration:none;"> ${this.supportEmail}</a>.
-                </p>
-              </div>
-            </div>
+        <div style="margin:0; padding:32px 16px; background:#f8fafc; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+          <div style="max-width:420px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:16px; padding:32px 24px; text-align:center;">
+            <p style="margin:0 0 16px; font-size:34px; line-height:1; font-weight:700;">Verified</p>
+            <a href="${verifyUrl}"
+               style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">
+              Verify email
+            </a>
+            <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
+              Regards,<br />
+              Docita Care Team
+            </p>
           </div>
         </div>
       `,
       text: [
-        'Verify your email address',
-        '',
-        `Hi ${name},`,
-        '',
-        'Thanks for starting your Docita account. Please confirm your email before continuing with clinic setup.',
+        'Verified',
         '',
         `Verify your account: ${verifyUrl}`,
         '',
-        'This verification link stays active for 24 hours.',
-        `Need help? Reply to this email or contact ${this.supportEmail}.`,
-        '',
-        'Warm regards,',
+        'Regards,',
         'Docita Care Team',
       ].join('\n'),
     });

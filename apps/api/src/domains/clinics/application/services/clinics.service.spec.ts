@@ -7,6 +7,7 @@ import { ClinicDataService } from './clinic-data.service';
 import { ClinicSettingsService } from './clinic-settings.service';
 import { StaffManagementService } from './staff-management.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { CLINIC_DATA_REPOSITORY_TOKEN } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
 import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
@@ -44,6 +45,17 @@ describe('ClinicsService', () => {
     string,
     jest.Mock<(...args: unknown[]) => Promise<unknown>>
   >;
+  const storedFileUrlResolver: Pick<
+    StoredFileUrlResolverService,
+    'resolveWithStoredUrl'
+  > = {
+    resolveWithStoredUrl: jest
+      .fn<StoredFileUrlResolverService['resolveWithStoredUrl']>()
+      .mockResolvedValue({
+        url: null,
+        storedUrl: null,
+      }),
+  };
 
   const mockClinic = {
     id: 'clinic-123',
@@ -205,6 +217,10 @@ describe('ClinicsService', () => {
             isProduction: jest.fn().mockReturnValue(false),
           },
         },
+        {
+          provide: StoredFileUrlResolverService,
+          useValue: storedFileUrlResolver,
+        },
       ],
     }).compile();
 
@@ -260,7 +276,15 @@ describe('ClinicsService', () => {
 
       const result = await service.findAll();
 
-      expect(result).toEqual(mockClinics);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'clinic-123',
+          name: 'Test Clinic',
+          phoneNumber: mockClinic.phone,
+          active: true,
+        }),
+      );
       expect(clinicDataRepository.findAll).toHaveBeenCalled();
     });
   });

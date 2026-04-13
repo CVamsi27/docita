@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { APIRequestContext, Page } from "@playwright/test";
+import {
+  clinicSchema,
+  validateSessionResponseSchema,
+  type ClinicType,
+} from "@workspace/types";
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
@@ -44,12 +49,14 @@ export async function fetchPatientByApi(
 export async function setupTestUser(
   request: APIRequestContext,
   requestHeaders: Record<string, string> = {},
+  options: { clinicType?: ClinicType } = {},
 ): Promise<UserData> {
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
   const password = TEST_PASSWORD;
   const clinicName = `Test Clinic ${uniqueId}`;
   const clinicEmail = `clinic-${uniqueId}@test.com`;
+  const clinicType = options.clinicType ?? "GENERAL";
   const signatureBuffer = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
     "base64",
@@ -142,7 +149,7 @@ export async function setupTestUser(
           email: clinicEmail,
           phone: "1234567890",
           address: "123 History Street, Hyderabad",
-          type: "GENERAL",
+          type: clinicType,
           website: "",
           gstin: "",
         },
@@ -238,22 +245,61 @@ export async function setupTestUser(
 }
 
 export async function loginUser(page: Page, user: UserData) {
-  await page.goto("/login");
+  const validateRes = await page.request.get(`${API_URL}/auth/validate`, {
+    headers: { Authorization: `Bearer ${user.accessToken}` },
+  });
 
-  const emailInput = page.locator('input[type="email"]');
-  await emailInput.waitFor({ state: "visible" });
-  await emailInput.fill(user.email);
-  await page.click('button:has-text("Continue")');
-
-  const passwordInput = page.locator('input[type="password"]');
-  await passwordInput.waitFor({ state: "visible" });
-  await passwordInput.fill(TEST_PASSWORD);
-
-  await page.click('button:has-text("Sign In")');
-
-  try {
-    await page.waitForURL("/dashboard", { timeout: 10000 });
-  } catch {
-
+  if (!validateRes.ok()) {
+    throw new Error(`Session validation failed: ${await validateRes.text()}`);
   }
+
+  const session = validateSessionResponseSchema.parse(await validateRes.json());
+  const clinicRes = await page.request.get(`${API_URL}/clinic/settings`, {
+    headers: { Authorization: `Bearer ${user.accessToken}` },
+  });
+
+  if (!clinicRes.ok()) {
+    throw new Error(`Clinic session validation failed: ${await clinicRes.text()}`);
+  }
+
+  const clinicData = clinicSchema.parse(await clinicRes.json());
+  const clinicStorage = JSON.stringify(clinicData);
+  const clinicId = clinicData.id;
+
+  await page.context().addCookies([
+    {
+      name: "XSRF-TOKEN",
+      value: "e2e-csrf-token",
+      domain: "127.0.0.1",
+      path: "/",
+    },
+  ]);
+
+  await page.addInitScript(
+    ({
+      clinicId,
+      clinicStorage,
+      sessionData,
+      token,
+    }: {
+      clinicId: string;
+      clinicStorage: string;
+      sessionData: typeof session;
+      token: string;
+    }) => {
+      localStorage.setItem("docita_user", JSON.stringify(sessionData.user));
+      localStorage.setItem("docita_token", token);
+      localStorage.setItem("selectedClinicId", clinicId);
+      localStorage.setItem("selectedClinic", clinicStorage);
+      document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
+    },
+    {
+      clinicId,
+      clinicStorage,
+      sessionData: session,
+      token: user.accessToken,
+    },
+  );
+
+  await page.goto("/dashboard");
 }

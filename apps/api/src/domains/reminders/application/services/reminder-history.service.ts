@@ -90,6 +90,7 @@ export class ReminderHistoryService {
   async sendManualReminder(
     appointmentId: string,
     type: 'email' | 'sms' | 'whatsapp',
+    clinicId?: string,
   ) {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
@@ -118,7 +119,7 @@ export class ReminderHistoryService {
       },
     });
 
-    if (!appointment) {
+    if (!appointment || (clinicId && appointment.clinicId !== clinicId)) {
       throw new NotFoundException('Appointment not found');
     }
 

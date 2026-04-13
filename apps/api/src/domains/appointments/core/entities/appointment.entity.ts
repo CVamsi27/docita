@@ -1,4 +1,5 @@
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import type { DentalChartData, JsonValue } from '@workspace/types';
 
 export interface AppointmentProps {
   id: string;
@@ -18,11 +19,12 @@ export interface AppointmentProps {
   differentialDiagnosis?: string;
   finalDiagnosis?: string;
   followUpPlan?: string;
+  dentalChart?: DentalChartData;
   serviceId?: string;
   type?: string;
   cancellationReason?: string;
   cancelledAt?: Date;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, JsonValue | undefined>;
   createdAt: Date;
   updatedAt: Date;
   version: number;
@@ -46,11 +48,12 @@ export class Appointment {
   private differentialDiagnosis?: string;
   private finalDiagnosis?: string;
   private followUpPlan?: string;
+  private dentalChart?: DentalChartData;
   private serviceId?: string;
   private type?: string;
   private cancellationReason?: string;
   private cancelledAt?: Date;
-  private metadata: Record<string, unknown>;
+  private metadata: Record<string, JsonValue | undefined>;
   readonly createdAt: Date;
   private updatedAt: Date;
   readonly version: number;
@@ -73,6 +76,7 @@ export class Appointment {
     this.differentialDiagnosis = props.differentialDiagnosis;
     this.finalDiagnosis = props.finalDiagnosis;
     this.followUpPlan = props.followUpPlan;
+    this.dentalChart = props.dentalChart;
     this.serviceId = props.serviceId;
     this.type = props.type;
     this.cancellationReason = props.cancellationReason;
@@ -115,7 +119,11 @@ export class Appointment {
     return this.type;
   }
 
-  getMetadata(): Record<string, unknown> {
+  getDentalChart(): DentalChartData | undefined {
+    return this.dentalChart;
+  }
+
+  getMetadata(): Record<string, JsonValue | undefined> {
     return { ...this.metadata };
   }
 
@@ -176,6 +184,7 @@ export class Appointment {
       differentialDiagnosis: this.differentialDiagnosis,
       finalDiagnosis: this.finalDiagnosis,
       followUpPlan: this.followUpPlan,
+      dentalChart: this.dentalChart,
       serviceId: this.serviceId,
       type: this.type,
       cancellationReason: this.cancellationReason,
