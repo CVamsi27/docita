@@ -33,7 +33,9 @@ const logger = new Logger('DocumentsModule');
           !!r2Config.bucketName;
 
         if (!isProduction) {
-          return new LocalStorageProvider();
+          return new LocalStorageProvider({
+            apiUrl: configService.getApiUrl(),
+          });
         }
 
         if (provider === 'r2' && hasR2Credentials) {
@@ -43,7 +45,9 @@ const logger = new Logger('DocumentsModule');
         logger.warn(
           'R2 storage provider is not fully configured; falling back to local provider. Startup validation should block production boot until storage is configured.',
         );
-        return new LocalStorageProvider();
+        return new LocalStorageProvider({
+          apiUrl: configService.getApiUrl(),
+        });
       },
     },
   ],
