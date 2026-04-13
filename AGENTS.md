@@ -205,11 +205,30 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 ## 11.3) Branch Promotion Flow
 
-- Use `staging` as the integration branch for pre-production validation.
-- Open feature PRs into `staging` first.
-- After staging checks pass, open a promotion PR from `staging` into `main`.
-- Keep `main` protected and production-only; do not merge feature work directly into `main`.
-- If a hotfix lands on `main`, merge `main` back into `staging` before the next release cycle so both branches stay aligned.
+**`main` and `staging` must stay on the same page:** after each production promotion (or when they drift), reconcile so both point at the **same tree** (identical file content at the branch tips). Use a squash or sync PR into `staging` when branch rules forbid merge commits on `staging`.
+
+### Never work directly on `main` or `staging`
+
+- Do **not** commit, cherry-pick, or push on `main` or `staging` locally.
+- Do **not** point agents or automation at “fix it on `main`” or “quick edit on `staging`.” All changes land through **named branches** and **pull requests**.
+
+### Always branch from `staging` before any change
+
+1. `git fetch origin`
+2. `git checkout staging && git pull origin staging`
+3. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`, `chore/`)
+
+Implement work only on that branch, push it, and open a **PR into `staging`**.
+
+### Promotion to production
+
+1. Merge to `staging` only via PR after CI passes.
+2. Open a **promotion PR from `staging` into `main`** when ready to release.
+3. After `main` moves, **realign `staging` with `main`** (same tree) using the repo’s sync process so the next feature branch starts from an integration tip that matches production.
+
+### Hotfixes
+
+If a hotfix must land on `main` first, still use a **branch from the appropriate base**, merge via PR, then **sync `staging` to `main`** before continuing feature work so both lines agree.
 
 ## 12) Design Principles
 
@@ -239,6 +258,7 @@ pnpm db:migrate
 
 Before finalizing changes:
 
+- Work is on a **branch created from `staging`**, not on `main` or `staging` directly.
 - Architecture/layer boundaries are respected.
 - No security or tenant/auth guard regressions.
 - No PHI plaintext logging or secret leakage.
