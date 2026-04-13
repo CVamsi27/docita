@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nestjs';
 import { ErrorSeverity } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { createSentryBeforeSend } from '@/shared/modules/error-handling/sentry.utils';
 
 interface MetricEntry {
   name: string;
@@ -57,8 +58,11 @@ export class ObservabilityService implements OnModuleDestroy {
   initializeSentry(options?: Sentry.NodeOptions): void {
     const sentryConfig = this.configService.getSentryConfig();
     const nodeEnv = this.configService.getEnvironment();
-    const { integrations: optionIntegrations, ...sentryOptions } =
-      options ?? {};
+    const {
+      integrations: optionIntegrations,
+      beforeSend: optionBeforeSend,
+      ...sentryOptions
+    } = options ?? {};
     const consoleLoggingIntegration = Sentry.consoleLoggingIntegration({
       levels: ['log', 'warn', 'error'],
     });
@@ -70,6 +74,7 @@ export class ObservabilityService implements OnModuleDestroy {
           ]
         : [consoleLoggingIntegration, ...(optionIntegrations ?? [])]
     ) as Sentry.NodeOptions['integrations'];
+    const beforeSend = createSentryBeforeSend(optionBeforeSend);
 
     if (!sentryConfig.dsn) {
       this.logger.warn('SENTRY_DSN not configured. Error tracking disabled.');
@@ -85,6 +90,7 @@ export class ObservabilityService implements OnModuleDestroy {
       attachStacktrace: true,
       enableLogs: true,
       integrations,
+      beforeSend,
       initialScope: {
         tags: {
           service: 'docita-api',

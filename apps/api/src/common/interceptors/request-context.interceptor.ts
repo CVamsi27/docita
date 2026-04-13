@@ -3,13 +3,13 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  HttpException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import * as Sentry from '@sentry/nestjs';
 import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
+import { shouldCaptureInSentry } from '@/shared/modules/error-handling/sentry.utils';
 
 function readHeaderValue(
   headers: Request['headers'],
@@ -28,14 +28,6 @@ function readHeaderValue(
   }
 
   return undefined;
-}
-
-function shouldCaptureException(error: unknown): boolean {
-  if (error instanceof HttpException) {
-    return error.getStatus() >= 500;
-  }
-
-  return true;
 }
 
 @Injectable()
@@ -66,7 +58,7 @@ export class RequestContextInterceptor implements NestInterceptor {
       tap(
         () => {},
         (error) => {
-          if (!shouldCaptureException(error)) {
+          if (!shouldCaptureInSentry(error)) {
             return;
           }
 
