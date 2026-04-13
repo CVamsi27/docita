@@ -1,11 +1,16 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { Prisma } from '@workspace/db';
-import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   CODE_CATALOG_PROVIDER,
   CodeCatalogProvider,
 } from '@/domains/clinical/core/providers/code-catalog.provider';
+type SyncedCodeRecord = {
+  code: string;
+  description: string;
+  category: string;
+  isCommon: boolean;
+};
 
 type SyncedCodeRecord = {
   code: string;
@@ -24,11 +29,6 @@ export class MedicalCodeSyncService {
     @Inject(CODE_CATALOG_PROVIDER)
     private readonly codeCatalogProvider: CodeCatalogProvider,
   ) {}
-
-  @Cron('0 4 * * *')
-  async refreshCommonCodes() {
-    await this.syncCommonCodes();
-  }
 
   async syncCommonCodes(): Promise<{ icd: number; cpt: number }> {
     const [icd, cpt] = await Promise.all([

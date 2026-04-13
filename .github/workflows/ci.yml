@@ -12,7 +12,7 @@ on:
       - "pnpm-workspace.yaml"
       - "turbo.json"
       - "fly.toml"
-      - "fly.worker.toml"
+      - "apps/worker/fly.toml"
       - ".github/workflows/**"
   pull_request:
     paths:
@@ -24,7 +24,7 @@ on:
       - "pnpm-workspace.yaml"
       - "turbo.json"
       - "fly.toml"
-      - "fly.worker.toml"
+      - "apps/worker/fly.toml"
       - ".github/workflows/**"
 
 env:
@@ -283,10 +283,10 @@ jobs:
           fi
           pnpm --filter @workspace/db run db:generate
 
-      - name: Lint worker
+      - name: Lint worker package
         run: pnpm --filter @docita/worker run lint
 
-      - name: Typecheck worker
+      - name: Typecheck worker package
         run: pnpm --filter @docita/worker run check-types
 
       - name: Build worker on main

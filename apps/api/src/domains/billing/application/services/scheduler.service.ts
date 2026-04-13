@@ -1,5 +1,4 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { InvoiceStatus } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { PaymentsService } from './payments.service';
@@ -11,7 +10,6 @@ import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/payment-session.repository';
-
 interface PaymentReminderConfig {
   enabled: boolean;
   days: number[];
@@ -37,7 +35,6 @@ export class SchedulerService {
     private readonly sessionRepository: IPaymentSessionRepository,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async runScheduledPaymentReminders(): Promise<void> {
     await this.prisma.runUnrestricted(async () => {
       const clinics = await this.prisma.clinic.findMany({

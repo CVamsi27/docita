@@ -1,10 +1,24 @@
-import "./instrument";
+import "@/instrument";
 
 import { NestFactory } from "@nestjs/core";
 import { Logger } from "nestjs-pino";
-import { WorkerModule } from "./worker.module";
+import { AppConfigService } from "@/shared/modules/config/app-configuration.service";
+import { StartupValidationService } from "@/shared/modules/services/startup-validation.service";
+import { validateEnv } from "@/shared/modules/config/app-config";
+import { WorkerModule } from "@/worker.module";
 
 async function bootstrap() {
+  try {
+    validateEnv();
+    const appConfigService = new AppConfigService();
+    new StartupValidationService(appConfigService).validate();
+  } catch (error) {
+    process.stderr.write(
+      `Startup validation failed: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    process.exit(1);
+  }
+
   const app = await NestFactory.createApplicationContext(WorkerModule, {
     bufferLogs: true,
   });

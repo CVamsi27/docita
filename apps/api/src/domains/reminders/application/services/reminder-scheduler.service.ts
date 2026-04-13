@@ -6,6 +6,7 @@ import {
   ReminderSettings as _ReminderSettings,
 } from '@workspace/db';
 import { ReminderNotificationService } from './reminder-notification.service';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 interface AppointmentForReminder {
   id: string;
@@ -63,7 +64,9 @@ export class ReminderSchedulerService {
     );
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_HOUR, {
+    disabled: isCronDisabledInThisProcess(),
+  })
   async checkAndSendReminders(): Promise<void> {
     if (this.databaseAccessDisabled) {
       return;
@@ -191,7 +194,7 @@ export class ReminderSchedulerService {
     }
   }
 
-  @Cron('*/5 * * * *')
+  @Cron('*/5 * * * *', { disabled: isCronDisabledInThisProcess() })
   async checkAndSend30MinReminders(): Promise<void> {
     if (this.databaseAccessDisabled) {
       return;
