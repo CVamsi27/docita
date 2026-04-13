@@ -1,9 +1,14 @@
-import path from "path";
 import type { NextConfig } from "next";
 import { createRequire } from "module";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const require = createRequire(import.meta.url);
+const nextCloudflareEmptyStub = require.resolve(
+  "@workspace/ui/next-cloudflare/empty-module.cjs",
+);
+const nextCloudflareSentryStub = require.resolve(
+  "@workspace/ui/next-cloudflare/sentry-nextjs-cloudflare",
+);
 const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
   ? "https://api.docita.work/api/v1"
@@ -42,10 +47,7 @@ let nextConfig: NextConfig = {
     if (isCloudflareBuild) {
       config.resolve.alias = {
         ...(config.resolve.alias || {}),
-        "@sentry/nextjs$": path.resolve(
-          process.cwd(),
-          "lib/stubs/sentry-nextjs-cloudflare.ts",
-        ),
+        "@sentry/nextjs$": nextCloudflareSentryStub,
       };
     }
 
@@ -69,7 +71,7 @@ let nextConfig: NextConfig = {
     }
 
     if (isServer && isCloudflareBuild) {
-      const STUB = path.resolve(process.cwd(), "lib/stubs/empty-module.cjs");
+      const STUB = nextCloudflareEmptyStub;
       const otelPatterns = [
         /^@opentelemetry\/instrumentation/,
         /^@sentry\/opentelemetry/,

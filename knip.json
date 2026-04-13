@@ -1,0 +1,80 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "rules": {
+    "files": "off",
+    "exports": "off",
+    "types": "off",
+    "enumMembers": "off",
+    "duplicates": "off"
+  },
+  "ignore": [
+    "packages/auth/test/**",
+    "packages/hooks/test/**"
+  ],
+  "ignoreBinaries": ["printf"],
+  "ignoreWorkspaces": ["apps/worker"],
+  "workspaces": {
+    "apps/api": {
+      "entry": [
+        "src/main.ts",
+        "src/worker.ts",
+        "scripts/*.ts",
+        "test/setup.ts",
+        "test/**/*.e2e-spec.ts"
+      ],
+      "paths": {
+        "@/*": ["./src/*"]
+      },
+      "ignoreDependencies": ["pino-pretty"]
+    },
+    "packages/utils": {
+      "ignoreDependencies": ["clsx", "tailwind-merge"]
+    },
+    "apps/app": {
+      "ignoreDependencies": [
+        "class-variance-authority",
+        "clsx",
+        "react-phone-number-input",
+        "tailwind-merge",
+        "@types/react-signature-canvas",
+        "baseline-browser-mapping",
+        "globals",
+        "import-in-the-middle",
+        "require-in-the-middle"
+      ]
+    },
+    "apps/internal": {
+      "ignoreDependencies": ["@axe-core/playwright", "eslint-config-next"]
+    },
+    "apps/landing": {
+      "ignoreDependencies": ["tailwindcss"]
+    },
+    "packages/data-access": {
+      "ignoreDependencies": ["@workspace/types"]
+    },
+    ".": {
+      "ignoreDependencies": [
+        "@axe-core/playwright",
+        "@workspace/eslint-config",
+        "axe-core",
+        "baseline-browser-mapping",
+        "ts-node"
+      ]
+    },
+    "packages/eslint-config": {
+      "ignoreDependencies": [
+        "@typescript-eslint/eslint-plugin",
+        "@typescript-eslint/parser"
+      ]
+    },
+    "packages/ui": {
+      "ignoreDependencies": [
+        "@hookform/resolvers",
+        "zod",
+        "@tailwindcss/postcss",
+        "@turbo/gen"
+      ]
+    }
+  }
+}
+
