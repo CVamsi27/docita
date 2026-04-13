@@ -3,7 +3,6 @@ import {
   Post,
   Get,
   Body,
-  Query,
   Headers,
   HttpCode,
   HttpStatus,
@@ -22,7 +21,7 @@ import {
   WhatsAppWebhookAckResponseDto,
 } from '@/domains/whatsapp/application/dto/whatsapp.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { type WhatsAppWebhookVerifyQuery } from '@workspace/types';
+import { readWhatsAppWebhookVerificationQuery } from '@/shared/modules/messaging/whatsapp/whatsapp-webhook-query.util';
 
 @Controller('webhooks/whatsapp')
 export class WhatsAppWebhookController {
@@ -58,11 +57,13 @@ export class WhatsAppWebhookController {
 
   @Public()
   @Get()
-  verifyWebhook(@Query() query: WhatsAppWebhookVerifyQuery = {}) {
+  verifyWebhook(@Req() req: Request) {
     const verifyToken = this.configService.getMetaConfig().verifyToken;
-    const mode = query['hub.mode'];
-    const token = query['hub.verify_token'];
-    const challenge = query['hub.challenge'];
+    const {
+      mode,
+      verifyToken: token,
+      challenge,
+    } = readWhatsAppWebhookVerificationQuery(req.query);
 
     if (mode === 'subscribe' && token === verifyToken && challenge) {
       return challenge;
