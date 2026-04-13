@@ -71,7 +71,7 @@ fly ssh console
 
 Fly-specific notes:
 - The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
-- The Fly worker deployment uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml) and [`apps/worker/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image).
+- The Fly worker deployment uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml) and [`apps/worker/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image). For local runs, keep worker-only env in `apps/worker/.env.production.worker` (gitignored), not under `apps/api/`.
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
 - The worker app uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
