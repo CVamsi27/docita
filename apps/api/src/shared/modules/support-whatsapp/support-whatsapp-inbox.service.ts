@@ -128,12 +128,14 @@ export class SupportWhatsAppInboxService {
       this.normalizePhoneNumber(threadPhoneNumber);
     const take = Math.min(Math.max(limit, 1), 1000);
 
-    return this.prisma.supportWhatsAppMessage.findMany({
+    const messages = await this.prisma.supportWhatsAppMessage.findMany({
       where: { threadPhoneNumber: normalizedThreadPhoneNumber },
-      orderBy: [{ receivedAt: 'asc' }, { createdAt: 'asc' }],
+      orderBy: [{ receivedAt: 'desc' }, { createdAt: 'desc' }],
       take,
       select: threadMessageSelect,
     });
+
+    return messages.reverse();
   }
 
   async markThreadAsRead(threadPhoneNumber: string): Promise<number> {
