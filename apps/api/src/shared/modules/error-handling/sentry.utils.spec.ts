@@ -42,6 +42,27 @@ describe('sentry.utils', () => {
     expect(beforeSend(event, serverErrorHint)).toBe(event);
   });
 
+  it('drops zod validation events even when the original exception is unavailable', () => {
+    const beforeSend = createSentryBeforeSend();
+    type BeforeSend = typeof beforeSend;
+    type BeforeSendEvent = Parameters<BeforeSend>[0];
+    type BeforeSendHint = Parameters<BeforeSend>[1];
+
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'ZodValidationException',
+            value: 'Validation failed',
+          },
+        ],
+      },
+    } as BeforeSendEvent;
+    const emptyHint = {} as BeforeSendHint;
+
+    expect(beforeSend(event, emptyHint)).toBeNull();
+  });
+
   it('respects caller-provided beforeSend logic after filtering', () => {
     type ExtraBeforeSend = NonNullable<
       Parameters<typeof createSentryBeforeSend>[0]
