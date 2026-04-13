@@ -6,6 +6,7 @@ import {
   CODE_CATALOG_PROVIDER,
   CodeCatalogProvider,
 } from '@/domains/clinical/core/providers/code-catalog.provider';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 type SyncedCodeRecord = {
   code: string;
@@ -25,7 +26,7 @@ export class MedicalCodeSyncService {
     private readonly codeCatalogProvider: CodeCatalogProvider,
   ) {}
 
-  @Cron('0 4 * * *')
+  @Cron('0 4 * * *', { disabled: isCronDisabledInThisProcess() })
   async refreshCommonCodes() {
     await this.syncCommonCodes();
   }

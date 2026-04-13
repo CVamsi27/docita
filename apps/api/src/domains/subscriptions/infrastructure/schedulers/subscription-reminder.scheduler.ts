@@ -6,6 +6,7 @@ import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use
 import { PrismaService } from '@/prisma/prisma.service';
 import { BillingCycle, ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { TIER_LIMITS } from '@workspace/types';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 @Injectable()
 export class SubscriptionReminderScheduler {
@@ -57,7 +58,9 @@ export class SubscriptionReminderScheduler {
     this.logger.error(`${message}: ${serializedError}`);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  @Cron(CronExpression.EVERY_DAY_AT_9AM, {
+    disabled: isCronDisabledInThisProcess(),
+  })
   async handleReminders() {
     if (this.databaseAccessDisabled) {
       return;
@@ -96,7 +99,9 @@ export class SubscriptionReminderScheduler {
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_HOUR, {
+    disabled: isCronDisabledInThisProcess(),
+  })
   async handleLapsedSubscriptions() {
     if (this.databaseAccessDisabled) {
       return;

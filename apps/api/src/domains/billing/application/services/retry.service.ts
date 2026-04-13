@@ -11,6 +11,7 @@ import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/invoice.repository';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 export interface PaymentRetryData {
   invoiceId: string;
@@ -46,7 +47,7 @@ export class RetryService {
     }
   }
 
-  @Cron('*/30 * * * *')
+  @Cron('*/30 * * * *', { disabled: isCronDisabledInThisProcess() })
   async processPendingRetries(): Promise<void> {
     await runWithTenant({ bypassed: true }, async () => {
       try {

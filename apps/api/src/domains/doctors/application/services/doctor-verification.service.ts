@@ -8,6 +8,7 @@ import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 type VerificationResult = {
   status: DoctorVerificationStatus;
@@ -85,7 +86,7 @@ export class DoctorVerificationService {
     return this.repository.findDoctorVerificationRecord(doctorId);
   }
 
-  @Cron('15 4 * * *')
+  @Cron('15 4 * * *', { disabled: isCronDisabledInThisProcess() })
   async reverifyDoctorsNightly() {
     await runWithTenant({ bypassed: true }, async () => {
       const doctors = await this.repository.findDoctorsForReverification();
@@ -189,7 +190,7 @@ export class DoctorVerificationService {
         };
       }
 
-      const payload: VerificationProviderResponse = await response.json();
+      const payload = (await response.json()) as VerificationProviderResponse;
 
       if (payload.verified) {
         return {

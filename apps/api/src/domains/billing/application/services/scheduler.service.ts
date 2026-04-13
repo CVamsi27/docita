@@ -11,6 +11,7 @@ import {
   IPaymentSessionRepository,
   PAYMENT_SESSION_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/payment-session.repository';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 interface PaymentReminderConfig {
   enabled: boolean;
@@ -37,7 +38,9 @@ export class SchedulerService {
     private readonly sessionRepository: IPaymentSessionRepository,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, {
+    disabled: isCronDisabledInThisProcess(),
+  })
   async runScheduledPaymentReminders(): Promise<void> {
     await this.prisma.runUnrestricted(async () => {
       const clinics = await this.prisma.clinic.findMany({

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Cron } from '@nestjs/schedule';
 import { UsageType } from '@workspace/db';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 @Injectable()
 export class UsageAggregationService {
@@ -9,7 +10,7 @@ export class UsageAggregationService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  @Cron('30 0 * * *')
+  @Cron('30 0 * * *', { disabled: isCronDisabledInThisProcess() })
   async aggregateDailyUsage() {
     this.logger.log('Starting daily usage aggregation...');
 
