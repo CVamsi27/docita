@@ -13,11 +13,14 @@ describe('AppointmentService.syncDiagnoses', () => {
     prependListener: jest.fn(),
   } as unknown as EventEmitter2;
 
-  const findUniqueMock = jest.fn<
-    (...args: unknown[]) => Promise<{ id: string; clinicId: string } | null>
-  >();
-  const deleteManyMock = jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
-  const createManyMock = jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
+  const findUniqueMock =
+    jest.fn<
+      (...args: unknown[]) => Promise<{ id: string; clinicId: string } | null>
+    >();
+  const deleteManyMock =
+    jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
+  const createManyMock =
+    jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
 
   const prisma = {
     appointment: {

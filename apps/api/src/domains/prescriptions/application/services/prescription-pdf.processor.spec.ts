@@ -343,9 +343,9 @@ describe('PrescriptionPdfProcessor', () => {
     const registeredHandler = processMock.mock.calls[0]?.[1];
     expect(registeredHandler).toEqual(expect.any(Function));
 
-    await expect(registeredHandler(makeJob({}, { maxAttempts: 3 }))).rejects.toThrow(
-      'transient failure',
-    );
+    await expect(
+      registeredHandler(makeJob({}, { maxAttempts: 3 })),
+    ).rejects.toThrow('transient failure');
 
     expect(pdfJobUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({
