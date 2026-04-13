@@ -31,6 +31,7 @@ import {
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
+import type { LabStats } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 
 @Controller('clinical/lab-tests')
 @UseGuards(TierGuard)
@@ -48,7 +49,7 @@ export class LabTestsController {
   async getStats(
     @Request() req: RequestWithUser,
     @Query() _query: LabStatsQueryDto,
-  ): Promise<Record<string, number>> {
+  ): Promise<LabStats> {
     return await this.clinicalService.getStats(req.user!.clinicId!);
   }
 

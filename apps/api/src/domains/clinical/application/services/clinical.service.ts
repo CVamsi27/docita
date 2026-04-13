@@ -2,6 +2,8 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import {
   ILabRepository,
   IMedicalCodingRepository,
+  LabOrderQueryParams,
+  LabStats,
 } from '@/domains/clinical/core/repositories/clinical.repository.interface';
 import {
   CODE_CATALOG_PROVIDER,
@@ -17,15 +19,26 @@ import {
   Appointment,
 } from '@workspace/db';
 
+type LabTestCreateInput = {
+  id?: string;
+  name: string;
+  category: string;
+  clinicId: string;
+  active?: boolean;
+  code?: string;
+  price?: number;
+  description?: string;
+};
+
+type LabOrderCreateInput = {
+  patientId: string;
+  labTestId: string;
+  clinicId: string;
+  appointmentId?: string;
+};
+
 @Injectable()
 export class ClinicalService {
-  private readString(
-    source: Record<string, unknown>,
-    key: string,
-  ): string | undefined {
-    const value = source[key];
-    return typeof value === 'string' ? value : undefined;
-  }
   constructor(
     @Inject('ILabRepository')
     private readonly labRepository: ILabRepository,
@@ -36,18 +49,17 @@ export class ClinicalService {
   ) {}
 
   private toLabTestInput(
-    data: Record<string, unknown>,
+    data: LabTestCreateInput,
   ): Parameters<typeof LabTest.create>[0] {
     return {
-      id: typeof data.id === 'string' ? data.id : undefined,
-      name: typeof data.name === 'string' ? data.name : '',
-      category: typeof data.category === 'string' ? data.category : '',
-      clinicId: typeof data.clinicId === 'string' ? data.clinicId : '',
-      active: typeof data.active === 'boolean' ? data.active : undefined,
-      code: typeof data.code === 'string' ? data.code : undefined,
-      price: typeof data.price === 'number' ? data.price : undefined,
-      description:
-        typeof data.description === 'string' ? data.description : undefined,
+      id: data.id,
+      name: data.name,
+      category: data.category,
+      clinicId: data.clinicId,
+      active: data.active,
+      code: data.code,
+      price: data.price,
+      description: data.description,
     };
   }
 
@@ -61,14 +73,14 @@ export class ClinicalService {
     return test;
   }
 
-  async createTest(data: Record<string, unknown>): Promise<LabTest> {
+  async createTest(data: LabTestCreateInput): Promise<LabTest> {
     const test = LabTest.create(this.toLabTestInput(data));
     return await this.labRepository.saveTest(test);
   }
 
   async getAllOrders(
     clinicId: string,
-    params?: Record<string, unknown>,
+    params?: LabOrderQueryParams,
   ): Promise<LabOrder[]> {
     const orders = await this.labRepository.findAllOrders(clinicId, params);
     return orders;
@@ -80,18 +92,12 @@ export class ClinicalService {
     return order;
   }
 
-  async createOrder(data: Record<string, unknown>): Promise<LabOrder> {
-    const patientId = this.readString(data, 'patientId');
-    const labTestId = this.readString(data, 'labTestId');
-    const clinicId = this.readString(data, 'clinicId');
-    if (!patientId || !labTestId || !clinicId) {
-      throw new NotFoundException('Missing required fields for lab order');
-    }
+  async createOrder(data: LabOrderCreateInput): Promise<LabOrder> {
     const order = LabOrder.create({
-      patientId,
-      labTestId,
-      clinicId,
-      appointmentId: this.readString(data, 'appointmentId'),
+      patientId: data.patientId,
+      labTestId: data.labTestId,
+      clinicId: data.clinicId,
+      appointmentId: data.appointmentId,
       status: LabTestOrderStatus.ORDERED,
     });
     return await this.labRepository.saveOrder(order);
@@ -108,16 +114,16 @@ export class ClinicalService {
     return await this.labRepository.saveOrder(updated);
   }
 
-  async getStats(clinicId: string): Promise<Record<string, number>> {
+  async getStats(clinicId: string): Promise<LabStats> {
     return await this.labRepository.getStats(clinicId);
   }
 
   async searchIcdCodes(query: string): Promise<IcdCode[]> {
-    return await this.codeCatalogProvider.searchIcdCodes(query);
+    return await this.codingRepository.searchIcdCodes(query, 20);
   }
 
   async searchCptCodes(query: string): Promise<CptCode[]> {
-    return await this.codeCatalogProvider.searchCptCodes(query);
+    return await this.codingRepository.searchCptCodes(query, 20);
   }
 
   async getFavorites(userId: string): Promise<(IcdCode | null)[]> {

@@ -15,11 +15,15 @@ export class NlmCodeCatalogProvider implements CodeCatalogProvider {
     return this.nlmCodingService.searchCptCodes(query);
   }
 
-  async fetchAllIcdCodesForSync(): Promise<IcdCode[]> {
-    return this.nlmCodingService.fetchAllIcdCodesForSync();
+  async streamIcdCodes(
+    onBatch: (batch: IcdCode[]) => Promise<void>,
+  ): Promise<void> {
+    return this.nlmCodingService.streamIcdCodes(onBatch);
   }
 
-  async fetchAllCptCodesForSync(): Promise<CptCode[]> {
-    return this.nlmCodingService.fetchAllCptCodesForSync();
+  async streamCptCodes(
+    onBatch: (batch: CptCode[]) => Promise<void>,
+  ): Promise<void> {
+    return this.nlmCodingService.streamCptCodes(onBatch);
   }
 }

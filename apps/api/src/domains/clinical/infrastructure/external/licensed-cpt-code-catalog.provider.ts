@@ -1,20 +1,34 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CptCode, IcdCode } from '@workspace/db';
+import { z } from 'zod';
 import { CodeCatalogProvider } from '@/domains/clinical/core/providers/code-catalog.provider';
 import { NlmCodeCatalogProvider } from '@/domains/clinical/infrastructure/external/nlm-code-catalog.provider';
 
-interface LicensedCodeRecord {
-  code: string;
-  description: string;
-  category?: string;
-  price?: number;
-}
+const licensedCodeRecordSchema = z
+  .object({
+    code: z.string(),
+    description: z.string(),
+    category: z.string().optional(),
+    price: z.number().optional(),
+  })
+  .strict();
 
-interface LicensedCatalogResponse {
-  items?: LicensedCodeRecord[];
-  data?: LicensedCodeRecord[];
-  nextCursor?: string | null;
-}
+const licensedCatalogResponseObjectSchema = z
+  .object({
+    items: z.array(licensedCodeRecordSchema).optional(),
+    data: z.array(licensedCodeRecordSchema).optional(),
+    nextCursor: z.string().nullable().optional(),
+  })
+  .strict();
+const licensedCatalogResponseSchema = z.union([
+  z.array(licensedCodeRecordSchema),
+  licensedCatalogResponseObjectSchema,
+]);
+
+type LicensedCodeRecord = z.infer<typeof licensedCodeRecordSchema>;
+type LicensedCatalogResponse =
+  | z.infer<typeof licensedCatalogResponseObjectSchema>
+  | LicensedCodeRecord[];
 
 const LICENSED_CPT_SYNC_PAGE_SIZE = 1000;
 const LICENSED_CPT_REQUEST_TIMEOUT_MS = 8000;
@@ -73,25 +87,23 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
     };
   }
 
-  private extractItems(payload: unknown): LicensedCodeRecord[] {
-    if (Array.isArray(payload)) return payload as LicensedCodeRecord[];
-    if (!payload || typeof payload !== 'object') return [];
-    const typed = payload as LicensedCatalogResponse;
-    if (Array.isArray(typed.items)) return typed.items;
-    if (Array.isArray(typed.data)) return typed.data;
+  private extractItems(payload: LicensedCatalogResponse): LicensedCodeRecord[] {
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload.items)) return payload.items;
+    if (Array.isArray(payload.data)) return payload.data;
     return [];
   }
 
-  private extractNextCursor(payload: unknown): string | null {
-    if (!payload || typeof payload !== 'object') return null;
-    const cursor = (payload as LicensedCatalogResponse).nextCursor;
+  private extractNextCursor(payload: LicensedCatalogResponse): string | null {
+    if (Array.isArray(payload)) return null;
+    const cursor = payload.nextCursor;
     return typeof cursor === 'string' && cursor.trim() ? cursor : null;
   }
 
   private async fetchLicensed<T>(
     path: string,
     params: Record<string, string | undefined>,
-    mapper: (payload: unknown) => T,
+    mapper: (payload: LicensedCatalogResponse) => T,
   ): Promise<T> {
     const url = new URL(path, this.apiBaseUrl as string);
     Object.entries(params).forEach(([key, value]) => {
@@ -110,7 +122,7 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
       throw new Error(`Licensed CPT API returned HTTP ${res.status}`);
     }
 
-    const payload = (await res.json()) as unknown;
+    const payload = licensedCatalogResponseSchema.parse(await res.json());
     return mapper(payload);
   }
 
@@ -118,8 +130,10 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
     return this.fallbackProvider.searchIcdCodes(query);
   }
 
-  async fetchAllIcdCodesForSync(): Promise<IcdCode[]> {
-    return this.fallbackProvider.fetchAllIcdCodesForSync();
+  async streamIcdCodes(
+    onBatch: (batch: IcdCode[]) => Promise<void>,
+  ): Promise<void> {
+    return this.fallbackProvider.streamIcdCodes(onBatch);
   }
 
   async searchCptCodes(query: string): Promise<CptCode[]> {
@@ -146,14 +160,14 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
     }
   }
 
-  async fetchAllCptCodesForSync(): Promise<CptCode[]> {
+  async streamCptCodes(
+    onBatch: (batch: CptCode[]) => Promise<void>,
+  ): Promise<void> {
     if (!this.isConfigured()) {
       this.warnMissingConfig();
-      return this.fallbackProvider.fetchAllCptCodesForSync();
+      return this.fallbackProvider.streamCptCodes(onBatch);
     }
 
-    const results: CptCode[] = [];
-    const seen = new Set<string>();
     let cursor: string | null = null;
 
     try {
@@ -174,22 +188,21 @@ export class LicensedCptCodeCatalogProvider implements CodeCatalogProvider {
             }),
           );
 
-        for (const row of page.items) {
-          if (!row.code || !row.description) continue;
-          if (seen.has(row.code)) continue;
-          seen.add(row.code);
-          results.push(this.mapCpt(row, true));
+        const batch = page.items
+          .filter((row) => !!row.code && !!row.description)
+          .map((row) => this.mapCpt(row, true));
+
+        if (batch.length > 0) {
+          await onBatch(batch);
         }
 
         cursor = page.nextCursor;
       } while (cursor);
-
-      return results;
     } catch (error) {
       this.logger.warn(
         `Licensed CPT sync failed: ${error instanceof Error ? error.message : String(error)}. Falling back to NLM/HCPCS provider.`,
       );
-      return this.fallbackProvider.fetchAllCptCodesForSync();
+      return this.fallbackProvider.streamCptCodes(onBatch);
     }
   }
 }

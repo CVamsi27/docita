@@ -172,6 +172,34 @@ export class PrismaClinicalRepository
     return stats;
   }
 
+  async searchIcdCodes(query: string, limit = 20): Promise<IcdCode[]> {
+    if (!query?.trim()) return [];
+    return this.getReadClient().icdCode.findMany({
+      where: {
+        OR: [
+          { code: { contains: query.trim(), mode: 'insensitive' } },
+          { description: { contains: query.trim(), mode: 'insensitive' } },
+        ],
+      },
+      orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
+      take: limit,
+    });
+  }
+
+  async searchCptCodes(query: string, limit = 20): Promise<CptCode[]> {
+    if (!query?.trim()) return [];
+    return this.getReadClient().cptCode.findMany({
+      where: {
+        OR: [
+          { code: { contains: query.trim(), mode: 'insensitive' } },
+          { description: { contains: query.trim(), mode: 'insensitive' } },
+        ],
+      },
+      orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
+      take: limit,
+    });
+  }
+
   async getFavorites(userId: string): Promise<IcdCode[]> {
     const favorites = await this.getReadClient().doctorFavoriteCode.findMany({
       where: { userId, icdCodeId: { not: null } },

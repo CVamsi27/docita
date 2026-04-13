@@ -85,7 +85,7 @@ export class DoctorVerificationService {
     return this.repository.findDoctorVerificationRecord(doctorId);
   }
 
-  @Cron('15 3 * * *')
+  @Cron('15 4 * * *')
   async reverifyDoctorsNightly() {
     await runWithTenant({ bypassed: true }, async () => {
       const doctors = await this.repository.findDoctorsForReverification();
