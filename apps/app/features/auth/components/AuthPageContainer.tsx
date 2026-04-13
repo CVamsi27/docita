@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Shield } from "lucide-react";
 import { useAuth, type User } from "@/lib/auth-context";
+import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
 import { ApiValidationError } from "@/lib/api-error";
 import { checkEmailSchema, getUserFacingErrorMessage } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
@@ -24,20 +25,6 @@ const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
   login: "Sign in to your workspace",
   signup: "Get started with Docita",
 };
-
-function formatLockoutMessage(lockoutUntil: number | null): string {
-  if (!lockoutUntil) {
-    return "";
-  }
-
-  const remainingMs = lockoutUntil - Date.now();
-  if (remainingMs <= 0) {
-    return "Your account lockout has expired. You can sign in again.";
-  }
-
-  const minutesRemaining = Math.ceil(remainingMs / 60_000);
-  return `Account is locked due to too many failed login attempts. Try again in ${minutesRemaining} minute(s).`;
-}
 
 function getPostAuthPath(user: User): string {
   if (user.emailVerified === false) {
@@ -96,7 +83,7 @@ export function AuthPageContainer() {
   }, [isAuthenticated, router, user]);
 
   const lockoutMessage = isLoginLocked
-    ? formatLockoutMessage(loginLockoutUntil)
+    ? formatLoginLockoutMessage(loginLockoutUntil ?? 0)
     : "";
   const contentAlignment = step === "signup" ? "start" : "center";
 
