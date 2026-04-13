@@ -11,22 +11,28 @@ import { TooltipProvider } from "@workspace/ui/components/tooltip";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SocketProvider>
-      <NextThemesProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem
-        disableTransitionOnChange
-        enableColorScheme
-      >
-        <TierConfigProvider>
-          <AppConfigProvider>
-            <TooltipProvider delayDuration={300}>
-              <ConfirmProvider>{children}</ConfirmProvider>
-            </TooltipProvider>
-          </AppConfigProvider>
-        </TierConfigProvider>
-      </NextThemesProvider>
-    </SocketProvider>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem
+      disableTransitionOnChange
+      enableColorScheme
+    >
+      <TierConfigProvider>
+        <AppConfigProvider>
+          <TooltipProvider delayDuration={300}>
+            <ConfirmProvider>{children}</ConfirmProvider>
+          </TooltipProvider>
+        </AppConfigProvider>
+      </TierConfigProvider>
+    </NextThemesProvider>
   );
+}
+
+export function RealtimeProviders({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <SocketProvider>{children}</SocketProvider>;
 }
