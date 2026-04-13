@@ -7,7 +7,7 @@
   - `apps/internal`: Cloudflare Workers (OpenNext)
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
-  - `apps/api`: Fly.io (Mumbai — `bom` region), 1 GB RAM, shared CPU
+  - `apps/api`: Fly.io (Mumbai — `bom` region), 2 GB RAM, shared CPU
 - Database
   - AWS RDS PostgreSQL — `ap-south-1` (Mumbai), `db.t4g.micro`
 - Cache / Background Work
@@ -31,6 +31,7 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 - Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
 - Keep at least one API machine running; do not scale the API to zero while background work is in-process.
+- The Fly API machine is intentionally provisioned above the smallest stage in the scaling table to absorb OCR, PDF, and Prisma-native memory spikes.
 - Treat bulk import and non-immediate audit logging as best-effort background work tied to the running API instance.
 - Do not rely on multi-machine queue semantics until background work is moved to a durable Postgres-backed worker.
 
