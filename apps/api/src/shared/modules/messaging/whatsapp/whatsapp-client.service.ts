@@ -65,7 +65,10 @@ export class WhatsappClientService {
         },
       );
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        error?: { message?: string };
+        messages?: Array<{ id?: string }>;
+      };
 
       if (!response.ok) {
         const errorMsg = data.error?.message || 'Failed to send message';
@@ -186,7 +189,10 @@ export class WhatsappClientService {
         },
       );
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        error?: { message?: string };
+        messages?: Array<{ id?: string }>;
+      };
 
       if (!response.ok) {
         const errorMsg = data.error?.message || 'Failed to send template';
@@ -275,7 +281,10 @@ export class WhatsappClientService {
         },
       );
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        error?: { message?: string };
+        messages?: Array<{ id?: string }>;
+      };
 
       if (!response.ok) {
         const errorMsg =
