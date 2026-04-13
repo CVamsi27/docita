@@ -8,10 +8,11 @@
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
   - `apps/api`: Fly.io (Mumbai — `bom` region), 2 GB RAM, shared CPU
+  - `apps/worker`: Fly.io (Mumbai — `bom` region), shared CPU, background jobs only
 - Database
   - AWS RDS PostgreSQL — `ap-south-1` (Mumbai), `db.t4g.micro`
 - Cache / Background Work
-  - In-process memory cache + in-process background tasks inside the API process
+  - In-process memory cache in the API + PostgreSQL-backed worker jobs in Fly worker
 - Object Storage
   - Cloudflare R2 (`STORAGE_PROVIDER=r2`)
 
@@ -25,23 +26,24 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 - Runtime baseline is Node `22.12.x` for local, CI, and Docker builds.
 - Keep API health checks on `GET /api/health/live`.
 - Keep frontend `NEXT_PUBLIC_API_URL` pointed to the Fly.io app URL.
+- Keep `ENABLE_SCHEDULERS=false` on the API and `ENABLE_SCHEDULERS=true` on the worker once the split is live.
 - Keep each Worker entry bundle under Cloudflare's 3 MB limit. Use
   `node scripts/check-worker-size.mjs` after OpenNext builds.
-- Deploy order: run DB migrations first, then deploy API, then deploy frontends.
+- Deploy order: run DB migrations first, then deploy API and worker, then deploy frontends.
 - Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
-- Keep at least one API machine running; do not scale the API to zero while background work is in-process.
-- The Fly API machine is intentionally provisioned above the smallest stage in the scaling table to absorb OCR, PDF, and Prisma-native memory spikes.
-- Treat bulk import and non-immediate audit logging as best-effort background work tied to the running API instance.
-- Do not rely on multi-machine queue semantics until background work is moved to a durable Postgres-backed worker.
+- Keep at least one API machine running while request traffic is live.
+- Keep the API at 2 GB until the worker has been healthy in parallel and we have live RSS measurements that support a safe reduction to 1.5 GB.
+- Treat bulk import and non-immediate audit logging as best-effort background work on the worker, not the API.
+- Use the PostgreSQL-backed worker for PDF generation, retries, and other background execution that must survive API restarts.
 
 ## Background Task Caveat
 
 - Redis/Bull is no longer part of the deployment topology.
 - Search and application cache are memory-backed within each API instance.
-- Bulk import processing is scheduled in-process by the API and does not survive process restarts.
-- Non-immediate audit logging is fire-and-forget in-process and does not provide cross-instance delivery guarantees.
-- If durable jobs, retries across restarts, or multi-machine worker coordination become required, migrate background work to a PostgreSQL-backed worker before scaling out.
+- Bulk import processing and PDF generation run on the separate worker and survive API restarts.
+- Non-immediate audit logging remains best-effort but no longer blocks request-serving API restarts.
+- If durable jobs, retries across restarts, or multi-machine worker coordination become required, keep the PostgreSQL-backed worker as the execution path and scale it separately from the API.
 
 ## Fly.io Quick Guide
 
@@ -69,13 +71,21 @@ fly ssh console
 
 Fly-specific notes:
 - The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
+- The Fly worker deployment uses [`fly.worker.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.worker.toml) and [`apps/worker/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/Dockerfile).
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
-- Keep `min_machines_running = 1` while background work remains in-process.
+- The worker app uses [`fly.worker.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.worker.toml), should be deployed from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
+- Keep `min_machines_running = 1` for the API while request traffic is live.
 - Verify the API image locally before infra changes with:
 
 ```bash
 docker build -f apps/api/Dockerfile -t docita-api-verify .
+```
+
+- Verify the worker image locally before worker deploy changes with:
+
+```bash
+docker build -f apps/worker/Dockerfile -t docita-worker-verify .
 ```
 
 Secrets required (set via `fly secrets set KEY=value`):
@@ -119,12 +129,13 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - `pnpm test`
 - `pnpm --filter @docita/api run test:e2e`
 - `docker build -f apps/api/Dockerfile -t docita-api-verify .`
+- `docker build -f apps/worker/Dockerfile -t docita-worker-verify .`
 
 ## Scaling Path
 
 | Stage | API | Database | Cache / Background Work |
 |-------|-----|----------|--------------------------|
-| 0–20 clinics | Fly.io 1 GB shared, single machine | RDS `db.t4g.micro` | In-process memory cache + in-process background work |
-| 20–50 clinics | Fly.io 2 GB shared, single machine | RDS `db.t3.small` | In-process memory cache + re-evaluate durable jobs |
-| 50–100 clinics | Fly.io 4 GB dedicated | RDS `db.t3.medium` + read replica | Move background work to PostgreSQL-backed workers before scaling API horizontally |
+| 0–20 clinics | Fly.io 1 GB shared, single machine | RDS `db.t4g.micro` | In-process memory cache + worker-backed background work |
+| 20–50 clinics | Fly.io 2 GB shared, single machine | RDS `db.t3.small` | In-process memory cache + worker-backed background work |
+| 50–100 clinics | Fly.io 4 GB dedicated | RDS `db.t3.medium` + read replica | PostgreSQL-backed worker handles background work before scaling API horizontally |
 | 100+ clinics | Fly.io multi-machine or ECS | RDS `db.r6g.large` + PgBouncer | Durable worker system required; re-evaluate dedicated cache only if needed |

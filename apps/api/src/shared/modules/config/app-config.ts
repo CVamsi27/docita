@@ -43,6 +43,7 @@ export const EnvSchema = z.object({
   SLOW_QUERY_THRESHOLD_MS: z.coerce.number().default(1000),
   REQUEST_TIMEOUT_MS: z.coerce.number().default(30000),
   SECRETS_PROVIDER: z.enum(['env', 'aws']).default('env'),
+  ENABLE_SCHEDULERS: z.coerce.boolean().default(true),
   API_LOG_MODE: z.string().default('access-and-errors'),
   DOCTOR_VERIFICATION_API_URL: z.string().optional(),
   DOCTOR_VERIFICATION_API_KEY: z.string().optional(),
@@ -107,6 +108,7 @@ export function validateEnv(): EnvConfig {
     envToParse.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
     envToParse.NEXT_PUBLIC_API_URL ??= 'http://localhost:3001/api';
     envToParse.CORS_ORIGINS ??= 'http://localhost:3000';
+    envToParse.ENABLE_SCHEDULERS ??= 'true';
   }
 
   const result = EnvSchema.safeParse(envToParse);

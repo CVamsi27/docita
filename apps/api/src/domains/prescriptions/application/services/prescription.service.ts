@@ -24,6 +24,7 @@ import {
 import {
   Specialization,
   HospitalRole,
+  type EnqueuePdfJobResponse,
   extractPdfTheme,
 } from '@workspace/types';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
@@ -369,7 +370,7 @@ export class PrescriptionsService {
   async generatePdfAsync(
     id: string,
     clinicId: string,
-  ): Promise<{ jobId: string; pollUrl: string }> {
+  ): Promise<EnqueuePdfJobResponse> {
     return this.pdfJobService.enqueue(id, 'prescription', clinicId);
   }
 
