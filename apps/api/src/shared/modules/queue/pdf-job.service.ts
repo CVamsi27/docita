@@ -23,9 +23,20 @@ export interface PdfJobPrismaPort {
         documentType: 'invoice' | 'prescription';
         clinicId: string;
       };
-    }): Promise<{ id: string }>;
+      select: {
+        id: true;
+        status: true;
+        pdfUrl: true;
+        createdAt: true;
+      };
+    }): Promise<PdfJobRecord>;
     findFirst(args: {
-      where: { id: string; clinicId: string };
+      where: {
+        id?: string;
+        clinicId?: string;
+        documentId?: string;
+        documentType?: 'invoice' | 'prescription';
+      };
     }): Promise<PdfJobRecord | null>;
   };
 }
@@ -67,27 +78,53 @@ export class PdfJobService implements PdfJobServicePort {
     documentType: 'invoice' | 'prescription',
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
-    const pdfJob = await this.prisma.runUnrestricted(async () =>
-      this.prisma.pdfJob.create({
-        data: { documentId, documentType, clinicId },
-      }),
-    );
+    let shouldEnqueue = true;
+    const pdfJob = await this.prisma.runUnrestricted(async () => {
+      try {
+        return await this.prisma.pdfJob.create({
+          data: { documentId, documentType, clinicId },
+          select: {
+            id: true,
+            status: true,
+            pdfUrl: true,
+            createdAt: true,
+          },
+        });
+      } catch (error: unknown) {
+        if (!this.isUniqueConstraintViolation(error)) {
+          throw error;
+        }
+
+        shouldEnqueue = false;
+        const existing = await this.prisma.pdfJob.findFirst({
+          where: { clinicId, documentId, documentType },
+        });
+
+        if (!existing) {
+          throw error;
+        }
+
+        return existing;
+      }
+    });
 
     const jobName =
       documentType === 'invoice'
         ? JobNames.GENERATE_INVOICE_PDF
         : JobNames.GENERATE_PRESCRIPTION_PDF;
 
-    await this.queue.enqueue(jobName, {
-      documentId,
-      documentType,
-      clinicId,
-      pdfJobId: pdfJob.id,
-    });
+    if (shouldEnqueue) {
+      await this.queue.enqueue(jobName, {
+        documentId,
+        documentType,
+        clinicId,
+        pdfJobId: pdfJob.id,
+      });
+    }
 
     return {
       jobId: pdfJob.id,
-      status: 'PENDING',
+      status: pdfJobStatusSchema.parse(pdfJob.status),
       pollUrl: `/api/v1/${documentType === 'invoice' ? 'invoices' : 'prescriptions'}/${documentId}/pdf/status?jobId=${pdfJob.id}`,
     };
   }
@@ -112,5 +149,14 @@ export class PdfJobService implements PdfJobServicePort {
       pdfUrl: pdfJob.pdfUrl ?? undefined,
       createdAt: pdfJob.createdAt,
     };
+  }
+
+  private isUniqueConstraintViolation(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code?: string }).code === 'P2002'
+    );
   }
 }
