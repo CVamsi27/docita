@@ -3277,7 +3277,7 @@ model PdfJob {
   failedReason String?
   attemptsMade Int          @default(0)
   createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  updatedAt    DateTime     @default(now()) @updatedAt
   completedAt  DateTime?
   clinic       Clinic       @relation(fields: [clinicId], references: [id])
 
@@ -3306,7 +3306,7 @@ model QueueJob {
   processedAt  DateTime?
   delayedUntil DateTime?
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  updatedAt    DateTime       @default(now()) @updatedAt
 
   @@index([name, status])
   @@index([status, delayedUntil])
