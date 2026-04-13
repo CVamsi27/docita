@@ -11,6 +11,7 @@ import {
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PDFService, InvoiceData } from './pdf.service';
 import { InvoicesService } from './invoices.service';
 
@@ -45,6 +46,18 @@ describe('InvoicesService', () => {
   }
 
   const storageProvider = new MockStorageProvider();
+
+  const storedFileUrlResolver: Pick<
+    StoredFileUrlResolverService,
+    'resolveWithStoredUrl'
+  > = {
+    resolveWithStoredUrl: jest
+      .fn<StoredFileUrlResolverService['resolveWithStoredUrl']>()
+      .mockImplementation(async (url) => ({
+        url: url ?? null,
+        storedUrl: url ?? null,
+      })),
+  };
 
   const claimValidationService = Object.create(
     ClaimValidationService.prototype,
@@ -132,6 +145,7 @@ describe('InvoicesService', () => {
       usageTracking,
       storageProvider,
       claimValidationService,
+      storedFileUrlResolver as unknown as StoredFileUrlResolverService,
     );
   });
 

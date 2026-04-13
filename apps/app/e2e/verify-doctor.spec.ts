@@ -6,7 +6,8 @@ import { expect, test } from "@playwright/test";
 import { API_URL, TEST_PASSWORD } from "./utils/patient-helpers";
 
 type JsonRecord = Record<string, unknown>;
-const APP_ORIGIN = new URL(process.env.APP_URL ?? "http://127.0.0.1:3005").origin;
+const APP_ORIGIN = new URL(process.env.APP_URL ?? "http://127.0.0.1:3005")
+  .origin;
 
 function asRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -21,7 +22,9 @@ function readString(source: JsonRecord, key: string): string | null {
 }
 
 function readAccessToken(source: JsonRecord): string | null {
-  return readString(source, "access_token") ?? readString(source, "accessToken");
+  return (
+    readString(source, "access_token") ?? readString(source, "accessToken")
+  );
 }
 
 function getRepoRoot(): string {
@@ -44,7 +47,11 @@ function readDatabaseUrl(): string {
 async function fetchVerificationToken(email: string): Promise<string | null> {
   const output = execFileSync(
     "node",
-    ["-r", "ts-node/register/transpile-only", "apps/api/scripts/fetch-verification-token.ts"],
+    [
+      "-r",
+      "ts-node/register/transpile-only",
+      "apps/api/scripts/fetch-verification-token.ts",
+    ],
     {
       cwd: getRepoRoot(),
       env: {
@@ -135,13 +142,16 @@ async function createDoctorWithSignature(
   const doctorId = readString(userData, "id");
   expect(doctorId).toBeTruthy();
 
-  const choosePathRes = await request.post(`${API_URL}/onboarding/choose-path`, {
-    headers: {
-      ...authHeaders(accessToken),
-      ...csrfHeaders,
+  const choosePathRes = await request.post(
+    `${API_URL}/onboarding/choose-path`,
+    {
+      headers: {
+        ...authHeaders(accessToken),
+        ...csrfHeaders,
+      },
+      data: { path: "CREATE_CLINIC" },
     },
-    data: { path: "CREATE_CLINIC" },
-  });
+  );
   expect(choosePathRes.ok()).toBeTruthy();
 
   const initRes = await request.post(`${API_URL}/onboarding/initialize`, {
@@ -238,12 +248,15 @@ async function createDoctorWithSignature(
   accessToken = readAccessToken(completeData) ?? accessToken;
 
   if (uploadDoctorSignature) {
-    const tokenRes = await request.post(`${API_URL}/doctors/signature/generate-token`, {
-      headers: {
-        ...authHeaders(accessToken),
-        ...csrfHeaders,
+    const tokenRes = await request.post(
+      `${API_URL}/doctors/signature/generate-token`,
+      {
+        headers: {
+          ...authHeaders(accessToken),
+          ...csrfHeaders,
+        },
       },
-    });
+    );
     expect(tokenRes.ok()).toBeTruthy();
     const tokenData = asRecord(await tokenRes.json());
     const uploadToken = readString(tokenData, "token");
@@ -266,7 +279,9 @@ async function createDoctorWithSignature(
       },
     );
     if (!uploadRes.ok()) {
-      throw new Error(`Doctor signature upload failed: ${await uploadRes.text()}`);
+      throw new Error(
+        `Doctor signature upload failed: ${await uploadRes.text()}`,
+      );
     }
   }
 
@@ -283,7 +298,8 @@ async function createDoctorWithSignature(
     email,
     doctorId,
     accessToken,
-    refreshToken: completeData.refresh_token || registerData.refresh_token || null,
+    refreshToken:
+      completeData.refresh_token || registerData.refresh_token || null,
     user: returnedUser,
   };
 }
@@ -497,6 +513,17 @@ test.describe("Doctor Verification Flow", () => {
       name: "Use onboarding signature",
     });
     await expect(reuseSignatureButton).toBeVisible({ timeout: 30000 });
+    const onboardingSignaturePreview = page.getByAltText(
+      "Onboarding signature preview",
+    );
+    await expect(onboardingSignaturePreview).toBeVisible();
+    await expect
+      .poll(async () =>
+        onboardingSignaturePreview.evaluate(
+          (img) => (img as HTMLImageElement).naturalWidth,
+        ),
+      )
+      .toBeGreaterThan(0);
     await reuseSignatureButton.click();
 
     await page.waitForURL(/\/dashboard/, { timeout: 30000 });

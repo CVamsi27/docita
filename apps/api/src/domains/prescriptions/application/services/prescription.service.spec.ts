@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApprovalStatus } from '@workspace/db';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   IPrescriptionRepository,
   PrescriptionDetail,
@@ -59,6 +60,18 @@ describe('PrescriptionsService', () => {
 
   const storageProvider = new MockStorageProvider();
 
+  const storedFileUrlResolver: Pick<
+    StoredFileUrlResolverService,
+    'resolveWithStoredUrl'
+  > = {
+    resolveWithStoredUrl: jest
+      .fn<StoredFileUrlResolverService['resolveWithStoredUrl']>()
+      .mockImplementation(async (url) => ({
+        url: url ?? null,
+        storedUrl: url ?? null,
+      })),
+  };
+
   let service: PrescriptionsService;
 
   beforeEach(() => {
@@ -69,6 +82,7 @@ describe('PrescriptionsService', () => {
       eventEmitter,
       usageTracking,
       storageProvider,
+      storedFileUrlResolver as unknown as StoredFileUrlResolverService,
     );
   });
 
