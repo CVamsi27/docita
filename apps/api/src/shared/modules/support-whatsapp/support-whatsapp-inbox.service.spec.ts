@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { JsonValue } from '@workspace/types';
@@ -160,6 +161,8 @@ interface SupportWhatsAppClientMock {
 
 describe('SupportWhatsAppInboxService', () => {
   let service: SupportWhatsAppInboxService;
+  let loggerErrorSpy: jest.SpiedFunction<Logger['error']>;
+  let loggerWarnSpy: jest.SpiedFunction<Logger['warn']>;
 
   const supportWhatsAppMessageUpsert =
     jest.fn<(args: SupportWhatsAppMessageUpsertArgs) => Promise<void>>();
@@ -227,6 +230,12 @@ describe('SupportWhatsAppInboxService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    loggerErrorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+    loggerWarnSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
 
     supportWhatsAppMessageUpsert.mockResolvedValue(undefined);
     supportWhatsAppMessageFindMany.mockResolvedValue([]);
@@ -286,6 +295,11 @@ describe('SupportWhatsAppInboxService', () => {
     }).compile();
 
     service = moduleRef.get(SupportWhatsAppInboxService);
+  });
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
+    loggerWarnSpy.mockRestore();
   });
 
   it('persists inbound webhook messages with thread metadata', async () => {
