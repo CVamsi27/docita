@@ -73,8 +73,8 @@ export default function VerifyDoctorPage() {
   const onboardingSignatureStoredUrl = clinic?.slaSignatureStoredUrl ?? null;
   const onboardingSignatureSourceUrl =
     onboardingSignatureStoredUrl ?? onboardingSignatureUrl;
-  const resolvedOnboardingSignatureUrl = onboardingSignatureSourceUrl
-    ? toAbsoluteApiUrl(onboardingSignatureSourceUrl)
+  const resolvedOnboardingSignatureUrl = onboardingSignatureUrl
+    ? toAbsoluteApiUrl(onboardingSignatureUrl)
     : null;
   const resolvedProfileSignatureUrl = profile?.signatureUrl
     ? toAbsoluteApiUrl(profile.signatureUrl)
