@@ -42,7 +42,10 @@ Sentry.init({
   sendDefaultPii: false,
   initialScope: {
     tags: {
-      service: 'docita-api',
+      service:
+        process.env.WORKER_ENTRYPOINT === 'worker'
+          ? 'docita-worker'
+          : 'docita-api',
     },
   },
 });

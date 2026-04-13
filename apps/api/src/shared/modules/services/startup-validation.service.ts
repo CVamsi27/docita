@@ -11,7 +11,9 @@ export class StartupValidationService {
     this.logger.debug('Running startup validations...');
 
     this.validateEncryptionKey();
-    this.validateJwtSecret();
+    if (process.env.WORKER_ENTRYPOINT !== 'worker') {
+      this.validateJwtSecret();
+    }
     this.validateDatabaseConfiguration();
     this.validateTransportSecurity();
     this.validateDataAtRestControls();
@@ -215,7 +217,13 @@ export class StartupValidationService {
     const missing: string[] = [];
 
     if (!this.configService.getDatabaseUrl()) missing.push('DATABASE_URL');
-    if (!this.configService.getJwtSecret()) missing.push('JWT_SECRET');
+    if (process.env.WORKER_ENTRYPOINT !== 'worker') {
+      try {
+        this.configService.getJwtSecret();
+      } catch {
+        missing.push('JWT_SECRET');
+      }
+    }
     if (!this.configService.getEncryptionKey()) missing.push('ENCRYPTION_KEY');
 
     if (missing.length > 0) {

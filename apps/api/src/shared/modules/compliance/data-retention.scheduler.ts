@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ArchivalService } from './archival.service';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 @Injectable()
 export class DataRetentionScheduler {
@@ -20,7 +21,7 @@ export class DataRetentionScheduler {
       : `${error.name}: ${error.message}`;
   }
 
-  @Cron('0 23 * * *')
+  @Cron('0 23 * * *', { disabled: isCronDisabledInThisProcess() })
   async handleDataRetention() {
     this.logger.log('Starting data retention check...');
 

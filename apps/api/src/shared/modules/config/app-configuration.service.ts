@@ -352,7 +352,11 @@ export class AppConfigService {
   }
 
   getJwtSecret(): string {
-    return this.getConfig().JWT_SECRET;
+    const value = this.getConfig().JWT_SECRET;
+    if (!value) {
+      throw new Error('JWT_SECRET is required for API runtime');
+    }
+    return value;
   }
 
   getJwtExpiration(): string {
