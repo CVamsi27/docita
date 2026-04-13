@@ -10,8 +10,14 @@ import {
   Request,
   Query,
   Res,
+  HttpStatus,
+  Inject,
 } from '@nestjs/common';
 import { InvoicesService } from '@/domains/billing/application/services/invoices.service';
+import {
+  PdfJobService,
+  type PdfJobServicePort,
+} from '@/shared/modules/queue/pdf-job.service';
 import type { Response } from 'express';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
@@ -20,7 +26,6 @@ import {
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, InvoiceStatus } from '@workspace/db';
-
 import {
   CreateInvoiceDto,
   UpdateInvoiceDto,
@@ -41,7 +46,11 @@ interface AuthRequest {
 @RequireFeature(Feature.INVOICING)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) {}
+  constructor(
+    private readonly invoicesService: InvoicesService,
+    @Inject(PdfJobService)
+    private readonly pdfJobService: PdfJobServicePort,
+  ) {}
 
   @Get()
   @ZodSerializerDto(PaginatedInvoiceResponseDto)
@@ -93,12 +102,26 @@ export class InvoicesController {
     return this.invoicesService.submitClaim(id, req.user.clinicId);
   }
 
+  @Get(':id/pdf/status')
+  getPdfStatus(@Request() req: AuthRequest, @Query('jobId') jobId: string) {
+    return this.pdfJobService.getStatus(jobId, req.user.clinicId);
+  }
+
   @Get(':id/pdf')
   async generatePDF(
     @Request() req: AuthRequest,
     @Param('id') id: string,
+    @Query('async') isAsync: string,
     @Res() res: Response,
   ) {
+    if (isAsync === 'true') {
+      const result = await this.invoicesService.generatePdfAsync(
+        id,
+        req.user.clinicId,
+      );
+      return res.status(HttpStatus.ACCEPTED).json(result);
+    }
+
     const result = await this.invoicesService.getPdf(id, req.user.clinicId);
 
     if (result.type === 'url') {

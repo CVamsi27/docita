@@ -13,6 +13,7 @@ import {
   PrescriptionPdfService,
 } from './prescription-pdf.service';
 import { PrescriptionsService } from './prescription.service';
+import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 
 describe('PrescriptionsService', () => {
   const findAllMock = jest.fn<IPrescriptionRepository['findAll']>();
@@ -82,7 +83,19 @@ describe('PrescriptionsService', () => {
       eventEmitter,
       usageTracking,
       storageProvider,
-      storedFileUrlResolver as unknown as StoredFileUrlResolverService,
+      storedFileUrlResolver,
+      {
+        enqueue: async () => ({
+          jobId: 'job-1',
+          status: 'PENDING' as const,
+          pollUrl: '/api/v1/prescriptions/rx-1/pdf/status?jobId=job-1',
+        }),
+        getStatus: async () => ({
+          jobId: 'job-1',
+          status: 'PENDING' as const,
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        }),
+      } satisfies PdfJobServicePort,
     );
   });
 

@@ -9,9 +9,15 @@ import {
   Res,
   Query,
   UsePipes,
+  HttpStatus,
+  Inject,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PrescriptionsService } from '@/domains/prescriptions/application/services/prescription.service';
+import {
+  PdfJobService,
+  type PdfJobServicePort,
+} from '@/shared/modules/queue/pdf-job.service';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   RequireFeature,
@@ -41,7 +47,11 @@ interface AuthRequest {
 @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 export class PrescriptionsController {
-  constructor(private readonly prescriptionsService: PrescriptionsService) {}
+  constructor(
+    private readonly prescriptionsService: PrescriptionsService,
+    @Inject(PdfJobService)
+    private readonly pdfJobService: PdfJobServicePort,
+  ) {}
 
   @Get()
   @ZodSerializerDto(PrescriptionListResponseDto)
@@ -76,12 +86,26 @@ export class PrescriptionsController {
     });
   }
 
+  @Get(':id/pdf/status')
+  getPdfStatus(@Request() req: AuthRequest, @Query('jobId') jobId: string) {
+    return this.pdfJobService.getStatus(jobId, req.user.clinicId);
+  }
+
   @Get(':id/pdf')
   async getPdf(
     @Request() req: AuthRequest,
     @Param('id') id: string,
+    @Query('async') isAsync: string,
     @Res() res: Response,
   ) {
+    if (isAsync === 'true') {
+      const result = await this.prescriptionsService.generatePdfAsync(
+        id,
+        req.user.clinicId,
+      );
+      return res.status(HttpStatus.ACCEPTED).json(result);
+    }
+
     const result = await this.prescriptionsService.getPdf(
       id,
       req.user.clinicId,
