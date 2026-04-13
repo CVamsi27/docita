@@ -205,11 +205,16 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 ## 11.3) Branch Promotion Flow
 
-- Use `staging` as the integration branch for pre-production validation.
-- Open feature PRs into `staging` first.
-- After staging checks pass, open a promotion PR from `staging` into `main`.
-- Keep `main` protected and production-only; do not merge feature work directly into `main`.
-- If a hotfix lands on `main`, merge `main` back into `staging` before the next release cycle so both branches stay aligned.
+**Structure:** work ships on **feature branches** → **`staging`** (integration) → **`main`** (production). Do not commit feature work directly onto `staging` or `main`.
+
+1. **Feature branch**: Create a branch from the current `staging` tip (or rebase onto it before opening a PR). Implement the change and run local checks for the touched areas.
+2. **Into staging**: Open a **pull request from the feature branch into `staging`**. Merge only after required CI and review pass.
+3. **Into main**: Open a **promotion pull request from `staging` into `main`** when the integration branch is ready to release. `main` stays protected and production-only.
+4. **Realign after promotion**: After `main` moves forward (promotion merge, hotfix, or a merge-resolution PR when GitHub cannot auto-merge `staging` → `main`), **merge `main` back into `staging`** so both branches share the same baseline for the next cycle. Until that happens, **`main` and `staging` are not guaranteed to point at the same commits** even when the product code matches.
+
+**Merge conflicts on promotion:** If `staging` → `main` conflicts in GitHub, use a **branch from `main`**, merge `staging` into it with explicit resolution (preserve staging’s product changes; keep production workflow and env rules correct), merge that PR into `main`, then **merge `main` into `staging`** to realign.
+
+**Hotfixes:** If a hotfix lands on `main` first, merge `main` into `staging` before continuing feature work so staging does not regress production fixes.
 
 ## 12) Design Principles
 
