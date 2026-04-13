@@ -44,7 +44,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       ? new Date(Date.now() + options.delay)
       : null;
 
-    const row = await this.prisma.runUnrestricted(() =>
+    const row = await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.create({
         data: {
           name,
@@ -85,7 +85,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     if (!handler) return;
 
     const rows = await this.prisma.runUnrestricted(
-      () =>
+      async () =>
         this.prisma.$queryRaw<QueueJobRow[]>`
         UPDATE "QueueJob"
         SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
@@ -110,7 +110,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     try {
       await handler(job);
 
-      await this.prisma.runUnrestricted(() =>
+      await this.prisma.runUnrestricted(async () =>
         this.prisma.queueJob.update({
           where: { id: row.id },
           data: { status: 'COMPLETED' },
@@ -123,7 +123,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
 
       if (nextAttemptsMade < row.maxAttempts) {
         const backoffMs = Math.pow(2, nextAttemptsMade) * 5000;
-        await this.prisma.runUnrestricted(() =>
+        await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
@@ -134,7 +134,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           }),
         );
       } else {
-        await this.prisma.runUnrestricted(() =>
+        await this.prisma.runUnrestricted(async () =>
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
@@ -155,7 +155,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     jobId: string,
   ): Promise<QueueJob<T> | null> {
     const rows = await this.prisma.runUnrestricted(
-      () =>
+      async () =>
         this.prisma.$queryRaw<QueueJobRow[]>`
         SELECT * FROM "QueueJob" WHERE id = ${jobId} LIMIT 1
       `,
@@ -166,20 +166,20 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
   }
 
   async removeJob(jobId: string): Promise<void> {
-    await this.prisma.runUnrestricted(() =>
+    await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.delete({ where: { id: jobId } }),
     );
   }
 
   async clear(name: string): Promise<void> {
-    await this.prisma.runUnrestricted(() =>
+    await this.prisma.runUnrestricted(async () =>
       this.prisma.queueJob.deleteMany({ where: { name } }),
     );
   }
 
   async getStats(name: string): Promise<QueueStats> {
     const rows = await this.prisma.runUnrestricted(
-      () =>
+      async () =>
         this.prisma.$queryRaw<Array<{ status: string; count: bigint }>>`
         SELECT status, COUNT(*) as count
         FROM "QueueJob"

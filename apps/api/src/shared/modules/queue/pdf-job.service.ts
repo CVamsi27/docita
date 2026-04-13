@@ -67,7 +67,7 @@ export class PdfJobService implements PdfJobServicePort {
     documentType: 'invoice' | 'prescription',
     clinicId: string,
   ): Promise<EnqueuePdfJobResponse> {
-    const pdfJob = await this.prisma.runUnrestricted(() =>
+    const pdfJob = await this.prisma.runUnrestricted(async () =>
       this.prisma.pdfJob.create({
         data: { documentId, documentType, clinicId },
       }),
@@ -96,7 +96,7 @@ export class PdfJobService implements PdfJobServicePort {
     jobId: string,
     clinicId: string,
   ): Promise<PdfJobStatusResponse> {
-    const pdfJob = await this.prisma.runUnrestricted(() =>
+    const pdfJob = await this.prisma.runUnrestricted(async () =>
       this.prisma.pdfJob.findFirst({
         where: { id: jobId, clinicId },
       }),

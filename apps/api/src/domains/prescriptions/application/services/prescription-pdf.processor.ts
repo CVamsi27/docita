@@ -43,7 +43,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
         const { documentId, clinicId, pdfJobId } = job.data;
 
         if (pdfJobId) {
-          await this.prisma.runUnrestricted(() =>
+          await this.prisma.runUnrestricted(async () =>
             this.prisma.pdfJob.update({
               where: { id: pdfJobId },
               data: { status: 'PROCESSING' },
@@ -73,7 +73,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
               PDF_SIGNED_URL_TTL_SECONDS,
             );
 
-            await this.prisma.runUnrestricted(() =>
+            await this.prisma.runUnrestricted(async () =>
               this.prisma.pdfJob.update({
                 where: { id: pdfJobId },
                 data: { status: 'COMPLETED', pdfUrl, completedAt: new Date() },
@@ -86,7 +86,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
           );
 
           if (pdfJobId) {
-            await this.prisma.runUnrestricted(() =>
+            await this.prisma.runUnrestricted(async () =>
               this.prisma.pdfJob.update({
                 where: { id: pdfJobId },
                 data: {
