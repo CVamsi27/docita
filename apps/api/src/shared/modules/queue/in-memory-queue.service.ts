@@ -33,6 +33,7 @@ export class InMemoryQueueService implements IQueueProvider {
       data,
       progress: 0,
       attemptsMade: 0,
+      maxAttempts: 1,
       timestamp: Date.now(),
       status: 'waiting',
       delayedUntil: options?.delay ? Date.now() + options.delay : undefined,
@@ -67,6 +68,7 @@ export class InMemoryQueueService implements IQueueProvider {
       data,
       progress: 0,
       attemptsMade: 0,
+      maxAttempts: 1,
       timestamp: job.timestamp,
     };
   }
@@ -95,6 +97,7 @@ export class InMemoryQueueService implements IQueueProvider {
       progress: job.progress,
       failedReason: job.failedReason,
       attemptsMade: job.attemptsMade,
+      maxAttempts: job.maxAttempts,
       timestamp: job.timestamp,
     };
     await Promise.resolve();

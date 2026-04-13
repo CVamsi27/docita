@@ -311,17 +311,23 @@ export class AppointmentService {
     }
 
     const codedDiagnoses = diagnoses.filter((d) => d.icdCodeId);
+    const primaryDiagnosisIndex = codedDiagnoses.findIndex(
+      (diagnosis) => diagnosis.isPrimary,
+    );
 
     await this.prisma.$transaction([
       this.prisma.diagnosis.deleteMany({ where: { appointmentId } }),
       ...(codedDiagnoses.length > 0
         ? [
             this.prisma.diagnosis.createMany({
-              data: codedDiagnoses.map((d) => ({
+              data: codedDiagnoses.map((d, index) => ({
                 appointmentId,
                 icdCodeId: d.icdCodeId!,
                 notes: d.notes ?? null,
-                isPrimary: d.isPrimary ?? false,
+                isPrimary:
+                  primaryDiagnosisIndex === -1
+                    ? index === 0
+                    : index === primaryDiagnosisIndex,
               })),
             }),
           ]
