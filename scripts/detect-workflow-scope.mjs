@@ -190,7 +190,7 @@ function isWorkerChange(file) {
 
 function isWorkerSpecificChange(file) {
   return (
-    file === "fly.worker.toml" ||
+    file === "apps/worker/fly.toml" ||
     file === "apps/worker/Dockerfile" ||
     file === "apps/api/Dockerfile" ||
     file === "packages/typescript-config/nestjs.json" ||

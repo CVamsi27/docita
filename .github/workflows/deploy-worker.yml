@@ -14,7 +14,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "turbo.json"
-      - "fly.worker.toml"
+      - "apps/worker/fly.toml"
       - ".github/workflows/deploy-worker.yml"
 
 concurrency:
@@ -56,12 +56,12 @@ jobs:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WORKER }}
     steps:
       - uses: actions/checkout@v5
-      - name: Read Fly app from fly.worker.toml
+      - name: Read Fly app from apps/worker/fly.toml
         id: fly-config
         run: |
-          app_name="$(ruby -e 'puts File.read("fly.worker.toml")[/^\s*app\s*=\s*["'\'']([^"'\'']+)["'\'']\s*$/, 1]')"
+          app_name="$(ruby -e 'puts File.read("apps/worker/fly.toml")[/^\s*app\s*=\s*["'\'']([^"'\'']+)["'\'']\s*$/, 1]')"
           if [ -z "$app_name" ]; then
-            echo "Unable to read Fly app name from fly.worker.toml"
+            echo "Unable to read Fly app name from apps/worker/fly.toml"
             exit 1
           fi
           echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
@@ -69,4 +69,4 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy Worker to Fly.io
-        run: flyctl deploy --config fly.worker.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only --ha=false
+        run: flyctl deploy --config apps/worker/fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only --ha=false

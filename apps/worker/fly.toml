@@ -20,3 +20,4 @@ primary_region = 'bom'
   memory = '512mb'
   cpus = 1
   memory_mb = 512
+
