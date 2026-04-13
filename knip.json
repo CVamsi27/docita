@@ -7,10 +7,6 @@
     "enumMembers": "off",
     "duplicates": "off"
   },
-  "ignore": [
-    "packages/auth/test/**",
-    "packages/hooks/test/**"
-  ],
   "ignoreBinaries": ["printf"],
   "ignoreWorkspaces": ["apps/worker"],
   "workspaces": {

@@ -1,20 +1,18 @@
-
-
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useClickOutside } from "../src/use-click-outside";
+import { useDebounce } from "../src/use-debounce";
+import { useIntersectionObserver } from "../src/use-intersection-observer";
 import {
   formatShortcut,
-  useClickOutside,
-  useDebounce,
-  useIntersectionObserver,
   useKeyboardShortcuts,
-  useLocalStorage,
-  useMediaQuery,
-  useMedicalCalculations,
-  useMounted,
-  useSessionStorage,
-  useToggle,
-} from "@/index.js";
+} from "../src/use-keyboard-shortcuts";
+import { useLocalStorage } from "../src/use-local-storage";
+import { useMediaQuery } from "../src/use-media-query";
+import { useMedicalCalculations } from "../src/use-medical-calculations";
+import { useMounted } from "../src/use-mounted";
+import { useSessionStorage } from "../src/use-session-storage";
+import { useToggle } from "../src/use-toggle";
 
 describe("@workspace/hooks", () => {
   beforeEach(() => {
@@ -46,9 +44,12 @@ describe("@workspace/hooks", () => {
     expect(result.current[0]).toBe(false);
   });
 
-  it("reports mounted state after effect", () => {
+  it("reports mounted state after effect", async () => {
     const { result } = renderHook(() => useMounted());
-    expect(result.current).toBe(true);
+    expect(result.current).toBe(false);
+    await waitFor(() => {
+      expect(result.current).toBe(true);
+    });
   });
 
   it("debounces value updates", () => {
@@ -154,7 +155,7 @@ describe("@workspace/hooks", () => {
     expect(result.current.bmiStatus).toBe("normal");
   });
 
-  it("tracks media query updates", () => {
+  it("tracks media query updates", async () => {
     let listener: (() => void) | null = null;
     let isMatch = true;
 
@@ -164,8 +165,10 @@ describe("@workspace/hooks", () => {
       },
       media: query,
       onchange: null,
-      addEventListener: (_: string, callback: () => void) => {
-        listener = callback;
+      addEventListener: (type: string, callback: () => void) => {
+        if (type === "change") {
+          listener = callback;
+        }
       },
       removeEventListener: vi.fn(),
       addListener: vi.fn(),
@@ -174,7 +177,9 @@ describe("@workspace/hooks", () => {
     }));
 
     const { result } = renderHook(() => useMediaQuery("(min-width: 768px)"));
-    expect(result.current).toBe(true);
+    await waitFor(() => {
+      expect(result.current).toBe(true);
+    });
 
     act(() => {
       isMatch = false;
