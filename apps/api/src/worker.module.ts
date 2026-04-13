@@ -9,10 +9,10 @@ import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { DocumentsWorkerModule } from '@/domains/documents/documents.worker.module';
 import { BillingWorkerModule } from '@/domains/billing/billing.worker.module';
 import { PrescriptionsWorkerModule } from '@/domains/prescriptions/prescriptions.worker.module';
-import { ClinicalModule } from '@/domains/clinical/clinical.module';
-import { RemindersModule } from '@/domains/reminders/reminders.module';
-import { ComplianceModule } from '@/shared/modules/compliance/compliance.module';
-import { MonitoringModule } from '@/shared/modules/monitoring/monitoring/monitoring.module';
+import { ClinicalSchedulerModule } from '@/domains/clinical/clinical.scheduler.module';
+import { RemindersSchedulerModule } from '@/domains/reminders/reminders.scheduler.module';
+import { ComplianceSchedulerModule } from '@/shared/modules/compliance/compliance.scheduler.module';
+import { MonitoringSchedulerModule } from '@/shared/modules/monitoring/monitoring/monitoring.scheduler.module';
 import { SubscriptionsWorkerModule } from '@/domains/subscriptions/subscriptions.worker.module';
 import { DoctorsVerificationWorkerModule } from '@/domains/doctors/doctors-verification.worker.module';
 
@@ -44,10 +44,10 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     DocumentsWorkerModule,
     BillingWorkerModule,
     PrescriptionsWorkerModule,
-    ClinicalModule,
-    RemindersModule,
-    ComplianceModule,
-    MonitoringModule,
+    ClinicalSchedulerModule,
+    RemindersSchedulerModule,
+    ComplianceSchedulerModule,
+    MonitoringSchedulerModule,
     SubscriptionsWorkerModule,
     DoctorsVerificationWorkerModule,
   ],

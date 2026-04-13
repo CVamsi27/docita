@@ -25,8 +25,6 @@ import { ClinicsModule } from './domains/clinics/clinics.module';
 import { DoctorClinicsModule } from './domains/doctor-clinics/doctor-clinics.module';
 import { DoctorsModule } from './domains/doctors/doctors.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ScheduleModule } from '@nestjs/schedule';
-
 import { join } from 'path';
 import { WhatsAppModule } from './domains/whatsapp/whatsapp.module';
 import { InternalModule } from './shared/modules/internal/internal.module';
@@ -71,8 +69,6 @@ import { PublicModule } from './shared/modules/public/public.module';
 import { MedicalDocumentsModule } from './domains/medical-documents/medical-documents.module';
 import { InventoryModule } from './domains/inventory/inventory.module';
 import { LeaveModule } from './domains/leave/leave.module';
-
-const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
 
 @Module({
   imports: [
@@ -135,7 +131,6 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
-    ...(ENABLE_SCHEDULERS ? [ScheduleModule.forRoot()] : []),
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [

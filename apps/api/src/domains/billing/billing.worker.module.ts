@@ -28,6 +28,9 @@ import { PaymentsModule } from '@/domains/payments/payments.module';
 import { WhatsAppWorkerModule } from '@/domains/whatsapp/whatsapp.worker.module';
 import { NotificationsWorkerModule } from '@/shared/modules/messaging/notifications/notifications.worker.module';
 import { QueueWorkerModule } from '@/shared/modules/queue/queue.worker.module';
+import { BillingPaymentRetryCron } from './application/cron/billing-payment-retry.cron';
+import { BillingScheduledPaymentRemindersCron } from './application/cron/billing-scheduled-payment-reminders.cron';
+import { BillingUsageAggregationCron } from './application/cron/billing-usage-aggregation.cron';
 
 @Module({
   imports: [
@@ -60,6 +63,9 @@ import { QueueWorkerModule } from '@/shared/modules/queue/queue.worker.module';
       provide: PAYMENT_SESSION_REPOSITORY_TOKEN,
       useClass: PrismaPaymentSessionRepository,
     },
+    BillingPaymentRetryCron,
+    BillingScheduledPaymentRemindersCron,
+    BillingUsageAggregationCron,
   ],
   exports: [
     InvoicesService,

@@ -25,8 +25,6 @@ import {
 import { PrismaSubscriptionRepository } from './infrastructure/repositories';
 import { PaymentGatewayFacade } from './infrastructure/adapters/payment-gateway-facade.adapter';
 import { ClinicOperationsAdapter } from './infrastructure/adapters/clinic-operations.adapter';
-import { SubscriptionReminderScheduler } from './infrastructure/schedulers/subscription-reminder.scheduler';
-import { OverageBillingScheduler } from './infrastructure/schedulers/overage-billing.scheduler';
 import { SubscriptionsController } from './presentation/controllers/subscriptions.controller';
 import { SubscriptionsWebhookController } from './presentation/controllers/subscriptions-webhook.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -52,8 +50,6 @@ import { EmailModule } from '@/shared/modules/messaging/email/email.module';
     ProcessWebhookUseCase,
     NotifyExpiringSubscriptionsUseCase,
     SubscriptionsQueryService,
-    SubscriptionReminderScheduler,
-    OverageBillingScheduler,
     {
       provide: SUBSCRIPTION_REPOSITORY_TOKEN,
       useClass: PrismaSubscriptionRepository,

@@ -4,15 +4,12 @@ import {
   BadRequestException,
   Inject,
 } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { InvoiceStatus } from '@workspace/db';
 import { runWithTenant } from '@/common/middleware/tenant.middleware';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
 } from '@/domains/billing/core/repositories/invoice.repository';
-import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
-
 export interface PaymentRetryData {
   invoiceId: string;
   paymentSessionId: string;
@@ -47,8 +44,7 @@ export class RetryService {
     }
   }
 
-  @Cron('*/30 * * * *', { disabled: isCronDisabledInThisProcess() })
-  async processPendingRetries(): Promise<void> {
+  async runPaymentRetrySweep(): Promise<void> {
     await runWithTenant({ bypassed: true }, async () => {
       try {
         const result = await this.invoiceRepository.findAll({
