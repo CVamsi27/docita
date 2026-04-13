@@ -153,6 +153,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 1. Edit `packages/db/prisma/schema.prisma`.
 2. Run migration in `packages/db`.
+   For shared/staging/prod-style validation or deploys, prefer the safe migration scripts (`pnpm --filter @workspace/db run db:migrate:dry-run` / `db:migrate:safe`) over invoking raw deploy steps directly.
 3. Update affected Zod schemas.
 4. Update repository mappers.
 5. Regenerate Prisma client (`pnpm db:generate`).
@@ -173,6 +174,8 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
   - relevant tests
   - build checks where change impact is broad
+- For frontend UX or markup changes, run the relevant accessibility audit (`pnpm audit:app`, `pnpm audit:internal`, or `pnpm audit:landing`).
+- For `packages/db` changes that affect indexes, query plans, or migration safety, run the relevant DB guardrails from `@workspace/db` (`db:check-integrity`, `db:analyze-indexes`, `db:profile-queries`, `db:check-query-plans`, or `db:guardrail`).
 - When a pull request is already failing a GitHub Actions workflow, run the matching local command for that workflow before committing or pushing.
 - For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing.
 - Before creating a commit or pushing a branch, run the relevant local checks for the touched area and do not push until they pass.
@@ -253,11 +256,19 @@ pnpm dev
 pnpm build
 pnpm lint
 pnpm test
+pnpm audit:app
+pnpm audit:internal
+pnpm audit:landing
 pnpm check:hygiene
 pnpm verify:standard
 pnpm check:prisma-boundary
 pnpm db:generate
 pnpm db:migrate
+pnpm --filter @workspace/db run db:migrate:dry-run
+pnpm --filter @workspace/db run db:migrate:safe
+pnpm perf:baseline
+pnpm perf:budget:warn
+pnpm perf:budget:enforce
 ```
 
 ## 14) Agent Final Checklist
