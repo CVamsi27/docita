@@ -226,6 +226,7 @@ export class AuthService {
               ? AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES
               : null,
         },
+        { captureInSentry: false },
       );
 
       if (newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS) {

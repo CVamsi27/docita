@@ -11,6 +11,10 @@ interface MetricEntry {
   timestamp: number;
 }
 
+interface StructuredLogOptions {
+  captureInSentry?: boolean;
+}
+
 function toSentryContextValue(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     return Object.fromEntries(Object.entries(value));
@@ -133,6 +137,7 @@ export class ObservabilityService implements OnModuleDestroy {
     level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
     metadata?: Record<string, unknown>,
+    options: StructuredLogOptions = {},
   ): void {
     const scope = Sentry.getCurrentScope();
     const requestContext = scope?.getScopeData()?.contexts?.request as
@@ -153,7 +158,10 @@ export class ObservabilityService implements OnModuleDestroy {
       void this.persistStructuredLog(level, message, correlationId, metadata);
     }
 
-    if (level === 'warn' || level === 'error') {
+    if (
+      (level === 'warn' || level === 'error') &&
+      options.captureInSentry !== false
+    ) {
       const sentryLevel = level === 'warn' ? 'warning' : 'error';
       this.captureMessage(message, { ...logEntry }, sentryLevel);
     }
