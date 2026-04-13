@@ -109,7 +109,7 @@ export function SupportInboxPage() {
     enabled: Boolean(token && selectedThreadPhoneNumber),
   });
 
-  const markReadMutation = useMutation({
+  const { mutate: markThreadRead } = useMutation({
     mutationFn: (threadPhoneNumber: string) =>
       supportAPI.markWhatsAppThreadRead(threadPhoneNumber),
     onSuccess: async () => {
@@ -184,8 +184,8 @@ export function SupportInboxPage() {
       return;
     }
 
-    markReadMutation.mutate(selectedThreadPhoneNumber);
-  }, [markReadMutation, selectedThreadPhoneNumber]);
+    markThreadRead(selectedThreadPhoneNumber);
+  }, [markThreadRead, selectedThreadPhoneNumber]);
 
   const selectedThread = useMemo(() => {
     if (!filteredThreads.length) {
