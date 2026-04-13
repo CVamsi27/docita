@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Badge } from "@workspace/ui/components/badge";
@@ -9,7 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Plus, Stethoscope, Trash2 } from "lucide-react";
+import { Plus, Search, Stethoscope, Trash2, X } from "lucide-react";
+import { useSearchIcdCodes } from "@/hooks/api/use-medical-coding";
+import { useDebounce } from "@workspace/hooks/use-debounce";
 
 export interface DiagnosisItem {
   id: string;
@@ -17,12 +21,103 @@ export interface DiagnosisItem {
   type: "provisional" | "final" | "differential";
   status: "active" | "resolved" | "chronic";
   notes?: string;
+  icdCode?: {
+    id: string;
+    code: string;
+    description: string;
+  };
 }
 
 interface DiagnosisInputProps {
   value: DiagnosisItem[];
   onChange: (items: DiagnosisItem[]) => void;
   readOnly?: boolean;
+}
+
+function IcdSearchField({
+  value,
+  onSelect,
+  onClear,
+  readOnly,
+}: {
+  value?: DiagnosisItem["icdCode"];
+  onSelect: (code: { id: string; code: string; description: string }) => void;
+  onClear: () => void;
+  readOnly?: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: results = [] } = useSearchIcdCodes(
+    debouncedSearch.length >= 2 ? debouncedSearch : "",
+  );
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/30 text-sm">
+        <span className="font-mono font-semibold text-primary">{value.code}</span>
+        <span className="text-muted-foreground truncate flex-1">{value.description}</span>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-muted-foreground hover:text-destructive shrink-0"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (readOnly) {
+    return (
+      <div className="px-3 py-2 rounded-md border bg-muted/10 text-sm text-muted-foreground">
+        No ICD-10 code
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          placeholder="Search ICD-10 code..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          className="pl-8 bg-background text-sm h-9"
+        />
+      </div>
+      {open && results.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+          <ul className="max-h-48 overflow-y-auto py-1">
+            {results.map((icd) => (
+              <li key={icd.id}>
+                <button
+                  type="button"
+                  onMouseDown={() => {
+                    onSelect({ id: icd.id, code: icd.code, description: icd.description });
+                    setSearch("");
+                    setOpen(false);
+                  }}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+                >
+                  <span className="font-mono font-semibold text-primary shrink-0">{icd.code}</span>
+                  <span className="text-muted-foreground truncate">{icd.description}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function DiagnosisInput({
@@ -55,6 +150,12 @@ export function DiagnosisInput({
     onChange(newItems);
   };
 
+  const setIcdCode = (index: number, code: DiagnosisItem["icdCode"]) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], icdCode: code };
+    onChange(newItems);
+  };
+
   const removeItem = (index: number) => {
     const newItems = items.filter((_, i) => i !== index);
     onChange(newItems);
@@ -76,6 +177,11 @@ export function DiagnosisInput({
                 <span className="text-sm font-medium">
                   Diagnosis #{index + 1}
                 </span>
+                {item.icdCode && (
+                  <Badge variant="outline" className="font-mono text-xs text-primary">
+                    {item.icdCode.code}
+                  </Badge>
+                )}
                 {item.type === "final" && (
                   <Badge
                     variant="default"
@@ -147,7 +253,22 @@ export function DiagnosisInput({
                 </Select>
               </div>
 
-              <div className="col-span-1 md:col-span-12">
+              <div className="col-span-1 md:col-span-6">
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  ICD-10 Code
+                </label>
+                <IcdSearchField
+                  value={item.icdCode}
+                  onSelect={(code) => setIcdCode(index, code)}
+                  onClear={() => setIcdCode(index, undefined)}
+                  readOnly={readOnly}
+                />
+              </div>
+
+              <div className="col-span-1 md:col-span-6">
+                <label className="text-xs text-muted-foreground mb-1 block">
+                  Notes / Remarks
+                </label>
                 <Input
                   placeholder="Notes / Remarks"
                   value={item.notes || ""}

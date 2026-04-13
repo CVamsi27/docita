@@ -267,6 +267,28 @@ export class AppointmentsController {
     );
   }
 
+  @Post(':id/diagnoses')
+  @ApiOperation({ summary: 'Sync ICD-10 diagnoses for an appointment' })
+  async syncDiagnoses(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body()
+    body: {
+      diagnoses: Array<{
+        icdCodeId?: string;
+        notes?: string;
+        isPrimary?: boolean;
+      }>;
+    },
+  ) {
+    await this.appointmentService.syncDiagnoses(
+      id,
+      req.user!.clinicId!,
+      body.diagnoses ?? [],
+    );
+    return { success: true };
+  }
+
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel appointment' })
   async cancel(
