@@ -32,7 +32,7 @@ const changedFiles = execFileSync(
   .split(/\r?\n/)
   .filter(Boolean);
 
-const outputs =
+  const outputs =
   scope === "ci"
     ? {
         dependencies: changedFiles.some(isDependenciesChange),
@@ -40,6 +40,7 @@ const outputs =
         app: changedFiles.some(isAppChange),
         internal: changedFiles.some(isInternalChange),
         landing: changedFiles.some(isLandingChange),
+        worker: changedFiles.some(isWorkerChange),
         db: changedFiles.some(isDbChange),
       }
     : {
@@ -105,7 +106,7 @@ function isDeployApiChange(file) {
 }
 
 function isDeployWorkerChange(file) {
-  return isDeployApiChange(file) || file === "fly.worker.toml";
+  return isApiChange(file) || isWorkerSpecificChange(file);
 }
 
 function isAppChange(file) {
@@ -180,5 +181,19 @@ function isSharedApiRootChange(file) {
     file === "pnpm-workspace.yaml" ||
     file === "turbo.json" ||
     file === "fly.toml"
+  );
+}
+
+function isWorkerChange(file) {
+  return isApiChange(file) || isWorkerSpecificChange(file);
+}
+
+function isWorkerSpecificChange(file) {
+  return (
+    file === "fly.worker.toml" ||
+    file === "packages/typescript-config/nestjs.json" ||
+    file.startsWith("apps/worker/") ||
+    file === "apps/api/src/worker.ts" ||
+    file === "apps/api/src/worker.module.ts"
   );
 }

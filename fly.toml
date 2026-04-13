@@ -8,8 +8,13 @@ primary_region = 'bom'
   NODE_ENV = 'production'
   NODE_MAX_OLD_SPACE_SIZE_MB = '1536'
   PORT = '3001'
+  APP_URL = 'https://app.docita.work'
+  NEXT_PUBLIC_APP_URL = 'https://app.docita.work'
+  NEXT_PUBLIC_API_URL = 'https://api.docita.work/api/v1'
+  CORS_ORIGINS = 'https://app.docita.work,https://internal.docita.work'
   STORAGE_PROVIDER = 'r2'
   QUEUE_BACKEND = 'postgres'
+  ENABLE_SCHEDULERS = 'false'
 
 [http_service]
   internal_port = 3001

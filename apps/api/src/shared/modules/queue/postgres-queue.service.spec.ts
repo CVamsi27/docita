@@ -160,7 +160,7 @@ describe('PostgresQueueService', () => {
     it('reschedules job with exponential backoff when retries remain', async () => {
       const retryableRow = makeRow({ attemptsMade: 0, maxAttempts: 3 });
       queryRawMock.mockResolvedValueOnce([retryableRow]);
-      updateMock.mockResolvedValue(makeRow({ status: 'WAITING' }));
+      updateMock.mockResolvedValue(makeRow({ status: 'DELAYED' }));
 
       const handler = jest
         .fn<QueueJobHandler<QueueJobData>>()
@@ -174,7 +174,7 @@ describe('PostgresQueueService', () => {
       const updateCall = (updateMock.mock.lastCall?.[0] ?? {}) as {
         data: { status: string; attemptsMade: number; delayedUntil: Date };
       };
-      expect(updateCall.data.status).toBe('WAITING');
+      expect(updateCall.data.status).toBe('DELAYED');
       expect(updateCall.data.attemptsMade).toBe(1);
       expect(updateCall.data.delayedUntil).toBeInstanceOf(Date);
     });

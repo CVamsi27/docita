@@ -39,6 +39,7 @@ dist
 **/dist
 build
 **/build
+*.tsbuildinfo
 .next
 **/.next
 .open-next

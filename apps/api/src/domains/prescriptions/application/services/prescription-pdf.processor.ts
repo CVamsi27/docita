@@ -11,6 +11,10 @@ import type { PdfJobProcessorPrismaPort } from '@/shared/modules/queue/pdf-job.s
 
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 
+function areSchedulersEnabled(): boolean {
+  return process.env.ENABLE_SCHEDULERS !== 'false';
+}
+
 export type PrescriptionPdfProcessorPort = Pick<
   PrescriptionsService,
   'findOne' | 'generatePDF' | 'uploadAndPersist'
@@ -31,8 +35,9 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
 
   onModuleInit() {
     if (
-      process.env.QUEUE_BACKEND === 'postgres' &&
-      process.env.WORKER_ENTRYPOINT !== 'worker'
+      !areSchedulersEnabled() ||
+      (process.env.QUEUE_BACKEND === 'postgres' &&
+        process.env.WORKER_ENTRYPOINT !== 'worker')
     ) {
       return;
     }

@@ -2,14 +2,19 @@ app = 'docita-worker'
 primary_region = 'bom'
 
 [build]
-  dockerfile = 'apps/api/Dockerfile'
+  dockerfile = 'apps/worker/Dockerfile'
 
 [env]
   NODE_ENV = 'production'
   NODE_MAX_OLD_SPACE_SIZE_MB = '400'
   WORKER_ENTRYPOINT = 'worker'
+  APP_URL = 'https://app.docita.work'
+  NEXT_PUBLIC_APP_URL = 'https://app.docita.work'
+  NEXT_PUBLIC_API_URL = 'https://api.docita.work/api/v1'
+  CORS_ORIGINS = 'https://app.docita.work,https://internal.docita.work'
   QUEUE_BACKEND = 'postgres'
   STORAGE_PROVIDER = 'r2'
+  ENABLE_SCHEDULERS = 'true'
 
 [[vm]]
   memory = '512mb'

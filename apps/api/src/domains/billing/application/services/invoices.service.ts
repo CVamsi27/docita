@@ -15,6 +15,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   invoiceItemSchema,
   type InvoiceItem,
+  type EnqueuePdfJobResponse,
   extractPdfTheme,
 } from '@workspace/types';
 import {
@@ -373,7 +374,7 @@ export class InvoicesService {
   async generatePdfAsync(
     id: string,
     clinicId: string,
-  ): Promise<{ jobId: string; pollUrl: string }> {
+  ): Promise<EnqueuePdfJobResponse> {
     return this.pdfJobService.enqueue(id, 'invoice', clinicId);
   }
 
