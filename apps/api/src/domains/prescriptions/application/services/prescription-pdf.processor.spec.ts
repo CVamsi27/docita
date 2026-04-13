@@ -92,6 +92,7 @@ describe('PrescriptionPdfProcessor', () => {
 
   it('registers a handler for GENERATE_PRESCRIPTION_PDF on init (memory queue / worker)', () => {
     delete process.env.QUEUE_BACKEND;
+    delete process.env.ENABLE_SCHEDULERS;
     processor.onModuleInit();
 
     expect(processMock).toHaveBeenCalledWith(
@@ -103,6 +104,7 @@ describe('PrescriptionPdfProcessor', () => {
   it('registers a handler when QUEUE_BACKEND=postgres and WORKER_ENTRYPOINT=worker', () => {
     process.env.QUEUE_BACKEND = 'postgres';
     process.env.WORKER_ENTRYPOINT = 'worker';
+    delete process.env.ENABLE_SCHEDULERS;
     processor.onModuleInit();
 
     expect(processMock).toHaveBeenCalledWith(
@@ -114,9 +116,19 @@ describe('PrescriptionPdfProcessor', () => {
     delete process.env.WORKER_ENTRYPOINT;
   });
 
+  it('skips handler registration when ENABLE_SCHEDULERS=false', () => {
+    process.env.ENABLE_SCHEDULERS = 'false';
+    processor.onModuleInit();
+
+    expect(processMock).not.toHaveBeenCalled();
+
+    delete process.env.ENABLE_SCHEDULERS;
+  });
+
   it('skips handler registration on production API (postgres queue, no worker entrypoint)', () => {
     process.env.QUEUE_BACKEND = 'postgres';
     delete process.env.WORKER_ENTRYPOINT;
+    delete process.env.ENABLE_SCHEDULERS;
     processor.onModuleInit();
 
     expect(processMock).not.toHaveBeenCalled();

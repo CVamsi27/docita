@@ -3284,6 +3284,7 @@ model PdfJob {
   @@index([clinicId])
   @@index([status])
   @@index([documentId, documentType])
+  @@unique([clinicId, documentId, documentType])
 }
 
 enum QueueJobStatus {

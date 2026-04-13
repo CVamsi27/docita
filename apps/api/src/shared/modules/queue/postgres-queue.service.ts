@@ -49,6 +49,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         data: {
           name,
           data,
+          status: delayedUntil ? 'DELAYED' : 'WAITING',
           priority: options?.priority ?? 0,
           maxAttempts: options?.attempts ?? 3,
           delayedUntil,
@@ -92,7 +93,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         WHERE id = (
           SELECT id FROM "QueueJob"
           WHERE name = ${name}
-            AND status = 'WAITING'
+            AND status IN ('WAITING', 'DELAYED')
             AND ("delayedUntil" IS NULL OR "delayedUntil" <= NOW())
           ORDER BY priority DESC, "createdAt" ASC
           LIMIT 1
@@ -127,7 +128,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           this.prisma.queueJob.update({
             where: { id: row.id },
             data: {
-              status: 'WAITING',
+              status: 'DELAYED',
               attemptsMade: nextAttemptsMade,
               delayedUntil: new Date(Date.now() + backoffMs),
             },

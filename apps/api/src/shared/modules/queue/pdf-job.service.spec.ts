@@ -72,7 +72,7 @@ describe('PdfJobService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    createMock.mockResolvedValue({ id: basePdfJob.id });
+    createMock.mockResolvedValue(basePdfJob);
     service = new PdfJobService(prisma, queue);
   });
 
@@ -86,6 +86,12 @@ describe('PdfJobService', () => {
           documentType: 'invoice',
           clinicId: 'clinic-1',
         },
+        select: {
+          id: true,
+          status: true,
+          pdfUrl: true,
+          createdAt: true,
+        },
       });
       expect(enqueueMock).toHaveBeenCalledWith(
         JobNames.GENERATE_INVOICE_PDF,
@@ -94,6 +100,17 @@ describe('PdfJobService', () => {
       expect(result.jobId).toBe('pdf-job-1');
       expect(result.status).toBe('PENDING');
       expect(result.pollUrl).toContain('pdf-job-1');
+    });
+
+    it('returns an existing PdfJob without enqueuing a duplicate job', async () => {
+      createMock.mockRejectedValueOnce({ code: 'P2002' });
+      findFirstMock.mockResolvedValueOnce(basePdfJob);
+
+      const result = await service.enqueue('doc-1', 'invoice', 'clinic-1');
+
+      expect(enqueueMock).not.toHaveBeenCalled();
+      expect(result.jobId).toBe(basePdfJob.id);
+      expect(result.status).toBe('PENDING');
     });
 
     it('uses GENERATE_PRESCRIPTION_PDF job name for prescriptions', async () => {
