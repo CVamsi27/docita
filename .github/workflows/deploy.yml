@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/api/**"
+      - "apps/worker/**"
       - "packages/db/**"
       - "packages/types/**"
       - "packages/utils/**"
@@ -14,6 +15,7 @@ on:
       - "pnpm-workspace.yaml"
       - "turbo.json"
       - "fly.toml"
+      - "fly.worker.toml"
       - ".github/workflows/deploy.yml"
 
 concurrency:
@@ -29,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.detect.outputs.api }}
+      worker: ${{ steps.detect.outputs.worker }}
       db: ${{ steps.detect.outputs.db }}
     steps:
       - uses: actions/checkout@v5
