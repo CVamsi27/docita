@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import * as Sentry from '@sentry/nestjs';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { ObservabilityService } from './observability.service';
 
 const consoleIntegration = { name: 'console-logging-integration' };
@@ -31,7 +32,19 @@ describe('ObservabilityService', () => {
     getAppVersion: jest.fn(),
   };
 
-  const mockPrismaService = {} as never;
+  type MockPrismaService = PrismaService & {
+    errorLog: {
+      create: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+    };
+  };
+
+  const mockPrismaService: MockPrismaService = {
+    errorLog: {
+      create: jest
+        .fn<(...args: unknown[]) => Promise<unknown>>()
+        .mockResolvedValue(undefined),
+    },
+  } as unknown as MockPrismaService;
   let service: ObservabilityService | null = null;
 
   beforeEach(() => {
@@ -118,5 +131,40 @@ describe('ObservabilityService', () => {
         integrations: [consoleIntegration, customIntegration],
       }),
     );
+  });
+
+  it('captures structured warnings in Sentry by default', () => {
+    service = new ObservabilityService(
+      mockPrismaService,
+      mockConfigService as unknown as AppConfigService,
+    );
+
+    service.logStructured('warn', 'Failed login attempt recorded', {
+      userId: 'user-123',
+    });
+
+    expect(mockPrismaService.errorLog.create).toHaveBeenCalled();
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      'Failed login attempt recorded',
+    );
+  });
+
+  it('can skip Sentry capture for noisy structured warnings', () => {
+    service = new ObservabilityService(
+      mockPrismaService,
+      mockConfigService as unknown as AppConfigService,
+    );
+
+    service.logStructured(
+      'warn',
+      'Failed login attempt recorded',
+      {
+        userId: 'user-123',
+      },
+      { captureInSentry: false },
+    );
+
+    expect(mockPrismaService.errorLog.create).toHaveBeenCalled();
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
   });
 });
