@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   contactInquirySchema as _contactInquirySchema,
   contactResponseSchema,
+  supportInquiryListResponseSchema,
 } from '@workspace/types';
 
 export const ContactInquirySchema = z.object({
@@ -14,3 +15,7 @@ export const ContactInquirySchema = z.object({
 export class ContactInquiryDto extends createZodDto(ContactInquirySchema) {}
 
 export class ContactResponseDto extends createZodDto(contactResponseSchema) {}
+
+export class ContactInquiryListResponseDto extends createZodDto(
+  supportInquiryListResponseSchema,
+) {}

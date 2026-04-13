@@ -135,7 +135,7 @@ describe('EmailService', () => {
   });
 
   describe('sendVerificationEmail', () => {
-    it('sends a branded verification email with a signed footer', async () => {
+    it('sends a minimal verification email with a signature', async () => {
       const result = await service.sendVerificationEmail(
         'user@example.com',
         'John Doe',
@@ -146,10 +146,13 @@ describe('EmailService', () => {
       const call = emailProvider.send.mock.calls.at(-1)?.[0];
       expect(call?.subject).toBe('Verify Your Email - Docita');
       expect(call?.replyTo).toBe('support@docita.work');
+      expect(call?.html).toContain('Verified');
       expect(call?.html).toContain('Docita Care Team');
-      expect(call?.html).toContain('support@docita.work');
       expect(call?.html).toContain('verify-token-123');
-      expect(call?.text).toContain('Warm regards,');
+      expect(call?.html).not.toContain('Docita account security');
+      expect(call?.html).not.toContain('choose your path');
+      expect(call?.text).toContain('Verified');
+      expect(call?.text).toContain('Docita Care Team');
     });
 
     it('escapes the recipient name in the verification email', async () => {

@@ -4,6 +4,7 @@ import {
   IWhatsAppRepository,
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { WhatsAppMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
+import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { WhatsAppWebhookPayload } from '@workspace/types';
 
 export interface WebhookRequest {
@@ -17,6 +18,7 @@ export class HandleWebhookUseCase {
   constructor(
     @Inject(WHATSAPP_REPOSITORY_TOKEN)
     private readonly repository: IWhatsAppRepository,
+    private readonly supportInboxService: SupportWhatsAppInboxService,
   ) {}
 
   async execute(request: WebhookRequest): Promise<void> {
@@ -29,6 +31,9 @@ export class HandleWebhookUseCase {
         if (change.field !== 'messages') continue;
 
         const value = change.value;
+        if (value.messages?.length) {
+          await this.supportInboxService.recordIncomingMessages(value);
+        }
         const statuses = value.statuses || [];
 
         for (const statusObj of statuses) {
@@ -36,6 +41,11 @@ export class HandleWebhookUseCase {
           const status = statusObj.status;
 
           await this.processStatusUpdate(externalId, status, statusObj.errors);
+          await this.supportInboxService.updateMessageStatus(
+            externalId,
+            status,
+            statusObj.errors?.[0],
+          );
         }
       }
     }

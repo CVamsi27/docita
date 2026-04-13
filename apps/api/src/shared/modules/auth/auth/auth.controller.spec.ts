@@ -4,6 +4,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
@@ -15,6 +16,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { MfaService } from './mfa.service';
+import { SKIP_EMAIL_VERIFICATION_KEY } from '@/shared/modules/auth/guards/email-verified.guard';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -579,6 +581,17 @@ describe('AuthController', () => {
       expect(mockAuthService.sendVerificationEmail).toHaveBeenCalledWith(
         'user-1',
       );
+    });
+
+    it('marks resendVerification as skipping email verification guards', () => {
+      const reflector = new Reflector();
+
+      expect(
+        reflector.getAllAndOverride<boolean>(SKIP_EMAIL_VERIFICATION_KEY, [
+          controller.resendVerification,
+          AuthController,
+        ]),
+      ).toBe(true);
     });
   });
 

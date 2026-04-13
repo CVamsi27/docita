@@ -226,6 +226,7 @@ export class AuthService {
               ? AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES
               : null,
         },
+        { captureInSentry: false },
       );
 
       if (newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS) {
@@ -575,7 +576,16 @@ export class AuthService {
         },
       });
 
-      this.logger.log('Password reset token generated');
+      await this.emailService
+        .sendPasswordResetEmail(email, token)
+        .catch((err: unknown) => {
+          this.logger.warn('Failed to send password reset email', {
+            userId: user.id,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
+
+      this.logger.log('Password reset email sent', { userId: user.id });
 
       return {
         message:

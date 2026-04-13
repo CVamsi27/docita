@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useClinic } from "@/lib/clinic-context";
 
 import { useInvoice } from "@/hooks/api/use-billing";
@@ -7,6 +7,10 @@ import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { invoicesApi } from "@/features/invoices/api/invoices.api";
+
+const POLL_INTERVAL_MS = 2000;
+const POLL_TIMEOUT_MS = 60000;
 
 export const useInvoiceDetailsLogic = (
   invoiceId: string,
@@ -16,6 +20,7 @@ export const useInvoiceDetailsLogic = (
   const { clinic } = useClinic();
   const printRef = useRef<HTMLDivElement>(null);
   const hasAutoPrintedRef = useRef(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const { data: invoice, isLoading, error } = useInvoice(invoiceId);
 
@@ -35,17 +40,37 @@ export const useInvoiceDetailsLogic = (
   };
 
   const handleDownload = async () => {
-    try {
-      toast.info("Preparing PDF for download...");
+    setIsDownloading(true);
+    const toastId = toast.loading("Preparing PDF...");
 
-      setTimeout(() => {
-        toast.success("PDF Downloaded successfully");
-      }, 1500);
+    try {
+      const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
+
+      const deadline = Date.now() + POLL_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const status = await invoicesApi.getPdfStatus(invoiceId, jobId);
+
+        if (status.status === "COMPLETED" && status.pdfUrl) {
+          toast.dismiss(toastId);
+          toast.success("PDF ready");
+          window.open(status.pdfUrl, "_blank");
+          return;
+        }
+
+        if (status.status === "FAILED") {
+          throw new Error("PDF generation failed");
+        }
+      }
+
+      throw new Error("PDF generation timed out");
     } catch {
+      toast.dismiss(toastId);
       showUserFacingErrorToast(
         "We could not download this invoice. Please try again.",
       );
-
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -86,7 +111,6 @@ export const useInvoiceDetailsLogic = (
   };
 
   const numberToWords = (amount: number) => {
-
     return `${amount} Rupees Only`;
   };
 
@@ -97,6 +121,7 @@ export const useInvoiceDetailsLogic = (
     printRef,
     handlePrint,
     handleDownload,
+    isDownloading,
     handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency,

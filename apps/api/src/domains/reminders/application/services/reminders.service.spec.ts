@@ -128,6 +128,7 @@ describe('RemindersService (Facade)', () => {
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         appointmentId,
         reminderType,
+        undefined,
       );
     });
 
@@ -152,6 +153,7 @@ describe('RemindersService (Facade)', () => {
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
         'email',
+        undefined,
       );
     });
 
@@ -166,6 +168,7 @@ describe('RemindersService (Facade)', () => {
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
         'sms',
+        undefined,
       );
     });
 
@@ -180,6 +183,7 @@ describe('RemindersService (Facade)', () => {
       expect(historyService.sendManualReminder).toHaveBeenCalledWith(
         'appt-1',
         'whatsapp',
+        undefined,
       );
     });
   });

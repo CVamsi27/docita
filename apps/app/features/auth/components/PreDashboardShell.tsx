@@ -6,15 +6,13 @@ import { LogOut } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { cn } from "@workspace/ui/lib/utils";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
 // Derives the user's position in the 4-step pre-dashboard journey
-const STEP_META: Record<
-  AuthBrandingStep,
-  { index: number; label: string }
-> = {
+const STEP_META: Record<AuthBrandingStep, { index: number; label: string }> = {
   email: { index: 0, label: "Account setup" },
   login: { index: 0, label: "Account setup" },
   signup: { index: 0, label: "Account setup" },
@@ -43,6 +41,8 @@ interface PreDashboardShellProps {
   children: React.ReactNode;
   /** Tailwind max-width class for the content container. Default: "max-w-md" */
   contentMaxWidth?: string;
+  /** Align the main content vertically within the scroll area. Default: center */
+  contentAlignment?: "center" | "start";
   /** Show sign-out button in the top-right corner */
   showSignOut?: boolean;
 }
@@ -51,6 +51,7 @@ export function PreDashboardShell({
   currentStep,
   children,
   contentMaxWidth = "max-w-md",
+  contentAlignment = "center",
   showSignOut = false,
 }: PreDashboardShellProps) {
   const router = useRouter();
@@ -68,11 +69,11 @@ export function PreDashboardShell({
   }, [currentStep, router, user?.emailVerified]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="grid h-screen grid-cols-1 overflow-hidden bg-background lg:grid-cols-[40%_60%]">
       <AuthBrandingPanel currentStep={currentStep} />
 
-      {/* Right panel — independent scroll so branding stays locked */}
-      <div className="w-full lg:w-1/2 h-full overflow-y-auto relative flex flex-col">
+      {/* Right panel keeps its own scroll so the branding rail stays fixed */}
+      <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden">
         {/* Radial ambient glow */}
         <div
           className="pointer-events-none absolute inset-0 z-0"
@@ -108,8 +109,14 @@ export function PreDashboardShell({
         </div>
 
         {/* Scrollable content area — my-auto centers when short, collapses to top when tall */}
-        <div className="flex-1 flex flex-col items-center px-4 pb-10 relative z-10">
-          <div className={`my-auto w-full ${contentMaxWidth} flex flex-col gap-5 py-4`}>
+        <div className="flex-1 relative z-10 flex min-w-0 flex-col items-center px-4 pb-10">
+          <div
+            className={cn(
+              "w-full min-w-0 flex flex-col gap-5 py-4",
+              contentMaxWidth,
+              contentAlignment === "center" ? "my-auto" : "pt-4",
+            )}
+          >
             {/* Step progress indicator */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">

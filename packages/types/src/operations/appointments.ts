@@ -8,9 +8,16 @@ import { vitalSignSchema } from "../clinical/vitals";
 import { invoiceSchema } from "../billing/invoices";
 import { prescriptionSchema } from "../clinical/medications";
 import {
+  cardiologyExamDataSchema,
   clinicalInvestigationSchema,
   clinicalNoteSchema,
+  dentalChartSchema,
+  dermatologyExamDataSchema,
   generalExaminationSchema,
+  growthChartDataSchema,
+  gynecologyExamDataSchema,
+  ophthalmologyExamDataSchema,
+  psychiatryExamDataSchema,
   systemicExaminationSchema,
 } from "../clinical/clinical";
 import { cptCodeSchema, icdCodeSchema } from "../shared/medical-coding";
@@ -47,39 +54,46 @@ export const appointmentSchema = z.object({
   type: appointmentTypeSchema,
   priority: appointmentPrioritySchema.default("ROUTINE").optional(),
 
-  consultationNotes: z.string().max(10000).optional().transform(stripHtmlTags), 
+  consultationNotes: z.string().max(10000).optional().transform(stripHtmlTags),
 
   notes: z.string().max(2000).optional().transform(stripHtmlTags),
   observations: z.string().max(2000).optional().transform(stripHtmlTags),
 
-  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags), 
+  chiefComplaint: z.string().max(1000).optional().transform(stripHtmlTags),
   historyOfPresentIllness: z
     .string()
     .max(5000)
     .optional()
-    .transform(stripHtmlTags), 
-  pastMedicalHistory: z.string().max(5000).optional().transform(stripHtmlTags), 
-  reviewOfSystems: z.string().max(5000).optional().transform(stripHtmlTags), 
+    .transform(stripHtmlTags),
+  pastMedicalHistory: z.string().max(5000).optional().transform(stripHtmlTags),
+  reviewOfSystems: z.string().max(5000).optional().transform(stripHtmlTags),
 
-  generalExamination: generalExaminationSchema.optional(), 
-  systemicExamination: systemicExaminationSchema.optional(), 
+  generalExamination: generalExaminationSchema.optional(),
+  systemicExamination: systemicExaminationSchema.optional(),
 
   provisionalDiagnosis: z
     .string()
     .max(1000)
     .optional()
-    .transform(stripHtmlTags), 
+    .transform(stripHtmlTags),
   differentialDiagnosis: z
     .string()
     .max(2000)
     .optional()
-    .transform(stripHtmlTags), 
-  clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags), 
+    .transform(stripHtmlTags),
+  clinicalImpression: z.string().max(2000).optional().transform(stripHtmlTags),
 
-  investigations: z.array(clinicalInvestigationSchema).optional(), 
-  finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags), 
-  treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags), 
-  followUpPlan: z.string().max(2000).optional().transform(stripHtmlTags), 
+  investigations: z.array(clinicalInvestigationSchema).optional(),
+  finalDiagnosis: z.string().max(1000).optional().transform(stripHtmlTags),
+  treatmentPlan: z.string().max(5000).optional().transform(stripHtmlTags),
+  followUpPlan: z.string().max(2000).optional().transform(stripHtmlTags),
+  dentalChart: dentalChartSchema.optional(),
+  growthData: growthChartDataSchema.optional(),
+  ophthalmologyExam: ophthalmologyExamDataSchema.optional(),
+  cardiologyExam: cardiologyExamDataSchema.optional(),
+  gynecologyExam: gynecologyExamDataSchema.optional(),
+  dermatologyExam: dermatologyExamDataSchema.optional(),
+  psychiatryExam: psychiatryExamDataSchema.optional(),
 
   createdAt: z.string().or(z.date()).optional(),
   updatedAt: z.string().or(z.date()).optional(),
@@ -134,6 +148,13 @@ export const createAppointmentSchema = appointmentSchema.omit({
   reviewOfSystems: true,
   generalExamination: true,
   systemicExamination: true,
+  dentalChart: true,
+  growthData: true,
+  ophthalmologyExam: true,
+  cardiologyExam: true,
+  gynecologyExam: true,
+  dermatologyExam: true,
+  psychiatryExam: true,
 });
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 

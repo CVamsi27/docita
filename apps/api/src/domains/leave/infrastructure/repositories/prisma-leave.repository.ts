@@ -15,6 +15,10 @@ const staffInclude = {
 export class PrismaLeaveRepository implements ILeaveRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async createLeave(
     data: Prisma.StaffLeaveCreateInput,
   ): Promise<StaffLeaveWithRelations> {
@@ -22,13 +26,13 @@ export class PrismaLeaveRepository implements ILeaveRepository {
   }
 
   async findLeaveById(id: string): Promise<StaffLeave | null> {
-    return this.prisma.staffLeave.findUnique({ where: { id } });
+    return this.getReadClient().staffLeave.findUnique({ where: { id } });
   }
 
   async findLeaveWithStaff(
     id: string,
   ): Promise<StaffLeaveWithRelations | null> {
-    return this.prisma.staffLeave.findUnique({
+    return this.getReadClient().staffLeave.findUnique({
       where: { id },
       include: staffInclude,
     });
@@ -49,7 +53,7 @@ export class PrismaLeaveRepository implements ILeaveRepository {
     where: Prisma.StaffLeaveWhereInput,
     orderBy: Prisma.StaffLeaveOrderByWithRelationInput = { createdAt: 'desc' },
   ): Promise<StaffLeaveWithRelations[]> {
-    return this.prisma.staffLeave.findMany({
+    return this.getReadClient().staffLeave.findMany({
       where,
       orderBy,
       include: staffInclude,
@@ -62,7 +66,7 @@ export class PrismaLeaveRepository implements ILeaveRepository {
     startDate: Date,
     endDate: Date,
   ): Promise<Array<{ id: string }>> {
-    return this.prisma.doctorTimeOff.findMany({
+    return this.getReadClient().doctorTimeOff.findMany({
       where: { doctorId: staffId, clinicId, startDate, endDate },
       select: { id: true },
     });
@@ -81,7 +85,7 @@ export class PrismaLeaveRepository implements ILeaveRepository {
   }
 
   async findLeavePlanById(id: string): Promise<LeavePlan | null> {
-    return this.prisma.leavePlan.findUnique({ where: { id } });
+    return this.getReadClient().leavePlan.findUnique({ where: { id } });
   }
 
   async updateLeavePlan(
@@ -95,6 +99,6 @@ export class PrismaLeaveRepository implements ILeaveRepository {
     where: Prisma.LeavePlanWhereInput,
     orderBy: Prisma.LeavePlanOrderByWithRelationInput = { leaveType: 'asc' },
   ): Promise<LeavePlan[]> {
-    return this.prisma.leavePlan.findMany({ where, orderBy });
+    return this.getReadClient().leavePlan.findMany({ where, orderBy });
   }
 }

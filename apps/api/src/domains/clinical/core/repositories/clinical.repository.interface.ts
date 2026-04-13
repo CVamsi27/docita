@@ -7,6 +7,21 @@ import {
   Appointment,
 } from '@workspace/db';
 
+export interface LabOrderQueryParams {
+  search?: string;
+  status?: string;
+  date?: string;
+  patientId?: string;
+}
+
+export interface LabStats {
+  pending: number;
+  inProgress: number;
+  completed: number;
+  urgent: number;
+  total: number;
+}
+
 export interface ILabRepository {
   findAllTests(clinicId: string): Promise<LabTest[]>;
   findTestById(id: string): Promise<LabTest | null>;
@@ -14,26 +29,17 @@ export interface ILabRepository {
 
   findAllOrders(
     clinicId: string,
-    params?: {
-      search?: string;
-      status?: string;
-      date?: string;
-      patientId?: string;
-    },
+    params?: LabOrderQueryParams,
   ): Promise<LabOrder[]>;
   findOrderById(id: string): Promise<LabOrder | null>;
   saveOrder(order: LabOrder): Promise<LabOrder>;
   deleteOrder(id: string): Promise<void>;
-  getStats(clinicId: string): Promise<{
-    pending: number;
-    inProgress: number;
-    completed: number;
-    urgent: number;
-    total: number;
-  }>;
+  getStats(clinicId: string): Promise<LabStats>;
 }
 
 export interface IMedicalCodingRepository {
+  searchIcdCodes(query: string, limit: number): Promise<IcdCode[]>;
+  searchCptCodes(query: string, limit: number): Promise<CptCode[]>;
   getFavorites(userId: string): Promise<IcdCode[]>;
   getCommonIcdCodes(limit?: number): Promise<IcdCode[]>;
   addFavorite(

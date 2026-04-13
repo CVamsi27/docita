@@ -21,39 +21,39 @@ export class ClinicalAnalyticsFactory {
   }
 
   async getTopDiagnoses(clinicId: string, limit: number = 10) {
+    const cacheKey = `top-diagnoses-${clinicId}-${limit}`;
+    const cached =
+      await this.cacheManager.get<{ diagnosis: string; count: number }[]>(
+        cacheKey,
+      );
+    if (cached) return cached;
+
     const readClient = this.getReadClient();
 
-    const appointments = await readClient.appointment.findMany({
-      where: {
-        clinicId,
-        observations: { not: null },
-      },
-      select: {
-        observations: true,
-      },
-      take: 1000,
-    });
+    const rows = await readClient.$queryRaw<
+      Array<{ diagnosis: string; count: number }>
+    >`
+      SELECT word AS diagnosis, COUNT(*)::int AS count
+      FROM (
+        SELECT unnest(regexp_split_to_array(lower(trim(observations)), '\\s+')) AS word
+        FROM "Appointment"
+        WHERE "clinicId" = ${clinicId}
+          AND observations IS NOT NULL
+          AND observations <> ''
+      ) words
+      WHERE length(word) > 4
+      GROUP BY word
+      ORDER BY count DESC
+      LIMIT ${limit}
+    `;
 
-    const diagnosisCount = new Map<string, number>();
+    await this.cacheManager.set(
+      cacheKey,
+      rows,
+      this.configService.getAnalyticsCacheTtl() * 1000,
+    );
 
-    appointments.forEach((apt) => {
-      if (apt.observations) {
-        const words = apt.observations.toLowerCase().split(/\s+/);
-        words.forEach((word) => {
-          if (word.length > 4) {
-            const current = diagnosisCount.get(word) || 0;
-            diagnosisCount.set(word, current + 1);
-          }
-        });
-      }
-    });
-
-    const sorted = Array.from(diagnosisCount.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit)
-      .map(([diagnosis, count]) => ({ diagnosis, count }));
-
-    return sorted;
+    return rows;
   }
 
   async getDiseaseTrends(clinicId: string, startDate?: Date, endDate?: Date) {
@@ -294,32 +294,30 @@ export class ClinicalAnalyticsFactory {
     startDate?: Date,
     endDate?: Date,
   ) {
-    const where: Prisma.AppointmentWhereInput = {
-      clinicId,
-      status: AppointmentStatus.COMPLETED,
-    };
-
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
-
     const readClient = this.getReadClient();
-    const diagnosisWhere: Prisma.DiagnosisWhereInput = {
-      appointment: where,
-    };
-    const firstDiagnosisByAppointment = await readClient.diagnosis.groupBy({
-      by: ['appointmentId'],
-      where: diagnosisWhere,
-      _min: { createdAt: true },
-    });
 
-    const appointmentIds = firstDiagnosisByAppointment
-      .map((row) => row.appointmentId)
-      .filter((id): id is string => typeof id === 'string');
+    const dateFilter =
+      startDate && endDate
+        ? Prisma.sql`AND a."createdAt" >= ${startDate} AND a."createdAt" <= ${endDate}`
+        : startDate
+          ? Prisma.sql`AND a."createdAt" >= ${startDate}`
+          : endDate
+            ? Prisma.sql`AND a."createdAt" <= ${endDate}`
+            : Prisma.sql``;
 
-    if (appointmentIds.length === 0) {
+    const rows = await readClient.$queryRaw<Array<{ hours_to_code: number }>>`
+      SELECT
+        EXTRACT(EPOCH FROM (MIN(d."createdAt") - a."createdAt")) / 3600 AS hours_to_code
+      FROM "Appointment" a
+      JOIN "Diagnosis" d ON d."appointmentId" = a.id
+      WHERE a."clinicId" = ${clinicId}
+        AND a.status = 'COMPLETED'
+        ${dateFilter}
+      GROUP BY a.id, a."createdAt"
+      HAVING EXTRACT(EPOCH FROM (MIN(d."createdAt") - a."createdAt")) / 3600 >= 0
+    `;
+
+    if (rows.length === 0) {
       return {
         avgTimeToCodeHours: 0,
         distribution: this.getCodingTimelinessDistribution([]),
@@ -327,45 +325,10 @@ export class ClinicalAnalyticsFactory {
       };
     }
 
-    const appointments = await readClient.appointment.findMany({
-      where: {
-        ...where,
-        id: { in: appointmentIds },
-      },
-      select: {
-        id: true,
-        createdAt: true,
-      },
-    });
-
-    const appointmentCreatedAtById = new Map(
-      appointments.map((appointment) => [
-        appointment.id,
-        appointment.createdAt,
-      ]),
-    );
-
-    const timeToCodeData = firstDiagnosisByAppointment
-      .map((row) => {
-        const appointmentCreatedAt = appointmentCreatedAtById.get(
-          row.appointmentId,
-        );
-        const firstDiagnosisCreatedAt = row._min.createdAt;
-        if (!appointmentCreatedAt || !firstDiagnosisCreatedAt) {
-          return null;
-        }
-
-        const hoursToCode =
-          (firstDiagnosisCreatedAt.getTime() - appointmentCreatedAt.getTime()) /
-          (1000 * 60 * 60);
-        return hoursToCode >= 0 ? hoursToCode : null;
-      })
-      .filter((value): value is number => value !== null);
+    const timeToCodeData = rows.map((r) => Number(r.hours_to_code));
 
     const avgTimeToCode =
-      timeToCodeData.length > 0
-        ? timeToCodeData.reduce((sum, t) => sum + t, 0) / timeToCodeData.length
-        : 0;
+      timeToCodeData.reduce((sum, t) => sum + t, 0) / timeToCodeData.length;
 
     return {
       avgTimeToCodeHours: avgTimeToCode,

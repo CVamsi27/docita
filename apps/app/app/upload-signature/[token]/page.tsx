@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
   Card,
@@ -132,18 +131,16 @@ export default function UploadSignaturePage() {
             <Alert className="border-success/50 bg-success/10">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription>
-                Signature uploaded for <strong>{uploadResult.doctor?.name}</strong>
+                Signature uploaded for{" "}
+                <strong>{uploadResult.doctor?.name}</strong>
               </AlertDescription>
             </Alert>
 
             <div className="rounded-lg border p-4">
-              <Image
+              <img
                 src={uploadResult.signatureUrl}
                 alt="Uploaded signature"
-                width={300}
-                height={128}
                 className="mx-auto max-h-32 object-contain"
-                unoptimized
               />
             </div>
 

@@ -32,6 +32,10 @@ const TOKEN_WITH_RELATIONS_INCLUDE = {
 export class PrismaQueueRepository implements IQueueRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findTodayTokens(
     clinicId: string,
     fromDate: Date,
@@ -46,7 +50,7 @@ export class PrismaQueueRepository implements IQueueRepository {
       ...(doctorId && { doctorId }),
     } as Prisma.QueueTokenWhereInput;
 
-    return this.prisma.queueToken.findMany({
+    return this.getReadClient().queueToken.findMany({
       where,
       include: TOKEN_WITH_RELATIONS_INCLUDE,
       orderBy: [{ priority: 'desc' }, { tokenNumber: 'asc' }],
@@ -57,7 +61,7 @@ export class PrismaQueueRepository implements IQueueRepository {
     appointmentId: string,
     clinicId: string,
   ): Promise<AppointmentForCheckIn | null> {
-    return this.prisma.appointment.findFirst({
+    return this.getReadClient().appointment.findFirst({
       where: { id: appointmentId, clinicId },
       select: {
         id: true,
@@ -77,7 +81,7 @@ export class PrismaQueueRepository implements IQueueRepository {
   }
 
   async findExistingToken(appointmentId: string, clinicId: string) {
-    return this.prisma.queueToken.findFirst({
+    return this.getReadClient().queueToken.findFirst({
       where: { appointmentId, clinicId },
     });
   }
@@ -86,7 +90,7 @@ export class PrismaQueueRepository implements IQueueRepository {
     clinicId: string,
     fromDate: Date,
   ): Promise<number> {
-    const last = await this.prisma.queueToken.findFirst({
+    const last = await this.getReadClient().queueToken.findFirst({
       where: { clinicId, createdAt: { gte: fromDate } },
       orderBy: { tokenNumber: 'desc' },
     });
@@ -98,7 +102,9 @@ export class PrismaQueueRepository implements IQueueRepository {
   }
 
   async findTokenByIdAndClinic(id: string, clinicId: string) {
-    return this.prisma.queueToken.findFirst({ where: { id, clinicId } });
+    return this.getReadClient().queueToken.findFirst({
+      where: { id, clinicId },
+    });
   }
 
   async updateToken(id: string, data: Prisma.QueueTokenUpdateInput) {

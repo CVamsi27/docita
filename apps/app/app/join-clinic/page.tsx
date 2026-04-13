@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Building2, Mail, Phone, MapPin, ArrowLeft } from 'lucide-react';
 import { Input } from '@workspace/ui/components/input';
@@ -15,6 +15,7 @@ import { typedApi } from '@/lib/api-client';
 import { logger } from '@/lib/logger';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAuth } from "@/lib/auth-context";
 import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
 
 interface Clinic {
@@ -29,6 +30,7 @@ interface Clinic {
 
 export default function JoinClinicPage() {
   const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -37,6 +39,33 @@ export default function JoinClinicPage() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      setIsRedirecting(true);
+      router.replace('/login?next=/join-clinic');
+      return;
+    }
+
+    if (user?.clinicId || user?.onboardingStep === 'COMPLETED') {
+      setIsRedirecting(true);
+      router.replace('/dashboard');
+      return;
+    }
+
+    if (user?.onboardingStep === 'JOINING_CLINIC') {
+      setIsRedirecting(true);
+      router.replace('/join-request-status');
+      return;
+    }
+
+    if (user?.onboardingStep === 'CREATING_CLINIC') {
+      setIsRedirecting(true);
+      router.replace('/onboarding');
+    }
+  }, [isAuthenticated, isLoading, router, user]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -104,6 +133,7 @@ export default function JoinClinicPage() {
     <PreDashboardShell
       currentStep="join-clinic"
       contentMaxWidth="max-w-2xl"
+      contentAlignment="start"
       showSignOut
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">

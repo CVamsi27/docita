@@ -70,6 +70,11 @@ export const APP_ACCESS_TARGETS = {
   API_MEDICAL_DOCUMENTS: "api.medical-documents",
   API_WHATSAPP: "api.whatsapp",
   API_LAB_TESTS: "api.lab-tests",
+  API_PATIENTS: "api.patients",
+  API_DOCTORS: "api.doctors",
+  API_PRESCRIPTIONS: "api.prescriptions",
+  API_INVOICES: "api.invoices",
+  API_PAYMENTS: "api.payments",
 } as const;
 
 export type AppAccessTarget =
@@ -209,6 +214,30 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     read: { roles: ALL_STAFF_ROLES },
     write: { roles: ALL_STAFF_ROLES },
     feature: Feature.LAB_TESTS,
+  },
+  [APP_ACCESS_TARGETS.API_PATIENTS]: {
+    read: { roles: ALL_STAFF_ROLES },
+    write: { roles: ALL_STAFF_ROLES },
+    feature: Feature.BASIC_PATIENT_MANAGEMENT,
+  },
+  [APP_ACCESS_TARGETS.API_DOCTORS]: {
+    read: { roles: ALL_STAFF_ROLES },
+    write: { roles: ADMIN_BILLING_ROLES },
+  },
+  [APP_ACCESS_TARGETS.API_PRESCRIPTIONS]: {
+    read: { roles: ALL_STAFF_ROLES },
+    write: { roles: ALL_STAFF_ROLES },
+    feature: Feature.DIGITAL_PRESCRIPTIONS,
+  },
+  [APP_ACCESS_TARGETS.API_INVOICES]: {
+    read: { roles: ALL_STAFF_ROLES },
+    write: { roles: ALL_STAFF_ROLES },
+    feature: Feature.INVOICING,
+  },
+  [APP_ACCESS_TARGETS.API_PAYMENTS]: {
+    read: { roles: ALL_STAFF_ROLES },
+    write: { roles: ALL_STAFF_ROLES },
+    feature: Feature.PAYMENT_LINKS,
   },
 };
 

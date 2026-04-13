@@ -6,7 +6,7 @@ describe('NlmCodingService', () => {
   let service: NlmCodingService;
   let fetchMock: jest.MockedFunction<typeof fetch>;
   const originalFetch = global.fetch;
-  const jsonResponse = (payload: unknown, status = 200): Response =>
+  const jsonResponse = <T>(payload: T, status = 200): Response =>
     new Response(JSON.stringify(payload), {
       status,
       headers: { 'content-type': 'application/json' },
@@ -115,7 +115,7 @@ describe('NlmCodingService', () => {
     warnSpy.mockRestore();
   });
 
-  it('fetches ICD sync data with paginated API calls', async () => {
+  it('streams ICD sync data with paginated API calls', async () => {
     const pageSize = 500;
     const firstPageRows = Array.from({ length: pageSize }, (_, idx) => [
       `A${String(idx).padStart(2, '0')}`,
@@ -123,7 +123,7 @@ describe('NlmCodingService', () => {
     ]);
     const secondPageRows = [['A500', 'Condition 500']];
 
-    fetchMock.mockImplementation((url: unknown) => {
+    fetchMock.mockImplementation((url: Parameters<typeof fetch>[0]) => {
       const parsed = new URL(String(url));
       const terms = parsed.searchParams.get('terms');
       const offset = parsed.searchParams.get('offset');
@@ -153,11 +153,15 @@ describe('NlmCodingService', () => {
       return Promise.resolve(jsonResponse([0, [], null, []]));
     });
 
-    const results = await service.fetchAllIcdCodesForSync();
+    const batches: string[][] = [];
+    await service.streamIcdCodes(async (batch) => {
+      batches.push(batch.map((c) => c.code));
+    });
 
-    expect(results.some((code) => code.code === 'A00')).toBe(true);
-    expect(results.some((code) => code.code === 'A500')).toBe(true);
-    expect(results.every((code) => code.isCommon)).toBe(true);
+    const allCodes = batches.flat();
+    expect(allCodes).toContain('A00');
+    expect(allCodes).toContain('A500');
+    expect(batches.length).toBeGreaterThanOrEqual(2);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('terms=A'),
       expect.any(Object),
@@ -168,8 +172,48 @@ describe('NlmCodingService', () => {
     );
   });
 
-  it('fetches CPT/HCPCS sync data from API', async () => {
-    fetchMock.mockImplementation((url: unknown) => {
+  it('stops streaming and returns partial ICD results when an NLM prefix times out', async () => {
+    const warnSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
+
+    fetchMock.mockImplementation((url: Parameters<typeof fetch>[0]) => {
+      const parsed = new URL(String(url));
+      const terms = parsed.searchParams.get('terms');
+      const offset = parsed.searchParams.get('offset');
+
+      if (terms === 'A' && offset === '0') {
+        return Promise.resolve(
+          jsonResponse([1, ['A00'], null, [['A00', 'Alpha condition']]]),
+        );
+      }
+
+      if (terms === 'B') {
+        return Promise.reject(
+          new DOMException(
+            'The operation was aborted due to timeout',
+            'TimeoutError',
+          ),
+        );
+      }
+
+      return Promise.resolve(jsonResponse([0, [], null, []]));
+    });
+
+    const received: string[] = [];
+    await service.streamIcdCodes(async (batch) => {
+      batch.forEach((c) => received.push(c.code));
+    });
+
+    expect(received).toEqual(['A00']);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+  });
+
+  it('streams CPT/HCPCS sync data from API', async () => {
+    fetchMock.mockImplementation((url: Parameters<typeof fetch>[0]) => {
       const parsed = new URL(String(url));
       const terms = parsed.searchParams.get('terms');
 
@@ -182,9 +226,12 @@ describe('NlmCodingService', () => {
       return Promise.resolve(jsonResponse([0, [], null, []]));
     });
 
-    const results = await service.fetchAllCptCodesForSync();
+    const received: object[] = [];
+    await service.streamCptCodes(async (batch) => {
+      batch.forEach((c) => received.push(c));
+    });
 
-    expect(results).toEqual(
+    expect(received).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           code: 'A4550',

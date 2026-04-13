@@ -26,6 +26,9 @@ import {
   HospitalRole,
   extractPdfTheme,
 } from '@workspace/types';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
+import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
+import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 import {
   Prescription as _Prescription,
   DosageForm,
@@ -46,6 +49,13 @@ export class PrescriptionsService {
     private eventEmitter: EventEmitter2,
     private usageTracking: UsageTrackingService,
     private readonly storageProvider: StorageProvider,
+    @Inject(StoredFileUrlResolverService)
+    private readonly storedFileUrlResolver: Pick<
+      StoredFileUrlResolverService,
+      'resolveWithStoredUrl'
+    >,
+    @Inject(PdfJobService)
+    private readonly pdfJobService: PdfJobServicePort,
   ) {}
 
   async findAll(clinicId: string, params?: { search?: string; date?: string }) {
@@ -274,6 +284,14 @@ export class PrescriptionsService {
         isPrimary: d.isPrimary,
       }));
 
+    const resolvedDoctorSignature = prescription.doctor?.signatureUrl
+      ? ((
+          await this.storedFileUrlResolver.resolveWithStoredUrl(
+            prescription.doctor.signatureUrl,
+          )
+        ).url ?? undefined)
+      : undefined;
+
     return this.pdfService.generate({
       prescriptionId: prescription.id.slice(0, 8).toUpperCase(),
       clinic: {
@@ -289,7 +307,7 @@ export class PrescriptionsService {
         name: prescription.doctorName,
         qualification: prescription.doctor?.qualification || undefined,
         registrationNumber: prescription.doctorRegistrationNumber || undefined,
-        signatureUrl: prescription.doctor?.signatureUrl || undefined,
+        signatureUrl: resolvedDoctorSignature,
       },
       patient: {
         name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
@@ -331,31 +349,11 @@ export class PrescriptionsService {
       }
 
       const buffer = await this.generatePDF(id, clinicId);
-      const objectKey = `pdfs/prescriptions/${id}.pdf`;
-      const generatedAt = new Date();
-      const storedKey = await this.storageProvider.uploadBuffer(
+      const { storedKey } = await this.uploadAndPersist(
+        id,
         buffer,
-        objectKey,
-        'application/pdf',
-        {
-          metadata: {
-            asset_type: 'prescription-pdf',
-            resource_type: 'Prescription',
-            resource_id: id,
-            clinic_id: prescription.patient?.clinic?.id,
-            doctor_id: prescription.doctor?.id,
-            modified_at: generatedAt.toISOString(),
-            modified_by: prescription.doctor?.id || 'system',
-            auth_method: 'prescription-service',
-          },
-        },
+        prescription,
       );
-
-      await this.repository.update(id, {
-        pdfUrl: storedKey,
-        pdfGeneratedAt: generatedAt,
-        pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
-      });
 
       const url = await this.storageProvider.generateSignedUrl(
         storedKey,
@@ -366,5 +364,46 @@ export class PrescriptionsService {
 
     const buffer = await this.generatePDF(id, clinicId);
     return { type: 'buffer', buffer };
+  }
+
+  async generatePdfAsync(
+    id: string,
+    clinicId: string,
+  ): Promise<{ jobId: string; pollUrl: string }> {
+    return this.pdfJobService.enqueue(id, 'prescription', clinicId);
+  }
+
+  async uploadAndPersist(
+    id: string,
+    buffer: Buffer,
+    prescription: PrescriptionDetail,
+  ): Promise<{ storedKey: string; generatedAt: Date }> {
+    const objectKey = `pdfs/prescriptions/${id}.pdf`;
+    const generatedAt = new Date();
+    const storedKey = await this.storageProvider.uploadBuffer(
+      buffer,
+      objectKey,
+      'application/pdf',
+      {
+        metadata: {
+          asset_type: 'prescription-pdf',
+          resource_type: 'Prescription',
+          resource_id: id,
+          clinic_id: prescription.patient?.clinic?.id,
+          doctor_id: prescription.doctor?.id,
+          modified_at: generatedAt.toISOString(),
+          modified_by: prescription.doctor?.id || 'system',
+          auth_method: 'prescription-service',
+        },
+      },
+    );
+
+    await this.repository.update(id, {
+      pdfUrl: storedKey,
+      pdfGeneratedAt: generatedAt,
+      pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
+    });
+
+    return { storedKey, generatedAt };
   }
 }

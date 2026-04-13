@@ -2,34 +2,32 @@ import { Injectable } from '@nestjs/common';
 import {
   IQueueProvider,
   QueueJob,
+  QueueJobData,
+  QueueJobHandler,
   QueueJobOptions,
   QueueStats,
 } from './queue.interface';
 
-interface InMemoryJob<T extends Record<string, unknown>> extends QueueJob<T> {
-  handler?: (job: QueueJob<T>) => Promise<void>;
+interface InMemoryJob<T extends QueueJobData> extends QueueJob<T> {
   status: 'waiting' | 'active' | 'completed' | 'failed';
   delayedUntil?: number;
 }
 
 @Injectable()
 export class InMemoryQueueService implements IQueueProvider {
-  private jobs = new Map<string, InMemoryJob<Record<string, unknown>>>();
+  private jobs = new Map<string, InMemoryJob<QueueJobData>>();
   private jobsByName = new Map<string, Set<string>>();
-  private handlers = new Map<
-    string,
-    (job: QueueJob<Record<string, unknown>>) => Promise<void>
-  >();
+  private handlers = new Map<string, QueueJobHandler>();
   private stats = new Map<string, QueueStats>();
   private jobCounter = 0;
 
-  async enqueue<T extends Record<string, unknown>>(
+  async enqueue<T extends QueueJobData>(
     name: string,
     data: T,
     options?: QueueJobOptions,
   ): Promise<QueueJob<T>> {
     const jobId = `${name}-${++this.jobCounter}`;
-    const job: InMemoryJob<Record<string, unknown>> = {
+    const job: InMemoryJob<QueueJobData> = {
       id: jobId,
       name,
       data,
@@ -59,7 +57,7 @@ export class InMemoryQueueService implements IQueueProvider {
       await this.processJob(job);
     } else {
       setTimeout(() => {
-        void this.processJob(job).catch((_err: unknown) => {});
+        void this.processJob(job).catch(() => {});
       }, options.delay);
     }
 
@@ -73,9 +71,9 @@ export class InMemoryQueueService implements IQueueProvider {
     };
   }
 
-  async process<T extends Record<string, unknown>>(
+  async process<T extends QueueJobData>(
     name: string,
-    handler: (job: QueueJob<T>) => Promise<void>,
+    handler: QueueJobHandler<T>,
   ): Promise<void> {
     this.handlers.set(name, async (job) => {
       await handler(job as QueueJob<T>);
@@ -83,7 +81,7 @@ export class InMemoryQueueService implements IQueueProvider {
     await Promise.resolve();
   }
 
-  async getJob<T extends Record<string, unknown>>(
+  async getJob<T extends QueueJobData>(
     jobId: string,
   ): Promise<QueueJob<T> | null> {
     const job = this.jobs.get(jobId);
@@ -148,9 +146,7 @@ export class InMemoryQueueService implements IQueueProvider {
     );
   }
 
-  private async processJob(
-    job: InMemoryJob<Record<string, unknown>>,
-  ): Promise<void> {
+  private async processJob(job: InMemoryJob<QueueJobData>): Promise<void> {
     const handler = this.handlers.get(job.name);
     if (!handler) {
       return;

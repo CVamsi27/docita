@@ -4,9 +4,17 @@ import {
   ContextType,
   ExecutionContext,
   Type,
+  BadRequestException,
 } from '@nestjs/common';
-import { of } from 'rxjs';
+import { of, throwError, lastValueFrom } from 'rxjs';
+import * as Sentry from '@sentry/nestjs';
 import { RequestContextInterceptor } from './request-context.interceptor';
+
+jest.mock('@sentry/nestjs', () => ({
+  captureException: jest.fn(),
+  setTag: jest.fn(),
+  setContext: jest.fn(),
+}));
 
 type HeaderMap = Record<string, string | undefined>;
 
@@ -75,6 +83,10 @@ const createCallHandler = <T>(value: T): CallHandler<T> => ({
   handle: () => of(value),
 });
 
+const createErrorCallHandler = (error: unknown): CallHandler<never> => ({
+  handle: () => throwError(() => error),
+});
+
 const createTestContext = (headers: HeaderMap = {}) => {
   const request = createRequest(headers);
   const response = createResponse();
@@ -93,6 +105,10 @@ describe('RequestContextInterceptor', () => {
     interceptor = module.get<RequestContextInterceptor>(
       RequestContextInterceptor,
     );
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('intercept', () => {
@@ -186,16 +202,40 @@ describe('RequestContextInterceptor', () => {
       );
     });
 
-    it('should handle errors from handler', (done) => {
+    it('should handle errors from handler', async () => {
       const testError = new Error('Handler error');
-      const { executionContext } = createTestContext();
-      const callHandler = createCallHandler(testError);
+      const { executionContext } = createTestContext({
+        'x-request-id': 'correlation-id-error',
+      });
+      const callHandler = createErrorCallHandler(testError);
 
-      expect(() => {
-        interceptor.intercept(executionContext, callHandler);
-      }).not.toThrow();
+      await expect(
+        lastValueFrom(interceptor.intercept(executionContext, callHandler)),
+      ).rejects.toThrow('Handler error');
 
-      done();
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        testError,
+        expect.objectContaining({
+          tags: {
+            correlationId: 'correlation-id-error',
+          },
+        }),
+      );
+    });
+
+    it('should not capture handled 400 errors in Sentry', async () => {
+      const { executionContext } = createTestContext({
+        'x-request-id': 'correlation-id-400',
+      });
+      const callHandler = createErrorCallHandler(
+        new BadRequestException('Password must contain at least one number'),
+      );
+
+      await expect(
+        lastValueFrom(interceptor.intercept(executionContext, callHandler)),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(Sentry.captureException).not.toHaveBeenCalled();
     });
   });
 

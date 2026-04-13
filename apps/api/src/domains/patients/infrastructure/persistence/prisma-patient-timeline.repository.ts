@@ -18,11 +18,15 @@ function dateRange(
 export class PrismaPatientTimelineRepository implements IPatientTimelineRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async verifyPatientAccess(
     patientId: string,
     clinicId: string,
   ): Promise<boolean> {
-    const patient = await this.prisma.patient.findFirst({
+    const patient = await this.getReadClient().patient.findFirst({
       where: { id: patientId, clinicId },
       select: { id: true },
     });
@@ -35,7 +39,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.appointment.findMany({
+    return this.getReadClient().appointment.findMany({
       where: {
         patientId,
         clinicId,
@@ -89,7 +93,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.prescription.findMany({
+    return this.getReadClient().prescription.findMany({
       where: { patientId, ...dateRange('date', from, to) },
       include: { medications: { select: { name: true } } },
       orderBy: { date: 'desc' },
@@ -103,7 +107,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.patientMetricRecord.findMany({
+    return this.getReadClient().patientMetricRecord.findMany({
       where: { patientId, clinicId, ...dateRange('recordedAt', from, to) },
       include: {
         values: {
@@ -122,7 +126,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.labTestOrder.findMany({
+    return this.getReadClient().labTestOrder.findMany({
       where: { patientId, clinicId, ...dateRange('createdAt', from, to) },
       include: { labTest: { select: { name: true, category: true } } },
       orderBy: { createdAt: 'desc' },
@@ -136,7 +140,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.medicalDocument.findMany({
+    return this.getReadClient().medicalDocument.findMany({
       where: { patientId, clinicId, ...dateRange('createdAt', from, to) },
       select: {
         id: true,
@@ -156,7 +160,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.followUp.findMany({
+    return this.getReadClient().followUp.findMany({
       where: {
         patientId,
         clinicId,
@@ -174,7 +178,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.immunization.findMany({
+    return this.getReadClient().immunization.findMany({
       where: {
         patientId,
         ...dateRange('administeredDate', from, to),
@@ -196,7 +200,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.admission.findMany({
+    return this.getReadClient().admission.findMany({
       where: { patientId, ...dateRange('admittedAt', from, to) },
       select: {
         id: true,
@@ -217,7 +221,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     from?: Date,
     to?: Date,
   ): Promise<unknown[]> {
-    return this.prisma.medicationDose.findMany({
+    return this.getReadClient().medicationDose.findMany({
       where: {
         patientId,
         clinicId,
@@ -231,7 +235,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
   }
 
   async fetchPatientConditions(patientId: string): Promise<unknown[]> {
-    return this.prisma.patientMedicalCondition.findMany({
+    return this.getReadClient().patientMedicalCondition.findMany({
       where: { patientId, status: { in: ['ACTIVE', 'MANAGED'] } },
       select: {
         id: true,
@@ -245,7 +249,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
   }
 
   async fetchPatientAllergies(patientId: string): Promise<unknown[]> {
-    return this.prisma.patientAllergy.findMany({
+    return this.getReadClient().patientAllergy.findMany({
       where: { patientId },
       select: {
         id: true,
@@ -262,9 +266,23 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     patientId: string,
     take: number,
   ): Promise<unknown[]> {
-    return this.prisma.prescription.findMany({
+    return this.getReadClient().prescription.findMany({
       where: { patientId },
-      include: { medications: true },
+      select: {
+        id: true,
+        date: true,
+        approvalStatus: true,
+        medications: {
+          select: {
+            id: true,
+            name: true,
+            dosage: true,
+            frequency: true,
+            duration: true,
+            route: true,
+          },
+        },
+      },
       orderBy: { date: 'desc' },
       take,
     });
@@ -274,7 +292,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     patientId: string,
     clinicId: string,
   ): Promise<unknown | null> {
-    return this.prisma.vitalSign.findFirst({
+    return this.getReadClient().vitalSign.findFirst({
       where: { appointment: { patientId, clinicId } },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -294,7 +312,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
     clinicId: string,
     medicationId: string,
   ): Promise<Array<{ status: string; _count: { status: number } }>> {
-    const rows = await this.prisma.medicationDose.groupBy({
+    const rows = await this.getReadClient().medicationDose.groupBy({
       by: ['status'],
       where: { medicationId, patientId, clinicId },
       _count: { status: true },
@@ -317,7 +335,7 @@ export class PrismaPatientTimelineRepository implements IPatientTimelineReposito
       return [];
     }
 
-    const rows = await this.prisma.medicationDose.groupBy({
+    const rows = await this.getReadClient().medicationDose.groupBy({
       by: ['medicationId', 'status'],
       where: {
         medicationId: { in: medicationIds },

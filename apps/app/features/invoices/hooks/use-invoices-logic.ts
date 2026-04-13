@@ -4,9 +4,14 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 import { toast } from "sonner";
 import { Invoice, ListInvoicesContractQuery } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { invoicesApi } from "@/features/invoices/api/invoices.api";
+
+const POLL_INTERVAL_MS = 2000;
+const POLL_TIMEOUT_MS = 60000;
 
 export const useInvoicesLogic = () => {
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] =
+    useState<ListInvoicesContractQuery["status"] | "all">("all");
   const [sortBy, setSortBy] = useState("date-desc");
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -18,10 +23,7 @@ export const useInvoicesLogic = () => {
     isLoading: loading,
     refetch,
   } = useInvoices({
-    status:
-      filter !== "all"
-        ? (filter as ListInvoicesContractQuery["status"])
-        : undefined,
+    status: filter !== "all" ? filter : undefined,
     search: debouncedSearch || undefined,
   });
 
@@ -56,17 +58,33 @@ export const useInvoicesLogic = () => {
   }, [invoices, sortBy]);
 
   const handleDownloadPdf = async (invoiceId: string) => {
+    const toastId = toast.loading("Preparing PDF...");
     try {
+      const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
 
-      toast.success("Downloading PDF...");
+      const deadline = Date.now() + POLL_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const status = await invoicesApi.getPdfStatus(invoiceId, jobId);
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      window.open(`/api/invoices/${invoiceId}/pdf`, "_blank");
+        if (status.status === "COMPLETED" && status.pdfUrl) {
+          toast.dismiss(toastId);
+          toast.success("PDF ready");
+          window.open(status.pdfUrl, "_blank");
+          return;
+        }
+
+        if (status.status === "FAILED") {
+          throw new Error("PDF generation failed");
+        }
+      }
+
+      throw new Error("PDF generation timed out");
     } catch {
+      toast.dismiss(toastId);
       showUserFacingErrorToast(
         "We could not download this invoice. Please try again.",
       );
-
     }
   };
 

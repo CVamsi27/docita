@@ -20,8 +20,10 @@ describe('ClinicalAnalyticsFactory', () => {
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
   const mockDirectAppointmentFindMany =
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const mockQueryRaw = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 
   const mockReadClientValue = {
+    $queryRaw: mockQueryRaw,
     appointment: {
       count: mockAppointmentCount,
       findMany: mockAppointmentFindMany,
@@ -107,19 +109,9 @@ describe('ClinicalAnalyticsFactory', () => {
   });
 
   it('calculates coding timeliness using grouped first-diagnosis timestamps', async () => {
-    mockDiagnosisGroupBy.mockResolvedValue([
-      {
-        appointmentId: 'apt-1',
-        _min: { createdAt: new Date('2025-03-01T12:00:00.000Z') },
-      },
-      {
-        appointmentId: 'apt-2',
-        _min: { createdAt: new Date('2025-03-02T18:00:00.000Z') },
-      },
-    ]);
-    mockAppointmentFindMany.mockResolvedValue([
-      { id: 'apt-1', createdAt: new Date('2025-03-01T00:00:00.000Z') },
-      { id: 'apt-2', createdAt: new Date('2025-03-01T18:00:00.000Z') },
+    mockQueryRaw.mockResolvedValue([
+      { hours_to_code: 12 },
+      { hours_to_code: 24 },
     ]);
 
     const result = await factory.getCodingTimeliness('clinic-1');
@@ -134,17 +126,14 @@ describe('ClinicalAnalyticsFactory', () => {
       },
       totalCoded: 2,
     });
-    expect(mockDiagnosisGroupBy).toHaveBeenCalledTimes(1);
-    expect(mockAppointmentFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        select: { id: true, createdAt: true },
-      }),
-    );
+    expect(mockQueryRaw).toHaveBeenCalledTimes(1);
+    expect(mockDiagnosisGroupBy).not.toHaveBeenCalled();
+    expect(mockAppointmentFindMany).not.toHaveBeenCalled();
     expect(mockDirectAppointmentFindMany).not.toHaveBeenCalled();
   });
 
   it('returns empty coding timeliness metrics when no diagnoses exist', async () => {
-    mockDiagnosisGroupBy.mockResolvedValue([]);
+    mockQueryRaw.mockResolvedValue([]);
 
     const result = await factory.getCodingTimeliness('clinic-1');
 
@@ -158,6 +147,8 @@ describe('ClinicalAnalyticsFactory', () => {
       },
       totalCoded: 0,
     });
+    expect(mockQueryRaw).toHaveBeenCalledTimes(1);
+    expect(mockDiagnosisGroupBy).not.toHaveBeenCalled();
     expect(mockAppointmentFindMany).not.toHaveBeenCalled();
     expect(mockDirectAppointmentFindMany).not.toHaveBeenCalled();
   });

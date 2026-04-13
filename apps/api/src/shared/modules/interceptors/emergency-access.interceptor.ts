@@ -56,7 +56,7 @@ export class BreakTheGlassInterceptor implements NestInterceptor {
         actionType: 'EMERGENCY_ACCESS_GRANTED',
         resourceType: 'SYSTEM',
         resourceId: 'BREAK_THE_GLASS',
-        ipAddress: ip || request.connection.remoteAddress,
+        ipAddress: ip || request.socket?.remoteAddress,
         metadata: {
           method,
           url,

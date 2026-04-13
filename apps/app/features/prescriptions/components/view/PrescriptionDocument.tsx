@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
 import { format } from "date-fns";
-import Image from "next/image";
 import type { Medication, Patient } from "@workspace/types";
 
 interface DoctorInfo {
@@ -55,11 +54,9 @@ export function PrescriptionDocument({
           <div className="flex items-start gap-4 max-w-[70%]">
             {clinicInfo?.logo ? (
               <div className="items-start pt-1">
-                <Image
+                <img
                   src={clinicInfo.logo}
                   alt="Clinic Logo"
-                  width={80}
-                  height={80}
                   className="h-20 w-20 object-contain rounded-xl"
                 />
               </div>
@@ -199,11 +196,9 @@ export function PrescriptionDocument({
             <div className="text-center min-w-[200px]">
               {doctorInfo?.signatureUrl ? (
                 <div className="mb-2">
-                  <Image
+                  <img
                     src={doctorInfo.signatureUrl}
                     alt="Doctor's Signature"
-                    width={150}
-                    height={60}
                     className="h-[60px] w-auto mx-auto object-contain"
                   />
                 </div>

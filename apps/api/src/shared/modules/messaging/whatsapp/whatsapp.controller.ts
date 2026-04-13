@@ -45,7 +45,6 @@ import {
   createMedicineReminderRequestSchema,
   createWhatsAppBroadcastRequestSchema,
   WhatsAppWebhookPayload,
-  WhatsAppWebhookVerifyQuery,
 } from '@workspace/types';
 
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
@@ -56,6 +55,7 @@ import {
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { PrismaService } from '@/prisma/prisma.service';
+import { readWhatsAppWebhookVerificationQuery } from '@/shared/modules/messaging/whatsapp/whatsapp-webhook-query.util';
 
 @Controller('whatsapp')
 @UseGuards(TierGuard)
@@ -255,10 +255,12 @@ export class WhatsappController {
 
   @Public()
   @Get('webhook')
-  handleWebhookVerification(@Query() query: WhatsAppWebhookVerifyQuery) {
-    const mode = query['hub.mode'];
-    const token = query['hub.verify_token'];
-    const challenge = query['hub.challenge'];
+  handleWebhookVerification(@Req() req: Request) {
+    const {
+      mode,
+      verifyToken: token,
+      challenge,
+    } = readWhatsAppWebhookVerificationQuery(req.query);
     this.logger.log(`Webhook verification request: mode=${mode}`);
 
     if (

@@ -97,6 +97,33 @@ describe("VerifyEmailPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("still advances when refreshing the user after verification fails", async () => {
+    mocks.refreshUser.mockRejectedValueOnce(new Error("refresh failed"));
+
+    render(<VerifyEmailPage />);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining("auth/verify-email"),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ token: "verify-token" }),
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(mocks.router.replace).toHaveBeenCalledWith("/choose-path");
+    });
+
+    expect(
+      screen.getByText("Your account is ready. Taking you to the next step..."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/verification failed/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("does not call verification when the token is missing", () => {
     mocks.searchParams = new URLSearchParams();
 

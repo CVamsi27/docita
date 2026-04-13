@@ -3,6 +3,7 @@ import {
   Appointment as PrismaAppointment,
   AppointmentStatus as PrismaAppointmentStatus,
 } from '@workspace/db';
+import { dentalChartSchema } from '@workspace/types';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import {
   AppointmentStatus,
@@ -46,6 +47,7 @@ export class AppointmentMapper {
       startTime: raw.startTime,
       endTime: raw.endTime,
       status: new AppointmentStatus(PRISMA_TO_DOMAIN_STATUS[raw.status]),
+      reason: raw.notes || undefined,
       notes: raw.notes || undefined,
       consultationNotes: raw.consultationNotes || undefined,
       observations: raw.observations || undefined,
@@ -55,6 +57,9 @@ export class AppointmentMapper {
       differentialDiagnosis: raw.differentialDiagnosis || undefined,
       finalDiagnosis: raw.finalDiagnosis || undefined,
       followUpPlan: raw.followUpPlan || undefined,
+      dentalChart: raw.dentalChart
+        ? dentalChartSchema.parse(raw.dentalChart)
+        : undefined,
       type: raw.type || undefined,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
@@ -79,6 +84,7 @@ export class AppointmentMapper {
     const plain = AppointmentMapper.toDomain(raw).toPlain();
     return {
       ...plain,
+      dentalChart: plain.dentalChart,
       patient: raw.patient
         ? {
             id: raw.patient.id,
@@ -109,7 +115,7 @@ export class AppointmentMapper {
       startTime: plain.startTime,
       endTime: plain.endTime,
       status: DOMAIN_TO_PRISMA_STATUS[plain.status],
-      notes: plain.notes || null,
+      notes: plain.notes || plain.reason || null,
       consultationNotes: plain.consultationNotes || null,
       observations: plain.observations || null,
       chiefComplaint: plain.chiefComplaint || null,
@@ -122,6 +128,9 @@ export class AppointmentMapper {
       createdAt: plain.createdAt,
       updatedAt: plain.updatedAt,
       version: plain.version,
+      ...(plain.dentalChart !== undefined
+        ? { dentalChart: plain.dentalChart }
+        : {}),
     };
   }
 }

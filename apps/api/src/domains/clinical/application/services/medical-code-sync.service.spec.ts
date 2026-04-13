@@ -113,16 +113,14 @@ describe('MedicalCodeSyncService', () => {
 
   const searchIcdCodesMock = jest.fn<CodeCatalogProvider['searchIcdCodes']>();
   const searchCptCodesMock = jest.fn<CodeCatalogProvider['searchCptCodes']>();
-  const fetchAllIcdCodesForSyncMock =
-    jest.fn<CodeCatalogProvider['fetchAllIcdCodesForSync']>();
-  const fetchAllCptCodesForSyncMock =
-    jest.fn<CodeCatalogProvider['fetchAllCptCodesForSync']>();
+  const streamIcdCodesMock = jest.fn<CodeCatalogProvider['streamIcdCodes']>();
+  const streamCptCodesMock = jest.fn<CodeCatalogProvider['streamCptCodes']>();
 
   const codeCatalogProvider: CodeCatalogProvider = {
     searchIcdCodes: searchIcdCodesMock,
     searchCptCodes: searchCptCodesMock,
-    fetchAllIcdCodesForSync: fetchAllIcdCodesForSyncMock,
-    fetchAllCptCodesForSync: fetchAllCptCodesForSyncMock,
+    streamIcdCodes: streamIcdCodesMock,
+    streamCptCodes: streamCptCodesMock,
   };
 
   const buildIcdCode = (
@@ -166,19 +164,21 @@ describe('MedicalCodeSyncService', () => {
   });
 
   it('syncs unique ICD codes into the database as common codes', async () => {
-    fetchAllIcdCodesForSyncMock.mockResolvedValue([
-      buildIcdCode(
-        'E11.9',
-        'Type 2 diabetes mellitus without complications',
-        'Endocrine',
-      ),
-      buildIcdCode('I10', 'Essential hypertension', 'Circulatory'),
-      buildIcdCode(
-        'E11.9',
-        'Type 2 diabetes mellitus without complications',
-        'Endocrine',
-      ),
-    ]);
+    streamIcdCodesMock.mockImplementation(async (onBatch) => {
+      await onBatch([
+        buildIcdCode(
+          'E11.9',
+          'Type 2 diabetes mellitus without complications',
+          'Endocrine',
+        ),
+        buildIcdCode('I10', 'Essential hypertension', 'Circulatory'),
+        buildIcdCode(
+          'E11.9',
+          'Type 2 diabetes mellitus without complications',
+          'Endocrine',
+        ),
+      ]);
+    });
 
     icdFindManyMock.mockResolvedValue([
       {
@@ -227,19 +227,21 @@ describe('MedicalCodeSyncService', () => {
   });
 
   it('syncs unique CPT codes into the database as common codes', async () => {
-    fetchAllCptCodesForSyncMock.mockResolvedValue([
-      buildCptCode(
-        '99213',
-        'Office or other outpatient visit',
-        'Evaluation and Management',
-      ),
-      buildCptCode('93000', 'Electrocardiogram', 'Medicine'),
-      buildCptCode(
-        '99213',
-        'Office or other outpatient visit',
-        'Evaluation and Management',
-      ),
-    ]);
+    streamCptCodesMock.mockImplementation(async (onBatch) => {
+      await onBatch([
+        buildCptCode(
+          '99213',
+          'Office or other outpatient visit',
+          'Evaluation and Management',
+        ),
+        buildCptCode('93000', 'Electrocardiogram', 'Medicine'),
+        buildCptCode(
+          '99213',
+          'Office or other outpatient visit',
+          'Evaluation and Management',
+        ),
+      ]);
+    });
 
     cptFindManyMock.mockResolvedValue([
       {
@@ -279,12 +281,16 @@ describe('MedicalCodeSyncService', () => {
   });
 
   it('syncs both ICD and CPT code sets together', async () => {
-    fetchAllIcdCodesForSyncMock.mockResolvedValue([
-      buildIcdCode('J02.9', 'Acute pharyngitis, unspecified', 'Respiratory'),
-    ]);
-    fetchAllCptCodesForSyncMock.mockResolvedValue([
-      buildCptCode('87880', 'Infectious agent detection', 'Laboratory'),
-    ]);
+    streamIcdCodesMock.mockImplementation(async (onBatch) => {
+      await onBatch([
+        buildIcdCode('J02.9', 'Acute pharyngitis, unspecified', 'Respiratory'),
+      ]);
+    });
+    streamCptCodesMock.mockImplementation(async (onBatch) => {
+      await onBatch([
+        buildCptCode('87880', 'Infectious agent detection', 'Laboratory'),
+      ]);
+    });
     icdFindManyMock.mockResolvedValue([]);
     cptFindManyMock.mockResolvedValue([]);
     icdCreateManyMock.mockResolvedValue({ count: 1 });

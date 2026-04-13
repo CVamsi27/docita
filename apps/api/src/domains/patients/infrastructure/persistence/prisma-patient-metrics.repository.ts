@@ -11,7 +11,6 @@ import {
   IPatientMetricsRepository,
   MetricCategoryRow,
   MetricDefinitionExistsRow,
-  MetricDefinitionLookupRow,
   MetricDefinitionRow,
   MetricRecordRow,
   MetricSelectionRow,
@@ -83,8 +82,12 @@ function toMetricRecordSource(
 export class PrismaPatientMetricsRepository implements IPatientMetricsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findCategories(clinicId: string, patientId: string) {
-    const categories = await this.prisma.metricCategory.findMany({
+    const categories = await this.getReadClient().metricCategory.findMany({
       where: { clinicId, isActive: true },
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
       include: {
@@ -108,9 +111,10 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
   }
 
   async findSelections(clinicId: string, patientId: string) {
-    const selections = await this.prisma.patientMetricSelection.findMany({
-      where: { clinicId, patientId },
-    });
+    const selections =
+      await this.getReadClient().patientMetricSelection.findMany({
+        where: { clinicId, patientId },
+      });
 
     return selections as MetricSelectionRow[];
   }
@@ -124,17 +128,17 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
         description: dto.description?.trim(),
         order: dto.order ?? 0,
       },
-    }) as Promise<Record<string, unknown>>;
+    });
   }
 
   findActiveCategory(clinicId: string, categoryId: string) {
-    return this.prisma.metricCategory.findFirst({
+    return this.getReadClient().metricCategory.findFirst({
       where: {
         id: categoryId,
         clinicId,
         isActive: true,
       },
-    }) as Promise<Record<string, unknown> | null>;
+    });
   }
 
   createDefinition(
@@ -174,7 +178,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
           orderBy: [{ order: 'asc' }, { label: 'asc' }],
         },
       },
-    }) as Promise<Record<string, unknown>>;
+    });
   }
 
   async findDefinitionsForSelections(
@@ -182,7 +186,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
     patientId: string,
     definitionIds: string[],
   ) {
-    const definitions = await this.prisma.metricDefinition.findMany({
+    const definitions = await this.getReadClient().metricDefinition.findMany({
       where: {
         id: { in: definitionIds },
         clinicId,
@@ -223,7 +227,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
   }
 
   async findDefinitions(clinicId: string, patientId: string) {
-    const definitions = await this.prisma.metricDefinition.findMany({
+    const definitions = await this.getReadClient().metricDefinition.findMany({
       where: {
         clinicId,
         isActive: true,
@@ -253,7 +257,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
     patientId: string,
     definitionId: string,
   ) {
-    const definition = await this.prisma.metricDefinition.findFirst({
+    const definition = await this.getReadClient().metricDefinition.findFirst({
       where: {
         id: definitionId,
         clinicId,
@@ -262,7 +266,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
       },
     });
 
-    return definition as MetricDefinitionLookupRow;
+    return definition;
   }
 
   createMetricRecord(
@@ -311,7 +315,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
           },
         },
       },
-    }) as Promise<Record<string, unknown>>;
+    });
   }
 
   async findMetricHistory(
@@ -319,7 +323,7 @@ export class PrismaPatientMetricsRepository implements IPatientMetricsRepository
     patientId: string,
     query: MetricHistoryQueryDto,
   ) {
-    const records = await this.prisma.patientMetricRecord.findMany({
+    const records = await this.getReadClient().patientMetricRecord.findMany({
       where: {
         clinicId,
         patientId,

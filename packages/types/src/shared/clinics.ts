@@ -49,6 +49,7 @@ export const clinicSchema = z.object({
   domain: z.string().nullable().optional(),
   referralCreditsMonths: z.number(),
   slaSignatureUrl: z.string().nullable().optional(),
+  slaSignatureStoredUrl: z.string().nullable().optional(),
   slaSignatureAcceptedAt: z.date().or(z.string()).nullable().optional(),
 });
 

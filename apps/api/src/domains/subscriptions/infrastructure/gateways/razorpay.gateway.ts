@@ -109,7 +109,12 @@ export class RazorpayGateway implements IPaymentGateway {
       .update(text)
       .digest('hex');
 
-    const verified = generated_signature === request.razorpaySignature;
+    const verified =
+      generated_signature.length === request.razorpaySignature.length &&
+      crypto.timingSafeEqual(
+        Buffer.from(generated_signature),
+        Buffer.from(request.razorpaySignature),
+      );
 
     if (!verified) {
       return { verified: false, paymentId: '', orderId: '', amountCents: 0 };

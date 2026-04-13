@@ -1,18 +1,14 @@
 import {
-  Activity,
-  Baby,
   Bed,
   Bell,
   Boxes,
   CalendarDays,
-  ClipboardList,
-  Eye,
   FileInput,
   Files,
   FlaskConical,
-  Heart,
   LayoutDashboard,
   type LucideIcon,
+  MessageCircle,
   Pill,
   Receipt,
   Settings2,
@@ -101,17 +97,17 @@ export const navItems: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_ANALYTICS,
   },
   {
-    href: "/coding-queue",
-    icon: ClipboardList,
-    label: "Coding Queue",
-    feature: Feature.MEDICAL_CODING,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE,
-  },
-  {
     href: "/import",
     icon: FileInput,
     label: "Import Data",
     accessTarget: APP_ACCESS_TARGETS.PAGE_IMPORT,
+  },
+  {
+    href: "/whatsapp",
+    icon: MessageCircle,
+    label: "WhatsApp Inbox",
+    feature: Feature.WHATSAPP_MESSAGING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
   },
 ];
 
@@ -134,19 +130,10 @@ export const mobileOnlyNavItems: NavItem[] = [
 
 export const SPECIALTY_ICONS: Record<string, LucideIcon> = {
   Smile: SmilePlus,
-  Baby: Baby,
-  Heart: Heart,
-  Eye: Eye,
-  Brain: Activity,
 };
 
 export const SPECIALTY_URLS: Record<string, string> = {
   "dental-chart": "/specialty/dental-charts",
-  "growth-chart": "/specialty/growth-charts",
-  "vision-exam": "/specialty/vision-tests",
-  "ecg-monitoring": "/specialty/ecg-monitoring",
-  "prenatal-care": "/specialty/prenatal-care",
-  "mental-health": "/specialty/mental-health",
 };
 
 export const IPD_NAV_ITEM: NavItem = {

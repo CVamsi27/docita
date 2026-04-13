@@ -26,6 +26,8 @@ import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
+import { Button } from "@workspace/ui/components/button";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { canAccessTarget } from "@/lib/access-policy";
 import { getAccessTargetForPath } from "@/lib/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -179,6 +181,7 @@ export default function ProtectedLayout({
 }) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
@@ -194,6 +197,11 @@ export default function ProtectedLayout({
     if (!user) {
       setRedirectMessage("Your session is missing. Redirecting to login...");
       router.replace("/login");
+      return;
+    }
+    if (user.emailVerified === false) {
+      setRedirectMessage("Please verify your email before continuing...");
+      router.replace("/verify-email-sent");
       return;
     }
     if (!user.clinicId) {
@@ -277,6 +285,7 @@ export default function ProtectedLayout({
                     collapsedSize={4}
                     onCollapse={() => setIsCollapsed(true)}
                     onExpand={() => setIsCollapsed(false)}
+                    style={{ transition: isDragging ? "none" : "flex 180ms ease-out" }}
                   >
                     <Sidebar
                       isCollapsed={isCollapsed}
@@ -292,7 +301,30 @@ export default function ProtectedLayout({
                       onMobileOpenChange={setMobileOpen}
                     />
                   </ResizablePanel>
-                  <ResizableHandle withHandle className="hidden md:flex" />
+                  <ResizableHandle className="hidden md:flex overflow-visible" onDragging={setIsDragging}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-7 left-1/2 z-30 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border/70 bg-background text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const next = !isCollapsed;
+                        setIsCollapsed(next);
+                        if (next) {
+                          sidebarPanelRef.current?.collapse();
+                        } else {
+                          sidebarPanelRef.current?.expand();
+                        }
+                      }}
+                      aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    >
+                      {isCollapsed ? (
+                        <PanelLeftOpen className="h-3.5 w-3.5 shrink-0" />
+                      ) : (
+                        <PanelLeftClose className="h-3.5 w-3.5 shrink-0" />
+                      )}
+                    </Button>
+                  </ResizableHandle>
                   <ResizablePanel defaultSize={82}>
                     <div className="flex h-full flex-col overflow-hidden">
                       <MobileHeader onMenuClick={() => setMobileOpen(true)} />

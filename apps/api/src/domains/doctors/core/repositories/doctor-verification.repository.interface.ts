@@ -1,4 +1,5 @@
 import { DoctorVerificationStatus } from '@workspace/db';
+import { JsonValue } from '@workspace/types';
 
 export type DoctorForVerification = {
   id: string;
@@ -21,7 +22,7 @@ export type DoctorVerificationRecord = {
   verificationSource: string | null;
   verificationRef: string | null;
   verificationReason: string | null;
-  verificationData: unknown;
+  verificationData: JsonValue | null;
   verificationCheckedAt: Date | null;
   updatedAt: Date;
 };
@@ -48,7 +49,7 @@ export interface IDoctorVerificationRepository {
       verificationSource?: string;
       verificationRef?: string | null;
       verificationReason?: string | null;
-      verificationData?: unknown;
+      verificationData?: JsonValue;
       verificationCheckedAt: Date;
     },
   ): Promise<void>;

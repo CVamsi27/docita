@@ -9,6 +9,7 @@ import {
   StorageProvider,
   StorageFile,
 } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { SignaturePurpose } from '@workspace/db';
 import {
   ISignatureUploadRepository,
@@ -21,7 +22,57 @@ export class SignatureUploadService {
     @Inject(SIGNATURE_UPLOAD_REPOSITORY_TOKEN)
     private readonly repository: ISignatureUploadRepository,
     private readonly storageProvider: StorageProvider,
+    private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
+
+  private async resolveDoctorSignatureUrl<
+    T extends { signatureUrl?: string | null },
+  >(
+    doctor: T | null | undefined,
+  ): Promise<
+    | (T & { signatureUrl?: string | null; signatureStoredUrl?: string | null })
+    | null
+  > {
+    if (!doctor) {
+      return null;
+    }
+
+    const resolved = await this.storedFileUrlResolver.resolveWithStoredUrl(
+      doctor.signatureUrl ?? null,
+    );
+
+    return {
+      ...doctor,
+      signatureUrl: resolved.url ?? undefined,
+      signatureStoredUrl: resolved.storedUrl ?? undefined,
+    };
+  }
+
+  private async resolveClinicSignatureUrl<
+    T extends { slaSignatureUrl?: string | null },
+  >(
+    clinic: T | null | undefined,
+  ): Promise<
+    | (T & {
+        slaSignatureUrl?: string | null;
+        slaSignatureStoredUrl?: string | null;
+      })
+    | null
+  > {
+    if (!clinic) {
+      return null;
+    }
+
+    const resolved = await this.storedFileUrlResolver.resolveWithStoredUrl(
+      clinic.slaSignatureUrl ?? null,
+    );
+
+    return {
+      ...clinic,
+      slaSignatureUrl: resolved.url ?? undefined,
+      slaSignatureStoredUrl: resolved.storedUrl ?? undefined,
+    };
+  }
 
   async generateUploadToken(
     userId: string,
@@ -110,8 +161,8 @@ export class SignatureUploadService {
     return {
       tokenId: uploadToken.id,
       purpose: uploadToken.purpose,
-      doctor: uploadToken.doctor,
-      clinic: uploadToken.clinic,
+      doctor: await this.resolveDoctorSignatureUrl(uploadToken.doctor),
+      clinic: await this.resolveClinicSignatureUrl(uploadToken.clinic),
     };
   }
 
@@ -140,6 +191,8 @@ export class SignatureUploadService {
         auth_method: 'signed-upload-token',
       },
     });
+    const resolvedFileUrl =
+      await this.storedFileUrlResolver.resolveWithStoredUrl(fileUrl);
 
     if (
       validation.purpose === SignaturePurpose.SLA_ACCEPTANCE &&
@@ -153,7 +206,8 @@ export class SignatureUploadService {
 
       return {
         success: true,
-        signatureUrl: fileUrl,
+        signatureUrl: resolvedFileUrl.url ?? fileUrl,
+        signatureStoredUrl: resolvedFileUrl.storedUrl ?? fileUrl,
         purpose: SignaturePurpose.SLA_ACCEPTANCE,
         clinic: {
           id: validation.clinic.id,
@@ -174,7 +228,8 @@ export class SignatureUploadService {
 
     return {
       success: true,
-      signatureUrl: fileUrl,
+      signatureUrl: resolvedFileUrl.url ?? fileUrl,
+      signatureStoredUrl: resolvedFileUrl.storedUrl ?? fileUrl,
       purpose: SignaturePurpose.DOCTOR_PRESCRIPTION,
       doctor: {
         id: validation.doctor.id,

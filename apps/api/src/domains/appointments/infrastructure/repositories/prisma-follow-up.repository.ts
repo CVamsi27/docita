@@ -10,6 +10,10 @@ import {
 export class PrismaFollowUpRepository implements IFollowUpRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async create(data: Prisma.FollowUpUncheckedCreateInput) {
     return this.prisma.followUp.create({ data });
   }
@@ -19,7 +23,7 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
     from: Date,
     to: Date,
   ): Promise<FollowUpWithRelations[]> {
-    return this.prisma.followUp.findMany({
+    return this.getReadClient().followUp.findMany({
       where: {
         clinicId,
         status: { in: ['PENDING', 'REMINDER_SENT'] },
@@ -42,14 +46,14 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
   }
 
   async findForAppointment(appointmentId: string, clinicId: string) {
-    return this.prisma.followUp.findMany({
+    return this.getReadClient().followUp.findMany({
       where: { appointmentId, clinicId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findByIdAndClinic(id: string, clinicId: string) {
-    return this.prisma.followUp.findFirst({ where: { id, clinicId } });
+    return this.getReadClient().followUp.findFirst({ where: { id, clinicId } });
   }
 
   async update(id: string, data: Prisma.FollowUpUpdateInput) {

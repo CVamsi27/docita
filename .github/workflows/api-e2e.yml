@@ -4,29 +4,32 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/api/**'
-      - 'packages/db/**'
-      - 'packages/types/**'
-      - 'packages/utils/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'turbo.json'
+      - "apps/api/**"
+      - "packages/db/**"
+      - "packages/types/**"
+      - "packages/utils/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
   pull_request:
     paths:
-      - 'apps/api/**'
-      - 'packages/db/**'
-      - 'packages/types/**'
-      - 'packages/utils/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'turbo.json'
+      - "apps/api/**"
+      - "packages/db/**"
+      - "packages/types/**"
+      - "packages/utils/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   api-e2e-tests:
@@ -56,13 +59,13 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - uses: actions/checkout@v5
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
