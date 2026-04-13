@@ -11,7 +11,7 @@ primary_region = 'bom'
 
 [env]
   NODE_ENV = 'production'
-  NODE_MAX_OLD_SPACE_SIZE_MB = '768'
+  NODE_MAX_OLD_SPACE_SIZE_MB = '1536'
   PORT = '3001'
   STORAGE_PROVIDER = 'r2'
 
@@ -24,8 +24,8 @@ primary_region = 'bom'
 
   [http_service.concurrency]
     type = 'requests'
-    hard_limit = 200
-    soft_limit = 150
+    hard_limit = 100
+    soft_limit = 80
 
 [checks]
   [checks.health]
@@ -38,6 +38,6 @@ primary_region = 'bom'
     path = '/api/health/live'
 
 [[vm]]
-  memory = '1gb'
+  memory = '2gb'
   cpus = 1
-  memory_mb = 1024
+  memory_mb = 2048
