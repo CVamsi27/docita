@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { EnvConfig, getEnv } from './app-config';
+import {
+  EnvConfig,
+  WORKER_JWT_MODULE_PLACEHOLDER_SECRET,
+  getEnv,
+} from './app-config';
 
 const LOCALE_CURRENCY_MAP: Readonly<Record<string, string>> = {
   'en-IN': 'INR',
@@ -352,11 +356,14 @@ export class AppConfigService {
   }
 
   getJwtSecret(): string {
-    const value = this.getConfig().JWT_SECRET;
-    if (!value) {
-      throw new Error('JWT_SECRET is required for API runtime');
+    const config = this.getConfig();
+    if (config.JWT_SECRET) {
+      return config.JWT_SECRET;
     }
-    return value;
+    if (config.WORKER_ENTRYPOINT === 'worker') {
+      return WORKER_JWT_MODULE_PLACEHOLDER_SECRET;
+    }
+    throw new Error('JWT_SECRET is required for API runtime');
   }
 
   getJwtExpiration(): string {

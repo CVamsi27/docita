@@ -77,6 +77,14 @@ export const EnvSchema = z.object({
 
 export type EnvConfig = z.infer<typeof EnvSchema>;
 
+/**
+ * Used only to satisfy Nest JwtModule registration when WORKER_ENTRYPOINT is
+ * `worker` and JWT_SECRET is unset. The worker process does not serve HTTP auth;
+ * do not rely on this value to verify tokens issued by the API.
+ */
+export const WORKER_JWT_MODULE_PLACEHOLDER_SECRET =
+  'worker-jwt-placeholder-not-used-for-http-auth-32chars-min';
+
 export function isDevelopment(): boolean {
   return (process.env.NODE_ENV || 'development') === 'development';
 }

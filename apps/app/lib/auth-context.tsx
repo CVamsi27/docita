@@ -15,6 +15,12 @@ import { usePermissionStore } from "@/lib/stores/permission-store";
 import { apiFetch } from "@/lib/api-client";
 import { appSession } from "@/lib/session";
 import {
+  formatLoginLockoutMessage,
+  parseLoginLockoutUntil,
+  persistLoginLockoutUntil,
+  readLoginLockoutUntil,
+} from "@/lib/auth-lockout";
+import {
   checkEmailResponseSchema,
   checkEmailSchema,
   loginResponseSchema,
@@ -26,10 +32,8 @@ import {
 
 const AUTH_RESPONSE_ERROR_MESSAGE =
   "We could not sign you in right now. Please try again.";
-const LOGIN_LOCKOUT_STORAGE_KEY = "docita_login_lockout_until";
 export const VERIFICATION_EMAIL_STATUS_STORAGE_KEY =
   "docita_verification_email_status";
-const DEFAULT_LOGIN_LOCKOUT_MINUTES = 15;
 export interface User {
   id: string;
   name: string;
@@ -148,96 +152,6 @@ function extractAuthPayload(raw: unknown): AuthPayload | null {
   }
 
   return null;
-}
-
-function readLoginLockoutUntil(): number | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const raw = window.localStorage.getItem(LOGIN_LOCKOUT_STORAGE_KEY);
-  if (!raw) {
-    return null;
-  }
-
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= Date.now()) {
-    window.localStorage.removeItem(LOGIN_LOCKOUT_STORAGE_KEY);
-    return null;
-  }
-
-  return parsed;
-}
-
-function persistLoginLockoutUntil(until: number | null) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  if (until) {
-    window.localStorage.setItem(LOGIN_LOCKOUT_STORAGE_KEY, String(until));
-    return;
-  }
-
-  window.localStorage.removeItem(LOGIN_LOCKOUT_STORAGE_KEY);
-}
-
-function isLoginLockoutResponse(status: number, body: unknown): boolean {
-  if (status === 423) {
-    return true;
-  }
-
-  if (!body || typeof body !== "object") {
-    return false;
-  }
-
-  const candidate = body as { code?: unknown; message?: unknown };
-  const code = typeof candidate.code === "string" ? candidate.code : "";
-  const message =
-    typeof candidate.message === "string"
-      ? candidate.message.toLowerCase()
-      : "";
-
-  return code === "ACCOUNT_LOCKED" || message.includes("account is locked");
-}
-
-function parseLoginLockoutUntil(status: number, body: unknown): number | null {
-  if (!isLoginLockoutResponse(status, body)) {
-    return null;
-  }
-
-  const candidate =
-    body && typeof body === "object" ? (body as { message?: unknown }) : null;
-  const message =
-    typeof candidate?.message === "string" ? candidate.message : "";
-
-  const minuteMatch = message.match(/try again in (\d+) minute\(s\)/i);
-  if (minuteMatch?.[1]) {
-    const minutes = Number(minuteMatch[1]);
-    if (Number.isFinite(minutes) && minutes > 0) {
-      return Date.now() + minutes * 60_000;
-    }
-  }
-
-  const secondMatch = message.match(/try again in (\d+) second\(s\)/i);
-  if (secondMatch?.[1]) {
-    const seconds = Number(secondMatch[1]);
-    if (Number.isFinite(seconds) && seconds > 0) {
-      return Date.now() + seconds * 1000;
-    }
-  }
-
-  return Date.now() + DEFAULT_LOGIN_LOCKOUT_MINUTES * 60_000;
-}
-
-function formatLockoutMessage(lockoutUntil: number): string {
-  const remainingMs = lockoutUntil - Date.now();
-  if (remainingMs <= 0) {
-    return "Your account lockout has expired. Please try signing in again.";
-  }
-
-  const minutesRemaining = Math.ceil(remainingMs / 60_000);
-  return `Account is locked due to too many failed login attempts. Try again in ${minutesRemaining} minute(s).`;
 }
 
 function isAuthFailure(error: unknown): boolean {
@@ -509,7 +423,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const payload = loginSchema.parse({ email, password });
     if (loginLockoutUntil && loginLockoutUntil > Date.now()) {
-      const message = formatLockoutMessage(loginLockoutUntil);
+      const message = formatLoginLockoutMessage(loginLockoutUntil);
       throw new Error(message);
     }
 
@@ -592,7 +506,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (lockoutUntil) {
         setLoginLockoutUntil(lockoutUntil);
         persistLoginLockoutUntil(lockoutUntil);
-        const message = formatLockoutMessage(lockoutUntil);
+        const message = formatLoginLockoutMessage(lockoutUntil);
         throw new Error(message);
       }
 

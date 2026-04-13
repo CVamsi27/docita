@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { Calendar, FileText, Loader2, Search, User, X } from "lucide-react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { appQueryKeys } from "@/lib/query-keys";
@@ -27,6 +28,7 @@ const typeColors = {
 };
 
 export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -58,9 +60,9 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
         appointment: `/appointments?id=${result.id}`,
         prescription: `/prescriptions/${result.id}`,
       };
-      window.location.href = routes[result.type];
+      router.push(routes[result.type]);
     },
-    [onResultClick],
+    [onResultClick, router],
   );
 
   const handleKeyDown = useCallback(
