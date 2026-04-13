@@ -21,6 +21,7 @@ export interface QueueJob<T extends QueueJobData = QueueJobData> {
   progress: number;
   failedReason?: string;
   attemptsMade: number;
+  maxAttempts?: number;
   timestamp: number;
 }
 
