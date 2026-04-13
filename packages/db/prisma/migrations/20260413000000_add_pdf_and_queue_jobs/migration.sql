@@ -37,6 +37,9 @@ ALTER TABLE "PdfJob"
 CREATE INDEX IF NOT EXISTS "PdfJob_clinicId_idx"       ON "PdfJob"("clinicId");
 CREATE INDEX IF NOT EXISTS "PdfJob_status_idx"          ON "PdfJob"("status");
 CREATE INDEX IF NOT EXISTS "PdfJob_documentId_documentType_idx" ON "PdfJob"("documentId", "documentType");
+ALTER TABLE "PdfJob"
+  ADD CONSTRAINT "PdfJob_clinicId_documentId_documentType_key"
+  UNIQUE ("clinicId", "documentId", "documentType");
 
 CREATE TABLE IF NOT EXISTS "QueueJob" (
   "id"           TEXT             NOT NULL,
