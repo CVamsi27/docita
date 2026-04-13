@@ -14,6 +14,7 @@ on:
       - "pnpm-workspace.yaml"
       - "turbo.json"
       - "fly.toml"
+      - "fly.worker.toml"
       - ".github/workflows/deploy.yml"
 
 concurrency:
@@ -29,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.detect.outputs.api }}
+      worker: ${{ steps.detect.outputs.worker }}
+      db: ${{ steps.detect.outputs.db }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -44,10 +47,54 @@ jobs:
         id: detect
         run: node scripts/detect-workflow-scope.mjs deploy
 
+  migrate-db:
+    name: Apply Prisma Migrations
+    needs: changes
+    if: needs.changes.outputs.db == 'true'
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is required."
+            exit 1
+          fi
+          pnpm --filter @workspace/db run db:generate
+
+      - name: Run Prisma Migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is required."
+            exit 1
+          fi
+          pnpm --filter @workspace/db run db:migrate:safe
+
   deploy-api:
     name: Deploy API (Fly.io)
-    needs: changes
-    if: needs.changes.outputs.api == 'true'
+    needs: [changes, migrate-db]
+    if: "!failure() && needs.changes.outputs.api == 'true'"
     runs-on: ubuntu-latest
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -67,3 +114,27 @@ jobs:
 
       - name: Deploy API to Fly.io
         run: flyctl deploy --config fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
+
+  deploy-worker:
+    name: Deploy Worker (Fly.io)
+    needs: [changes, migrate-db]
+    if: "!failure() && needs.changes.outputs.worker == 'true'"
+    runs-on: ubuntu-latest
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read Fly app from fly.worker.toml
+        id: fly-config
+        run: |
+          app_name="$(ruby -e 'puts File.read("fly.worker.toml")[/^\s*app\s*=\s*["'\'']([^"'\'']+)["'\'']\s*$/, 1]')"
+          if [ -z "$app_name" ]; then
+            echo "Unable to read Fly app name from fly.worker.toml"
+            exit 1
+          fi
+          echo "app_name=$app_name" >> "$GITHUB_OUTPUT"
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy Worker to Fly.io
+        run: flyctl deploy --config fly.worker.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only

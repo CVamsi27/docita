@@ -12,6 +12,7 @@ on:
       - "pnpm-workspace.yaml"
       - "turbo.json"
       - "fly.toml"
+      - "fly.worker.toml"
       - ".github/workflows/**"
   pull_request:
     paths:
@@ -23,6 +24,7 @@ on:
       - "pnpm-workspace.yaml"
       - "turbo.json"
       - "fly.toml"
+      - "fly.worker.toml"
       - ".github/workflows/**"
 
 env:

@@ -44,6 +44,8 @@ const outputs =
       }
     : {
         api: changedFiles.some(isDeployApiChange),
+        worker: changedFiles.some(isDeployWorkerChange),
+        db: changedFiles.some(isDbMigrationChange),
       };
 
 appendFileSync(
@@ -102,6 +104,10 @@ function isDeployApiChange(file) {
   return isApiChange(file);
 }
 
+function isDeployWorkerChange(file) {
+  return isDeployApiChange(file) || file === "fly.worker.toml";
+}
+
 function isAppChange(file) {
   return (
     file === "package.json" ||
@@ -156,6 +162,14 @@ function isDbChange(file) {
     file.startsWith("packages/db/") ||
     file.startsWith("packages/types/") ||
     file.startsWith("packages/utils/")
+  );
+}
+
+function isDbMigrationChange(file) {
+  return (
+    file.startsWith("packages/db/prisma/") ||
+    file.startsWith("packages/db/scripts/") ||
+    file === "packages/db/package.json"
   );
 }
 
