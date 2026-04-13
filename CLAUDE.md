@@ -247,11 +247,9 @@ Key patterns:
 
 ## Branching and Releases
 
-- Use `staging` as the integration branch for pre-production validation.
-- Open feature PRs into `staging` first.
-- After staging passes checks and smoke testing, open a PR from `staging` into `main`.
-- Keep `main` protected and production-only.
-- If `main` gets a hotfix, merge it back into `staging` before continuing feature work.
+- **`main`** is canonical for production-bound code; branch from `main`, open PRs into `main`.
+- **`staging`** mirrors **`main`** (same tree): it exists so the **staging environment** can run pre-production checks on the **same code** you will deploy to prod. Sync `staging` to `main` after `main` moves; do not land feature-only work on `staging` that is not intended for `main`.
+- Do not commit directly on `main` or `staging`. See `AGENTS.md` section 11.3 for the full model.
 
 ## Security & Compliance
 

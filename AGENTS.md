@@ -203,13 +203,37 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
 - Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
 
-## 11.3) Branch Promotion Flow
+## 11.3) Branch model: `main`, `staging`, and feature branches
 
-- Use `staging` as the integration branch for pre-production validation.
-- Open feature PRs into `staging` first.
-- After staging checks pass, open a promotion PR from `staging` into `main`.
-- Keep `main` protected and production-only; do not merge feature work directly into `main`.
-- If a hotfix lands on `main`, merge `main` back into `staging` before the next release cycle so both branches stay aligned.
+### Roles
+
+- **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
+- **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** a long-lived integration line with different product code. The **staging environment** (URLs, databases, secrets, Render/Fly staging targets) exists so you can **test what you are about to ship to production** before touching prod.
+- **Feature work** always happens on a **separate branch** created from `main` (see below), merged via **pull request** into `main`.
+
+### Never commit on `main` or `staging`
+
+- Do **not** commit, cherry-pick, or push directly on `main` or `staging`.
+- Do **not** use `staging` as a place to land features that are not also intended for `main`. If it is not ready for `main`, it stays on a feature branch.
+
+### Start every change from `main`
+
+1. `git fetch origin`
+2. `git checkout main && git pull origin main`
+3. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`)
+
+Open a **PR into `main`**. After merge, **update `staging` to match `main`** (same tree) using the repo sync process (for example a squash sync PR into `staging` when branch rules disallow merge commits on `staging`).
+
+### Pre-production vs production
+
+1. Merge to `main` via PR when the change is ready to be the source of truth.
+2. **Sync `staging` to `main`** so staging runs the **exact same code** you will deploy to prod.
+3. Run smoke tests, E2E, or manual checks in the **staging environment**.
+4. Deploy to **production** from the same logical release (same commit/tree you validated on staging).
+
+### Hotfixes
+
+Use a branch from `main`, merge via PR into `main`, then **sync `staging` to `main`** again before the next change so staging remains a replica.
 
 ## 12) Design Principles
 
@@ -239,6 +263,7 @@ pnpm db:migrate
 
 Before finalizing changes:
 
+- Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly.
 - Architecture/layer boundaries are respected.
 - No security or tenant/auth guard regressions.
 - No PHI plaintext logging or secret leakage.
