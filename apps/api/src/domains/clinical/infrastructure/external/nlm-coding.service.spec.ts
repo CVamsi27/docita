@@ -168,6 +168,49 @@ describe('NlmCodingService', () => {
     );
   });
 
+  it('returns partial ICD sync results when an NLM prefix times out', async () => {
+    const warnSpy = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
+
+    fetchMock.mockImplementation((url: unknown) => {
+      const parsed = new URL(String(url));
+      const terms = parsed.searchParams.get('terms');
+      const offset = parsed.searchParams.get('offset');
+
+      if (terms === 'A' && offset === '0') {
+        return Promise.resolve(
+          jsonResponse([1, ['A00'], null, [['A00', 'Alpha condition']]]),
+        );
+      }
+
+      if (terms === 'B') {
+        return Promise.reject(
+          new DOMException(
+            'The operation was aborted due to timeout',
+            'TimeoutError',
+          ),
+        );
+      }
+
+      return Promise.resolve(jsonResponse([0, [], null, []]));
+    });
+
+    const results = await service.fetchAllIcdCodesForSync();
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        code: 'A00',
+        description: 'Alpha condition',
+        isCommon: true,
+      }),
+    ]);
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+  });
+
   it('fetches CPT/HCPCS sync data from API', async () => {
     fetchMock.mockImplementation((url: unknown) => {
       const parsed = new URL(String(url));
