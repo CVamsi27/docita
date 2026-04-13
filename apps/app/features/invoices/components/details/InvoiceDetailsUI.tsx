@@ -44,6 +44,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     printRef,
     handlePrint,
     handleDownload,
+    isDownloading,
     handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency,
@@ -100,9 +101,14 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          <Button variant="outline" size="sm" onClick={handleDownload}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            disabled={isDownloading}
+          >
             <Download className="h-4 w-4 mr-2" />
-            Download
+            {isDownloading ? "Preparing..." : "Download"}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
