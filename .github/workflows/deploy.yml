@@ -1,4 +1,4 @@
-name: Deploy Production API
+name: Deploy Production API and Worker
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "apps/api/**"
+      - "apps/worker/**"
       - "packages/db/**"
       - "packages/types/**"
       - "packages/utils/**"
@@ -25,10 +26,11 @@ env:
 
 jobs:
   changes:
-    name: Detect API Deploy Target
+    name: Detect deploy targets
     runs-on: ubuntu-latest
     outputs:
       api: ${{ steps.detect.outputs.api }}
+      worker: ${{ steps.detect.outputs.worker }}
       db: ${{ steps.detect.outputs.db }}
     steps:
       - uses: actions/checkout@v5
@@ -92,7 +94,9 @@ jobs:
   deploy-api:
     name: Deploy API (Fly.io)
     needs: [changes, migrate-db]
-    if: "!failure() && needs.changes.outputs.api == 'true'"
+    if: >
+      needs.changes.outputs.api == 'true' &&
+      (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -116,7 +120,9 @@ jobs:
   deploy-worker:
     name: Deploy Worker (Fly.io)
     needs: [changes, migrate-db]
-    if: "!failure() && needs.changes.outputs.worker == 'true'"
+    if: >
+      needs.changes.outputs.worker == 'true' &&
+      (needs.migrate-db.result == 'success' || needs.migrate-db.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_WORKER }}
@@ -135,4 +141,4 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy Worker to Fly.io
-        run: flyctl deploy --config apps/worker/fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only
+        run: flyctl deploy --config apps/worker/fly.toml --app "${{ steps.fly-config.outputs.app_name }}" --remote-only --ha=false
