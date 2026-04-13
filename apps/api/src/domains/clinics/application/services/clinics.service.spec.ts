@@ -276,7 +276,15 @@ describe('ClinicsService', () => {
 
       const result = await service.findAll();
 
-      expect(result).toEqual(mockClinics);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'clinic-123',
+          name: 'Test Clinic',
+          phoneNumber: mockClinic.phone,
+          active: true,
+        }),
+      );
       expect(clinicDataRepository.findAll).toHaveBeenCalled();
     });
   });
