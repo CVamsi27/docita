@@ -209,31 +209,32 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 - **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
 - **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** a long-lived integration line with different product code. The **staging environment** (URLs, databases, secrets, Render/Fly staging targets) exists so you can **test what you are about to ship to production** before touching prod.
-- **Feature work** always happens on a **separate branch** created from `main` (see below), merged via **pull request** into `main`.
+- **Feature work** happens on a **branch created from `staging`** (see below). **Routine pull requests must target `staging`, not `main`.** Do not open normal fix/feature PRs directly against `main`; that bypasses integration and pre-prod validation.
 
 ### Never commit on `main` or `staging`
 
 - Do **not** commit, cherry-pick, or push directly on `main` or `staging`.
-- Do **not** use `staging` as a place to land features that are not also intended for `main`. If it is not ready for `main`, it stays on a feature branch.
+- Do **not** use `staging` as a place to land work that is not intended to reach `main` after validation. If it is not ready, keep it on a feature branch.
 
-### Start every change from `main`
+### Start every change from `staging`
 
 1. `git fetch origin`
-2. `git checkout main && git pull origin main`
-3. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`)
+2. Ensure `staging` matches `main` (same tree) when possible; if `main` has moved ahead, **sync `staging` to `main` first** (squash sync PR or documented process), then continue.
+3. `git checkout staging && git pull origin staging`
+4. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`)
 
-Open a **PR into `main`**. After merge, **update `staging` to match `main`** (same tree) using the repo sync process (for example a squash sync PR into `staging` when branch rules disallow merge commits on `staging`).
+Open a **pull request into `staging`**. After merge, run checks in the **staging environment**.
 
 ### Pre-production vs production
 
-1. Merge to `main` via PR when the change is ready to be the source of truth.
-2. **Sync `staging` to `main`** so staging runs the **exact same code** you will deploy to prod.
-3. Run smoke tests, E2E, or manual checks in the **staging environment**.
-4. Deploy to **production** from the same logical release (same commit/tree you validated on staging).
+1. Merge to **`staging`** via PR when the change is ready to validate.
+2. Exercise the **staging environment** (smoke, E2E, manual) on the same code you intend to ship.
+3. Open a **promotion pull request from `staging` into `main`** when ready for production. That is the only routine path for landing work on `main`.
+4. **`main`** remains the canonical production tip; **`staging`** is updated to stay a **replica of `main`** after promotion (sync PRs as needed when branch rules forbid merge commits on `staging`).
 
 ### Hotfixes
 
-Use a branch from `main`, merge via PR into `main`, then **sync `staging` to `main`** again before the next change so staging remains a replica.
+Use a branch from **up-to-date `staging`** (or from `main` only if the hotfix pipeline requires it), merge via PR **into `staging`**, validate, then **promotion PR to `main`**. **Sync `staging` to `main`** after `main` moves so both stay aligned.
 
 ## 12) Design Principles
 
@@ -263,7 +264,7 @@ pnpm db:migrate
 
 Before finalizing changes:
 
-- Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly.
+- Work is on a **branch created from `staging`** (after pull), not on `main` or `staging` directly; PRs target **`staging`** first unless an explicit exception (e.g. repo owner emergency process).
 - Architecture/layer boundaries are respected.
 - No security or tenant/auth guard regressions.
 - No PHI plaintext logging or secret leakage.
