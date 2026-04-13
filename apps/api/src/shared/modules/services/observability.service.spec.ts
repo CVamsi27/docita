@@ -80,6 +80,7 @@ describe('ObservabilityService', () => {
         dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0',
         environment: 'production',
         enableLogs: true,
+        beforeSend: expect.any(Function),
         integrations: [consoleIntegration],
         initialScope: {
           tags: {
@@ -127,6 +128,7 @@ describe('ObservabilityService', () => {
     expect(Sentry.init).toHaveBeenCalledWith(
       expect.objectContaining({
         enableLogs: true,
+        beforeSend: expect.any(Function),
         tracesSampleRate: 0.5,
         integrations: [consoleIntegration, customIntegration],
       }),
