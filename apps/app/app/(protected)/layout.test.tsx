@@ -29,6 +29,9 @@ vi.mock("@/lib/auth-context", () => ({
 
 vi.mock("@/features/_shared/components", () => ({
   FloatingStartConsultation: () => null,
+  RealtimeProviders: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   Sidebar: () => null,
   SidebarMobileTrigger: () => null,
 }));
