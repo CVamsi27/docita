@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { TemplatesService } from './application/services/templates.service';
@@ -7,8 +7,6 @@ import { StoredFileUrlResolverService } from './application/services/stored-file
 import { StorageProvider } from './infrastructure/storage.provider';
 import { LocalStorageProvider } from './infrastructure/local-storage.provider';
 import { R2StorageProvider } from './infrastructure/r2-storage.provider';
-
-const logger = new Logger('DocumentsWorkerModule');
 
 @Module({
   imports: [PrismaWorkerModule],
@@ -30,6 +28,9 @@ const logger = new Logger('DocumentsWorkerModule');
           !!r2Config.bucketName;
 
         if (!isProduction) {
+          if (provider === 'r2' && hasR2Credentials) {
+            return new R2StorageProvider();
+          }
           return new LocalStorageProvider({
             apiUrl: configService.getApiUrl(),
           });
@@ -39,12 +40,9 @@ const logger = new Logger('DocumentsWorkerModule');
           return new R2StorageProvider();
         }
 
-        logger.warn(
-          'R2 storage provider is not fully configured; falling back to local provider. Startup validation should block production boot until storage is configured.',
+        throw new Error(
+          'Production worker requires STORAGE_PROVIDER=r2 with R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME.',
         );
-        return new LocalStorageProvider({
-          apiUrl: configService.getApiUrl(),
-        });
       },
     },
   ],

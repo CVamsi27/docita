@@ -1,5 +1,4 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { JsonValue } from '@workspace/types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -8,7 +7,6 @@ import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
-
 type VerificationResult = {
   status: DoctorVerificationStatus;
   source: string;
@@ -85,8 +83,7 @@ export class DoctorVerificationService {
     return this.repository.findDoctorVerificationRecord(doctorId);
   }
 
-  @Cron('15 4 * * *')
-  async reverifyDoctorsNightly() {
+  async runDoctorReverificationSweep(): Promise<void> {
     await runWithTenant({ bypassed: true }, async () => {
       const doctors = await this.repository.findDoctorsForReverification();
 
@@ -189,7 +186,7 @@ export class DoctorVerificationService {
         };
       }
 
-      const payload: VerificationProviderResponse = await response.json();
+      const payload = (await response.json()) as VerificationProviderResponse;
 
       if (payload.verified) {
         return {

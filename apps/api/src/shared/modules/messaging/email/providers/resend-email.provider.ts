@@ -55,7 +55,7 @@ export class ResendEmailProvider implements IEmailProvider {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = (await response.json()) as { message?: string };
         this.logger.error('Resend API error:', errorData);
         return {
           success: false,
@@ -63,7 +63,7 @@ export class ResendEmailProvider implements IEmailProvider {
         };
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { id?: string };
       this.logger.log(`Email sent successfully: ${data.id}`);
 
       return {

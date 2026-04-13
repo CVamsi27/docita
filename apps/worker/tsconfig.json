@@ -4,7 +4,7 @@
     "baseUrl": ".",
     "outDir": "./dist",
     "paths": {
-      "@/*": ["../../apps/api/src/*"]
+      "@/*": ["../api/src/*"]
     },
     "types": ["node", "jest", "multer"],
     "incremental": true,

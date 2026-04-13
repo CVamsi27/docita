@@ -8,7 +8,7 @@
   - `apps/landing`: Cloudflare Workers (Astro)
 - Backend
   - `apps/api`: Fly.io (Mumbai — `bom` region), 2 GB RAM, shared CPU
-  - `apps/worker`: Fly.io (Mumbai — `bom` region), shared CPU, background jobs only
+  - `docita-worker` (Fly app): `apps/worker` Nest entry (imports `apps/api` worker modules), background jobs and crons
 - Database
   - AWS RDS PostgreSQL — `ap-south-1` (Mumbai), `db.t4g.micro`
 - Cache / Background Work
@@ -71,10 +71,10 @@ fly ssh console
 
 Fly-specific notes:
 - The Fly API deployment uses [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and [`apps/api/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/api/Dockerfile).
-- The Fly worker deployment uses [`fly.worker.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.worker.toml) and [`apps/worker/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/Dockerfile).
+- The Fly worker deployment uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml) and [`apps/worker/Dockerfile`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/Dockerfile) (no HTTP service; runs `dist/worker/src/main.js` in the image). For local runs against production-like settings, use `apps/worker/.env.production` (gitignored), not `apps/api/.env.production`.
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
-- The worker app uses [`fly.worker.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.worker.toml), should be deployed from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
+- The worker app uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
 - Keep `min_machines_running = 1` for the API while request traffic is live.
 - Verify the API image locally before infra changes with:
 
@@ -130,6 +130,35 @@ DATABASE_URL="postgresql://..." pnpm --filter @workspace/db run db:migrate:safe
 - `pnpm --filter @docita/api run test:e2e`
 - `docker build -f apps/api/Dockerfile -t docita-api-verify .`
 - `docker build -f apps/worker/Dockerfile -t docita-worker-verify .`
+
+## Post-merge production checklist (API + worker)
+
+After merging to `main` and before or right after Fly deploys:
+
+1. **`docita-api`**: set `ENABLE_SCHEDULERS=false` (Fly `[env]` or `fly secrets` as you prefer). Confirms HTTP API does not run `@Cron` handlers.
+2. **`docita-worker`**: set `ENABLE_SCHEDULERS=true` and `QUEUE_BACKEND=postgres` (already in [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml)); align secrets with `apps/worker/.env.production` locally for smoke tests only—**never commit** that file.
+3. **Observe**: queue depth (`QueueJob` counts by status/name), `PdfJob` completion rate, worker logs for cron start lines, API RSS after the API scheduler flag is off.
+
+## Optional next: scheduler-only modules (does this affect the main API?)
+
+**Yes, in a good way**—if you complete this refactor, **`AppModule` (main API) imports less**: only HTTP/controllers and their dependencies, while cron-only providers live in modules imported by `WorkerModule` only.
+
+**Today:** Many domain modules combine HTTP (`controllers`) and background (`@Cron`) providers. With `ENABLE_SCHEDULERS=false` on the API, Nest `ScheduleModule` is not loaded and `@Cron` handlers are disabled, but the API process may still construct scheduler **classes** and their dependency trees unless you split them out.
+
+**Target:** For each mixed module (e.g. clinical, reminders, compliance), introduce a thin pair:
+
+- `*Module` — controllers + sync services used by HTTP (imported by `AppModule`).
+- `*SchedulerModule` or `*.worker.module.ts` — only `@Injectable` classes with `@Cron` plus minimal deps (imported by `WorkerModule` only).
+
+**Suggested order (incremental, low risk):**
+
+1. Inventory: list every `@Cron` and its host class (already grep-friendly under `apps/api/src`).
+2. Extract one domain at a time: move the cron provider + required deps into a new module; re-export HTTP surface from the original module unchanged.
+3. **API:** remove the cron-only module import from `app.module.ts` once HTTP tests pass without it.
+4. **Worker:** add the new scheduler module to `worker.module.ts` if not already covered by a worker-specific module.
+5. Measure RSS on API and worker after each slice.
+
+This is a larger change than env/Fly wiring; ship it in small PRs behind the same `ENABLE_SCHEDULERS` split so rollback is flipping env on Fly.
 
 ## Scaling Path
 
