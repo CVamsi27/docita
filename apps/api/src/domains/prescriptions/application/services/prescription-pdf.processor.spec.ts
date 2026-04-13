@@ -17,6 +17,10 @@ import { ApprovalStatus } from '@workspace/db';
 
 const makeJob = (
   overrides: Partial<GeneratePdfJobData> = {},
+  jobOverrides: {
+    attemptsMade?: number;
+    maxAttempts?: number;
+  } = {},
 ): QueueJob<GeneratePdfJobData> => ({
   id: 'job-1',
   name: JobNames.GENERATE_PRESCRIPTION_PDF,
@@ -28,7 +32,8 @@ const makeJob = (
     ...overrides,
   },
   progress: 0,
-  attemptsMade: 0,
+  attemptsMade: jobOverrides.attemptsMade ?? 0,
+  maxAttempts: jobOverrides.maxAttempts ?? 1,
   timestamp: Date.now(),
 });
 
@@ -271,6 +276,88 @@ describe('PrescriptionPdfProcessor', () => {
         data: expect.objectContaining({
           status: 'FAILED',
           failedReason: 'pdf generation error',
+        }),
+      }),
+    );
+  });
+
+  it('keeps PdfJob out of FAILED while retries remain', async () => {
+    findOneMock.mockResolvedValue({
+      id: 'rx-1',
+      appointmentId: 'appt-1',
+      patientId: 'patient-1',
+      doctorId: 'doctor-1',
+      instructions: 'Take after meals',
+      date: new Date('2026-01-01T00:00:00.000Z'),
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      approvalStatus: ApprovalStatus.PENDING,
+      approvedById: null,
+      approvedAt: null,
+      whatsappSentAt: null,
+      whatsappMessageId: null,
+      whatsappStatus: null,
+      doctorName: 'Dr. Queue',
+      doctorEmail: null,
+      doctorPhone: null,
+      doctorSpecialization: null,
+      doctorRole: null,
+      doctorRegistrationNumber: null,
+      doctorLicenseNumber: null,
+      pdfUrl: null,
+      pdfGeneratedAt: null,
+      pdfTemplateVersion: 1,
+      medications: [],
+      patient: {
+        id: 'patient-1',
+        mrn: 'MRN-1',
+        firstName: 'Queue',
+        lastName: 'Patient',
+        phoneNumber: '9999999999',
+        email: 'queue@example.com',
+        gender: 'MALE',
+        dateOfBirth: new Date('1990-01-01T00:00:00.000Z'),
+        clinic: {
+          id: 'clinic-1',
+          name: 'Docita Clinic',
+          email: 'clinic@test.com',
+          phoneNumber: '1234567890',
+          address: 'Main Road',
+          logo: null,
+          currency: 'INR',
+          branding: null,
+        },
+      },
+      doctor: {
+        id: 'doctor-1',
+        name: 'Dr. Queue',
+        qualification: 'MBBS',
+        registrationNumber: 'REG-1',
+        signatureUrl: 'https://example.com/signature.png',
+      },
+    });
+    generatePDFMock.mockRejectedValue(new Error('transient failure'));
+
+    processor.onModuleInit();
+
+    const registeredHandler = processMock.mock.calls[0]?.[1];
+    expect(registeredHandler).toEqual(expect.any(Function));
+
+    await expect(
+      registeredHandler(makeJob({}, { maxAttempts: 3 })),
+    ).rejects.toThrow('transient failure');
+
+    expect(pdfJobUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: 'PROCESSING',
+        }),
+      }),
+    );
+    expect(pdfJobUpdateMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: 'FAILED',
         }),
       }),
     );

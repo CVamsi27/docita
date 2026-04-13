@@ -214,6 +214,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
       progress: 0,
       failedReason: row.failedReason ?? undefined,
       attemptsMade: row.attemptsMade,
+      maxAttempts: row.maxAttempts,
       timestamp: row.createdAt.getTime(),
     };
   }
