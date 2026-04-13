@@ -1,8 +1,10 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import {
   CreateInvoiceRequest,
   Invoice,
   ListInvoicesContractQuery,
+  invoiceResponseSchema,
   Patient,
   type SubscriptionBillingActivateResponse,
   type SubscriptionBillingCancelResponse,
@@ -33,6 +35,13 @@ export const useInvoices = (filters?: ListInvoicesContractQuery) =>
     ["invoices", filters || {}],
     withQueryString("/invoices", filters),
   );
+
+const infiniteInvoicesResponseSchema = z.object({
+  items: z.array(invoiceResponseSchema),
+  nextCursor: z.string().nullable().optional(),
+  hasMore: z.boolean(),
+  count: z.number(),
+});
 
 export const useInvoice = (id: string) =>
   useAPIQuery<
@@ -70,8 +79,8 @@ export const useBillingStatus = () =>
     "/subscription/billing",
     {
       select: (data) => subscriptionBillingStatusResponseSchema.parse(data),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true,
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: true,
     },
   );
 
@@ -131,7 +140,7 @@ export const useInfiniteInvoices = (options?: {
       const response = await fetchWithSession(
         withQueryString("/invoices", {
           limit: options?.limit || 50,
-          cursor: pageParam,
+          cursor: pageParam || undefined,
           patientId: options?.patientId,
           status: options?.status,
           date: options?.date,
@@ -142,15 +151,10 @@ export const useInfiniteInvoices = (options?: {
       if (!response.ok) {
         throw new Error("We could not load your invoices. Please try again.");
       }
-      return response.json() as Promise<{
-        items: Invoice[];
-        nextCursor: string | null;
-        hasMore: boolean;
-        count: number;
-      }>;
+      return infiniteInvoicesResponseSchema.parse(await response.json());
     },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: "",
     staleTime: 1000 * 60 * 5,
   });
 };

@@ -38,6 +38,20 @@ function shouldSuppressDevToast(message: string): boolean {
   );
 }
 
+function getRedirectPathForForbiddenCode(code?: string): string | null {
+  switch (code) {
+    case "EMAIL_NOT_VERIFIED":
+      return "/verify-email-sent";
+    case "SUBSCRIPTION_INACTIVE":
+    case "INSUFFICIENT_TIER":
+      return "/settings?tab=subscription";
+    case "NO_CLINIC":
+      return "/choose-path";
+    default:
+      return null;
+  }
+}
+
 const client = getAPIClient({
   baseURL: API_URL.endsWith("/") ? API_URL : `${API_URL}/`,
   getToken: () => appSession.getToken(),
@@ -68,6 +82,14 @@ const client = getAPIClient({
     }
 
     const errorCode = extractErrorCode(error.data);
+    const redirectPath =
+      error.status === 403 ? getRedirectPathForForbiddenCode(errorCode) : null;
+
+    if (redirectPath && typeof window !== "undefined") {
+      window.location.assign(redirectPath);
+      return;
+    }
+
     const fallback =
       error.status && error.status >= 400 && error.status < 500
         ? "Please check the information and try again."
@@ -83,17 +105,6 @@ const client = getAPIClient({
       );
     }
 
-    if (error.status === 403 && typeof window !== "undefined") {
-      const code = errorCode;
-      if (code === "EMAIL_NOT_VERIFIED") {
-        window.location.href = "/verify-email-sent";
-        return;
-      } else if (code === "SUBSCRIPTION_INACTIVE" || code === "INSUFFICIENT_TIER") {
-        window.location.href = "/settings?tab=subscription";
-      } else if (code === "NO_CLINIC") {
-        window.location.href = "/choose-path";
-      }
-    }
   },
 });
 

@@ -7,6 +7,10 @@ import { MedicalDocument, Prisma } from '@workspace/db';
 export class PrismaMedicalDocumentsRepository implements IMedicalDocumentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async create(
     data: Prisma.MedicalDocumentCreateInput,
   ): Promise<MedicalDocument> {
@@ -17,14 +21,16 @@ export class PrismaMedicalDocumentsRepository implements IMedicalDocumentsReposi
     clinicId: string,
     patientId: string,
   ): Promise<MedicalDocument[]> {
-    return this.prisma.medicalDocument.findMany({
+    return this.getReadClient().medicalDocument.findMany({
       where: { clinicId, patientId },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: string, clinicId: string): Promise<MedicalDocument | null> {
-    return this.prisma.medicalDocument.findFirst({ where: { id, clinicId } });
+    return this.getReadClient().medicalDocument.findFirst({
+      where: { id, clinicId },
+    });
   }
 
   async update(

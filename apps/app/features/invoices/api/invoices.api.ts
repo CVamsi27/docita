@@ -10,6 +10,10 @@ import {
   markInvoicePaidRequestSchema,
   type UpdateInvoiceRequest,
   updateInvoiceRequestSchema,
+  enqueuePdfJobResponseSchema,
+  pdfJobStatusResponseSchema,
+  type EnqueuePdfJobResponse,
+  type PdfJobStatusResponse,
 } from "@workspace/types";
 import { z } from "zod";
 
@@ -31,7 +35,9 @@ const normalizeInvoices = (
 
 export const invoicesApi = {
   getAll: (params?: ListInvoicesContractQuery) => {
-    const parsedParams = params ? listInvoicesQuerySchema.parse(params) : undefined;
+    const parsedParams = params
+      ? listInvoicesQuerySchema.parse(params)
+      : undefined;
     const searchParams = new URLSearchParams();
     if (parsedParams?.patientId)
       searchParams.set("patientId", parsedParams.patientId);
@@ -44,30 +50,23 @@ export const invoicesApi = {
 
     const query = searchParams.toString();
 
-    return api.get<unknown>(`/invoices${query ? `?${query}` : ""}`).then((response) => {
-      const parsed = invoicesListResponseSchema.parse(response);
-      return normalizeInvoices(parsed);
-    });
+    return api
+      .get(`/invoices${query ? `?${query}` : ""}`)
+      .then((response) => normalizeInvoices(invoicesListResponseSchema.parse(response)));
   },
 
   getById: (id: string) =>
-    api.get<unknown>(`/invoices/${id}`).then((response) => {
-      return invoiceResponseSchema.parse(response);
-    }),
+    api.get(`/invoices/${id}`).then((response) => invoiceResponseSchema.parse(response)),
 
   create: (data: CreateInvoiceRequest) =>
-    api
-      .post<unknown>("/invoices", createInvoiceRequestSchema.parse(data))
-      .then((response) => {
-        return invoiceResponseSchema.parse(response);
-      }),
+    api.post("/invoices", createInvoiceRequestSchema.parse(data)).then((response) =>
+      invoiceResponseSchema.parse(response),
+    ),
 
   update: (id: string, data: UpdateInvoiceRequest) =>
-    api
-      .patch<unknown>(`/invoices/${id}`, updateInvoiceRequestSchema.parse(data))
-      .then((response) => {
-        return invoiceResponseSchema.parse(response);
-      }),
+    api.patch(`/invoices/${id}`, updateInvoiceRequestSchema.parse(data)).then((response) =>
+      invoiceResponseSchema.parse(response),
+    ),
 
   markPaid: (id: string, data?: MarkInvoicePaidRequest) =>
     api.post(
@@ -76,4 +75,12 @@ export const invoicesApi = {
     ),
 
   print: (id: string) => api.get(`/invoices/${id}/print`),
+
+  enqueuePdf: (id: string): Promise<EnqueuePdfJobResponse> =>
+    api.get(`/invoices/${id}/pdf?async=true`).then((r) => enqueuePdfJobResponseSchema.parse(r)),
+
+  getPdfStatus: (id: string, jobId: string): Promise<PdfJobStatusResponse> =>
+    api.get(`/invoices/${id}/pdf/status?jobId=${jobId}`).then((r) =>
+      pdfJobStatusResponseSchema.parse(r),
+    ),
 };

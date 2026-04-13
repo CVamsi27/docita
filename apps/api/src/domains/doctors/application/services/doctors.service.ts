@@ -12,6 +12,7 @@ import {
   DOCTOR_CARD_SELECT,
 } from '@/common/select-fragments';
 import { DoctorVerificationService } from './doctor-verification.service';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 
 interface CreateDoctorData {
   email: string;
@@ -84,7 +85,26 @@ export class DoctorsService {
   constructor(
     private prisma: PrismaService,
     private doctorVerificationService: DoctorVerificationService,
+    private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
+
+  private async resolveDoctorSignatureUrl<
+    T extends { signatureUrl?: string | null },
+  >(
+    doctor: T,
+  ): Promise<
+    T & { signatureUrl?: string | null; signatureStoredUrl?: string | null }
+  > {
+    const resolved = await this.storedFileUrlResolver.resolveWithStoredUrl(
+      doctor.signatureUrl ?? null,
+    );
+
+    return {
+      ...doctor,
+      signatureUrl: resolved.url ?? undefined,
+      signatureStoredUrl: resolved.storedUrl ?? undefined,
+    };
+  }
 
   async findAll(clinicId: string) {
     const [doctorClinics, clinicUsers] = await Promise.all([
@@ -124,44 +144,57 @@ export class DoctorsService {
 
     const directUsers = clinicUsers.filter((u) => !doctorClinicIds.has(u.id));
 
-    return [
-      ...validDoctorClinics.map((dc) => ({
-        id: dc.doctor.id,
-        role: dc.doctor.role,
-        email: dc.doctor.email,
-        name: dc.doctor.name,
-        specialization: dc.doctor.specialization,
-        hospitalRole: dc.doctor.hospitalRole,
-        qualification: dc.doctor.qualification,
-        registrationNumber: dc.doctor.registrationNumber,
-        verificationStatus: dc.doctor.verificationStatus,
-        verificationReason: dc.doctor.verificationReason,
-        verificationCheckedAt: dc.doctor.verificationCheckedAt,
-        signatureUrl: dc.doctor.signatureUrl,
-        profilePhotoUrl: dc.doctor.profilePhotoUrl,
-        yearsOfExperience: dc.doctor.yearsOfExperience,
-        consultationFee: dc.doctor.consultationFee,
-        createdAt: dc.doctor.createdAt,
-      })),
-      ...directUsers.map((u) => ({
-        id: u.id,
-        role: u.role,
-        email: u.email,
-        name: u.name,
-        specialization: u.specialization,
-        hospitalRole: u.hospitalRole,
-        qualification: u.qualification,
-        registrationNumber: u.registrationNumber,
-        verificationStatus: u.verificationStatus,
-        verificationReason: u.verificationReason,
-        verificationCheckedAt: u.verificationCheckedAt,
-        signatureUrl: u.signatureUrl,
-        profilePhotoUrl: u.profilePhotoUrl,
-        yearsOfExperience: u.yearsOfExperience,
-        consultationFee: u.consultationFee,
-        createdAt: u.createdAt,
-      })),
-    ];
+    const mappedClinics = await Promise.all(
+      validDoctorClinics.map(async (dc) => {
+        const doctor = await this.resolveDoctorSignatureUrl(dc.doctor);
+        return {
+          id: doctor.id,
+          role: doctor.role,
+          email: doctor.email,
+          name: doctor.name,
+          specialization: doctor.specialization,
+          hospitalRole: doctor.hospitalRole,
+          qualification: doctor.qualification,
+          registrationNumber: doctor.registrationNumber,
+          verificationStatus: doctor.verificationStatus,
+          verificationReason: doctor.verificationReason,
+          verificationCheckedAt: doctor.verificationCheckedAt,
+          signatureUrl: doctor.signatureUrl,
+          signatureStoredUrl: doctor.signatureStoredUrl,
+          profilePhotoUrl: doctor.profilePhotoUrl,
+          yearsOfExperience: doctor.yearsOfExperience,
+          consultationFee: doctor.consultationFee,
+          createdAt: doctor.createdAt,
+        };
+      }),
+    );
+
+    const mappedDirectUsers = await Promise.all(
+      directUsers.map(async (user) => {
+        const doctor = await this.resolveDoctorSignatureUrl(user);
+        return {
+          id: doctor.id,
+          role: doctor.role,
+          email: doctor.email,
+          name: doctor.name,
+          specialization: doctor.specialization,
+          hospitalRole: doctor.hospitalRole,
+          qualification: doctor.qualification,
+          registrationNumber: doctor.registrationNumber,
+          verificationStatus: doctor.verificationStatus,
+          verificationReason: doctor.verificationReason,
+          verificationCheckedAt: doctor.verificationCheckedAt,
+          signatureUrl: doctor.signatureUrl,
+          signatureStoredUrl: doctor.signatureStoredUrl,
+          profilePhotoUrl: doctor.profilePhotoUrl,
+          yearsOfExperience: doctor.yearsOfExperience,
+          consultationFee: doctor.consultationFee,
+          createdAt: doctor.createdAt,
+        };
+      }),
+    );
+
+    return [...mappedClinics, ...mappedDirectUsers];
   }
 
   async findOne(id: string, clinicId?: string) {
@@ -217,7 +250,7 @@ export class DoctorsService {
       }
     }
 
-    return user;
+    return this.resolveDoctorSignatureUrl(user);
   }
 
   async create(clinicId: string, data: CreateDoctorData) {
@@ -380,7 +413,7 @@ export class DoctorsService {
       });
     }
 
-    return user;
+    return this.resolveDoctorSignatureUrl(user);
   }
 
   async createSignatureUploadSession(id: string, clinicId?: string) {
@@ -440,14 +473,27 @@ export class DoctorsService {
   async updateEducation(
     educationId: string,
     data: Partial<CreateEducationData>,
+    doctorId?: string,
   ) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorEducation.findFirst({
+        where: { id: educationId, doctorId },
+      });
+      if (!existing) throw new NotFoundException('Education record not found');
+    }
     return this.prisma.doctorEducation.update({
       where: { id: educationId },
       data,
     });
   }
 
-  async removeEducation(educationId: string) {
+  async removeEducation(educationId: string, doctorId?: string) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorEducation.findFirst({
+        where: { id: educationId, doctorId },
+      });
+      if (!existing) throw new NotFoundException('Education record not found');
+    }
     await this.prisma.doctorEducation.delete({
       where: { id: educationId },
     });
@@ -473,14 +519,29 @@ export class DoctorsService {
   async updateCertification(
     certificationId: string,
     data: Partial<CreateCertificationData>,
+    doctorId?: string,
   ) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorCertification.findFirst({
+        where: { id: certificationId, doctorId },
+      });
+      if (!existing)
+        throw new NotFoundException('Certification record not found');
+    }
     return this.prisma.doctorCertification.update({
       where: { id: certificationId },
       data,
     });
   }
 
-  async removeCertification(certificationId: string) {
+  async removeCertification(certificationId: string, doctorId?: string) {
+    if (doctorId) {
+      const existing = await this.prisma.doctorCertification.findFirst({
+        where: { id: certificationId, doctorId },
+      });
+      if (!existing)
+        throw new NotFoundException('Certification record not found');
+    }
     await this.prisma.doctorCertification.delete({
       where: { id: certificationId },
     });

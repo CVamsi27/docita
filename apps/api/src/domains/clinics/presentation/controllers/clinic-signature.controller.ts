@@ -8,7 +8,6 @@ import {
   UploadedFile,
   BadRequestException,
   Request,
-  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SignatureUploadService } from '@/domains/doctors/application/services/signature-upload.service';
@@ -97,15 +96,13 @@ export class ClinicSignatureController {
 
   @Get('active-tokens')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
-  async getActiveTokens(
-    @Request() req: RequestWithUser,
-    @Query('clinicId') clinicId: string,
-  ) {
+  async getActiveTokens(@Request() req: RequestWithUser) {
     if (!req.user?.id) {
       throw new BadRequestException('User ID is required');
     }
+    const clinicId = req.user.clinicId;
     if (!clinicId) {
-      throw new BadRequestException('clinicId is required');
+      throw new BadRequestException('Clinic context required');
     }
 
     return this.signatureUploadService.getActiveTokens(req.user.id, clinicId);
@@ -116,13 +113,13 @@ export class ClinicSignatureController {
   async revokeToken(
     @Request() req: RequestWithUser,
     @Param('tokenId') tokenId: string,
-    @Query('clinicId') clinicId: string,
   ) {
     if (!req.user?.id) {
       throw new BadRequestException('User ID is required');
     }
+    const clinicId = req.user.clinicId;
     if (!clinicId) {
-      throw new BadRequestException('clinicId is required');
+      throw new BadRequestException('Clinic context required');
     }
 
     return this.signatureUploadService.revokeClinicToken(clinicId, tokenId);

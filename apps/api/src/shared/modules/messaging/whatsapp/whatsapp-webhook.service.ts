@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { ResponseHandlerService } from './response-handler.service';
+import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import { AppointmentStatus, Prisma, WhatsappLogStatus } from '@workspace/db';
 import { WhatsAppWebhookPayload } from '@workspace/types';
 
@@ -17,6 +18,7 @@ export class WhatsappWebhookService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly whatsappClient: WhatsappClientService,
+    private readonly supportInboxService: SupportWhatsAppInboxService,
     @Inject(forwardRef(() => ResponseHandlerService))
     private readonly responseHandler: ResponseHandlerService,
   ) {}
@@ -42,6 +44,8 @@ export class WhatsappWebhookService {
   async processIncomingMessages(
     value: WhatsAppWebhookPayload['entry'][0]['changes'][0]['value'],
   ) {
+    await this.supportInboxService.recordIncomingMessages(value);
+
     for (const message of value.messages || []) {
       const contact = value.contacts?.[0];
       const phoneNumber = message.from;
@@ -132,7 +136,20 @@ export class WhatsappWebhookService {
           });
         }
       } catch (error) {
-        this.logger.error('Error processing status update:', error);
+        this.logger.error(
+          'Error processing WhatsApp log status update:',
+          error,
+        );
+      }
+
+      try {
+        await this.supportInboxService.updateMessageStatus(
+          status.id,
+          status.status,
+          status.errors?.[0],
+        );
+      } catch (error) {
+        this.logger.error('Error updating support inbox status:', error);
       }
     }
   }

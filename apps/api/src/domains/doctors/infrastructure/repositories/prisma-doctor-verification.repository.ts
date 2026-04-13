@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DoctorVerificationStatus, Prisma, Role } from '@workspace/db';
+import { JsonValue } from '@workspace/types';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   IDoctorVerificationRepository,
@@ -29,14 +30,18 @@ const VERIFICATION_SELECT = {
 export class PrismaDoctorVerificationRepository implements IDoctorVerificationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
+  private toInputJsonValue(value: JsonValue): Prisma.InputJsonValue {
     return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
   }
 
   async findDoctorForVerification(
     doctorId: string,
   ): Promise<DoctorForVerification | null> {
-    return this.prisma.user.findUnique({
+    return this.getReadClient().user.findUnique({
       where: { id: doctorId },
       select: {
         id: true,
@@ -51,21 +56,21 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
   async findDoctorVerificationRecord(
     doctorId: string,
   ): Promise<DoctorVerificationRecord | null> {
-    return this.prisma.user.findUnique({
+    return this.getReadClient().user.findUnique({
       where: { id: doctorId },
       select: VERIFICATION_SELECT,
     });
   }
 
   async findDoctorLicenseExpiry(doctorId: string) {
-    return this.prisma.user.findUnique({
+    return this.getReadClient().user.findUnique({
       where: { id: doctorId },
       select: { licenseExpiry: true },
     });
   }
 
   async findDoctorsForReverification(): Promise<Array<{ id: string }>> {
-    return this.prisma.user.findMany({
+    return this.getReadClient().user.findMany({
       where: {
         role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },
         registrationNumber: { not: null },
@@ -82,7 +87,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
       verificationSource?: string;
       verificationRef?: string | null;
       verificationReason?: string | null;
-      verificationData?: unknown;
+      verificationData?: JsonValue;
       verificationCheckedAt: Date;
     },
   ): Promise<void> {

@@ -13,6 +13,10 @@ import { Prescription, Prisma, Role } from '@workspace/db';
 export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findAll(params: PrescriptionSearchParams): Promise<Prescription[]> {
     const { clinicId, search, date } = params;
 
@@ -56,7 +60,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
       };
     }
 
-    return await this.prisma.prescription.findMany({
+    return await this.getReadClient().prescription.findMany({
       where,
       include: {
         medications: true,
@@ -85,7 +89,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   }
 
   async findById(id: string): Promise<PrescriptionDetail | null> {
-    const result = await this.prisma.prescription.findUnique({
+    const result = await this.getReadClient().prescription.findUnique({
       where: { id },
       include: {
         medications: true,
@@ -165,7 +169,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   async findPatientWithAllergies(
     patientId: string,
   ): Promise<PatientWithAllergies | null> {
-    const patient = await this.prisma.patient.findUnique({
+    const patient = await this.getReadClient().patient.findUnique({
       where: { id: patientId },
       select: {
         id: true,
@@ -197,7 +201,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     doctorId: string,
     clinicId?: string,
   ): Promise<DoctorComplianceProfile | null> {
-    const doctor = await this.prisma.user.findFirst({
+    const doctor = await this.getReadClient().user.findFirst({
       where: {
         id: doctorId,
         role: { in: [Role.DOCTOR, Role.ADMIN_DOCTOR] },

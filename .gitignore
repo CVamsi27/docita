@@ -48,6 +48,9 @@ out
 .astro
 **/.astro
 
+# Local upload artifacts
+/uploads
+
 # Turbo cache
 .turbo
 **/.turbo

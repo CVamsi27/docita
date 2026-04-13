@@ -17,12 +17,12 @@ export interface ActiveToken {
 export interface UploadResult {
   success: boolean;
   signatureUrl: string;
+  signatureStoredUrl?: string;
   purpose: string;
   doctor?: { id: string; name: string };
   clinic?: { id: string; name: string };
 }
 
-// Doctor prescription signature token
 export const useGenerateSignatureToken = () =>
   useAPIMutation<SignatureUploadToken, void>(
     "/doctors/signature/generate-token",
@@ -47,7 +47,6 @@ export const useRevokeSignatureToken = () =>
     },
   );
 
-// Clinic SLA signature token
 export const useGenerateSlaSignatureToken = (clinicId: string) =>
   useAPIMutation<SignatureUploadToken, void>(
     `/clinics/signature/generate-token?clinicId=${clinicId}`,
@@ -66,7 +65,8 @@ export const useClinicActiveSignatureTokens = (clinicId: string) =>
 
 export const useRevokeClinicSignatureToken = (clinicId: string) =>
   useAPIMutation<{ success: boolean }, { tokenId: string }>(
-    (params) => `/clinics/signature/token/${params.tokenId}?clinicId=${clinicId}`,
+    (params) =>
+      `/clinics/signature/token/${params.tokenId}?clinicId=${clinicId}`,
     "DELETE",
     {
       invalidateKeys: [["clinic-signature-tokens", clinicId]],
@@ -101,11 +101,13 @@ export const validateToken = async (token: string) => {
       name: string;
       email: string;
       signatureUrl: string | null;
+      signatureStoredUrl?: string | null;
     } | null;
     clinic: {
       id: string;
       name: string;
       slaSignatureUrl: string | null;
+      slaSignatureStoredUrl?: string | null;
     } | null;
   }>(`/doctors/signature/validate-token/${token}`);
 };

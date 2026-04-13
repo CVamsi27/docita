@@ -38,6 +38,7 @@ const NLM_ICD_URL = 'https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search';
 const NLM_HCPCS_URL = 'https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/search';
 const NLM_ICD_REQUEST_TIMEOUT_MS = 5000;
 const NLM_HCPCS_REQUEST_TIMEOUT_MS = 5000;
+const NLM_SYNC_REQUEST_TIMEOUT_MS = 15000;
 const NLM_FAILURE_COOLDOWN_MS = 5 * 60 * 1000;
 const NLM_SYNC_PAGE_SIZE = 500;
 const NLM_SYNC_MAX_OFFSET = 7500;
@@ -92,7 +93,7 @@ export class NlmCodingService {
     this.setDisabledUntil(system, 0);
   }
 
-  private markSearchUnavailable(system: CodeSystem, reason: unknown): void {
+  private markSearchUnavailable(system: CodeSystem, reason: string): void {
     const now = Date.now();
     if (this.isSearchTemporarilyDisabled(system, now)) {
       return;
@@ -100,9 +101,8 @@ export class NlmCodingService {
 
     this.setDisabledUntil(system, now + NLM_FAILURE_COOLDOWN_MS);
 
-    const detail = reason instanceof Error ? reason.message : String(reason);
     this.logger.warn(
-      `NLM ${system} lookup unavailable (${detail}). Skipping remote ${system} lookups for ${Math.round(
+      `NLM ${system} lookup unavailable (${reason}). Skipping remote ${system} lookups for ${Math.round(
         NLM_FAILURE_COOLDOWN_MS / 60000,
       )} minutes.`,
     );
@@ -184,41 +184,53 @@ export class NlmCodingService {
     };
   }
 
-  private async fetchAllByPrefix<T extends { code: string }>(
+  private async streamByPrefix<T>(
     system: CodeSystem,
     endpoint: string,
     prefixes: string[],
     params: { sf: string; df: string; q?: string },
     timeoutMs: number,
     mapper: (code: string, description: string) => T,
-  ): Promise<T[]> {
-    const uniqueCodes = new Map<string, T>();
-
+    onBatch: (batch: T[]) => Promise<void>,
+  ): Promise<void> {
     for (const prefix of prefixes) {
+      if (this.isSearchTemporarilyDisabled(system)) {
+        break;
+      }
+
       let offset = 0;
 
       while (offset < NLM_SYNC_MAX_OFFSET) {
-        const { total, rows } = await this.fetchNlmRows(
-          system,
-          endpoint,
-          {
-            terms: prefix,
-            sf: params.sf,
-            df: params.df,
-            count: String(NLM_SYNC_PAGE_SIZE),
-            offset: String(offset),
-            ...(params.q ? { q: params.q } : {}),
-          },
-          timeoutMs,
-        );
+        let total = 0;
+        let rows: NlmCodeRow[] = [];
+
+        try {
+          ({ total, rows } = await this.fetchNlmRows(
+            system,
+            endpoint,
+            {
+              terms: prefix,
+              sf: params.sf,
+              df: params.df,
+              count: String(NLM_SYNC_PAGE_SIZE),
+              offset: String(offset),
+              ...(params.q ? { q: params.q } : {}),
+            },
+            timeoutMs,
+          ));
+        } catch (err) {
+          this.markSearchUnavailable(
+            system,
+            err instanceof Error ? err.message : String(err),
+          );
+          return;
+        }
 
         if (rows.length === 0) {
           break;
         }
 
-        rows.forEach((row) =>
-          uniqueCodes.set(row.code, mapper(row.code, row.description)),
-        );
+        await onBatch(rows.map((row) => mapper(row.code, row.description)));
 
         offset += rows.length;
 
@@ -226,8 +238,6 @@ export class NlmCodingService {
         if (total > 0 && offset >= total) break;
       }
     }
-
-    return Array.from(uniqueCodes.values());
   }
 
   async searchIcdCodes(query: string): Promise<IcdCode[]> {
@@ -249,7 +259,10 @@ export class NlmCodingService {
       this.clearSearchUnavailable('ICD');
       return rows.map((row) => this.mapIcd(row.code, row.description, false));
     } catch (err) {
-      this.markSearchUnavailable('ICD', err);
+      this.markSearchUnavailable(
+        'ICD',
+        err instanceof Error ? err.message : String(err),
+      );
       return [];
     }
   }
@@ -286,36 +299,41 @@ export class NlmCodingService {
         this.clearSearchUnavailable('HCPCS');
         return rows.map((row) => this.mapCpt(row.code, row.description, false));
       } catch (err) {
-        this.markSearchUnavailable('HCPCS', err);
+        this.markSearchUnavailable(
+          'HCPCS',
+          err instanceof Error ? err.message : String(err),
+        );
       }
     }
 
     return this.searchLocalCptCodes(query);
   }
 
-  async fetchAllIcdCodesForSync(): Promise<IcdCode[]> {
-    return await this.fetchAllByPrefix(
+  async streamIcdCodes(
+    onBatch: (batch: IcdCode[]) => Promise<void>,
+  ): Promise<void> {
+    await this.streamByPrefix(
       'ICD',
       NLM_ICD_URL,
       ICD_SYNC_PREFIXES,
       { sf: 'code', df: 'code,name' },
-      NLM_ICD_REQUEST_TIMEOUT_MS,
+      NLM_SYNC_REQUEST_TIMEOUT_MS,
       (code, description) => this.mapIcd(code, description, true),
+      onBatch,
     );
   }
 
-  async fetchAllCptCodesForSync(): Promise<CptCode[]> {
-    return await this.fetchAllByPrefix(
+  async streamCptCodes(
+    onBatch: (batch: CptCode[]) => Promise<void>,
+  ): Promise<void> {
+    await this.streamByPrefix(
       'HCPCS',
       NLM_HCPCS_URL,
       HCPCS_SYNC_PREFIXES,
-      {
-        sf: 'code',
-        df: 'code,display',
-        q: ACTIVE_HCPCS_FILTER,
-      },
-      NLM_HCPCS_REQUEST_TIMEOUT_MS,
+      { sf: 'code', df: 'code,display', q: ACTIVE_HCPCS_FILTER },
+      NLM_SYNC_REQUEST_TIMEOUT_MS,
       (code, description) => this.mapCpt(code, description, true),
+      onBatch,
     );
   }
 }

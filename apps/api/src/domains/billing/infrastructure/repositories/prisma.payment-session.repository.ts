@@ -10,6 +10,10 @@ import { PaymentSession, Prisma } from '@workspace/db';
 export class PrismaPaymentSessionRepository implements IPaymentSessionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async create(
     data: Prisma.PaymentSessionCreateInput,
   ): Promise<PaymentSession> {
@@ -17,7 +21,7 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   }
 
   async findById(id: string): Promise<PaymentSessionDetail | null> {
-    const session = await this.prisma.paymentSession.findUnique({
+    const session = await this.getReadClient().paymentSession.findUnique({
       where: { id },
       include: {
         patient: {
@@ -46,7 +50,7 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   async findByProviderSessionId(
     providerSessionId: string,
   ): Promise<PaymentSessionDetail | null> {
-    const session = await this.prisma.paymentSession.findFirst({
+    const session = await this.getReadClient().paymentSession.findFirst({
       where: { providerSessionId },
       include: {
         patient: {
@@ -87,7 +91,7 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   }
 
   async findPendingReminders(): Promise<PaymentSessionDetail[]> {
-    const sessions = await this.prisma.paymentSession.findMany({
+    const sessions = await this.getReadClient().paymentSession.findMany({
       where: {
         status: 'CREATED',
         NOT: {

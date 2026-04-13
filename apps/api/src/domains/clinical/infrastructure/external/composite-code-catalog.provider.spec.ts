@@ -47,12 +47,9 @@ describe('CompositeCodeCatalogProvider', () => {
     process.env.CPT_CATALOG_SOURCE = undefined;
   });
 
-  it('uses NLM provider by default for CPT operations', async () => {
+  it('uses NLM provider by default for CPT search', async () => {
     const searchCptCodesMock = jest
       .spyOn(nlmProvider, 'searchCptCodes')
-      .mockResolvedValue([buildCpt('99213')]);
-    const fetchAllCptCodesMock = jest
-      .spyOn(nlmProvider, 'fetchAllCptCodesForSync')
       .mockResolvedValue([buildCpt('99213')]);
     const licensedSearchCptSpy = jest.spyOn(licensedProvider, 'searchCptCodes');
 
@@ -62,11 +59,26 @@ describe('CompositeCodeCatalogProvider', () => {
     );
 
     await provider.searchCptCodes('office');
-    await provider.fetchAllCptCodesForSync();
 
     expect(searchCptCodesMock).toHaveBeenCalled();
-    expect(fetchAllCptCodesMock).toHaveBeenCalled();
     expect(licensedSearchCptSpy).not.toHaveBeenCalled();
+  });
+
+  it('uses NLM provider by default for CPT streaming', async () => {
+    const streamCptMock = jest
+      .spyOn(nlmProvider, 'streamCptCodes')
+      .mockResolvedValue(undefined);
+    const licensedStreamCptSpy = jest.spyOn(licensedProvider, 'streamCptCodes');
+
+    const provider = new CompositeCodeCatalogProvider(
+      nlmProvider,
+      licensedProvider,
+    );
+
+    await provider.streamCptCodes(async () => {});
+
+    expect(streamCptMock).toHaveBeenCalled();
+    expect(licensedStreamCptSpy).not.toHaveBeenCalled();
   });
 
   it('uses licensed provider for CPT operations when configured', async () => {
@@ -74,9 +86,9 @@ describe('CompositeCodeCatalogProvider', () => {
     const licensedSearchCptMock = jest
       .spyOn(licensedProvider, 'searchCptCodes')
       .mockResolvedValue([buildCpt('99213')]);
-    const licensedFetchAllCptMock = jest
-      .spyOn(licensedProvider, 'fetchAllCptCodesForSync')
-      .mockResolvedValue([buildCpt('99213')]);
+    const licensedStreamCptMock = jest
+      .spyOn(licensedProvider, 'streamCptCodes')
+      .mockResolvedValue(undefined);
     const nlmSearchCptSpy = jest.spyOn(nlmProvider, 'searchCptCodes');
 
     const provider = new CompositeCodeCatalogProvider(
@@ -85,10 +97,10 @@ describe('CompositeCodeCatalogProvider', () => {
     );
 
     await provider.searchCptCodes('office');
-    await provider.fetchAllCptCodesForSync();
+    await provider.streamCptCodes(async () => {});
 
     expect(licensedSearchCptMock).toHaveBeenCalled();
-    expect(licensedFetchAllCptMock).toHaveBeenCalled();
+    expect(licensedStreamCptMock).toHaveBeenCalled();
     expect(nlmSearchCptSpy).not.toHaveBeenCalled();
   });
 
@@ -97,9 +109,9 @@ describe('CompositeCodeCatalogProvider', () => {
     const nlmSearchIcdMock = jest
       .spyOn(nlmProvider, 'searchIcdCodes')
       .mockResolvedValue([buildIcd('E11.9')]);
-    const nlmFetchAllIcdMock = jest
-      .spyOn(nlmProvider, 'fetchAllIcdCodesForSync')
-      .mockResolvedValue([buildIcd('E11.9')]);
+    const nlmStreamIcdMock = jest
+      .spyOn(nlmProvider, 'streamIcdCodes')
+      .mockResolvedValue(undefined);
     const licensedSearchIcdSpy = jest.spyOn(licensedProvider, 'searchIcdCodes');
 
     const provider = new CompositeCodeCatalogProvider(
@@ -108,10 +120,10 @@ describe('CompositeCodeCatalogProvider', () => {
     );
 
     await provider.searchIcdCodes('diabetes');
-    await provider.fetchAllIcdCodesForSync();
+    await provider.streamIcdCodes(async () => {});
 
     expect(nlmSearchIcdMock).toHaveBeenCalled();
-    expect(nlmFetchAllIcdMock).toHaveBeenCalled();
+    expect(nlmStreamIcdMock).toHaveBeenCalled();
     expect(licensedSearchIcdSpy).not.toHaveBeenCalled();
   });
 

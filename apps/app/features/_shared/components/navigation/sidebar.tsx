@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  ChevronDown,
+  ChevronUp,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
   Settings2,
   SlidersHorizontal,
   Sparkles,
@@ -85,15 +85,13 @@ function useScrollShadow(ref: React.RefObject<HTMLElement | null>) {
 
 interface SidebarContentProps {
   isCollapsed: boolean;
-  onCollapse: () => void;
-  onExpand: () => void;
+  onExpand?: () => void;
   onClose?: () => void;
   isMobile?: boolean;
 }
 
 function SidebarContent({
   isCollapsed,
-  onCollapse,
   onExpand,
   onClose,
   isMobile = false,
@@ -188,68 +186,62 @@ function SidebarContent({
   return (
     <>
       {/* Header */}
-      <div
-        className={cn(
-          "flex h-14 shrink-0 items-center justify-between border-b border-border/60",
-          isCollapsed && !isMobile ? "px-2" : "px-3",
-        )}
-      >
-        <Link
-          href="/dashboard"
-          className={cn(
-            "flex items-center justify-center rounded-lg transition-colors hover:bg-muted",
-            isCollapsed && !isMobile
-              ? "h-6 w-6"
-              : "h-9 gap-2 px-1 hover:opacity-80 hover:bg-transparent",
-          )}
+      {isCollapsed && !isMobile ? (
+        <button
+          className="flex h-14 w-full shrink-0 items-center justify-center border-b border-border/60 hover:bg-muted/50 transition-colors"
+          onClick={onExpand}
+          aria-label="Expand sidebar"
         >
-          {isCollapsed && !isMobile ? <DocitaIcon /> : <DocitaLogo />}
-        </Link>
-
-        {isMobile ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-            onClick={onClose}
-            aria-label="Close sidebar"
+          <DocitaIcon />
+        </button>
+      ) : (
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-3">
+          <Link
+            href="/dashboard"
+            className="flex h-9 items-center gap-2 rounded-lg px-1 transition-colors hover:opacity-80"
           >
-            <X className="h-4 w-4" />
-          </Button>
-        ) : isCollapsed ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
-            onClick={onExpand}
-            aria-label="Expand sidebar"
-          >
-            <PanelLeftOpen className="h-3.5 w-3.5" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
-            onClick={onCollapse}
-            aria-label="Collapse sidebar"
-          >
-            <PanelLeftClose className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+            <DocitaLogo />
+          </Link>
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              onClick={onClose}
+              aria-label="Close sidebar"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Scrollable nav */}
       <div className="relative flex-1 min-h-0">
-        {showTopShadow && (
-          <div className="pointer-events-none absolute top-0 left-0 right-0 h-6 z-10 bg-gradient-to-b from-background to-transparent" />
+        {showTopShadow && !isCollapsed && (
+          <button
+            aria-label="Scroll up"
+            className="group absolute top-0 left-0 right-0 z-10 flex h-8 cursor-pointer items-start justify-center pt-1"
+            style={{
+              background:
+                "linear-gradient(to bottom, hsl(var(--background)) 20%, transparent)",
+            }}
+            onClick={() =>
+              scrollRef.current?.scrollBy({ top: -120, behavior: "smooth" })
+            }
+          >
+            <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5" />
+          </button>
         )}
 
         <nav
           ref={(el) => {
             scrollRef.current = el;
           }}
-          className="h-full overflow-y-auto overflow-x-hidden px-2 py-2 space-y-0.5 scrollbar-thin scrollbar-thumb-border/60 scrollbar-track-transparent"
+          className={cn(
+            "h-full overflow-y-auto overflow-x-hidden py-2 space-y-0.5 scrollbar-none",
+            isCollapsed && !isMobile ? "px-1" : "px-2",
+          )}
         >
           {visibleNavItems.map((item) => {
             const isActive =
@@ -279,8 +271,20 @@ function SidebarContent({
           })}
         </nav>
 
-        {showBottomShadow && (
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 z-10 bg-gradient-to-t from-background to-transparent" />
+        {showBottomShadow && !isCollapsed && (
+          <button
+            aria-label="Scroll down"
+            className="group absolute bottom-0 left-0 right-0 z-10 flex h-10 cursor-pointer items-end justify-center pb-1.5"
+            style={{
+              background:
+                "linear-gradient(to top, hsl(var(--background)) 40%, transparent)",
+            }}
+            onClick={() =>
+              scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })
+            }
+          >
+            <ChevronDown className="h-4 w-4 animate-bounce text-muted-foreground transition-transform group-hover:translate-y-0.5" />
+          </button>
         )}
       </div>
 
@@ -289,8 +293,8 @@ function SidebarContent({
         {/* Quick-access icons row */}
         <div
           className={cn(
-            "flex items-center gap-1 px-2 py-2",
-            isCollapsed && !isMobile ? "flex-col items-center py-3" : "",
+            "flex items-center gap-1 py-2",
+            isCollapsed && !isMobile ? "flex-col items-center px-1 py-3" : "px-2",
           )}
         >
           <ThemeToggle />
@@ -344,8 +348,8 @@ function SidebarContent({
         {isAdmin && (
           <div
             className={cn(
-              "flex items-center gap-2 px-3 pb-3",
-              isCollapsed && !isMobile ? "flex-col items-center" : "",
+              "flex items-center gap-2 pb-3",
+              isCollapsed && !isMobile ? "flex-col items-center px-1" : "px-3",
             )}
           >
             <div
@@ -458,15 +462,10 @@ export function Sidebar({
     <>
       {/* Desktop sidebar */}
       <aside
-        className={cn(
-          "relative hidden md:flex flex-col h-full bg-background border-r border-border/60",
-          "transition-[width] duration-200 ease-in-out overflow-visible",
-          isCollapsed ? "w-16" : "w-full",
-        )}
+        className="relative hidden md:flex flex-col h-full w-full bg-background border-r border-border/60"
       >
         <SidebarContent
           isCollapsed={isCollapsed}
-          onCollapse={() => onCollapsedChange?.(true)}
           onExpand={() => onCollapsedChange?.(false)}
         />
       </aside>
@@ -484,8 +483,6 @@ export function Sidebar({
           <SidebarContent
             isCollapsed={false}
             isMobile
-            onCollapse={() => {}}
-            onExpand={() => {}}
             onClose={() => onMobileOpenChange?.(false)}
           />
         </SheetContent>

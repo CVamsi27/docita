@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Request,
+  UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -13,8 +14,14 @@ import { UploadsService } from '@/domains/documents/application/services/uploads
 import { MAX_FILE_SIZE } from '@workspace/utils';
 import { UploadSessionResponseDto } from '@/domains/documents/application/dto/uploads.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Role } from '@workspace/db';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  Feature,
+  RequireFeature,
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
 import {
   assertAllowedFileSignature,
@@ -23,7 +30,9 @@ import {
 import { unlink } from 'fs/promises';
 
 @Controller('uploads')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseGuards(TierGuard)
+@RequireFeature(Feature.DOCUMENT_ARCHIVAL)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_MEDICAL_DOCUMENTS))
 export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 

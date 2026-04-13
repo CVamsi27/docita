@@ -116,14 +116,7 @@ const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
     supportsVisionExam: false,
   },
   PEDIATRIC: {
-    specialtySections: [
-      {
-        id: "growth-chart",
-        label: "Growth & Vitals",
-        icon: "Baby",
-        description: "Track growth percentiles and developmental milestones",
-      },
-    ],
+    specialtySections: [],
     presetTags: [
       ...BASE_PRESET_TAGS,
       { tag: "Pediatric", color: "#10b981" },
@@ -144,14 +137,7 @@ const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
     supportsVisionExam: false,
   },
   OPHTHALMOLOGY: {
-    specialtySections: [
-      {
-        id: "vision-exam",
-        label: "Vision Exam",
-        icon: "Eye",
-        description: "Visual acuity and comprehensive eye examination",
-      },
-    ],
+    specialtySections: [],
     presetTags: [
       ...BASE_PRESET_TAGS,
       { tag: "Glaucoma", color: "#ef4444" },
@@ -165,14 +151,7 @@ const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
     supportsVisionExam: true,
   },
   CARDIOLOGY: {
-    specialtySections: [
-      {
-        id: "ecg-monitoring",
-        label: "ECG Monitoring",
-        icon: "Heart",
-        description: "ECG interpretation and cardiac monitoring",
-      },
-    ],
+    specialtySections: [],
     presetTags: [
       ...BASE_PRESET_TAGS,
       { tag: "Heart Failure", color: "#ef4444" },
@@ -186,14 +165,7 @@ const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
     supportsVisionExam: false,
   },
   GYNECOLOGY: {
-    specialtySections: [
-      {
-        id: "prenatal-care",
-        label: "Prenatal Care",
-        icon: "Baby",
-        description: "Pregnancy tracking and prenatal monitoring",
-      },
-    ],
+    specialtySections: [],
     presetTags: [
       ...BASE_PRESET_TAGS,
       { tag: "Pregnant", color: "#ec4899" },
@@ -207,14 +179,7 @@ const CLINIC_CONFIGS: Record<ClinicType, ClinicFeatureConfig> = {
     supportsVisionExam: false,
   },
   PSYCHIATRY: {
-    specialtySections: [
-      {
-        id: "mental-health",
-        label: "Mental Health",
-        icon: "Brain",
-        description: "Mental status examination and assessment tools",
-      },
-    ],
+    specialtySections: [],
     presetTags: [
       ...BASE_PRESET_TAGS,
       { tag: "Depression", color: "#64748b" },
