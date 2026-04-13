@@ -6,7 +6,7 @@ primary_region = 'bom'
 
 [env]
   NODE_ENV = 'production'
-  NODE_MAX_OLD_SPACE_SIZE_MB = '400'
+  NODE_MAX_OLD_SPACE_SIZE_MB = '384'
   WORKER_ENTRYPOINT = 'worker'
   APP_URL = 'https://app.docita.work'
   NEXT_PUBLIC_APP_URL = 'https://app.docita.work'
