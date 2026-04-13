@@ -1,3 +1,7 @@
+/**
+ * `@/*` resolves to `apps/api/src/*` (see tsconfig). Instrumentation and
+ * `WorkerModule` are defined there so scheduler and domain wiring stay in one place.
+ */
 import "@/instrument";
 
 import { NestFactory } from "@nestjs/core";
