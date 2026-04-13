@@ -70,8 +70,6 @@ import { MedicalDocumentsModule } from './domains/medical-documents/medical-docu
 import { InventoryModule } from './domains/inventory/inventory.module';
 import { LeaveModule } from './domains/leave/leave.module';
 
-const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
-
 @Module({
   imports: [
     SentryModule.forRoot(),

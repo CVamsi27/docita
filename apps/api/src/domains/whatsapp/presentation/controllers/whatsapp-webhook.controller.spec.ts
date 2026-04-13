@@ -49,6 +49,17 @@ describe('WhatsAppWebhookController', () => {
     ).toBe('123456');
   });
 
+  it('throws ForbiddenException when the challenge is missing', () => {
+    expect(() =>
+      controller.verifyWebhook({
+        query: {
+          'hub.mode': 'subscribe',
+          'hub.verify_token': 'verify-token',
+        },
+      } as unknown as Request),
+    ).toThrow(ForbiddenException);
+  });
+
   it('rejects invalid verification attempts', () => {
     expect(() =>
       controller.verifyWebhook({
