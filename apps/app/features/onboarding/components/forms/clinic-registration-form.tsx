@@ -9,6 +9,7 @@ import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clini
 import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
+import { getSupportPhoneNumber } from "@/lib/support-contact";
 import {
   ClinicDetailsStep,
   ComplianceStep,
@@ -81,7 +82,7 @@ export function ClinicRegistrationForm({
 }) {
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
-  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
+  const supportPhone = getSupportPhoneNumber();
   const supportMessage =
     "Hi Docita team, I need help with clinic onboarding and pricing for my hospital.";
   const [stepError, setStepError] = useState<string | null>(null);
@@ -530,7 +531,6 @@ export function ClinicRegistrationForm({
           message={supportMessage}
           label="Message onboarding team"
           variant="default"
-          allowGenericLink
         />
       </div>
     </div>

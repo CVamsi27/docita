@@ -32,11 +32,15 @@ export class CompositeCodeCatalogProvider implements CodeCatalogProvider {
     return this.cptProvider.searchCptCodes(query);
   }
 
-  async fetchAllIcdCodesForSync(): Promise<IcdCode[]> {
-    return this.nlmProvider.fetchAllIcdCodesForSync();
+  async streamIcdCodes(
+    onBatch: (batch: IcdCode[]) => Promise<void>,
+  ): Promise<void> {
+    return this.nlmProvider.streamIcdCodes(onBatch);
   }
 
-  async fetchAllCptCodesForSync(): Promise<CptCode[]> {
-    return this.cptProvider.fetchAllCptCodesForSync();
+  async streamCptCodes(
+    onBatch: (batch: CptCode[]) => Promise<void>,
+  ): Promise<void> {
+    return this.cptProvider.streamCptCodes(onBatch);
   }
 }

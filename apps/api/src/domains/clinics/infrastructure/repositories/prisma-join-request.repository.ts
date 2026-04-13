@@ -18,6 +18,10 @@ const JOIN_REQUEST_WITH_RELATIONS = {
 export class PrismaJoinRequestRepository implements IJoinRequestRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async create(input: JoinRequestCreateInput) {
     const [request] = await this.prisma.$transaction([
       this.prisma.memberJoinRequest.create({
@@ -39,27 +43,27 @@ export class PrismaJoinRequestRepository implements IJoinRequestRepository {
   }
 
   async findById(id: string) {
-    return this.prisma.memberJoinRequest.findUnique({
+    return this.getReadClient().memberJoinRequest.findUnique({
       where: { id },
       include: JOIN_REQUEST_WITH_RELATIONS,
     });
   }
 
   async findPending(userId: string, clinicId: string) {
-    return this.prisma.memberJoinRequest.findFirst({
+    return this.getReadClient().memberJoinRequest.findFirst({
       where: { userId, clinicId, status: 'PENDING' },
     });
   }
 
   async findUserPendingRequests(userId: string) {
-    return this.prisma.memberJoinRequest.findMany({
+    return this.getReadClient().memberJoinRequest.findMany({
       where: { userId, status: 'PENDING' },
       include: { clinic: { select: { id: true, name: true } } },
     });
   }
 
   async findByClinic(clinicId: string, status?: JoinRequestStatus) {
-    return this.prisma.memberJoinRequest.findMany({
+    return this.getReadClient().memberJoinRequest.findMany({
       where: {
         clinicId,
         ...(status ? { status } : {}),

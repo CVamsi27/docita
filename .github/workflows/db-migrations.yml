@@ -5,14 +5,6 @@ env:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - packages/db/prisma/**
-      - packages/db/scripts/**
-      - packages/db/package.json
-      - .github/workflows/db-migrations.yml
 
 jobs:
   migrate-db:
@@ -22,15 +14,15 @@ jobs:
       NODE_ENV: production
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: pnpm

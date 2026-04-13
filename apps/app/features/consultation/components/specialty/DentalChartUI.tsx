@@ -8,15 +8,11 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { useState } from "react";
+import type { DentalChartData } from "@workspace/types";
 import { useConstants } from "@/hooks/api/use-common";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 
-interface ToothData {
-  condition: string;
-  notes: string;
-}
-
-export type DentalChartValue = Record<number, ToothData>;
+export type DentalChartValue = DentalChartData;
 
 interface DentalChartUIProps {
   value: DentalChartValue;
@@ -122,7 +118,6 @@ export function DentalChartUI({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 items-center p-6 bg-muted/50 rounded-xl border border-muted">
-        {}
         <div className="flex gap-8">
           <div className="flex gap-1">
             {TEETH_QUADRANTS.UR.map(renderTooth)}
@@ -132,14 +127,12 @@ export function DentalChartUI({
           </div>
         </div>
 
-        {}
         <div className="w-full h-px bg-border relative">
           <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-muted/50 px-2 text-xs text-muted-foreground font-medium tracking-widest">
             FDI CHART
           </span>
         </div>
 
-        {}
         <div className="flex gap-8">
           <div className="flex gap-1">
             {TEETH_QUADRANTS.LR.map(renderTooth)}
@@ -150,7 +143,6 @@ export function DentalChartUI({
         </div>
       </div>
 
-      {}
       {!readOnly && selectedTooth && (
         <Card>
           <CardHeader className="pb-3">

@@ -10,6 +10,7 @@ import {
 import { PatientsController } from './patients.controller';
 import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Role } from '@workspace/db';
 import { RequestWithUser } from '@/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
@@ -70,6 +71,8 @@ describe('PatientsController (Authorization)', () => {
       ],
     })
       .overrideGuard(RolesGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .overrideGuard(TierGuard)
       .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 

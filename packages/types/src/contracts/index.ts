@@ -15,3 +15,4 @@ export * from "./templates";
 export * from "./uploads";
 export * from "./users";
 export * from "./whatsapp";
+export * from "./pdf-jobs";

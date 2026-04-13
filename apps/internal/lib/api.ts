@@ -7,8 +7,12 @@ import {
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
   Patient,
-  type HealthCheck as PerformanceHealthCheck,
+  SupportInquiry,
+  SupportWhatsAppMessage,
+  SupportWhatsAppReplyRequest,
+  SupportWhatsAppThreadSummary,
 } from "@workspace/types";
+type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
 export { API_URL };
 
@@ -248,6 +252,37 @@ export const feedbackAPI = {
   ): Promise<Feedback> => client.patch(`/internal/feedback/${id}/status`, data),
   delete: (id: string): Promise<void> =>
     client.delete(`/internal/feedback/${id}`),
+};
+
+export const supportAPI = {
+  getInquiries: (limit = 100): Promise<SupportInquiry[]> =>
+    client.get(`/internal/support/inquiries?limit=${limit}`),
+  getWhatsAppThreads: (
+    limit = 100,
+  ): Promise<SupportWhatsAppThreadSummary[]> =>
+    client.get(`/internal/support/whatsapp?limit=${limit}`),
+  getWhatsAppThreadMessages: (
+    threadPhoneNumber: string,
+    limit = 500,
+  ): Promise<SupportWhatsAppMessage[]> =>
+    client.get(
+      `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/messages?limit=${limit}`,
+    ),
+  markWhatsAppThreadRead: (
+    threadPhoneNumber: string,
+  ): Promise<{ updatedCount: number }> =>
+    client.patch(
+      `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/read`,
+      {},
+    ),
+  replyToWhatsAppThread: (
+    threadPhoneNumber: string,
+    data: SupportWhatsAppReplyRequest,
+  ): Promise<SupportWhatsAppMessage> =>
+    client.post(
+      `/internal/support/whatsapp/${encodeURIComponent(threadPhoneNumber)}/reply`,
+      data,
+    ),
 };
 
 export interface SubscriptionOverview {

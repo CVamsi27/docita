@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApprovalStatus } from '@workspace/db';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   IPrescriptionRepository,
   PrescriptionDetail,
@@ -12,6 +13,7 @@ import {
   PrescriptionPdfService,
 } from './prescription-pdf.service';
 import { PrescriptionsService } from './prescription.service';
+import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 
 describe('PrescriptionsService', () => {
   const findAllMock = jest.fn<IPrescriptionRepository['findAll']>();
@@ -59,6 +61,18 @@ describe('PrescriptionsService', () => {
 
   const storageProvider = new MockStorageProvider();
 
+  const storedFileUrlResolver: Pick<
+    StoredFileUrlResolverService,
+    'resolveWithStoredUrl'
+  > = {
+    resolveWithStoredUrl: jest
+      .fn<StoredFileUrlResolverService['resolveWithStoredUrl']>()
+      .mockImplementation(async (url) => ({
+        url: url ?? null,
+        storedUrl: url ?? null,
+      })),
+  };
+
   let service: PrescriptionsService;
 
   beforeEach(() => {
@@ -69,6 +83,19 @@ describe('PrescriptionsService', () => {
       eventEmitter,
       usageTracking,
       storageProvider,
+      storedFileUrlResolver,
+      {
+        enqueue: async () => ({
+          jobId: 'job-1',
+          status: 'PENDING' as const,
+          pollUrl: '/api/v1/prescriptions/rx-1/pdf/status?jobId=job-1',
+        }),
+        getStatus: async () => ({
+          jobId: 'job-1',
+          status: 'PENDING' as const,
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        }),
+      } satisfies PdfJobServicePort,
     );
   });
 

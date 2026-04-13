@@ -5,10 +5,18 @@ import { AuthPageContainer } from "./AuthPageContainer";
 const mocks = vi.hoisted(() => ({
   router: {
     push: vi.fn(),
+    replace: vi.fn(),
   },
   checkEmail: vi.fn(),
   login: vi.fn(),
   register: vi.fn(),
+  user: null as {
+    id: string;
+    clinicId?: string | null;
+    emailVerified?: boolean;
+    onboardingStep?: string | null;
+  } | null,
+  isAuthenticated: false,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -17,6 +25,8 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
+    user: mocks.user,
+    isAuthenticated: mocks.isAuthenticated,
     login: mocks.login,
     register: mocks.register,
     checkEmail: mocks.checkEmail,
@@ -29,6 +39,21 @@ vi.mock("./AuthBrandingPanel", () => ({
   AuthBrandingPanel: () => <div data-testid="auth-branding-panel" />,
 }));
 
+vi.mock("@/components/common/loaders/page-transition-loader", () => ({
+  PageTransitionLoader: ({
+    title,
+    description,
+  }: {
+    title: string;
+    description: string;
+  }) => (
+    <div data-testid="page-transition-loader">
+      <div>{title}</div>
+      <div>{description}</div>
+    </div>
+  ),
+}));
+
 vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => <button type="button">Toggle theme</button>,
 }));
@@ -36,9 +61,12 @@ vi.mock("@workspace/ui/components/theme-toggle", () => ({
 describe("AuthPageContainer", () => {
   beforeEach(() => {
     mocks.router.push.mockReset();
+    mocks.router.replace.mockReset();
     mocks.checkEmail.mockReset();
     mocks.login.mockReset();
     mocks.register.mockReset();
+    mocks.user = null;
+    mocks.isAuthenticated = false;
   });
 
   it("shows a field error for an invalid email before checking the account", async () => {
@@ -103,5 +131,25 @@ describe("AuthPageContainer", () => {
 
     expect(await screen.findByText("Passwords do not match.")).toBeInTheDocument();
     expect(mocks.register).not.toHaveBeenCalled();
+  });
+
+  it("redirects already authenticated users to the next step", async () => {
+    mocks.user = {
+      id: "user-1",
+      clinicId: null,
+      emailVerified: false,
+      onboardingStep: "CHOOSE_PATH",
+    };
+    mocks.isAuthenticated = true;
+
+    render(<AuthPageContainer />);
+
+    await waitFor(() => {
+      expect(mocks.router.replace).toHaveBeenCalledWith("/verify-email-sent");
+    });
+
+    expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
+      "Redirecting...",
+    );
   });
 });

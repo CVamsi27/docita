@@ -114,7 +114,8 @@ export function ClinicList({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Contact</TableHead>
-            <TableHead>Tier</TableHead> <TableHead>Type</TableHead>{" "}
+            <TableHead>Tier</TableHead>
+            <TableHead>Type</TableHead>
             <TableHead>Users</TableHead>
             <TableHead>Patients</TableHead>
             <TableHead>Status</TableHead>

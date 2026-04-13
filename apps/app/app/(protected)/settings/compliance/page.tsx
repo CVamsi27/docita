@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -84,7 +83,8 @@ export default function ComplianceSettingsPage() {
       <div>
         <h1 className="text-2xl font-semibold">Compliance</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Legal agreements, data protection, and audit information for your clinic.
+          Legal agreements, data protection, and audit information for your
+          clinic.
         </p>
       </div>
 
@@ -98,7 +98,6 @@ export default function ComplianceSettingsPage() {
         </Alert>
       )}
 
-      {/* SLA Signature */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -113,14 +112,13 @@ export default function ComplianceSettingsPage() {
         <CardContent>
           {compliance?.slaSignatureUrl && (
             <div className="mb-4 rounded-md border p-3 bg-muted/30">
-              <p className="text-xs text-muted-foreground mb-2">Current signature on file</p>
-              <Image
+              <p className="text-xs text-muted-foreground mb-2">
+                Current signature on file
+              </p>
+              <img
                 src={compliance.slaSignatureUrl}
                 alt="Current SLA signature"
-                width={200}
-                height={80}
                 className="max-h-20 object-contain"
-                unoptimized
               />
             </div>
           )}
@@ -128,7 +126,6 @@ export default function ComplianceSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* DPDP Consent Status */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -136,7 +133,8 @@ export default function ComplianceSettingsPage() {
             DPDP Consent Status
           </CardTitle>
           <CardDescription>
-            Patient consent management under the Digital Personal Data Protection Act 2023.
+            Patient consent management under the Digital Personal Data
+            Protection Act 2023.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -164,7 +162,9 @@ export default function ComplianceSettingsPage() {
             <Badge
               variant="outline"
               className={
-                compliance?.consentTemplateEnabled ? "badge-success" : "badge-warning"
+                compliance?.consentTemplateEnabled
+                  ? "badge-success"
+                  : "badge-warning"
               }
             >
               {compliance?.consentTemplateEnabled ? "Custom" : "Default"}
@@ -175,7 +175,8 @@ export default function ComplianceSettingsPage() {
             <div>
               <p className="text-sm font-medium">Data Subject Rights</p>
               <p className="text-xs text-muted-foreground">
-                Patients can request access, correction, or deletion of their data.
+                Patients can request access, correction, or deletion of their
+                data.
               </p>
             </div>
             <Badge variant="outline" className="badge-success">
@@ -185,7 +186,6 @@ export default function ComplianceSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Data Retention Policy */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -193,16 +193,22 @@ export default function ComplianceSettingsPage() {
             Data Retention Policy
           </CardTitle>
           <CardDescription>
-            How long different categories of data are retained in compliance with applicable regulations.
+            How long different categories of data are retained in compliance
+            with applicable regulations.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="divide-y">
             {DATA_RETENTION_POLICIES.map((policy) => (
-              <div key={policy.category} className="flex items-start justify-between py-3">
+              <div
+                key={policy.category}
+                className="flex items-start justify-between py-3"
+              >
                 <div>
                   <p className="text-sm font-medium">{policy.category}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{policy.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {policy.description}
+                  </p>
                 </div>
                 <Badge variant="secondary" className="ml-4 shrink-0">
                   {policy.retention}
@@ -213,7 +219,6 @@ export default function ComplianceSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Audit Log Access */}
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
@@ -236,8 +241,13 @@ export default function ComplianceSettingsPage() {
           {recentAuditLogs && recentAuditLogs.length > 0 ? (
             <div className="divide-y text-sm">
               {recentAuditLogs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between py-2">
-                  <span className="text-muted-foreground font-mono text-xs">{log.action}</span>
+                <div
+                  key={log.id}
+                  className="flex items-center justify-between py-2"
+                >
+                  <span className="text-muted-foreground font-mono text-xs">
+                    {log.action}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {format(new Date(log.createdAt), "MMM d, HH:mm")}
                   </span>

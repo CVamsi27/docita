@@ -1,5 +1,6 @@
 import { ForbiddenException, Logger } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import type { Request } from 'express';
 import { asType } from '@/test-utils/as-type';
 import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/handle-webhook.use-case';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -30,27 +31,33 @@ describe('WhatsAppWebhookController', () => {
   });
 
   it('ignores empty crawler requests without throwing', () => {
-    expect(controller.verifyWebhook({})).toBe('OK');
+    expect(controller.verifyWebhook({ query: {} } as unknown as Request)).toBe(
+      'OK',
+    );
     expect(configService.getMetaConfig).toHaveBeenCalled();
   });
 
   it('returns the webhook challenge when verification succeeds', () => {
     expect(
       controller.verifyWebhook({
-        'hub.mode': 'subscribe',
-        'hub.verify_token': 'verify-token',
-        'hub.challenge': '123456',
-      }),
+        query: {
+          'hub.mode': 'subscribe',
+          'hub.verify_token': 'verify-token',
+          'hub.challenge': '123456',
+        },
+      } as unknown as Request),
     ).toBe('123456');
   });
 
   it('rejects invalid verification attempts', () => {
     expect(() =>
       controller.verifyWebhook({
-        'hub.mode': 'subscribe',
-        'hub.verify_token': 'wrong-token',
-        'hub.challenge': '123456',
-      }),
+        query: {
+          'hub.mode': 'subscribe',
+          'hub.verify_token': 'wrong-token',
+          'hub.challenge': '123456',
+        },
+      } as unknown as Request),
     ).toThrow(ForbiddenException);
   });
 });

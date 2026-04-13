@@ -4,7 +4,6 @@ import {
   whatsappSendMessageResponseSchema,
   whatsappWebhookAckResponseSchema,
   whatsappWebhookPayloadSchema,
-  whatsappWebhookVerifyQuerySchema,
 } from '@workspace/types';
 
 export class SendWhatsAppMessageDto extends createZodDto(
@@ -13,10 +12,6 @@ export class SendWhatsAppMessageDto extends createZodDto(
 
 export class SendWhatsAppMessageResponseDto extends createZodDto(
   whatsappSendMessageResponseSchema,
-) {}
-
-export class VerifyWhatsAppWebhookQueryDto extends createZodDto(
-  whatsappWebhookVerifyQuerySchema,
 ) {}
 
 export class HandleWhatsAppWebhookDto extends createZodDto(

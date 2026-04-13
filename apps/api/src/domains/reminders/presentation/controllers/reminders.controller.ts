@@ -61,9 +61,14 @@ export class RemindersController {
   @ZodSerializerDto(ManualReminderResponseDto)
   @UsePipes(new ZodValidationPipe(sendReminderSchema))
   sendManualReminder(
+    @Request() req: RequestWithUser,
     @Param('appointmentId') appointmentId: string,
     @Body() body: SendReminderDto,
   ) {
-    return this.remindersService.sendManualReminder(appointmentId, body.type);
+    return this.remindersService.sendManualReminder(
+      appointmentId,
+      body.type,
+      req.user!.clinicId!,
+    );
   }
 }

@@ -79,7 +79,14 @@ export default function VerifyEmailPage() {
               });
             }
           }
-          const refreshedUser = await refreshUser();
+          let refreshedUser: User | null = null;
+          try {
+            refreshedUser = await refreshUser();
+          } catch (refreshError) {
+            logger.error("Could not refresh user after email verification", {
+              refreshError,
+            });
+          }
           if (!cancelled) {
             router.replace(
               getPostVerificationPath(refreshedUser ?? latestUserRef.current),

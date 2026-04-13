@@ -648,8 +648,8 @@ export type CreateDoctorTimeOffInput = z.infer<
 >;
 
 export const availableSlotSchema = z.object({
-  time: z.string(), 
-  endTime: z.string(), 
+  time: z.string(),
+  endTime: z.string(),
   doctorId: z.string(),
   doctorName: z.string(),
   isAvailable: z.boolean().default(true),
@@ -670,6 +670,7 @@ export const userSchema = z.object({
   licenseNumber: z.string().optional(),
   licenseExpiry: z.string().or(z.date()).optional(),
   signatureUrl: z.string().optional(),
+  signatureStoredUrl: z.string().nullable().optional(),
   signatureUploadedAt: z.string().or(z.date()).optional(),
   verificationStatus: z
     .enum(["UNVERIFIED", "PENDING", "VERIFIED", "REJECTED", "FAILED"])

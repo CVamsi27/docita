@@ -142,6 +142,24 @@ export const useStartConsultation = () =>
     },
   );
 
+export interface DiagnosisSyncItem {
+  icdCodeId?: string;
+  notes?: string;
+  isPrimary?: boolean;
+}
+
+export const useSyncDiagnoses = (appointmentId: string) =>
+  useAPIMutation<{ success: boolean }, { diagnoses: DiagnosisSyncItem[] }>(
+    `/appointments/${appointmentId}/diagnoses`,
+    "POST",
+    {
+      invalidateKeys: [
+        queryKeys.appointments.detail(appointmentId),
+        ["coding-queue"],
+      ],
+    },
+  );
+
 export const useInfiniteAppointments = (options?: {
   limit?: number;
   date?: string;

@@ -23,6 +23,10 @@ type CursorModel<T> = {
 export class PrismaInvoiceRepository implements IInvoiceRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>> {
@@ -70,14 +74,15 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       };
     }
 
+    const readClient = this.getReadClient();
     const model: CursorModel<InvoiceListItem> = {
       findMany: (args?: Record<string, unknown>) =>
-        this.prisma.invoice.findMany({
+        readClient.invoice.findMany({
           ...(args as Prisma.InvoiceFindManyArgs),
           select: INVOICE_CARD_SELECT,
         }),
       count: (args?: { where?: Record<string, unknown> }) =>
-        this.prisma.invoice.count(args as Prisma.InvoiceCountArgs),
+        readClient.invoice.count(args as Prisma.InvoiceCountArgs),
     };
 
     return paginateWithCursor({
@@ -91,7 +96,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
   }
 
   async findById(id: string): Promise<InvoiceDetail | null> {
-    const invoice = await this.prisma.invoice.findUnique({
+    const invoice = await this.getReadClient().invoice.findUnique({
       where: { id },
       select: INVOICE_DETAIL_SELECT,
     });
