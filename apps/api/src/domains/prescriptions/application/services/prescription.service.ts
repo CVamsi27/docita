@@ -26,6 +26,7 @@ import {
   HospitalRole,
   extractPdfTheme,
 } from '@workspace/types';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   Prescription as _Prescription,
   DosageForm,
@@ -46,6 +47,7 @@ export class PrescriptionsService {
     private eventEmitter: EventEmitter2,
     private usageTracking: UsageTrackingService,
     private readonly storageProvider: StorageProvider,
+    private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
 
   async findAll(clinicId: string, params?: { search?: string; date?: string }) {
@@ -274,6 +276,14 @@ export class PrescriptionsService {
         isPrimary: d.isPrimary,
       }));
 
+    const resolvedDoctorSignature = prescription.doctor?.signatureUrl
+      ? ((
+          await this.storedFileUrlResolver.resolveWithStoredUrl(
+            prescription.doctor.signatureUrl,
+          )
+        ).url ?? undefined)
+      : undefined;
+
     return this.pdfService.generate({
       prescriptionId: prescription.id.slice(0, 8).toUpperCase(),
       clinic: {
@@ -289,7 +299,7 @@ export class PrescriptionsService {
         name: prescription.doctorName,
         qualification: prescription.doctor?.qualification || undefined,
         registrationNumber: prescription.doctorRegistrationNumber || undefined,
-        signatureUrl: prescription.doctor?.signatureUrl || undefined,
+        signatureUrl: resolvedDoctorSignature,
       },
       patient: {
         name: `${prescription.patient.firstName} ${prescription.patient.lastName}`,

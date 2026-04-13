@@ -24,6 +24,7 @@ import {
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   ClaimReadinessResult,
   ClaimValidationService,
@@ -98,6 +99,7 @@ export class InvoicesService {
     private readonly usageTracking: UsageTrackingService,
     private readonly storageProvider: StorageProvider,
     private readonly claimValidationService: ClaimValidationService,
+    private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
 
   private requiresClaimReadinessValidation(
@@ -258,7 +260,6 @@ export class InvoicesService {
       );
     }
 
-    // Build a description → CPT code map from appointment procedures
     const procedureCptMap: Record<string, string> = {};
     if (invoice.appointment?.procedures) {
       for (const proc of invoice.appointment.procedures) {
@@ -267,6 +268,11 @@ export class InvoicesService {
         }
       }
     }
+
+    const resolvedSignature =
+      await this.storedFileUrlResolver.resolveWithStoredUrl(
+        clinic.slaSignatureUrl ?? null,
+      );
 
     return this.pdfService.generate({
       invoiceId: invoice.id.slice(0, 8).toUpperCase(),
@@ -300,7 +306,7 @@ export class InvoicesService {
             qualification: invoice.doctorSpecialization || undefined,
             registrationNumber: invoice.doctorRegistrationNumber || undefined,
           },
-      authorizedSignatureUrl: clinic.slaSignatureUrl || undefined,
+      authorizedSignatureUrl: resolvedSignature.url ?? undefined,
       authorizedSignatureLabel: 'Authorized Signature',
       items: items.map((item) => ({
         description: item.description,

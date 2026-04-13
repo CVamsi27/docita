@@ -126,6 +126,7 @@ export const clinicResponseSchema = createClinicRequestSchema.extend({
   referralCode: z.string().optional(),
   gstin: z.union([z.string(), z.null()]).optional(),
   slaSignatureUrl: z.union([z.string(), z.null()]).optional(),
+  slaSignatureStoredUrl: z.union([z.string(), z.null()]).optional(),
   slaSignatureAcceptedAt: z.union([z.string(), z.date(), z.null()]).optional(),
 });
 

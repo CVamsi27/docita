@@ -27,7 +27,6 @@ import { InvoiceHeader } from "./InvoiceHeader";
 import { InvoiceBillTo } from "./InvoiceBillTo";
 import { InvoiceItemsTableReadOnly } from "./InvoiceItemsTableReadOnly";
 import { InvoiceTotalsOnly } from "./InvoiceTotalsOnly";
-import Image from "next/image";
 
 interface InvoiceDetailsUIProps {
   invoiceId: string;
@@ -156,13 +155,10 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
                 <p className="text-sm font-medium mb-2">Authorized Signature</p>
                 {authorizedSignatureUrl ? (
                   <div className="mb-2 flex justify-center">
-                    <Image
+                    <img
                       src={authorizedSignatureUrl}
                       alt="Authorized Signature"
-                      width={160}
-                      height={56}
                       className="h-14 w-auto object-contain"
-                      unoptimized
                     />
                   </div>
                 ) : (

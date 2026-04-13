@@ -5,6 +5,7 @@ import { TemplatesController } from './presentation/controllers/templates.contro
 import { UploadsController } from './presentation/controllers/uploads.controller';
 import { TemplatesService } from './application/services/templates.service';
 import { UploadsService } from './application/services/uploads.service';
+import { StoredFileUrlResolverService } from './application/services/stored-file-url-resolver.service';
 import { StorageProvider } from './infrastructure/storage.provider';
 import { LocalStorageProvider } from './infrastructure/local-storage.provider';
 import { R2StorageProvider } from './infrastructure/r2-storage.provider';
@@ -17,6 +18,7 @@ const logger = new Logger('DocumentsModule');
   providers: [
     TemplatesService,
     UploadsService,
+    StoredFileUrlResolverService,
     {
       provide: StorageProvider,
       inject: [AppConfigService],
@@ -45,6 +47,11 @@ const logger = new Logger('DocumentsModule');
       },
     },
   ],
-  exports: [TemplatesService, UploadsService, StorageProvider],
+  exports: [
+    TemplatesService,
+    UploadsService,
+    StoredFileUrlResolverService,
+    StorageProvider,
+  ],
 })
 export class DocumentsModule {}
