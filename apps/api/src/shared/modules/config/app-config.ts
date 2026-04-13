@@ -3,7 +3,9 @@ import { z } from 'zod';
 export const EnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
   CPU_COUNT: z.coerce.number().default(4),
-  JWT_SECRET: z.string().min(32),
+  // API needs JWT_SECRET for auth. Worker-only processes should not fail hard
+  // if JWT issuance/verification is not part of their runtime responsibilities.
+  JWT_SECRET: z.string().min(32).optional(),
   JWT_EXPIRATION: z.string().default('7d'),
   ENCRYPTION_KEY: z.string().length(64),
   NODE_ENV: z
@@ -43,7 +45,9 @@ export const EnvSchema = z.object({
   SLOW_QUERY_THRESHOLD_MS: z.coerce.number().default(1000),
   REQUEST_TIMEOUT_MS: z.coerce.number().default(30000),
   SECRETS_PROVIDER: z.enum(['env', 'aws']).default('env'),
+  ENABLE_SCHEDULERS: z.coerce.boolean().default(true),
   API_LOG_MODE: z.string().default('access-and-errors'),
+  WORKER_ENTRYPOINT: z.enum(['main', 'worker']).default('main'),
   DOCTOR_VERIFICATION_API_URL: z.string().optional(),
   DOCTOR_VERIFICATION_API_KEY: z.string().optional(),
   META_BUSINESS_ACCOUNT_ID: z.string().optional(),
@@ -63,6 +67,7 @@ export const EnvSchema = z.object({
   PUBLIC_LANDING_PRESCRIPTIONS: z.coerce.number().int().min(0).optional(),
   PUBLIC_LANDING_APPOINTMENTS: z.coerce.number().int().min(0).optional(),
   PUBLIC_LANDING_UPTIME: z.string().optional(),
+  SLA_UPTIME_TARGET: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4-turbo'),
   AI_REQUEST_TIMEOUT: z.coerce.number().default(5000),
@@ -106,6 +111,8 @@ export function validateEnv(): EnvConfig {
     envToParse.NEXT_PUBLIC_APP_URL ??= 'http://localhost:3000';
     envToParse.NEXT_PUBLIC_API_URL ??= 'http://localhost:3001/api';
     envToParse.CORS_ORIGINS ??= 'http://localhost:3000';
+    envToParse.ENABLE_SCHEDULERS ??= 'true';
+    envToParse.WORKER_ENTRYPOINT ??= 'main';
   }
 
   const result = EnvSchema.safeParse(envToParse);
@@ -142,6 +149,15 @@ export function validateEnv(): EnvConfig {
 
     process.stderr.write('\n');
 
+    process.exit(1);
+  }
+
+  // Enforce JWT_SECRET only when running the request-serving API runtime.
+  const runningAsWorker = result.data.WORKER_ENTRYPOINT === 'worker';
+  if (!runningAsWorker && !result.data.JWT_SECRET) {
+    process.stderr.write('\nAPI environment validation failed.\n');
+    process.stderr.write('Please fix the following environment variables:\n');
+    process.stderr.write('  - JWT_SECRET: Required\n\n');
     process.exit(1);
   }
 

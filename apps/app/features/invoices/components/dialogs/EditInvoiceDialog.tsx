@@ -18,6 +18,7 @@ import {
 import { Plus, X } from "lucide-react";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };
 
@@ -99,8 +100,9 @@ export function EditInvoiceDialog({
       onInvoiceUpdated();
       setTimeout(() => onOpenChange(false), 100);
     } catch {
-
-      toast.error("Failed to update invoice");
+      showUserFacingErrorToast(
+        "We could not save this invoice. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -125,7 +127,7 @@ export function EditInvoiceDialog({
         <div className="space-y-2">
           <Label>Status</Label>
           <Select value={status} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>

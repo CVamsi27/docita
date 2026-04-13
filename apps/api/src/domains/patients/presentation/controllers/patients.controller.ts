@@ -7,27 +7,36 @@ import {
   Param,
   Request,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Role } from '@workspace/db';
+import {
+  APP_ACCESS_TARGETS,
+  type PatientDomainCreateInput,
+  type PatientDomainUpdateInput,
+  patientDomainCreateSchema,
+  patientDomainUpdateSchema,
+} from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  Feature,
+  RequireFeature,
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
 import {
   CreatePatientDto,
   ListPatientsQueryDto,
   UpdatePatientDto,
 } from '@/domains/patients/application/dto/patients.dto';
-import {
-  type PatientDomainCreateInput,
-  type PatientDomainUpdateInput,
-  patientDomainCreateSchema,
-  patientDomainUpdateSchema,
-} from '@workspace/types';
 
 @ApiTags('patients')
 @Controller('patients')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseGuards(TierGuard)
+@RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS))
 export class PatientsController {
   constructor(private readonly patientService: PatientService) {}
 

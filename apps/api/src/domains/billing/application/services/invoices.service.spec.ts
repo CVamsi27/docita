@@ -11,8 +11,10 @@ import {
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PDFService, InvoiceData } from './pdf.service';
 import { InvoicesService } from './invoices.service';
+import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 
 describe('InvoicesService', () => {
   const baseDate = new Date('2026-01-01T00:00:00.000Z');
@@ -45,6 +47,18 @@ describe('InvoicesService', () => {
   }
 
   const storageProvider = new MockStorageProvider();
+
+  const storedFileUrlResolver: Pick<
+    StoredFileUrlResolverService,
+    'resolveWithStoredUrl'
+  > = {
+    resolveWithStoredUrl: jest
+      .fn<StoredFileUrlResolverService['resolveWithStoredUrl']>()
+      .mockImplementation(async (url) => ({
+        url: url ?? null,
+        storedUrl: url ?? null,
+      })),
+  };
 
   const claimValidationService = Object.create(
     ClaimValidationService.prototype,
@@ -132,6 +146,19 @@ describe('InvoicesService', () => {
       usageTracking,
       storageProvider,
       claimValidationService,
+      storedFileUrlResolver,
+      {
+        enqueue: async () => ({
+          jobId: 'job-1',
+          status: 'PENDING' as const,
+          pollUrl: '/api/v1/invoices/inv-1/pdf/status?jobId=job-1',
+        }),
+        getStatus: async () => ({
+          jobId: 'job-1',
+          status: 'PENDING' as const,
+          createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        }),
+      } satisfies PdfJobServicePort,
     );
   });
 

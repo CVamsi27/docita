@@ -42,6 +42,7 @@ import {
   useCreateLeavePlan,
 } from "@/hooks/api/use-leaves";
 import { LeaveType, StaffLeave, LeavePlan } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   CASUAL: "Casual",
@@ -111,7 +112,9 @@ export function LeaveManagementSettings() {
 
   const handleApplyLeave = async () => {
     if (!applyForm.leaveType || !applyForm.startDate || !applyForm.endDate) {
-      toast.error("Please fill in all required fields");
+      showUserFacingErrorToast(
+        "Choose a leave type, start date, and end date before submitting.",
+      );
       return;
     }
     try {
@@ -127,13 +130,17 @@ export function LeaveManagementSettings() {
       setApplyForm({ leaveType: "", startDate: "", endDate: "", reason: "", staffId: "" });
       refetch();
     } catch {
-      toast.error("Failed to submit leave request");
+      showUserFacingErrorToast(
+        "We could not submit this leave request. Please try again.",
+      );
     }
   };
 
   const handleCreatePlan = async () => {
     if (!planForm.leaveType || !planForm.annualQuota) {
-      toast.error("Please fill in all required fields");
+      showUserFacingErrorToast(
+        "Choose a leave type and annual quota before saving the plan.",
+      );
       return;
     }
     try {
@@ -153,7 +160,9 @@ export function LeaveManagementSettings() {
         maxCarryForward: "0",
       });
     } catch {
-      toast.error("Failed to save leave plan");
+      showUserFacingErrorToast(
+        "We could not save this leave plan. Please try again.",
+      );
     }
   };
 
@@ -515,7 +524,9 @@ function LeaveRequestRow({
       toast.success("Leave approved");
       onActionDone();
     } catch {
-      toast.error("Failed to approve leave");
+      showUserFacingErrorToast(
+        "We could not approve this leave request. Please try again.",
+      );
     }
   };
 
@@ -525,7 +536,9 @@ function LeaveRequestRow({
       toast.success("Leave cancelled");
       onActionDone();
     } catch {
-      toast.error("Failed to cancel leave");
+      showUserFacingErrorToast(
+        "We could not cancel this leave request. Please try again.",
+      );
     }
   };
 
@@ -627,7 +640,9 @@ function RejectButton({
       toast.success("Leave rejected");
       onDone();
     } catch {
-      toast.error("Failed to reject leave");
+      showUserFacingErrorToast(
+        "We could not reject this leave request. Please try again.",
+      );
     }
   };
 

@@ -16,7 +16,7 @@ Docita is a healthcare practice management system built as a Turborepo monorepo.
 - **State Management**: React Query (@tanstack/react-query) for server state, Zustand for client state
 - **Forms**: React Hook Form + Zod validation
 - **UI**: Shared component library in @workspace/ui
-- **Deployment**: Railway (API), Cloudflare (App)
+- **Deployment**: Staging-first Git flow, Render staging API, Fly.io production API, Cloudflare workers for web apps
 
 ## Repository Structure
 
@@ -25,7 +25,7 @@ docita/
 ├── apps/
 │   ├── api/          # NestJS backend (port 3001)
 │   ├── app/          # Next.js main product app (port 3000)
-│   ├── admin/        # Next.js admin interface (port 3002)
+│   ├── internal/     # Next.js internal interface (port 3002)
 │   └── landing/      # Astro marketing site (port 3003)
 ├── packages/
 │   ├── db/           # Prisma schema, migrations, client
@@ -49,13 +49,13 @@ docita/
 # Install dependencies
 pnpm install
 
-# Run all apps (landing, app, admin, api)
+# Run all apps (landing, app, internal, api)
 pnpm dev
 
 # Run specific apps
 pnpm dev:landing   # Landing only
 pnpm dev:app       # App + API
-pnpm dev:admin     # Admin + API
+pnpm dev:internal  # Internal + API
 ```
 
 ### Building
@@ -244,6 +244,12 @@ Key patterns:
 - Always handle loading, error, and empty states
 - Use Next.js `Link` and `router.push()` for navigation
 - Never import `@prisma/client` or `@workspace/db` in frontend code
+
+## Branching and Releases
+
+- **`main`** is canonical for production; **`staging`** mirrors **`main`** (same tree) and is where **routine PRs land first**. Branch from **`staging`**, open PRs **into `staging`**, validate in the staging environment, then open a **promotion PR `staging` → `main`**. Do not open ordinary fix/feature PRs directly against `main`.
+- Sync **`staging` to `main`** when they drift so new branches start from the right baseline.
+- Do not commit directly on `main` or `staging`. See `AGENTS.md` section 11.3 for the full model.
 
 ## Security & Compliance
 

@@ -5,11 +5,13 @@ import {
   CreateTemplateRequest,
   Document,
   DocumentContractResponse,
+  enqueuePdfJobResponseSchema,
   LabTest,
   LabTestOrder,
   ListDocumentsContractQuery,
   ListTemplatesContractQuery,
   Patient,
+  pdfJobStatusResponseSchema,
   Prescription,
   TemplateContractResponse,
   UpdateLabTestOrderRequest,
@@ -20,8 +22,11 @@ import {
   useAPIMutation,
   useAPIQuery,
 } from "@/lib/api-core";
-import { fetchWithSession } from "@/lib/fetch-with-session";
 import { withQueryString } from "@/lib/http/query-string";
+import { api } from "@/lib/api-client";
+
+const POLL_INTERVAL_MS = 2000;
+const POLL_TIMEOUT_MS = 60000;
 
 export const useVitalSigns = (patientId: string) =>
   useAPIQuery<VitalSign[]>(
@@ -97,21 +102,30 @@ export const useDeletePrescription = (id: string) =>
 export const useDownloadPrescriptionPDF = () => {
   return useMutation({
     mutationFn: async (prescriptionId: string) => {
-      const response = await fetchWithSession(
-        `/prescriptions/${prescriptionId}/pdf`,
+      const enqueueResponse = await api.get(
+        `/prescriptions/${prescriptionId}/pdf?async=true`,
       );
-      if (!response.ok) {
-        throw new Error(`Failed to download PDF: ${response.statusText}`);
+      const { jobId } = enqueuePdfJobResponseSchema.parse(enqueueResponse);
+
+      const deadline = Date.now() + POLL_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const statusResponse = await api.get(
+          `/prescriptions/${prescriptionId}/pdf/status?jobId=${jobId}`,
+        );
+        const status = pdfJobStatusResponseSchema.parse(statusResponse);
+
+        if (status.status === "COMPLETED" && status.pdfUrl) {
+          window.open(status.pdfUrl, "_blank");
+          return;
+        }
+
+        if (status.status === "FAILED") {
+          throw new Error("PDF generation failed");
+        }
       }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `prescription-${prescriptionId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+
+      throw new Error("PDF generation timed out");
     },
   });
 };

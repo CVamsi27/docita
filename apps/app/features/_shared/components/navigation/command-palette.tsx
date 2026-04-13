@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useStartConsultation, useQueueByDoctor } from "@/hooks/api/use-appointments";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth-context";
@@ -28,6 +27,7 @@ import {
   Users,
 } from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const navigationItems = [
   {
@@ -184,10 +184,10 @@ export function CommandPalette() {
       const result = await startConsultation.mutateAsync({ appointmentId });
       router.push(`/consultation/${result.appointmentId}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Unable to start this consultation",
+      showUserFacingErrorToast(
+        error,
+        "We could not open this consultation. Please try again.",
+        "save",
       );
       router.push("/consultation");
     }

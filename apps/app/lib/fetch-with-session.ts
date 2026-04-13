@@ -1,14 +1,25 @@
 import { API_URL } from "@/lib/api-config";
 import { appSession } from "@/lib/session";
 
+function isMutatingMethod(method: string | undefined): boolean {
+  return ["POST", "PUT", "PATCH", "DELETE"].includes((method ?? "GET").toUpperCase());
+}
+
 function mergeHeaders(
   headers: HeadersInit | undefined,
   token: string | null,
+  csrfToken: string | null,
+  method: string | undefined,
 ): Headers {
   const merged = new Headers(headers ?? {});
   if (token) {
     merged.set("Authorization", `Bearer ${token}`);
   }
+
+  if (isMutatingMethod(method) && csrfToken && !merged.has("x-xsrf-token")) {
+    merged.set("x-xsrf-token", csrfToken);
+  }
+
   return merged;
 }
 
@@ -16,11 +27,12 @@ export async function fetchWithSession(
   endpoint: string,
   init?: RequestInit,
 ): Promise<Response> {
+  const csrfToken = appSession.getCsrfToken();
   const request = (token: string | null) =>
     fetch(`${API_URL}${endpoint}`, {
       ...init,
       credentials: "include",
-      headers: mergeHeaders(init?.headers, token),
+      headers: mergeHeaders(init?.headers, token, csrfToken, init?.method),
     });
 
   let response = await request(appSession.getToken());
@@ -45,14 +57,7 @@ export async function fetchJsonWithSession<T>(
 ): Promise<T> {
   const response = await fetchWithSession(endpoint, init);
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
-    try {
-      const payload = (await response.json()) as { message?: string };
-      if (typeof payload?.message === "string" && payload.message.length > 0) {
-        message = payload.message;
-      }
-    } catch {}
-    throw new Error(message);
+    throw new Error("We could not load the requested details. Please try again.");
   }
 
   return response.json() as Promise<T>;

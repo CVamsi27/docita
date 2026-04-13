@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Query,
   UseGuards as _UseGuards,
@@ -51,15 +52,24 @@ export class SearchController {
     @Query('types') types?: string,
     @Query('limit') limit?: string,
   ) {
+    if (!req.user.clinicId) {
+      throw new ForbiddenException('Search requires a clinic context');
+    }
+
     const searchTypes = types
       ? (types.split(',') as SearchEntityType[])
       : ['all' as SearchEntityType];
+
+    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const safeLimit = Number.isFinite(parsedLimit)
+      ? Math.min(Math.max(parsedLimit, 1), 100)
+      : 20;
 
     return this.searchService.search({
       clinicId: req.user.clinicId,
       query,
       types: searchTypes,
-      limit: limit ? parseInt(limit, 10) : 20,
+      limit: safeLimit,
     });
   }
 }

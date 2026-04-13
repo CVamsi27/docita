@@ -29,7 +29,7 @@ import { DeletePatientDataDto } from './dto/compliance.dto';
 
 const recordConsentSchema = z.object({
   patientId: z.string(),
-  clinicId: z.string(),
+  clinicId: z.string().optional(),
   consentType: z.nativeEnum(ConsentType),
   status: z.nativeEnum(ConsentStatus).default(ConsentStatus.ACTIVE),
   purpose: z.string(),
@@ -61,16 +61,18 @@ export class ConsentController {
     @Body(new ZodValidationPipe(recordConsentSchema)) data: RecordConsentDto,
     @Req() req: Request,
   ) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
-    return this.dpdpService.recordConsent(data, ipAddress);
+    const ipAddress = req.ip || req.socket?.remoteAddress;
+    const clinicId = (req.user as AuthUser)?.clinicId;
+    return this.dpdpService.recordConsent({ ...data, clinicId }, ipAddress);
   }
 
   @Get('history')
   @Roles(Role.DOCTOR, Role.ADMIN, Role.ADMIN_DOCTOR)
   async getConsentHistory(
     @Query('patientId') patientId: string,
-    @Query('clinicId') clinicId: string,
+    @Req() req: Request,
   ) {
+    const clinicId = (req.user as AuthUser)?.clinicId;
     return this.dpdpService.getConsentHistory(patientId, clinicId);
   }
 
@@ -82,12 +84,14 @@ export class ConsentController {
     data: WithdrawConsentDto,
     @Req() req: Request,
   ) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.socket?.remoteAddress;
+    const clinicId = (req.user as AuthUser)?.clinicId;
     return this.dpdpService.withdrawConsent(
       consentId,
       data.reason,
       data.withdrawnBy,
       ipAddress,
+      clinicId,
     );
   }
 
@@ -99,7 +103,7 @@ export class ConsentController {
     @Body() dto: DeletePatientDataDto,
     @Req() req: Request,
   ) {
-    const ipAddress = req.ip || req.connection.remoteAddress;
+    const ipAddress = req.ip || req.socket?.remoteAddress;
     return this.dpdpService.handleErasureRequest(
       {
         patientId,

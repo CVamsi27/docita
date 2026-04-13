@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useAppointment } from "@/hooks/api/use-appointments";
 import { useSaveVitals } from "@/hooks/api/use-clinical";
 import { useQueryClient } from "@tanstack/react-query";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UseVitalsFormProps {
   appointmentId: string;
@@ -139,8 +140,9 @@ export function useVitalsForm({
       }
       toast.success("Vitals saved successfully");
     } catch {
-
-      toast.error("Failed to save vitals");
+      showUserFacingErrorToast(
+        "We could not save these vital signs. Please try again.",
+      );
     }
   };
 

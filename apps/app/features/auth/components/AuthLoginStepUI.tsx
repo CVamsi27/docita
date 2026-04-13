@@ -19,6 +19,8 @@ interface LoginStepProps {
   fieldErrors: FieldErrors;
   loading: boolean;
   error: string;
+  isLocked: boolean;
+  lockoutMessage: string;
   onBack: () => void;
   onChangePassword: (value: string) => void;
   onTogglePassword: () => void;
@@ -33,6 +35,8 @@ export function AuthLoginStepUI({
   fieldErrors,
   loading,
   error,
+  isLocked,
+  lockoutMessage,
   onBack,
   onChangePassword,
   onTogglePassword,
@@ -71,7 +75,7 @@ export function AuthLoginStepUI({
             autoComplete="current-password"
             required
             className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
-            placeholder="••••••••"
+            placeholder="Enter your password"
             autoFocus
             aria-invalid={hasFieldError(fieldErrors, "password")}
             aria-describedby={
@@ -112,6 +116,12 @@ export function AuthLoginStepUI({
         </p>
       </div>
 
+      {isLocked && lockoutMessage && (
+        <div className="surface-warning rounded-lg px-3 py-2 text-sm">
+          {lockoutMessage}
+        </div>
+      )}
+
       {!Object.keys(fieldErrors).length && error && (
         <ErrorBanner message={error} />
       )}
@@ -119,7 +129,7 @@ export function AuthLoginStepUI({
       <Button
         type="submit"
         className="w-full h-11 text-base shadow-md hover:shadow-lg transition-shadow"
-        disabled={loading || password.trim().length === 0}
+        disabled={loading || isLocked || password.trim().length === 0}
       >
         {loading ? (
           <>

@@ -40,7 +40,7 @@ export const ALL: APIRoute = async ({ params, request }) => {
   const path = params["path"];
 
   if (!path) {
-    return jsonError(400, "Missing path");
+    return jsonError(400, "We could not find what you were looking for.");
   }
 
   const targetBase = (import.meta.env["API_PROXY_TARGET"] || "http://localhost:3001").replace(
@@ -76,7 +76,7 @@ export const ALL: APIRoute = async ({ params, request }) => {
   } catch {
     return jsonError(
       502,
-      "Unable to reach Docita API. Please try again in a few minutes.",
+      "We could not connect right now. Please try again in a few minutes.",
     );
   }
 };

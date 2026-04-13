@@ -508,9 +508,9 @@ export const HOSPITAL_ROLE_LABELS: Record<HospitalRole, string> = {
 export const doctorEducationSchema = z.object({
   id: z.string().optional(),
   doctorId: z.string(),
-  degree: z.string().min(1, "Degree is required"),
+  degree: z.string().min(1, "Enter the degree."),
   fieldOfStudy: z.string().optional(),
-  institution: z.string().min(1, "Institution is required"),
+  institution: z.string().min(1, "Enter the institution name."),
   location: z.string().optional(),
   startYear: z.number().optional(),
   endYear: z.number().optional(),
@@ -526,8 +526,8 @@ export type DoctorEducation = z.infer<typeof doctorEducationSchema>;
 export const doctorCertificationSchema = z.object({
   id: z.string().optional(),
   doctorId: z.string(),
-  name: z.string().min(1, "Certification name is required"),
-  issuingBody: z.string().min(1, "Issuing body is required"),
+  name: z.string().min(1, "Enter the certification name."),
+  issuingBody: z.string().min(1, "Enter the issuing organization."),
   issueDate: z.string().or(z.date()),
   expiryDate: z.string().or(z.date()).optional(),
   credentialId: z.string().optional(),
@@ -590,13 +590,13 @@ export const doctorScheduleSchema = z.object({
     .string()
     .regex(
       /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-      "Invalid time format. Use HH:MM",
+      "Enter a valid time, like 09:00.",
     ),
   endTime: z
     .string()
     .regex(
       /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
-      "Invalid time format. Use HH:MM",
+      "Enter a valid time, like 09:00.",
     ),
   slotDuration: z.number().min(5).max(120).default(30),
   isActive: z.boolean().default(true),
@@ -648,8 +648,8 @@ export type CreateDoctorTimeOffInput = z.infer<
 >;
 
 export const availableSlotSchema = z.object({
-  time: z.string(), 
-  endTime: z.string(), 
+  time: z.string(),
+  endTime: z.string(),
   doctorId: z.string(),
   doctorName: z.string(),
   isAvailable: z.boolean().default(true),
@@ -670,6 +670,7 @@ export const userSchema = z.object({
   licenseNumber: z.string().optional(),
   licenseExpiry: z.string().or(z.date()).optional(),
   signatureUrl: z.string().optional(),
+  signatureStoredUrl: z.string().nullable().optional(),
   signatureUploadedAt: z.string().or(z.date()).optional(),
   verificationStatus: z
     .enum(["UNVERIFIED", "PENDING", "VERIFIED", "REJECTED", "FAILED"])

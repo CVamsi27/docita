@@ -15,6 +15,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   invoiceItemSchema,
   type InvoiceItem,
+  type EnqueuePdfJobResponse,
   extractPdfTheme,
 } from '@workspace/types';
 import {
@@ -24,10 +25,13 @@ import {
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import {
   ClaimReadinessResult,
   ClaimValidationService,
 } from '@/domains/billing/core/services/claim-validation.service';
+import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
+import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
@@ -42,7 +46,7 @@ const toPrismaInvoiceItems = (items: InvoiceItem[]): Prisma.InputJsonValue => {
   })) as Prisma.InputJsonValue;
 };
 
-const parseInvoiceItems = (items: unknown): InvoiceItem[] => {
+const parseInvoiceItems = (items: Prisma.JsonValue): InvoiceItem[] => {
   const parsed = invoiceItemSchema.array().safeParse(items);
   return parsed.success ? parsed.data : [];
 };
@@ -67,6 +71,11 @@ const normalizeDoctorRole = (
     : undefined;
 };
 
+const isJsonObject = (
+  value: Prisma.JsonValue | null | undefined,
+): value is Prisma.JsonObject =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
 const extractClinicGstin = (
   clinic:
     | {
@@ -80,11 +89,11 @@ const extractClinicGstin = (
   if (clinic.gstin) return clinic.gstin;
 
   const settings = clinic.settings;
-  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+  if (!isJsonObject(settings)) {
     return undefined;
   }
 
-  const gstin = (settings as Record<string, unknown>).gstin;
+  const gstin = settings.gstin;
   return typeof gstin === 'string' && gstin.trim() ? gstin.trim() : undefined;
 };
 
@@ -98,6 +107,13 @@ export class InvoicesService {
     private readonly usageTracking: UsageTrackingService,
     private readonly storageProvider: StorageProvider,
     private readonly claimValidationService: ClaimValidationService,
+    @Inject(StoredFileUrlResolverService)
+    private readonly storedFileUrlResolver: Pick<
+      StoredFileUrlResolverService,
+      'resolveWithStoredUrl'
+    >,
+    @Inject(PdfJobService)
+    private readonly pdfJobService: PdfJobServicePort,
   ) {}
 
   private requiresClaimReadinessValidation(
@@ -258,7 +274,6 @@ export class InvoicesService {
       );
     }
 
-    // Build a description → CPT code map from appointment procedures
     const procedureCptMap: Record<string, string> = {};
     if (invoice.appointment?.procedures) {
       for (const proc of invoice.appointment.procedures) {
@@ -267,6 +282,11 @@ export class InvoicesService {
         }
       }
     }
+
+    const resolvedSignature =
+      await this.storedFileUrlResolver.resolveWithStoredUrl(
+        clinic.slaSignatureUrl ?? null,
+      );
 
     return this.pdfService.generate({
       invoiceId: invoice.id.slice(0, 8).toUpperCase(),
@@ -300,7 +320,7 @@ export class InvoicesService {
             qualification: invoice.doctorSpecialization || undefined,
             registrationNumber: invoice.doctorRegistrationNumber || undefined,
           },
-      authorizedSignatureUrl: clinic.slaSignatureUrl || undefined,
+      authorizedSignatureUrl: resolvedSignature.url ?? undefined,
       authorizedSignatureLabel: 'Authorized Signature',
       items: items.map((item) => ({
         description: item.description,
@@ -333,31 +353,12 @@ export class InvoicesService {
       }
 
       const buffer = await this.generatePDF(id, clinicId);
-      const objectKey = `pdfs/invoices/${id}.pdf`;
-      const generatedAt = new Date();
-      const storedKey = await this.storageProvider.uploadBuffer(
+      const { storedKey } = await this.uploadAndPersist(
+        id,
+        clinicId,
         buffer,
-        objectKey,
-        'application/pdf',
-        {
-          metadata: {
-            asset_type: 'invoice-pdf',
-            resource_type: 'Invoice',
-            resource_id: id,
-            clinic_id: invoice.patient?.clinic?.id,
-            doctor_id: invoice.appointment?.doctor?.id,
-            modified_at: generatedAt.toISOString(),
-            modified_by: invoice.appointment?.doctor?.id || 'system',
-            auth_method: 'invoice-service',
-          },
-        },
+        invoice,
       );
-
-      await this.repository.update(id, {
-        pdfUrl: storedKey,
-        pdfGeneratedAt: generatedAt,
-        pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
-      });
 
       const url = await this.storageProvider.generateSignedUrl(
         storedKey,
@@ -368,5 +369,47 @@ export class InvoicesService {
 
     const buffer = await this.generatePDF(id, clinicId);
     return { type: 'buffer', buffer };
+  }
+
+  async generatePdfAsync(
+    id: string,
+    clinicId: string,
+  ): Promise<EnqueuePdfJobResponse> {
+    return this.pdfJobService.enqueue(id, 'invoice', clinicId);
+  }
+
+  async uploadAndPersist(
+    id: string,
+    clinicId: string | undefined,
+    buffer: Buffer,
+    invoice: InvoiceDetail,
+  ): Promise<{ storedKey: string; generatedAt: Date }> {
+    const objectKey = `pdfs/invoices/${id}.pdf`;
+    const generatedAt = new Date();
+    const storedKey = await this.storageProvider.uploadBuffer(
+      buffer,
+      objectKey,
+      'application/pdf',
+      {
+        metadata: {
+          asset_type: 'invoice-pdf',
+          resource_type: 'Invoice',
+          resource_id: id,
+          clinic_id: invoice.patient?.clinic?.id,
+          doctor_id: invoice.appointment?.doctor?.id,
+          modified_at: generatedAt.toISOString(),
+          modified_by: invoice.appointment?.doctor?.id || 'system',
+          auth_method: 'invoice-service',
+        },
+      },
+    );
+
+    await this.repository.update(id, {
+      pdfUrl: storedKey,
+      pdfGeneratedAt: generatedAt,
+      pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
+    });
+
+    return { storedKey, generatedAt };
   }
 }

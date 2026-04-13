@@ -17,6 +17,7 @@ import { Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function CreateReceptionistPage() {
   const [fieldErrors, setFieldErrors] = useState<{
@@ -48,15 +49,15 @@ export default function CreateReceptionistPage() {
 
     const errors: { name?: string; email?: string; password?: string } = {};
     if (!form.name.trim()) {
-      errors.name = "Full name is required";
+      errors.name = "Enter the receptionist's full name.";
     }
     if (!form.email.trim()) {
-      errors.email = "Email is required";
+      errors.email = "Enter an email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errors.email = "Enter a valid email address";
     }
     if (!form.password.trim()) {
-      errors.password = "Password is required";
+      errors.password = "Enter a password.";
     }
 
     setFieldErrors(errors);
@@ -69,14 +70,14 @@ export default function CreateReceptionistPage() {
       toast.success("Receptionist created successfully");
       router.push("/clinic/team");
     } catch {
-      toast.error("Error creating receptionist");
+      showUserFacingErrorToast("We could not create this receptionist account. Please try again.");
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Create Receptionist
         </h1>
         <p className="text-muted-foreground">

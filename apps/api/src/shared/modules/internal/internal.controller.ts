@@ -42,14 +42,27 @@ import {
 import { ClinicResponseDto } from '@/domains/clinics/application/dto/clinics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { FeedbackService } from '@/domains/feedback/application/services/feedback.service';
+import { ContactService } from '@/shared/modules/contact/contact.service';
+import {
+  SupportWhatsAppInboxService,
+  SupportWhatsAppMessageListResponseDto,
+  SupportWhatsAppReadResponseDto,
+  SupportWhatsAppReplyDto,
+  SupportWhatsAppReplyResponseDto,
+  SupportWhatsAppThreadListResponseDto,
+  SupportWhatsAppThreadMessagesQueryDto,
+  SupportWhatsAppThreadsQueryDto,
+} from '@/shared/modules/support-whatsapp';
 import {
   FeedbackListResponseDto,
   FeedbackResponseDto,
   UpdateFeedbackStatusDto,
   UpdateFeedbackStatusSchema,
 } from '@/domains/feedback/dto/feedback.dto';
+import { ContactInquiryListResponseDto } from '@/shared/modules/contact/dto/contact.dto';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { UsePipes } from '@nestjs/common';
+import { parsePaginationInt } from '@/common/utils/string.utils';
 
 @Controller('internal')
 @Roles(Role.INTERNAL)
@@ -61,6 +74,8 @@ export class InternalController {
     private readonly aiService: InternalAiService,
     private readonly billingService: InternalBillingService,
     private readonly feedbackService: FeedbackService,
+    private readonly contactService: ContactService,
+    private readonly supportWhatsAppInboxService: SupportWhatsAppInboxService,
   ) {}
 
   @Get('clinics')
@@ -148,8 +163,8 @@ export class InternalController {
     @Query('module') module?: string,
     @Query('q') q?: string,
   ) {
-    const parsedLimit = limit ? parseInt(limit, 10) : 50;
-    const parsedOffset = offset ? parseInt(offset, 10) : 0;
+    const parsedLimit = parsePaginationInt(limit, { min: 1, max: 500 }) ?? 50;
+    const parsedOffset = parsePaginationInt(offset, { min: 0 }) ?? 0;
     return this.logService.getLogs(parsedLimit, parsedOffset, {
       level,
       module,
@@ -175,8 +190,8 @@ export class InternalController {
       clinicId,
       startDate,
       endDate,
-      minRating: minRating ? parseInt(minRating, 10) : undefined,
-      maxRating: maxRating ? parseInt(maxRating, 10) : undefined,
+      minRating: parsePaginationInt(minRating, { min: 1, max: 5 }),
+      maxRating: parsePaginationInt(maxRating, { min: 1, max: 5 }),
       search,
     });
   }
@@ -205,6 +220,69 @@ export class InternalController {
   @Delete('feedback/:id')
   async deleteFeedback(@Param('id') id: string) {
     return this.feedbackService.delete(id);
+  }
+
+  @Get('support/inquiries')
+  @ZodSerializerDto(ContactInquiryListResponseDto)
+  async getSupportInquiries(@Query('limit') limit?: string) {
+    const parsedLimit = parsePaginationInt(limit, { min: 1, max: 200 }) ?? 100;
+    return this.contactService.listInquiries(parsedLimit);
+  }
+
+  @Get('support/whatsapp')
+  @ZodSerializerDto(SupportWhatsAppThreadListResponseDto)
+  async getSupportWhatsAppThreads(
+    @Query() query?: SupportWhatsAppThreadsQueryDto,
+  ) {
+    const parsedLimit =
+      parsePaginationInt(String(query?.limit ?? ''), {
+        min: 1,
+        max: 200,
+      }) ?? 100;
+    return this.supportWhatsAppInboxService.listThreads(parsedLimit);
+  }
+
+  @Get('support/whatsapp/:threadPhoneNumber/messages')
+  @ZodSerializerDto(SupportWhatsAppMessageListResponseDto)
+  async getSupportWhatsAppThreadMessages(
+    @Param('threadPhoneNumber') threadPhoneNumber: string,
+    @Query() query?: SupportWhatsAppThreadMessagesQueryDto,
+  ) {
+    const parsedLimit =
+      parsePaginationInt(String(query?.limit ?? ''), {
+        min: 1,
+        max: 500,
+      }) ?? 500;
+    return this.supportWhatsAppInboxService.listThreadMessages(
+      threadPhoneNumber,
+      parsedLimit,
+    );
+  }
+
+  @Patch('support/whatsapp/:threadPhoneNumber/read')
+  @ZodSerializerDto(SupportWhatsAppReadResponseDto)
+  async markSupportWhatsAppThreadRead(
+    @Param('threadPhoneNumber') threadPhoneNumber: string,
+  ) {
+    const updatedCount =
+      await this.supportWhatsAppInboxService.markThreadAsRead(
+        threadPhoneNumber,
+      );
+
+    return { updatedCount };
+  }
+
+  @Post('support/whatsapp/:threadPhoneNumber/reply')
+  @ZodSerializerDto(SupportWhatsAppReplyResponseDto)
+  async replyToSupportWhatsAppThread(
+    @Param('threadPhoneNumber') threadPhoneNumber: string,
+    @Body() dto: SupportWhatsAppReplyDto,
+  ) {
+    return this.supportWhatsAppInboxService.replyToThread(
+      threadPhoneNumber,
+      dto.message,
+      dto.replyToProviderMessageId,
+    );
   }
 
   @Get('performance')

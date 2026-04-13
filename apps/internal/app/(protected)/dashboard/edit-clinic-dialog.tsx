@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/components/select";
 import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -99,7 +100,7 @@ function getInitialFormData(clinic: Clinic | null) {
       email: "",
       phone: "",
       address: "",
-      tier: "CAPTURE",
+      tier: "STARTER",
       type: "GENERAL" as ClinicType,
       active: true,
     };
@@ -151,14 +152,14 @@ export function EditClinicDialog({
       address?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Clinic name is required";
+    if (!formData.name.trim()) errors.name = "Enter the clinic name.";
     if (!formData.email.trim()) {
-      errors.email = "Email is required";
+      errors.email = "Enter an email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Enter a valid email address";
     }
-    if (!formData.phone.trim()) errors.phone = "Phone is required";
-    if (!formData.address.trim()) errors.address = "Address is required";
+    if (!formData.phone.trim()) errors.phone = "Enter a phone number.";
+    if (!formData.address.trim()) errors.address = "Enter the clinic address.";
 
     return errors;
   };
@@ -186,8 +187,10 @@ export function EditClinicDialog({
         onClinicUpdated();
         toast.success("Clinic updated successfully");
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to update clinic",
+        showUserFacingErrorToast(
+          error,
+          "We could not save these clinic details. Please try again.",
+          "save",
         );
       } finally {
         setLoading(false);

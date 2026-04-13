@@ -195,13 +195,12 @@ describe('OCRService', () => {
   });
 
   describe('Lifecycle', () => {
-    it('should initialize worker on module init', async () => {
+    it('should defer worker initialization until OCR is used', async () => {
       await service.onModuleInit();
-      expect(textExtractorService.initialize).toHaveBeenCalled();
+      expect(textExtractorService.initialize).not.toHaveBeenCalled();
     });
 
     it('should terminate worker on module destroy', async () => {
-      await service.onModuleInit();
       await service.onModuleDestroy();
       expect(textExtractorService.cleanup).toHaveBeenCalled();
     });

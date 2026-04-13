@@ -3,6 +3,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { SignatureUploadService } from './signature-upload.service';
 import { SIGNATURE_UPLOAD_REPOSITORY_TOKEN } from '@/domains/doctors/core/repositories/signature-upload.repository.interface';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { SignaturePurpose } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
@@ -55,6 +56,18 @@ describe('SignatureUploadService', () => {
         jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     };
 
+    const storedFileUrlResolver: Pick<
+      StoredFileUrlResolverService,
+      'resolveWithStoredUrl'
+    > = {
+      resolveWithStoredUrl: jest
+        .fn<StoredFileUrlResolverService['resolveWithStoredUrl']>()
+        .mockImplementation(async (url) => ({
+          url: url ?? null,
+          storedUrl: url ?? null,
+        })),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SignatureUploadService,
@@ -68,6 +81,10 @@ describe('SignatureUploadService', () => {
             upload: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
             delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
           },
+        },
+        {
+          provide: StoredFileUrlResolverService,
+          useValue: storedFileUrlResolver,
         },
       ],
     }).compile();

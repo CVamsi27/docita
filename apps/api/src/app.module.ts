@@ -25,8 +25,6 @@ import { ClinicsModule } from './domains/clinics/clinics.module';
 import { DoctorClinicsModule } from './domains/doctor-clinics/doctor-clinics.module';
 import { DoctorsModule } from './domains/doctors/doctors.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ScheduleModule } from '@nestjs/schedule';
-
 import { join } from 'path';
 import { WhatsAppModule } from './domains/whatsapp/whatsapp.module';
 import { InternalModule } from './shared/modules/internal/internal.module';
@@ -133,7 +131,6 @@ import { LeaveModule } from './domains/leave/leave.module';
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
-    ScheduleModule.forRoot(),
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [

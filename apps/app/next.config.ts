@@ -7,6 +7,17 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
+const DEFAULT_PUBLIC_API_URL = isCloudflareBuild
+  ? "https://api.docita.work/api/v1"
+  : "http://localhost:3001/api/v1";
+const DEFAULT_PUBLIC_APP_URL = isCloudflareBuild
+  ? "https://app.docita.work"
+  : "http://localhost:3000";
+const DEFAULT_PUBLIC_SOCKET_URL = isCloudflareBuild
+  ? "https://api.docita.work"
+  : "http://localhost:3001";
+
 function resolveApiProxyTarget(): string {
   if (process.env.API_PROXY_TARGET) return process.env.API_PROXY_TARGET;
   if (process.env.NEXT_PUBLIC_API_URL) {
@@ -23,13 +34,20 @@ function resolveApiProxyTarget(): string {
 }
 
 const API_PROXY_TARGET = resolveApiProxyTarget();
-const isCloudflareBuild = process.env.DOCITA_CLOUDFLARE === "1";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   turbopack: {},
 
   compress: !isCloudflareBuild,
+  env: {
+    NEXT_PUBLIC_API_URL:
+      process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_PUBLIC_API_URL,
+    NEXT_PUBLIC_APP_URL:
+      process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_SOCKET_URL:
+      process.env.NEXT_PUBLIC_SOCKET_URL ?? DEFAULT_PUBLIC_SOCKET_URL,
+  },
 
   compiler: {
     removeConsole:
@@ -95,7 +113,7 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    return [
+    const rewrites = [
       {
         source: "/branding/docita-icon-round.png",
         destination: "/branding/Round_Logo.png",
@@ -104,11 +122,16 @@ const nextConfig: NextConfig = {
         source: "/branding/docita-logo-master.jpg",
         destination: "/branding/Dark-background.png",
       },
-      {
+    ];
+
+    if (!isCloudflareBuild) {
+      rewrites.push({
         source: "/api/:path*",
         destination: `${API_PROXY_TARGET}/api/:path*`,
-      },
-    ];
+      });
+    }
+
+    return rewrites;
   },
 };
 

@@ -49,6 +49,7 @@ import { internalQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Clinic {
   id: string;
@@ -141,7 +142,7 @@ export default function PaymentProcessingPage() {
       currency,
       maximumFractionDigits: 0,
     }).format(amount);
-  const { token, isInternal } = useAuth();
+  const { token, isInternal, isLoading } = useAuth();
   const form = useForm<PaymentFormData>();
   const clinicsQuery = useQuery({
     queryKey: internalQueryKeys.internal.clinics(),
@@ -213,7 +214,9 @@ export default function PaymentProcessingPage() {
       });
       setShowPaymentDialog(true);
     } catch {
-      toast.error("Failed to load tier information");
+      showUserFacingErrorToast(
+        "We could not load these plan details. Please try again.",
+      );
     }
   };
 
@@ -241,7 +244,9 @@ export default function PaymentProcessingPage() {
     try {
       await processPaymentMutation.mutateAsync(data);
     } catch {
-      toast.error("Failed to process payment");
+      showUserFacingErrorToast(
+        "We could not process this payment. Please try again.",
+      );
     }
   };
 
@@ -256,6 +261,14 @@ export default function PaymentProcessingPage() {
     return colors[tier] || "tier-capture";
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (!isInternal) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -267,7 +280,7 @@ export default function PaymentProcessingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Payment Processing
         </h1>
         <p className="text-muted-foreground">

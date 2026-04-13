@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Patient } from "@workspace/types";
+import { getUserFacingErrorMessage } from "@workspace/types";
 
 import { usePatients } from "@/hooks/api/use-patients";
 
@@ -99,7 +100,12 @@ export function usePatientsLogic() {
     return result;
   }, [patientsResponse, sortConfig]);
 
-  const error = queryError ? (queryError as Error).message : null;
+  const error = queryError
+    ? getUserFacingErrorMessage(queryError, {
+        context: "load",
+        fallback: "We could not load your patient list. Please try again.",
+      })
+    : null;
 
   const totalPatients = useMemo(
     () =>

@@ -10,7 +10,10 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import type { UserRole } from "@workspace/types";
+import {
+  getUserFacingErrorMessage,
+  type UserRole,
+} from "@workspace/types";
 
 export interface User {
   id: string;
@@ -130,14 +133,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Login failed");
+        throw new Error("We could not sign you in. Please try again.");
       }
 
       const userData = await response.json();
       setUser(userData);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
-      setError(message);
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback:
+            "We could not sign you in. Please check your details and try again.",
+          context: "auth",
+        }),
+      );
       throw err;
     } finally {
       setIsLoading(false);
@@ -179,15 +187,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         if (!response.ok) {
-          throw new Error("Registration failed");
+          throw new Error("We could not create your account. Please try again.");
         }
 
         const userData = await response.json();
         setUser(userData);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Registration failed";
-        setError(message);
+        setError(
+          getUserFacingErrorMessage(err, {
+            fallback: "We could not create your account. Please try again.",
+            context: "auth",
+          }),
+        );
         throw err;
       } finally {
         setIsLoading(false);

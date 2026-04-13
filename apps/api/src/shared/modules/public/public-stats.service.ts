@@ -24,6 +24,21 @@ export class PublicStatsService {
     private readonly configService: AppConfigService,
   ) {}
 
+  private formatUptime(seconds: number): string {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    const parts: string[] = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+
+    return parts.join(' ');
+  }
+
   private buildFallbackStats(): PlatformStats {
     const config = this.configService.getPublicLandingStatsConfig();
 
@@ -33,7 +48,7 @@ export class PublicStatsService {
       patients: config.patients ?? 0,
       prescriptions: config.prescriptions ?? 0,
       appointments: config.appointments ?? 0,
-      uptime: config.uptime ?? '99.9%',
+      uptime: config.uptime ?? this.formatUptime(process.uptime()),
     };
   }
 
@@ -60,7 +75,9 @@ export class PublicStatsService {
           patients,
           prescriptions,
           appointments,
-          uptime: '99.9%',
+          uptime:
+            this.configService.getPublicLandingStatsConfig().uptime ??
+            this.formatUptime(process.uptime()),
         } satisfies PlatformStats;
       })
       .catch(() => this.buildFallbackStats());

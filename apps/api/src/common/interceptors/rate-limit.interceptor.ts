@@ -32,6 +32,7 @@ export class RateLimitInterceptor implements NestInterceptor {
     string,
     { count: number; resetTime: number; requests: number[] }
   >();
+  private nextCleanupAt = 0;
 
   constructor(private reflector: Reflector) {}
 
@@ -97,7 +98,7 @@ export class RateLimitInterceptor implements NestInterceptor {
       Math.ceil((windowStart + rateLimitOptions.window) / 1000),
     );
 
-    this.cleanupOldEntries();
+    this.cleanupOldEntries(now);
 
     return next.handle();
   }
@@ -105,7 +106,7 @@ export class RateLimitInterceptor implements NestInterceptor {
   private generateKey(
     request: Record<string, unknown> & {
       ip?: string;
-      connection?: { remoteAddress?: string };
+      socket?: { remoteAddress?: string };
       user?: { id?: string };
     },
     options: RateLimitOptions,
@@ -114,18 +115,21 @@ export class RateLimitInterceptor implements NestInterceptor {
       return options.keyGenerator(request);
     }
 
-    const ip = request.ip || request.connection?.remoteAddress || 'unknown';
+    const ip = request.ip || request.socket?.remoteAddress || 'unknown';
     const userId = request.user?.id || 'anonymous';
     return `${ip}:${userId}`;
   }
 
-  private cleanupOldEntries(): void {
-    if (Math.random() > 0.01) return;
+  private cleanupOldEntries(now: number): void {
+    if (now < this.nextCleanupAt) {
+      return;
+    }
 
-    const now = Date.now();
+    this.nextCleanupAt = now + 60_000;
     for (const [key, data] of this.requests.entries()) {
       if (
         data.requests.length === 0 ||
+        data.resetTime <= now ||
         data.requests[data.requests.length - 1] < now - 60000
       ) {
         this.requests.delete(key);

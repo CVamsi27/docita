@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import {
@@ -102,7 +107,17 @@ export class DPDPComplianceService {
     reason: string,
     withdrawnBy: string,
     ipAddress?: string,
+    clinicId?: string,
   ): Promise<unknown> {
+    if (clinicId) {
+      const existing = await this.prisma.consent.findFirst({
+        where: { id: consentId, clinicId },
+      });
+      if (!existing) {
+        throw new NotFoundException('Consent record not found');
+      }
+    }
+
     const consent = await this.prisma.consent.update({
       where: { id: consentId },
       data: {

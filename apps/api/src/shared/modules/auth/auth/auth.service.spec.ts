@@ -8,14 +8,20 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
 import { ObservabilityService } from '@/shared/modules/services/observability.service';
+import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import * as bcrypt from 'bcrypt';
-import { Role } from '@workspace/db';
+import { OnboardingStep, Role } from '@workspace/db';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
+  type ObservabilityServiceMock = {
+    logStructured: jest.Mock;
+    captureMessage: jest.Mock;
+    recordMetric: jest.Mock;
+  };
   let prismaService: {
     user: {
       findUnique: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
@@ -45,11 +51,20 @@ describe('AuthService', () => {
   };
   let jwtService: JwtService;
   let userFactory: UserFactory;
+  let observabilityService: ObservabilityServiceMock;
   let mfaService: {
     issueMfaChallenge: jest.MockedFunction<
       (...args: unknown[]) => Promise<unknown>
     >;
     verifyMfaChallenge: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+  };
+  let emailService: {
+    sendVerificationEmail: jest.MockedFunction<
+      (...args: unknown[]) => Promise<unknown>
+    >;
+    sendPasswordResetEmail: jest.MockedFunction<
       (...args: unknown[]) => Promise<unknown>
     >;
   };
@@ -76,6 +91,8 @@ describe('AuthService', () => {
     failedLoginAttempts: 0,
     lastFailedLoginAt: null,
     accountLockedUntil: null,
+    emailVerified: false,
+    onboardingStep: 'CHOOSE_PATH' as OnboardingStep,
     qualification: null,
     registrationNumber: null,
     signatureUrl: null,
@@ -96,6 +113,8 @@ describe('AuthService', () => {
     name: 'Test User',
     role: Role.DOCTOR,
     clinicId: 'clinic-123',
+    emailVerified: false,
+    onboardingStep: 'CHOOSE_PATH' as OnboardingStep,
     createdAt: mockUser.createdAt,
     updatedAt: mockUser.updatedAt,
     mfaEnabled: false,
@@ -225,6 +244,9 @@ describe('AuthService', () => {
             sendVerificationEmail: jest
               .fn()
               .mockImplementation(async () => ({ messageId: 'test' })),
+            sendPasswordResetEmail: jest
+              .fn()
+              .mockImplementation(async () => ({ success: true })),
           },
         },
       ],
@@ -234,7 +256,11 @@ describe('AuthService', () => {
     prismaService = module.get<typeof prismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
     userFactory = module.get<UserFactory>(UserFactory);
+    observabilityService = module.get<ObservabilityService>(
+      ObservabilityService,
+    ) as unknown as ObservabilityServiceMock;
     mfaService = module.get<typeof mfaService>(MfaService);
+    emailService = module.get<typeof emailService>(EmailService);
     passwordPolicy = module.get('IPasswordPolicy');
 
     jest.clearAllMocks();
@@ -268,6 +294,19 @@ describe('AuthService', () => {
       );
 
       expect(result).toBeNull();
+      expect(observabilityService.logStructured).toHaveBeenCalledWith(
+        'warn',
+        'Failed login attempt recorded',
+        expect.objectContaining({
+          userId: mockUser.id,
+          attempt: 1,
+          maxAttempts: AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS,
+          accountLocked: false,
+          accountLockedUntilMinutes: null,
+        }),
+        { captureInSentry: false },
+      );
+      expect(observabilityService.captureMessage).not.toHaveBeenCalled();
     });
 
     it('should return null when user does not exist', async () => {
@@ -279,6 +318,33 @@ describe('AuthService', () => {
       );
 
       expect(result).toBeNull();
+    });
+
+    it('should still emit a Sentry warning when failed logins lock the account', async () => {
+      jest.spyOn(prismaService.user, 'findUnique').mockResolvedValue({
+        ...mockUser,
+        failedLoginAttempts: AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS - 1,
+      });
+      jest.mocked(bcrypt.compare).mockImplementation(async () => false);
+
+      await expect(
+        service.validateUser('test@example.com', 'wrongpassword'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(observabilityService.captureMessage).toHaveBeenCalledWith(
+        expect.stringContaining('Account locked for user'),
+        expect.objectContaining({
+          userId: mockUser.id,
+          failedAttempts: AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS,
+          lockoutDuration: `${AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES} minutes`,
+        }),
+        'warning',
+      );
+      expect(observabilityService.recordMetric).toHaveBeenCalledWith(
+        'auth_account_lockout_total',
+        1,
+        { reason: 'max_failed_attempts' },
+      );
     });
   });
 
@@ -294,6 +360,8 @@ describe('AuthService', () => {
         name: mockUserWithoutPassword.name,
         role: mockUserWithoutPassword.role,
         clinicId: mockUserWithoutPassword.clinicId,
+        emailVerified: mockUserWithoutPassword.emailVerified,
+        onboardingStep: mockUserWithoutPassword.onboardingStep,
       });
       expect(jwtService.sign).toHaveBeenCalledWith({
         email: mockUserWithoutPassword.email,
@@ -354,6 +422,8 @@ describe('AuthService', () => {
           name: true,
           role: true,
           clinicId: true,
+          emailVerified: true,
+          onboardingStep: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -410,6 +480,7 @@ describe('AuthService', () => {
       });
       expect(result).toHaveProperty('access_token');
       expect(result).toHaveProperty('user');
+      expect(result).toHaveProperty('verificationEmailSent', true);
     });
 
     it('should default to DOCTOR role if not provided', async () => {
@@ -448,6 +519,90 @@ describe('AuthService', () => {
       );
 
       expect(prismaService.clinic.create).not.toHaveBeenCalled();
+    });
+
+    it('returns verificationEmailSent true when email sends successfully in non-test environments', async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+
+      try {
+        process.env.NODE_ENV = 'development';
+
+        const registerData = {
+          email: 'new@example.com',
+          password: 'ValidPass123!',
+          name: 'New User',
+          role: Role.DOCTOR,
+        };
+
+        jest
+          .mocked(bcrypt.hash)
+          .mockImplementation(async () => 'hashedNewPassword');
+        jest
+          .spyOn(prismaService.user, 'findUnique')
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce({
+            id: mockUserWithoutPassword.id,
+            email: mockUserWithoutPassword.email,
+            name: mockUserWithoutPassword.name,
+            emailVerified: false,
+          });
+        jest
+          .spyOn(prismaService.user, 'create')
+          .mockResolvedValue(mockUserWithoutPassword);
+        emailService.sendVerificationEmail.mockResolvedValueOnce({
+          success: true,
+          messageId: 'msg-1',
+        });
+
+        const result = await service.register(registerData);
+
+        expect(result.verificationEmailSent).toBe(true);
+        expect(emailService.sendVerificationEmail).toHaveBeenCalled();
+      } finally {
+        process.env.NODE_ENV = originalNodeEnv;
+      }
+    });
+
+    it('returns a recoverable verification-email failure in non-test environments', async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+
+      try {
+        process.env.NODE_ENV = 'development';
+
+        const registerData = {
+          email: 'new@example.com',
+          password: 'ValidPass123!',
+          name: 'New User',
+          role: Role.DOCTOR,
+        };
+
+        jest
+          .mocked(bcrypt.hash)
+          .mockImplementation(async () => 'hashedNewPassword');
+        jest
+          .spyOn(prismaService.user, 'findUnique')
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce({
+            id: mockUserWithoutPassword.id,
+            email: mockUserWithoutPassword.email,
+            name: mockUserWithoutPassword.name,
+            emailVerified: false,
+          });
+        jest
+          .spyOn(prismaService.user, 'create')
+          .mockResolvedValue(mockUserWithoutPassword);
+        emailService.sendVerificationEmail.mockResolvedValueOnce({
+          success: false,
+          error: 'provider unavailable',
+        });
+
+        const result = await service.register(registerData);
+
+        expect(result.verificationEmailSent).toBe(false);
+        expect(emailService.sendVerificationEmail).toHaveBeenCalled();
+      } finally {
+        process.env.NODE_ENV = originalNodeEnv;
+      }
     });
   });
 
@@ -681,7 +836,7 @@ describe('AuthService', () => {
       expect(prismaService.user.update).not.toHaveBeenCalled();
     });
 
-    it('stores reset token and expiry for known user', async () => {
+    it('stores reset token and sends email for known user', async () => {
       jest
         .spyOn(prismaService.user, 'findUnique')
         .mockResolvedValue({ id: 'user-123' });
@@ -700,6 +855,10 @@ describe('AuthService', () => {
           passwordResetExpiresAt: expect.any(Date),
         },
       });
+      expect(emailService.sendPasswordResetEmail).toHaveBeenCalledWith(
+        'test@example.com',
+        expect.any(String),
+      );
     });
   });
 });

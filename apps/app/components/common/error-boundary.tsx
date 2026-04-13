@@ -13,7 +13,6 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
-  eventId?: string;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -26,13 +25,11 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    const eventId = captureException(error, {
+    captureException(error, {
       react: {
         componentStack: errorInfo.componentStack,
       },
     });
-
-    this.setState({ eventId });
 
     captureMessage(`React Component Error: ${error.message}`, "error");
   }
@@ -54,30 +51,12 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertCircle className="w-8 h-8 text-destructive" />
           </div>
           <h2 className="text-2xl font-bold tracking-tight mb-2">
-            Something went wrong
+            We could not load this section
           </h2>
           <p className="text-muted-foreground max-w-md mb-4">
-            An unexpected error occurred while rendering this section. Our team
-            has been notified and will investigate.
+            Please try again or go back to the home page.
           </p>
 
-          {}
-          {this.state.error?.message && (
-            <div className="w-full mb-6 p-3 bg-muted rounded-lg border border-border">
-              <p className="text-xs text-muted-foreground mb-2 font-semibold text-left">
-                Error Details (for support):
-              </p>
-              <p className="font-mono text-xs bg-background p-2 rounded border border-border overflow-auto text-left max-h-24">
-                {this.state.error.message}
-              </p>
-              {this.state.eventId && (
-                <p className="text-xs text-muted-foreground mt-2 text-left">
-                  Event ID:{" "}
-                  <code className="font-mono">{this.state.eventId}</code>
-                </p>
-              )}
-            </div>
-          )}
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={this.handleReset}

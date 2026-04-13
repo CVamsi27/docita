@@ -286,6 +286,55 @@ export class AppointmentService {
     return this.getAppointment(id, clinicId, accessContext);
   }
 
+  async syncDiagnoses(
+    appointmentId: string,
+    clinicId: string,
+    diagnoses: Array<{
+      icdCodeId?: string;
+      notes?: string;
+      isPrimary?: boolean;
+    }>,
+  ): Promise<void> {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      select: { id: true, clinicId: true },
+    });
+
+    if (!appointment) {
+      throw new NotFoundException(
+        `Appointment with ID ${appointmentId} not found`,
+      );
+    }
+
+    if (appointment.clinicId !== clinicId) {
+      throw new ForbiddenException('Access denied for this appointment');
+    }
+
+    const codedDiagnoses = diagnoses.filter((d) => d.icdCodeId);
+    const primaryDiagnosisIndex = codedDiagnoses.findIndex(
+      (diagnosis) => diagnosis.isPrimary,
+    );
+
+    await this.prisma.$transaction([
+      this.prisma.diagnosis.deleteMany({ where: { appointmentId } }),
+      ...(codedDiagnoses.length > 0
+        ? [
+            this.prisma.diagnosis.createMany({
+              data: codedDiagnoses.map((d, index) => ({
+                appointmentId,
+                icdCodeId: d.icdCodeId!,
+                notes: d.notes ?? null,
+                isPrimary:
+                  primaryDiagnosisIndex === -1
+                    ? index === 0
+                    : index === primaryDiagnosisIndex,
+              })),
+            }),
+          ]
+        : []),
+    ]);
+  }
+
   async createVitals(
     appointmentId: string,
     clinicId: string,

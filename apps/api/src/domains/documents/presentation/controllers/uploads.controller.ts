@@ -4,22 +4,35 @@ import {
   Get,
   Param,
   Request,
+  UseGuards,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
-import { memoryStorage } from 'multer';
 import { MAX_FILE_SIZE } from '@workspace/utils';
 import { UploadSessionResponseDto } from '@/domains/documents/application/dto/uploads.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
-import { Role } from '@workspace/db';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  Feature,
+  RequireFeature,
+} from '@/shared/modules/auth/auth/tier.decorator';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
+import {
+  assertAllowedFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('uploads')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseGuards(TierGuard)
+@RequireFeature(Feature.DOCUMENT_ARCHIVAL)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_MEDICAL_DOCUMENTS))
 export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 
@@ -38,7 +51,7 @@ export class UploadsController {
   @Post('session/:id')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage(),
+      storage: createTempDiskStorage(),
       limits: {
         fileSize: MAX_FILE_SIZE,
       },
@@ -73,36 +86,21 @@ export class UploadsController {
       throw new BadRequestException('File is required');
     }
 
-    const buffer = file.buffer;
-    const header = buffer.toString('hex', 0, 4).toUpperCase();
-    const webpHeader = buffer.toString('hex', 8, 12).toUpperCase();
+    try {
+      await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp']);
 
-    const signatures = {
-      PDF: '25504446',
-      PNG: '89504E47',
-      JPEG: 'FFD8FF',
-      RIFF: '52494646',
-    };
-
-    let isValid = false;
-    if (header === signatures.PDF) isValid = true;
-    else if (header === signatures.PNG) isValid = true;
-    else if (header.startsWith(signatures.JPEG)) isValid = true;
-    else if (header === signatures.RIFF && webpHeader === '57454250')
-      isValid = true;
-
-    if (!isValid) {
-      throw new BadRequestException(
-        'Invalid file content. The file type does not match its extension/MIME type.',
-      );
+      return await this.uploadsService.updateSession(id, file, {
+        modifiedBy: req.user?.id,
+        modifiedByRole: req.user?.role,
+        authMethod: req.user ? 'session-auth' : 'anonymous-upload',
+        ipAddress: req.ip || req.socket?.remoteAddress,
+        userAgent: req.headers?.['user-agent'],
+      });
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
     }
-
-    return this.uploadsService.updateSession(id, file, {
-      modifiedBy: req.user?.id,
-      modifiedByRole: req.user?.role,
-      authMethod: req.user ? 'session-auth' : 'anonymous-upload',
-      ipAddress: req.ip || req.socket?.remoteAddress,
-      userAgent: req.headers?.['user-agent'],
-    });
   }
 }

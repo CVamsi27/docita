@@ -104,7 +104,11 @@ export const useClinicMembers = () =>
 export const useCreateClinicDoctor = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicDoctorRequest>(
     () => {
-      if (!clinicId) throw new Error("Clinic ID is required");
+      if (!clinicId) {
+        throw new Error(
+          "We could not identify this clinic. Please refresh and try again.",
+        );
+      }
       return `/clinics/${clinicId}/doctors`;
     },
     "POST",
@@ -116,7 +120,11 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
 export const useCreateClinicReceptionist = (clinicId?: string) =>
   useAPIMutation<User, CreateClinicReceptionistRequest>(
     () => {
-      if (!clinicId) throw new Error("Clinic ID is required");
+      if (!clinicId) {
+        throw new Error(
+          "We could not identify this clinic. Please refresh and try again.",
+        );
+      }
       return `/clinics/${clinicId}/receptionists`;
     },
     "POST",

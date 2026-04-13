@@ -23,7 +23,7 @@ export const updateDoctorRequestSchema = createDoctorRequestSchema
   .extend({
     email: z.string().email().optional(),
     licenseExpiry: z.union([z.string(), z.date()]).optional(),
-    signatureUrl: z.string().url().optional(),
+    signatureUrl: z.string().trim().min(1).optional(),
     profilePhotoUrl: z.string().url().optional(),
   });
 

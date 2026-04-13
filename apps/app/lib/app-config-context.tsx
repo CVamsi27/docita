@@ -89,7 +89,7 @@ export function AppConfigProvider({
     : configQuery.error && !isNetworkError(configQuery.error)
       ? configQuery.error instanceof Error
         ? configQuery.error
-        : new Error("Unknown error")
+        : new Error("We could not load your clinic settings. Please try again.")
       : null;
 
   const fetchConfig = useCallback(async () => {

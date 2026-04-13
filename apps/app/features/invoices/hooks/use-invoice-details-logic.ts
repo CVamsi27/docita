@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useClinic } from "@/lib/clinic-context";
 
 import { useInvoice } from "@/hooks/api/use-billing";
@@ -6,6 +6,11 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { invoicesApi } from "@/features/invoices/api/invoices.api";
+
+const POLL_INTERVAL_MS = 2000;
+const POLL_TIMEOUT_MS = 60000;
 
 export const useInvoiceDetailsLogic = (
   invoiceId: string,
@@ -15,6 +20,7 @@ export const useInvoiceDetailsLogic = (
   const { clinic } = useClinic();
   const printRef = useRef<HTMLDivElement>(null);
   const hasAutoPrintedRef = useRef(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const { data: invoice, isLoading, error } = useInvoice(invoiceId);
 
@@ -34,21 +40,45 @@ export const useInvoiceDetailsLogic = (
   };
 
   const handleDownload = async () => {
+    setIsDownloading(true);
+    const toastId = toast.loading("Preparing PDF...");
+
     try {
-      toast.info("Preparing PDF for download...");
+      const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
 
-      setTimeout(() => {
-        toast.success("PDF Downloaded successfully");
-      }, 1500);
+      const deadline = Date.now() + POLL_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const status = await invoicesApi.getPdfStatus(invoiceId, jobId);
+
+        if (status.status === "COMPLETED" && status.pdfUrl) {
+          toast.dismiss(toastId);
+          toast.success("PDF ready");
+          window.open(status.pdfUrl, "_blank");
+          return;
+        }
+
+        if (status.status === "FAILED") {
+          throw new Error("PDF generation failed");
+        }
+      }
+
+      throw new Error("PDF generation timed out");
     } catch {
-      toast.error("Failed to download PDF");
-
+      toast.dismiss(toastId);
+      showUserFacingErrorToast(
+        "We could not download this invoice. Please try again.",
+      );
+    } finally {
+      setIsDownloading(false);
     }
   };
 
   const handleShareWhatsApp = () => {
     if (!invoice?.patient?.phoneNumber) {
-      toast.error("Patient phone number not available");
+      showUserFacingErrorToast(
+        "Add this patient's phone number before sharing the invoice on WhatsApp.",
+      );
       return;
     }
 
@@ -81,7 +111,6 @@ export const useInvoiceDetailsLogic = (
   };
 
   const numberToWords = (amount: number) => {
-
     return `${amount} Rupees Only`;
   };
 
@@ -92,6 +121,7 @@ export const useInvoiceDetailsLogic = (
     printRef,
     handlePrint,
     handleDownload,
+    isDownloading,
     handleShareWhatsApp,
     calculateSubtotal,
     formatCurrency,

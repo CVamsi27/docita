@@ -1,50 +1,88 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { CheckCircle2, Circle, Loader2, ShieldCheck } from 'lucide-react';
-import { Button } from '@workspace/ui/components/button';
-import { Input } from '@workspace/ui/components/input';
-import { Label } from '@workspace/ui/components/label';
-import { toast } from 'sonner';
-import { useAuth } from '@/lib/auth-context';
-import { useAPIQuery, useAPIMutation } from '@/lib/api-core';
-import { useGenerateSignatureToken } from '@/hooks/api/use-signature-upload';
-import { ApiError } from '@/lib/errors';
-import type { User } from '@workspace/types';
-import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
-import { DocitaLogo } from '@workspace/ui/components/docita-logo';
-import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
-import { toAbsoluteAppUrl } from '@/lib/url';
-import { usePhoneSignatureQrFlow } from '@/features/_shared/hooks/use-phone-signature-qr-flow';
-import { PhoneSignatureQrPanel } from '@/features/_shared/components/signature/phone-signature-qr-panel';
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Circle, Loader2, ShieldCheck } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
+import { useAPIQuery, useAPIMutation } from "@/lib/api-core";
+import { useGenerateSignatureToken } from "@/hooks/api/use-signature-upload";
+import { ApiError } from "@/lib/errors";
+import {
+  sanitizeUserFacingMessage,
+  type Clinic,
+  type User,
+} from "@workspace/types";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { toAbsoluteApiUrl, toAbsoluteAppUrl } from "@/lib/url";
+import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
+import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
 export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const [registrationNumber, setRegistrationNumber] = useState('');
-  const [registrationError, setRegistrationError] = useState<string | null>(null);
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [registrationError, setRegistrationError] = useState<string | null>(
+    null,
+  );
   const [isSavingReg, setIsSavingReg] = useState(false);
+  const [isApplyingOnboardingSignature, setIsApplyingOnboardingSignature] =
+    useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const isDoctor = user?.role === 'DOCTOR' || user?.role === 'ADMIN_DOCTOR';
+  const isDoctor = user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR";
+  const isAdminDoctor = user?.role === "ADMIN_DOCTOR";
   const generateSignatureToken = useGenerateSignatureToken();
 
-  const { data: doctorProfile, isLoading: profileLoading, refetch } = useAPIQuery<User>(
-    ['doctor-profile', user?.id ?? ''],
+  const {
+    data: doctorProfile,
+    isLoading: profileLoading,
+    refetch,
+  } = useAPIQuery<User>(
+    ["doctor-profile", user?.id ?? ""],
     `/doctors/${user?.id}`,
     { enabled: !!user?.id && isDoctor },
   );
+  const { data: clinic, isLoading: clinicLoading } = useAPIQuery<Clinic>(
+    ["clinic-settings", user?.clinicId ?? ""],
+    "/clinic/settings",
+    { enabled: !!user?.clinicId && isDoctor },
+  );
 
-  const updateDoctor = useAPIMutation<User, { registrationNumber: string }>(
-    `/doctors/${user?.id}/registration-number`,
-    'PUT',
-    { invalidateKeys: [['doctor-profile', user?.id ?? '']] },
+  const updateDoctorRegistration = useAPIMutation<
+    User,
+    { registrationNumber: string }
+  >(`/doctors/${user?.id}/registration-number`, "PUT", {
+    invalidateKeys: [["doctor-profile", user?.id ?? ""]],
+  });
+  const updateDoctorSignature = useAPIMutation<User, { signatureUrl: string }>(
+    `/doctors/${user?.id}`,
+    "PUT",
+    { invalidateKeys: [["doctor-profile", user?.id ?? ""]] },
   );
 
   const profile = doctorProfile ?? user;
   const hasSignature = !!profile?.signatureUrl;
   const hasRegistration = !!profile?.registrationNumber;
   const canContinue = hasSignature && hasRegistration;
+  const onboardingSignatureUrl = clinic?.slaSignatureUrl ?? null;
+  const onboardingSignatureStoredUrl = clinic?.slaSignatureStoredUrl ?? null;
+  const onboardingSignatureSourceUrl =
+    onboardingSignatureStoredUrl ?? onboardingSignatureUrl;
+  const resolvedOnboardingSignatureUrl = onboardingSignatureSourceUrl
+    ? toAbsoluteApiUrl(onboardingSignatureSourceUrl)
+    : null;
+  const resolvedProfileSignatureUrl = profile?.signatureUrl
+    ? toAbsoluteApiUrl(profile.signatureUrl)
+    : null;
+  const canUseOnboardingSignature =
+    isAdminDoctor && Boolean(onboardingSignatureSourceUrl) && !hasSignature;
+  const shouldDeferQrAutoStart = isAdminDoctor && clinicLoading;
+
   const createSignatureSession = useCallback(async () => {
     const token = await generateSignatureToken.mutateAsync();
     return {
@@ -63,10 +101,11 @@ export default function VerifyDoctorPage() {
     createSession: createSignatureSession,
     checkUploaded: checkSignatureUploaded,
     onUploaded: () => {
-      toast.success('Signature received from your phone.');
+      toast.success("Signature received from your phone.");
     },
     persistenceKey: `docita_verify_doctor_qr_session_${user?.id ?? "anonymous"}`,
-    autoStart: !hasSignature,
+    autoStart:
+      !hasSignature && !canUseOnboardingSignature && !shouldDeferQrAutoStart,
     initialUploaded: hasSignature,
   });
 
@@ -75,59 +114,96 @@ export default function VerifyDoctorPage() {
 
     if (!user) {
       setIsRedirecting(true);
-      router.replace('/login?next=/verify-doctor');
+      router.replace("/login?next=/verify-doctor");
       return;
     }
 
     if (!isDoctor) {
       setIsRedirecting(true);
-      router.replace('/dashboard');
+      router.replace("/dashboard");
       return;
     }
 
     if (canContinue) {
       setIsRedirecting(true);
-      router.replace('/dashboard');
+      router.replace("/dashboard");
     }
   }, [authLoading, user, isDoctor, canContinue, router]);
+
+  const handleUseOnboardingSignature = async () => {
+    if (!onboardingSignatureSourceUrl) return;
+
+    setIsApplyingOnboardingSignature(true);
+    try {
+      await updateDoctorSignature.mutateAsync({
+        signatureUrl: onboardingSignatureSourceUrl,
+      });
+      toast.success("Onboarding signature added to your profile.");
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not use the signature uploaded during onboarding. Please try again.",
+        "save",
+      );
+    } finally {
+      setIsApplyingOnboardingSignature(false);
+    }
+  };
 
   const handleSaveRegistration = async () => {
     if (!registrationNumber.trim()) return;
     setIsSavingReg(true);
     setRegistrationError(null);
     try {
-      await updateDoctor.mutateAsync({ registrationNumber: registrationNumber.trim() });
+      await updateDoctorRegistration.mutateAsync({
+        registrationNumber: registrationNumber.trim(),
+      });
       await refetch();
-      toast.success('Registration number saved.');
-      setRegistrationNumber('');
+      toast.success("Registration number saved.");
+      setRegistrationNumber("");
     } catch (error) {
       if (error instanceof ApiError) {
         const validationErrors = error.details?.validationErrors;
-        if (validationErrors && typeof validationErrors === 'object' && !Array.isArray(validationErrors)) {
+        if (
+          validationErrors &&
+          typeof validationErrors === "object" &&
+          !Array.isArray(validationErrors)
+        ) {
           const fieldErrors = validationErrors as Record<string, unknown>;
           const registrationFieldError = fieldErrors.registrationNumber;
-          if (typeof registrationFieldError === 'string' && registrationFieldError.length > 0) {
-            setRegistrationError(registrationFieldError);
-            toast.error(registrationFieldError);
+          if (
+            typeof registrationFieldError === "string" &&
+            registrationFieldError.length > 0
+          ) {
+            const safeMessage = sanitizeUserFacingMessage(
+              registrationFieldError,
+              "Please check the registration number.",
+            );
+            setRegistrationError(safeMessage);
+            showUserFacingErrorToast(null, safeMessage, "form");
             return;
           }
 
           const firstFieldError = Object.values(fieldErrors).find(
             (value): value is string =>
-              typeof value === 'string' && value.length > 0,
+              typeof value === "string" && value.length > 0,
           );
           if (firstFieldError) {
-            setRegistrationError(firstFieldError);
-            toast.error(firstFieldError);
+            const safeMessage = sanitizeUserFacingMessage(
+              firstFieldError,
+              "Please check the registration number.",
+            );
+            setRegistrationError(safeMessage);
+            showUserFacingErrorToast(null, safeMessage, "form");
             return;
           }
         }
       }
 
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to save registration number.',
+      showUserFacingErrorToast(
+        error,
+        "We could not save this registration number. Please try again.",
+        "save",
       );
     } finally {
       setIsSavingReg(false);
@@ -138,10 +214,12 @@ export default function VerifyDoctorPage() {
     setIsRedirecting(true);
     try {
       await refreshUser();
-      router.replace('/dashboard');
+      router.replace("/dashboard");
     } catch {
       setIsRedirecting(false);
-      toast.error('Unable to continue right now. Please try again.');
+      showUserFacingErrorToast(
+        "We could not finish this verification step. Please try again.",
+      );
     }
   };
 
@@ -170,14 +248,14 @@ export default function VerifyDoctorPage() {
 
   const steps = [
     {
-      label: 'Upload Digital Signature',
-      description: 'Required to generate prescriptions and medical documents.',
+      label: "Upload Digital Signature",
+      description: "Required to generate prescriptions and medical documents.",
       done: hasSignature,
       required: true,
     },
     {
-      label: 'Medical Registration Number',
-      description: 'Your council registration number for verification.',
+      label: "Medical Registration Number",
+      description: "Your council registration number for verification.",
       done: hasRegistration,
       required: true,
     },
@@ -186,204 +264,282 @@ export default function VerifyDoctorPage() {
   const completedCount = steps.filter((s) => s.done).length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex h-14 items-center justify-between border-b px-6">
-        <div className="flex h-10 items-center">
-          <DocitaLogo />
+    <PreDashboardShell currentStep="verify-doctor" contentMaxWidth="max-w-lg">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            Profile Verification
+          </h1>
         </div>
-        <ThemeToggle />
-      </header>
+        <p className="text-sm text-muted-foreground">
+          Complete your profile before accessing the dashboard. This ensures
+          patient safety and regulatory compliance.
+        </p>
+      </div>
 
-      <main className="flex flex-1 items-start justify-center px-4 py-10">
-        <div className="w-full max-w-lg space-y-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold tracking-tight">Profile Verification</h1>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Complete your profile before accessing the dashboard. This ensures
-              patient safety and regulatory compliance.
-            </p>
+      <div
+        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        style={{ animationDelay: "100ms" }}
+      >
+        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-4 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium">Setup Progress</span>
+            <span className="text-xs text-muted-foreground">
+              {completedCount} of {steps.filter((s) => s.required).length}{" "}
+              required
+            </span>
           </div>
-
-          {/* Progress */}
-          <div className="rounded-xl border bg-card p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium">Setup Progress</span>
-              <span className="text-xs text-muted-foreground">
-                {completedCount} of {steps.filter((s) => s.required).length} required
-              </span>
-            </div>
-            <div className="space-y-2">
-              {steps.map((step) => (
-                <div key={step.label} className="flex items-start gap-3">
-                  {step.done ? (
-                    <CheckCircle2 className="h-4.5 w-4.5 text-primary mt-0.5 shrink-0" />
-                  ) : (
-                    <Circle className="h-4.5 w-4.5 text-muted-foreground/40 mt-0.5 shrink-0" />
-                  )}
-                  <div className="min-w-0">
-                    <p className={`text-sm font-medium ${step.done ? 'text-primary' : ''}`}>
-                      {step.label}
-                      {step.required && !step.done && (
-                        <span className="ml-1 text-xs font-normal text-destructive">Required</span>
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{step.description}</p>
-                  </div>
+          <div className="space-y-2">
+            {steps.map((step) => (
+              <div key={step.label} className="flex items-start gap-3">
+                {step.done ? (
+                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                ) : (
+                  <Circle className="h-4 w-4 text-muted-foreground/40 mt-0.5 shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <p
+                    className={`text-sm font-medium ${step.done ? "text-primary" : ""}`}
+                  >
+                    {step.label}
+                    {step.required && !step.done && (
+                      <span className="ml-1 text-xs font-normal text-destructive">
+                        Required
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {step.description}
+                  </p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* Step 1: Signature */}
-          <div className="rounded-xl border bg-card p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              {hasSignature ? (
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              ) : (
-                <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-              )}
-              <h2 className="font-semibold text-sm">Step 1: Upload Your Signature</h2>
-            </div>
+        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
+          <div className="flex items-center gap-2">
             {hasSignature ? (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
-                  <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  Signature uploaded successfully.
+              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+            ) : (
+              <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+            )}
+            <h2 className="font-semibold text-sm">
+              Step 1: Upload Your Signature
+            </h2>
+          </div>
+          {hasSignature ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                Signature uploaded successfully.
+              </div>
+              {resolvedProfileSignatureUrl && (
+                <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
+                  <img
+                    src={resolvedProfileSignatureUrl}
+                    alt="Your uploaded signature"
+                    className="max-h-24 max-w-full object-contain"
+                  />
                 </div>
-                {profile?.signatureUrl && (
-                  <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
+              )}
+              <p className="text-xs text-muted-foreground">
+                This signature will appear on prescriptions and medical
+                documents.{" "}
+                <a
+                  href="/settings?tab=doctor-profile"
+                  className="text-primary underline-offset-2 hover:underline"
+                >
+                  Re-upload in Settings
+                </a>
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {canUseOnboardingSignature && resolvedOnboardingSignatureUrl && (
+                <div className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-primary">
+                        Signature uploaded during onboarding
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        You can reuse the same signature for your doctor
+                        profile.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center rounded-lg border bg-white p-4 min-h-[100px]">
                     <img
-                      src={profile.signatureUrl}
-                      alt="Your uploaded signature"
+                      src={resolvedOnboardingSignatureUrl}
+                      alt="Onboarding signature preview"
                       className="max-h-24 max-w-full object-contain"
                     />
                   </div>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  This signature will appear on prescriptions and medical documents.{' '}
-                  <a href="/settings?tab=doctor-profile" className="text-primary underline-offset-2 hover:underline">
-                    Re-upload in Settings
-                  </a>
-                </p>
-              </div>
-            ) : (
-              <PhoneSignatureQrPanel
-                loading={signatureQrFlow.isLoading}
-                uploaded={signatureQrFlow.isUploaded}
-                polling={signatureQrFlow.isPolling}
-                error={signatureQrFlow.error}
-                qrUrl={signatureQrFlow.session?.qrUrl ?? null}
-                onRetry={() => {
-                  void signatureQrFlow.retrySession();
-                }}
-                onRefreshStatus={async () => {
-                  try {
-                    const synced = await signatureQrFlow.refreshStatus();
-                    if (synced) {
-                      toast.success('Signature synced');
-                    } else {
-                      toast.message('Still waiting for signature upload');
-                    }
-                  } catch {
-                    toast.error('Unable to refresh signature status');
-                  }
-                }}
-                onCopyLink={async () => {
-                  try {
-                    const copied = await signatureQrFlow.copyLink();
-                    if (copied) {
-                      toast.success('Link clicked');
-                    } else {
-                      toast.error('Unable to copy link');
-                    }
-                  } catch {
-                    toast.error('Unable to copy link');
-                  }
-                }}
-                successTitle="Signature uploaded successfully."
-                successDescription="Your signature has been saved and verified."
-              />
-            )}
-          </div>
-
-          {/* Step 2: Registration Number */}
-          <div className="rounded-xl border bg-card p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              {hasRegistration ? (
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-              ) : (
-                <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-              )}
-              <h2 className="font-semibold text-sm">
-                Step 2: Medical Registration Number
-              </h2>
-            </div>
-            {hasRegistration ? (
-              <p className="text-sm text-muted-foreground">
-                Saved:{' '}
-                <span className="font-medium text-foreground">
-                  {profile?.registrationNumber}
-                </span>
-              </p>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="registration-number" className="text-xs text-muted-foreground">
-                  Enter your medical council registration number
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="registration-number"
-                    placeholder="e.g. MH-12345"
-                    value={registrationNumber}
-                    onChange={(e) => {
-                      setRegistrationNumber(e.target.value);
-                      if (registrationError) {
-                        setRegistrationError(null);
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button
+                      type="button"
+                      className="flex-1"
+                      onClick={() => void handleUseOnboardingSignature()}
+                      disabled={
+                        isApplyingOnboardingSignature ||
+                        signatureQrFlow.isLoading
                       }
-                    }}
-                    aria-invalid={registrationError ? true : false}
-                    className={`flex-1 ${registrationError ? 'border-destructive focus-visible:ring-destructive/40' : ''}`}
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={!registrationNumber.trim() || isSavingReg}
-                    onClick={handleSaveRegistration}
-                  >
-                    {isSavingReg ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      'Save'
-                    )}
-                  </Button>
+                    >
+                      {isApplyingOnboardingSignature ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Applying...
+                        </>
+                      ) : (
+                        "Use onboarding signature"
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => void signatureQrFlow.retrySession()}
+                      disabled={
+                        isApplyingOnboardingSignature ||
+                        signatureQrFlow.isLoading
+                      }
+                    >
+                      Use a different signature
+                    </Button>
+                  </div>
                 </div>
-                {registrationError && (
-                  <p className="text-xs text-destructive">{registrationError}</p>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+              {(!canUseOnboardingSignature ||
+                signatureQrFlow.session ||
+                signatureQrFlow.isLoading ||
+                signatureQrFlow.error) && (
+                <PhoneSignatureQrPanel
+                  loading={signatureQrFlow.isLoading}
+                  uploaded={signatureQrFlow.isUploaded}
+                  polling={signatureQrFlow.isPolling}
+                  error={signatureQrFlow.error}
+                  qrUrl={signatureQrFlow.session?.qrUrl ?? null}
+                  onRetry={() => {
+                    void signatureQrFlow.retrySession();
+                  }}
+                  onRefreshStatus={async () => {
+                    try {
+                      const synced = await signatureQrFlow.refreshStatus();
+                      if (synced) {
+                        toast.success("Signature synced");
+                      } else {
+                        toast.message(
+                          "We have not received the signature yet.",
+                        );
+                      }
+                    } catch {
+                      showUserFacingErrorToast(
+                        "We could not refresh signature status. Please try again.",
+                      );
+                    }
+                  }}
+                  onCopyLink={async () => {
+                    try {
+                      const copied = await signatureQrFlow.copyLink();
+                      if (copied) {
+                        toast.success("Link copied");
+                      } else {
+                        showUserFacingErrorToast(
+                          "We could not copy this link. Please try again.",
+                        );
+                      }
+                    } catch {
+                      showUserFacingErrorToast(
+                        "We could not copy this link. Please try again.",
+                      );
+                    }
+                  }}
+                  successTitle="Signature uploaded successfully."
+                  successDescription="Your signature has been saved and verified."
+                />
+              )}
+            </div>
+          )}
+        </div>
 
-          <div className="flex gap-3">
-            <Button
-              className="w-full"
-              disabled={!canContinue}
-              onClick={handleContinue}
-            >
-              Continue to Dashboard
-            </Button>
+        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
+          <div className="flex items-center gap-2">
+            {hasRegistration ? (
+              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+            ) : (
+              <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+            )}
+            <h2 className="font-semibold text-sm">
+              Step 2: Medical Registration Number
+            </h2>
           </div>
+          {hasRegistration ? (
+            <p className="text-sm text-muted-foreground">
+              Saved:{" "}
+              <span className="font-medium text-foreground">
+                {profile?.registrationNumber}
+              </span>
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <Label
+                htmlFor="registration-number"
+                className="text-xs text-muted-foreground"
+              >
+                Enter your medical council registration number
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="registration-number"
+                  placeholder="e.g. MH-12345"
+                  value={registrationNumber}
+                  onChange={(e) => {
+                    setRegistrationNumber(e.target.value);
+                    if (registrationError) {
+                      setRegistrationError(null);
+                    }
+                  }}
+                  aria-invalid={registrationError ? true : false}
+                  className={`flex-1 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!registrationNumber.trim() || isSavingReg}
+                  onClick={handleSaveRegistration}
+                >
+                  {isSavingReg ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+              </div>
+              {registrationError && (
+                <p className="text-xs text-destructive">{registrationError}</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Button
+            className="w-full h-11"
+            disabled={!canContinue}
+            onClick={handleContinue}
+          >
+            Continue to Dashboard
+          </Button>
           {!canContinue && (
             <p className="text-center text-xs text-muted-foreground">
               Complete all required steps to continue.
             </p>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </PreDashboardShell>
   );
 }

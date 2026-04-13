@@ -11,7 +11,11 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { Progress } from "@workspace/ui/components/progress";
 import { useAuth } from "@/lib/auth";
-import { client } from "@/lib/api-client";
+import {
+  healthAPI,
+  monitoringAPI,
+  performanceAPI,
+} from "@/lib/api";
 import { internalQueryKeys } from "@/lib/query-keys";
 import {
   Activity,
@@ -19,116 +23,136 @@ import {
   CheckCircle2,
   Clock,
   Cpu,
-  HardDrive,
+  Database,
+  RefreshCw,
   Server,
   Wifi,
   XCircle,
 } from "lucide-react";
 
-interface HealthMetric {
-  name: string;
-  status: "healthy" | "warning" | "critical";
-  value: string;
-  description: string;
+function getStatusIcon(status: string) {
+  switch (status) {
+    case "healthy":
+    case "ok":
+      return <CheckCircle2 className="h-4 w-4 text-success" />;
+    case "warning":
+    case "degraded":
+      return <AlertTriangle className="h-4 w-4 text-warning" />;
+    case "critical":
+    case "error":
+    case "unhealthy":
+      return <XCircle className="h-4 w-4 text-destructive" />;
+    default:
+      return null;
+  }
 }
 
-interface PerformanceData {
-  uptime: string;
-  responseTime: number;
-  requestsPerMinute: number;
-  errorRate: number;
-  activeConnections: number;
-  memoryUsage: number;
-  cpuUsage: number;
-  diskUsage: number;
-  healthChecks: HealthMetric[];
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "healthy":
+    case "ok":
+      return <Badge className="badge-success">Healthy</Badge>;
+    case "warning":
+    case "degraded":
+      return <Badge className="badge-warning">Warning</Badge>;
+    case "critical":
+    case "error":
+    case "unhealthy":
+      return <Badge variant="destructive">Unhealthy</Badge>;
+    default:
+      return <Badge variant="outline">{status}</Badge>;
+  }
 }
 
 export default function PerformancePage() {
   const { token } = useAuth();
 
-  const performanceQuery = useQuery({
-    queryKey: internalQueryKeys.internal.monitoringPerformance("default"),
-    queryFn: () => client.get<PerformanceData>("/internal/performance"),
+  const runtimeQuery = useQuery({
+    queryKey: internalQueryKeys.internal.performanceMetrics(),
+    queryFn: () => performanceAPI.getMetrics(),
     enabled: Boolean(token),
     refetchInterval: token ? 30000 : false,
   });
-  const data = performanceQuery.data ?? null;
-  const loading = performanceQuery.isLoading;
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "healthy":
-        return <CheckCircle2 className="h-4 w-4 text-success" />;
-      case "warning":
-        return <AlertTriangle className="h-4 w-4 text-warning" />;
-      case "critical":
-        return <XCircle className="h-4 w-4 text-destructive" />;
-      default:
-        return null;
-    }
-  };
+  const databaseQuery = useQuery({
+    queryKey: internalQueryKeys.internal.performanceDatabase(),
+    queryFn: () => performanceAPI.getDatabaseStats(),
+    enabled: Boolean(token),
+    refetchInterval: token ? 30000 : false,
+  });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "healthy":
-        return (
-          <Badge variant="outline" className="badge-success">
-            Healthy
-          </Badge>
-        );
-      case "warning":
-        return (
-          <Badge variant="outline" className="badge-warning">
-            Warning
-          </Badge>
-        );
-      case "critical":
-        return <Badge variant="destructive">Critical</Badge>;
-      default:
-        return null;
-    }
-  };
+  const healthQuery = useQuery({
+    queryKey: internalQueryKeys.internal.monitoringHealth(),
+    queryFn: () => monitoringAPI.getHealth(),
+    enabled: Boolean(token),
+    refetchInterval: token ? 30000 : false,
+  });
+
+  const appHealthQuery = useQuery({
+    queryKey: ["health", "performance"],
+    queryFn: () => healthAPI.getHealth(),
+    enabled: Boolean(token),
+    refetchInterval: token ? 30000 : false,
+  });
+
+  const runtime = runtimeQuery.data;
+  const database = databaseQuery.data;
+  const health = healthQuery.data;
+  const appHealth = appHealthQuery.data;
+  const loading =
+    runtimeQuery.isLoading ||
+    databaseQuery.isLoading ||
+    healthQuery.isLoading ||
+    appHealthQuery.isLoading;
+
+  const heapUsagePercent = runtime
+    ? Math.round(
+        (runtime.memory.heapUsed / Math.max(runtime.memory.heapTotal, 1)) * 100,
+      )
+    : 0;
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Performance</h1>
-          <p className="text-muted-foreground">
-            Loading performance metrics...
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
+          <p className="text-muted-foreground">Loading live performance metrics...</p>
+        </div>
+        <div className="flex items-center justify-center h-40">
+          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </div>
     );
   }
 
-  if (!data) {
+  if (!runtime || !database || !health) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Performance</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
           <p className="text-muted-foreground">
-            Unable to load performance metrics. Please check your connection and
-            try again.
+            We could not load these live performance metrics. Please try again.
           </p>
         </div>
       </div>
     );
   }
 
-  const metrics = data;
+  const requestsPerMinute = (health.requestsLastHour / 60).toFixed(2);
+  const averageResponseTime = health.avgResponseTime.toFixed(2);
+  const totalCpuSeconds = appHealth
+    ? (appHealth.checks.cpu.user + appHealth.checks.cpu.system).toFixed(2)
+    : "0.00";
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Performance</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
         <p className="text-muted-foreground">
-          Real-time system performance and health metrics.
+          Live runtime, database, and request metrics
         </p>
       </div>
 
-      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -137,9 +161,11 @@ export default function PerformancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">
-              {metrics.uptime}
+              {runtime.uptime.formatted}
             </div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">
+              {runtime.uptime.seconds.toLocaleString()} seconds
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -150,8 +176,10 @@ export default function PerformancePage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.responseTime}ms</div>
-            <p className="text-xs text-muted-foreground">P95 latency</p>
+            <div className="text-2xl font-bold">{averageResponseTime}ms</div>
+            <p className="text-xs text-muted-foreground">
+              Monitoring average from the last hour
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -160,10 +188,10 @@ export default function PerformancePage() {
             <Wifi className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.requestsPerMinute.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Current throughput</p>
+            <div className="text-2xl font-bold">{requestsPerMinute}</div>
+            <p className="text-xs text-muted-foreground">
+              Derived from live request counts
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -173,23 +201,30 @@ export default function PerformancePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">
-              {metrics.errorRate}%
+              {health.requestsLastHour > 0
+                ? ((health.errorsLastHour / health.requestsLastHour) * 100).toFixed(2)
+                : "0.00"}
+              %
             </div>
-            <p className="text-xs text-muted-foreground">Last hour</p>
+            <p className="text-xs text-muted-foreground">
+              {health.errorsLastHour.toLocaleString()} errors in the last hour
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CPU Usage</CardTitle>
+            <CardTitle className="text-sm font-medium">CPU Time</CardTitle>
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{metrics.cpuUsage}%</div>
-            <Progress value={metrics.cpuUsage} className="h-2" />
+            <div className="text-2xl font-bold">{totalCpuSeconds}s</div>
+            <p className="text-xs text-muted-foreground">
+              User {appHealth?.checks.cpu.user.toFixed(2) ?? "0.00"}s, system{" "}
+              {appHealth?.checks.cpu.system.toFixed(2) ?? "0.00"}s
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -198,54 +233,70 @@ export default function PerformancePage() {
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{metrics.memoryUsage}%</div>
-            <Progress value={metrics.memoryUsage} className="h-2" />
+            <div className="text-2xl font-bold">{heapUsagePercent}%</div>
+            <Progress value={heapUsagePercent} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              RSS {runtime.memory.rss} MB, heap {runtime.memory.heapUsed} of{" "}
+              {runtime.memory.heapTotal} MB
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Disk Usage</CardTitle>
-            <HardDrive className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Database Query Time
+            </CardTitle>
+            <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{metrics.diskUsage}%</div>
-            <Progress value={metrics.diskUsage} className="h-2" />
+            <div className="text-2xl font-bold">
+              {database.queryResponseTimeMs}ms
+            </div>
+            <div className="flex items-center gap-2">
+              {getStatusIcon(database.status)}
+              {getStatusBadge(database.status)}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Service Health</CardTitle>
           <CardDescription>
-            Status of all connected services and dependencies
+            Status of the live API runtime and database connection
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {metrics.healthChecks.map((check, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 rounded-lg border"
-              >
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  {getStatusIcon(check.status)}
+                  {getStatusIcon(appHealth?.status ?? "unknown")}
                   <div>
-                    <p className="font-medium">{check.name}</p>
+                    <p className="font-medium">API Health</p>
                     <p className="text-sm text-muted-foreground">
-                      {check.description}
+                      {appHealth?.status ?? "unknown"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground">
-                    {check.value}
-                  </span>
-                  {getStatusBadge(check.status)}
-                </div>
+                {getStatusBadge(appHealth?.status ?? "unknown")}
               </div>
-            ))}
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {getStatusIcon(health.databaseConnected ? "healthy" : "critical")}
+                  <div>
+                    <p className="font-medium">Monitoring DB</p>
+                    <p className="text-sm text-muted-foreground">
+                      {health.databaseConnected ? "Connected" : "Disconnected"}
+                    </p>
+                  </div>
+                </div>
+                {getStatusBadge(health.databaseConnected ? "healthy" : "critical")}
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -223,6 +223,7 @@ async function bootstrap() {
       noSniff: true,
       xssFilter: true,
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
 
@@ -264,6 +265,8 @@ async function bootstrap() {
       'X-Requested-With',
       'Cache-Control',
       'Pragma',
+      'X-XSRF-TOKEN',
+      'x-xsrf-token',
     ],
     credentials: true,
     maxAge: 86400,

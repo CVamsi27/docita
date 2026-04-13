@@ -23,6 +23,7 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export function SecuritySettings() {
   const { data: clinic, isLoading } = useClinicSettings();
@@ -59,7 +60,11 @@ export function SecuritySettings() {
           toast.success("Security settings saved successfully");
         },
         onError: (error) => {
-          toast.error(`Failed to save settings: ${error.message}`);
+          showUserFacingErrorToast(
+            error,
+            "We could not save your security settings. Please try again.",
+            "save",
+          );
         },
       },
     );

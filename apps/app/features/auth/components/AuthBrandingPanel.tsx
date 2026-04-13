@@ -1,56 +1,241 @@
-import { Lock, Server, Shield } from "lucide-react";
 import {
-  DocitaIconMonochrome,
-  DocitaLogo,
-} from "@workspace/ui/components/docita-logo";
+  Building2,
+  Check,
+  FileCheck2,
+  KeyRound,
+  LayoutDashboard,
+  ShieldCheck,
+  Stethoscope,
+  UserCheck,
+} from "lucide-react";
+import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { cn } from "@workspace/ui/lib/utils";
+import type { AuthBrandingStep } from "@/features/auth/types/auth";
 
-export function AuthBrandingPanel() {
+interface SetupStep {
+  icon: typeof KeyRound;
+  title: string;
+  description: string;
+  authSteps: readonly AuthBrandingStep[];
+}
+
+const setupSteps: readonly SetupStep[] = [
+  {
+    icon: FileCheck2,
+    title: "Set up your account",
+    description: "Enter your details or sign in to continue.",
+    authSteps: [
+      "email",
+      "login",
+      "signup",
+      "forgot-password",
+      "reset-password",
+    ],
+  },
+  {
+    icon: KeyRound,
+    title: "Verify access",
+    description: "Confirm your email before moving ahead.",
+    authSteps: ["verify-email", "verify-email-sent"],
+  },
+  {
+    icon: Building2,
+    title: "Choose your path",
+    description: "Create a new clinic or join an existing one.",
+    authSteps: ["choose-path"],
+  },
+  {
+    icon: UserCheck,
+    title: "Complete setup",
+    description: "Finish onboarding, team setup, and profile verification.",
+    authSteps: [
+      "onboarding",
+      "join-clinic",
+      "join-request-status",
+      "verify-doctor",
+    ],
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Start the day",
+    description: "Open appointments, patients, prescriptions, and billing.",
+    authSteps: [],
+  },
+];
+
+const assuranceItems = [
+  {
+    icon: ShieldCheck,
+    label: "Encrypted sessions",
+  },
+  {
+    icon: FileCheck2,
+    label: "Audit-ready activity",
+  },
+  {
+    icon: Stethoscope,
+    label: "Clinic-aware access",
+  },
+];
+
+export interface AuthBrandingPanelProps {
+  currentStep: AuthBrandingStep;
+}
+
+export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
+  const activeStepIndex = setupSteps.findIndex((step) =>
+    step.authSteps.includes(currentStep),
+  );
+
   return (
-    <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden p-12 bg-primary">
-      <DocitaLogo
-        tone="dark"
+    <aside
+      className="relative hidden h-full min-h-0 overflow-hidden border-r bg-card lg:flex lg:flex-col lg:justify-between"
+      aria-label="Docita setup overview"
+    >
+      <div
+        className="absolute inset-0 opacity-60"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, oklch(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(to bottom, oklch(var(--border) / 0.5) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-success/10 to-transparent"
+        aria-hidden="true"
       />
 
-      <div className="relative z-10 space-y-4">
-        <h2 className="text-4xl font-bold text-primary-foreground leading-tight">
-          Modern Healthcare,
-          <br />
-          Simplified.
-        </h2>
-        <p className="text-primary-foreground/70 text-lg max-w-sm">
-          Manage patients, appointments, prescriptions, and billing — all in one
-          place built for Indian clinics.
-        </p>
+      <div className="relative z-10 flex items-center justify-between p-8 xl:p-10">
+        <div className="flex items-center gap-3">
+          <DocitaIcon className="h-10 w-10" />
+          <span className="text-2xl font-bold text-foreground">docita</span>
+        </div>
+        <span className="rounded-full border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+          Clinic workspace
+        </span>
+      </div>
 
-        <div className="relative mt-8 h-32 rounded-3xl border border-primary-foreground/10 bg-primary-foreground/5">
-          <div className="absolute inset-x-5 bottom-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-primary-foreground/8 px-4 py-3">
-            <DocitaIconMonochrome className="h-9 w-9 shrink-0 text-primary-foreground" />
-            <div className="space-y-1">
-              <p className="text-sm font-semibold tracking-tight text-primary-foreground">
-                Docita for modern clinics
+      <div className="relative z-10 px-8 xl:px-10">
+        <div className="max-w-xl space-y-4">
+          <p className="text-sm font-medium text-primary">Getting started</p>
+          <h2 className="text-3xl font-bold leading-[1.1] text-foreground xl:text-4xl">
+            Everything in one guided path to your clinic.
+          </h2>
+          <p className="max-w-md text-sm leading-6 text-muted-foreground">
+            Account setup, email verification, onboarding — each step unlocks
+            the next. You only do this once.
+          </p>
+        </div>
+
+        <div className="mt-8 max-w-lg rounded-2xl border bg-background/85 p-4 shadow-sm backdrop-blur">
+          <div className="mb-3 flex items-center justify-between border-b pb-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Your setup journey
               </p>
-              <p className="text-xs text-primary-foreground/70">
-                Simple, clear clinic operations from one modern workspace.
+              <p className="text-xs text-muted-foreground">
+                {activeStepIndex >= 0
+                  ? `Step ${activeStepIndex + 1} of ${setupSteps.length} — keep going`
+                  : "Ready to begin"}
               </p>
             </div>
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              {activeStepIndex >= 0
+                ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
+                : "Start"}
+            </span>
           </div>
+
+          <ol className="space-y-2">
+            {setupSteps.map((step, index) => {
+              const Icon = step.icon;
+              const isActive = index === activeStepIndex;
+              const isComplete =
+                activeStepIndex >= 0 && index < activeStepIndex;
+              const isUpcoming =
+                activeStepIndex >= 0 && index > activeStepIndex;
+
+              return (
+                <li
+                  key={step.title}
+                  aria-current={isActive ? "step" : undefined}
+                  className={cn(
+                    "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
+                    isActive
+                      ? "border-primary/40 bg-primary/5 shadow-sm"
+                      : isComplete
+                        ? "border-success/20 bg-success/5"
+                        : "border-transparent",
+                    isUpcoming && "opacity-50",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                      isActive
+                        ? "border-primary/40 bg-background text-primary"
+                        : isComplete
+                          ? "border-success/30 bg-success/10 text-success"
+                          : "border-border/50 bg-card/50 text-muted-foreground",
+                    )}
+                  >
+                    {isComplete ? (
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex items-center gap-2 flex-1">
+                    <div className="flex-1">
+                      <p
+                        className={cn(
+                          "text-sm font-semibold leading-tight",
+                          isComplete
+                            ? "text-muted-foreground"
+                            : "text-foreground",
+                        )}
+                      >
+                        {step.title}
+                      </p>
+                      {isActive && (
+                        <p className="text-xs leading-4 text-muted-foreground mt-0.5">
+                          {step.description}
+                        </p>
+                      )}
+                    </div>
+                    {isActive && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
+                        Now
+                      </span>
+                    )}
+                    {isComplete && (
+                      <span className="text-[10px] font-medium text-success shrink-0">
+                        Done
+                      </span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
         </div>
       </div>
 
-      <div className="relative z-10 flex flex-col gap-3">
-        <div className="flex items-center gap-2 text-primary-foreground/80 text-sm">
-          <Shield className="h-4 w-4" />
-          <span>Data Encrypted</span>
-        </div>
-        <div className="flex items-center gap-2 text-primary-foreground/80 text-sm">
-          <Lock className="h-4 w-4" />
-          <span>HIPAA Ready</span>
-        </div>
-        <div className="flex items-center gap-2 text-primary-foreground/80 text-sm">
-          <Server className="h-4 w-4" />
-          <span>99.9% Uptime</span>
-        </div>
+      <div className="relative z-10 flex flex-wrap gap-4 p-8 text-xs text-muted-foreground xl:p-10">
+        {assuranceItems.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <div key={item.label} className="flex items-center gap-2">
+              <Icon className="h-4 w-4 text-success" aria-hidden="true" />
+              <p className="font-medium leading-5 text-foreground">
+                {item.label}
+              </p>
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </aside>
   );
 }

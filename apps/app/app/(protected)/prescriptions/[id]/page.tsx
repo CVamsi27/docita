@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react";
 import { useSmartBack } from "@/hooks/use-smart-back";
 import { format } from "date-fns";
 import { usePrescription } from "@/hooks/api/use-clinical";
-import { toast } from "sonner";
 import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
 import { useAuth } from "@/lib/auth-context";
@@ -15,6 +14,7 @@ import type { Medication } from "@workspace/types";
 import { PrescriptionHeader } from "@/features/prescriptions/components/view/PrescriptionHeader";
 import { PrescriptionDocument } from "@/features/prescriptions/components/view/PrescriptionDocument";
 import { buildConsultationRoute } from "@/features/consultation/rules/consultationTabRouting";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface DoctorInfo {
   name?: string;
@@ -117,7 +117,9 @@ export default function PrescriptionViewPage() {
   };
 
   if (error) {
-    toast.error("Failed to load prescription");
+    showUserFacingErrorToast(
+      "We could not load this prescription. Please try again.",
+    );
   }
 
   if (isLoading) {

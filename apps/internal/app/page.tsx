@@ -13,9 +13,15 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { useAuth } from "@/lib/auth";
+import { MAIN_APP_URL } from "@/lib/api-config";
 import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { client } from "@/lib/api-client";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+
+function getMainAppLoginUrl() {
+  return `${MAIN_APP_URL.replace(/\/$/, "")}/login`;
+}
 
 export default function InternalLogin() {
   const [email, setEmail] = useState("");
@@ -57,13 +63,13 @@ export default function InternalLogin() {
     const errors: { email?: string; password?: string } = {};
 
     if (!email.trim()) {
-      errors.email = "Email is required";
+      errors.email = "Enter an email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = "Enter a valid email address";
     }
 
     if (!password.trim()) {
-      errors.password = "Password is required";
+      errors.password = "Enter a password.";
     }
 
     setFieldErrors(errors);
@@ -77,20 +83,22 @@ export default function InternalLogin() {
       const data = await loginMutation.mutateAsync({ email, password });
 
       if (!data?.user) {
-        throw new Error("Invalid response from server");
+        throw new Error("We could not sign you in. Please try again.");
       }
 
-          if (data.user.role !== "INTERNAL") {
-        throw new Error(
-          "Unauthorized access - Internal users only. Clinic admins should use the main app.",
-        );
+      if (data.user.role !== "INTERNAL") {
+        window.location.replace(getMainAppLoginUrl());
+        return;
       }
 
       login(data.access_token ?? null, data.user);
       toast.success("Login successful");
-      router.push("/dashboard");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Login failed");
+      showUserFacingErrorToast(
+        err,
+        "We could not sign you in. Please check your details and try again.",
+        "auth",
+      );
     } finally {
       setLoading(false);
     }
@@ -103,7 +111,7 @@ export default function InternalLogin() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-center">Docita Internal</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-center">Docita Internal</h1>
           <p className="text-sm text-muted-foreground">
             Internal Console - Product Owners & System Admins
           </p>

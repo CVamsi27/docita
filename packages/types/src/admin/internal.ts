@@ -82,11 +82,33 @@ export const internalAnalyticsSchema = z.object({
 });
 
 export const internalPerformanceMetricsSchema = z.object({
-  apiLatency: z.number(),
+  uptimeSeconds: z.number(),
+  uptimeFormatted: z.string(),
+  avgResponseTime: z.number(),
+  requestsLastHour: z.number(),
+  requestsPerMinute: z.number(),
+  errorsLastHour: z.number(),
   errorRate: z.number(),
-  cpuUsage: z.number(),
-  memoryUsage: z.number(),
-  activeConnections: z.number(),
+  memoryUsage: z.object({
+    rss: z.number(),
+    heapTotal: z.number(),
+    heapUsed: z.number(),
+    external: z.number(),
+  }),
+  cpuUsage: z.object({
+    user: z.number(),
+    system: z.number(),
+  }),
+  databaseConnected: z.boolean(),
+  lastErrors: z.number(),
+  healthChecks: z.array(
+    z.object({
+      name: z.string(),
+      status: z.string(),
+      value: z.string(),
+      description: z.string(),
+    }),
+  ),
 });
 
 export const internalAIFeatureCatalogSchema = z.array(

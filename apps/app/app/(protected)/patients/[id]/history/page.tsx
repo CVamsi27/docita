@@ -3,6 +3,8 @@
 import { use } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { ArrowLeft } from "lucide-react";
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { usePatient } from "@/hooks/api/use-patients";
 import { UnifiedTimelineContainer } from "@/features/patients/components/timeline/UnifiedTimelineContainer";
 import { useSmartBack } from "@/hooks/use-smart-back";
@@ -33,21 +35,23 @@ export default function PatientHistoryPage({
   }
 
   return (
-    <div className="flex-1 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={goBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Patient
-            </Button>
+    <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
+      <div className="flex-1 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={goBack}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Patient
+              </Button>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Medical History</h1>
+            <p className="text-muted-foreground">{patientName}</p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Medical History</h1>
-          <p className="text-muted-foreground">{patientName}</p>
         </div>
-      </div>
 
-      <UnifiedTimelineContainer patientId={patientId} />
-    </div>
+        <UnifiedTimelineContainer patientId={patientId} />
+      </div>
+    </FeatureGate>
   );
 }

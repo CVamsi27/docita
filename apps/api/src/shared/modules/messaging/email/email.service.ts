@@ -12,6 +12,7 @@ import { AppConfigService } from '@/shared/modules/config/app-configuration.serv
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
+  private readonly supportEmail = 'support@docita.work';
 
   constructor(
     @Inject(EMAIL_PROVIDER)
@@ -106,27 +107,38 @@ export class EmailService {
 
   async sendVerificationEmail(
     email: string,
-    name: string,
+    _name: string,
     verificationToken: string,
   ): Promise<EmailSendResult> {
     const verifyUrl = `${this.configService.getAppUrl()}/verify-email?token=${verificationToken}`;
-    const safeName = escapeHtml(name);
 
     return this.emailProvider.send({
       to: email,
       subject: 'Verify Your Email - Docita',
+      replyTo: this.supportEmail,
       html: `
-        <h1>Verify Your Email Address</h1>
-        <p>Hi ${safeName},</p>
-        <p>Please verify your email address by clicking the button below:</p>
-        <p>
-          <a href="${verifyUrl}"
-             style="background: #4F46E5; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
-            Verify Email
-          </a>
-        </p>
-        <p><small>This link expires in 24 hours. If you didn't create an account, please ignore this email.</small></p>
+        <div style="margin:0; padding:32px 16px; background:#f8fafc; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+          <div style="max-width:420px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:16px; padding:32px 24px; text-align:center;">
+            <p style="margin:0 0 16px; font-size:34px; line-height:1; font-weight:700;">Verified</p>
+            <a href="${verifyUrl}"
+               style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">
+              Verify email
+            </a>
+            <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
+              Regards,<br />
+              Docita Care Team
+            </p>
+          </div>
+        </div>
       `,
+      text: [
+        'Verified',
+        '',
+        `Verify your account: ${verifyUrl}`,
+        '',
+        'Regards,',
+        'Docita Care Team',
+      ].join('\n'),
     });
   }
 

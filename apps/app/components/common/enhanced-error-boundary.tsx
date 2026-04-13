@@ -9,6 +9,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { AlertCircle, Home, Mail, RefreshCw } from "lucide-react";
+import {
+  getSupportContactText,
+  SUPPORT_EMAIL,
+} from "@/lib/support-contact";
 
 interface Props {
   children: ReactNode;
@@ -84,7 +88,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
       return {
         title: "Connection Issue",
         message:
-          "We couldn't connect to our servers. Please check your internet connection and try again.",
+          "We couldn't connect right now. Please check your internet connection and try again.",
         actions: [
           {
             label: "Retry Connection",
@@ -139,9 +143,8 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
   private getDefaultError(): UserFriendlyError {
     return {
-      title: "Something Went Wrong",
-      message:
-        "An unexpected error occurred in the application. We've been notified and are looking into it.",
+      title: "We could not load this page",
+      message: `We couldn't load this page. Please try again. If it continues, ${getSupportContactText()}.`,
       actions: [
         {
           label: "Reload Application",
@@ -149,8 +152,8 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
           icon: <RefreshCw className="h-4 w-4" />,
         },
         {
-          label: "Contact Support",
-              action: () => (window.location.href = "mailto:support@docita.work"),
+          label: `Email ${SUPPORT_EMAIL}`,
+          action: () => (window.location.href = `mailto:${SUPPORT_EMAIL}`),
           variant: "outline",
           icon: <Mail className="h-4 w-4" />,
         },
@@ -195,19 +198,6 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                   </Button>
                 ))}
               </div>
-
-              {process.env.NODE_ENV === "development" && this.state.error && (
-                <div className="mt-8 text-left p-4 bg-muted rounded-md overflow-hidden">
-                  <p className="text-xs font-mono text-destructive font-bold mb-2">
-                    Developer Info (Visible in Dev Only):
-                  </p>
-                  <pre className="text-[10px] font-mono whitespace-pre-wrap max-h-40 overflow-y-auto opacity-70">
-                    {this.state.error.toString()}
-                    {"\n\nComponent Stack:\n"}
-                    {this.state.errorInfo?.componentStack}
-                  </pre>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

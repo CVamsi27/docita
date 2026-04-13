@@ -3,120 +3,325 @@ name: CI
 on:
   push:
     branches: ["main"]
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - "scripts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - "fly.toml"
+      - "apps/worker/fly.toml"
+      - ".github/workflows/**"
   pull_request:
+    paths:
+      - "apps/**"
+      - "packages/**"
+      - "scripts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - "fly.toml"
+      - "apps/worker/fly.toml"
+      - ".github/workflows/**"
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-and-test:
-    name: Build, Lint, and Test
+  changes:
+    name: Detect CI Scope
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ["22.12.0"]
-
+    outputs:
+      dependencies: ${{ steps.detect.outputs.dependencies }}
+      api: ${{ steps.detect.outputs.api }}
+      app: ${{ steps.detect.outputs.app }}
+      internal: ${{ steps.detect.outputs.internal }}
+      landing: ${{ steps.detect.outputs.landing }}
+      worker: ${{ steps.detect.outputs.worker }}
+      db: ${{ steps.detect.outputs.db }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v5
         with:
-          version: 10.30.3
+          fetch-depth: 0
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22.12.0
+          package-manager-cache: false
+
+      - name: Detect changed areas
+        id: detect
+        run: node scripts/detect-workflow-scope.mjs ci
+
+  repo-standards:
+    name: Repository Standards
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.12.0
           cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Validate workflow YAML
+        run: |
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |path| YAML.load_file(path) }'
 
       - name: Verify Repository Standards
         run: pnpm verify:standard
 
-      - name: Generate Prisma Client
-        run: pnpm db:generate
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Build
-        run: pnpm build
-
-      - name: Validate App Cloudflare Build
-        run: pnpm --filter @docita/app run build:cloudflare
-
-      - name: Test (Unit)
-        run: pnpm test -- --coverage
-
-      - name: Upload Coverage Reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-reports
-          path: |
-            **/coverage/
-            !**/node_modules/**
-          retention-days: 14
-
-      - name: Comment Coverage Report on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const coveragePath = 'apps/api/coverage/coverage-summary.json';
-            if (!fs.existsSync(coveragePath)) {
-              core.warning(`Coverage summary not found at ${coveragePath}; skipping PR coverage comment.`);
-              return;
-            }
-            const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
-            const total = coverage.total;
-            const comment = `## Coverage Report
-
-            | Metric | Coverage |
-            |--------|----------|
-            | Lines | ${total.lines.pct.toFixed(2)}% |
-            | Statements | ${total.statements.pct.toFixed(2)}% |
-            | Functions | ${total.functions.pct.toFixed(2)}% |
-            | Branches | ${total.branches.pct.toFixed(2)}% |
-
-            **Target:** Lines ≥ 80%, Statements ≥ 80%, Functions ≥ 80%, Branches ≥ 75%`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-        continue-on-error: true
-
-  security-audit:
-    name: Security Audit
+  api-quality:
+    name: API Unit Checks
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Check sensitive logging patterns
-        run: pnpm check:sensitive-logging
-      - name: Audit Dependencies
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Build API workspace dependencies
+        run: |
+          pnpm --filter @workspace/types run build
+          pnpm --filter @workspace/utils run build
+          pnpm --filter @workspace/db run build
+
+      - name: Lint API
+        run: pnpm --filter @docita/api run lint
+
+      - name: Typecheck API
+        run: pnpm --filter @docita/api run check-types
+
+      - name: Test API
+        run: pnpm --filter @docita/api run test
+
+      - name: Build API on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pnpm --filter @docita/api run build
+
+  app-quality:
+    name: App Unit Checks
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.12.0
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app workspace dependencies
+        run: pnpm --filter @docita/app run prestart
+
+      - name: Lint app
+        run: pnpm --filter @docita/app run lint
+
+      - name: Typecheck app
+        run: pnpm --filter @docita/app run check-types
+
+      - name: Test app
+        run: pnpm --filter @docita/app run test
+
+  internal-quality:
+    name: Internal Unit Checks
+    needs: changes
+    if: needs.changes.outputs.internal == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.12.0
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build internal workspace dependencies
+        run: |
+          pnpm --filter @workspace/types run build
+          pnpm --filter @workspace/utils run build
+          pnpm --filter @workspace/hooks run build
+          pnpm --filter @workspace/ui run build
+          pnpm --filter @workspace/data-access run build
+
+      - name: Lint internal
+        run: pnpm --filter @docita/internal run lint
+
+      - name: Typecheck internal
+        run: pnpm --filter @docita/internal run check-types
+
+      - name: Test internal
+        run: pnpm --filter @docita/internal run test
+
+      - name: Build internal on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pnpm --filter @docita/internal run build
+
+  landing-quality:
+    name: Landing Checks
+    needs: changes
+    if: needs.changes.outputs.landing == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.12.0
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build landing workspace dependencies
+        run: |
+          pnpm --filter @workspace/types run build
+          pnpm --filter @workspace/utils run build
+          pnpm --filter @workspace/hooks run build
+          pnpm --filter @workspace/ui run build
+
+      - name: Lint landing
+        run: pnpm --filter @docita/landing run lint
+
+      - name: Typecheck landing
+        run: pnpm --filter @docita/landing run check-types
+
+      - name: Build landing on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pnpm --filter @docita/landing run build
+
+  worker-quality:
+    name: Worker Unit Checks
+    needs: changes
+    if: needs.changes.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.12.0
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret is required."
+            exit 1
+          fi
+          pnpm --filter @workspace/db run db:generate
+
+      - name: Lint worker package
+        run: pnpm --filter @docita/worker run lint
+
+      - name: Typecheck worker package
+        run: pnpm --filter @docita/worker run check-types
+
+      - name: Build worker on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: pnpm --filter @docita/worker run build
+
+  security-audit:
+    name: Security Audit
+    needs: changes
+    if: needs.changes.outputs.dependencies == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
+      - name: Use Node.js 22.12.0
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.12.0
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
         run: pnpm audit --audit-level=high
 
   validate-migrations:
     name: Validate Migrations
+    needs: changes
+    if: needs.changes.outputs.db == 'true'
     runs-on: ubuntu-latest
     env:
       PGHOST: localhost
@@ -142,19 +347,23 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Validate Migrations
+
+      - name: Validate migrations
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita
         run: pnpm db:deploy
@@ -164,14 +373,12 @@ jobs:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita
         working-directory: packages/db
         run: |
-          echo "Checking that schema.prisma has no changes missing a migration..."
-          npx prisma migrate diff \
+          pnpm exec prisma migrate diff \
             --from-config-datasource \
             --to-schema prisma/schema.prisma \
             --exit-code
-          echo "No drift detected."
 
-      - name: DB integrity and performance guardrails
+      - name: DB guardrails
         env:
           DATABASE_URL: postgresql://docita:password@localhost:5434/docita
         run: |
@@ -180,34 +387,36 @@ jobs:
           pnpm --filter @workspace/db run db:profile-queries
           pnpm --filter @workspace/db run db:check-query-plans
 
-  frontend-bundle-analysis:
-    name: Frontend Bundle Analysis
+  app-bundle-analysis:
+    name: App Bundle Analysis
+    needs: changes
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.30.3
+      - uses: actions/checkout@v5
+
+      - name: Prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.30.3 --activate
+
       - name: Use Node.js 22.12.0
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.12.0
           cache: "pnpm"
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Analyze Bundle
+
+      - name: Analyze app bundle
         env:
           ANALYZE: "true"
           NEXT_TELEMETRY_DISABLED: 1
         run: pnpm --filter @docita/app run build:analyze
 
-      - name: Capture Perf Baseline Snapshot
+      - name: Capture perf baseline
         run: pnpm perf:baseline
 
-      - name: Perf Budget Check (Warn Mode)
-        run: pnpm perf:budget:warn
-
-      - name: Perf Budget Check (Enforced on main)
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Enforce perf budget
         run: pnpm perf:budget:enforce

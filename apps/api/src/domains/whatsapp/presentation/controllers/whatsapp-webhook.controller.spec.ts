@@ -1,63 +1,74 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, Logger } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import type { Request } from 'express';
+import { asType } from '@/test-utils/as-type';
 import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/handle-webhook.use-case';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { WhatsAppWebhookController } from './whatsapp-webhook.controller';
 
 describe('WhatsAppWebhookController', () => {
   let controller: WhatsAppWebhookController;
 
-  const mockHandleWebhookUseCase = {
+  const handleWebhookUseCase = {
     execute: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
-  const mockAppConfigService = {
+  const configService = {
     getMetaConfig: jest.fn(() => ({
       verifyToken: 'verify-token',
     })),
   };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Logger.prototype, 'debug').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
 
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [WhatsAppWebhookController],
-      providers: [
-        {
-          provide: HandleWebhookUseCase,
-          useValue: mockHandleWebhookUseCase,
-        },
-        {
-          provide: AppConfigService,
-          useValue: mockAppConfigService,
-        },
-      ],
-    }).compile();
-
-    controller = module.get<WhatsAppWebhookController>(
-      WhatsAppWebhookController,
+    controller = new WhatsAppWebhookController(
+      asType<HandleWebhookUseCase>(handleWebhookUseCase),
+      asType<AppConfigService>(configService),
     );
   });
 
-  describe('verifyWebhook', () => {
-    it('returns the challenge when the subscription token is valid', () => {
-      expect(
-        controller.verifyWebhook({
-          'hub.mode': 'subscribe',
-          'hub.verify_token': 'verify-token',
-          'hub.challenge': 'challenge-token',
-        }),
-      ).toBe('challenge-token');
-    });
+  it('ignores empty crawler requests without throwing', () => {
+    expect(controller.verifyWebhook({ query: {} } as unknown as Request)).toBe(
+      'OK',
+    );
+    expect(configService.getMetaConfig).toHaveBeenCalled();
+  });
 
-    it('throws ForbiddenException when the challenge is missing', () => {
-      expect(() =>
-        controller.verifyWebhook({
+  it('returns the webhook challenge when verification succeeds', () => {
+    expect(
+      controller.verifyWebhook({
+        query: {
           'hub.mode': 'subscribe',
           'hub.verify_token': 'verify-token',
-        }),
-      ).toThrow(ForbiddenException);
-    });
+          'hub.challenge': '123456',
+        },
+      } as unknown as Request),
+    ).toBe('123456');
+  });
+
+  it('throws ForbiddenException when the challenge is missing', () => {
+    expect(() =>
+      controller.verifyWebhook({
+        query: {
+          'hub.mode': 'subscribe',
+          'hub.verify_token': 'verify-token',
+        },
+      } as unknown as Request),
+    ).toThrow(ForbiddenException);
+  });
+
+  it('rejects invalid verification attempts', () => {
+    expect(() =>
+      controller.verifyWebhook({
+        query: {
+          'hub.mode': 'subscribe',
+          'hub.verify_token': 'wrong-token',
+          'hub.challenge': '123456',
+        },
+      } as unknown as Request),
+    ).toThrow(ForbiddenException);
   });
 });

@@ -16,6 +16,7 @@ import {
 } from "@workspace/ui/components/select";
 import { toast } from "sonner";
 import { TIER_INFO, type TierName } from "@workspace/types";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -92,7 +93,7 @@ export function CreateClinicDialog({
     email: "",
     phone: "",
     address: "",
-    tier: "CAPTURE",
+    tier: "STARTER",
     type: "GENERAL" as ClinicType,
     adminName: "",
     adminEmail: "",
@@ -122,23 +123,23 @@ export function CreateClinicDialog({
       adminPassword?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Clinic name is required";
+    if (!formData.name.trim()) errors.name = "Enter the clinic name.";
     if (!formData.email.trim()) {
-      errors.email = "Clinic email is required";
+      errors.email = "Enter the clinic email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Enter a valid clinic email address";
     }
-    if (!formData.phone.trim()) errors.phone = "Phone is required";
-    if (!formData.address.trim()) errors.address = "Address is required";
+    if (!formData.phone.trim()) errors.phone = "Enter a phone number.";
+    if (!formData.address.trim()) errors.address = "Enter the clinic address.";
 
-    if (!formData.adminName.trim()) errors.adminName = "Admin name is required";
+    if (!formData.adminName.trim()) errors.adminName = "Enter the admin's name.";
     if (!formData.adminEmail.trim()) {
-      errors.adminEmail = "Admin email is required";
+      errors.adminEmail = "Enter the admin's email address.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.adminEmail)) {
       errors.adminEmail = "Enter a valid admin email address";
     }
     if (!formData.adminPassword.trim()) {
-      errors.adminPassword = "Admin password is required";
+      errors.adminPassword = "Enter a password for the admin.";
     }
 
     return errors;
@@ -164,7 +165,7 @@ export function CreateClinicDialog({
           email: "",
           phone: "",
           address: "",
-          tier: "CAPTURE",
+          tier: "STARTER",
           type: "GENERAL",
           adminName: "",
           adminEmail: "",
@@ -173,8 +174,10 @@ export function CreateClinicDialog({
         });
         toast.success("Clinic created successfully");
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to create clinic",
+        showUserFacingErrorToast(
+          error,
+          "We could not create this clinic right now. Please try again.",
+          "save",
         );
       } finally {
         setLoading(false);

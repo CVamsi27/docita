@@ -1,4 +1,4 @@
-import { Module, forwardRef as _forwardRef } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
 import { TemplatesService as _TemplatesService } from './templates.service';
 import { TemplatesFacadeService } from './templates-facade.service';
@@ -20,9 +20,10 @@ import { ResponseHandlerService } from './response-handler.service';
 import { StaffNotificationService } from './staff-notification.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { WhatsappEventListener } from './listeners/whatsapp.listener';
+import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, forwardRef(() => SupportWhatsAppModule)],
   controllers: [WhatsappController, StaffNotificationController],
   providers: [
     DefaultTemplatesService,

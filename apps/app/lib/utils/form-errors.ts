@@ -1,6 +1,7 @@
 
 
 import type { ApiErrorResponse, FormValidationErrors } from "@/lib/types/form";
+import { getSafeUserMessage } from "@/lib/user-facing-errors";
 
 function toRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object") {
@@ -19,17 +20,18 @@ export async function parseApiError(response: Response): Promise<{
 
     const fieldErrors = data.validationErrors || {};
 
-    const message =
-      data.detail || "An error occurred. Please check the highlighted fields.";
+    const message = getSafeUserMessage(
+      data.detail,
+      "Please check the highlighted fields and try again.",
+    );
 
     return {
       message,
       fieldErrors,
     };
   } catch {
-
     return {
-      message: "An error occurred. Please try again.",
+      message: "Please check the information and try again.",
       fieldErrors: {},
     };
   }
@@ -37,13 +39,15 @@ export async function parseApiError(response: Response): Promise<{
 
 export function formatFieldError(error: unknown): string {
   if (typeof error === "string") {
-    return error;
+    return getSafeUserMessage(error, "Please check this field.");
   }
   if (typeof error === "object" && error !== null) {
     const errorObj = toRecord(error);
-    return String(errorObj?.message || error);
+    const message =
+      typeof errorObj?.message === "string" ? errorObj.message : undefined;
+    return getSafeUserMessage(message, "Please check this field.");
   }
-  return "Invalid input";
+  return "Please enter a valid value.";
 }
 
 export function hasFieldError(

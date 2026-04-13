@@ -127,6 +127,11 @@ pnpm test
 
 See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment direction.
 
+## Staging
+
+- Use the `staging` branch for pre-production deploys.
+- Follow [Staging Setup](docs/STAGING.md) for the branch-level API, Cloudflare, and database configuration.
+
 ## License
 
 MIT

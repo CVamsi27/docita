@@ -93,6 +93,7 @@ export class AvailabilityScheduleService {
       slotDuration?: number;
       isActive?: boolean;
     },
+    clinicId?: string,
   ) {
     if (data.startTime && !TimeUtils.validateTimeFormat(data.startTime)) {
       throw new BadRequestException(
@@ -107,7 +108,7 @@ export class AvailabilityScheduleService {
 
     const schedule = await this.repository.findScheduleById(id);
 
-    if (!schedule) {
+    if (!schedule || (clinicId && schedule.clinicId !== clinicId)) {
       throw new NotFoundException('Schedule not found');
     }
 
@@ -124,10 +125,10 @@ export class AvailabilityScheduleService {
     return this.repository.updateSchedule(id, data);
   }
 
-  async deleteSchedule(id: string) {
+  async deleteSchedule(id: string, clinicId?: string) {
     const schedule = await this.repository.findScheduleById(id);
 
-    if (!schedule) {
+    if (!schedule || (clinicId && schedule.clinicId !== clinicId)) {
       throw new NotFoundException('Schedule not found');
     }
 
@@ -240,10 +241,10 @@ export class AvailabilityScheduleService {
     });
   }
 
-  async deleteTimeOff(id: string) {
+  async deleteTimeOff(id: string, clinicId?: string) {
     const timeOff = await this.repository.findTimeOffById(id);
 
-    if (!timeOff) {
+    if (!timeOff || (clinicId && timeOff.clinicId !== clinicId)) {
       throw new NotFoundException('Time off record not found');
     }
 

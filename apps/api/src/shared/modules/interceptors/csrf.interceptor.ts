@@ -24,12 +24,24 @@ export class CsrfInterceptor implements NestInterceptor {
   }
 
   private setCsrfCookie(response: Response, csrfToken: string): void {
-    response.cookie('XSRF-TOKEN', csrfToken, {
+    const domain = this.configService.getSharedCookieDomain();
+    const baseOptions = {
       path: '/',
       sameSite: 'strict',
       secure: this.configService.isProduction(),
       httpOnly: false,
-    });
+    } as const;
+
+    // Always set a host-only cookie (api host) so existing sessions continue
+    // to work and any legacy host-only cookie is overwritten.
+    response.cookie('XSRF-TOKEN', csrfToken, baseOptions);
+
+    // When we can compute a shared cookie domain (e.g. docita.work), also set
+    // the domain cookie so the frontend app can read it and echo it back in
+    // the X-XSRF-TOKEN header.
+    if (domain) {
+      response.cookie('XSRF-TOKEN', csrfToken, { ...baseOptions, domain });
+    }
   }
 
   private getHeaderToken(request: Request): string | undefined {
@@ -56,20 +68,11 @@ export class CsrfInterceptor implements NestInterceptor {
     return Boolean(cookies['access_token'] || cookies['refresh_token']);
   }
 
-  private canBootstrapCsrfForAuthMutation(
-    request: Request,
-    csrfToken: string | undefined,
-    headerToken: string | undefined,
-  ): boolean {
-    if (csrfToken || headerToken) {
-      return false;
-    }
-
-    if (this.hasSessionCookie(request)) {
-      return false;
-    }
-
-    return this.isAuthPath(this.getRequestPath(request));
+  private canBootstrapCsrfForAuthMutation(request: Request): boolean {
+    return (
+      this.isAuthPath(this.getRequestPath(request)) &&
+      !this.hasSessionCookie(request)
+    );
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -85,19 +88,26 @@ export class CsrfInterceptor implements NestInterceptor {
 
     const existingCsrfToken = request.cookies?.['XSRF-TOKEN'];
     let csrfToken = existingCsrfToken;
-    if (!existingCsrfToken && this.isSafeMethod(request.method)) {
-      csrfToken = randomBytes(24).toString('hex');
+    if (this.isSafeMethod(request.method)) {
+      if (!csrfToken) {
+        csrfToken = randomBytes(24).toString('hex');
+      }
+
+      // Always re-issue the token on safe requests. This keeps the host-only and
+      // shared-domain cookies in sync and helps browsers converge after we
+      // migrate cookie domains in production.
       this.setCsrfCookie(response, csrfToken);
     }
 
     if (!this.isSafeMethod(request.method)) {
       const headerToken = this.getHeaderToken(request);
 
-      if (
-        this.canBootstrapCsrfForAuthMutation(request, csrfToken, headerToken)
-      ) {
-        csrfToken = randomBytes(24).toString('hex');
-        this.setCsrfCookie(response, csrfToken);
+      if (this.canBootstrapCsrfForAuthMutation(request)) {
+        if (!csrfToken) {
+          csrfToken = randomBytes(24).toString('hex');
+          this.setCsrfCookie(response, csrfToken);
+        }
+
         return next.handle();
       }
 

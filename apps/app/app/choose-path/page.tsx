@@ -1,60 +1,69 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Building2, Check, Loader2, LogOut, Users } from 'lucide-react';
-import { Button } from '@workspace/ui/components/button';
-import { cn } from '@workspace/ui/lib/utils';
-import { toast } from 'sonner';
-import { typedApi } from '@/lib/api-client';
-import { logger } from '@/lib/logger';
-import { ThemeToggle } from '@workspace/ui/components/theme-toggle';
-import { DocitaLogo } from '@workspace/ui/components/docita-logo';
-import { AuthBrandingPanel } from '@/features/auth/components/AuthBrandingPanel';
-import { useAuth } from '@/lib/auth-context';
-import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Building2, Check, Loader2, Users } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import { cn } from "@workspace/ui/lib/utils";
+import { typedApi } from "@/lib/api-client";
+import { logger } from "@/lib/logger";
+import { useAuth } from "@/lib/auth-context";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { SupportContact } from "@/components/common/support-contact";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
 const CREATE_BULLETS = [
-  'Choose subscription plan',
-  'Configure clinic settings',
-  'Invite team members',
-  'Sign legal agreements',
+  "Choose subscription plan",
+  "Configure clinic settings",
+  "Invite team members",
+  "Sign legal agreements",
 ];
 
 const JOIN_BULLETS = [
-  'Search for your clinic',
-  'Submit join request',
-  'Wait for admin approval',
-  'Start working immediately',
+  "Search for your clinic",
+  "Submit join request",
+  "Wait for admin approval",
+  "Start working immediately",
 ];
 
 export default function ChoosePathPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
-  const [loadingPath, setLoadingPath] = useState<'CREATE_CLINIC' | 'JOIN_CLINIC' | null>(null);
+  const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
+  const [loadingPath, setLoadingPath] = useState<
+    "CREATE_CLINIC" | "JOIN_CLINIC" | null
+  >(null);
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
-      setRedirectMessage('Redirecting to login...');
-      router.replace('/login');
+      setRedirectMessage("Redirecting to login...");
+      router.replace("/login");
       return;
     }
-    if (user?.clinicId || user?.onboardingStep === 'COMPLETED') {
-      setRedirectMessage('Account already linked. Redirecting to dashboard...');
-      router.replace('/dashboard');
+    if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
+      setRedirectMessage("Account already linked. Redirecting to dashboard...");
+      router.replace("/dashboard");
+      return;
+    }
+    if (user?.onboardingStep === "CREATING_CLINIC") {
+      setRedirectMessage("Taking you back to onboarding...");
+      router.replace("/onboarding");
     }
   }, [isAuthenticated, isLoading, user, router]);
 
-  const handleChoosePath = async (path: 'CREATE_CLINIC' | 'JOIN_CLINIC') => {
+  const handleChoosePath = async (path: "CREATE_CLINIC" | "JOIN_CLINIC") => {
     setLoadingPath(path);
     try {
       await typedApi.onboarding.choosePath(path);
-      router.push(path === 'CREATE_CLINIC' ? '/onboarding' : '/join-clinic');
+      await refreshUser();
+      router.push(path === "CREATE_CLINIC" ? "/onboarding" : "/join-clinic");
     } catch (error) {
-      toast.error('Failed to save your choice. Please try again.');
-      logger.error('Error choosing path', { error });
+      showUserFacingErrorToast(
+        "We could not save this selection. Please try again.",
+      );
+      logger.error("Error choosing path", { error });
       setLoadingPath(null);
     }
   };
@@ -76,93 +85,57 @@ export default function ChoosePathPage() {
     );
   }
 
-  const firstName = user?.name?.split(' ')[0];
+  const firstName = user?.name?.split(" ")[0];
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AuthBrandingPanel />
+    <PreDashboardShell
+      currentStep="choose-path"
+      contentMaxWidth="max-w-xl"
+      showSignOut
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          How would you like to get started?
+        </p>
+      </div>
 
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 py-10 relative">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at 60% 40%, oklch(var(--primary) / 0.04) 0%, transparent 70%)',
-          }}
-          aria-hidden="true"
+      <div
+        className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        style={{ animationDelay: "100ms" }}
+      >
+        <PathCard
+          icon={<Building2 className="h-7 w-7 text-primary" />}
+          iconBg="bg-primary/10"
+          title="Create New Clinic"
+          description="Set up your own clinic and choose a plan."
+          bullets={CREATE_BULLETS}
+          buttonLabel="Get Started"
+          buttonVariant="default"
+          loading={loadingPath === "CREATE_CLINIC"}
+          disabled={loadingPath !== null}
+          onClick={() => handleChoosePath("CREATE_CLINIC")}
+          highlight
         />
 
-        <div className="absolute top-4 right-4 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={logout}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4 mr-1.5" />
-            Sign out
-          </Button>
-          <ThemeToggle />
-        </div>
-
-        <div className="w-full max-w-xl space-y-8 relative z-10">
-          <div className="lg:hidden flex justify-center">
-            <DocitaLogo />
-          </div>
-
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-            <h1 className="text-2xl font-bold tracking-tight">
-              {firstName ? `Welcome, ${firstName}!` : 'Welcome to Docita!'}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              How would you like to get started?
-            </p>
-          </div>
-
-          <div
-            className="grid sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
-            style={{ animationDelay: '100ms' }}
-          >
-            <PathCard
-              icon={<Building2 className="h-7 w-7 text-primary" />}
-              iconBg="bg-primary/10"
-              title="Create New Clinic"
-              description="Set up your own clinic and choose a plan."
-              bullets={CREATE_BULLETS}
-              buttonLabel="Get Started"
-              buttonVariant="default"
-              loading={loadingPath === 'CREATE_CLINIC'}
-              disabled={loadingPath !== null}
-              onClick={() => handleChoosePath('CREATE_CLINIC')}
-              highlight
-            />
-
-            <PathCard
-              icon={<Users className="h-7 w-7 text-info" />}
-              iconBg="bg-info/10"
-              title="Join Existing Clinic"
-              description="Request access to a clinic in your organization."
-              bullets={JOIN_BULLETS}
-              buttonLabel="Search Clinics"
-              buttonVariant="outline"
-              loading={loadingPath === 'JOIN_CLINIC'}
-              disabled={loadingPath !== null}
-              onClick={() => handleChoosePath('JOIN_CLINIC')}
-            />
-          </div>
-
-          <p className="text-center text-xs text-muted-foreground">
-            Need help?{' '}
-            <a
-              href="mailto:support@docita.work"
-              className="underline underline-offset-4 hover:text-foreground transition-colors"
-            >
-              Contact support
-            </a>
-          </p>
-        </div>
+        <PathCard
+          icon={<Users className="h-7 w-7 text-info" />}
+          iconBg="bg-info/10"
+          title="Join Existing Clinic"
+          description="Request access to a clinic in your organization."
+          bullets={JOIN_BULLETS}
+          buttonLabel="Search Clinics"
+          buttonVariant="outline"
+          loading={loadingPath === "JOIN_CLINIC"}
+          disabled={loadingPath !== null}
+          onClick={() => handleChoosePath("JOIN_CLINIC")}
+        />
       </div>
-    </div>
+
+      <SupportContact />
+    </PreDashboardShell>
   );
 }
 
@@ -173,7 +146,7 @@ interface PathCardProps {
   description: string;
   bullets: string[];
   buttonLabel: string;
-  buttonVariant: 'default' | 'outline';
+  buttonVariant: "default" | "outline";
   loading: boolean;
   disabled: boolean;
   onClick: () => void;
@@ -196,16 +169,21 @@ function PathCard({
   return (
     <div
       className={cn(
-        'group relative flex flex-col rounded-2xl border bg-card/80 backdrop-blur-sm p-6 shadow-md transition-all duration-200',
-        'hover:shadow-xl hover:-translate-y-0.5',
+        "group relative flex flex-col rounded-lg border bg-card/80 backdrop-blur-sm p-6 shadow-md transition-all duration-200",
+        "hover:shadow-xl hover:-translate-y-0.5",
         highlight
-          ? 'border-primary/30 hover:border-primary'
-          : 'border-border hover:border-muted-foreground/30',
-        disabled && 'pointer-events-none opacity-70',
+          ? "border-primary/30 hover:border-primary"
+          : "border-border hover:border-muted-foreground/30",
+        disabled && "pointer-events-none opacity-70",
       )}
     >
       <div className="space-y-4 flex-1">
-        <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', iconBg)}>
+        <div
+          className={cn(
+            "flex h-12 w-12 items-center justify-center rounded-lg",
+            iconBg,
+          )}
+        >
           {icon}
         </div>
 
@@ -216,7 +194,10 @@ function PathCard({
 
         <ul className="space-y-1.5">
           {bullets.map((item) => (
-            <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+            <li
+              key={item}
+              className="flex items-center gap-2 text-sm text-muted-foreground"
+            >
               <Check className="h-3.5 w-3.5 text-success shrink-0" />
               {item}
             </li>
@@ -230,11 +211,7 @@ function PathCard({
         onClick={onClick}
         disabled={disabled}
       >
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          buttonLabel
-        )}
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : buttonLabel}
       </Button>
     </div>
   );

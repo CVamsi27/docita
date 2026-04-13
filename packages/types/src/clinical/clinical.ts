@@ -161,12 +161,12 @@ export const toothEntrySchema = z.object({
 });
 export type ToothEntry = z.infer<typeof toothEntrySchema>;
 
-export const dentalChartSchema = z.object({
-  dentitionType: z.enum(["ADULT", "PRIMARY", "MIXED"]),
-  numberingSystem: z.enum(["FDI", "UNIVERSAL"]),
-  teeth: z.array(toothEntrySchema),
-  generalNotes: z.string().optional(),
-});
+export const dentalChartSchema = z.record(
+  z.object({
+    condition: z.string(),
+    notes: z.string(),
+  }),
+);
 export type DentalChartData = z.infer<typeof dentalChartSchema>;
 
 export const growthMeasurementSchema = z.object({

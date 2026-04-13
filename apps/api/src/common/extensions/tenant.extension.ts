@@ -43,19 +43,26 @@ const TENANT_SCOPED_MODELS = [
   'Room',
   'Bed',
   'Admission',
+  'PdfJob',
 ];
 
+type PropertyValue =
+  | object
+  | string
+  | number
+  | boolean
+  | bigint
+  | symbol
+  | null
+  | undefined;
+
 type TenantExtensionArgs = {
-  where?: Record<string, unknown>;
-  data?: Record<string, unknown> | Record<string, unknown>[];
+  where?: Record<string, PropertyValue>;
+  data?: Record<string, PropertyValue> | Record<string, PropertyValue>[];
 };
 
-function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== 'object') {
-    return {};
-  }
-
-  return Object.fromEntries(Object.entries(value));
+function isPlainObject(value: PropertyValue): value is object {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export const tenantExtension = Prisma.defineExtension({
@@ -102,7 +109,9 @@ export const tenantExtension = Prisma.defineExtension({
         ) {
           if (relation) {
             const existingRelationValue = typedArgs.where?.[relation];
-            const existingRelation = toRecord(existingRelationValue);
+            const existingRelation = isPlainObject(existingRelationValue)
+              ? existingRelationValue
+              : {};
             typedArgs.where = {
               ...(typedArgs.where || {}),
               [relation]: {
@@ -119,16 +128,17 @@ export const tenantExtension = Prisma.defineExtension({
         }
 
         if (operation === 'create' && tenant.clinicId && !relation) {
-          const data =
-            typedArgs.data &&
-            !Array.isArray(typedArgs.data) &&
-            typeof typedArgs.data === 'object'
-              ? typedArgs.data
-              : {};
+          const data = isPlainObject(typedArgs.data)
+            ? typedArgs.data
+            : undefined;
 
-          if (!data.clinic) {
+          if (
+            !data ||
+            !('clinic' in data) ||
+            !(data as { clinic?: object | null }).clinic
+          ) {
             typedArgs.data = {
-              ...data,
+              ...(data || {}),
               clinicId: tenant.clinicId,
             };
           }
@@ -136,12 +146,10 @@ export const tenantExtension = Prisma.defineExtension({
 
         if (operation === 'createMany' && tenant.clinicId && !relation) {
           if (Array.isArray(typedArgs.data)) {
-            typedArgs.data = typedArgs.data.map(
-              (item: Record<string, unknown>) => ({
-                ...item,
-                clinicId: tenant.clinicId,
-              }),
-            );
+            typedArgs.data = typedArgs.data.map((item) => ({
+              ...item,
+              clinicId: tenant.clinicId,
+            }));
           }
         }
 
@@ -150,7 +158,9 @@ export const tenantExtension = Prisma.defineExtension({
         ) {
           if (relation) {
             const existingRelationValue = typedArgs.where?.[relation];
-            const existingRelation = toRecord(existingRelationValue);
+            const existingRelation = isPlainObject(existingRelationValue)
+              ? existingRelationValue
+              : {};
             typedArgs.where = {
               ...(typedArgs.where || {}),
               [relation]: {

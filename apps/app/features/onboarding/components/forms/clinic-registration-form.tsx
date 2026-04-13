@@ -4,10 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
+import { getSupportPhoneNumber } from "@/lib/support-contact";
 import {
   ClinicDetailsStep,
   ComplianceStep,
@@ -80,7 +82,7 @@ export function ClinicRegistrationForm({
 }) {
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
-  const supportPhone = process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_NUMBER;
+  const supportPhone = getSupportPhoneNumber();
   const supportMessage =
     "Hi Docita team, I need help with clinic onboarding and pricing for my hospital.";
   const [stepError, setStepError] = useState<string | null>(null);
@@ -244,11 +246,12 @@ export function ClinicRegistrationForm({
         { ...options, currency },
       );
     } catch (error) {
-      const message =
-        error instanceof Error && error.message.trim()
-          ? error.message
-          : "Unable to proceed with the selected plan.";
-      setStepError(message);
+      setStepError(
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not continue with this plan right now. Please try again.",
+          context: "save",
+        }),
+      );
     }
   };
 
@@ -266,11 +269,12 @@ export function ClinicRegistrationForm({
     try {
       await setTeamMembers(members);
     } catch (error) {
-      const message =
-        error instanceof Error && error.message.trim()
-          ? error.message
-          : "Unable to prepare compliance step.";
-      setStepError(message);
+      setStepError(
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not continue setup. Please try again.",
+          context: "save",
+        }),
+      );
     }
   };
 
@@ -279,11 +283,12 @@ export function ClinicRegistrationForm({
     try {
       await setTeamMembers([]);
     } catch (error) {
-      const message =
-        error instanceof Error && error.message.trim()
-          ? error.message
-          : "Unable to prepare compliance step.";
-      setStepError(message);
+      setStepError(
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not continue setup. Please try again.",
+          context: "save",
+        }),
+      );
     }
   };
 
@@ -295,7 +300,9 @@ export function ClinicRegistrationForm({
     try {
       await submitRegistration(data, successCallback);
     } catch {
-      setStepError("Registration failed. Please check your details and try again.");
+      setStepError(
+        "We could not complete setup. Please check your details and try again.",
+      );
     }
   };
 
@@ -424,7 +431,7 @@ export function ClinicRegistrationForm({
             aria-label={`Onboarding progress: ${progressPercent}%`}
           />
         </div>
-        <div className="flex justify-between mt-2">
+        <div className="hidden sm:flex justify-between mt-2">
           {STEPS.map((s) => (
             <span
               key={s.number}
@@ -524,7 +531,6 @@ export function ClinicRegistrationForm({
           message={supportMessage}
           label="Message onboarding team"
           variant="default"
-          allowGenericLink
         />
       </div>
     </div>

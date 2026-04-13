@@ -21,6 +21,7 @@ export class InMemoryCacheService
       () => this.cleanExpired(),
       CLEANUP_INTERVAL_MS,
     );
+    this.cleanupTimer.unref?.();
   }
 
   onModuleDestroy() {

@@ -5,7 +5,6 @@ import { MonitoringClientController } from './monitoring-client.controller';
 import { MonitoringService } from './monitoring.service';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { HealthController } from './health.controller';
-import { MetricsScheduler } from './metrics.scheduler';
 import { HealthService } from './health.service';
 import { MonitoringFactory } from './factories/monitoring.factory';
 import { PrismaHealthIndicator } from './health/prisma.health';
@@ -26,7 +25,6 @@ import { HealthCheckService } from './services/health-check.service';
   providers: [
     MonitoringService,
     MonitoringFactory,
-    MetricsScheduler,
     HealthService,
     PrismaHealthIndicator,
     RequestLogService,

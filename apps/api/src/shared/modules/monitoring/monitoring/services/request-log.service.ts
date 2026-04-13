@@ -26,6 +26,7 @@ export class RequestLogService implements OnModuleDestroy {
         this.logger.error('Failed to flush request buffer', error);
       });
     }, this.FLUSH_INTERVAL);
+    this.flushTimer.unref?.();
   }
 
   onModuleDestroy(): void {

@@ -24,7 +24,7 @@ export function DashboardQuickActionsUI({
           key={action.href}
           href={action.href}
           className={cn(
-            "group flex min-w-22 snap-start flex-col items-center justify-center gap-2 rounded-2xl border border-transparent p-3 transition-colors duration-150 sm:min-w-24",
+            "group flex min-w-[72px] snap-start flex-col items-center justify-center gap-2 rounded-2xl border border-transparent p-3 transition-colors duration-150 sm:min-w-24",
             "bg-card hover:bg-muted/40 hover:border-primary/20",
           )}
         >

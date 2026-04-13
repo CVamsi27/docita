@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import {
   checkMedicationContraindications,
   checkMedicationInteractions,
@@ -55,7 +56,12 @@ export function useMedicationValidation() {
     try {
       return await validateDosageMutation.mutateAsync({ medication, dosage });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not check this dosage. Please try again.",
+          context: "form",
+        }),
+      );
       return null;
     }
   };
@@ -76,7 +82,12 @@ export function useMedicationValidation() {
         ...patientData,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not review this medicine right now. Please try again.",
+          context: "form",
+        }),
+      );
       return null;
     }
   };
@@ -92,7 +103,12 @@ export function useMedicationValidation() {
         patientAllergies,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not review these medicine interactions. Please try again.",
+          context: "form",
+        }),
+      );
       return null;
     }
   };
@@ -110,7 +126,12 @@ export function useMedicationValidation() {
     try {
       return await comprehensiveCheckMutation.mutateAsync(params);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not complete this medicine review. Please try again.",
+          context: "form",
+        }),
+      );
       return null;
     }
   };

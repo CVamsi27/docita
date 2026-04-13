@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 type AppMutationOptions<
   TData,
@@ -58,7 +59,7 @@ export function useAppMutation<
       }
     },
     onError: async (error, variables, mutationContext, context) => {
-      toast.error(errorMessage ?? getErrorMessage(error));
+      showUserFacingErrorToast(errorMessage ?? getErrorMessage(error));
 
       if (onError) {
         await onError(error, variables, mutationContext, context);

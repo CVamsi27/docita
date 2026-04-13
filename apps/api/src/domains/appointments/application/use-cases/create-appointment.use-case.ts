@@ -2,6 +2,7 @@ import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { IAppointmentRepository } from '@/domains/appointments/core/repositories/appointment.repository.interface';
 import { Appointment } from '@/domains/appointments/core/entities/appointment.entity';
 import { AppointmentStatus } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
+import type { JsonValue } from '@workspace/types';
 import { randomUUID } from 'crypto';
 
 export interface CreateAppointmentCommand {
@@ -12,7 +13,7 @@ export interface CreateAppointmentCommand {
   endTime: Date;
   reason?: string;
   type?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, JsonValue | undefined>;
 }
 
 @Injectable()

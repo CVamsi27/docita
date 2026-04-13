@@ -12,6 +12,8 @@ const requiredPaths = [
   'apps/internal',
   'apps/landing',
   'apps/api',
+  'apps/worker',
+  'apps/worker/src',
   'apps/app/tests/unit',
   'apps/app/tests/integration',
   'apps/app/tests/e2e',

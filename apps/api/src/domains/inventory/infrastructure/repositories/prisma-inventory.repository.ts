@@ -10,10 +10,14 @@ import { InventoryItem, InventoryMovement, Prisma } from '@workspace/db';
 export class PrismaInventoryRepository implements IInventoryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async findItems(
     where: Prisma.InventoryItemWhereInput,
   ): Promise<InventoryItem[]> {
-    return this.prisma.inventoryItem.findMany({
+    return this.getReadClient().inventoryItem.findMany({
       where,
       orderBy: { name: 'asc' },
     });
@@ -23,7 +27,7 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     id: string,
     clinicId: string,
   ): Promise<InventoryItemWithMovements | null> {
-    return this.prisma.inventoryItem.findFirst({
+    return this.getReadClient().inventoryItem.findFirst({
       where: { id, clinicId },
       include: { movements: { orderBy: { createdAt: 'desc' }, take: 20 } },
     });
@@ -33,7 +37,9 @@ export class PrismaInventoryRepository implements IInventoryRepository {
     id: string,
     clinicId: string,
   ): Promise<InventoryItem | null> {
-    return this.prisma.inventoryItem.findFirst({ where: { id, clinicId } });
+    return this.getReadClient().inventoryItem.findFirst({
+      where: { id, clinicId },
+    });
   }
 
   async createItem(

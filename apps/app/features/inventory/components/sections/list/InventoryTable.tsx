@@ -56,15 +56,15 @@ export function InventoryTable({
         {isLoading ? (
           <LoadingState message="Loading inventory..." />
         ) : (
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item Name</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead className="hidden sm:table-cell">Category</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Expiry</TableHead>
+                  <TableHead className="hidden md:table-cell">Expiry</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -81,7 +81,7 @@ export function InventoryTable({
                       onClick={() => onViewItem(item.id)}
                     >
                       <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="capitalize text-muted-foreground">
+                      <TableCell className="hidden sm:table-cell capitalize text-muted-foreground">
                         {item.category}
                       </TableCell>
                       <TableCell>
@@ -95,7 +95,7 @@ export function InventoryTable({
                           {status.label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
                         {formatDate(item.expiryDate)}
                       </TableCell>
                       <TableCell className="text-right">

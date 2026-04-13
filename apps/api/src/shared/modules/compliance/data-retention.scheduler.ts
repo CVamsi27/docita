@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { ArchivalService } from './archival.service';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 @Injectable()
 export class DataRetentionScheduler {
@@ -14,15 +15,13 @@ export class DataRetentionScheduler {
     private archivalService: ArchivalService,
   ) {}
 
-  private formatError(error: unknown): string {
-    if (error instanceof Error) {
-      return `${error.name}: ${error.message}`;
-    }
-
-    return String(error);
+  private formatError(error: Error | string): string {
+    return typeof error === 'string'
+      ? error
+      : `${error.name}: ${error.message}`;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron('0 23 * * *', { disabled: isCronDisabledInThisProcess() })
   async handleDataRetention() {
     this.logger.log('Starting data retention check...');
 
@@ -33,7 +32,9 @@ export class DataRetentionScheduler {
       await this.processSoftDeletedRecords();
     } catch (error) {
       this.logger.error(
-        `Data retention check failed: ${this.formatError(error)}`,
+        `Data retention check failed: ${this.formatError(
+          error instanceof Error ? error : String(error),
+        )}`,
       );
     }
   }
@@ -63,7 +64,9 @@ export class DataRetentionScheduler {
         this.logger.log('Permanently anonymized soft-deleted patient');
       } catch (error) {
         this.logger.error(
-          `Failed to anonymize patient: ${this.formatError(error)}`,
+          `Failed to anonymize patient: ${this.formatError(
+            error instanceof Error ? error : String(error),
+          )}`,
         );
       }
     }

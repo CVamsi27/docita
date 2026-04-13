@@ -5,8 +5,8 @@ import {
   CallHandler,
   ConflictException,
 } from '@nestjs/common';
-import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, of, from, throwError } from 'rxjs';
+import { catchError, concatMap, mergeMap } from 'rxjs/operators';
 import { Reflector } from '@nestjs/core';
 import {
   IDEMPOTENT_METADATA_KEY,
@@ -72,19 +72,19 @@ export class IdempotencyInterceptor implements NestInterceptor {
     await this.idempotencyService.setProcessing(idempotencyKey);
 
     return next.handle().pipe(
-      tap({
-        next: (response) => {
-          void this.idempotencyService.saveResponse(
-            idempotencyKey,
-            response,
-            metadata.ttl,
-          );
-          void this.idempotencyService.clearProcessing(idempotencyKey);
-        },
-        error: () => {
-          void this.idempotencyService.clearProcessing(idempotencyKey);
-        },
-      }),
+      concatMap((response) =>
+        from(
+          this.idempotencyService
+            .saveResponse(idempotencyKey, response, metadata.ttl)
+            .then(() => this.idempotencyService.clearProcessing(idempotencyKey))
+            .then(() => response),
+        ),
+      ),
+      catchError((error: unknown) =>
+        from(this.idempotencyService.clearProcessing(idempotencyKey)).pipe(
+          mergeMap(() => throwError(() => error)),
+        ),
+      ),
     );
   }
 }

@@ -6,6 +6,7 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
+import { getUserFacingErrorMessage } from "@workspace/types";
 import { API_URL } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "./errors";
@@ -130,7 +131,9 @@ export async function fetchAPI<T>(
   } catch (error) {
     if (error instanceof APIRequestError) {
       throw new ApiError(
-        error.message,
+        getUserFacingErrorMessage(error, {
+          fallback: "Please review the information on this screen and try again.",
+        }),
         error.status ?? 500,
         error.code ?? "API_ERROR",
         toRecord(error.data ?? undefined) ?? undefined,
@@ -140,7 +143,10 @@ export async function fetchAPI<T>(
       throw error;
     }
     throw new ApiError(
-      error instanceof Error ? error.message : "Failed to fetch from API",
+      getUserFacingErrorMessage(error, {
+        fallback: "We could not load this right now. Please refresh or try again.",
+        context: "load",
+      }),
       500,
       "NETWORK_ERROR",
     );

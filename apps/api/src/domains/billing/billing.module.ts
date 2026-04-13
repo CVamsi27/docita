@@ -17,6 +17,7 @@ import {
   SchedulerService,
   PDFService,
 } from './application/services';
+import { InvoicePdfProcessor } from './application/services/invoice-pdf.processor';
 import {
   PrismaInvoiceRepository,
   PrismaPaymentSessionRepository,
@@ -34,8 +35,8 @@ import { WhatsAppModule } from '@/domains/whatsapp/whatsapp.module';
 import { AuditModule } from '@/shared/modules/audit/audit/audit.module';
 import { MessagingModule } from '@/shared/modules/messaging/messaging.module';
 import { NotificationsModule } from '@/shared/modules/messaging/notifications/notifications.module';
-import { GatewaysModule } from '@/gateways/gateways.module';
 import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
+import { QueueModule } from '@/shared/modules/queue/queue.module';
 
 @Module({
   imports: [
@@ -46,8 +47,8 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
     AuditModule,
     MessagingModule,
     NotificationsModule,
-    GatewaysModule,
     WebhooksModule,
+    QueueModule,
   ],
   controllers: [
     InvoicesController,
@@ -68,6 +69,7 @@ import { WebhooksModule } from '@/domains/webhooks/webhooks.module';
     RetryService,
     SchedulerService,
     PDFService,
+    InvoicePdfProcessor,
     {
       provide: INVOICE_REPOSITORY_TOKEN,
       useClass: PrismaInvoiceRepository,

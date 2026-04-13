@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { usePatient, useUpdatePatient } from "./use-patients";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   PatientAllergy,
   PatientFamilyHistory,
@@ -82,7 +83,7 @@ export function usePatientHistory(patientId: string): UsePatientHistoryResult {
           }
         },
         onError: () => {
-          toast.error("Failed to update medical history");
+          showUserFacingErrorToast("We could not update this medical history. Please try again.");
         },
       });
     },

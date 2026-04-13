@@ -45,7 +45,7 @@ export const HelpCenter: FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">How can we help you?</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">How can we help you?</h1>
         <div className="relative max-w-md mx-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input

@@ -173,6 +173,8 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
   - relevant tests
   - build checks where change impact is broad
+- When a pull request is already failing a GitHub Actions workflow, run the matching local command for that workflow before committing or pushing.
+- For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing.
 - Before creating a commit or pushing a branch, run the relevant local checks for the touched area and do not push until they pass.
 - For Render/OpenNext or Cloudflare-related app changes, verify the matching local `build:cloudflare` task before pushing.
 
@@ -183,6 +185,56 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - Avoid generated/runtime artifacts in git (`playwright-report`, `test-results`, logs, etc.).
 - Avoid temporary/untracked project junk (`.txt`, `.log`, scratch artifacts) unless explicitly required.
 - Run `pnpm check:hygiene` and `pnpm verify:standard` when needed.
+
+## 11.1) Deployment workflow scope
+
+- Do not deploy every app on every push to `main`.
+- Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
+- Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
+- Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
+- Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
+- Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
+
+## 11.2) CI scope and cost
+
+- Keep pull request workflows focused on the minimum checks required to block unsafe merges.
+- Path-filter expensive workflows so unrelated app or docs changes do not consume full CI minutes.
+- Frontend CI jobs should be scoped by app so `app`, `internal`, and `landing` run independently based on the files that changed.
+- Prefer running full-repo build, coverage, critical E2E, bundle analysis, and other heavyweight jobs on pushes to `main`.
+- Keep dependency audits scoped to dependency-manifest changes unless there is a specific reason to run them more broadly.
+
+## 11.3) Branch model: `main`, `staging`, and feature branches
+
+### Roles
+
+- **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
+- **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** a long-lived integration line with different product code. The **staging environment** (URLs, databases, secrets, Render/Fly staging targets) exists so you can **test what you are about to ship to production** before touching prod.
+- **Feature work** happens on a **branch created from `staging`** (see below). **Routine pull requests must target `staging`, not `main`.** Do not open normal fix/feature PRs directly against `main`; that bypasses integration and pre-prod validation.
+
+### Never commit on `main` or `staging`
+
+- Do **not** commit, cherry-pick, or push directly on `main` or `staging`.
+- Do **not** use `staging` as a place to land work that is not intended to reach `main` after validation. If it is not ready, keep it on a feature branch.
+
+### Start every change from `staging`
+
+1. `git fetch origin`
+2. Ensure `staging` matches `main` (same tree) when possible; if `main` has moved ahead, **sync `staging` to `main` first** (squash sync PR or documented process), then continue.
+3. `git checkout staging && git pull origin staging`
+4. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`)
+
+Open a **pull request into `staging`**. After merge, run checks in the **staging environment**.
+
+### Pre-production vs production
+
+1. Merge to **`staging`** via PR when the change is ready to validate.
+2. Exercise the **staging environment** (smoke, E2E, manual) on the same code you intend to ship.
+3. Open a **promotion pull request from `staging` into `main`** when ready for production. That is the only routine path for landing work on `main`.
+4. **`main`** remains the canonical production tip; **`staging`** is updated to stay a **replica of `main`** after promotion (sync PRs as needed when branch rules forbid merge commits on `staging`).
+
+### Hotfixes
+
+Use a branch from **up-to-date `staging`** (or from `main` only if the hotfix pipeline requires it), merge via PR **into `staging`**, validate, then **promotion PR to `main`**. **Sync `staging` to `main`** after `main` moves so both stay aligned.
 
 ## 12) Design Principles
 
@@ -212,6 +264,7 @@ pnpm db:migrate
 
 Before finalizing changes:
 
+- Work is on a **branch created from `staging`** (after pull), not on `main` or `staging` directly; PRs target **`staging`** first unless an explicit exception (e.g. repo owner emergency process).
 - Architecture/layer boundaries are respected.
 - No security or tenant/auth guard regressions.
 - No PHI plaintext logging or secret leakage.
@@ -221,3 +274,4 @@ Before finalizing changes:
 - Typographic hierarchy is preserved (headings > body > sub-points).
 - Changed behavior is covered by appropriate tests/checks.
 - Relevant local tests/builds were run and passed before the final push.
+- If CI was red, the corresponding local workflow commands were run and passed before the final push.

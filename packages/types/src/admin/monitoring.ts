@@ -1,12 +1,22 @@
 import { z } from "zod";
 
 export const SystemHealthSchema = z.object({
-  status: z.enum(["ok", "error", "warning"]),
   uptime: z.number(),
-  timestamp: z.date().or(z.string()),
-  version: z.string().optional(),
-  cpuUsage: z.number().optional(),
-  memoryUsage: z.number().optional(),
+  memoryUsage: z.object({
+    rss: z.number().int(),
+    heapTotal: z.number().int(),
+    heapUsed: z.number().int(),
+    external: z.number().int(),
+  }),
+  cpuUsage: z.object({
+    user: z.number(),
+    system: z.number(),
+  }),
+  databaseConnected: z.boolean(),
+  lastErrors: z.number().int(),
+  avgResponseTime: z.number(),
+  requestsLastHour: z.number().int(),
+  errorsLastHour: z.number().int(),
 });
 
 export const RequestStatsSchema = z.object({
@@ -26,6 +36,11 @@ export const PerformanceMetricsSchema = z.object({
   dbLatency: z.number(),
   externalApiLatency: z.number().optional(),
 });
+
+export type SystemHealth = z.infer<typeof SystemHealthSchema>;
+export type RequestStats = z.infer<typeof RequestStatsSchema>;
+export type ErrorStats = z.infer<typeof ErrorStatsSchema>;
+export type PerformanceMetrics = z.infer<typeof PerformanceMetricsSchema>;
 
 export const WebVitalSchema = z.object({
   name: z.string(),

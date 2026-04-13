@@ -10,9 +10,11 @@ import {
   BarChart3,
   CreditCard,
   FileText,
+  Inbox,
   LayoutDashboard,
   LogOut,
   MessageSquare,
+  Shield,
   Users,
 } from "lucide-react";
 import { MobileNav } from "./dashboard/mobile-nav";
@@ -29,6 +31,11 @@ const sidebarItems = [
     title: "Team",
     href: "/users",
     icon: Users,
+  },
+  {
+    title: "Admins",
+    href: "/admins",
+    icon: Shield,
   },
   {
     title: "Payment Processing",
@@ -59,6 +66,11 @@ const sidebarItems = [
     title: "Feedback",
     href: "/feedback",
     icon: MessageSquare,
+  },
+  {
+    title: "WhatsApp Inbox",
+    href: "/support",
+    icon: Inbox,
   },
   {
     title: "System Logs",

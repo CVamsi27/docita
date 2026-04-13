@@ -1,5 +1,7 @@
 "use client";
 
+import { Feature } from "@workspace/types";
+import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { useMobileUpload } from "@/features/ocr/hooks/use-mobile-upload";
 import { useOCR } from "@/features/ocr/hooks/use-ocr";
 import { OCRMobileDialog, OCRResults, OCRUploadSection } from "@/features/ocr/components";
@@ -36,6 +38,7 @@ export default function OCRPage() {
   };
 
   return (
+    <FeatureGate feature={Feature.OCR_BASIC} showLockedCard>
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
       <div>
         <div className="flex items-center gap-2 mb-2">
@@ -46,7 +49,7 @@ export default function OCRPage() {
             </Link>
           </Button>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Smart OCR Digitization
         </h1>
         <p className="text-muted-foreground">
@@ -85,5 +88,6 @@ export default function OCRPage() {
       {}
       <OCRMobileDialog open={showQr} onOpenChange={setShowQr} qrUrl={qrUrl} />
     </div>
+    </FeatureGate>
   );
 }

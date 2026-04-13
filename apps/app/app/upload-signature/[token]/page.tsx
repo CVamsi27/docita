@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
   Card,
@@ -18,6 +17,7 @@ import {
   validateToken,
 } from "@/hooks/api/use-signature-upload";
 import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
+import { getUserFacingErrorMessage } from "@workspace/types";
 
 export default function UploadSignaturePage() {
   const params = useParams();
@@ -38,7 +38,12 @@ export default function UploadSignaturePage() {
         setTokenValid(true);
         setDoctorName(validation.doctor?.name ?? "");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Invalid or expired token");
+        setError(
+          getUserFacingErrorMessage(err, {
+            fallback: "This upload link is no longer available.",
+            context: "verification",
+          }),
+        );
         setTokenValid(false);
       } finally {
         setValidating(false);
@@ -59,7 +64,12 @@ export default function UploadSignaturePage() {
       setUploadResult(result);
       setUploadComplete(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(
+        getUserFacingErrorMessage(err, {
+          fallback: "We could not upload this signature. Please try again.",
+          context: "upload",
+        }),
+      );
     } finally {
       setUploading(false);
     }
@@ -87,7 +97,7 @@ export default function UploadSignaturePage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              <CardTitle>Invalid Upload Link</CardTitle>
+              <CardTitle>Upload Link Expired</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -121,18 +131,16 @@ export default function UploadSignaturePage() {
             <Alert className="border-success/50 bg-success/10">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription>
-                Signature uploaded for <strong>{uploadResult.doctor?.name}</strong>
+                Signature uploaded for{" "}
+                <strong>{uploadResult.doctor?.name}</strong>
               </AlertDescription>
             </Alert>
 
             <div className="rounded-lg border p-4">
-              <Image
+              <img
                 src={uploadResult.signatureUrl}
                 alt="Uploaded signature"
-                width={300}
-                height={128}
                 className="mx-auto max-h-32 object-contain"
-                unoptimized
               />
             </div>
 

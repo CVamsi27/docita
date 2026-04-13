@@ -10,12 +10,12 @@ export const vitalSignSchema = z.object({
 
   systolicBP: z
     .number()
-    .min(60, "Systolic BP must be at least 60 mmHg")
+    .min(60, "Enter 60 mmHg or higher.")
     .max(300, "Systolic BP cannot exceed 300 mmHg")
     .optional(),
   diastolicBP: z
     .number()
-    .min(30, "Diastolic BP must be at least 30 mmHg")
+    .min(30, "Enter 30 mmHg or higher.")
     .max(200, "Diastolic BP cannot exceed 200 mmHg")
     .optional(),
   bpPosition: bpPositionSchema.optional(), 
@@ -45,7 +45,7 @@ export const vitalSignSchemaRefined = vitalSignSchema.refine(
     return true;
   },
   {
-    message: "Systolic BP must be greater than diastolic BP",
+    message: "Enter a systolic value higher than the diastolic value.",
     path: ["systolicBP"],
   },
 );

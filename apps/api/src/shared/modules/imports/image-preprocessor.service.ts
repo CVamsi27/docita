@@ -14,10 +14,7 @@ export class ImagePreprocessorService {
       this.logger.debug(`Original image: ${metadata.width}x${metadata.height}`);
 
       if (metadata.width && metadata.width < 1000) {
-        const targetWidth = Math.round(
-          (metadata.width * 1500) / (metadata.width || 1),
-        );
-        pipeline = pipeline.resize(targetWidth, null, {
+        pipeline = pipeline.resize(1500, null, {
           withoutEnlargement: false,
         });
       }
@@ -54,7 +51,7 @@ export class ImagePreprocessorService {
 
   async verifyImageFileExists(imagePath: string): Promise<boolean> {
     try {
-      await fs.readFile(imagePath);
+      await fs.access(imagePath);
       return true;
     } catch {
       return false;

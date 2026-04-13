@@ -1,27 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 
 export default function Error({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-
-  }, [error]);
-
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
       <div className="mx-auto max-w-md text-center">
         <div className="surface-danger mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
           <AlertCircle className="h-8 w-8" />
         </div>
-        <h2 className="mb-2 text-xl font-semibold">Something went wrong</h2>
+        <h2 className="mb-2 text-xl font-semibold">We could not load this page</h2>
         <p className="mb-6 text-muted-foreground">
           We had trouble loading this page. Please try again or contact support.
         </p>
@@ -38,11 +33,6 @@ export default function Error({
             Go to dashboard
           </Button>
         </div>
-        {error.digest && (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Error ID: {error.digest}
-          </p>
-        )}
       </div>
     </div>
   );

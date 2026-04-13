@@ -1,4 +1,12 @@
-import { Controller, Post, Get, Body, Param, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import {
   CreatePaymentLinkDto,
@@ -10,6 +18,11 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  Feature,
+  RequireFeature,
+} from '@/shared/modules/auth/auth/tier.decorator';
 import { Idempotent } from '@/shared/modules/auth/decorators/idempotent.decorator';
 import { IdempotencyInterceptor } from '@/common/interceptors/idempotency.interceptor';
 import { UseInterceptors } from '@nestjs/common';
@@ -17,6 +30,8 @@ import { RequestWithUser } from '@/common/types/common.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Controller('payments')
+@UseGuards(TierGuard)
+@RequireFeature(Feature.PAYMENT_LINKS)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 @UseInterceptors(IdempotencyInterceptor)
 export class PaymentsController {
@@ -28,9 +43,13 @@ export class PaymentsController {
   @Post('link')
   @Idempotent()
   @ZodSerializerDto(PaymentLinkResponseDto)
-  async createPaymentLink(@Body() dto: CreatePaymentLinkDto) {
+  async createPaymentLink(
+    @Body() dto: CreatePaymentLinkDto,
+    @Request() req: RequestWithUser,
+  ) {
     return this.paymentsService.createPaymentLink({
       ...dto,
+      clinicId: req.user!.clinicId!,
       currency: dto.currency || this.configService.getCurrencyCode(),
     });
   }

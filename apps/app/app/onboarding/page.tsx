@@ -3,9 +3,9 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
 const ClinicOnboardingWizard = dynamic(
   () =>
@@ -18,33 +18,68 @@ const ClinicOnboardingWizard = dynamic(
 export default function OnboardingPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      setRedirectMessage("Redirecting to login...");
+      router.replace("/login?next=/onboarding");
+      return;
+    }
 
-    if (user?.clinicId || user?.onboardingStep === 'COMPLETED') {
-      setIsRedirecting(true);
-      router.replace('/dashboard');
+    if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
+      setRedirectMessage(
+        "Registration successful. Taking you to your dashboard...",
+      );
+      router.replace("/dashboard");
+      return;
+    }
+
+    if (user?.onboardingStep === "JOINING_CLINIC") {
+      setRedirectMessage("Taking you to your join request status...");
+      router.replace("/join-request-status");
+      return;
+    }
+
+    if (
+      user?.onboardingStep === "CHOOSE_PATH" ||
+      user?.onboardingStep === "NOT_STARTED"
+    ) {
+      setRedirectMessage("Taking you to clinic setup choices...");
+      router.replace("/choose-path");
     }
   }, [isAuthenticated, isLoading, user, router]);
 
-  if (isRedirecting) {
+  if (redirectMessage) {
     return (
       <PageTransitionLoader
-        title="Registration successful"
-        description="Taking you to your dashboard..."
+        title="Redirecting..."
+        description={redirectMessage}
       />
     );
   }
 
   return (
-    <main className="relative min-h-screen bg-background py-8 md:py-10">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
+    <PreDashboardShell
+      currentStep="onboarding"
+      contentMaxWidth="max-w-3xl"
+      contentAlignment="start"
+      showSignOut
+    >
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-bold">Set up your clinic</h1>
+        <p className="text-muted-foreground text-sm">
+          Complete your clinic registration to get started.
+        </p>
       </div>
-      <ClinicOnboardingWizard />
-    </main>
+
+      <div
+        className="animate-in fade-in slide-in-from-bottom-4 duration-700"
+        style={{ animationDelay: "100ms" }}
+      >
+        <ClinicOnboardingWizard />
+      </div>
+    </PreDashboardShell>
   );
 }

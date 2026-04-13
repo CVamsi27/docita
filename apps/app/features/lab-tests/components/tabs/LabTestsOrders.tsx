@@ -78,27 +78,13 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>
-                      Patient
-                    </TableHead>
-                    <TableHead>
-                      Test Name
-                    </TableHead>
-                    <TableHead>
-                      Category
-                    </TableHead>
-                    <TableHead>
-                      Ordered By
-                    </TableHead>
-                    <TableHead>
-                      Order Date
-                    </TableHead>
-                    <TableHead>
-                      Status
-                    </TableHead>
-                    <TableHead className="text-right">
-                      Actions
-                    </TableHead>
+                    <TableHead>Patient</TableHead>
+                    <TableHead>Test Name</TableHead>
+                    <TableHead className="hidden sm:table-cell">Category</TableHead>
+                    <TableHead className="hidden md:table-cell">Ordered By</TableHead>
+                    <TableHead className="hidden sm:table-cell">Order Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -112,24 +98,22 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                         </div>
                       </TableCell>
                       <TableCell>{test.labTest?.name || "-"}</TableCell>
-                      <TableCell className="text-muted-foreground capitalize">
+                      <TableCell className="hidden sm:table-cell text-muted-foreground capitalize">
                         {test.labTest?.category || "-"}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
                         {test.doctor?.name || "-"}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="hidden sm:table-cell text-muted-foreground">
                         {formatDate(test.createdAt)}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={test.status} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="gap-1">
+                        <Button variant="ghost" size="sm" className="gap-1" title={test.status === "completed" ? "View Results" : "Details"}>
                           <FileText className="h-4 w-4" />
-                          {test.status === "completed"
-                            ? "View Results"
-                            : "Details"}
+                          <span className="hidden sm:inline">{test.status === "completed" ? "View Results" : "Details"}</span>
                         </Button>
                       </TableCell>
                     </TableRow>

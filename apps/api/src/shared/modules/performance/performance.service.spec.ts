@@ -48,9 +48,9 @@ describe('PerformanceService', () => {
 
       expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
       expect(result).toHaveProperty('status', 'connected');
-      expect(result).toHaveProperty('queryResponseTime');
+      expect(result).toHaveProperty('queryResponseTimeMs');
       expect(result).toHaveProperty('timestamp');
-      expect(result.queryResponseTime).toMatch(/\d+ms/);
+      expect(result.queryResponseTimeMs).toEqual(expect.any(Number));
     });
 
     it('should measure query response time', async () => {
@@ -60,9 +60,8 @@ describe('PerformanceService', () => {
 
       const result = await service.getDatabaseStats();
 
-      expect(result.queryResponseTime).toMatch(/\d+ms/);
-      const responseTime = parseInt(result.queryResponseTime);
-      expect(responseTime).toBeGreaterThanOrEqual(0);
+      expect(result.queryResponseTimeMs).toEqual(expect.any(Number));
+      expect(result.queryResponseTimeMs).toBeGreaterThanOrEqual(0);
     });
 
     it('should include ISO timestamp', async () => {
@@ -94,10 +93,10 @@ describe('PerformanceService', () => {
       expect(result.memory).toHaveProperty('heapTotal');
       expect(result.memory).toHaveProperty('heapUsed');
       expect(result.memory).toHaveProperty('external');
-      expect(result.memory.rss).toMatch(/\d+MB/);
-      expect(result.memory.heapTotal).toMatch(/\d+MB/);
-      expect(result.memory.heapUsed).toMatch(/\d+MB/);
-      expect(result.memory.external).toMatch(/\d+MB/);
+      expect(result.memory.rss).toEqual(expect.any(Number));
+      expect(result.memory.heapTotal).toEqual(expect.any(Number));
+      expect(result.memory.heapUsed).toEqual(expect.any(Number));
+      expect(result.memory.external).toEqual(expect.any(Number));
     });
 
     it('should return uptime metrics', () => {
@@ -133,15 +132,10 @@ describe('PerformanceService', () => {
     it('should format memory values in megabytes', () => {
       const result = service.getMetrics();
 
-      const rssValue = parseInt(result.memory.rss);
-      const heapTotalValue = parseInt(result.memory.heapTotal);
-      const heapUsedValue = parseInt(result.memory.heapUsed);
-      const externalValue = parseInt(result.memory.external);
-
-      expect(rssValue).toBeGreaterThan(0);
-      expect(heapTotalValue).toBeGreaterThan(0);
-      expect(heapUsedValue).toBeGreaterThan(0);
-      expect(externalValue).toBeGreaterThanOrEqual(0);
+      expect(result.memory.rss).toBeGreaterThan(0);
+      expect(result.memory.heapTotal).toBeGreaterThan(0);
+      expect(result.memory.heapUsed).toBeGreaterThan(0);
+      expect(result.memory.external).toBeGreaterThanOrEqual(0);
     });
 
     it('should format uptime with days when uptime is high', () => {

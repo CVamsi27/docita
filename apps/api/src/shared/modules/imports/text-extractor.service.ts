@@ -32,11 +32,29 @@ export class TextExtractorService {
   private workerReady = false;
   private Tesseract: TesseractModule | null = null;
   private tesseractAvailable = false;
+  private initializationPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
-    await this.loadTesseract();
-    if (this.tesseractAvailable) {
-      await this.initWorker();
+    if (this.workerReady) {
+      return;
+    }
+
+    if (this.initializationPromise) {
+      await this.initializationPromise;
+      return;
+    }
+
+    this.initializationPromise = (async () => {
+      await this.loadTesseract();
+      if (this.tesseractAvailable) {
+        await this.initWorker();
+      }
+    })();
+
+    try {
+      await this.initializationPromise;
+    } finally {
+      this.initializationPromise = null;
     }
   }
 
@@ -45,6 +63,7 @@ export class TextExtractorService {
       await this.worker.terminate();
       this.worker = null;
     }
+    this.workerReady = false;
   }
 
   private async loadTesseract(): Promise<void> {
@@ -68,6 +87,10 @@ export class TextExtractorService {
   }
 
   private async initWorker(): Promise<void> {
+    if (this.workerReady && this.worker) {
+      return;
+    }
+
     try {
       this.logger.log('Initializing Tesseract worker...');
       if (this.Tesseract) {
@@ -88,7 +111,7 @@ export class TextExtractorService {
   async extractTextFromBuffer(imageBuffer: Buffer): Promise<string> {
     if (!this.worker || !this.workerReady) {
       this.logger.warn('[OCR] Worker not ready, attempting to re-initialize');
-      await this.initWorker();
+      await this.initialize();
       if (!this.worker || !this.workerReady) {
         throw new Error('Failed to initialize Tesseract worker');
       }

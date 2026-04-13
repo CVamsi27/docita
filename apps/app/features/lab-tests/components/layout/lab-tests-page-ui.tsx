@@ -63,7 +63,7 @@ export const LabTestsPageUI: FC = () => {
         {}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Lab Tests</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Lab Tests</h1>
             <p className="text-muted-foreground">
               Manage laboratory test orders and results
             </p>

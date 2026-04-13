@@ -1,8 +1,8 @@
-import { toast } from "sonner";
 import { API_URL } from "./api-config";
 import { getAPIClient } from "@workspace/data-access";
-import { API_ROUTES, AppErrorCode, ERROR_MESSAGES } from "@workspace/types";
+import { API_ROUTES } from "@workspace/types";
 import { appSession } from "./session";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 function toRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object") {
@@ -38,6 +38,20 @@ function shouldSuppressDevToast(message: string): boolean {
   );
 }
 
+function getRedirectPathForForbiddenCode(code?: string): string | null {
+  switch (code) {
+    case "EMAIL_NOT_VERIFIED":
+      return "/verify-email-sent";
+    case "SUBSCRIPTION_INACTIVE":
+    case "INSUFFICIENT_TIER":
+      return "/settings?tab=subscription";
+    case "NO_CLINIC":
+      return "/choose-path";
+    default:
+      return null;
+  }
+}
+
 const client = getAPIClient({
   baseURL: API_URL.endsWith("/") ? API_URL : `${API_URL}/`,
   getToken: () => appSession.getToken(),
@@ -68,23 +82,29 @@ const client = getAPIClient({
     }
 
     const errorCode = extractErrorCode(error.data);
-    const message =
-      (errorCode && ERROR_MESSAGES[errorCode as AppErrorCode]) ||
-      error.message ||
-      "An unexpected error occurred";
+    const redirectPath =
+      error.status === 403 ? getRedirectPathForForbiddenCode(errorCode) : null;
 
-    if (!shouldSuppressDevToast(message)) {
-      toast.error(message);
+    if (redirectPath && typeof window !== "undefined") {
+      window.location.assign(redirectPath);
+      return;
     }
 
-    if (error.status === 403 && typeof window !== "undefined") {
-      const code = errorCode;
-      if (code === "SUBSCRIPTION_INACTIVE" || code === "INSUFFICIENT_TIER") {
-        window.location.href = "/settings?tab=subscription";
-      } else if (code === "NO_CLINIC") {
-        window.location.href = "/choose-path";
-      }
+    const fallback =
+      error.status && error.status >= 400 && error.status < 500
+        ? "Please check the information and try again."
+        : "Please review the information on this screen and try again.";
+
+    if (!shouldSuppressDevToast(error.message || "")) {
+      showUserFacingErrorToast(
+        error,
+        fallback,
+        error.status && error.status >= 400 && error.status < 500
+          ? "form"
+          : "generic",
+      );
     }
+
   },
 });
 
@@ -160,8 +180,11 @@ export const typedApi = {
 };
 
 export const handleApiError = (error: unknown, fallbackMessage?: string) => {
-  if (error instanceof Error) return error.message;
-  return fallbackMessage || "An error occurred";
+  void error;
+  return (
+    fallbackMessage ||
+    "Please review the information on this screen and try again."
+  );
 };
 
 export { API_ROUTES };

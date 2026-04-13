@@ -1,4 +1,6 @@
 
+import { getErrorMessage } from "./error-parser";
+
 export { parseError, getErrorMessage, handleError } from "./error-parser";
 
 export class AppError extends Error {
@@ -75,9 +77,7 @@ export type LogContextValue =
 
 export const errorHandler = {
   getErrorMessage: (error: Error | unknown): string => {
-    if (error instanceof AppError) return error.message;
-    if (error instanceof Error) return error.message;
-    return "An unexpected error occurred";
+    return getErrorMessage(error);
   },
 
   isOperationalError: (error: Error | unknown): boolean => {

@@ -3,13 +3,14 @@ import {
   UnauthorizedException,
   BadRequestException,
   ConflictException,
+  ServiceUnavailableException,
   Inject,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Role } from '@workspace/db';
+import { OnboardingStep, Role } from '@workspace/db';
 import { IPasswordPolicy } from './policies/password.policy';
 import { UserFactory } from '@/domains/users/core/factories/user.factory';
 import { MonitoringService } from '@/shared/modules/monitoring/monitoring/monitoring.service';
@@ -25,6 +26,8 @@ export interface UserWithoutPassword {
   name: string;
   role: Role;
   clinicId: string | null;
+  emailVerified?: boolean;
+  onboardingStep?: OnboardingStep | null;
   createdAt: Date;
   updatedAt: Date;
   mfaEnabled?: boolean;
@@ -223,6 +226,7 @@ export class AuthService {
               ? AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES
               : null,
         },
+        { captureInSentry: false },
       );
 
       if (newFailedAttempts >= AUTH_CONSTANTS.MAX_FAILED_LOGIN_ATTEMPTS) {
@@ -286,6 +290,8 @@ export class AuthService {
           name: true,
           role: true,
           clinicId: true,
+          emailVerified: true,
+          onboardingStep: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -358,6 +364,8 @@ export class AuthService {
         name: user.name,
         role: user.role,
         clinicId: user.clinicId,
+        emailVerified: user.emailVerified,
+        onboardingStep: user.onboardingStep ?? undefined,
       },
     };
   }
@@ -512,15 +520,19 @@ export class AuthService {
           name: true,
           role: true,
           clinicId: true,
+          emailVerified: true,
           onboardingStep: true,
           createdAt: true,
           updatedAt: true,
         },
       });
       const tokens = await this.login(user);
+      let verificationEmailSent = shouldAutoVerifyEmail || !!user.emailVerified;
 
       if (!shouldAutoVerifyEmail) {
-        this.sendVerificationEmail(user.id).catch((err: unknown) => {
+        verificationEmailSent = true;
+        await this.sendVerificationEmail(user.id).catch((err: unknown) => {
+          verificationEmailSent = false;
           this.logger.warn(
             'Failed to send verification email after registration',
             {
@@ -531,7 +543,10 @@ export class AuthService {
         });
       }
 
-      return tokens;
+      return {
+        ...tokens,
+        verificationEmailSent,
+      };
     });
   }
 
@@ -561,7 +576,16 @@ export class AuthService {
         },
       });
 
-      this.logger.log('Password reset token generated');
+      await this.emailService
+        .sendPasswordResetEmail(email, token)
+        .catch((err: unknown) => {
+          this.logger.warn('Failed to send password reset email', {
+            userId: user.id,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        });
+
+      this.logger.log('Password reset email sent', { userId: user.id });
 
       return {
         message:
@@ -729,11 +753,17 @@ export class AuthService {
         },
       });
 
-      await this.emailService.sendVerificationEmail(
+      const result = await this.emailService.sendVerificationEmail(
         user.email,
         user.name,
         token,
       );
+
+      if (!result.success) {
+        throw new ServiceUnavailableException(
+          'We could not send the verification email right now. Please try again.',
+        );
+      }
 
       return { message: 'Verification email sent' };
     });

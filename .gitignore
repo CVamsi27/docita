@@ -39,6 +39,7 @@ dist
 **/dist
 build
 **/build
+*.tsbuildinfo
 .next
 **/.next
 .open-next
@@ -47,6 +48,9 @@ out
 **/out
 .astro
 **/.astro
+
+# Local upload artifacts
+/uploads
 
 # Turbo cache
 .turbo

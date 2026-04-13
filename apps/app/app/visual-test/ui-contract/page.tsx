@@ -83,7 +83,7 @@ export default function UiContractVisualTestPage() {
           <CardContent>
             <DataState
               status="error"
-              errorMessage="Unable to load the dashboard."
+              errorMessage="We could not load this dashboard view. Please try again."
             />
           </CardContent>
         </Card>

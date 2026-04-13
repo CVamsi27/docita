@@ -25,7 +25,12 @@ export class RemindersService {
   async sendManualReminder(
     appointmentId: string,
     type: 'email' | 'sms' | 'whatsapp',
+    clinicId?: string,
   ) {
-    return this.historyService.sendManualReminder(appointmentId, type);
+    return this.historyService.sendManualReminder(
+      appointmentId,
+      type,
+      clinicId,
+    );
   }
 }

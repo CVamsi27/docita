@@ -8,15 +8,18 @@ import {
   UploadedFile,
   BadRequestException,
   Request,
-  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SignatureUploadService } from '@/domains/doctors/application/services/signature-upload.service';
-import { memoryStorage } from 'multer';
 import { Role, SignaturePurpose } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import {
+  assertAllowedFileSignature,
+  createTempDiskStorage,
+} from '@/common/utils/upload.utils';
+import { unlink } from 'fs/promises';
 
 @Controller('clinics/signature')
 export class ClinicSignatureController {
@@ -26,15 +29,13 @@ export class ClinicSignatureController {
 
   @Post('generate-token')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
-  async generateToken(
-    @Request() req: RequestWithUser,
-    @Query('clinicId') clinicId: string,
-  ) {
+  async generateToken(@Request() req: RequestWithUser) {
     if (!req.user?.id) {
       throw new BadRequestException('User ID is required');
     }
+    const clinicId = req.user.clinicId;
     if (!clinicId) {
-      throw new BadRequestException('clinicId is required');
+      throw new BadRequestException('Clinic context required');
     }
 
     return this.signatureUploadService.generateUploadToken(req.user.id, {
@@ -53,7 +54,7 @@ export class ClinicSignatureController {
   @Public()
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage(),
+      storage: createTempDiskStorage(),
       limits: { fileSize: 5 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
         const allowedMimes = [
@@ -82,38 +83,26 @@ export class ClinicSignatureController {
       throw new BadRequestException('File is required');
     }
 
-    const buffer = file.buffer;
-    const header = buffer.toString('hex', 0, 4).toUpperCase();
-    const webpHeader = buffer.toString('hex', 8, 12).toUpperCase();
-
-    const signatures = { PNG: '89504E47', JPEG: 'FFD8FF', RIFF: '52494646' };
-
-    let isValid = false;
-    if (header === signatures.PNG) isValid = true;
-    else if (header.startsWith(signatures.JPEG)) isValid = true;
-    else if (header === signatures.RIFF && webpHeader === '57454250')
-      isValid = true;
-
-    if (!isValid) {
-      throw new BadRequestException(
-        'Invalid file content. The file type does not match its extension/MIME type.',
-      );
+    try {
+      await assertAllowedFileSignature(file, ['png', 'jpeg', 'webp']);
+      return await this.signatureUploadService.uploadSignature(token, file);
+    } catch (error) {
+      if (file.path) {
+        await unlink(file.path).catch(() => {});
+      }
+      throw error;
     }
-
-    return this.signatureUploadService.uploadSignature(token, file);
   }
 
   @Get('active-tokens')
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
-  async getActiveTokens(
-    @Request() req: RequestWithUser,
-    @Query('clinicId') clinicId: string,
-  ) {
+  async getActiveTokens(@Request() req: RequestWithUser) {
     if (!req.user?.id) {
       throw new BadRequestException('User ID is required');
     }
+    const clinicId = req.user.clinicId;
     if (!clinicId) {
-      throw new BadRequestException('clinicId is required');
+      throw new BadRequestException('Clinic context required');
     }
 
     return this.signatureUploadService.getActiveTokens(req.user.id, clinicId);
@@ -124,13 +113,13 @@ export class ClinicSignatureController {
   async revokeToken(
     @Request() req: RequestWithUser,
     @Param('tokenId') tokenId: string,
-    @Query('clinicId') clinicId: string,
   ) {
     if (!req.user?.id) {
       throw new BadRequestException('User ID is required');
     }
+    const clinicId = req.user.clinicId;
     if (!clinicId) {
-      throw new BadRequestException('clinicId is required');
+      throw new BadRequestException('Clinic context required');
     }
 
     return this.signatureUploadService.revokeClinicToken(clinicId, tokenId);

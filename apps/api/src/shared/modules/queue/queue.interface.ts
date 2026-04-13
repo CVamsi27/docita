@@ -1,3 +1,5 @@
+import { Prisma } from '@workspace/db';
+
 export interface QueueJobOptions {
   delay?: number;
   attempts?: number;
@@ -10,31 +12,34 @@ export interface QueueJobOptions {
   removeOnComplete?: boolean;
 }
 
-export interface QueueJob<
-  T extends Record<string, unknown> = Record<string, unknown>,
-> {
+export type QueueJobData = Prisma.InputJsonObject;
+
+export interface QueueJob<T extends QueueJobData = QueueJobData> {
   id: string;
   name: string;
   data: T;
   progress: number;
   failedReason?: string;
   attemptsMade: number;
+  maxAttempts?: number;
   timestamp: number;
 }
 
+export type QueueJobHandler<T extends QueueJobData = QueueJobData> = (
+  job: QueueJob<T>,
+) => Promise<void>;
+
 export interface IQueueProvider {
-  enqueue<T extends Record<string, unknown>>(
+  enqueue<T extends QueueJobData>(
     name: string,
     data: T,
     options?: QueueJobOptions,
   ): Promise<QueueJob<T>>;
-  process<T extends Record<string, unknown>>(
+  process<T extends QueueJobData>(
     name: string,
-    handler: (job: QueueJob<T>) => Promise<void>,
+    handler: QueueJobHandler<T>,
   ): Promise<void>;
-  getJob<T extends Record<string, unknown>>(
-    jobId: string,
-  ): Promise<QueueJob<T> | null>;
+  getJob<T extends QueueJobData>(jobId: string): Promise<QueueJob<T> | null>;
   removeJob(jobId: string): Promise<void>;
   clear(name: string): Promise<void>;
   getStats(name: string): Promise<QueueStats>;
@@ -68,34 +73,32 @@ export enum JobNames {
   SEND_SCHEDULED_REMINDERS = 'send-scheduled-reminders',
 }
 
-export interface SendEmailJobData extends Record<string, unknown> {
+export interface SendEmailJobData extends Prisma.InputJsonObject {
   to: string | string[];
   subject: string;
   template: string;
-  variables?: Record<string, unknown>;
+  variables?: Prisma.InputJsonObject;
 }
 
-export interface SendSmsJobData extends Record<string, unknown> {
+export interface SendSmsJobData extends Prisma.InputJsonObject {
   phoneNumber: string;
   message: string;
 }
 
-export interface SendWhatsAppJobData extends Record<string, unknown> {
+export interface SendWhatsAppJobData extends Prisma.InputJsonObject {
   phoneNumber: string;
   message: string;
   mediaUrl?: string;
 }
 
-export interface GeneratePdfJobData extends Record<string, unknown> {
+export interface GeneratePdfJobData extends Prisma.InputJsonObject {
   documentId: string;
   documentType: 'invoice' | 'prescription';
   clinicId: string;
+  pdfJobId?: string;
 }
 
-export interface SendAppointmentReminderJobData extends Record<
-  string,
-  unknown
-> {
+export interface SendAppointmentReminderJobData extends Prisma.InputJsonObject {
   appointmentId: string;
   clinicId: string;
   patientId: string;

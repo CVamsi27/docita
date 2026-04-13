@@ -5,6 +5,7 @@ import type { Prisma } from '@workspace/db';
 import PDFDocument from 'pdfkit';
 import { createHash } from 'crypto';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
   SLAAgreementDto,
   ConsentManagementDto,
@@ -19,7 +20,23 @@ export class OnboardingComplianceService {
     private prisma: PrismaService,
     private auditService: AuditService,
     private storageProvider: StorageProvider,
+    private configService: AppConfigService,
   ) {}
+
+  private formatUptime(seconds: number): string {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    const parts: string[] = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+
+    return parts.join(' ');
+  }
 
   private buildSlaProofPdfBuffer(params: {
     clinicName: string;
@@ -64,7 +81,7 @@ export class OnboardingComplianceService {
         .text('Service Commitments')
         .fontSize(10)
         .list([
-          'Platform uptime target: 99.9% monthly.',
+          `Platform uptime target: ${this.configService.getSlaAgreementConfig().uptimeTarget ?? this.formatUptime(process.uptime())}.`,
           'Critical incident response target: within 4 hours.',
           'High incident response target: within 8 business hours.',
           'Business continuity with secure backups and recovery procedures.',

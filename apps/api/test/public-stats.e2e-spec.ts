@@ -43,7 +43,7 @@ describe('PublicStatsController (e2e)', () => {
       patients: 30,
       prescriptions: 40,
       appointments: 50,
-      uptime: '99.9%',
+      uptime: 'live-uptime',
     };
     mockPublicStatsService.getPlatformStats.mockResolvedValue(payload);
 

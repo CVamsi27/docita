@@ -23,12 +23,6 @@ export const sendTemplateRequestSchema = z.object({
   invoiceId: z.string().optional(),
 }).strict();
 
-export const whatsappWebhookVerifyQuerySchema = z.object({
-  "hub.mode": z.string().optional(),
-  "hub.verify_token": z.string().optional(),
-  "hub.challenge": z.string().optional(),
-});
-
 export const whatsappWebhookDeliveryStatusSchema = z.object({
   id: z.string(),
   status: z.enum(["sent", "delivered", "read", "failed"]),
@@ -220,9 +214,6 @@ export type SendWhatsAppMessageRequest = z.infer<
   typeof sendWhatsAppMessageRequestSchema
 >;
 export type SendTemplateRequest = z.infer<typeof sendTemplateRequestSchema>;
-export type WhatsAppWebhookVerifyQuery = z.infer<
-  typeof whatsappWebhookVerifyQuerySchema
->;
 export type WhatsAppWebhookPayload = z.infer<
   typeof whatsappWebhookPayloadSchema
 >;

@@ -25,6 +25,7 @@ import { Medication } from "./structured/PrescriptionInput";
 import { DentalChartValue } from "./specialty/DentalChartUI";
 import { usePatient } from "@/hooks/api/use-patients";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
+import { useSyncDiagnoses } from "@/hooks/api/use-appointments";
 import { toast } from "sonner";
 import { Switch } from "@workspace/ui/components/switch";
 import { Label } from "@workspace/ui/components/label";
@@ -39,6 +40,7 @@ import {
   ConsultationProgressUI,
   ConsultationStep,
 } from "./ConsultationProgressUI";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   normalizeConsultationTab,
   getConsultationTabIds,
@@ -58,11 +60,11 @@ function getPrescriptionComplianceErrorMessage(error: unknown): string | null {
   }
 
   if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
-    return "Doctor signature is required before creating a prescription.";
+    return "Add your signature before creating a prescription.";
   }
 
   if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
-    return "Doctor government verification is required before creating a prescription.";
+    return "Finish your doctor verification before creating a prescription.";
   }
 
   return null;
@@ -202,6 +204,7 @@ export const ClinicalDocumentationDynamic: FC<
 
   const patient = fetchedPatient || (appointmentData?.patient as Patient);
   const createPrescription = useCreatePrescription();
+  const syncDiagnoses = useSyncDiagnoses(appointmentId || "");
 
   useEffect(() => {
     if (appointmentData) {
@@ -319,6 +322,18 @@ export const ClinicalDocumentationDynamic: FC<
 
       await onSave(saveData);
 
+      if (appointmentId && diagnosis.some((d) => d.icdCode)) {
+        const codedDiagnoses = diagnosis.filter((d) => d.icdCode);
+
+        await syncDiagnoses.mutateAsync({
+          diagnoses: codedDiagnoses.map((d, i) => ({
+            icdCodeId: d.icdCode?.id,
+            notes: d.notes,
+            isPrimary: i === 0,
+          })),
+        });
+      }
+
       if (prescriptions.length > 0) {
         await createPrescription.mutateAsync({
           patientId: patientId || "",
@@ -344,7 +359,10 @@ export const ClinicalDocumentationDynamic: FC<
       toast.success("Consultation saved successfully");
     } catch (error: unknown) {
       const complianceMessage = getPrescriptionComplianceErrorMessage(error);
-      toast.error(complianceMessage || "Failed to save consultation");
+      showUserFacingErrorToast(
+        complianceMessage ||
+          "We could not save this consultation. Please try again.",
+      );
     } finally {
       setIsSaving(false);
     }

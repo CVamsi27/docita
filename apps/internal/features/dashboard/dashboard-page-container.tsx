@@ -52,14 +52,12 @@ export function DashboardPageContainer() {
     <div className="space-y-8">
       {!token && (
         <div className="surface-warning rounded-lg p-4">
-          <p className="text-sm">
-            Loading authentication... If this persists, please log in again.
-          </p>
+          <p className="text-sm">Loading authentication...</p>
         </div>
       )}
       <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Overview</h1>
           <p className="text-muted-foreground">
             Monitor and manage all clinics across the platform.
           </p>

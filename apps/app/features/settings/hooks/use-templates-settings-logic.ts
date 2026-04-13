@@ -7,6 +7,7 @@ import {
 } from "@/hooks/api/use-clinical";
 import { ClinicalTemplate } from "@workspace/types";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const useTemplatesSettingsLogic = () => {
   const { data: templates, isLoading } = useTemplates();
@@ -44,7 +45,11 @@ export const useTemplatesSettingsLogic = () => {
       {
         onSuccess: () => toast.success("Template duplicated successfully"),
         onError: (err) =>
-          toast.error(`Failed to duplicate template: ${err.message}`),
+          showUserFacingErrorToast(
+            err,
+            "We could not copy this template. Please try again.",
+            "save",
+          ),
       },
     );
   };
@@ -55,7 +60,11 @@ export const useTemplatesSettingsLogic = () => {
       {
       onSuccess: () => toast.success("Template deleted"),
       onError: (err) =>
-        toast.error(`Failed to delete template: ${err.message}`),
+        showUserFacingErrorToast(
+          err,
+          "We could not remove this template. Please try again.",
+          "delete",
+        ),
       },
     );
   };
@@ -73,7 +82,11 @@ export const useTemplatesSettingsLogic = () => {
             setIsDialogOpen(false);
           },
           onError: (err) =>
-            toast.error(`Failed to update template: ${err.message}`),
+            showUserFacingErrorToast(
+              err,
+              "We could not save this template. Please try again.",
+              "save",
+            ),
         },
       );
     } else {
@@ -83,7 +96,11 @@ export const useTemplatesSettingsLogic = () => {
           setIsDialogOpen(false);
         },
         onError: (err) =>
-          toast.error(`Failed to create template: ${err.message}`),
+          showUserFacingErrorToast(
+            err,
+            "We could not save this template. Please try again.",
+            "save",
+          ),
       });
     }
   };

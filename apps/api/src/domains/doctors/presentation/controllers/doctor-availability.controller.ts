@@ -122,13 +122,24 @@ export class DoctorAvailabilityController {
 
   @Put('schedules/:id')
   @UsePipes(new ZodValidationPipe(updateScheduleSchema))
-  updateSchedule(@Param('id') id: string, @Body() dto: UpdateScheduleDto) {
-    return this.doctorAvailabilityService.updateSchedule(id, dto);
+  updateSchedule(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() dto: UpdateScheduleDto,
+  ) {
+    return this.doctorAvailabilityService.updateSchedule(
+      id,
+      dto,
+      req.user?.clinicId || undefined,
+    );
   }
 
   @Delete('schedules/:id')
-  deleteSchedule(@Param('id') id: string) {
-    return this.doctorAvailabilityService.deleteSchedule(id);
+  deleteSchedule(@Param('id') id: string, @Request() req: RequestWithUser) {
+    return this.doctorAvailabilityService.deleteSchedule(
+      id,
+      req.user?.clinicId || undefined,
+    );
   }
 
   @Get('time-off')
@@ -168,8 +179,11 @@ export class DoctorAvailabilityController {
   }
 
   @Delete('time-off/:id')
-  deleteTimeOff(@Param('id') id: string) {
-    return this.doctorAvailabilityService.deleteTimeOff(id);
+  deleteTimeOff(@Param('id') id: string, @Request() req: RequestWithUser) {
+    return this.doctorAvailabilityService.deleteTimeOff(
+      id,
+      req.user?.clinicId || undefined,
+    );
   }
 
   @Get('slots')

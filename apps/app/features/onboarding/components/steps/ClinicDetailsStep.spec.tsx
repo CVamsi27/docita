@@ -19,7 +19,7 @@ describe("clinicDetailsSchema", () => {
     }
 
     const messages = result.error.issues.map((issue) => issue.message);
-    expect(messages).toContain("Clinic name must be at least 2 characters");
-    expect(messages).toContain("Invalid email address");
+    expect(messages).toContain("Use at least 2 characters.");
+    expect(messages).toContain("Please enter a valid email address");
   });
 });

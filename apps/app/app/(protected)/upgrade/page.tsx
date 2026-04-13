@@ -322,7 +322,7 @@ export default function UpgradePage() {
         )}
 
         <Tabs defaultValue="compare" className="w-full">
-          <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1">
+          <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <TabsTrigger
               value="compare"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"

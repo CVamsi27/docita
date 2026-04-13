@@ -11,8 +11,8 @@ import {
 } from "@workspace/ui/components/card";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
-import { toast } from "sonner";
 import { Building2, Stethoscope, User, Users } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface ClinicStats {
   id: string;
@@ -50,7 +50,7 @@ export default function ClinicDashboard() {
 
   useEffect(() => {
     if (clinicQuery.isError) {
-      toast.error("Failed to load clinic details");
+      showUserFacingErrorToast("We could not load clinic details. Please try again.");
     }
   }, [clinicQuery.isError]);
 
@@ -65,9 +65,11 @@ export default function ClinicDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Clinic Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          Internal Admin Dashboard
+        </h1>
         <p className="text-muted-foreground">
-          Manage your clinic, team, and operations
+          Manage clinics, team, and operations
         </p>
       </div>
 
@@ -141,7 +143,7 @@ export default function ClinicDashboard() {
         <Card>
           <CardContent className="pt-6">
             <p className="text-muted-foreground text-center">
-              Unable to load clinic information
+              We could not load clinic information. Please refresh and try again.
             </p>
           </CardContent>
         </Card>

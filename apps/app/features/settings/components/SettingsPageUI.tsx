@@ -164,14 +164,14 @@ export function SettingsPageUI({
         className="flex flex-col md:flex-row gap-6 lg:gap-10"
       >
         <aside className="md:w-56 lg:w-64 shrink-0 flex flex-col">
-          <TabsList className="flex flex-col w-full h-auto bg-transparent p-0 gap-0.5 items-stretch flex-1">
+          <TabsList className="flex flex-row overflow-x-auto md:flex-col w-full h-auto bg-transparent p-0 gap-0.5 md:items-stretch flex-1 pb-1 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {filteredTabs.map((category) => {
               const isDangerCategory = category.category === "Danger Zone";
               return (
                 <div key={category.category}>
                   <div
                     className={cn(
-                      "px-2 py-1.5 text-xs font-semibold uppercase tracking-wider mb-1 mt-3 first:mt-0",
+                      "hidden md:block px-2 py-1.5 text-xs font-semibold uppercase tracking-wider mb-1 mt-3 first:mt-0",
                       isDangerCategory
                         ? "text-destructive/60"
                         : "text-muted-foreground/70",
@@ -187,9 +187,9 @@ export function SettingsPageUI({
                         key={item.value}
                         value={item.value}
                         className={cn(
-                          "justify-start px-3 py-2.5 gap-3 w-full",
+                          "shrink-0 md:shrink md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
                           "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                          "rounded-lg",
+                          "rounded-lg whitespace-nowrap",
                           isDangerItem
                             ? "hover:bg-destructive/5 hover:text-destructive transition-colors"
                             : "hover:bg-muted/50 transition-colors",
@@ -205,7 +205,7 @@ export function SettingsPageUI({
                           <span className="text-sm font-medium">
                             {item.label}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="hidden md:block text-xs text-muted-foreground">
                             {item.description}
                           </span>
                         </div>

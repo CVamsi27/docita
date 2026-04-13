@@ -59,6 +59,95 @@ get_db_url() {
     normalize_db_url "${DATABASE_URL:-}"
 }
 
+# Function to remove unsupported URI query params before invoking libpq tools.
+get_pg_tool_db_url() {
+    local db_url
+    db_url=$(get_db_url)
+
+    if [ -z "$db_url" ]; then
+        printf '%s\n' ""
+        return 0
+    fi
+
+    DATABASE_URL_INPUT="$db_url" node <<'EOF'
+const raw = process.env.DATABASE_URL_INPUT ?? "";
+
+if (!raw) {
+  process.stdout.write("");
+  process.exit(0);
+}
+
+const url = new URL(raw);
+const allowedParams = new Set([
+  "application_name",
+  "channel_binding",
+  "client_encoding",
+  "connect_timeout",
+  "dbname",
+  "fallback_application_name",
+  "gssdelegation",
+  "gssencmode",
+  "gsslib",
+  "host",
+  "hostaddr",
+  "keepalives",
+  "keepalives_count",
+  "keepalives_idle",
+  "keepalives_interval",
+  "krbsrvname",
+  "load_balance_hosts",
+  "max_protocol_version",
+  "min_protocol_version",
+  "oauth_client_id",
+  "oauth_client_secret",
+  "oauth_issuer",
+  "oauth_scope",
+  "options",
+  "passfile",
+  "password",
+  "port",
+  "replication",
+  "require_auth",
+  "requirepeer",
+  "scram_client_key",
+  "scram_server_key",
+  "service",
+  "ssl",
+  "sslcert",
+  "sslcrl",
+  "sslcrldir",
+  "sslkey",
+  "sslkeylogfile",
+  "ssl_max_protocol_version",
+  "ssl_min_protocol_version",
+  "sslmode",
+  "sslnegotiation",
+  "sslpassword",
+  "sslrootcert",
+  "sslsni",
+  "target_session_attrs",
+  "tcp_user_timeout",
+  "user",
+]);
+
+const removedParams = [];
+for (const key of [...url.searchParams.keys()]) {
+  if (!allowedParams.has(key.toLowerCase())) {
+    removedParams.push(key);
+    url.searchParams.delete(key);
+  }
+}
+
+if (removedParams.length > 0) {
+  process.stderr.write(
+    `Skipping unsupported libpq URI params for pg tools: ${removedParams.join(", ")}\n`,
+  );
+}
+
+process.stdout.write(url.toString());
+EOF
+}
+
 # Function to extract database name from URL
 get_db_name() {
     local url=$1
@@ -92,7 +181,7 @@ get_pg_dump_major_version() {
 
 get_server_major_version() {
     local db_url
-    db_url=$(get_db_url)
+    db_url=$(get_pg_tool_db_url)
 
     if ! command -v psql &> /dev/null; then
         printf '%s\n' ""
@@ -110,7 +199,7 @@ get_server_major_version() {
 }
 
 create_backup() {
-    local db_url=$(get_db_url)
+    local db_url=$(get_pg_tool_db_url)
     local db_name=$(get_db_name "$db_url")
     local backup_file="${BACKUP_DIR}/${db_name}_${TIMESTAMP}.sql"
     
@@ -191,62 +280,12 @@ validate_migration() {
 # Function to check data integrity
 check_data_integrity() {
     log "Checking data integrity..."
-    
-    # Run integrity checks via Prisma
-    npx ts-node -e "
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
-async function checkIntegrity() {
-    const checks = [];
-    
-    // Check for orphaned appointments
-    const orphanedAppointments = await prisma.appointment.count({
-        where: {
-            OR: [
-                { patient: null },
-                { doctor: null },
-                { clinic: null }
-            ]
-        }
-    });
-    checks.push({ name: 'Orphaned Appointments', count: orphanedAppointments, ok: orphanedAppointments === 0 });
-    
-    // Check for orphaned prescriptions
-    const orphanedPrescriptions = await prisma.prescription.count({
-        where: {
-            OR: [
-                { patient: null },
-                { doctor: null }
-            ]
-        }
-    });
-    checks.push({ name: 'Orphaned Prescriptions', count: orphanedPrescriptions, ok: orphanedPrescriptions === 0 });
-    
-    // Check for orphaned invoices
-    const orphanedInvoices = await prisma.invoice.count({
-        where: {
-            patient: null
-        }
-    });
-    checks.push({ name: 'Orphaned Invoices', count: orphanedInvoices, ok: orphanedInvoices === 0 });
-    
-    await prisma.\$disconnect();
-    
-    return checks;
-}
+    # Reuse the adapter-aware integrity script and preserve its exit code when logging.
+    pnpm run db:check-integrity 2>&1 | tee -a "$LOG_FILE"
+    local integrity_status=${PIPESTATUS[0]}
 
-checkIntegrity()
-    .then(checks => {
-        const failed = checks.filter(c => !c.ok);
-        process.exit(failed.length > 0 ? 1 : 0);
-    })
-    .catch(err => {
-        process.exit(1);
-    });
-" 2>&1 | tee -a "$LOG_FILE"
-    
-    if [ $? -eq 0 ]; then
+    if [ "$integrity_status" -eq 0 ]; then
         success "Data integrity check passed"
         return 0
     else
@@ -309,7 +348,7 @@ rollback() {
         return 0
     fi
     
-    local db_url=$(get_db_url)
+    local db_url=$(get_pg_tool_db_url)
     psql --dbname="$db_url" < "$backup_file"
     
     if [ $? -eq 0 ]; then

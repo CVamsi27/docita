@@ -13,11 +13,15 @@ import {
 export class PrismaMedicationDoseRepository implements IMedicationDoseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReadClient() {
+    return this.prisma.getReadClient();
+  }
+
   async verifyPatientAccess(
     patientId: string,
     clinicId: string,
   ): Promise<boolean> {
-    const patient = await this.prisma.patient.findFirst({
+    const patient = await this.getReadClient().patient.findFirst({
       where: { id: patientId, clinicId },
       select: { id: true },
     });
@@ -27,7 +31,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   async findMedicationWithPrescription(
     medicationId: string,
   ): Promise<MedicationWithPrescription | null> {
-    return this.prisma.medication.findFirst({
+    return this.getReadClient().medication.findFirst({
       where: { id: medicationId },
       include: {
         prescription: { select: { id: true, patientId: true, date: true } },
@@ -40,7 +44,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   }
 
   async findDoseById(id: string, patientId: string, clinicId: string) {
-    return this.prisma.medicationDose.findFirst({
+    return this.getReadClient().medicationDose.findFirst({
       where: { id, patientId, clinicId },
     });
   }
@@ -53,7 +57,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
     where: Prisma.MedicationDoseWhereInput,
     options: { take: number; skip: number },
   ): Promise<MedicationDoseHistoryRow[]> {
-    return this.prisma.medicationDose.findMany({
+    return this.getReadClient().medicationDose.findMany({
       where,
       include: {
         medication: { select: { name: true, dosage: true, frequency: true } },
@@ -65,13 +69,13 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
   }
 
   async countDoses(where: Prisma.MedicationDoseWhereInput): Promise<number> {
-    return this.prisma.medicationDose.count({ where });
+    return this.getReadClient().medicationDose.count({ where });
   }
 
   async groupDosesByStatus(
     where: Prisma.MedicationDoseWhereInput,
   ): Promise<DoseAdherenceStat[]> {
-    const rows = await this.prisma.medicationDose.groupBy({
+    const rows = await this.getReadClient().medicationDose.groupBy({
       by: ['status'],
       where,
       _count: { status: true },
@@ -96,7 +100,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
     patientId: string,
     take: number,
   ): Promise<PrescriptionWithMedications[]> {
-    return this.prisma.prescription.findMany({
+    return this.getReadClient().prescription.findMany({
       where: { patientId },
       include: { medications: true },
       orderBy: { date: 'desc' },
@@ -108,7 +112,7 @@ export class PrismaMedicationDoseRepository implements IMedicationDoseRepository
     id: string,
     patientId: string,
   ): Promise<PrescriptionWithMedications | null> {
-    return this.prisma.prescription.findFirst({
+    return this.getReadClient().prescription.findFirst({
       where: { id, patientId },
       include: { medications: true },
     });

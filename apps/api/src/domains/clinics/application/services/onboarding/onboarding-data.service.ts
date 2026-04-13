@@ -4,6 +4,7 @@ import {
   BadRequestException,
   OnModuleDestroy,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import {
   OnboardingStep,
   OnboardingProgressDto,
@@ -28,6 +29,7 @@ export class OnboardingDataService implements OnModuleDestroy {
 
   constructor() {
     this.cleanupTimer = setInterval(() => this.cleanExpiredSessions(), 3600000);
+    this.cleanupTimer.unref?.();
   }
 
   initializeOnboarding(): { onboardingId: string } {
@@ -113,7 +115,7 @@ export class OnboardingDataService implements OnModuleDestroy {
   }
 
   private generateOnboardingId(): string {
-    return `onb_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    return `onb_${randomBytes(16).toString('hex')}`;
   }
 
   private getStepDataKey(step: OnboardingStep): string {

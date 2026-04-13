@@ -94,7 +94,7 @@ export function ConsultationPageHeaderUI({
                   <PanelLeft className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 p-0">
+              <SheetContent side="left" className="sm:w-80 p-0">
                 {MobileSidebarContent}
               </SheetContent>
             </Sheet>

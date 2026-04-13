@@ -4,13 +4,13 @@ import { useCallback, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
-import { toast } from "sonner";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2, Upload } from "lucide-react";
 import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
 import { apiFetch } from "@/lib/api-client";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export default function MobileUploadPage() {
   const params = useParams();
@@ -54,38 +54,38 @@ export default function MobileUploadPage() {
         setSuccess(true);
       } else {
         const message =
-          "Upload completed, but we could not confirm session status. Please try again.";
+          "Your upload finished, but we could not confirm it. Please try again.";
         setErrorMessage(message);
-        toast.error(message);
+        showUserFacingErrorToast(null, message, "upload");
       }
     } catch (error) {
       if (error instanceof APIRequestError) {
         if (error.status === 413) {
           const message = "File is too large. Please use a smaller image.";
           setErrorMessage(message);
-          toast.error(message);
+          showUserFacingErrorToast(null, message, "upload");
           return;
         }
         if (error.status === 404) {
           const message = "Session expired. Please scan the QR code again.";
           setErrorMessage(message);
-          toast.error(message);
+          showUserFacingErrorToast(null, message, "upload");
           return;
         }
         if (error.status === 400) {
-          const message = "Invalid file type. Please upload an image.";
+          const message = "Please upload an image file.";
           setErrorMessage(message);
-          toast.error(message);
+          showUserFacingErrorToast(null, message, "upload");
           return;
         }
 
-        const message = error.message || "Upload failed. Please try again.";
+        const message = "We could not upload this image. Please try again.";
         setErrorMessage(message);
-        toast.error(message);
+        showUserFacingErrorToast(error, message, "upload");
       } else {
-        const message = "Upload failed. Please check your connection.";
+        const message = "We could not upload this image. Please try again.";
         setErrorMessage(message);
-        toast.error(message);
+        showUserFacingErrorToast(error, message, "upload");
       }
     }
   };

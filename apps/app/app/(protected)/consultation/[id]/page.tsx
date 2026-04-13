@@ -42,7 +42,7 @@ export default function ConsultationPage() {
       <div className="flex items-center justify-center h-screen">
         <DataState
           status="error"
-          errorMessage="Failed to load consultation data."
+          errorMessage="We could not open this consultation. Please try again."
           onRetry={() => window.location.reload()}
         />
       </div>

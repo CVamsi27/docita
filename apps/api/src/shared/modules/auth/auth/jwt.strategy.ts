@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { Role } from '@workspace/db';
+import { OnboardingStep, Role } from '@workspace/db';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Request } from 'express';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -51,9 +51,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     try {
       const users = await this.prisma.$queryRaw<
-        Array<{ id: string; name: string; clinicId: string | null }>
+        Array<{
+          id: string;
+          name: string;
+          clinicId: string | null;
+          emailVerified: boolean;
+          onboardingStep: OnboardingStep;
+        }>
       >`
-        SELECT "id", "name", "clinicId"
+        SELECT "id", "name", "clinicId", "emailVerified", "onboardingStep"
         FROM "User"
         WHERE "id" = ${payload.sub}
         LIMIT 1
@@ -71,6 +77,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         role: payload.role,
         name: user.name,
         clinicId: user.clinicId,
+        emailVerified: user.emailVerified,
+        onboardingStep: user.onboardingStep,
         patientId: payload.patientId,
       };
     } catch (error) {

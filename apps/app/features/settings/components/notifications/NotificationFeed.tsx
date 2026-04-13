@@ -161,7 +161,7 @@ export function NotificationFeed() {
       <CardContent>
         {isError ? (
           <div className="surface-danger rounded-md p-3 text-sm">
-            Failed to load notifications. Please refresh.
+            We could not load notifications. Please refresh.
           </div>
         ) : visibleNotifications.length === 0 ? (
           <div className="rounded-md border p-6 text-sm text-muted-foreground">

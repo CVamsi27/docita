@@ -1,14 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { IWhatsAppRepository } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   WhatsAppMessage,
   WhatsAppTemplate,
 } from '@/domains/whatsapp/core/entities';
-import { PrismaService } from '@/prisma/prisma.service';
+import {
+  TemplateButton,
+  TemplateVariable,
+} from '@/domains/whatsapp/core/services/default-templates.service';
 import { WhatsAppMessageStatus as DomainMessageStatus } from '@/domains/whatsapp/core/entities/whatsapp-message.entity';
 import {
   WhatsAppTemplateStatus as DomainTemplateStatus,
   WhatsAppTemplateCategory as DomainTemplateCategory,
+  WhatsAppTemplateButtonType,
 } from '@/domains/whatsapp/core/entities/whatsapp-template.entity';
 import {
   WhatsappTemplateStatus as PrismaTemplateStatus,
@@ -17,20 +22,222 @@ import {
   Prisma,
 } from '@workspace/db';
 
-@Injectable()
-export class PrismaWhatsAppRepository implements IWhatsAppRepository {
-  constructor(private readonly prisma: PrismaService) {}
+type JsonRecord = Record<string, Prisma.JsonValue>;
 
-  private toRecord(value: unknown): Record<string, unknown> {
-    if (!value || typeof value !== 'object') {
-      return {};
-    }
+export type PrismaWhatsAppMessageRecord = {
+  id: string;
+  conversationId: string;
+  content: string;
+  status: PrismaMessageStatus;
+  providerMsgId: string | null;
+  direction: 'INBOUND' | 'OUTBOUND';
+  messageType: string;
+  createdAt: Date;
+  conversation: {
+    clinicId: string;
+    patientId: string;
+  };
+};
 
-    return Object.fromEntries(Object.entries(value));
+export type PrismaWhatsAppTemplateRecord = {
+  id: string;
+  clinicId: string | null;
+  name: string;
+  category: PrismaTemplateCategory;
+  content: string;
+  status: PrismaTemplateStatus;
+  variables: Prisma.JsonValue | null;
+  buttons: Prisma.JsonValue | null;
+  buttonType: WhatsAppTemplateButtonType;
+  metaTemplateId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type TemplateVariableJson = {
+  name: string;
+  required: boolean;
+  defaultValue: string | null;
+};
+
+type TemplateButtonJson = {
+  id: string;
+  text: string;
+  action: string | null;
+};
+
+export interface PrismaWhatsAppReadClient {
+  whatsappMessage: {
+    findUnique(args: {
+      where: { id: string };
+      include: { conversation: true };
+    }): Promise<PrismaWhatsAppMessageRecord | null>;
+    findFirst(args: {
+      where: { providerMsgId: string };
+      include: { conversation: true };
+    }): Promise<PrismaWhatsAppMessageRecord | null>;
+  };
+  patient: {
+    findUnique(args: {
+      where: { id: string };
+      select: { phoneNumber: true };
+    }): Promise<{ phoneNumber: string } | null>;
+  };
+  whatsappTemplate: {
+    findUnique(args: {
+      where: { id: string };
+    }): Promise<PrismaWhatsAppTemplateRecord | null>;
+    findFirst(args: {
+      where: { clinicId: string; name: string };
+    }): Promise<PrismaWhatsAppTemplateRecord | null>;
+    findMany(args: {
+      where: { clinicId: string };
+    }): Promise<PrismaWhatsAppTemplateRecord[]>;
+  };
+  clinic: {
+    findUnique(args: {
+      where: { id: string };
+      select: { whatsappAutomation: true };
+    }): Promise<{ whatsappAutomation: Prisma.JsonValue | null } | null>;
+  };
+}
+
+export interface PrismaWhatsAppDatabase {
+  getReadClient(): PrismaWhatsAppReadClient;
+  whatsappMessage: {
+    upsert(args: {
+      where: { id: string };
+      update: {
+        status: PrismaMessageStatus;
+        providerMsgId: string | undefined;
+      };
+      create: {
+        id: string;
+        conversationId: string;
+        content: string;
+        status: PrismaMessageStatus;
+        providerMsgId: string | undefined;
+        direction: 'OUTBOUND';
+        messageType: 'TEXT' | 'TEMPLATE';
+      };
+    }): Promise<PrismaWhatsAppMessageRecord>;
+  };
+  whatsappTemplate: {
+    upsert(args: {
+      where: { id: string };
+      update: {
+        status: PrismaTemplateStatus;
+        content: string;
+        variables: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+        buttons: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+        buttonType: WhatsAppTemplateButtonType;
+        category: PrismaTemplateCategory;
+        metaTemplateId: string | null;
+        updatedAt: Date;
+      };
+      create: {
+        id: string;
+        clinicId: string;
+        name: string;
+        category: PrismaTemplateCategory;
+        content: string;
+        status: PrismaTemplateStatus;
+        variables: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+        buttons: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+        buttonType: WhatsAppTemplateButtonType;
+        metaTemplateId: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    }): Promise<PrismaWhatsAppTemplateRecord>;
+  };
+}
+
+function isRecord(
+  value: Prisma.JsonValue | null | undefined,
+): value is JsonRecord {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function toTemplateVariables(
+  value: Prisma.JsonValue | null,
+): TemplateVariable[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
   }
 
-  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  const variables = value
+    .filter((item): item is JsonRecord => isRecord(item))
+    .map((item) => ({
+      name: typeof item.name === 'string' ? item.name : '',
+      required: item.required === true,
+      defaultValue:
+        typeof item.defaultValue === 'string' ? item.defaultValue : undefined,
+    }))
+    .filter((item) => item.name.length > 0);
+
+  return variables.length > 0 ? variables : undefined;
+}
+
+function toTemplateButtons(
+  value: Prisma.JsonValue | null,
+): TemplateButton[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const buttons = value
+    .filter((item): item is JsonRecord => isRecord(item))
+    .map((item) => ({
+      id: typeof item.id === 'string' ? item.id : '',
+      text: typeof item.text === 'string' ? item.text : '',
+      action: typeof item.action === 'string' ? item.action : undefined,
+    }))
+    .filter((item) => item.id.length > 0 && item.text.length > 0);
+
+  return buttons.length > 0 ? buttons : undefined;
+}
+
+function toTemplateVariablesInput(
+  value: TemplateVariable[] | undefined,
+): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+  if (!value || value.length === 0) {
+    return Prisma.JsonNull;
+  }
+
+  return value.map(
+    (item): TemplateVariableJson => ({
+      name: item.name,
+      required: item.required,
+      defaultValue: item.defaultValue ?? null,
+    }),
+  );
+}
+
+function toTemplateButtonsInput(
+  value: TemplateButton[] | undefined,
+): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput {
+  if (!value || value.length === 0) {
+    return Prisma.JsonNull;
+  }
+
+  return value.map(
+    (item): TemplateButtonJson => ({
+      id: item.id,
+      text: item.text,
+      action: item.action ?? null,
+    }),
+  );
+}
+
+@Injectable()
+export class PrismaWhatsAppRepository implements IWhatsAppRepository {
+  constructor(
+    @Inject(PrismaService) private readonly prisma: PrismaWhatsAppDatabase,
+  ) {}
+
+  private getReadClient() {
+    return this.prisma.getReadClient();
   }
 
   async saveMessage(message: WhatsAppMessage): Promise<void> {
@@ -54,13 +261,14 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
   }
 
   async findMessageById(id: string): Promise<WhatsAppMessage | null> {
-    const raw = await this.prisma.whatsappMessage.findUnique({
+    const readClient = this.getReadClient();
+    const raw = await readClient.whatsappMessage.findUnique({
       where: { id },
       include: { conversation: true },
     });
     if (!raw) return null;
 
-    const patient = await this.prisma.patient.findUnique({
+    const patient = await readClient.patient.findUnique({
       where: { id: raw.conversation.patientId },
       select: { phoneNumber: true },
     });
@@ -80,13 +288,14 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
   async findMessageByExternalId(
     externalId: string,
   ): Promise<WhatsAppMessage | null> {
-    const raw = await this.prisma.whatsappMessage.findFirst({
+    const readClient = this.getReadClient();
+    const raw = await readClient.whatsappMessage.findFirst({
       where: { providerMsgId: externalId },
       include: { conversation: true },
     });
     if (!raw) return null;
 
-    const patient = await this.prisma.patient.findUnique({
+    const patient = await readClient.patient.findUnique({
       where: { id: raw.conversation.patientId },
       select: { phoneNumber: true },
     });
@@ -110,7 +319,10 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
       update: {
         status: this.toPrismaStatus(data.status),
         content: data.content,
-        buttons: this.toInputJsonValue(data.buttons),
+        variables: toTemplateVariablesInput(data.variables),
+        buttons: toTemplateButtonsInput(data.buttons),
+        buttonType: data.buttonType ?? 'NONE',
+        metaTemplateId: data.metaTemplateId ?? null,
         category: this.toPrismaCategory(data.category),
         updatedAt: data.updatedAt,
       },
@@ -121,7 +333,10 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
         category: this.toPrismaCategory(data.category),
         content: data.content,
         status: this.toPrismaStatus(data.status),
-        buttons: this.toInputJsonValue(data.buttons),
+        variables: toTemplateVariablesInput(data.variables),
+        buttons: toTemplateButtonsInput(data.buttons),
+        buttonType: data.buttonType ?? 'NONE',
+        metaTemplateId: data.metaTemplateId ?? null,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       },
@@ -129,7 +344,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
   }
 
   async findTemplateById(id: string): Promise<WhatsAppTemplate | null> {
-    const raw = await this.prisma.whatsappTemplate.findUnique({
+    const raw = await this.getReadClient().whatsappTemplate.findUnique({
       where: { id },
     });
     if (!raw) return null;
@@ -140,7 +355,10 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
       category: this.toDomainCategory(raw.category),
       content: raw.content || '',
       status: this.toDomainStatus(raw.status),
-      buttons: this.toRecord(raw.buttons),
+      variables: toTemplateVariables(raw.variables),
+      buttons: toTemplateButtons(raw.buttons),
+      buttonType: raw.buttonType,
+      metaTemplateId: raw.metaTemplateId || undefined,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });
@@ -150,7 +368,7 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
     clinicId: string,
     name: string,
   ): Promise<WhatsAppTemplate | null> {
-    const raw = await this.prisma.whatsappTemplate.findFirst({
+    const raw = await this.getReadClient().whatsappTemplate.findFirst({
       where: { clinicId, name },
     });
     if (!raw) return null;
@@ -161,14 +379,17 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
       category: this.toDomainCategory(raw.category),
       content: raw.content || '',
       status: this.toDomainStatus(raw.status),
-      buttons: this.toRecord(raw.buttons),
+      variables: toTemplateVariables(raw.variables),
+      buttons: toTemplateButtons(raw.buttons),
+      buttonType: raw.buttonType,
+      metaTemplateId: raw.metaTemplateId || undefined,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });
   }
 
   async listTemplatesByClinic(clinicId: string): Promise<WhatsAppTemplate[]> {
-    const raws = await this.prisma.whatsappTemplate.findMany({
+    const raws = await this.getReadClient().whatsappTemplate.findMany({
       where: { clinicId },
     });
     return raws.map(
@@ -180,7 +401,10 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
           category: this.toDomainCategory(raw.category),
           content: raw.content || '',
           status: this.toDomainStatus(raw.status),
-          buttons: this.toRecord(raw.buttons),
+          variables: toTemplateVariables(raw.variables),
+          buttons: toTemplateButtons(raw.buttons),
+          buttonType: raw.buttonType,
+          metaTemplateId: raw.metaTemplateId || undefined,
           createdAt: raw.createdAt,
           updatedAt: raw.updatedAt,
         }),
@@ -188,20 +412,16 @@ export class PrismaWhatsAppRepository implements IWhatsAppRepository {
   }
 
   async isAutomationEnabled(clinicId: string): Promise<boolean> {
-    const clinic = await this.prisma.clinic.findUnique({
+    const clinic = await this.getReadClient().clinic.findUnique({
       where: { id: clinicId },
       select: { whatsappAutomation: true },
     });
 
-    if (
-      !clinic?.whatsappAutomation ||
-      typeof clinic.whatsappAutomation !== 'object'
-    ) {
+    if (!clinic?.whatsappAutomation || !isRecord(clinic.whatsappAutomation)) {
       return true;
     }
 
-    const automation = this.toRecord(clinic.whatsappAutomation);
-    return automation.enabled !== false;
+    return clinic.whatsappAutomation.enabled !== false;
   }
 
   private toPrismaStatus(status: DomainTemplateStatus): PrismaTemplateStatus {

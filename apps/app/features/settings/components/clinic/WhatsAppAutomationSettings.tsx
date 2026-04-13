@@ -21,6 +21,7 @@ import {
   useUpdateClinicSettings,
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   Form,
   FormControl,
@@ -70,7 +71,11 @@ export function WhatsAppAutomationSettings() {
         toast.success("WhatsApp automation settings saved successfully");
       },
       onError: (error) => {
-        toast.error(`Failed to save settings: ${error.message}`);
+        showUserFacingErrorToast(
+          error,
+          "We could not save your WhatsApp automation settings. Please try again.",
+          "save",
+        );
       },
     });
   };

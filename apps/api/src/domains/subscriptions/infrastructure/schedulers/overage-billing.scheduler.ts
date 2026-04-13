@@ -24,6 +24,7 @@ import {
   NotificationPriority,
   Role,
 } from '@workspace/db';
+import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 
 @Injectable()
 export class OverageBillingScheduler {
@@ -72,7 +73,7 @@ export class OverageBillingScheduler {
     );
   }
 
-  @Cron('0 2 1 * *')
+  @Cron('0 2 1 * *', { disabled: isCronDisabledInThisProcess() })
   async billMonthlyOverages(): Promise<void> {
     if (this.databaseAccessDisabled) return;
 
@@ -132,7 +133,7 @@ export class OverageBillingScheduler {
     }
   }
 
-  @Cron('30 * * * *')
+  @Cron('30 * * * *', { disabled: isCronDisabledInThisProcess() })
   async notifyUsageThresholds(): Promise<void> {
     if (this.databaseAccessDisabled) return;
 

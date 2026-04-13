@@ -49,6 +49,60 @@ const COUNTRY_CURRENCY_MAP: Readonly<Record<string, string>> = {
 
 const DEFAULT_CURRENCY = 'INR';
 
+function parseHostname(value: string): string | null {
+  try {
+    return new URL(value).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function isIpAddress(hostname: string): boolean {
+  return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':');
+}
+
+function resolveSharedCookieDomain(hostnames: string[]): string | undefined {
+  const normalizedHosts = hostnames
+    .map((hostname) => hostname.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (normalizedHosts.length < 2) {
+    return undefined;
+  }
+
+  if (
+    normalizedHosts.some(
+      (hostname) => hostname === 'localhost' || isIpAddress(hostname),
+    )
+  ) {
+    return undefined;
+  }
+
+  const splitHosts = normalizedHosts.map((hostname) => hostname.split('.'));
+  const minLength = Math.min(...splitHosts.map((segments) => segments.length));
+  const sharedSegments: string[] = [];
+
+  for (let index = 1; index <= minLength; index += 1) {
+    const segment = splitHosts[0].at(-index);
+    if (!segment) {
+      break;
+    }
+
+    if (splitHosts.every((parts) => parts.at(-index) === segment)) {
+      sharedSegments.unshift(segment);
+      continue;
+    }
+
+    break;
+  }
+
+  if (sharedSegments.length < 2) {
+    return undefined;
+  }
+
+  return sharedSegments.join('.');
+}
+
 type ManagedDatabaseProvider =
   | 'AWS RDS'
   | 'Supabase'
@@ -128,6 +182,35 @@ export class AppConfigService {
     return this.getConfig().NEXT_PUBLIC_API_URL;
   }
 
+  getSharedCookieDomain(): string | undefined {
+    if (!this.isProduction()) {
+      return undefined;
+    }
+
+    const frontendHostname = parseHostname(this.getFrontendAppUrl());
+    const apiHostname = parseHostname(this.getApiUrl());
+    const appHostname = parseHostname(this.getAppUrl());
+
+    // Prefer deriving the shared cookie domain from the two hosts that must
+    // actually share browser-visible cookies (frontend + API). `APP_URL` may
+    // point at a provider URL in production, which would otherwise prevent
+    // us from computing a shared eTLD+1.
+    const frontendApiDomain = resolveSharedCookieDomain(
+      [frontendHostname, apiHostname].filter((hostname): hostname is string =>
+        Boolean(hostname),
+      ),
+    );
+    if (frontendApiDomain) {
+      return frontendApiDomain;
+    }
+
+    return resolveSharedCookieDomain(
+      [appHostname, frontendHostname, apiHostname].filter(
+        (hostname): hostname is string => Boolean(hostname),
+      ),
+    );
+  }
+
   getStorageProvider(): 'local' | 'r2' {
     return this.getConfig().STORAGE_PROVIDER;
   }
@@ -167,6 +250,13 @@ export class AppConfigService {
       prescriptions: config.PUBLIC_LANDING_PRESCRIPTIONS,
       appointments: config.PUBLIC_LANDING_APPOINTMENTS,
       uptime: config.PUBLIC_LANDING_UPTIME,
+    };
+  }
+
+  getSlaAgreementConfig() {
+    const config = this.getConfig();
+    return {
+      uptimeTarget: config.SLA_UPTIME_TARGET,
     };
   }
 
@@ -262,7 +352,11 @@ export class AppConfigService {
   }
 
   getJwtSecret(): string {
-    return this.getConfig().JWT_SECRET;
+    const value = this.getConfig().JWT_SECRET;
+    if (!value) {
+      throw new Error('JWT_SECRET is required for API runtime');
+    }
+    return value;
   }
 
   getJwtExpiration(): string {
