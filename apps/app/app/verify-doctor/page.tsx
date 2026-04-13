@@ -71,6 +71,8 @@ export default function VerifyDoctorPage() {
   const canContinue = hasSignature && hasRegistration;
   const onboardingSignatureUrl = clinic?.slaSignatureUrl ?? null;
   const onboardingSignatureStoredUrl = clinic?.slaSignatureStoredUrl ?? null;
+  const onboardingSignatureSourceUrl =
+    onboardingSignatureStoredUrl ?? onboardingSignatureUrl;
   const resolvedOnboardingSignatureUrl = onboardingSignatureUrl
     ? toAbsoluteApiUrl(onboardingSignatureUrl)
     : null;
@@ -78,7 +80,7 @@ export default function VerifyDoctorPage() {
     ? toAbsoluteApiUrl(profile.signatureUrl)
     : null;
   const canUseOnboardingSignature =
-    isAdminDoctor && Boolean(onboardingSignatureStoredUrl) && !hasSignature;
+    isAdminDoctor && Boolean(onboardingSignatureSourceUrl) && !hasSignature;
   const shouldDeferQrAutoStart = isAdminDoctor && clinicLoading;
 
   const createSignatureSession = useCallback(async () => {
@@ -129,12 +131,12 @@ export default function VerifyDoctorPage() {
   }, [authLoading, user, isDoctor, canContinue, router]);
 
   const handleUseOnboardingSignature = async () => {
-    if (!onboardingSignatureStoredUrl) return;
+    if (!onboardingSignatureSourceUrl) return;
 
     setIsApplyingOnboardingSignature(true);
     try {
       await updateDoctorSignature.mutateAsync({
-        signatureUrl: onboardingSignatureStoredUrl,
+        signatureUrl: onboardingSignatureSourceUrl,
       });
       toast.success("Onboarding signature added to your profile.");
     } catch (error) {

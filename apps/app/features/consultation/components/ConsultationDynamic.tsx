@@ -323,8 +323,10 @@ export const ClinicalDocumentationDynamic: FC<
       await onSave(saveData);
 
       if (appointmentId && diagnosis.some((d) => d.icdCode)) {
+        const codedDiagnoses = diagnosis.filter((d) => d.icdCode);
+
         await syncDiagnoses.mutateAsync({
-          diagnoses: diagnosis.map((d, i) => ({
+          diagnoses: codedDiagnoses.map((d, i) => ({
             icdCodeId: d.icdCode?.id,
             notes: d.notes,
             isPrimary: i === 0,

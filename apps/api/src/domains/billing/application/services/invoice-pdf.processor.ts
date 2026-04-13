@@ -85,7 +85,9 @@ export class InvoicePdfProcessor implements OnModuleInit {
             `Invoice PDF generation failed for ${documentId}: ${error instanceof Error ? error.message : String(error)}`,
           );
 
-          if (pdfJobId) {
+          const isFinalAttempt = job.attemptsMade + 1 >= (job.maxAttempts ?? 1);
+
+          if (pdfJobId && isFinalAttempt) {
             await this.prisma.runUnrestricted(async () =>
               this.prisma.pdfJob.update({
                 where: { id: pdfJobId },
