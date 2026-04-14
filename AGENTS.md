@@ -212,7 +212,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 - **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
 - **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** an integration line. The staging environment exists to validate **the same code that is on `main`**.
-- **All feature/hotfix work lands in `main` via pull request.** After merge, automation opens a **sync PR `main` → `staging`** (and enables auto-merge) so `staging` continuously mirrors `main`.
+- **All feature/hotfix work lands in `main` via pull request.** After merge, automation **fast-forwards** `staging` to the exact `main` commit so `staging` continuously mirrors `main` (no sync PRs).
 
 ### Never commit on `main` or `staging`
 
@@ -229,7 +229,7 @@ Open a **pull request into `main`**.
 
 ### Staging environment
 
-- After merges to `main`, automation keeps `staging` in sync via a `main` → `staging` PR.
+- After merges to `main`, automation keeps `staging` in sync by moving the `staging` branch ref to the exact `main` commit.
 - Validate the staging environment against `staging` knowing it should match `main` (barring sync lag or blocked required checks).
 
 ### Hotfixes

@@ -249,7 +249,7 @@ Key patterns:
 
 - **`main`** is canonical for production; **`staging`** mirrors **`main`** (same tree) and must remain aligned via automation.
 - Branch from **`main`** and open pull requests **into `main`**.
-- After merges to `main`, automation opens a **sync PR `main` → `staging`** (with auto-merge enabled when possible) so the staging environment always matches production code.
+- After merges to `main`, automation **fast-forwards** `staging` to the exact `main` commit so the staging environment always matches production code.
 - Do not commit directly on `main` or `staging`. See `AGENTS.md` section 11.3 for the full model.
 
 ## Security & Compliance
