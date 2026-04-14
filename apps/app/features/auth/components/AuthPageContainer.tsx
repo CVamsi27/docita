@@ -195,13 +195,13 @@ export function AuthPageContainer() {
     const nextFieldErrors: FieldErrors = {};
 
     if (!confirmPassword) {
-      nextFieldErrors.confirmPassword = "Please re-enter your password.";
+      nextFieldErrors.confirmPassword = "Please re-enter your password";
     } else if (password !== confirmPassword) {
-      nextFieldErrors.confirmPassword = "Passwords do not match.";
+      nextFieldErrors.confirmPassword = "Passwords do not match";
     }
 
     if (!ownerRole) {
-      nextFieldErrors.ownerRole = "Choose how you will use this owner account.";
+      nextFieldErrors.ownerRole = "Choose how you will use this owner account";
     }
 
     if (Object.keys(nextFieldErrors).length > 0) {

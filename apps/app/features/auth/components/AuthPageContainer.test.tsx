@@ -129,7 +129,7 @@ describe("AuthPageContainer", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
 
-    expect(await screen.findByText("Passwords do not match.")).toBeInTheDocument();
+    expect(await screen.findByText("Passwords do not match")).toBeInTheDocument();
     expect(mocks.register).not.toHaveBeenCalled();
   });
 

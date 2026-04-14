@@ -162,11 +162,13 @@ export function ClinicDetailsStep({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address">
+                Address<span className="text-destructive ml-1">*</span>
+              </Label>
               <Input
                 id="address"
                 {...clinicForm.register("address")}
-                placeholder="123 Medical Lane, City"
+                placeholder="Enter clinic address"
                 aria-invalid={!!clinicForm.formState.errors.address}
                 aria-describedby={
                   clinicForm.formState.errors.address
@@ -182,11 +184,11 @@ export function ClinicDetailsStep({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="website">Website (Optional)</Label>
+              <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
                 {...clinicForm.register("website")}
-                placeholder="https://clinic.com"
+                placeholder="Enter website URL"
                 aria-invalid={!!clinicForm.formState.errors.website}
                 aria-describedby={
                   clinicForm.formState.errors.website

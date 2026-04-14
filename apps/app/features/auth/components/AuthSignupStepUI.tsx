@@ -103,7 +103,7 @@ export function AuthSignupStepUI({
           id="firstName"
           label="First Name"
           type="text"
-          placeholder="John"
+          placeholder="Enter your first name"
           value={firstName}
           onChange={onChangeFirstName}
           fieldErrors={fieldErrors}
@@ -114,7 +114,7 @@ export function AuthSignupStepUI({
           id="lastName"
           label="Last Name"
           type="text"
-          placeholder="Doe"
+          placeholder="Enter your last name"
           value={lastName}
           onChange={onChangeLastName}
           fieldErrors={fieldErrors}
@@ -223,6 +223,7 @@ export function AuthSignupStepUI({
         <div className="space-y-1">
           <Label id="signup-owner-role-label">
             Will you personally treat patients with this account?
+            <span className="text-destructive ml-1">*</span>
           </Label>
           <p className="text-xs text-muted-foreground">
             Choose the setup that matches how you will use Docita on day one.
