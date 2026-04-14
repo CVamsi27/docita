@@ -22,6 +22,9 @@ type ThreadSummaryAccumulator = SupportWhatsAppThreadSummary & {
   senderName: string | null;
 };
 
+const SUPPORT_EMAIL = 'support@docita.work';
+const AUTO_REPLY_COOLDOWN_MS = 10 * 60 * 1000;
+
 const threadMessageSelect = {
   id: true,
   providerMessageId: true,
@@ -351,6 +354,14 @@ export class SupportWhatsAppInboxService {
     value: WebhookValue,
     message: WebhookMessage,
   ): Promise<void> {
+    const alreadyStored = await this.prisma.supportWhatsAppMessage.findUnique({
+      where: { providerMessageId: message.id },
+      select: { id: true },
+    });
+    if (alreadyStored) {
+      return;
+    }
+
     const threadPhoneNumber = this.normalizePhoneNumber(message.from);
     const senderName =
       value.contacts?.find((contact) => contact.wa_id === message.from)?.profile
@@ -394,6 +405,94 @@ export class SupportWhatsAppInboxService {
         }),
       },
     });
+
+    await this.maybeSendAutoReply({
+      threadPhoneNumber,
+      inboundProviderMessageId: message.id,
+      messageBody,
+      messageType: message.type,
+    });
+  }
+
+  private async maybeSendAutoReply(input: {
+    threadPhoneNumber: string;
+    inboundProviderMessageId: string;
+    messageBody: string;
+    messageType: string;
+  }): Promise<void> {
+    if (input.messageType !== 'text' && input.messageType !== 'interactive') {
+      return;
+    }
+
+    const normalizedBody = input.messageBody.trim().toLowerCase();
+    if (!normalizedBody || normalizedBody.startsWith('[')) {
+      return;
+    }
+
+    const recentOutbound = await this.prisma.supportWhatsAppMessage.findFirst({
+      where: {
+        threadPhoneNumber: input.threadPhoneNumber,
+        direction: 'OUTBOUND',
+        receivedAt: { gt: new Date(Date.now() - AUTO_REPLY_COOLDOWN_MS) },
+      },
+      orderBy: [{ receivedAt: 'desc' }, { createdAt: 'desc' }],
+      select: { id: true },
+    });
+    if (recentOutbound) {
+      return;
+    }
+
+    const isGreeting = /^(hi|hello|hey|hii|namaste)\b/.test(normalizedBody);
+    const isPricing = /\b(price|pricing|plan|subscription|cost)\b/.test(
+      normalizedBody,
+    );
+    const isSupport = /\b(help|support|issue|problem|bug|error)\b/.test(
+      normalizedBody,
+    );
+    const looksComplex =
+      normalizedBody.length > 200 ||
+      /\b(crash|failed|unable|cannot|refund|payment|invoice|gst|tax)\b/.test(
+        normalizedBody,
+      );
+
+    let reply: string | null = null;
+    if (isGreeting) {
+      reply =
+        `Thanks for messaging Docita.\n` +
+        `Reply with:\n` +
+        `1) Pricing\n` +
+        `2) Demo\n` +
+        `3) Support\n\n` +
+        `If your query is complex, email ${SUPPORT_EMAIL}`;
+    } else if (isPricing) {
+      reply =
+        `For pricing and plan details, please share your clinic name and city.\n` +
+        `If you prefer email, write to ${SUPPORT_EMAIL}`;
+    } else if (isSupport) {
+      reply =
+        `Please share a short description of the issue and a screenshot if possible.\n` +
+        `For complex issues, email ${SUPPORT_EMAIL}`;
+    } else if (looksComplex) {
+      reply = `Thanks. For complex queries, please email ${SUPPORT_EMAIL} and our team will reply`;
+    }
+
+    if (!reply) {
+      return;
+    }
+
+    try {
+      await this.replyToThread(
+        input.threadPhoneNumber,
+        reply,
+        input.inboundProviderMessageId,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Failed to send auto-reply to ${input.threadPhoneNumber}: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
+      );
+    }
   }
 
   private async markDraftReplyFailed(
