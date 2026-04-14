@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { CLINIC_TYPE_LABELS, type ClinicType } from "@workspace/types";
+import PhoneInput from "react-phone-number-input";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
 
@@ -134,24 +135,25 @@ export function ClinicDetailsStep({
               <Label htmlFor="phone">
                 Phone Number<span className="text-destructive ml-1">*</span>
               </Label>
-              <Input
+              <PhoneInput
                 id="phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
+                international
+                defaultCountry="IN"
                 placeholder="Enter phone number"
                 value={clinicForm.watch("phone") ?? ""}
-                onChange={(event) =>
-                  clinicForm.setValue("phone", event.target.value, {
+                onChange={(value) =>
+                  clinicForm.setValue("phone", value ?? "", {
                     shouldDirty: true,
                     shouldTouch: true,
                     shouldValidate: true,
                   })
                 }
                 className={cn(
+                  "flex h-11 items-center rounded-xl border border-input bg-background/50 px-3 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-within:ring-2 focus-within:ring-ring/50",
+                  "[&_.PhoneInputCountry]:mr-2 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:items-center [&_.PhoneInputCountrySelect]:bg-transparent [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground",
+                  "[&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none",
                   clinicForm.formState.errors.phone &&
-                    "border-destructive focus-visible:ring-destructive/30",
-                  clinicForm.formState.errors.phone && "focus-visible:ring-2",
+                    "border-destructive focus-within:ring-destructive/30",
                 )}
                 aria-invalid={!!clinicForm.formState.errors.phone}
                 aria-describedby={
