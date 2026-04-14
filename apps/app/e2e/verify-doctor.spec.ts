@@ -9,6 +9,31 @@ type JsonRecord = Record<string, unknown>;
 const APP_ORIGIN = new URL(process.env.APP_URL ?? "http://127.0.0.1:3005")
   .origin;
 
+async function addAuthCookies(
+  page: import("@playwright/test").Page,
+  tokens: { accessToken: string; refreshToken?: string | null },
+) {
+  await page.context().addCookies([
+    {
+      name: "access_token",
+      value: tokens.accessToken,
+      url: APP_ORIGIN,
+      path: "/",
+    },
+  ]);
+
+  if (tokens.refreshToken) {
+    await page.context().addCookies([
+      {
+        name: "refresh_token",
+        value: tokens.refreshToken,
+        url: `${APP_ORIGIN}/api/v1/auth`,
+        path: "/api/v1/auth",
+      },
+    ]);
+  }
+}
+
 function asRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
@@ -311,36 +336,7 @@ test.describe("Doctor Verification Flow", () => {
   }) => {
     const doctor = await createDoctorWithSignature(request);
 
-    await page.context().addCookies([
-      {
-        name: "access_token",
-        value: doctor.accessToken,
-        domain: "127.0.0.1",
-        path: "/",
-      },
-      {
-        name: "access_token",
-        value: doctor.accessToken,
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
-    if (doctor.refreshToken) {
-      await page.context().addCookies([
-        {
-          name: "refresh_token",
-          value: doctor.refreshToken,
-          domain: "127.0.0.1",
-          path: "/api/v1/auth",
-        },
-        {
-          name: "refresh_token",
-          value: doctor.refreshToken,
-          domain: "localhost",
-          path: "/api/auth",
-        },
-      ]);
-    }
+    await addAuthCookies(page, doctor);
     await page.context().addInitScript(
       ({ user, token }) => {
         localStorage.setItem("docita_user", JSON.stringify(user));
@@ -430,36 +426,7 @@ test.describe("Doctor Verification Flow", () => {
     );
     expect(updateRes.ok()).toBeTruthy();
 
-    await page.context().addCookies([
-      {
-        name: "access_token",
-        value: doctor.accessToken,
-        domain: "127.0.0.1",
-        path: "/",
-      },
-      {
-        name: "access_token",
-        value: doctor.accessToken,
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
-    if (doctor.refreshToken) {
-      await page.context().addCookies([
-        {
-          name: "refresh_token",
-          value: doctor.refreshToken,
-          domain: "127.0.0.1",
-          path: "/api/v1/auth",
-        },
-        {
-          name: "refresh_token",
-          value: doctor.refreshToken,
-          domain: "localhost",
-          path: "/api/auth",
-        },
-      ]);
-    }
+    await addAuthCookies(page, doctor);
     await page.context().addInitScript(
       ({ user, token }) => {
         localStorage.setItem("docita_user", JSON.stringify(user));
@@ -508,6 +475,7 @@ test.describe("Doctor Verification Flow", () => {
     });
 
     await page.goto("/verify-doctor");
+    await page.waitForURL(/\/verify-doctor/, { timeout: 30000 });
 
     const reuseSignatureButton = page.getByRole("button", {
       name: "Use onboarding signature",
