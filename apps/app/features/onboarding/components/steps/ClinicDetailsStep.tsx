@@ -1,4 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
+import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -20,6 +21,7 @@ import { CLINIC_TYPE_LABELS, type ClinicType } from "@workspace/types";
 import PhoneInput from "react-phone-number-input";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
+import { ClinicAddressPickerDialog } from "@/features/onboarding/components/clinic-address-picker-dialog";
 
 interface ClinicDetailsStepProps {
   clinicForm: UseFormReturn<ClinicDetails>;
@@ -30,6 +32,8 @@ export function ClinicDetailsStep({
   clinicForm,
   onSubmit,
 }: ClinicDetailsStepProps) {
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
+
   return (
     <Card>
       <CardHeader>
@@ -172,9 +176,20 @@ export function ClinicDetailsStep({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="address">
-                Address<span className="text-destructive ml-1">*</span>
-              </Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="address">
+                  Address<span className="text-destructive ml-1">*</span>
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setMapPickerOpen(true)}
+                >
+                  Choose on map
+                </Button>
+              </div>
               <Input
                 id="address"
                 {...clinicForm.register("address")}
@@ -249,6 +264,19 @@ export function ClinicDetailsStep({
           Next: Choose Plan
         </Button>
       </CardFooter>
+
+      <ClinicAddressPickerDialog
+        open={mapPickerOpen}
+        onOpenChange={setMapPickerOpen}
+        initialAddress={clinicForm.watch("address") ?? ""}
+        onConfirm={({ address }) => {
+          clinicForm.setValue("address", address, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          });
+        }}
+      />
     </Card>
   );
 }

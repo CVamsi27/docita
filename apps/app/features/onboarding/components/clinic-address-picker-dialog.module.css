@@ -1,0 +1,17 @@
+.mapRoot {
+  height: 360px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mapRoot :global(.leaflet-container) {
+  height: 100%;
+  width: 100%;
+  background: #f8fafc;
+}
+
+.mapRoot :global(.leaflet-control-attribution) {
+  font-size: 11px;
+}
+
