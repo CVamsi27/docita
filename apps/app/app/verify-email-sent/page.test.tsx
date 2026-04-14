@@ -7,6 +7,7 @@ const RESEND_VERIFICATION_COOLDOWN_MS = 120 * 1000;
 const mocks = vi.hoisted(() => ({
   router: {
     replace: vi.fn(),
+    push: vi.fn(),
   },
   apiFetch: vi.fn(),
   logout: vi.fn(),
@@ -64,6 +65,7 @@ describe("VerifyEmailSentPage", () => {
     vi.useRealTimers();
     sessionStorage.clear();
     mocks.router.replace.mockReset();
+    mocks.router.push.mockReset();
     mocks.apiFetch.mockReset();
     mocks.logout.mockReset();
     mocks.loggerError.mockReset();
@@ -174,7 +176,7 @@ describe("VerifyEmailSentPage", () => {
     expect(mocks.loggerError).toHaveBeenCalled();
   });
 
-  it("redirects already verified users to the next setup step", async () => {
+  it("shows verified state for already verified users", async () => {
     mocks.user = {
       email: "owner@example.com",
       emailVerified: true,
@@ -184,9 +186,10 @@ describe("VerifyEmailSentPage", () => {
 
     render(<VerifyEmailSentPage />);
 
-    await waitFor(() => {
-      expect(mocks.router.replace).toHaveBeenCalledWith("/choose-path");
-    });
+    expect(
+      await screen.findByRole("heading", { name: /email verified/i }),
+    ).toBeInTheDocument();
+    expect(mocks.router.replace).not.toHaveBeenCalled();
   });
 
   afterEach(() => {

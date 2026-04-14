@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { sanitizeUserFacingMessage } from "@workspace/types";
@@ -37,13 +37,9 @@ function VerifyEmailInner() {
   const token = useMemo(() => searchParams.get("token"), [searchParams]);
   const router = useRouter();
   const { user, refreshUser } = useAuth();
-  const latestUserRef = useRef<User | null>(user);
   const [state, setState] = useState<VerifyState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    latestUserRef.current = user;
-  }, [user]);
+  const [refreshedUser, setRefreshedUser] = useState<User | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -79,18 +75,13 @@ function VerifyEmailInner() {
               });
             }
           }
-          let refreshedUser: User | null = null;
           try {
-            refreshedUser = await refreshUser();
+            const nextUser = await refreshUser();
+            setRefreshedUser(nextUser);
           } catch (refreshError) {
             logger.error("Could not refresh user after email verification", {
               refreshError,
             });
-          }
-          if (!cancelled) {
-            router.replace(
-              getPostVerificationPath(refreshedUser ?? latestUserRef.current),
-            );
           }
           return;
         }
@@ -127,6 +118,10 @@ function VerifyEmailInner() {
     router.push("/login");
   };
 
+  const handleContinue = () => {
+    router.push(getPostVerificationPath(refreshedUser ?? user));
+  };
+
   return (
     <PreDashboardShell currentStep="verify-email">
       <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -149,8 +144,20 @@ function VerifyEmailInner() {
             <div className="text-center space-y-2">
               <h1 className="text-2xl font-bold">Email verified</h1>
               <p className="text-muted-foreground text-sm">
-                Your account is ready. Taking you to the next step...
+                Your email is verified. You can continue setup when you are ready.
               </p>
+            </div>
+            <div className="space-y-3">
+              <Button className="w-full h-11" onClick={handleContinue}>
+                Continue
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full h-11"
+                onClick={handleBackToLogin}
+              >
+                Back to login
+              </Button>
             </div>
           </div>
         )}

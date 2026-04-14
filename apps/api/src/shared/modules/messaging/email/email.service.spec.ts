@@ -146,12 +146,14 @@ describe('EmailService', () => {
       const call = emailProvider.send.mock.calls.at(-1)?.[0];
       expect(call?.subject).toBe('Verify Your Email - Docita');
       expect(call?.replyTo).toBe('support@docita.work');
-      expect(call?.html).toContain('Verified');
+      expect(call?.html).toContain('Verify your email');
+      expect(call?.html).toContain('Click the button below');
       expect(call?.html).toContain('Docita Care Team');
       expect(call?.html).toContain('verify-token-123');
       expect(call?.html).not.toContain('Docita account security');
       expect(call?.html).not.toContain('choose your path');
-      expect(call?.text).toContain('Verified');
+      expect(call?.text).toContain('Verify your email');
+      expect(call?.text).toContain('Click to verify:');
       expect(call?.text).toContain('Docita Care Team');
     });
 

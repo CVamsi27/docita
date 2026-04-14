@@ -119,11 +119,18 @@ export class EmailService {
       html: `
         <div style="margin:0; padding:32px 16px; background:#f8fafc; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
           <div style="max-width:420px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:16px; padding:32px 24px; text-align:center;">
-            <p style="margin:0 0 16px; font-size:34px; line-height:1; font-weight:700;">Verified</p>
+            <p style="margin:0 0 10px; font-size:28px; line-height:1.2; font-weight:700;">Verify your email</p>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#475569;">
+              Click the button below to verify your email address.
+            </p>
             <a href="${verifyUrl}"
                style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">
               Verify email
             </a>
+            <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
+              If the button does not work, copy and paste this link into your browser:<br />
+              <a href="${verifyUrl}" style="color:#0f766e; text-decoration:underline; word-break:break-all;">${verifyUrl}</a>
+            </p>
             <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
               Regards,<br />
               Docita Care Team
@@ -132,9 +139,9 @@ export class EmailService {
         </div>
       `,
       text: [
-        'Verified',
+        'Verify your email',
         '',
-        `Verify your account: ${verifyUrl}`,
+        `Click to verify: ${verifyUrl}`,
         '',
         'Regards,',
         'Docita Care Team',

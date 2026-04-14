@@ -68,9 +68,7 @@ export default function VerifyEmailSentPage() {
     }
 
     if (user.emailVerified === true) {
-      const nextPath = getNextPathForVerifiedUser(user);
-      setRedirectMessage("Email verified. Taking you to the next step...");
-      router.replace(nextPath);
+      setRedirectMessage(null);
       return;
     }
 
@@ -144,6 +142,43 @@ export default function VerifyEmailSentPage() {
         title="Redirecting..."
         description={redirectMessage}
       />
+    );
+  }
+
+  if (user?.emailVerified === true) {
+    return (
+      <PreDashboardShell currentStep="verify-email-sent" showSignOut>
+        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
+              <CheckCircle2 className="h-8 w-8 text-success" />
+            </div>
+          </div>
+
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold">Email verified</h1>
+            <p className="text-muted-foreground text-sm">
+              You can continue setup when you are ready.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              className="w-full h-11"
+              onClick={() => router.push(getNextPathForVerifiedUser(user))}
+            >
+              Continue
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full h-11"
+              onClick={() => router.push("/login")}
+            >
+              Back to login
+            </Button>
+          </div>
+        </div>
+      </PreDashboardShell>
     );
   }
 

@@ -86,6 +86,14 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   const activeStepIndex = setupSteps.findIndex((step) =>
     step.authSteps.includes(currentStep),
   );
+  const isLogin = currentStep === "login";
+  const heroKicker = isLogin ? "Welcome back" : "Getting started";
+  const heroTitle = isLogin
+    ? "Pick up where you left off."
+    : "Everything in one guided path to your clinic.";
+  const heroDescription = isLogin
+    ? "Sign in to manage appointments, patients, billing, and clinical workflows."
+    : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
 
   return (
     <aside
@@ -118,13 +126,12 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
 
       <div className="relative z-10 px-8 xl:px-10">
         <div className="max-w-xl space-y-4">
-          <p className="text-sm font-medium text-primary">Getting started</p>
+          <p className="text-sm font-medium text-primary">{heroKicker}</p>
           <h2 className="text-3xl font-bold leading-[1.1] text-foreground xl:text-4xl">
-            Everything in one guided path to your clinic.
+            {heroTitle}
           </h2>
           <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Account setup, email verification, onboarding — each step unlocks
-            the next. You only do this once.
+            {heroDescription}
           </p>
         </div>
 
