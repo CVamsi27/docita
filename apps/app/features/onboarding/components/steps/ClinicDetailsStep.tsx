@@ -49,7 +49,7 @@ export function ClinicDetailsStep({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">
-                Clinic Name<span className="text-destructive ml-1">*</span>
+                Clinic Name<span className="text-destructive ml-0.5">*</span>
               </Label>
               <Input
                 id="name"
@@ -71,7 +71,7 @@ export function ClinicDetailsStep({
 
             <div className="space-y-2">
               <Label htmlFor="type">
-                Clinic Type<span className="text-destructive ml-1">*</span>
+                Clinic Type<span className="text-destructive ml-0.5">*</span>
               </Label>
               <Select
                 onValueChange={(val) =>
@@ -114,7 +114,7 @@ export function ClinicDetailsStep({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">
-                Clinic Email<span className="text-destructive ml-1">*</span>
+                Clinic Email<span className="text-destructive ml-0.5">*</span>
               </Label>
               <Input
                 id="email"
@@ -137,7 +137,7 @@ export function ClinicDetailsStep({
 
             <div className="space-y-2">
               <Label htmlFor="phone">
-                Phone Number<span className="text-destructive ml-1">*</span>
+                Phone Number<span className="text-destructive ml-0.5">*</span>
               </Label>
               <PhoneInput
                 id="phone"
@@ -178,7 +178,7 @@ export function ClinicDetailsStep({
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <Label htmlFor="address">
-                  Address<span className="text-destructive ml-1">*</span>
+                  Address<span className="text-destructive ml-0.5">*</span>
                 </Label>
                 <Button
                   type="button"

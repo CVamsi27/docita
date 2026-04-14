@@ -51,7 +51,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
       <div className="space-y-2">
         <Label htmlFor={id} className="text-sm font-medium">
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {required && <span className="text-destructive ml-0.5">*</span>}
         </Label>
 
         <Input

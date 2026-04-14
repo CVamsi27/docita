@@ -57,7 +57,7 @@ export function AuthLoginStepUI({
         <div className="flex items-center justify-between">
           <Label htmlFor="password">
             Password
-            <span className="text-destructive ml-1">*</span>
+            <span className="text-destructive ml-0.5">*</span>
           </Label>
           <Button
             variant="link"
