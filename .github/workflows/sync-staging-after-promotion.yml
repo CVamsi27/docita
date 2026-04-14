@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 env:
@@ -64,3 +64,33 @@ jobs:
             });
 
             core.info(`Created sync PR: ${pr.html_url}`);
+
+            // Enable auto-merge so the PR merges once required checks pass.
+            // This requires:
+            // - Repository setting: "Allow auto-merge" enabled
+            // - Token permissions to merge into `staging`
+            try {
+              const mutation = `
+                mutation EnableAutoMerge($pullRequestId: ID!) {
+                  enablePullRequestAutoMerge(input: { pullRequestId: $pullRequestId, mergeMethod: SQUASH }) {
+                    pullRequest {
+                      number
+                      autoMergeRequest {
+                        enabledAt
+                        mergeMethod
+                      }
+                    }
+                  }
+                }
+              `;
+
+              // `node_id` is a GraphQL Node ID for the PR.
+              await github.graphql(mutation, { pullRequestId: pr.node_id });
+              core.info(`Enabled auto-merge for PR #${pr.number}`);
+            } catch (error) {
+              core.warning(
+                `Could not enable auto-merge for PR #${pr.number}. ` +
+                  `This can happen if auto-merge is disabled, branch protection blocks it, ` +
+                  `or the token lacks permissions. Error: ${error?.message ?? String(error)}`,
+              );
+            }
