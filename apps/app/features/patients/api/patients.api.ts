@@ -126,7 +126,7 @@ export const patientsApi = {
     }),
 
   getMedicalHistory: (id: string) =>
-    api.get(`/patients/${id}/medical-history-timeline`),
+    api.get(`/patients/${id}/timeline`),
 
   getMetricCategories: (id: string) =>
     api.get(`/patients/${id}/metrics/categories`),

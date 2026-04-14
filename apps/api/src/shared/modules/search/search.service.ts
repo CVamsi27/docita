@@ -49,10 +49,13 @@ export class SearchService {
       return [];
     }
 
-    const cacheKey = `search:${clinicId}:${query}:${types.join(',')}:${limit}`;
+    const normalizedQuery = query.trim().replace(/\s+/g, ' ');
+    const normalizedQueryLower = normalizedQuery.toLowerCase();
+
+    const cacheKey = `search:${clinicId}:${normalizedQueryLower}:${types.join(',')}:${limit}`;
     const cached = await this.cacheService.get<SearchResult[]>(cacheKey);
     if (cached) {
-      this.logger.debug(`Cache hit for search query: ${query}`);
+      this.logger.debug(`Cache hit for search query: ${normalizedQuery}`);
       return cached;
     }
 
@@ -66,11 +69,19 @@ export class SearchService {
     const searchPromises = searchTypes.map((type) => {
       switch (type) {
         case 'patient':
-          return this.searchPatients(clinicId, query, perTypeLimit);
+          return this.searchPatients(clinicId, normalizedQuery, perTypeLimit);
         case 'appointment':
-          return this.searchAppointments(clinicId, query, perTypeLimit);
+          return this.searchAppointments(
+            clinicId,
+            normalizedQuery,
+            perTypeLimit,
+          );
         case 'prescription':
-          return this.searchPrescriptions(clinicId, query, perTypeLimit);
+          return this.searchPrescriptions(
+            clinicId,
+            normalizedQuery,
+            perTypeLimit,
+          );
         default:
           return Promise.resolve([]);
       }
@@ -85,8 +96,8 @@ export class SearchService {
         const scoreB = b.relevanceScore ?? 0;
         if (scoreB !== scoreA) return scoreB - scoreA;
 
-        const aExact = a.title.toLowerCase().includes(query.toLowerCase());
-        const bExact = b.title.toLowerCase().includes(query.toLowerCase());
+        const aExact = a.title.toLowerCase().includes(normalizedQueryLower);
+        const bExact = b.title.toLowerCase().includes(normalizedQueryLower);
         if (aExact && !bExact) return -1;
         if (!aExact && bExact) return 1;
         return 0;
@@ -121,26 +132,18 @@ export class SearchService {
     patient: boolean;
     appointment: boolean;
   }> {
-    const prismaWithUnsafeRaw = this.prisma as {
-      $queryRawUnsafe?: <T = unknown>(query: string) => Promise<T>;
-    };
-
-    if (typeof prismaWithUnsafeRaw.$queryRawUnsafe !== 'function') {
-      return { patient: true, appointment: true };
-    }
-
     try {
-      const rows = await prismaWithUnsafeRaw.$queryRawUnsafe<
+      const rows = await this.prisma.$queryRaw<
         Array<{ tableName: string; hasSearchTsvector: boolean }>
-      >(
-        `SELECT
-           table_name AS "tableName",
-           BOOL_OR(column_name = 'search_tsvector' AND udt_name = 'tsvector') AS "hasSearchTsvector"
-         FROM information_schema.columns
-         WHERE table_schema = 'public'
-           AND table_name IN ('Patient', 'Appointment')
-         GROUP BY table_name`,
-      );
+      >`
+        SELECT
+          table_name AS "tableName",
+          BOOL_OR(column_name = 'search_tsvector' AND udt_name = 'tsvector') AS "hasSearchTsvector"
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name IN ('Patient', 'Appointment')
+        GROUP BY table_name
+      `;
 
       const supportByTable = new Map(
         rows.map((row) => [row.tableName, row.hasSearchTsvector]),

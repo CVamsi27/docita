@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { sanitizeUserFacingMessage } from "@workspace/types";
@@ -32,8 +32,9 @@ function getPostVerificationPath(user: User | null): string {
   }
 }
 
-export default function VerifyEmailPage() {
+function VerifyEmailInner() {
   const searchParams = useSearchParams();
+  const token = useMemo(() => searchParams.get("token"), [searchParams]);
   const router = useRouter();
   const { user, refreshUser } = useAuth();
   const latestUserRef = useRef<User | null>(user);
@@ -45,7 +46,6 @@ export default function VerifyEmailPage() {
   }, [user]);
 
   useEffect(() => {
-    const token = searchParams.get("token");
     if (!token) {
       setState("missing");
       return;
@@ -117,7 +117,7 @@ export default function VerifyEmailPage() {
     return () => {
       cancelled = true;
     };
-  }, [refreshUser, router, searchParams]);
+  }, [refreshUser, router, token]);
 
   const handleRequestNewLink = () => {
     router.push("/verify-email-sent");
@@ -192,5 +192,24 @@ export default function VerifyEmailPage() {
 
       <SupportContact />
     </PreDashboardShell>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <PreDashboardShell currentStep="verify-email">
+          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6">
+            <div className="flex flex-col items-center gap-4 py-4">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="text-muted-foreground text-sm">Loading…</p>
+            </div>
+          </div>
+        </PreDashboardShell>
+      }
+    >
+      <VerifyEmailInner />
+    </Suspense>
   );
 }

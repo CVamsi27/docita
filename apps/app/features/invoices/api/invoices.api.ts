@@ -70,7 +70,7 @@ export const invoicesApi = {
 
   markPaid: (id: string, data?: MarkInvoicePaidRequest) =>
     api.post(
-      `/invoices/${id}/pay`,
+      `/payments/invoices/${id}/mark-paid`,
       markInvoicePaidRequestSchema.parse(data ?? {}),
     ),
 

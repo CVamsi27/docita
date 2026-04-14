@@ -1,3 +1,5 @@
+"use client";
+
 import { AlertCircle, Calendar, LayoutGrid, Plus } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";

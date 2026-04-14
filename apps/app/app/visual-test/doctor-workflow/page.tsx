@@ -1,3 +1,5 @@
+"use client";
+
 import { CalendarDays, Clock3, FileText, Stethoscope, UserRound } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Badge } from "@workspace/ui/components/badge";
