@@ -13,12 +13,12 @@ vi.mock("sonner", () => ({
 
 describe("user-facing error messages", () => {
   it.each([
-    [400, "Please check the information and try again."],
-    [401, "Please sign in again to continue."],
-    [403, "You do not have permission to do that."],
-    [404, "We could not find what you were looking for."],
+    [400, "Please check the information and try again"],
+    [401, "Please sign in again to continue"],
+    [403, "You do not have permission to do that"],
+    [404, "We could not find what you were looking for"],
     [409, "This information changed. Please refresh and try again."],
-    [422, "Please check the highlighted fields and try again."],
+    [422, "Please check the highlighted fields and try again"],
     [429, "Too many attempts. Please wait a moment and try again."],
     [500, "We could not complete this right now. Please try again."],
   ])("maps status %s to safe English copy", (status, message) => {

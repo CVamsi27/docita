@@ -105,8 +105,10 @@ describe('EmailService', () => {
       expect(result).toEqual({ success: true, messageId: 'msg-1' });
       expect(emailProvider.send).toHaveBeenCalledWith({
         to: 'user@example.com',
-        subject: 'Reset Your Password - Docita',
-        html: expect.stringContaining('Password Reset Request'),
+        subject: 'Reset your password - Docita',
+        replyTo: 'support@docita.work',
+        html: expect.stringContaining('Reset your password'),
+        text: expect.stringContaining('Open this link to reset:'),
       });
     });
 

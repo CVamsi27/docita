@@ -53,18 +53,43 @@ export class EmailService {
 
     return this.emailProvider.send({
       to: email,
-      subject: 'Reset Your Password - Docita',
+      subject: 'Reset your password - Docita',
+      replyTo: this.supportEmail,
       html: `
-        <h1>Password Reset Request</h1>
-        <p>You requested to reset your password. Click the button below to proceed:</p>
-        <p>
-          <a href="${resetUrl}" 
-             style="background: #4F46E5; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
-            Reset Password
-          </a>
-        </p>
-        <p><small>This link expires in 1 hour. If you didn't request this, please ignore this email.</small></p>
+        <div style="margin:0; padding:32px 16px; background:#f8fafc; color:#0f172a; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+          <div style="max-width:420px; margin:0 auto; background:#ffffff; border:1px solid #dbe4f0; border-radius:16px; padding:32px 24px; text-align:center;">
+            <p style="margin:0 0 10px; font-size:28px; line-height:1.2; font-weight:700;">Reset your password</p>
+            <p style="margin:0 0 18px; font-size:14px; line-height:1.6; color:#475569;">
+              Click the button below to set a new password
+            </p>
+            <a href="${resetUrl}"
+               style="display:inline-block; background:#0f766e; color:#ffffff; padding:14px 24px; border-radius:12px; text-decoration:none; font-weight:600;">
+              Reset password
+            </a>
+            <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
+              If the button does not work, copy and paste this link into your browser:<br />
+              <a href="${resetUrl}" style="color:#0f766e; text-decoration:underline; word-break:break-all;">${resetUrl}</a>
+            </p>
+            <p style="margin:18px 0 0; font-size:12px; line-height:1.6; color:#64748b;">
+              This link expires in 1 hour. If you did not request this, you can ignore this email
+            </p>
+            <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#475569;">
+              Regards,<br />
+              Docita Care Team
+            </p>
+          </div>
+        </div>
       `,
+      text: [
+        'Reset your password',
+        '',
+        `Open this link to reset: ${resetUrl}`,
+        '',
+        'This link expires in 1 hour. If you did not request this, you can ignore this email',
+        '',
+        'Regards,',
+        'Docita Care Team',
+      ].join('\n'),
     });
   }
 

@@ -136,96 +136,128 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
         </div>
 
         <div className="mt-8 max-w-lg rounded-2xl border bg-background/85 p-4 shadow-sm backdrop-blur">
-          <div className="mb-3 flex items-center justify-between border-b pb-3">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                Your setup journey
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {activeStepIndex >= 0
-                  ? `Step ${activeStepIndex + 1} of ${setupSteps.length} — keep going`
-                  : "Ready to begin"}
-              </p>
+          {isLogin ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b pb-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Sign in
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Use your email and password to continue
+                  </p>
+                </div>
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  Existing account
+                </span>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                  Access your dashboard, appointments, billing, and clinical
+                  workflows
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                  If you forgot your password, choose “Forgot password” to
+                  reset it
+                </li>
+              </ul>
             </div>
-            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-              {activeStepIndex >= 0
-                ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
-                : "Start"}
-            </span>
-          </div>
+          ) : (
+            <>
+              <div className="mb-3 flex items-center justify-between border-b pb-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Your setup journey
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {activeStepIndex >= 0
+                      ? `Step ${activeStepIndex + 1} of ${setupSteps.length} — keep going`
+                      : "Ready to begin"}
+                  </p>
+                </div>
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  {activeStepIndex >= 0
+                    ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
+                    : "Start"}
+                </span>
+              </div>
 
-          <ol className="space-y-2">
-            {setupSteps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = index === activeStepIndex;
-              const isComplete =
-                activeStepIndex >= 0 && index < activeStepIndex;
-              const isUpcoming =
-                activeStepIndex >= 0 && index > activeStepIndex;
+              <ol className="space-y-2">
+                {setupSteps.map((step, index) => {
+                  const Icon = step.icon;
+                  const isActive = index === activeStepIndex;
+                  const isComplete =
+                    activeStepIndex >= 0 && index < activeStepIndex;
+                  const isUpcoming =
+                    activeStepIndex >= 0 && index > activeStepIndex;
 
-              return (
-                <li
-                  key={step.title}
-                  aria-current={isActive ? "step" : undefined}
-                  className={cn(
-                    "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
-                    isActive
-                      ? "border-primary/40 bg-primary/5 shadow-sm"
-                      : isComplete
-                        ? "border-success/20 bg-success/5"
-                        : "border-transparent",
-                    isUpcoming && "opacity-50",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
-                      isActive
-                        ? "border-primary/40 bg-background text-primary"
-                        : isComplete
-                          ? "border-success/30 bg-success/10 text-success"
-                          : "border-border/50 bg-card/50 text-muted-foreground",
-                    )}
-                  >
-                    {isComplete ? (
-                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                    ) : (
-                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex items-center gap-2 flex-1">
-                    <div className="flex-1">
-                      <p
+                  return (
+                    <li
+                      key={step.title}
+                      aria-current={isActive ? "step" : undefined}
+                      className={cn(
+                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
+                        isActive
+                          ? "border-primary/40 bg-primary/5 shadow-sm"
+                          : isComplete
+                            ? "border-success/20 bg-success/5"
+                            : "border-transparent",
+                        isUpcoming && "opacity-50",
+                      )}
+                    >
+                      <div
                         className={cn(
-                          "text-sm font-semibold leading-tight",
-                          isComplete
-                            ? "text-muted-foreground"
-                            : "text-foreground",
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                          isActive
+                            ? "border-primary/40 bg-background text-primary"
+                            : isComplete
+                              ? "border-success/30 bg-success/10 text-success"
+                              : "border-border/50 bg-card/50 text-muted-foreground",
                         )}
                       >
-                        {step.title}
-                      </p>
-                      {isActive && (
-                        <p className="text-xs leading-4 text-muted-foreground mt-0.5">
-                          {step.description}
-                        </p>
-                      )}
-                    </div>
-                    {isActive && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
-                        Now
-                      </span>
-                    )}
-                    {isComplete && (
-                      <span className="text-[10px] font-medium text-success shrink-0">
-                        Done
-                      </span>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+                        {isComplete ? (
+                          <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                        ) : (
+                          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex items-center gap-2 flex-1">
+                        <div className="flex-1">
+                          <p
+                            className={cn(
+                              "text-sm font-semibold leading-tight",
+                              isComplete
+                                ? "text-muted-foreground"
+                                : "text-foreground",
+                            )}
+                          >
+                            {step.title}
+                          </p>
+                          {isActive && (
+                            <p className="text-xs leading-4 text-muted-foreground mt-0.5">
+                              {step.description}
+                            </p>
+                          )}
+                        </div>
+                        {isActive && (
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
+                            Now
+                          </span>
+                        )}
+                        {isComplete && (
+                          <span className="text-[10px] font-medium text-success shrink-0">
+                            Done
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </>
+          )}
         </div>
       </div>
 
