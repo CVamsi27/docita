@@ -37,31 +37,6 @@ async function addAuthCookies(
   }
 }
 
-async function addAuthCookies(
-  page: import("@playwright/test").Page,
-  tokens: { accessToken: string; refreshToken?: string | null },
-) {
-  await page.context().addCookies([
-    {
-      name: "access_token",
-      value: tokens.accessToken,
-      url: APP_ORIGIN,
-      path: "/",
-    },
-  ]);
-
-  if (tokens.refreshToken) {
-    await page.context().addCookies([
-      {
-        name: "refresh_token",
-        value: tokens.refreshToken,
-        url: `${APP_ORIGIN}/api/v1/auth`,
-        path: "/api/v1/auth",
-      },
-    ]);
-  }
-}
-
 function asRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
