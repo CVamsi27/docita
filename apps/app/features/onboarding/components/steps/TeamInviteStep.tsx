@@ -175,16 +175,28 @@ export function TeamInviteStep({
             <div
               key={index}
               className={cn(
-                "grid gap-4 p-4 rounded-lg border",
-                "md:grid-cols-[1fr_1fr_auto]",
+                "relative grid gap-4 rounded-lg border p-4",
+                "md:grid-cols-2",
               )}
             >
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeMember(index)}
+                disabled={members.length === 1}
+                className="absolute right-2 top-2 h-9 w-9 text-muted-foreground hover:text-destructive"
+                aria-label="Remove member"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+
               <div className="space-y-2">
                 <Label htmlFor={`email-${index}`}>Email</Label>
                 <Input
                   id={`email-${index}`}
                   type="email"
-                  placeholder="colleague@clinic.com"
+                  placeholder="Enter member email address"
                   value={member.email}
                   onChange={(e) => updateMember(index, "email", e.target.value)}
                   className={emailErrors[index] ? "border-destructive" : ""}
@@ -220,19 +232,6 @@ export function TeamInviteStep({
                       ?.description
                   }
                 </p>
-              </div>
-
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeMember(index)}
-                  disabled={members.length === 1}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           ))}
