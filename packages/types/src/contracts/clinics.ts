@@ -16,6 +16,13 @@ const bankAccountSchema = z.object({
   upiId: z.string().optional(),
 });
 
+const taxSettingsSchema = z.object({
+  countryCode: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/),
+  regime: z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]).optional(),
+  registrationId: z.string().optional(),
+  registrationLabel: z.string().optional(),
+});
+
 export const createClinicRequestSchema = z.object({
   name: z.string().min(1),
   address: z.string().min(1),
@@ -90,6 +97,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   useSameBankAccountForSubscriptionAndReceipts: z.boolean().optional(),
   subscriptionPaymentBankAccount: bankAccountSchema.optional(),
   paymentReceivingBankAccount: bankAccountSchema.optional(),
+  taxSettings: taxSettingsSchema.optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({

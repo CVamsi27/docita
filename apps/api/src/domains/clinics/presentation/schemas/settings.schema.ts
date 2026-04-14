@@ -10,6 +10,17 @@ const BankAccountSchema = z.object({
   upiId: z.string().optional(),
 });
 
+const TaxSettingsSchema = z.object({
+  countryCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2}$/, 'countryCode must be a 2-letter ISO code'),
+  regime: z.enum(['IN_GST', 'VAT', 'SALES_TAX', 'NONE']).default('IN_GST'),
+  registrationId: z.string().trim().optional(),
+  registrationLabel: z.string().trim().optional(),
+});
+
 export const ClinicSettingsSchema = z.object({
   description: z.string().optional(),
   openingTime: z.string().optional(),
@@ -56,6 +67,13 @@ export const ClinicSettingsSchema = z.object({
   includeClinicHeader: z.boolean().optional(),
   includeDoctorSignature: z.boolean().optional(),
   includeQRCode: z.boolean().optional(),
+
+  /**
+   * International tax planning:
+   * This lives in JSON settings so we can support multiple jurisdictions without
+   * DB migrations, while keeping India GST (`gstin`) as-is for existing flows.
+   */
+  taxSettings: TaxSettingsSchema.optional(),
 });
 
 export type ClinicSettings = z.infer<typeof ClinicSettingsSchema>;
