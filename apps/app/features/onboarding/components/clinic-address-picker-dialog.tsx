@@ -8,6 +8,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Loader2, MapPin } from "lucide-react";
 import { MapContainer, TileLayer, CircleMarker, useMapEvents } from "react-leaflet";
 import styles from "./clinic-address-picker-dialog.module.css";
+import type { LeafletMouseEvent, LatLngExpression } from "leaflet";
 
 type LatLng = { lat: number; lng: number };
 
@@ -19,7 +20,7 @@ function ClickToPick({
   onPick: (value: LatLng) => void;
 }) {
   useMapEvents({
-    click(e) {
+    click(e: LeafletMouseEvent) {
       onPick({ lat: e.latlng.lat, lng: e.latlng.lng });
     },
   });
@@ -83,6 +84,11 @@ export function ClinicAddressPickerDialog({
     return DEFAULT_CENTER;
   }, [picked]);
 
+  const centerExpression = useMemo(
+    (): LatLngExpression => [center.lat, center.lng],
+    [center.lat, center.lng],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl">
@@ -93,7 +99,7 @@ export function ClinicAddressPickerDialog({
         <div className="space-y-4">
           <div className={styles.mapRoot}>
             <MapContainer
-              center={[center.lat, center.lng]}
+              center={centerExpression}
               zoom={picked ? 16 : 5}
               scrollWheelZoom
             >
