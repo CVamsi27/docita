@@ -60,7 +60,8 @@ export interface ClinicSettings {
   timezone: string;
   appointmentDuration: number;
   appointmentType?: string;
-  clinicType?: string; 
+  clinicType?: string;
+  facilityLabel?: "CLINIC" | "HOSPITAL";
 }
 
 export interface AppConfig {

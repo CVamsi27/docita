@@ -68,6 +68,8 @@ export const ClinicSettingsSchema = z.object({
   includeDoctorSignature: z.boolean().optional(),
   includeQRCode: z.boolean().optional(),
 
+  facilityLabel: z.enum(['CLINIC', 'HOSPITAL']).optional(),
+
   /**
    * International tax planning:
    * This lives in JSON settings so we can support multiple jurisdictions without

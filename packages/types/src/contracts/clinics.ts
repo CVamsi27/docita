@@ -98,6 +98,7 @@ export const updateClinicSettingsRequestSchema = z.object({
   subscriptionPaymentBankAccount: bankAccountSchema.optional(),
   paymentReceivingBankAccount: bankAccountSchema.optional(),
   taxSettings: taxSettingsSchema.optional(),
+  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({

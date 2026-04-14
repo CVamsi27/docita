@@ -73,6 +73,8 @@ interface ClinicSettingsData {
     upiId?: string;
   };
 
+  facilityLabel?: 'CLINIC' | 'HOSPITAL';
+
   taxSettings?: {
     countryCode: string;
     regime?: 'IN_GST' | 'VAT' | 'SALES_TAX' | 'NONE';
@@ -164,6 +166,7 @@ export class ClinicSettingsService {
         data.useSameBankAccountForSubscriptionAndReceipts,
       subscriptionPaymentBankAccount: data.subscriptionPaymentBankAccount,
       paymentReceivingBankAccount: data.paymentReceivingBankAccount,
+      facilityLabel: data.facilityLabel,
       taxSettings: data.taxSettings,
     };
 
