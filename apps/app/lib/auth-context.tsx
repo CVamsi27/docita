@@ -510,6 +510,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(message);
       }
 
+      if (status === 401) {
+        // Preserve a safe, specific error for invalid credentials.
+        throw { code: "INVALID_CREDENTIALS" } as const;
+      }
+
+      if (error) {
+        throw error;
+      }
+
       throw new Error(AUTH_RESPONSE_ERROR_MESSAGE);
     }
   };

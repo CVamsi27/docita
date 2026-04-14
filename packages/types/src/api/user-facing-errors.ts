@@ -59,7 +59,7 @@ const CODE_MESSAGES: Record<string, string> = {
   INTERNAL_ERROR: DEFAULT_ERROR_MESSAGE,
   INSUFFICIENT_PERMISSIONS: "You do not have permission to do that.",
   INSUFFICIENT_TIER: "Your current plan does not include this feature.",
-  INVALID_CREDENTIALS: "The email or password is incorrect.",
+  INVALID_CREDENTIALS: "Incorrect email or password",
   INVALID_DATE_RANGE: "Please choose a valid date range.",
   INVALID_INPUT: "Please check the information and try again.",
   INVOICE_NOT_FOUND: "We could not find that invoice.",
