@@ -33,7 +33,7 @@ export function ConsultationLayoutUI({
             variant="ghost"
             size="sm"
             onClick={onToggleSidebar}
-            className="absolute left-4 top-4 z-20 h-9 w-9 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent"
+            className="absolute left-4 top-4 z-20 h-8 w-8 p-0 rounded-full border shadow-sm bg-background hidden md:flex items-center justify-center hover:bg-accent cursor-pointer"
             title="Show Patient Sidebar"
           >
             <PanelLeft className="h-4 w-4" />

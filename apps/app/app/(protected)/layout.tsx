@@ -197,7 +197,10 @@ export default function ProtectedLayout({
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
   const isConsultationRoute = pathname?.startsWith("/consultation") ?? false;
-  const isAutoCollapseRoute = isSettingsRoute || isConsultationRoute;
+  const isConsultationDetailRoute = Boolean(
+    pathname && /^\/consultation\/[^/]+/.test(pathname),
+  );
+  const isAutoCollapseRoute = isSettingsRoute || isConsultationDetailRoute;
 
   useEffect(() => {
     if (isLoading) return;
@@ -318,7 +321,7 @@ export default function ProtectedLayout({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-7 left-1/2 z-30 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border/70 bg-background text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
+                        className="absolute top-7 left-1/2 z-30 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border/70 bg-background text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation();
                           const next = !isCollapsed;
@@ -334,9 +337,9 @@ export default function ProtectedLayout({
                         }
                       >
                         {isCollapsed ? (
-                          <PanelLeftOpen className="h-3.5 w-3.5 shrink-0" />
+                          <PanelLeftOpen className="h-3 w-3 shrink-0" />
                         ) : (
-                          <PanelLeftClose className="h-3.5 w-3.5 shrink-0" />
+                          <PanelLeftClose className="h-3 w-3 shrink-0" />
                         )}
                       </Button>
                     </ResizableHandle>
