@@ -164,7 +164,7 @@ export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
   GYNECOLOGY: "Gynecology Clinic",
   OPHTHALMOLOGY: "Eye Care Center",
   PSYCHIATRY: "Mental Health Clinic",
-  SPECIALTY: "Specialty Clinic",
+  SPECIALTY: "Other",
 };
 
 export interface ClinicTypeFeatures {

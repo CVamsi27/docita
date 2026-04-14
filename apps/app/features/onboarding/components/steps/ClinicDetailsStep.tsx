@@ -43,11 +43,13 @@ export function ClinicDetailsStep({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Clinic Name</Label>
+              <Label htmlFor="name">
+                Clinic Name<span className="text-destructive ml-1">*</span>
+              </Label>
               <Input
                 id="name"
                 {...clinicForm.register("name")}
-                placeholder="HealthPlus Clinic"
+                placeholder="Enter clinic name"
                 aria-invalid={!!clinicForm.formState.errors.name}
                 aria-describedby={
                   clinicForm.formState.errors.name
@@ -63,7 +65,9 @@ export function ClinicDetailsStep({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Clinic Type</Label>
+              <Label htmlFor="type">
+                Clinic Type<span className="text-destructive ml-1">*</span>
+              </Label>
               <Select
                 onValueChange={(val) =>
                   clinicForm.setValue("type", val as ClinicType, {
@@ -82,7 +86,7 @@ export function ClinicDetailsStep({
                       : undefined
                   }
                 >
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Select clinic type" />
                 </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(CLINIC_TYPE_LABELS) as ClinicType[]).map(
@@ -104,12 +108,14 @@ export function ClinicDetailsStep({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Clinic Email</Label>
+              <Label htmlFor="email">
+                Clinic Email<span className="text-destructive ml-1">*</span>
+              </Label>
               <Input
                 id="email"
                 type="email"
                 {...clinicForm.register("email")}
-                placeholder="contact@clinic.com"
+                placeholder="Enter clinic email address"
                 aria-invalid={!!clinicForm.formState.errors.email}
                 aria-describedby={
                   clinicForm.formState.errors.email
@@ -125,13 +131,15 @@ export function ClinicDetailsStep({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">
+                Phone Number<span className="text-destructive ml-1">*</span>
+              </Label>
               <Input
                 id="phone"
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
-                placeholder="+91 9876543410"
+                placeholder="Enter phone number"
                 value={clinicForm.watch("phone") ?? ""}
                 onChange={(event) =>
                   clinicForm.setValue("phone", event.target.value, {
