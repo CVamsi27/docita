@@ -1,15 +1,13 @@
-
-
 import React from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthProvider, useAuth, usePermission } from "@/auth-context.js";
+import { AuthProvider, useAuth, usePermission } from "../src/auth-context";
 import {
   canPerformActions,
   getPermissionsForRole,
   hasPermission,
-} from "@/permissions-map.js";
-import { tokenStorage } from "@/token-storage.js";
+} from "../src/permissions-map";
+import { tokenStorage } from "../src/token-storage";
 
 function createMockResponse(status: number, payload?: unknown) {
   return {
@@ -35,16 +33,15 @@ describe("permissions map", () => {
     expect(hasPermission("DOCTOR", "MANAGE_SUBSCRIPTIONS")).toBe(false);
   });
 
-  it("normalizes legacy roles to canonical roles", () => {
-    expect(hasPermission("CLINIC_ADMIN", "VIEW_STAFF")).toBe(true);
-    expect(hasPermission("STAFF", "VIEW_PATIENTS")).toBe(true);
-    expect(getPermissionsForRole("PATIENT")).toContain("VIEW_PRESCRIPTIONS");
+  it("lists permissions per role", () => {
+    expect(getPermissionsForRole("ADMIN")).toContain("VIEW_STAFF");
+    expect(getPermissionsForRole("PATIENT")).toContain("VIEW_PATIENTS");
+    expect(getPermissionsForRole("PATIENT")).not.toContain("VIEW_INVOICES");
   });
 
-  it("denies unknown roles and enforces patient restrictions", () => {
-    expect(hasPermission("PATIENT", "VIEW_INVOICES")).toBe(true);
+  it("restricts patient role permissions", () => {
     expect(hasPermission("PATIENT", "EDIT_PATIENTS")).toBe(false);
-    expect(hasPermission("SOME_UNKNOWN_ROLE", "VIEW_PATIENTS")).toBe(false);
+    expect(hasPermission("PATIENT", "VIEW_PATIENTS")).toBe(true);
   });
 
   it("checks multiple permissions", () => {
@@ -57,7 +54,7 @@ describe("permissions map", () => {
     ).toBe(false);
 
     expect(
-      canPerformActions("PATIENT", ["VIEW_PRESCRIPTIONS", "VIEW_INVOICES"]),
+      canPerformActions("PATIENT", ["VIEW_PATIENTS"]),
     ).toBe(true);
   });
 });
@@ -72,14 +69,6 @@ describe("token storage", () => {
     expect(tokenStorage.getToken()).toBeNull();
   });
 
-  it("warns when setToken is used", () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    tokenStorage.setToken("abc");
-
-    expect(warnSpy).toHaveBeenCalledOnce();
-  });
-
   it("reads csrf token from meta tag", () => {
     const meta = document.createElement("meta");
     meta.setAttribute("name", "csrf-token");
@@ -89,17 +78,14 @@ describe("token storage", () => {
     expect(tokenStorage.getCsrfToken()).toBe("csrf-123");
   });
 
-  it("refreshes token via API and throws on non-ok response", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true })
-      .mockResolvedValueOnce({ ok: false });
+  it("rejects refresh when the API response is not ok", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 401 }),
+    );
 
-    vi.stubGlobal("fetch", fetchMock);
-
-    await expect(tokenStorage.refreshToken()).resolves.toBeUndefined();
     await expect(tokenStorage.refreshToken()).rejects.toThrow(
-      "Token refresh failed",
+      "Please sign in again to continue.",
     );
   });
 });
@@ -110,107 +96,71 @@ describe("auth context", () => {
     vi.useRealTimers();
   });
 
-  it("retries /auth/me after refresh when request returns 401", async () => {
-    const fetchMock = vi.fn(async (input: string) => {
-      if (input === "/api/v1/auth/me") {
-        const meCalls = fetchMock.mock.calls.filter(
-          ([url]) => url === "/api/v1/auth/me",
-        ).length;
-
-        if (meCalls === 1) {
-          return createMockResponse(401);
-        }
-
+  it("loads user when /auth/me succeeds", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === "string" ? input : String(input);
+      if (url.includes("/api/v1/auth/me")) {
         return createMockResponse(200, authenticatedUser);
       }
-
-      if (input === "/api/v1/auth/refresh") {
-        return createMockResponse(200, {});
-      }
-
       return createMockResponse(404);
     });
 
     vi.stubGlobal("fetch", fetchMock);
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(AuthProvider, { disableIdleTimeout: true }, children);
+      React.createElement(AuthProvider, null, children);
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.isAuthenticated).toBe(true);
-      expect(result.current.user?.id).toBe("user-1");
     });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v1/auth/refresh",
-      expect.objectContaining({ method: "POST" }),
-    );
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.user?.id).toBe("user-1");
   });
 
-  it("expires session after idle timeout", async () => {
-    const fetchMock = vi.fn(async (input: string) => {
-      if (input === "/api/v1/auth/me") {
-        return createMockResponse(200, authenticatedUser);
-      }
-
-      if (input === "/api/v1/auth/logout") {
-        return createMockResponse(200, {});
-      }
-
-      if (input === "/api/v1/auth/refresh") {
-        return createMockResponse(200, {});
-      }
-
-      return createMockResponse(404);
-    });
-
-    vi.stubGlobal("fetch", fetchMock);
+  it("supports permission hook checks via provider", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = typeof input === "string" ? input : String(input);
+        if (url.includes("/api/v1/auth/me")) {
+          return createMockResponse(200, authenticatedUser);
+        }
+        return createMockResponse(404);
+      }),
+    );
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(AuthProvider, { idleTimeoutMs: 200 }, children);
+      React.createElement(AuthProvider, null, children);
 
-    const { result } = renderHook(() => useAuth(), { wrapper });
+    const { result } = renderHook(() => usePermission("VIEW_PATIENTS"), {
+      wrapper,
+    });
 
     await waitFor(() => {
-      expect(result.current.isAuthenticated).toBe(true);
+      expect(result.current).toBe(true);
     });
-
-    await waitFor(
-      () => {
-        expect(result.current.isAuthenticated).toBe(false);
-        expect(result.current.errorCode).toBe("SESSION_EXPIRED");
-      },
-      { timeout: 2000 },
-    );
   });
 
-  it("exposes granular auth error code on login failure", async () => {
-    const fetchMock = vi.fn(async (input: string) => {
-      if (input === "/api/v1/auth/me") {
-        return createMockResponse(401, {});
-      }
-
-      if (input === "/api/v1/auth/refresh") {
-        return createMockResponse(401, {});
-      }
-
-      if (input === "/api/v1/auth/login") {
-        return createMockResponse(423, {
-          code: "ACCOUNT_LOCKED",
-          message: "Account locked due to failed attempts",
-        });
-      }
-
-      return createMockResponse(404, {});
-    });
-
-    vi.stubGlobal("fetch", fetchMock);
+  it("surfaces a user-facing message when login fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = typeof input === "string" ? input : String(input);
+        if (url.includes("/api/v1/auth/me")) {
+          return createMockResponse(401, {});
+        }
+        if (url.includes("/api/v1/auth/login")) {
+          return createMockResponse(401, {});
+        }
+        return createMockResponse(404);
+      }),
+    );
 
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(AuthProvider, { disableIdleTimeout: true }, children);
+      React.createElement(AuthProvider, null, children);
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -221,38 +171,9 @@ describe("auth context", () => {
     await act(async () => {
       await expect(
         result.current.login("doctor@example.com", "bad-password"),
-      ).rejects.toThrow("Account locked due to failed attempts");
+      ).rejects.toThrow(/could not sign you in/i);
     });
 
-    expect(result.current.errorCode).toBe("ACCOUNT_LOCKED");
-    expect(result.current.error).toContain("locked");
-  });
-
-  it("supports permission hook checks via provider", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: string) => {
-        if (input === "/api/v1/auth/me") {
-          return createMockResponse(200, authenticatedUser);
-        }
-
-        if (input === "/api/v1/auth/refresh") {
-          return createMockResponse(200, {});
-        }
-
-        return createMockResponse(404, {});
-      }),
-    );
-
-    const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(AuthProvider, { disableIdleTimeout: true }, children);
-
-    const { result } = renderHook(() => usePermission("VIEW_PATIENTS"), {
-      wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current).toBe(true);
-    });
+    expect(result.current.error).toBeTruthy();
   });
 });

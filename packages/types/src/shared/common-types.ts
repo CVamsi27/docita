@@ -2,11 +2,9 @@
 
 import { z } from "zod";
 import type { JsonValue } from "./common";
-import type { loginResponseSchema } from "../contracts/auth";
-import type { appointmentResponseSchema } from "../contracts/appointments";
-import type { patientResponseSchema } from "../contracts/patients";
-import type { userSchema } from "./users";
-import type { clinicSchema } from "./clinics";
+import type { AppointmentContractResponse } from "../contracts/appointments";
+import type { Clinic } from "./clinics";
+import type { User } from "./users";
 
 export const UuidSchema = z.string().uuid("Enter a valid ID.");
 export const TimestampSchema = z.coerce.date();
@@ -81,36 +79,6 @@ export interface MockQueue<T = JsonValue> {
   on(event: string, callback: (...args: JsonValue[]) => void): void;
 }
 
-/**
- * @deprecated Use `LoginResponse` from `../contracts/auth` (z.infer<typeof loginResponseSchema>).
- * Alias retained for backward compatibility.
- */
-export type AuthResponse = z.infer<typeof loginResponseSchema>;
-
-/**
- * @deprecated Use `User` from `../shared/users` (z.infer<typeof userSchema>).
- * Alias retained for backward compatibility.
- */
-export type UserResponse = z.infer<typeof userSchema>;
-
-/**
- * @deprecated Use `Clinic` from `../shared/clinics` (z.infer<typeof clinicSchema>).
- * Alias retained for backward compatibility.
- */
-export type ClinicResponse = z.infer<typeof clinicSchema>;
-
-/**
- * @deprecated Use `z.infer<typeof patientResponseSchema>` from `../contracts/patients`.
- * Alias retained for backward compatibility.
- */
-export type PatientResponse = z.infer<typeof patientResponseSchema>;
-
-/**
- * @deprecated Use `z.infer<typeof appointmentResponseSchema>` from `../contracts/appointments`.
- * Alias retained for backward compatibility.
- */
-export type AppointmentResponse = z.infer<typeof appointmentResponseSchema>;
-
 export interface AnalyticsSnapshot {
   timestamp: string | Date;
   patientsCount: number;
@@ -128,16 +96,16 @@ export interface SnapshotTrends {
   };
 }
 
-export interface TestUser extends UserResponse {
+export interface TestUser extends User {
   password?: string;
   accessToken?: string;
 }
 
-export interface TestClinic extends ClinicResponse {
+export interface TestClinic extends Clinic {
   ownerId?: string;
 }
 
-export interface TestAppointment extends AppointmentResponse {
+export interface TestAppointment extends AppointmentContractResponse {
   patientName?: string;
   doctorName?: string;
 }
@@ -187,7 +155,7 @@ export interface WhatsAppComponent {
 }
 
 export interface RequestWithUser {
-  user?: UserResponse;
+  user?: User;
   clinicId?: string;
   url: string;
   method: string;

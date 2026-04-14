@@ -31,6 +31,7 @@ import { PrismaWorkerModule } from '@/prisma/prisma.worker.module';
 import { BillingWorkerModule } from '@/domains/billing/billing.worker.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
+import { CommonServicesModule } from '@/shared/modules/services/common-services.module';
 
 /**
  * Subscription use-cases and schedulers for the worker process only (no HTTP controllers).
@@ -42,6 +43,7 @@ import { EmailModule } from '@/shared/modules/messaging/email/email.module';
     BillingWorkerModule,
     PaymentsModule,
     EmailModule,
+    CommonServicesModule,
   ],
   providers: [
     SubscriptionPricingService,

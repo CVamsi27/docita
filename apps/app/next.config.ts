@@ -1,7 +1,15 @@
-import path from "path";
+import { createRequire } from "module";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 import bundleAnalyzer from "@next/bundle-analyzer";
+
+const require = createRequire(import.meta.url);
+const nextCloudflareEmptyStub = require.resolve(
+  "@workspace/ui/next-cloudflare/empty-module.cjs",
+);
+const nextCloudflareSentryStub = require.resolve(
+  "@workspace/ui/next-cloudflare/sentry-nextjs-cloudflare",
+);
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
@@ -79,10 +87,7 @@ const nextConfig: NextConfig = {
     if (isCloudflareBuild) {
       config.resolve.alias = {
         ...(config.resolve.alias || {}),
-        "@sentry/nextjs$": path.resolve(
-          process.cwd(),
-          "lib/stubs/sentry-nextjs-cloudflare.ts",
-        ),
+        "@sentry/nextjs$": nextCloudflareSentryStub,
       };
     }
 
@@ -95,7 +100,7 @@ const nextConfig: NextConfig = {
     ];
 
     if (isServer) {
-      const STUB = path.resolve(process.cwd(), "lib/stubs/empty-module.cjs");
+      const STUB = nextCloudflareEmptyStub;
       const otelPatterns = [
         /^@opentelemetry\/instrumentation/,
         /^@sentry\/opentelemetry/,

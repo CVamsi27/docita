@@ -52,6 +52,7 @@
     "verify:structure": "node scripts/verify-turborepo-structure.mjs",
     "verify:contracts": "node scripts/verify-package-contracts.mjs",
     "verify:standard": "pnpm check:hygiene && pnpm verify:structure && pnpm verify:contracts && pnpm check:prisma-boundary && pnpm check:sensitive-logging && pnpm check:no-console-runtime && pnpm check:auth-tenant-safety && pnpm check:user-facing-errors",
+    "knip": "pnpm dlx knip@5 --no-progress",
     "check:prisma-boundary": "node scripts/check-prisma-boundary.js",
     "check:auth-tenant-safety": "node scripts/check-auth-tenant-safety.mjs",
     "check:no-console-runtime": "node scripts/check-no-console-runtime.mjs",
@@ -64,6 +65,7 @@
     "perf:budget:enforce": "PERF_BUDGET_MODE=fail node scripts/check-perf-budget.mjs"
   },
   "devDependencies": {
+    "axe-playwright": "^2.2.2",
     "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.48.2",
     "@types/node": "^25.2.3",
@@ -75,8 +77,10 @@
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "prettier": "^3.6.2",
+    "playwright": "^1.48.2",
     "prisma": "^7.6.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "turbo": "^2.9.0",
     "typescript": "5.7.3"
   },

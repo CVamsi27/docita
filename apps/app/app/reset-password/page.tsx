@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,9 +32,9 @@ const resetPasswordSchema = z
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
-export default function ResetPasswordPage() {
+function ResetPasswordInner() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token = useMemo(() => searchParams.get("token"), [searchParams]);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -199,5 +199,24 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </PreDashboardShell>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <PreDashboardShell currentStep="reset-password">
+          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6">
+            <div className="text-center space-y-2">
+              <h1 className="text-2xl font-bold">Reset Password</h1>
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            </div>
+          </div>
+        </PreDashboardShell>
+      }
+    >
+      <ResetPasswordInner />
+    </Suspense>
   );
 }

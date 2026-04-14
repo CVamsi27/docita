@@ -12,6 +12,7 @@ export class RequestLogService implements OnModuleDestroy {
   private readonly FLUSH_INTERVAL = 5000;
   private flushTimer: NodeJS.Timeout | null = null;
   private persistenceDisabled = false;
+  private flushInProgress = false;
 
   constructor(
     private prisma: PrismaService,
@@ -64,11 +65,20 @@ export class RequestLogService implements OnModuleDestroy {
   }
 
   async flushBuffer(): Promise<void> {
-    if (this.persistenceDisabled || this.requestBuffer.length === 0) return;
+    if (this.persistenceDisabled || this.requestBuffer.length === 0) {
+      return;
+    }
+    if (this.flushInProgress) {
+      return;
+    }
 
-    const requestsToFlush = this.requestBuffer.splice(0, this.BATCH_SIZE);
+    const requestsToFlush = this.requestBuffer.slice(0, this.BATCH_SIZE);
+    if (requestsToFlush.length === 0) {
+      return;
+    }
 
     try {
+      this.flushInProgress = true;
       await this.prisma.apiRequest.createMany({
         data: requestsToFlush.map((req) => ({
           clinicId: req.clinicId,
@@ -88,6 +98,7 @@ export class RequestLogService implements OnModuleDestroy {
         skipDuplicates: true,
       });
 
+      this.requestBuffer.splice(0, requestsToFlush.length);
       this.logger.debug(`Flushed ${requestsToFlush.length} requests`);
     } catch (error) {
       if (this.isDatabaseAuthError(error)) {
@@ -100,6 +111,8 @@ export class RequestLogService implements OnModuleDestroy {
       }
 
       this.logger.error('Failed to write requests to database', error);
+    } finally {
+      this.flushInProgress = false;
     }
   }
 

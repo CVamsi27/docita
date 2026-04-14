@@ -1,11 +1,9 @@
-import "./globals.css";
+import "@workspace/ui/globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
-
-export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Docita - Clinic OS",
@@ -30,14 +28,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "var __defProp=Object.defineProperty;var __name=globalThis.__name||function(t,n){if(t.name!==n)try{__defProp(t,'name',{value:n,configurable:true})}catch(e){}return t};globalThis.__name=__name;",
-          }}
-        />
-      </head>
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
         <SentryInitializer />
         <ClientErrorReporter />

@@ -29,6 +29,7 @@
     "db:guardrail": "pnpm db:check-integrity && pnpm db:validate-feedback-backfill && pnpm db:analyze-indexes && pnpm db:profile-queries && pnpm db:check-query-plans"
   },
   "devDependencies": {
+    "@prisma/config": "^7.6.0",
     "@types/node": "^24.10.1",
     "dotenv": "^16.6.1",
     "prisma": "^7.6.0",
