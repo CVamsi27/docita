@@ -2,6 +2,7 @@ import { Check, Copy, Search, Share2, Stethoscope } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { format } from "date-fns";
 import { useState } from "react";
+import { useFacilityLabel } from "@/lib/facility-label";
 
 export interface DashboardHeaderUIProps {
   userName: string;
@@ -22,6 +23,7 @@ export function DashboardHeaderUI({
 }: DashboardHeaderUIProps) {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+  const facilityLabel = useFacilityLabel();
 
   const handleCopyCode = async () => {
     if (!clinicCode) return;
@@ -33,12 +35,12 @@ export function DashboardHeaderUI({
   const handleQuickShare = async () => {
     if (!clinicCode) return;
 
-    const shareText = `Join ${clinicName || "our clinic"} on Docita using clinic code: ${clinicCode}`;
+    const shareText = `Join ${clinicName || `our ${facilityLabel.toLowerCase()}`} on Docita using ${facilityLabel.toLowerCase()} code: ${clinicCode}`;
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "Clinic Join Code",
+          title: `${facilityLabel} Join Code`,
           text: shareText,
         });
       } else {
@@ -86,8 +88,8 @@ export function DashboardHeaderUI({
             className="flex h-9 items-center gap-1.5 rounded-md border bg-background px-3 text-xs text-muted-foreground transition-colors duration-150 hover:bg-muted/40 hover:text-foreground touch-manipulation disabled:cursor-not-allowed disabled:opacity-60"
             title={
               clinicCode
-                ? "Quick share clinic join code"
-                : "Clinic code is not ready yet"
+                ? `Quick share ${facilityLabel.toLowerCase()} join code`
+                : `${facilityLabel} code is not ready yet`
             }
           >
             {shared ? (
@@ -102,7 +104,7 @@ export function DashboardHeaderUI({
           <button
             onClick={handleCopyCode}
             className="flex h-9 items-center gap-1.5 rounded-md border bg-background px-3 text-xs text-muted-foreground transition-colors duration-150 hover:bg-muted/40 hover:text-foreground touch-manipulation"
-            title="Copy clinic code to share with staff"
+            title={`Copy ${facilityLabel.toLowerCase()} code to share with staff`}
           >
             <span className="font-mono font-medium tracking-wider">
               {clinicCode}

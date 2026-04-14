@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAppConfig } from "@/lib/app-config-context";
+import { useOptionalAppConfig } from "@/lib/app-config-context";
 
 export function useFacilityLabel() {
-  const { getClinicSetting } = useAppConfig();
+  const appConfig = useOptionalAppConfig();
 
   return useMemo(() => {
-    const label = getClinicSetting("facilityLabel");
+    const label = appConfig?.getClinicSetting("facilityLabel");
     return label === "HOSPITAL" ? "Hospital" : "Clinic";
-  }, [getClinicSetting]);
+  }, [appConfig]);
 }
 

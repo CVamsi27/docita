@@ -62,6 +62,7 @@ import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card
 import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
 import { toAbsoluteAppUrl } from "@/lib/url";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useFacilityLabel } from "@/lib/facility-label";
 
 const inviteSchema = z.object({
   name: z.string().min(1, "Enter the team member's name."),
@@ -107,6 +108,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   const [signatureUploadUrl, setSignatureUploadUrl] = useState<string | null>(
     null,
   );
+  const facilityLabel = useFacilityLabel();
 
   const { mutate: createDoctor, isPending: isCreatingDoctor } =
     useCreateClinicDoctor(clinicId);
@@ -201,7 +203,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   const handleRemoveMember = () => {
     if (!selectedMember) return;
     const confirmed = window.confirm(
-      `Remove ${selectedMember.name || "this member"} from clinic?`,
+      `Remove ${selectedMember.name || "this member"} from ${facilityLabel.toLowerCase()}?`,
     );
     if (!confirmed) return;
 
@@ -275,17 +277,17 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   const handleCopyClinicCode = async () => {
     if (!clinicReferralCode) {
       showUserFacingErrorToast(
-        "The clinic code is not ready yet. Please refresh and try again.",
+        `The ${facilityLabel.toLowerCase()} code is not ready yet. Please refresh and try again.`,
       );
       return;
     }
 
     try {
       await navigator.clipboard.writeText(clinicReferralCode);
-      toast.success("Clinic code copied");
+      toast.success(`${facilityLabel} code copied`);
     } catch {
       showUserFacingErrorToast(
-        "We could not copy this clinic code. Please try again.",
+        `We could not copy this ${facilityLabel.toLowerCase()} code. Please try again.`,
       );
     }
   };
@@ -379,7 +381,9 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Team Members</CardTitle>
-            <CardDescription>Manage your clinic staff</CardDescription>
+          <CardDescription>
+            Manage your {facilityLabel.toLowerCase()} staff
+          </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -414,11 +418,15 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <CardTitle>Team Members</CardTitle>
-          <CardDescription>Manage clinic staff and permissions</CardDescription>
+          <CardDescription>
+            Manage {facilityLabel.toLowerCase()} staff and permissions
+          </CardDescription>
         </div>
         <div className="flex w-full flex-col gap-2 md:w-auto md:items-end">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground">Clinic code</span>
+            <span className="text-xs text-muted-foreground">
+              {facilityLabel} code
+            </span>
             <code className="rounded bg-muted px-2 py-1 text-xs font-semibold tracking-wide">
               {clinicReferralCode || "Not available"}
             </code>
@@ -434,7 +442,8 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             </Button>
           </div>
           <p className="text-xs text-muted-foreground md:text-right">
-            Share this code so staff can join from the clinic selection page.
+            Share this code so staff can join from the{" "}
+            {facilityLabel.toLowerCase()} selection page.
           </p>
           <Button
             size="sm"
