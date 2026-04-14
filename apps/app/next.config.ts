@@ -47,6 +47,8 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   turbopack: {},
 
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
+
   compress: !isCloudflareBuild,
   env: {
     NEXT_PUBLIC_API_URL:
