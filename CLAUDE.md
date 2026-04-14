@@ -247,8 +247,9 @@ Key patterns:
 
 ## Branching and Releases
 
-- **`main`** is canonical for production; **`staging`** mirrors **`main`** (same tree) and is where **routine PRs land first**. Branch from **`staging`**, open PRs **into `staging`**, validate in the staging environment, then open a **promotion PR `staging` → `main`**. Do not open ordinary fix/feature PRs directly against `main`.
-- Sync **`staging` to `main`** when they drift so new branches start from the right baseline.
+- **`main`** is canonical for production; **`staging`** mirrors **`main`** (same tree) and must remain aligned via automation.
+- Branch from **`main`** and open pull requests **into `main`**.
+- After merges to `main`, automation opens a **sync PR `main` → `staging`** (with auto-merge enabled when possible) so the staging environment always matches production code.
 - Do not commit directly on `main` or `staging`. See `AGENTS.md` section 11.3 for the full model.
 
 ## Security & Compliance

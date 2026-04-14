@@ -1,4 +1,4 @@
-name: Sync staging after promotion
+name: Sync staging with main
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ jobs:
     if: >
       github.event.pull_request.merged == true &&
       github.event.pull_request.base.ref == 'main' &&
-      github.event.pull_request.head.ref == 'staging'
+      github.event.pull_request.head.ref != 'staging'
     runs-on: ubuntu-latest
     steps:
       - name: Create sync PR
@@ -32,7 +32,7 @@ jobs:
             const title = 'sync: align staging with main';
             const body = [
               '## Summary',
-              'Sync `staging` to mirror `main` after a promotion merge so future promotion PRs only show new changes.',
+              'Sync `staging` to mirror `main` after merges to `main` so the staging environment always matches production code.',
               '',
               '## Merge method',
               'Merge with **Rebase and merge** or **Squash and merge** (avoid merge commits if `staging` disallows them).',
