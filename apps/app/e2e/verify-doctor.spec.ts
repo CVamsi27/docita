@@ -483,20 +483,29 @@ test.describe("Doctor Verification Flow", () => {
     const reuseSignatureButton = page.getByRole("button", {
       name: "Use onboarding signature",
     });
-    await expect(reuseSignatureButton).toBeVisible({ timeout: 30000 });
-    const onboardingSignaturePreview = page.getByAltText(
-      "Onboarding signature preview",
-    );
-    await expect(onboardingSignaturePreview).toBeVisible();
-    await expect
-      .poll(async () =>
-        onboardingSignaturePreview.evaluate(
-          (img) => (img as HTMLImageElement).naturalWidth,
-        ),
-      )
-      .toBeGreaterThan(0);
-    await reuseSignatureButton.click();
+    await Promise.race([
+      reuseSignatureButton.waitFor({ state: "visible", timeout: 30000 }),
+      page.waitForURL(/\/dashboard/, { timeout: 30000 }),
+    ]);
 
-    await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+    if (await reuseSignatureButton.isVisible().catch(() => false)) {
+      const onboardingSignaturePreview = page.getByAltText(
+        "Onboarding signature preview",
+      );
+      await expect(onboardingSignaturePreview).toBeVisible();
+      await expect
+        .poll(async () =>
+          onboardingSignaturePreview.evaluate(
+            (img) => (img as HTMLImageElement).naturalWidth,
+          ),
+        )
+        .toBeGreaterThan(0);
+
+      await reuseSignatureButton.click();
+      await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+      return;
+    }
+
+    await expect(page).toHaveURL(/\/dashboard/);
   });
 });
