@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
@@ -19,10 +19,13 @@ import { appQueryKeys } from "@/lib/query-keys";
 import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
 import { getUserFacingErrorMessage } from "@workspace/types";
 
-export default function OnboardingSlaUploadPage() {
+function OnboardingSlaUploadInner() {
   const searchParams = useSearchParams();
-  const onboardingId = searchParams.get("onboardingId");
-  const sessionId = searchParams.get("sessionId");
+  const onboardingId = useMemo(
+    () => searchParams.get("onboardingId"),
+    [searchParams],
+  );
+  const sessionId = useMemo(() => searchParams.get("sessionId"), [searchParams]);
 
   const [uploadComplete, setUploadComplete] = useState(false);
   const [alreadyUploaded, setAlreadyUploaded] = useState(false);
@@ -255,5 +258,24 @@ export default function OnboardingSlaUploadPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function OnboardingSlaUploadPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading signature link...
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <OnboardingSlaUploadInner />
+    </Suspense>
   );
 }

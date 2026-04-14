@@ -208,7 +208,7 @@ export class PaymentsService {
     clinicId: string;
     performedByUserId: string;
     paymentMethod: string;
-    amount: number;
+    amount?: number;
     notes?: string;
   }) {
     const invoice = await this.invoiceRepository.findById(data.invoiceId);
@@ -226,18 +226,24 @@ export class PaymentsService {
       );
     }
 
+    const resolvedAmount =
+      typeof data.amount === 'number' && data.amount > 0
+        ? data.amount
+        : invoice.total;
+
     await this.repository.create({
       clinic: { connect: { id: data.clinicId } },
       invoice: { connect: { id: data.invoiceId } },
       patient: { connect: { id: invoice.patientId } },
       provider: 'manual',
-      amount: Math.round(data.amount * 100),
+      amount: Math.round(resolvedAmount * 100),
       currency: this.configService.getCurrencyCode(),
       status: PaymentSessionStatus.CAPTURED,
       expiresAt: new Date(),
       meta: {
         method: data.paymentMethod,
         performedBy: data.performedByUserId,
+        amount: resolvedAmount,
         notes: data.notes,
       },
     });

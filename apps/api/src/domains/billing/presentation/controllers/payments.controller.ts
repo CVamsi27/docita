@@ -84,7 +84,7 @@ export class PaymentsController {
       clinicId: req.user!.clinicId!,
       performedByUserId: req.user!.id,
       paymentMethod: dto.paymentMethod,
-      amount: dto.amount!,
+      amount: dto.amount,
       notes: dto.notes,
     });
   }

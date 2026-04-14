@@ -54,6 +54,21 @@ function resolveRouteFiles(pages, routeCandidates) {
   return match ? pages[match] : null;
 }
 
+async function resolveAppRouterPageSize(nextDir, routeCandidates) {
+  const serverAppRoot = path.join(nextDir, "server", "app");
+
+  for (const candidate of routeCandidates) {
+    const normalized = candidate.startsWith("/") ? candidate.slice(1) : candidate;
+    const pagePath = path.join(serverAppRoot, normalized, "page.js");
+    const stats = await statSafe(pagePath);
+    if (stats) {
+      return stats.size;
+    }
+  }
+
+  return null;
+}
+
 export async function collectAppRouteBundleSizes(appDir) {
   const nextDir = path.join(appDir, ".next");
   const buildManifestPath = path.join(nextDir, "build-manifest.json");
@@ -64,7 +79,12 @@ export async function collectAppRouteBundleSizes(appDir) {
   for (const targetRoute of TARGET_ROUTES) {
     const files = resolveRouteFiles(pages, targetRoute.candidates);
     if (!files) {
-      routeSizes[targetRoute.label] = null;
+      // Next.js App Router does not populate build-manifest "pages". Fall back
+      // to the compiled page entrypoint size as a stable proxy.
+      routeSizes[targetRoute.label] = await resolveAppRouterPageSize(
+        nextDir,
+        targetRoute.candidates,
+      );
       continue;
     }
 

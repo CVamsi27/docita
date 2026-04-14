@@ -13,6 +13,16 @@ async function reportWebVitals() {
     ttfb?: number;
   }
   try {
+    if (!process.env["NEXT_PUBLIC_ANALYTICS_URL"]) {
+      return;
+    }
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (typeof PerformanceObserver === "undefined") {
+      return;
+    }
+
     const vitals: WebVitals = {};
 
     const clsObserver = new PerformanceObserver((list) => {
@@ -51,19 +61,23 @@ async function reportWebVitals() {
       vitals.ttfb = navigation.responseStart;
     }
 
-    setTimeout(() => {
-      if (
-        process.env["NEXT_PUBLIC_ANALYTICS_URL"] &&
-        Object.keys(vitals).length > 0
-      ) {
-        navigator.sendBeacon(
-          `${process.env["NEXT_PUBLIC_ANALYTICS_URL"]}/vitals`,
-          JSON.stringify(vitals),
-        );
+    const timeoutId = window.setTimeout(() => {
+      try {
+        if (Object.keys(vitals).length > 0) {
+          navigator.sendBeacon(
+            `${process.env["NEXT_PUBLIC_ANALYTICS_URL"]}/vitals`,
+            JSON.stringify(vitals),
+          );
+        }
+      } finally {
+        clsObserver.disconnect();
+        lcpObserver.disconnect();
+        fcpObserver.disconnect();
       }
     }, 5000);
+    void timeoutId;
   } catch {
-
+    // best-effort only
   }
 }
 

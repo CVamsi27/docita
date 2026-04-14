@@ -2,22 +2,27 @@ import { api } from "@/lib/api-client";
 import type { VitalSign } from "@workspace/types";
 
 export const consultationApi = {
-  
+  // Consultation is represented by the appointment in the API.
   getByAppointmentId: (appointmentId: string) =>
-    api.get<unknown>(`/consultations/appointment/${appointmentId}`),
+    api.get<unknown>(`/appointments/${appointmentId}`),
 
-  
-  create: (data: Record<string, unknown>) =>
-    api.post<unknown>("/consultations", data),
+  // Start consultation for an appointment (requires doctor role).
+  create: (data: Record<string, unknown>) => {
+    const appointmentId = String(data.appointmentId ?? "").trim();
+    if (!appointmentId) {
+      throw new Error("appointmentId is required to start a consultation");
+    }
+    return api.post<unknown>(`/appointments/${appointmentId}/start-consultation`, {});
+  },
 
-  
-  update: (id: string, data: Record<string, unknown>) =>
-    api.patch<unknown>(`/consultations/${id}`, data),
+  // Patch appointment details during consultation (server validates fields).
+  update: (appointmentId: string, data: Record<string, unknown>) =>
+    api.patch<unknown>(`/appointments/${appointmentId}`, data),
 
-  
-  addVitals: (consultationId: string, vitals: VitalSign) =>
-    api.post(`/consultations/${consultationId}/vitals`, vitals),
+  addVitals: (appointmentId: string, vitals: VitalSign) =>
+    api.post(`/appointments/${appointmentId}/vitals`, vitals),
 
-  
-  complete: (id: string) => api.post(`/consultations/${id}/complete`, {}),
+  // Mark appointment as completed.
+  complete: (appointmentId: string) =>
+    api.patch(`/appointments/${appointmentId}`, { status: "completed" }),
 };

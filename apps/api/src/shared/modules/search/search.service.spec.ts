@@ -39,6 +39,16 @@ describe('SearchService', () => {
     .fn<(...args: unknown[]) => Promise<unknown>>()
     .mockImplementation(async () => []);
 
+  function primeFullTextSupportProbe({
+    patient = true,
+    appointment = true,
+  }: { patient?: boolean; appointment?: boolean } = {}) {
+    mockPrismaQueryRaw.mockResolvedValueOnce([
+      { tableName: 'Patient', hasSearchTsvector: patient },
+      { tableName: 'Appointment', hasSearchTsvector: appointment },
+    ]);
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -120,6 +130,7 @@ describe('SearchService', () => {
 
     it('should search across all entity types when type is "all"', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
@@ -130,13 +141,14 @@ describe('SearchService', () => {
         limit: 20,
       });
 
-      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(2);
+      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(3);
       expect(prisma.prescription.findMany).toHaveBeenCalledTimes(1);
     });
 
     it('should search only specified entity types', async () => {
       cacheService.get.mockResolvedValue(null);
-      mockPrismaQueryRaw.mockResolvedValue([]);
+      primeFullTextSupportProbe();
+      mockPrismaQueryRaw.mockResolvedValueOnce([]);
 
       await service.search({
         clinicId: mockClinicId,
@@ -145,12 +157,13 @@ describe('SearchService', () => {
         limit: 20,
       });
 
-      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(1);
+      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(2);
       expect(prisma.prescription.findMany).not.toHaveBeenCalled();
     });
 
     it('should sort results by relevance score', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw
         .mockResolvedValueOnce([
           {
@@ -196,6 +209,7 @@ describe('SearchService', () => {
         mrn: `MRN${i}`,
         rank: 0.5,
       }));
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw
         .mockResolvedValueOnce(mockPatients)
         .mockResolvedValueOnce([]);
@@ -213,6 +227,7 @@ describe('SearchService', () => {
 
     it('should cache search results after fetching', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       prisma.prescription.findMany.mockResolvedValue([]);
 
@@ -232,6 +247,7 @@ describe('SearchService', () => {
 
     it('should fallback to ILIKE search when full-text search fails', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw
         .mockRejectedValueOnce(new Error('tsvector column not found'))
         .mockRejectedValueOnce(new Error('tsvector column not found'));
@@ -280,6 +296,7 @@ describe('SearchService', () => {
 
     it('should stop retrying full-text after first capability failure', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw.mockRejectedValueOnce(
         new Error('tsvector column not found'),
       );
@@ -326,13 +343,14 @@ describe('SearchService', () => {
         limit: 20,
       });
 
-      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(1);
+      expect(mockPrismaQueryRaw).toHaveBeenCalledTimes(2);
       expect(prisma.patient.findMany).toHaveBeenCalledTimes(2);
     });
 
     it('should prioritize exact title matches over partial matches', async () => {
       cacheService.get.mockResolvedValue(null);
       const query = 'john';
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw
         .mockResolvedValueOnce([
           {
@@ -378,6 +396,7 @@ describe('SearchService', () => {
   describe('searchPatients', () => {
     it('should format patient results with name, phone, and MRN', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw
         .mockResolvedValueOnce([
           {
@@ -412,6 +431,7 @@ describe('SearchService', () => {
     it('should handle patients without phone numbers', async () => {
       cacheService.get.mockResolvedValue(null);
 
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw.mockResolvedValueOnce([
         {
           id: 'patient-1',
@@ -437,11 +457,12 @@ describe('SearchService', () => {
 
   describe('searchAppointments', () => {
     beforeEach(() => {
-      jest.resetAllMocks();
+      jest.clearAllMocks();
     });
 
     it('should format appointment results with patient name and chief complaint', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
         {
           id: 'appt-1',
@@ -476,6 +497,7 @@ describe('SearchService', () => {
 
     it('should fallback to notes if chief complaint is missing', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
         {
           id: 'appt-2',
@@ -503,6 +525,7 @@ describe('SearchService', () => {
 
     it('should use fallback text when both chief complaint and notes are missing', async () => {
       cacheService.get.mockResolvedValue(null);
+      primeFullTextSupportProbe();
       mockPrismaQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
         {
           id: 'appt-3',

@@ -3,8 +3,8 @@ import {
   checkEmailResponseSchema,
   loginResponseSchema,
   validateSessionResponseSchema,
-} from "../src/auth.js";
-import { createPatientSchema } from "../src/patients.js";
+} from "../src/contracts/auth";
+import { createPatientSchema } from "../src/patient/patients";
 
 describe("@workspace/types schemas", () => {
   it("validates login response payload", () => {

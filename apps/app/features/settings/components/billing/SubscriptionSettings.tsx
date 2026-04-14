@@ -224,7 +224,9 @@ export function SubscriptionSettings() {
     );
   }
 
-  const tierName = subscription?.tierName || "Free Plan";
+  const tierName = subscription?.tier
+    ? getTierInfo(subscription.tier).name
+    : "Free Plan";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
   const billingCycle = subscription?.billingCycle || "monthly";
   const subscriptionCurrency = subscription?.currency || DEFAULT_CURRENCY;

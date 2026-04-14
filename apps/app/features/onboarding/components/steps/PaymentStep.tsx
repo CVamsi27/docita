@@ -19,6 +19,7 @@ import {
 import { api } from "@/lib/api-client";
 import { getSupportContactText } from "@/lib/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import type { TierName } from "@workspace/types";
 
 interface PaymentDetails {
   autoPay: boolean;
@@ -96,46 +97,45 @@ export function PaymentStep({
         return;
       }
 
-      // Create order on backend
-      let order: { id: string; amount: number; currency: string };
-      try {
-        order = await api.post<{ id: string; amount: number; currency: string }>(
-          "/payments/create-order",
-          {
-            amount: total,
-            planId,
-          },
+      const resolvedTier = (tier ?? planId) as TierName | undefined;
+      if (!resolvedTier) {
+        showUserFacingErrorToast(
+          "We could not identify the plan tier. Please go back and reselect the plan.",
         );
-      } catch {
-        // If create-order fails in dev/trial, proceed without payment
-        onComplete({ autoPay });
+        setIsProcessing(false);
         return;
       }
 
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      if (!razorpayKey) {
-        // No key in dev environment - proceed without payment
-        onComplete({ autoPay });
-        return;
-      }
+      // Use the canonical subscription billing checkout endpoint (creates Razorpay order).
+      const checkout = await api.post<{
+        orderId: string;
+        amountCents: number;
+        currency: string;
+        razorpayKeyId: string;
+      }>("/subscription/billing/checkout", {
+        tier: resolvedTier,
+        billingCycle,
+      });
 
       const options = {
-        key: razorpayKey,
-        amount: order.amount,
-        currency: order.currency || "INR",
+        key: checkout.razorpayKeyId,
+        amount: checkout.amountCents,
+        currency: checkout.currency || currencyCode || "INR",
         name: "Docita",
         description: `Subscription - ${billingCycle === "YEARLY" ? "Yearly" : "Monthly"}`,
-        order_id: order.id,
+        order_id: checkout.orderId,
         handler: async (response: {
           razorpay_payment_id: string;
           razorpay_order_id: string;
           razorpay_signature: string;
         }) => {
           try {
-            await api.post("/payments/verify", {
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_signature: response.razorpay_signature,
+            await api.post("/subscription/billing/activate", {
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+              tier: resolvedTier,
+              billingCycle,
             });
 
             onComplete({
@@ -145,7 +145,7 @@ export function PaymentStep({
             });
           } catch {
             showUserFacingErrorToast(
-              `We could not verify your payment. Please ${getSupportContactText()}.`,
+              `We could not activate your subscription. Please ${getSupportContactText()}.`,
             );
             setIsProcessing(false);
           }
