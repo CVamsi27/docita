@@ -13,6 +13,10 @@ import { WorkerModule } from "@/worker.module";
 
 async function bootstrap() {
   try {
+    // Ensure config logic treats this process as a worker entrypoint.
+    // This prevents enforcing API-only secrets (e.g. JWT_SECRET) when the worker
+    // is not serving HTTP auth.
+    process.env.WORKER_ENTRYPOINT ??= "worker";
     validateEnv();
     const appConfigService = new AppConfigService();
     new StartupValidationService(appConfigService).validate();
