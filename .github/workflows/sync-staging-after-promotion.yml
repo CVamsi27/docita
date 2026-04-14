@@ -1,96 +1,35 @@
-name: Sync staging after promotion
+name: Mirror staging to main
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
-  pull-requests: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  open-sync-pr:
-    name: Open main → staging sync PR
-    if: >
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.base.ref == 'main' &&
-      github.event.pull_request.head.ref == 'staging'
+  mirror-staging:
+    name: Fast-forward `staging` to `main`
     runs-on: ubuntu-latest
     steps:
-      - name: Create sync PR
-        uses: actions/github-script@v7
+      - name: Checkout main
+        uses: actions/checkout@v5
         with:
-          github-token: ${{ secrets.SYNC_PR_TOKEN || github.token }}
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+          fetch-depth: 0
 
-            const title = 'sync: align staging with main';
-            const body = [
-              '## Summary',
-              'Sync `staging` to mirror `main` after a promotion merge so future promotion PRs only show new changes.',
-              '',
-              '## Merge method',
-              'Merge with **Rebase and merge** or **Squash and merge** (avoid merge commits if `staging` disallows them).',
-            ].join('\n');
+      - name: Fast-forward staging to main
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_PR_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
 
-            // If a sync PR is already open, do nothing.
-            const { data: openPrs } = await github.rest.pulls.list({
-              owner,
-              repo,
-              state: 'open',
-              base: 'staging',
-              head: `${owner}:main`,
-              per_page: 100,
-            });
+          git fetch origin main staging
 
-            if (openPrs.length > 0) {
-              core.info(`Sync PR already exists: ${openPrs[0].html_url}`);
-              return;
-            }
-
-            const { data: pr } = await github.rest.pulls.create({
-              owner,
-              repo,
-              title,
-              head: 'main',
-              base: 'staging',
-              body,
-              maintainer_can_modify: true,
-            });
-
-            core.info(`Created sync PR: ${pr.html_url}`);
-
-            // Enable auto-merge so the PR merges once required checks pass.
-            // This requires:
-            // - Repository setting: "Allow auto-merge" enabled
-            // - Token permissions to merge into `staging`
-            try {
-              const mutation = `
-                mutation EnableAutoMerge($pullRequestId: ID!) {
-                  enablePullRequestAutoMerge(input: { pullRequestId: $pullRequestId, mergeMethod: SQUASH }) {
-                    pullRequest {
-                      number
-                      autoMergeRequest {
-                        enabledAt
-                        mergeMethod
-                      }
-                    }
-                  }
-                }
-              `;
-
-              // `node_id` is a GraphQL Node ID for the PR.
-              await github.graphql(mutation, { pullRequestId: pr.node_id });
-              core.info(`Enabled auto-merge for PR #${pr.number}`);
-            } catch (error) {
-              core.warning(
-                `Could not enable auto-merge for PR #${pr.number}. ` +
-                  `This can happen if auto-merge is disabled, branch protection blocks it, ` +
-                  `or the token lacks permissions. Error: ${error?.message ?? String(error)}`,
-              );
-            }
+          # Update the `staging` ref to point at the exact `main` SHA.
+          # This avoids creating new commits on `staging` and keeps ahead/behind at 0.
+          git remote set-url origin "https://x-access-token:${SYNC_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "origin/main:refs/heads/staging" --force-with-lease

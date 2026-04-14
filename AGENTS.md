@@ -211,33 +211,30 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 ### Roles
 
 - **`main`** is the **canonical branch** for production-bound code. All releases are cut from here (tags or deploy from `main`).
-- **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** a long-lived integration line with different product code. The **staging environment** (URLs, databases, secrets, Render/Fly staging targets) exists so you can **test what you are about to ship to production** before touching prod.
-- **Feature work** happens on a **branch created from `staging`** (see below). **Routine pull requests must target `staging`, not `main`.** Do not open normal fix/feature PRs directly against `main`; that bypasses integration and pre-prod validation.
+- **`staging` is a replica of `main`**: the **same tree** (identical files at the branch tip) as `main`. It is **not** an integration line. The staging environment exists to validate **the same code that is on `main`**.
+- **All feature/hotfix work lands in `main` via pull request.** After merge, automation **fast-forwards** `staging` to the exact `main` commit so `staging` continuously mirrors `main` (no sync PRs).
 
 ### Never commit on `main` or `staging`
 
 - Do **not** commit, cherry-pick, or push directly on `main` or `staging`.
-- Do **not** use `staging` as a place to land work that is not intended to reach `main` after validation. If it is not ready, keep it on a feature branch.
+- Do **not** use `staging` as a place to land work. `staging` exists only as an automated mirror of `main`.
 
-### Start every change from `staging`
+### Start every change from `main`
 
 1. `git fetch origin`
-2. Ensure `staging` matches `main` (same tree) when possible; if `main` has moved ahead, **sync `staging` to `main` first** (squash sync PR or documented process), then continue.
-3. `git checkout staging && git pull origin staging`
+2. `git checkout main && git pull origin main`
 4. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`)
 
-Open a **pull request into `staging`**. After merge, run checks in the **staging environment**.
+Open a **pull request into `main`**.
 
-### Pre-production vs production
+### Staging environment
 
-1. Merge to **`staging`** via PR when the change is ready to validate.
-2. Exercise the **staging environment** (smoke, E2E, manual) on the same code you intend to ship.
-3. Open a **promotion pull request from `staging` into `main`** when ready for production. That is the only routine path for landing work on `main`.
-4. **`main`** remains the canonical production tip; **`staging`** is updated to stay a **replica of `main`** after promotion (sync PRs as needed when branch rules forbid merge commits on `staging`).
+- After merges to `main`, automation keeps `staging` in sync by moving the `staging` branch ref to the exact `main` commit.
+- Validate the staging environment against `staging` knowing it should match `main` (barring sync lag or blocked required checks).
 
 ### Hotfixes
 
-Use a branch from **up-to-date `staging`** (or from `main` only if the hotfix pipeline requires it), merge via PR **into `staging`**, validate, then **promotion PR to `main`**. **Sync `staging` to `main`** after `main` moves so both stay aligned.
+Use a branch from **up-to-date `main`**, merge via PR **into `main`**, and let the `main` → `staging` sync automation update staging.
 
 ## 12) Design Principles
 
@@ -275,7 +272,7 @@ pnpm perf:budget:enforce
 
 Before finalizing changes:
 
-- Work is on a **branch created from `staging`** (after pull), not on `main` or `staging` directly; PRs target **`staging`** first unless an explicit exception (e.g. repo owner emergency process).
+- Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly; PRs target **`main`**.
 - Architecture/layer boundaries are respected.
 - No security or tenant/auth guard regressions.
 - No PHI plaintext logging or secret leakage.
