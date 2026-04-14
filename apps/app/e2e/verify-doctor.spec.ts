@@ -6,8 +6,36 @@ import { expect, test } from "@playwright/test";
 import { API_URL, TEST_PASSWORD } from "./utils/patient-helpers";
 
 type JsonRecord = Record<string, unknown>;
-const APP_ORIGIN = new URL(process.env.APP_URL ?? "http://127.0.0.1:3005")
-  .origin;
+const APP_ORIGIN = new URL(
+  process.env.APP_URL ??
+    process.env.PLAYWRIGHT_TEST_BASE_URL ??
+    "http://127.0.0.1:3005",
+).origin;
+
+async function addAuthCookies(
+  page: import("@playwright/test").Page,
+  tokens: { accessToken: string; refreshToken?: string | null },
+) {
+  const accessCookieUrl = `${APP_ORIGIN}/`;
+  const refreshCookieUrl = `${APP_ORIGIN}/api/v1/auth/`;
+  await page.context().addCookies([
+    {
+      name: "access_token",
+      value: tokens.accessToken,
+      url: accessCookieUrl,
+    },
+  ]);
+
+  if (tokens.refreshToken) {
+    await page.context().addCookies([
+      {
+        name: "refresh_token",
+        value: tokens.refreshToken,
+        url: refreshCookieUrl,
+      },
+    ]);
+  }
+}
 
 async function addAuthCookies(
   page: import("@playwright/test").Page,
