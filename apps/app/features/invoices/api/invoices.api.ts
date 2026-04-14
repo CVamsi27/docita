@@ -74,7 +74,9 @@ export const invoicesApi = {
       markInvoicePaidRequestSchema.parse(data ?? {}),
     ),
 
-  print: (id: string) => api.get(`/invoices/${id}/print`),
+  // There is no dedicated server "print" route; use the invoice view + window.print().
+  // Keeping this for backward compatibility with old callers.
+  print: (id: string) => api.get(`/invoices/${id}`),
 
   enqueuePdf: (id: string): Promise<EnqueuePdfJobResponse> =>
     api.get(`/invoices/${id}/pdf?async=true`).then((r) => enqueuePdfJobResponseSchema.parse(r)),
