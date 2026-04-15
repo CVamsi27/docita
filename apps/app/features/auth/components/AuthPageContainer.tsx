@@ -263,7 +263,12 @@ export function AuthPageContainer() {
       showBrandingPanel={step !== "email"}
       showProgress={step === "signup"}
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
+      <div
+        className={[
+          "animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1",
+          step === "login" ? "text-center" : "text-center lg:text-left",
+        ].join(" ")}
+      >
         <h1 className="text-2xl sm:text-3xl font-bold">{STEP_TITLES[step]}</h1>
         <p className="text-muted-foreground text-sm">
           {STEP_DESCRIPTIONS[step]}

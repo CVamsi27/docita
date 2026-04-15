@@ -223,7 +223,7 @@ export function AuthSignupStepUI({
         <div className="space-y-1">
           <Label id="signup-owner-role-label">
             Will you personally treat patients with this account?
-            <span className="text-destructive ml-1">*</span>
+            <span className="text-destructive ml-0.5">*</span>
           </Label>
           <p className="text-xs text-muted-foreground">
             Choose the setup that matches how you will use Docita on day one.

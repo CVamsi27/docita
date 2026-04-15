@@ -233,7 +233,7 @@ export function ConsentNoticeModal({
                     >
                       {purpose.label}
                       {purpose.key !== "whatsapp_communication" && (
-                        <span className="text-destructive ml-1">*</span>
+                        <span className="text-destructive ml-0.5">*</span>
                       )}
                     </Label>
                     <p className="text-sm text-muted-foreground">
