@@ -36,7 +36,7 @@ export class EmailService {
         <p>Your clinic <strong>${safeClinicName}</strong> has been successfully registered on Docita.</p>
         <p>You can now start managing your practice efficiently.</p>
         <p>
-          <a href="${this.configService.getAppUrl()}" 
+          <a href="${this.configService.getEmailLinkBaseUrl()}" 
              style="background: #4F46E5; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
             Get Started
           </a>
@@ -49,7 +49,7 @@ export class EmailService {
     email: string,
     resetToken: string,
   ): Promise<EmailSendResult> {
-    const resetUrl = `${this.configService.getAppUrl()}/reset-password?token=${resetToken}`;
+    const resetUrl = `${this.configService.getEmailLinkBaseUrl()}/reset-password?token=${resetToken}`;
 
     return this.emailProvider.send({
       to: email,
@@ -135,7 +135,7 @@ export class EmailService {
     _name: string,
     verificationToken: string,
   ): Promise<EmailSendResult> {
-    const verifyUrl = `${this.configService.getAppUrl()}/verify-email?token=${verificationToken}`;
+    const verifyUrl = `${this.configService.getEmailLinkBaseUrl()}/verify-email?token=${verificationToken}`;
 
     return this.emailProvider.send({
       to: email,

@@ -32,6 +32,9 @@ describe('EmailService', () => {
           useValue: {
             getConfig: jest.fn().mockReturnValue({}),
             getAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+            getEmailLinkBaseUrl: jest
+              .fn()
+              .mockReturnValue('http://localhost:3000'),
             getEnvironment: jest.fn().mockReturnValue('test'),
             getFrontendAppUrl: jest
               .fn()
