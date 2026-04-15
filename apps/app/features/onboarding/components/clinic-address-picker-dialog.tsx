@@ -90,6 +90,7 @@ export function ClinicAddressPickerDialog({
       googleMapsApiKey: hasGoogleKey ? googleKey : "",
       libraries: GOOGLE_LIBRARIES as unknown as ("places")[],
     });
+  const shouldUseGoogle = hasGoogleKey && isGoogleLoaded && !googleLoadError;
 
   const addressValue = resolvedAddress || initialAddress;
 
@@ -141,7 +142,7 @@ export function ClinicAddressPickerDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {hasGoogleKey ? (
+          {shouldUseGoogle ? (
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="google-place-search">Search address</Label>
@@ -169,42 +170,40 @@ export function ClinicAddressPickerDialog({
               </div>
 
               <div className={styles.mapRoot}>
-                {googleLoadError ? (
-                  <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
-                    Google Maps failed to load. Please try again, or enter the
-                    address manually.
-                  </div>
-                ) : !isGoogleLoaded ? (
-                  <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading map...
-                  </div>
-                ) : (
-                  <GoogleMap
-                    mapContainerClassName={styles.mapRoot}
-                    center={center}
-                    zoom={picked ? 16 : 5}
-                    options={{
-                      fullscreenControl: false,
-                      mapTypeControl: false,
-                      streetViewControl: false,
-                    }}
-                    onClick={(e) => {
-                      const lat = e.latLng?.lat();
-                      const lng = e.latLng?.lng();
-                      if (typeof lat !== "number" || typeof lng !== "number") {
-                        return;
-                      }
-                      void handlePickWithGoogle({ lat, lng });
-                    }}
-                  >
-                    {picked ? <Marker position={picked} /> : null}
-                  </GoogleMap>
-                )}
+                <GoogleMap
+                  mapContainerStyle={{ width: "100%", height: "100%" }}
+                  center={center}
+                  zoom={picked ? 16 : 5}
+                  options={{
+                    fullscreenControl: false,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                  }}
+                  onClick={(e) => {
+                    const lat = e.latLng?.lat();
+                    const lng = e.latLng?.lng();
+                    if (typeof lat !== "number" || typeof lng !== "number") {
+                      return;
+                    }
+                    void handlePickWithGoogle({ lat, lng });
+                  }}
+                >
+                  {picked ? <Marker position={picked} /> : null}
+                </GoogleMap>
               </div>
             </div>
           ) : (
             <div className={styles.mapRoot}>
+              {hasGoogleKey && !isGoogleLoaded ? (
+                <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading map...
+                </div>
+              ) : hasGoogleKey && googleLoadError ? (
+                <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
+                  Google Maps failed to load. Using OpenStreetMap instead.
+                </div>
+              ) : (
               <MapContainer
                 center={centerExpression}
                 zoom={picked ? 16 : 5}
@@ -227,6 +226,7 @@ export function ClinicAddressPickerDialog({
                   />
                 ) : null}
               </MapContainer>
+              )}
             </div>
           )}
 
