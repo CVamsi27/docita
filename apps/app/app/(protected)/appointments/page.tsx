@@ -11,7 +11,12 @@ import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 
 import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";
-import { AppointmentsCalendarUI, AppointmentsListUI, AppointmentsPageHeaderUI } from "@/features/appointments/components";
+import {
+  AppointmentsCalendarUI,
+  AppointmentsListUI,
+  AppointmentsPageHeaderUI,
+  CancelAppointmentDialog,
+} from "@/features/appointments/components";
 
 export const dynamic = "force-dynamic";
 
@@ -130,18 +135,14 @@ function AppointmentsContent() {
         </div>
       </AppPageScaffold>
 
-      <ConfirmationDialog
+      <CancelAppointmentDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
-        title="Cancel Appointment"
-        description="Are you sure you want to cancel this appointment? The patient will not be notified automatically"
-        confirmText="Cancel Appointment"
-        cancelText="Keep Appointment"
-        type="danger"
         isLoading={isPendingMutation}
         onConfirm={handleCancelAppointment}
       />
 
+      {/* No-show remains a simple confirmation */}
       <ConfirmationDialog
         open={noShowDialogOpen}
         onOpenChange={setNoShowDialogOpen}

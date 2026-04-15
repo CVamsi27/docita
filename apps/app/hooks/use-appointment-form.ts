@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
 import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
 import { useCreateAppointment } from "@/hooks/api/use-appointments";
+import { queryKeys } from "@workspace/data-access";
 import {
   CreateAppointmentInput,
   createAppointmentSchema,
@@ -214,36 +215,47 @@ export function useAppointmentForm({
   const lastSelectedDateRef = useRef<Date | undefined>(undefined);
   const lastPreselectedPatientIdRef = useRef<string | undefined>(undefined);
 
-  if (selectedDate !== lastSelectedDateRef.current) {
-    lastSelectedDateRef.current = selectedDate;
-    if (selectedDate) {
-      const start = new Date(selectedDate);
-      start.setHours(startHour, 0, 0, 0);
-      const localISOTime = toLocalISOString(start, {
-        timezone: DEFAULT_TIMEZONE,
-      });
-      form.setValue("startTime", localISOTime);
-    }
-  }
-
-  if (preselectedPatientId !== lastPreselectedPatientIdRef.current) {
-    lastPreselectedPatientIdRef.current = preselectedPatientId;
-    if (preselectedPatientId) {
-      form.setValue("patientId", preselectedPatientId);
-    }
-  }
-
   const currentPatientId = form.watch("patientId");
-  if (
-    !preselectedPatientId &&
-    !currentPatientId &&
-    patients.length === 1 &&
-    patients[0]?.id &&
-    lastSinglePatientIdRef.current !== patients[0].id
-  ) {
+
+  useEffect(() => {
+    if (!open) return;
+    if (selectedDate === lastSelectedDateRef.current) return;
+    lastSelectedDateRef.current = selectedDate;
+    if (!selectedDate) return;
+
+    const start = new Date(selectedDate);
+    start.setHours(startHour, 0, 0, 0);
+    const localISOTime = toLocalISOString(start, { timezone: DEFAULT_TIMEZONE });
+
+    const startTimeState = form.getFieldState("startTime");
+    if (!startTimeState.isDirty) {
+      form.setValue("startTime", localISOTime, { shouldDirty: false });
+    }
+  }, [open, selectedDate, startHour, form]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (preselectedPatientId === lastPreselectedPatientIdRef.current) return;
+    lastPreselectedPatientIdRef.current = preselectedPatientId;
+    if (!preselectedPatientId) return;
+
+    const patientState = form.getFieldState("patientId");
+    if (!patientState.isDirty) {
+      form.setValue("patientId", preselectedPatientId, { shouldDirty: false });
+    }
+  }, [open, preselectedPatientId, form]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (preselectedPatientId) return;
+    if (currentPatientId) return;
+    if (patients.length !== 1) return;
+    if (!patients[0]?.id) return;
+    if (lastSinglePatientIdRef.current === patients[0].id) return;
+
     lastSinglePatientIdRef.current = patients[0].id;
-    form.setValue("patientId", patients[0].id);
-  }
+    form.setValue("patientId", patients[0].id, { shouldDirty: false });
+  }, [open, preselectedPatientId, currentPatientId, patients, form]);
 
   const onSubmit = useCallback(
     async (data: CreateAppointmentInput, onSuccess?: () => void) => {
@@ -259,12 +271,9 @@ export function useAppointmentForm({
           ).toISOString(),
         });
 
+        // Target the shared query key prefix so all appointment list/detail views refresh.
         await queryClient.invalidateQueries({
-          queryKey: ["appointments"],
-        });
-        await queryClient.refetchQueries({
-          queryKey: ["appointments"],
-          type: "active",
+          queryKey: queryKeys.appointments.all(),
         });
 
         form.reset();

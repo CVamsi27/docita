@@ -1,7 +1,8 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 import {
   Appointment,
+  AppointmentCancelRequest,
   CreateAppointmentRequest,
   Patient,
   UpdateAppointmentRequest,
@@ -86,12 +87,15 @@ export const useAppointments = (
   return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     queryKeys.appointments.list(normalizedOptions),
     url,
-    { enabled: options !== null },
+    { enabled: options !== null, placeholderData: keepPreviousData },
   );
 };
 
 export const useTodayAppointments = (enabled: boolean = true) => {
-  const today = new Date().toISOString().split("T")[0] ?? "";
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+  const localDate = new Date(now.getTime() - offsetMs);
+  const today = localDate.toISOString().split("T")[0] ?? "";
   return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
@@ -125,6 +129,18 @@ export const useUpdateAppointment = (id: string) =>
   useAPIMutation<Appointment, UpdateAppointmentRequest>(
     `/appointments/${id}`,
     "PUT",
+    {
+      invalidateKeys: [
+        queryKeys.appointments.all(),
+        queryKeys.appointments.detail(id),
+      ],
+    },
+  );
+
+export const useCancelAppointment = (id: string) =>
+  useAPIMutation<Appointment, AppointmentCancelRequest>(
+    `/appointments/${id}/cancel`,
+    "PATCH",
     {
       invalidateKeys: [
         queryKeys.appointments.all(),

@@ -58,6 +58,7 @@ export const appointmentTypeSchema = z.enum([
   "check-up",
   "emergency",
   "procedure",
+  "other",
 ]);
 export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
 

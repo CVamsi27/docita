@@ -40,7 +40,7 @@ export function AppointmentsCalendarUI({
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground">Selected date</p>
             <p className="text-sm font-semibold truncate">
-              {date ? format(date, "EEE, d MMM yyyy") : "None"}
+              {format(date ?? new Date(), "EEE, d MMM yyyy")}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -52,16 +52,6 @@ export function AppointmentsCalendarUI({
               onClick={() => onDateSelect(new Date())}
             >
               Today
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2.5"
-              onClick={() => onDateSelect(undefined)}
-              disabled={!date}
-            >
-              Clear
             </Button>
           </div>
         </div>
@@ -89,7 +79,7 @@ export function AppointmentsCalendarUI({
 
         <Calendar
           mode="single"
-          selected={date}
+          selected={date ?? new Date()}
           onSelect={onDateSelect}
           className="w-full p-0 [--cell-size:--spacing(9)] sm:[--cell-size:--spacing(10)]"
         />

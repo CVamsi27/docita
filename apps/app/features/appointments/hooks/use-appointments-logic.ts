@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
 import {
   useAppointments,
+  useCancelAppointment,
   useCheckInAppointment,
   useStartConsultation,
   useUpdateAppointment,
@@ -65,7 +67,12 @@ export const useAppointmentsLogic = () => {
   const router = useRouter();
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
 
-  const selectedDateStr = date ? date.toISOString().split("T")[0] : undefined;
+  // Use local calendar day (not UTC) to avoid off-by-one-day queries.
+  const selectedDateStr = date ? format(date, "yyyy-MM-dd") : undefined;
+
+  const handleDateSelect = useCallback((next: Date | undefined) => {
+    setDate(next ?? new Date());
+  }, []);
 
   const canViewAllDoctors = useMemo(
     () => isClinicWideAppointmentRole(user?.role),
@@ -151,9 +158,8 @@ export const useAppointmentsLogic = () => {
   const checkInMutation = useCheckInAppointment();
   const startConsultationMutation = useStartConsultation();
 
-  const updateAppointmentMutation = useUpdateAppointment(
-    cancellingAptId || noShowAptId || "",
-  );
+  const cancelAppointmentMutation = useCancelAppointment(cancellingAptId || "");
+  const updateAppointmentMutation = useUpdateAppointment(noShowAptId || "");
 
   const currentAction = searchParams.get("action");
   useEffect(() => {
@@ -263,12 +269,10 @@ export const useAppointmentsLogic = () => {
     [checkInMutation, refetch],
   );
 
-  const handleCancelAppointment = async () => {
+  const handleCancelAppointment = async (reason: string) => {
     if (!cancellingAptId) return;
     try {
-      await updateAppointmentMutation.mutateAsync({
-        status: "cancelled",
-      });
+      await cancelAppointmentMutation.mutateAsync({ reason });
       toast.success("Appointment cancelled successfully");
       refetch();
     } catch {
@@ -296,7 +300,7 @@ export const useAppointmentsLogic = () => {
   return {
     state: {
       date,
-      setDate,
+      setDate: handleDateSelect,
       checkingIn,
       startingConsultationId,
       cancelDialogOpen,
@@ -321,7 +325,8 @@ export const useAppointmentsLogic = () => {
       currentTimeSlotRef,
       preselectedPatientId,
       user,
-      isPendingMutation: updateAppointmentMutation.isPending,
+      isPendingMutation:
+        cancelAppointmentMutation.isPending || updateAppointmentMutation.isPending,
       activeStartHour,
       activeEndHour,
     },
