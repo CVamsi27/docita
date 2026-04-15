@@ -171,7 +171,7 @@ function FormExample() {
               <FormControl>
                 <Input placeholder="John Doe" {...field} />
               </FormControl>
-              <FormDescription>This is a demo field.</FormDescription>
+              <FormDescription>This is a demo field</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -414,7 +414,7 @@ export function CommandAndSearch() {
       <Command className="rounded border max-w-md">
         <CommandInput placeholder="Search commands" />
         <CommandList>
-          <CommandEmpty>No results.</CommandEmpty>
+          <CommandEmpty>No results</CommandEmpty>
           <CommandGroup heading="Suggestions">
             <CommandItem>
               Patients
@@ -498,7 +498,7 @@ export function StatusAndFeedback() {
       <Alert>
         <Bell className="h-4 w-4" />
         <AlertTitle>Alert title</AlertTitle>
-        <AlertDescription>Alert description text.</AlertDescription>
+        <AlertDescription>Alert description text</AlertDescription>
       </Alert>
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status="confirmed" />

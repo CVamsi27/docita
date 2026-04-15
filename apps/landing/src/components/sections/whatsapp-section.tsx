@@ -70,7 +70,7 @@ export function WhatsappSection() {
                     </div>
                   </div>
                   <div className="bg-success/20 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
-                    <p>Thank you doctor! I&apos;ll be there.</p>
+                    <p>Thank you doctor! I&apos;ll be there</p>
                     <div className="mt-1 text-[10px] text-foreground/80 text-right">
                       09:32 AM
                     </div>

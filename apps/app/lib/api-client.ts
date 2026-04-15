@@ -92,8 +92,8 @@ const client = getAPIClient({
 
     const fallback =
       error.status && error.status >= 400 && error.status < 500
-        ? "Please check the information and try again."
-        : "Please review the information on this screen and try again.";
+        ? "Please check the information and try again"
+        : "Please review the information on this screen and try again";
 
     if (!shouldSuppressDevToast(error.message || "")) {
       showUserFacingErrorToast(
@@ -183,7 +183,7 @@ export const handleApiError = (error: unknown, fallbackMessage?: string) => {
   void error;
   return (
     fallbackMessage ||
-    "Please review the information on this screen and try again."
+    "Please review the information on this screen and try again"
   );
 };
 

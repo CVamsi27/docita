@@ -144,7 +144,7 @@ export function FloatingStartConsultation({
           <p className="text-sm text-primary-foreground/80 mb-3">
             {patientName
               ? `${isResumeFlow ? "Continue" : "Begin"} consult for ${patientName}.`
-              : "Open consultation queue now."}
+              : "Open consultation queue now"}
           </p>
           <Button
             variant="secondary"

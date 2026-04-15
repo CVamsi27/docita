@@ -45,7 +45,7 @@ export function PatientPortalBillingUI({
             <EmptyState
               icon={CreditCard}
               title="No invoices available"
-              description="Your paid and pending invoices will appear here once generated."
+              description="Your paid and pending invoices will appear here once generated"
             />
           ) : (
             <div className="space-y-3 pb-4">

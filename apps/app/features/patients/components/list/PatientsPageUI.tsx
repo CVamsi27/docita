@@ -94,7 +94,7 @@ export function PatientsPageUI({
     <PageContainer className="flex flex-col gap-6">
       <PageHeader
         title="Patients"
-        description="Manage your patient records and history."
+        description="Manage your patient records and history"
         actions={
           <Button onClick={onAddPatient} className="gap-2">
             <UserPlus className="h-4 w-4" />
@@ -189,7 +189,7 @@ export function PatientsPageUI({
                     >
                       {searchQuery
                         ? `No patients found matching "${searchQuery}"`
-                        : "No patients found."}
+                        : "No patients found"}
                     </TableCell>
                   </TableRow>
                 ) : (

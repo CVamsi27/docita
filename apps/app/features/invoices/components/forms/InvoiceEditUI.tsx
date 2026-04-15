@@ -68,7 +68,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
       <EmptyState
         icon={FileText}
         title="Invoice not found"
-        description="The invoice you are looking for does not exist."
+        description="The invoice you are looking for does not exist"
         action={{
           label: "Back to Invoices",
           onClick: () => router.push("/invoices"),

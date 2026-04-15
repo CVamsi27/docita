@@ -60,7 +60,7 @@ export function InvoiceHistoryDialog({
           ) : !invoices || invoices.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-muted-foreground gap-2">
               <FileText className="h-12 w-12 opacity-20" />
-              <p>No billing records found yet.</p>
+              <p>No billing records found yet</p>
             </div>
           ) : (
             <Table>

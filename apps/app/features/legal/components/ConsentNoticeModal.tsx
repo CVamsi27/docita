@@ -56,25 +56,25 @@ const CONSENT_CONTENT: Record<
         key: "medical_records",
         label: "Medical Records Management",
         description:
-          "We collect your name, age, contact details, and medical history solely to facilitate doctor consultations and maintain your health records.",
+          "We collect your name, age, contact details, and medical history solely to facilitate doctor consultations and maintain your health records",
       },
       {
         key: "data_storage",
         label: "Data Storage",
         description:
-          "Your data is stored on secure servers located within India (AWS Mumbai ap-south-1).",
+          "Your data is stored on secure servers located within India (AWS Mumbai ap-south-1)",
       },
       {
         key: "data_sharing",
         label: "Data Sharing with Healthcare Providers",
         description:
-          "We only share your data with the specific healthcare providers (doctors/clinics) you choose to engage with on this platform.",
+          "We only share your data with the specific healthcare providers (doctors/clinics) you choose to engage with on this platform",
       },
       {
         key: "whatsapp_communication",
         label: "WhatsApp Communication (Optional)",
         description:
-          "Receive appointment reminders, prescriptions, and invoices via WhatsApp.",
+          "Receive appointment reminders, prescriptions, and invoices via WhatsApp",
       },
     ],
     rights: [

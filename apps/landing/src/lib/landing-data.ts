@@ -36,7 +36,7 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "STARTER",
     name: "Free",
-    description: "Core clinical workflows for new clinics.",
+    description: "Core clinical workflows for new clinics",
     tagline: "Start at zero cost",
     pricing: { monthly: 0, yearly: 0, currency: "₹" },
     features: [
@@ -49,7 +49,7 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "ESSENTIAL",
     name: "Essential",
-    description: "Built for solo clinics scaling day-to-day operations.",
+    description: "Built for solo clinics scaling day-to-day operations",
     tagline: "Best for solo practices",
     pricing: { monthly: 999, yearly: 9990, currency: "₹" },
     features: [
@@ -62,7 +62,7 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "PROFESSIONAL",
     name: "Professional",
-    description: "For multi-doctor clinics with advanced workflows.",
+    description: "For multi-doctor clinics with advanced workflows",
     tagline: "Scale with confidence",
     pricing: { monthly: 2499, yearly: 24990, currency: "₹" },
     features: [
@@ -75,7 +75,7 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "ENTERPRISE",
     name: "Enterprise",
-    description: "Custom SLAs and pricing for large groups and hospitals.",
+    description: "Custom SLAs and pricing for large groups and hospitals",
     tagline: "Custom contracts",
     pricing: { monthly: "custom", yearly: "custom", currency: "₹" },
     features: [

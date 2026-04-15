@@ -53,7 +53,7 @@ function FeatureLockedCard({
     customDescription ||
     (tierInfo
       ? `This feature requires the ${tierInfo.name} plan or higher.`
-      : "Upgrade your plan to access this feature.");
+      : "Upgrade your plan to access this feature");
 
   return (
     <Card className="surface-warning relative overflow-hidden border-2">

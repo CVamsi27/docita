@@ -63,7 +63,7 @@ export function AddAppointmentDialogUI({
       open={open}
       onOpenChange={onOpenChange}
       title="Schedule Appointment"
-      description="Create a new appointment for a patient."
+      description="Create a new appointment for a patient"
     >
       <Form {...form}>
         <form onSubmit={handleSubmit} noValidate className="space-y-6">

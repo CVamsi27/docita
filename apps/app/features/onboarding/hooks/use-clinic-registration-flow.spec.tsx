@@ -123,7 +123,7 @@ describe("useClinicRegistrationFlow", () => {
     });
 
     expect(mocks.toast.error).toHaveBeenCalledWith(
-      "Please complete the required onboarding details before continuing.",
+      "Please complete the required onboarding details before continuing",
       { duration: Number.POSITIVE_INFINITY },
     );
     expect(sessionStorage.getItem("docita_onboarding_step")).toBe("1");

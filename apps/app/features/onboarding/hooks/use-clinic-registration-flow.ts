@@ -302,7 +302,7 @@ export function useClinicRegistrationFlow() {
       }));
 
       if (tier === "ENTERPRISE") {
-        toast.info("Enterprise plans are handled by our sales team.");
+        toast.info("Enterprise plans are handled by our sales team");
         return;
       }
 
@@ -325,7 +325,7 @@ export function useClinicRegistrationFlow() {
         if (!user?.name) missing.push("owner name");
         showUserFacingErrorToast(
           null,
-          "Please complete your account details before starting payment.",
+          "Please complete your account details before starting payment",
           "form",
         );
         return;
@@ -434,7 +434,7 @@ export function useClinicRegistrationFlow() {
       if (missingRequirements.length > 0) {
         showUserFacingErrorToast(
           null,
-          "Please complete the required onboarding details before continuing.",
+          "Please complete the required onboarding details before continuing",
           "form",
         );
         restartOnboarding();

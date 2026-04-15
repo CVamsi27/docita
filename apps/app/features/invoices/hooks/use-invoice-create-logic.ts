@@ -10,11 +10,11 @@ import { invoiceItemSchema } from "./use-invoice-edit-logic";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const createInvoiceSchema = z.object({
-  patientId: z.string().min(1, "Select a patient."),
+  patientId: z.string().min(1, "Select a patient"),
   status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]),
   discount: z.number().min(0),
   notes: z.string().optional(),
-  items: z.array(invoiceItemSchema).min(1, "Add at least one item."),
+  items: z.array(invoiceItemSchema).min(1, "Add at least one item"),
 });
 
 export type CreateInvoiceFormValues = z.infer<typeof createInvoiceSchema>;

@@ -89,7 +89,7 @@ export function BillingModal({
 
       if (validItems.length === 0) {
         showUserFacingErrorToast(
-          "Add at least one billing item before saving the invoice.",
+          "Add at least one billing item before saving the invoice",
         );
         return;
       }

@@ -58,12 +58,12 @@ const CODE_MESSAGES: Record<string, string> = {
   FORBIDDEN: "You do not have permission to do that",
   INTERNAL_ERROR: DEFAULT_ERROR_MESSAGE,
   INSUFFICIENT_PERMISSIONS: "You do not have permission to do that",
-  INSUFFICIENT_TIER: "Your current plan does not include this feature.",
+  INSUFFICIENT_TIER: "Your current plan does not include this feature",
   INVALID_CREDENTIALS: "Incorrect email or password",
   INVALID_DATE_RANGE: "Please choose a valid date range",
   INVALID_INPUT: "Please check the information and try again",
   INVOICE_NOT_FOUND: "We could not find that invoice",
-  LICENSE_EXPIRED: "Please update the license details before continuing.",
+  LICENSE_EXPIRED: "Please update the license details before continuing",
   NETWORK_ERROR:
     "We could not connect right now. Please check your connection and try again.",
   NOT_FOUND: "We could not find what you were looking for",
@@ -71,9 +71,9 @@ const CODE_MESSAGES: Record<string, string> = {
   PRESCRIPTION_NOT_FOUND: "We could not find that prescription",
   RATE_LIMIT_EXCEEDED: "Too many attempts. Please wait a moment and try again.",
   SLOT_UNAVAILABLE: "This time is no longer available. Please choose another time.",
-  SUBSCRIPTION_INACTIVE: "Please update your subscription to continue.",
+  SUBSCRIPTION_INACTIVE: "Please update your subscription to continue",
   SUBSCRIPTION_LIMIT_REACHED:
-    "Your current plan has reached its limit for this action.",
+    "Your current plan has reached its limit for this action",
   SERVER_ERROR: DEFAULT_ERROR_MESSAGE,
   TIMEOUT: "We could not connect right now. Please try again.",
   TOKEN_EXPIRED: "Please sign in again to continue",
@@ -175,10 +175,12 @@ function extractMessage(error: unknown): string | undefined {
 }
 
 function polishUserFacingMessage(message: string): string {
-  const withoutTrailingPeriod = message
-    .trim()
-    .replace(/\s+Please try again\.?$/i, "")
-    .replace(/\.+$/, "");
+  const trimmed = message.trim();
+  const withoutTryAgain = trimmed.replace(/\s+Please try again\.?$/i, "");
+  const isMultiSentence = withoutTryAgain.includes(". ");
+  const withoutTrailingPeriod = isMultiSentence
+    ? withoutTryAgain
+    : withoutTryAgain.replace(/\.+$/, "");
 
   const failedMatch = withoutTrailingPeriod.match(
     /^Failed to (load|save|create|update|delete|remove|submit|approve|reject|cancel|withdraw|record|scan|download|process|initiate|schedule|complete|mark|resend|refresh|copy|add|sign|revoke)\s+(.+)$/i,
@@ -205,7 +207,7 @@ function polishUserFacingMessage(message: string): string {
     return `We could not ${couldNotMatch[1]}. Please try again.`;
   }
 
-  return message.trim();
+  return withoutTrailingPeriod;
 }
 
 export function isTechnicalErrorMessage(message: string): boolean {

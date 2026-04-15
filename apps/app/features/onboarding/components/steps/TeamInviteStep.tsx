@@ -41,22 +41,22 @@ const ROLE_OPTIONS = [
   {
     value: "DOCTOR",
     label: "Doctor",
-    description: "Can manage consultations, notes, and clinical workflows.",
+    description: "Can manage consultations, notes, and clinical workflows",
   },
   {
     value: "RECEPTIONIST",
     label: "Receptionist",
-    description: "Can handle appointments, front desk, and patient check-in.",
+    description: "Can handle appointments, front desk, and patient check-in",
   },
   {
     value: "ADMIN",
     label: "Admin",
-    description: "Can manage clinic operations, members, and billing settings.",
+    description: "Can manage clinic operations, members, and billing settings",
   },
   {
     value: "ADMIN_DOCTOR",
     label: "Admin Doctor",
-    description: "Doctor with admin access who can help manage members and permissions.",
+    description: "Doctor with admin access who can help manage members and permissions",
   },
 ];
 

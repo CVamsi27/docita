@@ -78,11 +78,11 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
         if (isDuplicatePatientError(error)) {
           form.setError("phoneNumber", {
             type: "manual",
-            message: "This phone number is already registered.",
+            message: "This phone number is already registered",
           });
           showUserFacingErrorToast(
             null,
-            "This phone number is already registered.",
+            "This phone number is already registered",
             "form",
           );
         } else {

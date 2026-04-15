@@ -69,7 +69,7 @@ export default function PortalBillingPage() {
       header={
         <PageHeader
           title="My Billing & Invoices"
-          description="Review invoices and payment status."
+          description="Review invoices and payment status"
         />
       }
     >
@@ -80,7 +80,7 @@ export default function PortalBillingPage() {
         onRetry={() => void refetch()}
         emptyIcon={Receipt}
         emptyTitle="No invoices found"
-        emptyDescription="Your invoices will appear here after a visit."
+        emptyDescription="Your invoices will appear here after a visit"
       >
         <PatientPortalBillingUI
           invoices={invoices}

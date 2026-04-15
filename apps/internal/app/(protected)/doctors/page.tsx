@@ -230,7 +230,7 @@ export default function DoctorsPage() {
 
     if (!clinicId) {
       showUserFacingErrorToast(
-        "Choose a clinic before opening doctor details.",
+        "Choose a clinic before opening doctor details",
       );
       return;
     }

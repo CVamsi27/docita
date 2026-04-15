@@ -24,7 +24,7 @@ export function PatientDocumentsTabUI({
         status="empty"
         emptyIcon={FileText}
         emptyTitle="No documents found"
-        emptyDescription="Uploaded reports and attachments will appear here."
+        emptyDescription="Uploaded reports and attachments will appear here"
       />
     );
   }

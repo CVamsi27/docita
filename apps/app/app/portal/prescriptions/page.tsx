@@ -71,7 +71,7 @@ export default function PortalPrescriptionsPage() {
       header={
         <PageHeader
           title="My Prescriptions"
-          description="View active and historical medications."
+          description="View active and historical medications"
         />
       }
     >
@@ -82,7 +82,7 @@ export default function PortalPrescriptionsPage() {
         onRetry={() => void refetch()}
         emptyIcon={FileText}
         emptyTitle="No prescriptions found"
-        emptyDescription="Prescriptions from your doctor will appear here."
+        emptyDescription="Prescriptions from your doctor will appear here"
       >
         <PatientPortalPrescriptionsUI
           prescriptions={prescriptions}

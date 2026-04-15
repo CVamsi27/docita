@@ -35,14 +35,14 @@ function sanitizeFieldErrors(value: unknown): Record<string, string> {
       if (typeof message !== "string") {
         return [];
       }
-      return [[field, sanitizeUserFacingMessage(message, "Please check this field.")]];
+      return [[field, sanitizeUserFacingMessage(message, "Please check this field")]];
     }),
   );
 }
 
 export async function parseApiErrorResponse(
   response: Response,
-  fallbackMessage = "Please review the information on this screen and try again.",
+  fallbackMessage = "Please review the information on this screen and try again",
 ): Promise<ApiValidationError | Error> {
   try {
     const data = await response.json();

@@ -384,7 +384,7 @@ export function ComplianceStep({
       if (isUploaded) {
         toast.success("Signature synced");
       } else {
-        toast.message("We have not received the signature yet.");
+        toast.message("We have not received the signature yet");
       }
     } catch {
       showUserFacingErrorToast("We could not refresh the signature status. Please try again.");
@@ -414,21 +414,21 @@ export function ComplianceStep({
     {
       key: "sla",
       title: "Service Level Agreement",
-      summary: "Platform uptime, support timelines, incident response, and governance commitments.",
+      summary: "Platform uptime, support timelines, incident response, and governance commitments",
       accepted: !!complianceForm.watch("acceptedSLA"),
       fieldKey: "acceptedSLA",
     },
     {
       key: "privacy",
       title: "Privacy Policy & Data Consent",
-      summary: "How patient data is collected, stored, and processed under DPDP regulations.",
+      summary: "How patient data is collected, stored, and processed under DPDP regulations",
       accepted: !!complianceForm.watch("acceptedPrivacyPolicy"),
       fieldKey: "acceptedPrivacyPolicy",
     },
     {
       key: "dpa",
       title: "Data Processing Agreement",
-      summary: "Your obligations as a data fiduciary and our role as a data processor.",
+      summary: "Your obligations as a data fiduciary and our role as a data processor",
       accepted: !!complianceForm.watch("acceptedDataProcessing"),
       fieldKey: "acceptedDataProcessing",
     },
@@ -438,10 +438,10 @@ export function ComplianceStep({
 
   const legalDocumentConfig = activeLegalDoc
     ? activeLegalDoc === "sla"
-      ? { title: "Service Level Agreement", description: "Review the SLA terms before accepting.", content: <SLAContent /> }
+      ? { title: "Service Level Agreement", description: "Review the SLA terms before accepting", content: <SLAContent /> }
       : activeLegalDoc === "privacy"
-        ? { title: "Privacy Policy & Data Consent", description: "Review privacy and consent terms before accepting.", content: <PrivacyPolicyContent /> }
-        : { title: "Data Processing Agreement", description: "Review data processing obligations before accepting.", content: <DataProcessingAgreementContent /> }
+        ? { title: "Privacy Policy & Data Consent", description: "Review privacy and consent terms before accepting", content: <PrivacyPolicyContent /> }
+        : { title: "Data Processing Agreement", description: "Review data processing obligations before accepting", content: <DataProcessingAgreementContent /> }
     : null;
 
   return (
@@ -497,8 +497,8 @@ export function ComplianceStep({
                   ? "Missing onboarding session ID for QR signature. Go back to Step 3 and continue once to re-initialize."
                   : undefined
               }
-              successTitle="Signature received from your phone."
-              successDescription="Your signature has been saved successfully."
+              successTitle="Signature received from your phone"
+              successDescription="Your signature has been saved successfully"
             />
             {complianceForm.formState.errors.slaSignatureSessionId && (
               <p className="text-sm text-destructive">

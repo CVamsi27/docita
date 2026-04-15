@@ -45,7 +45,7 @@ export const ConsultationDashboardUI: FC = () => {
         header={
           <PageHeader
             title="Consultation"
-            description="Manage your daily consultations and patient queue."
+            description="Manage your daily consultations and patient queue"
           />
         }
       >
@@ -62,7 +62,7 @@ export const ConsultationDashboardUI: FC = () => {
       header={
         <PageHeader
           title="Consultation"
-          description="Manage your daily consultations and patient queue."
+          description="Manage your daily consultations and patient queue"
           actions={
             <Button onClick={() => router.push("/appointments")}>
               <Calendar className="mr-2 h-4 w-4" />

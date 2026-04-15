@@ -22,7 +22,7 @@ export async function parseApiError(response: Response): Promise<{
 
     const message = getSafeUserMessage(
       data.detail,
-      "Please check the highlighted fields and try again.",
+      "Please check the highlighted fields and try again",
     );
 
     return {
@@ -31,7 +31,7 @@ export async function parseApiError(response: Response): Promise<{
     };
   } catch {
     return {
-      message: "Please check the information and try again.",
+      message: "Please check the information and try again",
       fieldErrors: {},
     };
   }
@@ -39,15 +39,15 @@ export async function parseApiError(response: Response): Promise<{
 
 export function formatFieldError(error: unknown): string {
   if (typeof error === "string") {
-    return getSafeUserMessage(error, "Please check this field.");
+    return getSafeUserMessage(error, "Please check this field");
   }
   if (typeof error === "object" && error !== null) {
     const errorObj = toRecord(error);
     const message =
       typeof errorObj?.message === "string" ? errorObj.message : undefined;
-    return getSafeUserMessage(message, "Please check this field.");
+    return getSafeUserMessage(message, "Please check this field");
   }
-  return "Please enter a valid value.";
+  return "Please enter a valid value";
 }
 
 export function hasFieldError(

@@ -70,15 +70,15 @@ export default function CreateDoctorPage() {
 
     const errors: { name?: string; email?: string; password?: string } = {};
     if (!form.name.trim()) {
-      errors.name = "Enter the doctor's full name.";
+      errors.name = "Enter the doctor's full name";
     }
     if (!form.email.trim()) {
-      errors.email = "Enter an email address.";
+      errors.email = "Enter an email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errors.email = "Enter a valid email address";
     }
     if (!form.password.trim()) {
-      errors.password = "Enter a password.";
+      errors.password = "Enter a password";
     }
 
     setFieldErrors(errors);

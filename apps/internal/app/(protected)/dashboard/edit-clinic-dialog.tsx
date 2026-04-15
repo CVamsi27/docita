@@ -152,14 +152,14 @@ export function EditClinicDialog({
       address?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Enter the clinic name.";
+    if (!formData.name.trim()) errors.name = "Enter the clinic name";
     if (!formData.email.trim()) {
-      errors.email = "Enter an email address.";
+      errors.email = "Enter an email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Enter a valid email address";
     }
-    if (!formData.phone.trim()) errors.phone = "Enter a phone number.";
-    if (!formData.address.trim()) errors.address = "Enter the clinic address.";
+    if (!formData.phone.trim()) errors.phone = "Enter a phone number";
+    if (!formData.address.trim()) errors.address = "Enter the clinic address";
 
     return errors;
   };
@@ -212,7 +212,7 @@ export function EditClinicDialog({
         open={open}
         onOpenChange={handleOpenChange}
         title="Edit Clinic"
-        description="Update clinic details and status."
+        description="Update clinic details and status"
         isLoading={loading}
         onSubmit={handleSubmit}
         submitLabel={loading ? "Updating..." : "Update Clinic"}

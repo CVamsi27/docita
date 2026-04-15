@@ -54,7 +54,7 @@ export default function JoinRequestsPage() {
     mutationFn: ({ id, data }: { id: string; data: { assignedRole?: string; welcomeMessage?: string } }) =>
       typedApi.joinRequests.approve(id, data),
     onSuccess: () => {
-      toast.success('Join request approved! User can now access the dashboard.');
+      toast.success('Join request approved! User can now access the dashboard');
       queryClient.invalidateQueries({ queryKey: ['clinic-join-requests'] });
       closeDialog();
     },
@@ -116,7 +116,7 @@ export default function JoinRequestsPage() {
   const handleReject = () => {
     if (!selectedRequest || !rejectionReason.trim()) {
       showUserFacingErrorToast(
-        "Add a reason so the team member knows why this request was declined.",
+        "Add a reason so the team member knows why this request was declined",
       );
       return;
     }

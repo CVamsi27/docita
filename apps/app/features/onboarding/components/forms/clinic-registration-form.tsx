@@ -84,7 +84,7 @@ export function ClinicRegistrationForm({
   const { currency } = useLocaleCurrency();
   const supportPhone = getSupportPhoneNumber();
   const supportMessage =
-    "Hi Docita team, I need help with clinic onboarding and pricing for my hospital.";
+    "Hi Docita team, I need help with clinic onboarding and pricing for my hospital";
   const [stepError, setStepError] = useState<string | null>(null);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);

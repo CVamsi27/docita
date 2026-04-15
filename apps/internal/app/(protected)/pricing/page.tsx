@@ -75,7 +75,7 @@ const OFFER_TEMPLATES: OfferTemplate[] = [
     label: "3 months free",
     title: "3 months free with weekly feedback",
     description:
-      "Offer 100% discount for the first three months in exchange for weekly feedback and onboarding calls.",
+      "Offer 100% discount for the first three months in exchange for weekly feedback and onboarding calls",
     percentOff: 100,
     durationMonths: 3,
     notes: "Founders asked for hands-on onboarding. Keep the weekly feedback cadence.",
@@ -85,20 +85,20 @@ const OFFER_TEMPLATES: OfferTemplate[] = [
     label: "50% for 6 months",
     title: "Half-price launch offer",
     description:
-      "Reduce the first six months by 50% to close a skeptical clinic quickly.",
+      "Reduce the first six months by 50% to close a skeptical clinic quickly",
     percentOff: 50,
     durationMonths: 6,
-    notes: "Good for tier 2/3 city clinics that need a softer entry point.",
+    notes: "Good for tier 2/3 city clinics that need a softer entry point",
   },
   {
     key: "annual_soft_launch",
     label: "25% annual",
     title: "Annual soft-launch discount",
     description:
-      "Use this for annual commitment deals where payment is collected upfront.",
+      "Use this for annual commitment deals where payment is collected upfront",
     percentOff: 25,
     durationMonths: 12,
-    notes: "Best when the clinic is ready to commit and needs an intro discount.",
+    notes: "Best when the clinic is ready to commit and needs an intro discount",
   },
 ];
 
@@ -216,7 +216,7 @@ export default function PricingPage() {
 
   const saveOffer = async () => {
     if (!offerForm.clinicId || !offerForm.title.trim()) {
-      setSaveError("Pick a clinic and enter an offer title first.");
+      setSaveError("Pick a clinic and enter an offer title first");
       return;
     }
 

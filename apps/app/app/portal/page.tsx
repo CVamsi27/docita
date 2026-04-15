@@ -33,7 +33,7 @@ export default function PortalDashboardPage() {
       header={
         <PageHeader
           title="My Health Dashboard"
-          description="Track appointments, prescriptions, billing, and consent settings."
+          description="Track appointments, prescriptions, billing, and consent settings"
         />
       }
     >

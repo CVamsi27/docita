@@ -144,7 +144,7 @@ export function ChiefComplaintInput({
                   <p className="text-sm text-muted-foreground">
                     {isPrimary
                       ? "What is the main reason for this consultation?"
-                      : "Add another symptom or concern if it is clinically relevant."}
+                      : "Add another symptom or concern if it is clinically relevant"}
                   </p>
                 </div>
 

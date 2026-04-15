@@ -23,7 +23,7 @@ const setupSteps: readonly SetupStep[] = [
   {
     icon: FileCheck2,
     title: "Set up your account",
-    description: "Enter your details or sign in to continue.",
+    description: "Enter your details or sign in to continue",
     authSteps: [
       "email",
       "login",
@@ -35,19 +35,19 @@ const setupSteps: readonly SetupStep[] = [
   {
     icon: KeyRound,
     title: "Verify access",
-    description: "Confirm your email before moving ahead.",
+    description: "Confirm your email before moving ahead",
     authSteps: ["verify-email", "verify-email-sent"],
   },
   {
     icon: Building2,
     title: "Choose your path",
-    description: "Create a new clinic or join an existing one.",
+    description: "Create a new clinic or join an existing one",
     authSteps: ["choose-path"],
   },
   {
     icon: UserCheck,
     title: "Complete setup",
-    description: "Finish onboarding, team setup, and profile verification.",
+    description: "Finish onboarding, team setup, and profile verification",
     authSteps: [
       "onboarding",
       "join-clinic",
@@ -58,7 +58,7 @@ const setupSteps: readonly SetupStep[] = [
   {
     icon: LayoutDashboard,
     title: "Start the day",
-    description: "Open appointments, patients, prescriptions, and billing.",
+    description: "Open appointments, patients, prescriptions, and billing",
     authSteps: [],
   },
 ];
@@ -91,10 +91,10 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   );
   const heroKicker = isLogin ? "Welcome back" : "Getting started";
   const heroTitle = isLogin
-    ? "Pick up where you left off."
-    : "Everything in one guided path to your clinic.";
+    ? "Pick up where you left off"
+    : "Everything in one guided path to your clinic";
   const heroDescription = isLogin
-    ? "Sign in to manage appointments, patients, billing, and clinical workflows."
+    ? "Sign in to manage appointments, patients, billing, and clinical workflows"
     : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
 
   return (

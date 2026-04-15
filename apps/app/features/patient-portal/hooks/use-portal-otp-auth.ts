@@ -32,7 +32,7 @@ export function usePortalOtpAuth() {
 
   const requestOtp = async () => {
     if (!phoneNumber.trim()) {
-      setError("Please enter your phone number.");
+      setError("Please enter your phone number");
       return;
     }
 
@@ -64,7 +64,7 @@ export function usePortalOtpAuth() {
 
   const verifyOtp = async () => {
     if (!otp.trim()) {
-      setError("Please enter your verification code.");
+      setError("Please enter your verification code");
       return;
     }
 

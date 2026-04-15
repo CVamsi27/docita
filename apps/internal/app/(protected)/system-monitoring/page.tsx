@@ -623,7 +623,7 @@ export default function SystemMonitoringPage() {
                                   <p className="text-sm text-muted-foreground">
                                     {sanitizeUserFacingMessage(
                                       checkData.error,
-                                      "This check did not complete.",
+                                      "This check did not complete",
                                     )}
                                   </p>
                                 )}

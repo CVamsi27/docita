@@ -47,9 +47,9 @@ const OWNER_ROLE_OPTIONS = [
     roleLabel: "Admin Doctor",
     title: "Yes, I'll also see patients",
     description:
-      "Use consultations, prescriptions, notes, and clinic management from the same owner account.",
+      "Use consultations, prescriptions, notes, and clinic management from the same owner account",
     helper:
-      "This creates an Admin Doctor account with clinical and clinic-management access.",
+      "This creates an Admin Doctor account with clinical and clinic-management access",
     badge: "Recommended",
   },
   {
@@ -57,9 +57,9 @@ const OWNER_ROLE_OPTIONS = [
     roleLabel: "Admin",
     title: "No, I'll only manage the clinic",
     description:
-      "Use billing, clinic setup, team management, and operational tools without doctor workflows.",
+      "Use billing, clinic setup, team management, and operational tools without doctor workflows",
     helper:
-      "This creates an Admin account focused on clinic operations and staff management.",
+      "This creates an Admin account focused on clinic operations and staff management",
   },
 ];
 

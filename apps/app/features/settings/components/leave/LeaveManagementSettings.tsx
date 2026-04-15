@@ -113,7 +113,7 @@ export function LeaveManagementSettings() {
   const handleApplyLeave = async () => {
     if (!applyForm.leaveType || !applyForm.startDate || !applyForm.endDate) {
       showUserFacingErrorToast(
-        "Choose a leave type, start date, and end date before submitting.",
+        "Choose a leave type, start date, and end date before submitting",
       );
       return;
     }
@@ -139,7 +139,7 @@ export function LeaveManagementSettings() {
   const handleCreatePlan = async () => {
     if (!planForm.leaveType || !planForm.annualQuota) {
       showUserFacingErrorToast(
-        "Choose a leave type and annual quota before saving the plan.",
+        "Choose a leave type and annual quota before saving the plan",
       );
       return;
     }
@@ -274,7 +274,7 @@ export function LeaveManagementSettings() {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : leaves.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No leave requests.</p>
+            <p className="text-sm text-muted-foreground">No leave requests</p>
           ) : (
             <div className="space-y-2">
               {leaves.map((leave: StaffLeave) => (

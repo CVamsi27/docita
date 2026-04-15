@@ -105,7 +105,7 @@ export function DashboardAlertsContainer({
         type: "urgent",
         icon: UserPlus,
         title: `${pendingJoinRequests} join request${pendingJoinRequests !== 1 ? "s" : ""} waiting for approval`,
-        description: "Open the review queue to approve or reject new staff requests.",
+        description: "Open the review queue to approve or reject new staff requests",
         action: { label: "Review requests", href: "/settings/team/join-requests" },
         dismissible: true,
       });

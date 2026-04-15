@@ -145,21 +145,21 @@ export default function TeamPage() {
 
     if (!formData.name || !formData.email) {
       showUserFacingErrorToast(
-        "Enter the team member's name and email before continuing.",
+        "Enter the team member's name and email before continuing",
       );
       return;
     }
 
     if (!editingMember && !formData.password) {
       showUserFacingErrorToast(
-        "Enter a password before creating this team member.",
+        "Enter a password before creating this team member",
       );
       return;
     }
 
     if (formData.role === "DOCTOR" && !formData.registrationNumber) {
       showUserFacingErrorToast(
-        "Enter the doctor's registration number before continuing.",
+        "Enter the doctor's registration number before continuing",
       );
       return;
     }
@@ -284,7 +284,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Full Name"
             required
-            error={formData.name ? undefined : "Enter the team member's name."}
+            error={formData.name ? undefined : "Enter the team member's name"}
           >
             <Input
               id="name"
@@ -300,7 +300,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Email"
             required
-            error={formData.email ? undefined : "Enter an email address."}
+            error={formData.email ? undefined : "Enter an email address"}
           >
             <Input
               id="email"
@@ -318,7 +318,7 @@ export default function TeamPage() {
         <FormFieldGroup
           label="Role"
           required
-          error={formData.role ? undefined : "Choose a role."}
+          error={formData.role ? undefined : "Choose a role"}
         >
           <Select
             value={formData.role}
@@ -343,7 +343,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Password"
             required
-            error={formData.password ? undefined : "Enter a password."}
+            error={formData.password ? undefined : "Enter a password"}
           >
             <Input
               id="password"
@@ -433,7 +433,7 @@ export default function TeamPage() {
               error={
                 formData.registrationNumber
                   ? undefined
-                  : "Enter the doctor's registration number."
+                  : "Enter the doctor's registration number"
               }
             >
               <Input

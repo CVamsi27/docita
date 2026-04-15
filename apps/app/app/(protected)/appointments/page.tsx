@@ -134,7 +134,7 @@ function AppointmentsContent() {
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
         title="Cancel Appointment"
-        description="Are you sure you want to cancel this appointment? The patient will not be notified automatically."
+        description="Are you sure you want to cancel this appointment? The patient will not be notified automatically"
         confirmText="Cancel Appointment"
         cancelText="Keep Appointment"
         type="danger"

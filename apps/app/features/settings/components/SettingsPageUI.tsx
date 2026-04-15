@@ -17,7 +17,7 @@ import {
   ReminderSettings,
   SecuritySettings,
   WhatsAppAutomationSettings,
-} from ".";
+} from "@/features/settings/components";
 import {
   PrescriptionDefaultsSettingsContainer,
   QueueSettings,

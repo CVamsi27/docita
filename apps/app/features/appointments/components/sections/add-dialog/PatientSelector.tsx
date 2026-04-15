@@ -97,7 +97,7 @@ export function PatientSelector<T extends FieldValues>({
                         <span>Searching...</span>
                       </div>
                     ) : (
-                      "No patients found."
+                      "No patients found"
                     )}
                   </CommandEmpty>
                   <CommandGroup heading="Patients">

@@ -39,8 +39,8 @@ export function PhoneSignatureQrPanel({
   missingContextMessage,
   steps = DEFAULT_STEPS,
   waitingText = "Waiting for signature from your phone...",
-  successTitle = "Signature received from your phone.",
-  successDescription = "Your signature has been saved successfully.",
+  successTitle = "Signature received from your phone",
+  successDescription = "Your signature has been saved successfully",
 }: PhoneSignatureQrPanelProps) {
   if (missingContextMessage) {
     return (

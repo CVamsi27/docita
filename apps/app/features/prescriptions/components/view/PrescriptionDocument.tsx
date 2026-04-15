@@ -152,7 +152,7 @@ export function PrescriptionDocument({
                 className="p-3 bg-muted/30 rounded-lg print:bg-transparent print:border print:border-muted-foreground/20"
               >
                 <div className="flex items-start gap-2">
-                  <span className="font-bold text-primary">{index + 1}.</span>
+                  <span className="font-bold text-primary">{index + 1}</span>
                   <div className="flex-1">
                     <p className="font-semibold text-base">{med.name}</p>
                     <div className="grid grid-cols-3 gap-2 mt-1 text-sm">

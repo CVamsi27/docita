@@ -119,7 +119,7 @@ export function MedicalDocumentList({ patientId }: Props) {
   const handleCreate = async () => {
     if (!newTitle.trim()) {
       showUserFacingErrorToast(
-        "Enter a document title before creating it.",
+        "Enter a document title before creating it",
       );
       return;
     }

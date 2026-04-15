@@ -27,7 +27,7 @@ export function AppointmentsPageHeaderUI({
     <div className="space-y-4">
       <PageHeader
         title="Appointments"
-        description="Schedule and manage patient appointments."
+        description="Schedule and manage patient appointments"
         actions={
           <Button onClick={() => onOpenChange(true)}>
             <Plus className="mr-2 h-4 w-4" />

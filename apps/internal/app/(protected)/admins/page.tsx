@@ -186,7 +186,7 @@ export default function AdminsPage() {
 
     if (!createForm.name || !createForm.email || !createForm.password) {
       showUserFacingErrorToast(
-        "Enter the admin's name, email, and password before continuing.",
+        "Enter the admin's name, email, and password before continuing",
       );
       return;
     }
@@ -221,7 +221,7 @@ export default function AdminsPage() {
 
     if (!editForm.name || !editForm.email) {
       showUserFacingErrorToast(
-        "Enter the admin's name and email before saving.",
+        "Enter the admin's name and email before saving",
       );
       return;
     }

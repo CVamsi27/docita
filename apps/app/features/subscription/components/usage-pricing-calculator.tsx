@@ -145,7 +145,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
       {bill.overageTotal === 0 ? (
         <Badge variant="secondary" className="self-start text-xs">All within included quota</Badge>
       ) : (
-        <p className="text-xs text-muted-foreground">Overage billed at month-end based on actual usage.</p>
+        <p className="text-xs text-muted-foreground">Overage billed at month-end based on actual usage</p>
       )}
     </div>
   );

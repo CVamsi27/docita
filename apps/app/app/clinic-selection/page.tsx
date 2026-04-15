@@ -58,7 +58,7 @@ export default function ClinicSelectionPage() {
   return (
     <PageTransitionLoader
       title="Redirecting..."
-      description="Taking you to the request-based clinic join flow."
+      description="Taking you to the request-based clinic join flow"
     />
   );
 }

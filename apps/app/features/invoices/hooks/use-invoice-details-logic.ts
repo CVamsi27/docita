@@ -77,7 +77,7 @@ export const useInvoiceDetailsLogic = (
   const handleShareWhatsApp = () => {
     if (!invoice?.patient?.phoneNumber) {
       showUserFacingErrorToast(
-        "Add this patient's phone number before sharing the invoice on WhatsApp.",
+        "Add this patient's phone number before sharing the invoice on WhatsApp",
       );
       return;
     }

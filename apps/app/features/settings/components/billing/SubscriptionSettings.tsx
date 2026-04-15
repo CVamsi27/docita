@@ -283,7 +283,7 @@ export function SubscriptionSettings() {
             <span>
               {trialDaysLeft > 0
                 ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your free CORE trial.`
-                : "Your free trial ends today."}{" "}
+                : "Your free trial ends today"}{" "}
               Add payment details to keep your CORE features.
             </span>
             <Button
@@ -362,7 +362,7 @@ export function SubscriptionSettings() {
               </Button>
               <WhatsAppButton
                 phoneNumber={supportPhone}
-                message="Hi Docita team, I need help with billing and onboarding."
+                message="Hi Docita team, I need help with billing and onboarding"
                 label="Message support"
                 variant="default"
               />

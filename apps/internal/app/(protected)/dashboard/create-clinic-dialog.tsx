@@ -123,23 +123,23 @@ export function CreateClinicDialog({
       adminPassword?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Enter the clinic name.";
+    if (!formData.name.trim()) errors.name = "Enter the clinic name";
     if (!formData.email.trim()) {
-      errors.email = "Enter the clinic email address.";
+      errors.email = "Enter the clinic email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Enter a valid clinic email address";
     }
-    if (!formData.phone.trim()) errors.phone = "Enter a phone number.";
-    if (!formData.address.trim()) errors.address = "Enter the clinic address.";
+    if (!formData.phone.trim()) errors.phone = "Enter a phone number";
+    if (!formData.address.trim()) errors.address = "Enter the clinic address";
 
-    if (!formData.adminName.trim()) errors.adminName = "Enter the admin's name.";
+    if (!formData.adminName.trim()) errors.adminName = "Enter the admin's name";
     if (!formData.adminEmail.trim()) {
-      errors.adminEmail = "Enter the admin's email address.";
+      errors.adminEmail = "Enter the admin's email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.adminEmail)) {
       errors.adminEmail = "Enter a valid admin email address";
     }
     if (!formData.adminPassword.trim()) {
-      errors.adminPassword = "Enter a password for the admin.";
+      errors.adminPassword = "Enter a password for the admin";
     }
 
     return errors;
@@ -200,7 +200,7 @@ export function CreateClinicDialog({
         open={open}
         onOpenChange={setOpen}
         title="Add New Clinic"
-        description="Create a new clinic and its admin account."
+        description="Create a new clinic and its admin account"
         isLoading={loading}
         onSubmit={handleSubmit}
         submitLabel={loading ? "Creating..." : "Create Clinic"}

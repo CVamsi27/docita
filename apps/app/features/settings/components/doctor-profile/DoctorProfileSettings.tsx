@@ -114,7 +114,7 @@ export function DoctorProfileSettings() {
             </div>
           ) : (
             <div className="flex items-center justify-between rounded-lg border border-dashed bg-muted/30 px-4 py-3">
-              <p className="text-sm text-muted-foreground">Not provided.</p>
+              <p className="text-sm text-muted-foreground">Not provided</p>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/verify-doctor">Add Registration Number</Link>
               </Button>

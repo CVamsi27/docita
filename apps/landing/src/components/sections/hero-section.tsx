@@ -20,7 +20,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
         </div>
         <h1 className="text-5xl font-bold tracking-tight sm:text-7xl bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
           Modern Healthcare <br />
-          <span className="text-primary">Simplified.</span>
+          <span className="text-primary">Simplified</span>
         </h1>
         <p className="mt-6 text-xl leading-8 text-muted-foreground max-w-3xl mx-auto">
           From solo practitioners to multi-specialty hospitals. Docita bridges

@@ -83,7 +83,7 @@ export function TrustSecuritySection() {
               icon: Server,
               title: "Enterprise Data Centers",
               description:
-                "Hosted on AWS/GCP with 99.99% uptime SLA, redundant backups, and disaster recovery.",
+                "Hosted on AWS/GCP with 99.99% uptime SLA, redundant backups, and disaster recovery",
             },
             {
               icon: Clock,

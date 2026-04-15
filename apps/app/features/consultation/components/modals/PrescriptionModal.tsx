@@ -23,11 +23,11 @@ const getPrescriptionComplianceErrorMessage = (error: unknown): string | null =>
   }
 
   if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
-    return "Add your signature before creating a prescription.";
+    return "Add your signature before creating a prescription";
   }
 
   if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
-    return "Finish your doctor verification before creating a prescription.";
+    return "Finish your doctor verification before creating a prescription";
   }
 
   return null;
@@ -94,7 +94,7 @@ export function PrescriptionModal({
       toast.success("Loaded medications from last prescription");
     } else {
       showUserFacingErrorToast(
-        "There is no previous prescription to copy for this patient.",
+        "There is no previous prescription to copy for this patient",
       );
     }
   };
@@ -107,7 +107,7 @@ export function PrescriptionModal({
 
       if (validMedications.length === 0) {
         showUserFacingErrorToast(
-          "Add at least one medicine before saving this prescription.",
+          "Add at least one medicine before saving this prescription",
         );
         return;
       }

@@ -32,13 +32,13 @@ export const teamInviteSchema = z.object({
 
 export const complianceSchema = z.object({
   acceptedSLA: z.boolean().refine((val) => val === true, {
-    message: "Please accept the service agreement.",
+    message: "Please accept the service agreement",
   }),
   acceptedPrivacy: z.boolean().refine((val) => val === true, {
-    message: "Please accept the privacy policy.",
+    message: "Please accept the privacy policy",
   }),
   acceptedTerms: z.boolean().refine((val) => val === true, {
-    message: "Please accept the terms of service.",
+    message: "Please accept the terms of service",
   }),
 });
 

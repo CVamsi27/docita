@@ -16,8 +16,8 @@ const whatsAppBroadcastSchema = z.object({
   campaignName: requiredStringSchema("Campaign Name"),
   message: z
     .string()
-    .min(1, "Enter the message.")
-    .max(160, "Use 160 characters or fewer."),
+    .min(1, "Enter the message")
+    .max(160, "Use 160 characters or fewer"),
   sendToAllPatients: z.boolean(),
   sendToSpecificPatients: z.boolean(),
   scheduleTime: z.string().optional(),

@@ -40,7 +40,7 @@ export function parseError(error: unknown): ApiError {
             },
           },
           {
-            fallback: "Please review the information on this screen and try again.",
+            fallback: "Please review the information on this screen and try again",
           },
         ),
         code: apiError.data?.code,
@@ -56,7 +56,7 @@ export function parseError(error: unknown): ApiError {
   }
 
   return {
-    message: "Please review the information on this screen and try again.",
+    message: "Please review the information on this screen and try again",
     code: "UNKNOWN_ERROR",
   };
 }

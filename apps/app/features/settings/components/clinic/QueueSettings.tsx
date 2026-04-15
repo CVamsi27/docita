@@ -85,7 +85,7 @@ export const QueueSettings = () => {
 
   const handleResetQueue = () => {
     const confirmed = window.confirm(
-      "Reset today's queue? This will clear the current queue order.",
+      "Reset today's queue? This will clear the current queue order",
     );
     if (!confirmed) return;
 

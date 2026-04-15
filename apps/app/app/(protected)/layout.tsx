@@ -90,7 +90,7 @@ function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
     return (
       <PageTransitionLoader
         title="Checking your profile..."
-        description="Verifying your doctor profile before loading your workspace."
+        description="Verifying your doctor profile before loading your workspace"
       />
     );
   }

@@ -248,7 +248,7 @@ function OnboardingSlaUploadInner() {
             autoUploadOnDraw
             drawTabLabel="Draw"
             uploadTabLabel="Upload Image"
-            drawAlertText="Draw your SLA signature using your finger or stylus."
+            drawAlertText="Draw your SLA signature using your finger or stylus"
             uploadAlertText="Upload the SLA signature image (PNG, JPG, or WebP). Maximum file size: 5MB."
             selectImageButtonLabel="Select Image"
             changeImageButtonLabel="Change Image"

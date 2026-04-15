@@ -41,21 +41,21 @@ function validateForm(data: ContactFormData): ContactErrors {
   const errors: ContactErrors = {};
 
   if (!data.name.trim()) {
-    errors.name = "Enter your name.";
+    errors.name = "Enter your name";
   }
 
   if (!data.email.trim()) {
-    errors.email = "Enter your email address.";
+    errors.email = "Enter your email address";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Please enter a valid email address.";
+    errors.email = "Please enter a valid email address";
   }
 
   if (!data.clinic.trim()) {
-    errors.clinic = "Enter your clinic name.";
+    errors.clinic = "Enter your clinic name";
   }
 
   if (!data.message.trim()) {
-    errors.message = "Enter your message.";
+    errors.message = "Enter your message";
   }
 
   return errors;
@@ -176,7 +176,7 @@ export function ContactInquiryForm() {
                 className="min-h-[140px]"
                 value={formData.message}
                 onChange={(event) => updateField("message", event.target.value)}
-                placeholder="Tell us your current workflow and what you want to improve."
+                placeholder="Tell us your current workflow and what you want to improve"
                 aria-invalid={Boolean(errors.message)}
               />
               {errors.message ? (

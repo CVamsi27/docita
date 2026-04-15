@@ -25,25 +25,25 @@ export function HowItWorksSection() {
               {
                 step: "01",
                 title: "Check-in & Queue",
-                desc: "Patient arrives, gets a token, and enters the smart queue system.",
+                desc: "Patient arrives, gets a token, and enters the smart queue system",
                 icon: ClipboardList,
               },
               {
                 step: "02",
                 title: "Consultation",
-                desc: "Doctor reviews history, records vitals, and adds clinical notes.",
+                desc: "Doctor reviews history, records vitals, and adds clinical notes",
                 icon: Stethoscope,
               },
               {
                 step: "03",
                 title: "Prescription",
-                desc: "Digital prescription generated instantly with AI assistance.",
+                desc: "Digital prescription generated instantly with AI assistance",
                 icon: Pill,
               },
               {
                 step: "04",
                 title: "Billing & Leave",
-                desc: "Automated invoice generation and payment collection.",
+                desc: "Automated invoice generation and payment collection",
                 icon: Receipt,
               },
             ].map((item, i) => (

@@ -257,8 +257,8 @@ export default function VerifyEmailSentPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <div className="space-y-1 text-muted-foreground">
-                <p>Check your inbox and spam folder for a message from Docita.</p>
-                <p>The link stays active for 24 hours and you can request a fresh one anytime.</p>
+                <p>Check your inbox and spam folder for a message from Docita</p>
+                <p>The link stays active for 24 hours and you can request a fresh one anytime</p>
               </div>
             </div>
           </div>

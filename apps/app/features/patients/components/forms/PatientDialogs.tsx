@@ -78,9 +78,9 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!form.firstName.trim()) e.firstName = "Enter the patient's first name.";
-    if (!form.lastName.trim()) e.lastName = "Enter the patient's last name.";
-    if (!form.gender) e.gender = "Choose a gender.";
+    if (!form.firstName.trim()) e.firstName = "Enter the patient's first name";
+    if (!form.lastName.trim()) e.lastName = "Enter the patient's last name";
+    if (!form.gender) e.gender = "Choose a gender";
     return e;
   };
 
@@ -125,7 +125,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
       open={open}
       onOpenChange={handleClose}
       title="Add New Patient"
-      description="Enter the patient's details to create their record."
+      description="Enter the patient's details to create their record"
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -275,7 +275,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       open={open}
       onOpenChange={(o) => onOpenChange?.(o)}
       title="Edit Patient"
-      description="Update the patient's information."
+      description="Update the patient's information"
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

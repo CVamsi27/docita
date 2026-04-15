@@ -65,7 +65,7 @@ export function CommandMenu() {
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>No results found</CommandEmpty>
 
         <CommandGroup heading="Quick Actions">
           <CommandItem

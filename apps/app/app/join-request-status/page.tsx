@@ -231,8 +231,8 @@ export default function JoinRequestStatusPage() {
             <Building2 className="h-4 w-4" />
             <AlertTitle>What happens next?</AlertTitle>
             <AlertDescription className="space-y-1.5 mt-1.5 text-sm">
-              <p>The clinic administrator will review your request and respond within 7 days.</p>
-              <p>You will receive notifications via WhatsApp and email when your request is reviewed.</p>
+              <p>The clinic administrator will review your request and respond within 7 days</p>
+              <p>You will receive notifications via WhatsApp and email when your request is reviewed</p>
             </AlertDescription>
           </Alert>
 

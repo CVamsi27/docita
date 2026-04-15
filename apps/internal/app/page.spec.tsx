@@ -81,8 +81,8 @@ describe("InternalLogin", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
-    expect(screen.getByText("Enter an email address.")).toBeInTheDocument();
-    expect(screen.getByText("Enter a password.")).toBeInTheDocument();
+    expect(screen.getByText("Enter an email address")).toBeInTheDocument();
+    expect(screen.getByText("Enter a password")).toBeInTheDocument();
 
     expect(screen.getByPlaceholderText("Email")).toHaveAttribute(
       "aria-invalid",

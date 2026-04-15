@@ -333,8 +333,8 @@ export function SupportInboxPage() {
               {filteredThreads.length === 0 ? (
                 <div className="rounded-xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                   {search.trim()
-                    ? "No WhatsApp conversations matched your search."
-                    : "No incoming WhatsApp messages yet."}
+                    ? "No WhatsApp conversations matched your search"
+                    : "No incoming WhatsApp messages yet"}
                 </div>
               ) : (
                 filteredThreads.map((thread) => {

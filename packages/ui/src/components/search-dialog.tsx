@@ -45,7 +45,7 @@ export function SearchDialog({
   items,
   onSelect,
   isLoading = false,
-  emptyText = "No items found.",
+  emptyText = "No items found",
 }: SearchDialogProps) {
   const [value, setValue] = React.useState("");
 

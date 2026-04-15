@@ -59,7 +59,7 @@ export function VitalsModal({
 
       if (Object.keys(payload).length <= 1) {
         showUserFacingErrorToast(
-          "Enter at least one vital sign before saving.",
+          "Enter at least one vital sign before saving",
         );
         return;
       }

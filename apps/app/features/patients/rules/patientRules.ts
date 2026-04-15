@@ -73,19 +73,19 @@ export const validatePatientData = (data: Partial<Patient>): string[] => {
   const errors: string[] = [];
 
   if (!data.firstName?.trim()) {
-    errors.push("Enter the patient's first name.");
+    errors.push("Enter the patient's first name");
   }
 
   if (!data.lastName?.trim()) {
-    errors.push("Enter the patient's last name.");
+    errors.push("Enter the patient's last name");
   }
 
   if (!data.phoneNumber?.trim()) {
-    errors.push("Enter the patient's phone number.");
+    errors.push("Enter the patient's phone number");
   }
 
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.push("Enter a valid email address.");
+    errors.push("Enter a valid email address");
   }
 
   return errors;

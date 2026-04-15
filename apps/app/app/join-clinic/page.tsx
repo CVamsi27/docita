@@ -69,7 +69,7 @@ export default function JoinClinicPage() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      showUserFacingErrorToast('Enter a clinic name before searching.');
+      showUserFacingErrorToast('Enter a clinic name before searching');
       return;
     }
 

@@ -110,7 +110,7 @@ export default function ChoosePathPage() {
           icon={<Building2 className="h-7 w-7 text-primary" />}
           iconBg="bg-primary/10"
           title="Create New Clinic"
-          description="Set up your own clinic and choose a plan."
+          description="Set up your own clinic and choose a plan"
           bullets={CREATE_BULLETS}
           buttonLabel="Get Started"
           buttonVariant="default"
@@ -124,7 +124,7 @@ export default function ChoosePathPage() {
           icon={<Users className="h-7 w-7 text-info" />}
           iconBg="bg-info/10"
           title="Join Existing Clinic"
-          description="Request access to a clinic in your organization."
+          description="Request access to a clinic in your organization"
           bullets={JOIN_BULLETS}
           buttonLabel="Search Clinics"
           buttonVariant="outline"

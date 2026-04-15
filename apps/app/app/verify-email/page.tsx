@@ -72,7 +72,7 @@ function VerifyEmailInner() {
         const data = await res.json().catch(() => ({}));
         const safeMessage = sanitizeUserFacingMessage(
           (data as { message?: string }).message,
-          "The verification link is invalid or has expired.",
+          "The verification link is invalid or has expired",
         );
         setErrorMessage(safeMessage);
         setState("error");

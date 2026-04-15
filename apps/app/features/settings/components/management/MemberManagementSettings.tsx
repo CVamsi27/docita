@@ -65,9 +65,9 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useFacilityLabel } from "@/lib/facility-label";
 
 const inviteSchema = z.object({
-  name: z.string().min(1, "Enter the team member's name."),
+  name: z.string().min(1, "Enter the team member's name"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Use at least 8 characters."),
+  password: z.string().min(8, "Use at least 8 characters"),
   role: z.enum(["DOCTOR", "RECEPTIONIST"]),
   phoneNumber: z.string().optional(),
   specialization: z.string().optional(),
@@ -651,7 +651,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                       <FormItem>
                         <Label>Registration #</Label>
                         <FormControl>
-                          <Input placeholder="Medical council no." {...field} />
+                          <Input placeholder="Medical council no" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

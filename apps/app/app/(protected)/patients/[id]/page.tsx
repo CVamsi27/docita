@@ -106,7 +106,7 @@ export default function PatientDetailPage() {
           className="min-h-[50vh]"
           emptyIcon={User}
           emptyTitle="Patient not found"
-          emptyDescription="This patient record is unavailable."
+          emptyDescription="This patient record is unavailable"
           emptyAction={{
             label: "Back to Patients",
             onClick: handleBackToPatients,
@@ -122,7 +122,7 @@ export default function PatientDetailPage() {
         <DataState
           status="error"
           className="min-h-[50vh]"
-          errorMessage="You do not have access to this patient."
+          errorMessage="You do not have access to this patient"
           onRetry={handleBackToPatients}
         />
       </AppPageScaffold>

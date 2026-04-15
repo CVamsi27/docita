@@ -229,7 +229,7 @@ Please contact me with deployment and commercial details.`;
                     currencySymbol={currencySymbol}
                     overageHint={
                       tierName === "ESSENTIAL"
-                        ? "₹0 for first 14 days, then regular billing."
+                        ? "₹0 for first 14 days, then regular billing"
                         : overageHint
                     }
                     buttonLabel={

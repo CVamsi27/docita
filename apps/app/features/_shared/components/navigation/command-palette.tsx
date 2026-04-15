@@ -197,7 +197,7 @@ export function CommandPalette() {
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder="Search or type a command..." />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>No results found</CommandEmpty>
         <CommandGroup heading="Navigation">
           {filteredNavigationItems.map((item) => (
             <CommandItem

@@ -119,7 +119,7 @@ export function InventoryTable({
                       <EmptyState
                         icon={Package}
                         title="No items found"
-                        description="Adjust your filters or add a new item."
+                        description="Adjust your filters or add a new item"
                       />
                     </TableCell>
                   </TableRow>

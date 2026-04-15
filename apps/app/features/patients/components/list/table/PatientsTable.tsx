@@ -47,7 +47,7 @@ export function PatientsTable({
   onEdit,
   onSchedule,
   onRowClick,
-  emptyMessage = "No patients found.",
+  emptyMessage = "No patients found",
 }: PatientsTableProps) {
   const SortIcon = ({ column }: { column: keyof Patient | "fullName" }) => {
     if (sortConfig?.key !== column) {

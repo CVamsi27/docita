@@ -112,7 +112,9 @@ describe("AuthPageContainer", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("We could not check this email right now. Please try again."),
+        screen.getByText((content) =>
+          content.includes("We could not check this email right now"),
+        ),
       ).toBeInTheDocument();
     });
   });

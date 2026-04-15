@@ -136,7 +136,7 @@ export function AppointmentsListUI({
                 <EmptyState
                   icon={CalendarDays}
                   title="No appointments scheduled"
-                  description="No appointments scheduled for this day."
+                  description="No appointments scheduled for this day"
                   className="h-[200px] border-2 border-dashed border-border rounded-lg bg-muted/10"
                 />
               </div>

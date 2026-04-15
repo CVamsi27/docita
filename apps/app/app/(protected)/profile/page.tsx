@@ -30,7 +30,7 @@ export default function ProfilePage() {
 
   const handleSaveChanges = async () => {
     if (!formData.name.trim()) {
-      showUserFacingErrorToast("Enter your name before saving.");
+      showUserFacingErrorToast("Enter your name before saving");
       return;
     }
 
@@ -61,7 +61,7 @@ export default function ProfilePage() {
       <Card className="border-border shadow-sm">
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Update your personal details here.</CardDescription>
+          <CardDescription>Update your personal details here</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">

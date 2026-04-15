@@ -165,7 +165,7 @@ export function PortalMetricsUI({
         onRetry={handleRetry}
         emptyIcon={Activity}
         emptyTitle="No metric categories available"
-        emptyDescription="Create a custom metric to start tracking your health trends."
+        emptyDescription="Create a custom metric to start tracking your health trends"
         emptyAction={{
           label: "Add your first custom metric",
           onClick: () => setShowAddModal(true),

@@ -128,19 +128,19 @@ const KEY_FEATURE_CATEGORIES = FEATURE_CATEGORIES.slice(0, 4);
 
 const LIMIT_ROW_DESCRIPTIONS: Record<string, string> = {
   "Patient Limit":
-    "Maximum number of unique patient profiles you can actively manage in the plan.",
+    "Maximum number of unique patient profiles you can actively manage in the plan",
   Doctors:
-    "Maximum number of doctor accounts that can practice under this clinic plan.",
+    "Maximum number of doctor accounts that can practice under this clinic plan",
   Storage:
-    "Total cloud storage included for files like scanned records, prescriptions, and reports.",
+    "Total cloud storage included for files like scanned records, prescriptions, and reports",
   Branches:
-    "Number of clinic locations/branches you can operate under one subscription.",
+    "Number of clinic locations/branches you can operate under one subscription",
   Consultations:
-    "Number of consultations included in the billing cycle before overage charges apply.",
+    "Number of consultations included in the billing cycle before overage charges apply",
   Prescriptions:
-    "Number of digital prescriptions included in the billing cycle.",
+    "Number of digital prescriptions included in the billing cycle",
   Invoices:
-    "Number of invoices you can generate in the billing cycle.",
+    "Number of invoices you can generate in the billing cycle",
 };
 
 export function ComparisonTable({

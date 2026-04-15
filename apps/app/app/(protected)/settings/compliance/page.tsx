@@ -43,22 +43,22 @@ const DATA_RETENTION_POLICIES = [
   {
     category: "Patient Records",
     retention: "7 years",
-    description: "Medical records retained per DPDP Act 2023 guidelines.",
+    description: "Medical records retained per DPDP Act 2023 guidelines",
   },
   {
     category: "Appointment History",
     retention: "5 years",
-    description: "Appointment logs retained for continuity of care.",
+    description: "Appointment logs retained for continuity of care",
   },
   {
     category: "Audit Logs",
     retention: "3 years",
-    description: "System access and data change logs.",
+    description: "System access and data change logs",
   },
   {
     category: "Prescription Data",
     retention: "7 years",
-    description: "Prescription records per clinical documentation standards.",
+    description: "Prescription records per clinical documentation standards",
   },
 ];
 

@@ -60,11 +60,11 @@ export function AddMetricDefinitionModal({
     setLocalError(null);
 
     if (!label.trim()) {
-      setLocalError("Enter a metric name.");
+      setLocalError("Enter a metric name");
       return;
     }
     if (!categoryId) {
-      setLocalError("Choose a category.");
+      setLocalError("Choose a category");
       return;
     }
 

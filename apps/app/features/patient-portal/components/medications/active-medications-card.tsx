@@ -25,7 +25,7 @@ export function ActiveMedicationsCard({ medications }: ActiveMedicationsCardProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No active medications found.</p>
+          <p className="text-sm text-muted-foreground">No active medications found</p>
         </CardContent>
       </Card>
     );

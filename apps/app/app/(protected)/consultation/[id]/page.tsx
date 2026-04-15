@@ -54,7 +54,7 @@ export default function ConsultationPage() {
       <div className="flex items-center justify-center h-screen">
         <DataState
           status="error"
-          errorMessage="Only the assigned doctor can open this consultation."
+          errorMessage="Only the assigned doctor can open this consultation"
           onRetry={handleBack}
         />
       </div>
@@ -68,7 +68,7 @@ export default function ConsultationPage() {
           status="empty"
           emptyIcon={Stethoscope}
           emptyTitle="Appointment not found"
-          emptyDescription="This consultation is unavailable or has been removed."
+          emptyDescription="This consultation is unavailable or has been removed"
           emptyAction={{
             label: "Back to Appointments",
             onClick: handleBack,

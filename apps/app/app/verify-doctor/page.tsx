@@ -101,7 +101,7 @@ export default function VerifyDoctorPage() {
     createSession: createSignatureSession,
     checkUploaded: checkSignatureUploaded,
     onUploaded: () => {
-      toast.success("Signature received from your phone.");
+      toast.success("Signature received from your phone");
     },
     persistenceKey: `docita_verify_doctor_qr_session_${user?.id ?? "anonymous"}`,
     autoStart:
@@ -138,7 +138,7 @@ export default function VerifyDoctorPage() {
       await updateDoctorSignature.mutateAsync({
         signatureUrl: onboardingSignatureSourceUrl,
       });
-      toast.success("Onboarding signature added to your profile.");
+      toast.success("Onboarding signature added to your profile");
     } catch (error) {
       showUserFacingErrorToast(
         error,
@@ -159,7 +159,7 @@ export default function VerifyDoctorPage() {
         registrationNumber: registrationNumber.trim(),
       });
       await refetch();
-      toast.success("Registration number saved.");
+      toast.success("Registration number saved");
       setRegistrationNumber("");
     } catch (error) {
       if (error instanceof ApiError) {
@@ -177,7 +177,7 @@ export default function VerifyDoctorPage() {
           ) {
             const safeMessage = sanitizeUserFacingMessage(
               registrationFieldError,
-              "Please check the registration number.",
+              "Please check the registration number",
             );
             setRegistrationError(safeMessage);
             showUserFacingErrorToast(null, safeMessage, "form");
@@ -191,7 +191,7 @@ export default function VerifyDoctorPage() {
           if (firstFieldError) {
             const safeMessage = sanitizeUserFacingMessage(
               firstFieldError,
-              "Please check the registration number.",
+              "Please check the registration number",
             );
             setRegistrationError(safeMessage);
             showUserFacingErrorToast(null, safeMessage, "form");
@@ -227,7 +227,7 @@ export default function VerifyDoctorPage() {
     return (
       <PageTransitionLoader
         title="Redirecting to dashboard..."
-        description="Finalizing your verification state."
+        description="Finalizing your verification state"
       />
     );
   }
@@ -249,13 +249,13 @@ export default function VerifyDoctorPage() {
   const steps = [
     {
       label: "Upload Digital Signature",
-      description: "Required to generate prescriptions and medical documents.",
+      description: "Required to generate prescriptions and medical documents",
       done: hasSignature,
       required: true,
     },
     {
       label: "Medical Registration Number",
-      description: "Your council registration number for verification.",
+      description: "Your council registration number for verification",
       done: hasRegistration,
       required: true,
     },
@@ -432,7 +432,7 @@ export default function VerifyDoctorPage() {
                         toast.success("Signature synced");
                       } else {
                         toast.message(
-                          "We have not received the signature yet.",
+                          "We have not received the signature yet",
                         );
                       }
                     } catch {
@@ -457,8 +457,8 @@ export default function VerifyDoctorPage() {
                       );
                     }
                   }}
-                  successTitle="Signature uploaded successfully."
-                  successDescription="Your signature has been saved and verified."
+                  successTitle="Signature uploaded successfully"
+                  successDescription="Your signature has been saved and verified"
                 />
               )}
             </div>

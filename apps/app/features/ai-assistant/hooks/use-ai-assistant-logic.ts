@@ -83,14 +83,14 @@ export const useAIAssistantLogic = () => {
         icdCode: "J02.9",
         confidence: 85,
         reasoning:
-          "Sore throat, fever, and examination findings consistent with pharyngeal inflammation.",
+          "Sore throat, fever, and examination findings consistent with pharyngeal inflammation",
       },
       {
         condition: "Upper Respiratory Infection",
         icdCode: "J06.9",
         confidence: 72,
         reasoning:
-          "Symptoms of cough, congestion, and mild fever suggest viral URI.",
+          "Symptoms of cough, congestion, and mild fever suggest viral URI",
       },
       {
         condition: "Streptococcal Pharyngitis",

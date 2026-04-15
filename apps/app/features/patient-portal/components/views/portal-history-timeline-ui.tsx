@@ -96,7 +96,7 @@ export function PortalHistoryTimelineUI({
           onRetry={() => void refetch()}
           emptyIcon={History}
           emptyTitle="No timeline records found"
-          emptyDescription="Your appointments, prescriptions, and health events will appear here."
+          emptyDescription="Your appointments, prescriptions, and health events will appear here"
         >
           <PatientTimeline
             mode="portal"
