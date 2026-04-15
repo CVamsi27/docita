@@ -156,7 +156,12 @@ export function DashboardUI({
           )}
 
           <div className="space-y-4 sm:space-y-6">
-            <RecentPatientsUI patients={recentPatients} />
+            <RecentPatientsUI
+              patients={recentPatients.map((patient) => ({
+                ...patient,
+                phoneNumber: patient.phoneNumber ?? undefined,
+              }))}
+            />
 
             <DailyProgressUI
               completedToday={completedToday}

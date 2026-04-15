@@ -4,10 +4,12 @@ import {
   Post,
   Body,
   Patch,
+  Delete,
   Param,
   Request,
   Query,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
@@ -105,5 +107,12 @@ export class PatientsController {
       this.normalizeUpdateBody(body),
       req.user!.clinicId!,
     );
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete patient' })
+  async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
+    await this.patientService.deletePatient(id, req.user!.clinicId!);
   }
 }

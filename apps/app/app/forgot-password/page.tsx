@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +21,22 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <PreDashboardShell currentStep="forgot-password" showProgress={false}>
+          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
+            <div className="text-sm text-muted-foreground">Loading...</div>
+          </div>
+        </PreDashboardShell>
+      }
+    >
+      <ForgotPasswordPageContent />
+    </Suspense>
+  );
+}
+
+function ForgotPasswordPageContent() {
   const searchParams = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");

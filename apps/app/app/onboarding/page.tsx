@@ -12,7 +12,7 @@ const ClinicOnboardingWizard = dynamic(
     import("@/features/onboarding/components").then((mod) => ({
       default: mod.ClinicOnboardingWizard,
     })),
-  { ssr: true },
+  { ssr: false },
 );
 
 export default function OnboardingPage() {

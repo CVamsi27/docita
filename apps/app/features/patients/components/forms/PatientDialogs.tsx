@@ -12,6 +12,22 @@ import { useCreatePatient, useUpdatePatient } from "@/hooks/api/use-patients";
 import { Button } from "@workspace/ui/components/button";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { Input } from "@workspace/ui/components/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import {
   createPatientRequestSchema,
   updatePatientRequestSchema,
@@ -46,33 +62,6 @@ const GENDER_OPTIONS: { value: GenderValue; label: string }[] = [
   { value: "INTERSEX", label: "Intersex" },
   { value: "PREFER_NOT_TO_SAY", label: "Prefer not to say" },
 ];
-
-function FormField({
-  id,
-  label,
-  required,
-  error,
-  children,
-}: {
-  id: string;
-  label: string;
-  required?: boolean;
-  error?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        {label}{required && " *"}
-      </label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
-  );
-}
-
-const inputClass =
-  "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 export const AddPatientDialog: FC<AddPatientDialogProps> = ({
   open = false,
@@ -153,104 +142,157 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
       title="Add New Patient"
       description="Enter the patient's details to create their record"
     >
-      <form onSubmit={handleSubmit} noValidate className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            id="patient-first-name"
-            label="First Name"
-            required
-            error={form.formState.errors.firstName?.message}
-          >
-            <input
-              id="patient-first-name"
-              className={inputClass}
-              {...form.register("firstName")}
-              placeholder="First name"
+      <Form {...form}>
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    First Name{" "}
+                    <span className="text-destructive ml-0.5">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter first name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
 
-          <FormField
-            id="patient-last-name"
-            label="Last Name"
-            required
-            error={form.formState.errors.lastName?.message}
-          >
-            <input
-              id="patient-last-name"
-              className={inputClass}
-              {...form.register("lastName")}
-              placeholder="Last name"
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Last Name{" "}
+                    <span className="text-destructive ml-0.5">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter last name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
 
-          <FormField id="patient-phone" label="Phone">
-            <input
-              id="patient-phone"
-              className={inputClass}
-              {...form.register("phoneNumber")}
-              placeholder="+91 99999 99999"
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      placeholder="Enter phone number"
+                      inputMode="tel"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
 
-          <FormField id="patient-email" label="Email">
-            <input
-              id="patient-email"
-              className={inputClass}
-              type="email"
-              {...form.register("email")}
-              placeholder="patient@example.com"
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      type="email"
+                      placeholder="Enter email"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
 
-          <FormField
-            id="patient-gender"
-            label="Gender"
-            required
-            error={form.formState.errors.gender?.message}
-          >
-            <select
-              id="patient-gender"
-              className={inputClass}
-              {...form.register("gender")}
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Gender{" "}
+                    <span className="text-destructive ml-0.5">*</span>
+                  </FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={(value) => field.onChange(value as GenderValue)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {GENDER_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Birth</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={
+                        typeof field.value === "string"
+                          ? field.value
+                          : field.value instanceof Date
+                            ? field.value.toISOString().slice(0, 10)
+                            : ""
+                      }
+                      type="date"
+                      max={todayStr}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleClose(false)}
+              disabled={createPatient.isPending}
             >
-              {GENDER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField
-            id="patient-dob"
-            label="Date of Birth"
-            error={form.formState.errors.dateOfBirth?.message}
-          >
-            <input
-              id="patient-dob"
-              className={inputClass}
-              type="date"
-              max={todayStr}
-              {...form.register("dateOfBirth")}
-            />
-          </FormField>
-        </div>
-
-        <div className="flex justify-end space-x-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleClose(false)}
-            disabled={createPatient.isPending}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={createPatient.isPending}>
-            {createPatient.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add Patient
-          </Button>
-        </div>
-      </form>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createPatient.isPending}>
+              {createPatient.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Add Patient
+            </Button>
+          </div>
+        </form>
+      </Form>
     </FormDialog>
   );
 };
@@ -338,69 +380,143 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       title="Edit Patient"
       description="Update the patient's information"
     >
-      <form onSubmit={handleSubmit} noValidate className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField id="edit-first-name" label="First Name">
-            <input
-              id="edit-first-name"
-              className={inputClass}
-              {...form.register("firstName")}
-              placeholder="First name"
+      <Form {...form}>
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter first name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
-          <FormField id="edit-last-name" label="Last Name">
-            <input
-              id="edit-last-name"
-              className={inputClass}
-              {...form.register("lastName")}
-              placeholder="Last name"
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter last name" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
-          <FormField id="edit-phone" label="Phone">
-            <input
-              id="edit-phone"
-              className={inputClass}
-              {...form.register("phoneNumber")}
-              placeholder="+91 99999 99999"
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      placeholder="Enter phone number"
+                      inputMode="tel"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
-          <FormField id="edit-email" label="Email">
-            <input
-              id="edit-email"
-              className={inputClass}
-              type="email"
-              {...form.register("email")}
-              placeholder="patient@example.com"
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      type="email"
+                      placeholder="Enter email"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
-          <FormField id="edit-gender" label="Gender">
-            <select id="edit-gender" className={inputClass} {...form.register("gender")}>
-              {GENDER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </FormField>
-          <FormField id="edit-dob" label="Date of Birth">
-            <input
-              id="edit-dob"
-              className={inputClass}
-              type="date"
-              max={todayStr}
-              {...form.register("dateOfBirth")}
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <Select
+                    value={field.value ?? ""}
+                    onValueChange={(value) => field.onChange(value as GenderValue)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {GENDER_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </FormField>
-        </div>
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Birth</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={
+                        typeof field.value === "string"
+                          ? field.value
+                          : field.value instanceof Date
+                            ? field.value.toISOString().slice(0, 10)
+                            : ""
+                      }
+                      type="date"
+                      max={todayStr}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={() => onOpenChange?.(false)} disabled={updatePatient.isPending}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={updatePatient.isPending}>
-            {updatePatient.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
-          </Button>
-        </div>
-      </form>
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange?.(false)}
+              disabled={updatePatient.isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={updatePatient.isPending}>
+              {updatePatient.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </Form>
     </FormDialog>
   );
 };

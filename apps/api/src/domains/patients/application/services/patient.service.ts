@@ -65,4 +65,10 @@ export class PatientService {
     }
     return updated;
   }
+
+  async deletePatient(id: string, clinicId?: string): Promise<void> {
+    // Ensure the patient exists and belongs to the current clinic (tenant isolation)
+    await this.getPatient(id, clinicId);
+    await this.patientRepository.delete(id);
+  }
 }

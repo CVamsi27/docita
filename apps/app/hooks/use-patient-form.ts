@@ -60,9 +60,16 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
   const onSubmit = useCallback(
     async (data: CreatePatientInput, onSuccess?: () => void) => {
       try {
+        if (!clinicId) {
+          const message = "Select a clinic to continue";
+          form.setError("root", { type: "manual", message });
+          showUserFacingErrorToast(null, message, "form");
+          return;
+        }
+
         const payload = createPatientRequestSchema.parse({
           ...data,
-          clinicId: clinicId || "default-clinic-id",
+          clinicId,
         });
 
         await createPatient(payload);

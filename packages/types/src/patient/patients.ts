@@ -58,16 +58,18 @@ export type ComprehensiveVitals = z.infer<typeof comprehensiveVitalsSchema>;
 export const patientSchema = z.object({
   id: z.string().optional(),
   mrn: z.string().max(50).nullable().optional(), 
-  firstName: z.string().min(1, "Enter the patient's first name.").max(100),
-  lastName: z.string().min(1, "Enter the patient's last name.").max(100),
+  firstName: z.string().min(1, "Enter the patient's first name").max(100),
+  lastName: z.string().min(1, "Enter the patient's last name").max(100),
   preferredName: z.string().max(100).nullable().optional(),
   pronouns: z.string().max(50).nullable().optional(),
-  dateOfBirth: z.string().or(z.date()),
+  dateOfBirth: z.union([z.string(), z.date()]).nullable().optional(),
   gender: genderSchema,
   phoneNumber: z
     .string()
-    .min(10, "Enter at least 10 digits.")
-    .max(20),
+    .min(10, "Enter at least 10 digits")
+    .max(20)
+    .nullable()
+    .optional(),
   email: z.string().email().max(255).nullable().optional().or(z.literal("")),
   address: z.string().max(500).nullable().optional().transform(stripHtmlTags),
   medicalHistory: z.array(z.string().max(255)).optional(),
