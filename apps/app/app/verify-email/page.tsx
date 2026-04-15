@@ -7,7 +7,6 @@ import { sanitizeUserFacingMessage } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import {
   useAuth,
-  type User,
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
 } from "@/lib/auth-context";
 import { logger } from "@/lib/logger";
@@ -17,29 +16,13 @@ import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell"
 
 type VerifyState = "loading" | "success" | "error" | "missing";
 
-function getPostVerificationPath(user: User | null): string {
-  if (user?.clinicId) {
-    return "/dashboard";
-  }
-
-  switch (user?.onboardingStep) {
-    case "JOINING_CLINIC":
-      return "/join-request-status";
-    case "CREATING_CLINIC":
-      return "/onboarding";
-    default:
-      return "/choose-path";
-  }
-}
-
 function VerifyEmailInner() {
   const searchParams = useSearchParams();
   const token = useMemo(() => searchParams.get("token"), [searchParams]);
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [state, setState] = useState<VerifyState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
-  const [refreshedUser, setRefreshedUser] = useState<User | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -64,6 +47,7 @@ function VerifyEmailInner() {
 
         if (res.ok) {
           setState("success");
+          router.replace("/verify-email/verified");
           if (typeof window !== "undefined") {
             try {
               window.sessionStorage.removeItem(
@@ -76,8 +60,7 @@ function VerifyEmailInner() {
             }
           }
           try {
-            const nextUser = await refreshUser();
-            setRefreshedUser(nextUser);
+            await refreshUser();
           } catch (refreshError) {
             logger.error("Could not refresh user after email verification", {
               refreshError,
@@ -118,10 +101,6 @@ function VerifyEmailInner() {
     router.push("/login");
   };
 
-  const handleContinue = () => {
-    router.push(getPostVerificationPath(refreshedUser ?? user));
-  };
-
   return (
     <PreDashboardShell currentStep="verify-email">
       <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -135,30 +114,9 @@ function VerifyEmailInner() {
         )}
 
         {state === "success" && (
-          <div className="space-y-6" role="status" aria-live="polite">
-            <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
-                <CheckCircle className="h-8 w-8 text-success" />
-              </div>
-            </div>
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold">Email verified</h1>
-              <p className="text-muted-foreground text-sm">
-                Your email is verified. You can continue setup when you are ready.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Button className="w-full h-11" onClick={handleContinue}>
-                Continue
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full h-11"
-                onClick={handleBackToLogin}
-              >
-                Back to login
-              </Button>
-            </div>
+          <div className="flex flex-col items-center gap-4 py-4" role="status" aria-live="polite">
+            <CheckCircle className="h-10 w-10 text-success" />
+            <p className="text-sm font-semibold text-foreground">Verified</p>
           </div>
         )}
 

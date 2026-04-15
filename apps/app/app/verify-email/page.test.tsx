@@ -92,10 +92,9 @@ describe("VerifyEmailPage", () => {
     });
 
     expect(
-      screen.getByRole("heading", { name: /email verified/i }),
+      screen.getByText(/verified/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /continue/i })).toBeInTheDocument();
-    expect(mocks.router.replace).not.toHaveBeenCalled();
+    expect(mocks.router.replace).toHaveBeenCalledWith("/verify-email/verified");
   });
 
   it("still shows verified state when refreshing the user after verification fails", async () => {
@@ -113,18 +112,11 @@ describe("VerifyEmailPage", () => {
       );
     });
 
-    expect(
-      await screen.findByRole("heading", { name: /email verified/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Your email is verified. You can continue setup when you are ready.",
-      ),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/verified/i)).toBeInTheDocument();
     expect(
       screen.queryByText(/verification failed/i),
     ).not.toBeInTheDocument();
-    expect(mocks.router.replace).not.toHaveBeenCalled();
+    expect(mocks.router.replace).toHaveBeenCalledWith("/verify-email/verified");
   });
 
   it("does not call verification when the token is missing", () => {
