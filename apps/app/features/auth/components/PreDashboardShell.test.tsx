@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PreDashboardShell } from "./PreDashboardShell";
 
@@ -92,5 +92,16 @@ describe("PreDashboardShell", () => {
     expect(
       container.querySelector('[data-testid="branding-panel"]'),
     ).not.toBeNull();
+  });
+
+  it("can hide the progress indicator", () => {
+    render(
+      <PreDashboardShell currentStep="email" showProgress={false}>
+        <div>Email step</div>
+      </PreDashboardShell>,
+    );
+
+    expect(screen.queryByText("Account setup")).not.toBeInTheDocument();
+    expect(screen.queryByText("1 / 4")).not.toBeInTheDocument();
   });
 });

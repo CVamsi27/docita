@@ -50,6 +50,11 @@ interface PreDashboardShellProps {
    * we know login vs signup). Defaults to true for all other pre-dashboard pages.
    */
   showBrandingPanel?: boolean;
+  /**
+   * When false, hides the step meta + progress bar (useful for the initial email
+   * step and existing-account login step).
+   */
+  showProgress?: boolean;
 }
 
 export function PreDashboardShell({
@@ -59,6 +64,7 @@ export function PreDashboardShell({
   contentAlignment = "center",
   showSignOut = false,
   showBrandingPanel = true,
+  showProgress = true,
 }: PreDashboardShellProps) {
   const router = useRouter();
   const { logout, user } = useAuth();
@@ -130,32 +136,33 @@ export function PreDashboardShell({
               contentAlignment === "center" ? "my-auto" : "pt-4",
             )}
           >
-            {/* Step progress indicator */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-                  {meta.label}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {stepNumber} / {TOTAL_STEPS}
-                </p>
+            {showProgress ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
+                    {meta.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {stepNumber} / {TOTAL_STEPS}
+                  </p>
+                </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={[
+                        "h-1 flex-1 rounded-full transition-all duration-500",
+                        i < meta.index
+                          ? "bg-success"
+                          : i === meta.index
+                            ? "bg-primary"
+                            : "bg-muted",
+                      ].join(" ")}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-1">
-                {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={[
-                      "h-1 flex-1 rounded-full transition-all duration-500",
-                      i < meta.index
-                        ? "bg-success"
-                        : i === meta.index
-                          ? "bg-primary"
-                          : "bg-muted",
-                    ].join(" ")}
-                  />
-                ))}
-              </div>
-            </div>
+            ) : null}
 
             {children}
           </div>
