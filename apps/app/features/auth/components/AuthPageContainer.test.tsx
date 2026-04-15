@@ -137,7 +137,7 @@ describe("AuthPageContainer", () => {
     fireEvent.change(screen.getByLabelText(/last name/i), {
       target: { value: "Doe" },
     });
-    fireEvent.change(screen.getByLabelText(/^password$/i), {
+    fireEvent.change(screen.getByLabelText(/^password/i), {
       target: { value: "Password@123" },
     });
     fireEvent.change(screen.getByLabelText(/re-enter password/i), {

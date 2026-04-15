@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { CLINIC_TYPE_LABELS, type ClinicType } from "@workspace/types";
+import { CLINIC_TYPE_OPTIONS, type ClinicType } from "@workspace/types";
 import PhoneInput from "react-phone-number-input";
 import { cn } from "@workspace/ui/lib/utils";
 import type { ClinicDetails } from "@/features/onboarding/components/types";
@@ -94,13 +94,11 @@ export function ClinicDetailsStep({
                   <SelectValue placeholder="Select clinic type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(CLINIC_TYPE_LABELS) as ClinicType[]).map(
-                    (type) => (
-                      <SelectItem key={type} value={type}>
-                        {CLINIC_TYPE_LABELS[type]}
-                      </SelectItem>
-                    ),
-                  )}
+                  {CLINIC_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {clinicForm.formState.errors.type && (
@@ -142,7 +140,7 @@ export function ClinicDetailsStep({
               <PhoneInput
                 id="phone"
                 international
-                defaultCountry="IN"
+                defaultCountry={(clinicForm.watch("countryCode") as never) ?? "IN"}
                 placeholder="Enter phone number"
                 value={clinicForm.watch("phone") ?? ""}
                 onChange={(value) =>
@@ -152,6 +150,14 @@ export function ClinicDetailsStep({
                     shouldValidate: true,
                   })
                 }
+                onCountryChange={(country) => {
+                  if (!country) return;
+                  clinicForm.setValue("countryCode", country.toUpperCase(), {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: false,
+                  });
+                }}
                 className={cn(
                   "flex h-11 items-center rounded-xl border border-input bg-background/50 px-3 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-within:ring-2 focus-within:ring-ring/50",
                   "[&_.PhoneInputCountry]:mr-2 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:items-center [&_.PhoneInputCountrySelect]:bg-transparent [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground",

@@ -6,7 +6,7 @@ import { Lock, Shield } from "lucide-react";
 import { useAuth, type User } from "@/lib/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
 import { ApiValidationError } from "@/lib/api-error";
-import { checkEmailSchema, getUserFacingErrorMessage } from "@workspace/types";
+import { checkEmailSchema, getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
@@ -111,6 +111,7 @@ export function AuthPageContainer() {
 
   const handlePasswordChange = (value: string) => {
     setPassword(value);
+    clearFieldError("password");
     clearFieldError("confirmPassword");
   };
 
@@ -194,6 +195,12 @@ export function AuthPageContainer() {
 
     const nextFieldErrors: FieldErrors = {};
 
+    const passwordValidation = passwordSchema.safeParse(password);
+    if (!passwordValidation.success) {
+      const firstIssue = passwordValidation.error.issues[0];
+      nextFieldErrors.password = firstIssue?.message ?? "Enter a valid password";
+    }
+
     if (!confirmPassword) {
       nextFieldErrors.confirmPassword = "Please re-enter your password";
     } else if (password !== confirmPassword) {
@@ -231,7 +238,12 @@ export function AuthPageContainer() {
   };
 
   const handleForgotPassword = () => {
-    router.push("/forgot-password");
+    const normalizedEmail = email.trim();
+    router.push(
+      normalizedEmail
+        ? `/forgot-password?email=${encodeURIComponent(normalizedEmail)}`
+        : "/forgot-password",
+    );
   };
 
   const handleBack = () => {

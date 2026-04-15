@@ -43,7 +43,7 @@ describe("AuthSignupStepUI", () => {
     expect(
       screen.getByRole("button", { name: "Create Account" }),
     ).toBeDisabled();
-    expect(screen.getByLabelText("Re-enter Password")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Re-enter Password/i)).toBeInTheDocument();
     expect(screen.getByText("Recommended")).toBeInTheDocument();
   });
 

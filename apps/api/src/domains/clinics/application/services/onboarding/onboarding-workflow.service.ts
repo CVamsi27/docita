@@ -123,6 +123,7 @@ export class OnboardingWorkflowService {
         referralCode,
         settings: {
           dataResidency: clinicData.dataResidency || 'IN',
+          operatingCountryCode: clinicData.countryCode || 'IN',
           gstin: clinicData.gstin || undefined,
           privacyComplianceVersion: '1.0',
           onboardedAt: new Date().toISOString(),

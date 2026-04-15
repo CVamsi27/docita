@@ -164,8 +164,13 @@ export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
   GYNECOLOGY: "Gynecology Clinic",
   OPHTHALMOLOGY: "Eye Care Center",
   PSYCHIATRY: "Mental Health Clinic",
-  SPECIALTY: "Other",
+  SPECIALTY: "Others",
 };
+
+export const CLINIC_TYPE_OPTIONS = clinicTypeSchema.options.map((value) => ({
+  value,
+  label: CLINIC_TYPE_LABELS[value],
+}));
 
 export interface ClinicTypeFeatures {
   chiefComplaint: boolean;

@@ -6,6 +6,12 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Loader2, MapPin } from "lucide-react";
+import {
+  Autocomplete,
+  GoogleMap,
+  Marker,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 import { MapContainer, TileLayer, CircleMarker, useMapEvents } from "react-leaflet";
 import styles from "./clinic-address-picker-dialog.module.css";
 import type { LeafletMouseEvent, LatLngExpression } from "leaflet";
@@ -13,6 +19,7 @@ import type { LeafletMouseEvent, LatLngExpression } from "leaflet";
 type LatLng = { lat: number; lng: number };
 
 const DEFAULT_CENTER: LatLng = { lat: 20.5937, lng: 78.9629 }; // India
+const GOOGLE_LIBRARIES = ["places"] as const;
 
 function ClickToPick({
   onPick,
@@ -47,6 +54,17 @@ async function reverseGeocodeOSM(position: LatLng): Promise<string | null> {
   return data.display_name?.trim() || null;
 }
 
+async function reverseGeocodeGoogle(position: LatLng): Promise<string | null> {
+  if (typeof window === "undefined" || !window.google?.maps?.Geocoder) {
+    return null;
+  }
+
+  const geocoder = new window.google.maps.Geocoder();
+  const result = await geocoder.geocode({ location: position });
+  const first = result.results?.[0];
+  return first?.formatted_address?.trim() || null;
+}
+
 export function ClinicAddressPickerDialog({
   open,
   onOpenChange,
@@ -61,6 +79,17 @@ export function ClinicAddressPickerDialog({
   const [picked, setPicked] = useState<LatLng | null>(null);
   const [resolvedAddress, setResolvedAddress] = useState<string>("");
   const [isResolving, setIsResolving] = useState(false);
+  const [autocomplete, setAutocomplete] =
+    useState<google.maps.places.Autocomplete | null>(null);
+
+  const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const hasGoogleKey = Boolean(googleKey.trim());
+  const { isLoaded: isGoogleLoaded, loadError: googleLoadError } =
+    useJsApiLoader({
+      id: "google-maps-script",
+      googleMapsApiKey: hasGoogleKey ? googleKey : "",
+      libraries: GOOGLE_LIBRARIES as unknown as ("places")[],
+    });
 
   const addressValue = resolvedAddress || initialAddress;
 
@@ -69,6 +98,21 @@ export function ClinicAddressPickerDialog({
     setIsResolving(true);
     try {
       const display = await reverseGeocodeOSM(pos);
+      if (display) {
+        setResolvedAddress(display);
+      } else {
+        setResolvedAddress("");
+      }
+    } finally {
+      setIsResolving(false);
+    }
+  }, []);
+
+  const handlePickWithGoogle = useCallback(async (pos: LatLng) => {
+    setPicked(pos);
+    setIsResolving(true);
+    try {
+      const display = await reverseGeocodeGoogle(pos);
       if (display) {
         setResolvedAddress(display);
       } else {
@@ -97,26 +141,94 @@ export function ClinicAddressPickerDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className={styles.mapRoot}>
-            <MapContainer
-              center={centerExpression}
-              zoom={picked ? 16 : 5}
-              scrollWheelZoom
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <ClickToPick onPick={handlePick} />
-              {picked ? (
-                <CircleMarker
-                  center={[picked.lat, picked.lng]}
-                  radius={10}
-                  pathOptions={{ color: "#0f766e", fillColor: "#0f766e", fillOpacity: 0.25 }}
+          {hasGoogleKey ? (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="google-place-search">Search address</Label>
+                <Autocomplete
+                  onLoad={(instance) => setAutocomplete(instance)}
+                  onPlaceChanged={() => {
+                    const place = autocomplete?.getPlace();
+                    const location = place?.geometry?.location;
+                    const formatted = place?.formatted_address?.trim();
+                    if (!location) return;
+                    const pos = { lat: location.lat(), lng: location.lng() };
+                    setPicked(pos);
+                    setResolvedAddress(formatted ?? "");
+                  }}
+                >
+                  <Input
+                    id="google-place-search"
+                    placeholder="Search for your clinic location"
+                    className="h-11"
+                  />
+                </Autocomplete>
+                <p className="text-xs text-muted-foreground">
+                  Search, then fine-tune by clicking the map.
+                </p>
+              </div>
+
+              <div className={styles.mapRoot}>
+                {googleLoadError ? (
+                  <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
+                    Google Maps failed to load. Please try again, or enter the
+                    address manually.
+                  </div>
+                ) : !isGoogleLoaded ? (
+                  <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading map...
+                  </div>
+                ) : (
+                  <GoogleMap
+                    mapContainerClassName={styles.mapRoot}
+                    center={center}
+                    zoom={picked ? 16 : 5}
+                    options={{
+                      fullscreenControl: false,
+                      mapTypeControl: false,
+                      streetViewControl: false,
+                    }}
+                    onClick={(e) => {
+                      const lat = e.latLng?.lat();
+                      const lng = e.latLng?.lng();
+                      if (typeof lat !== "number" || typeof lng !== "number") {
+                        return;
+                      }
+                      void handlePickWithGoogle({ lat, lng });
+                    }}
+                  >
+                    {picked ? <Marker position={picked} /> : null}
+                  </GoogleMap>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.mapRoot}>
+              <MapContainer
+                center={centerExpression}
+                zoom={picked ? 16 : 5}
+                scrollWheelZoom
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-              ) : null}
-            </MapContainer>
-          </div>
+                <ClickToPick onPick={handlePick} />
+                {picked ? (
+                  <CircleMarker
+                    center={[picked.lat, picked.lng]}
+                    radius={10}
+                    pathOptions={{
+                      color: "#0f766e",
+                      fillColor: "#0f766e",
+                      fillOpacity: 0.25,
+                    }}
+                  />
+                ) : null}
+              </MapContainer>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div className="space-y-2">

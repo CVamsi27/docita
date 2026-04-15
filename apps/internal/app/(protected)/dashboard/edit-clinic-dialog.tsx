@@ -14,8 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import PhoneInput from "react-phone-number-input";
 import { toast } from "sonner";
-import { TIER_INFO, type TierName } from "@workspace/types";
+import { CLINIC_TYPE_OPTIONS, type ClinicType, TIER_INFO, type TierName } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const AVAILABLE_TIERS: TierName[] = [
@@ -25,61 +26,19 @@ const AVAILABLE_TIERS: TierName[] = [
   "ENTERPRISE",
 ];
 
-const CLINIC_TYPES = [
-  {
-    value: "GENERAL",
-    label: "General Medicine",
-    description: "Multi-specialty clinic",
-  },
-  {
-    value: "DENTAL",
-    label: "Dental Clinic",
-    description: "Dentistry & Orthodontics",
-  },
-  {
-    value: "PEDIATRIC",
-    label: "Pediatric Clinic",
-    description: "Child Health",
-  },
-  {
-    value: "ORTHOPEDIC",
-    label: "Orthopedic Clinic",
-    description: "Bone & Joint Specialist",
-  },
-  {
-    value: "CARDIOLOGY",
-    label: "Cardiology Clinic",
-    description: "Heart Specialist",
-  },
-  {
-    value: "DERMATOLOGY",
-    label: "Dermatology Clinic",
-    description: "Skin Care",
-  },
-  { value: "ENT", label: "ENT Clinic", description: "Ear, Nose & Throat" },
-  {
-    value: "GYNECOLOGY",
-    label: "Gynecology Clinic",
-    description: "Women's Health",
-  },
-  {
-    value: "OPHTHALMOLOGY",
-    label: "Ophthalmology Clinic",
-    description: "Eye Care",
-  },
-  {
-    value: "PSYCHIATRY",
-    label: "Psychiatry Clinic",
-    description: "Mental Health",
-  },
-  {
-    value: "SPECIALTY",
-    label: "Other Specialty",
-    description: "Custom specialty clinic",
-  },
-] as const;
-
-type ClinicType = (typeof CLINIC_TYPES)[number]["value"];
+const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
+  GENERAL: "Multi-specialty clinic",
+  DENTAL: "Dentistry & Orthodontics",
+  PEDIATRIC: "Child Health",
+  ORTHOPEDIC: "Bone & Joint Specialist",
+  CARDIOLOGY: "Heart Specialist",
+  DERMATOLOGY: "Skin Care",
+  ENT: "Ear, Nose & Throat",
+  GYNECOLOGY: "Women's Health",
+  OPHTHALMOLOGY: "Eye Care",
+  PSYCHIATRY: "Mental Health",
+  SPECIALTY: "Custom specialty clinic",
+};
 
 function normalizeTierName(tier: string): TierName {
   const legacyMapping: Record<string, TierName> = {
@@ -275,15 +234,19 @@ export function EditClinicDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-phone">Phone</Label>
-                <Input
+                <PhoneInput
                   id="edit-phone"
                   value={formData.phone}
-                  onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value });
+                  international
+                  defaultCountry="IN"
+                  onChange={(value: string | undefined) => {
+                    setFormData({ ...formData, phone: value ?? "" });
                     if (fieldErrors.phone) {
                       setFieldErrors((prev) => ({ ...prev, phone: undefined }));
                     }
                   }}
+                  placeholder="Enter phone number"
+                  className="flex h-10 items-center rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 [&_.PhoneInputCountry]:mr-2 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:items-center [&_.PhoneInputCountrySelect]:bg-transparent [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={
                     fieldErrors.phone ? "edit-clinic-phone-error" : undefined
@@ -332,13 +295,15 @@ export function EditClinicDialog({
                   <SelectValue placeholder="Select clinic type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLINIC_TYPES.map((type) => (
+                  {CLINIC_TYPE_OPTIONS.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       <div className="flex flex-col">
                         <span className="font-medium">{type.label}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {type.description}
-                        </span>
+                        {CLINIC_TYPE_DESCRIPTIONS[type.value] ? (
+                          <span className="text-xs text-muted-foreground">
+                            {CLINIC_TYPE_DESCRIPTIONS[type.value]}
+                          </span>
+                        ) : null}
                       </div>
                     </SelectItem>
                   ))}

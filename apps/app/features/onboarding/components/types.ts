@@ -8,6 +8,12 @@ export const clinicDetailsSchema = z.object({
   phone: z.string().min(10, "Enter at least 10 digits"),
   address: z.string().min(5, "Enter the clinic address"),
   type: clinicTypeSchema,
+  countryCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2}$/, "Choose a valid country")
+    .optional(),
   website: z.string().url().optional().or(z.literal("")),
   gstin: z
     .string()

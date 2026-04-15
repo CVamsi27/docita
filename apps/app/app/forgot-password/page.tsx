@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,12 +21,18 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
+  const searchParams = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
+  const prefillEmail = useMemo(() => {
+    const raw = searchParams.get("email");
+    return typeof raw === "string" ? raw.trim() : "";
+  }, [searchParams]);
+
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: "" },
+    defaultValues: { email: prefillEmail },
   });
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {

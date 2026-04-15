@@ -51,7 +51,7 @@ export class PatientService {
     id: string,
     data: PatientDomainUpdateInput,
     clinicId?: string,
-  ): Promise<void> {
+  ): Promise<Patient> {
     const patient = await this.getPatient(id, clinicId);
 
     if (data.email !== undefined || data.phoneNumber !== undefined) {
@@ -59,5 +59,10 @@ export class PatientService {
     }
 
     await this.patientRepository.update(patient);
+    const updated = await this.patientRepository.findById(id);
+    if (!updated) {
+      throw new NotFoundException(`Patient with ID ${id} not found`);
+    }
+    return updated;
   }
 }

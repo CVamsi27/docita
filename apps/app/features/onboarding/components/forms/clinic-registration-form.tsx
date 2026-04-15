@@ -119,6 +119,7 @@ export function ClinicRegistrationForm({
       email: "",
       phone: "",
       address: "",
+      countryCode: "IN",
       website: "",
       gstin: "",
       ...(formData.clinicDetails as Partial<ClinicDetails>),

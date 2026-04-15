@@ -175,63 +175,75 @@ export function TeamInviteStep({
             <div
               key={index}
               className={cn(
-                "relative grid gap-4 rounded-lg border p-4",
-                "md:grid-cols-2",
+                "grid gap-4 rounded-lg border p-4",
               )}
             >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeMember(index)}
-                disabled={members.length === 1}
-                className="absolute right-2 top-2 h-9 w-9 text-muted-foreground hover:text-destructive"
-                aria-label="Remove member"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-
-              <div className="space-y-2">
-                <Label htmlFor={`email-${index}`}>Email</Label>
-                <Input
-                  id={`email-${index}`}
-                  type="email"
-                  placeholder="Enter member email address"
-                  value={member.email}
-                  onChange={(e) => updateMember(index, "email", e.target.value)}
-                  className={emailErrors[index] ? "border-destructive" : ""}
-                  aria-invalid={!!emailErrors[index]}
-                />
-                {emailErrors[index] && (
-                  <p className="text-xs text-destructive">{emailErrors[index]}</p>
-                )}
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-foreground">
+                  Member {index + 1}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeMember(index)}
+                  disabled={members.length === 1}
+                  className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
+                  aria-label="Remove member"
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Remove
+                </Button>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor={`role-${index}`}>Role</Label>
-                <Select
-                  value={member.role}
-                  onValueChange={(v) =>
-                    updateMember(index, "role", v as TeamMember["role"])
-                  }
-                >
-                  <SelectTrigger id={`role-${index}`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  {
-                    ROLE_OPTIONS.find((option) => option.value === member.role)
-                      ?.description
-                  }
-                </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor={`email-${index}`}>Email</Label>
+                  <Input
+                    id={`email-${index}`}
+                    type="email"
+                    placeholder="Enter member email address"
+                    value={member.email}
+                    onChange={(e) =>
+                      updateMember(index, "email", e.target.value)
+                    }
+                    className={emailErrors[index] ? "border-destructive" : ""}
+                    aria-invalid={!!emailErrors[index]}
+                  />
+                  {emailErrors[index] && (
+                    <p className="text-xs text-destructive">
+                      {emailErrors[index]}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`role-${index}`}>Role</Label>
+                  <Select
+                    value={member.role}
+                    onValueChange={(v) =>
+                      updateMember(index, "role", v as TeamMember["role"])
+                    }
+                  >
+                    <SelectTrigger id={`role-${index}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {
+                      ROLE_OPTIONS.find(
+                        (option) => option.value === member.role,
+                      )?.description
+                    }
+                  </p>
+                </div>
               </div>
             </div>
           ))}

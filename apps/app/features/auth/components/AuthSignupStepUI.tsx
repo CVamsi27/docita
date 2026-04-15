@@ -124,7 +124,10 @@ export function AuthSignupStepUI({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="signup-password">Password</Label>
+          <Label htmlFor="signup-password">
+            Password
+            <span className="text-destructive ml-0.5">*</span>
+          </Label>
           <div className="relative">
             <Input
               id="signup-password"
@@ -175,7 +178,10 @@ export function AuthSignupStepUI({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="signup-confirm-password">Re-enter Password</Label>
+          <Label htmlFor="signup-confirm-password">
+            Re-enter Password
+            <span className="text-destructive ml-0.5">*</span>
+          </Label>
           <div className="relative">
             <Input
               id="signup-confirm-password"

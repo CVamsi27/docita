@@ -9,6 +9,7 @@ import {
   createPrescriptionRequestSchema,
 } from "../contracts/prescriptions";
 import { createLabTestRequestSchema } from "../contracts/lab-tests";
+import { clinicTypeSchema } from "../shared/users";
 
 export const IdSchema = z.string().uuid("Enter a valid ID.");
 export const EmailSchema = z
@@ -116,7 +117,7 @@ export const CreateClinicSchema = z.object({
   state: z.string().min(1),
   postalCode: z.string(),
   country: z.string(),
-  clinicType: z.enum(["GENERAL", "DENTAL", "CARDIOLOGY", "PEDIATRIC"]),
+  clinicType: clinicTypeSchema,
   licenseNumber: z.string().optional(),
   registrationNumber: z.string().optional(),
 });

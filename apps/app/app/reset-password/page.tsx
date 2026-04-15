@@ -12,17 +12,12 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
 const resetPasswordSchema = z
   .object({
-    newPassword: z
-      .string()
-      .min(8, "Use at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+    newPassword: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

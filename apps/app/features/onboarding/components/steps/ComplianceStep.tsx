@@ -38,6 +38,7 @@ import { toAbsoluteAppUrl } from "@/lib/url";
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
 import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import Image from "next/image";
 
 type LegalDocumentType = "sla" | "privacy" | "dpa";
 interface ComplianceStepProps {
@@ -274,6 +275,8 @@ export function ComplianceStep({
   const signatureSessionId = complianceForm.watch("slaSignatureSessionId");
   const hasSignatureSession = Boolean(signatureSessionId);
   const hasOnboardingContext = Boolean(onboardingId || ensureOnboardingId);
+  const [signatureFileUrl, setSignatureFileUrl] = useState<string | null>(null);
+  const [signaturePreviewLoading, setSignaturePreviewLoading] = useState(false);
 
   const fetchQrSessionStatus = useCallback(
     async (activeOnboardingId: string, sessionId: string): Promise<boolean> => {
@@ -377,6 +380,83 @@ export function ComplianceStep({
   });
   const refreshQrStatus = qrFlow.refreshStatus;
   const copyQrLink = qrFlow.copyLink;
+
+  const resolveOnboardingId = useCallback(async (): Promise<string | null> => {
+    if (ensureOnboardingId) {
+      return await ensureOnboardingId();
+    }
+    return onboardingId ?? null;
+  }, [ensureOnboardingId, onboardingId]);
+
+  const fetchSignaturePreview = useCallback(
+    async (activeOnboardingId: string, sessionId: string) => {
+      setSignaturePreviewLoading(true);
+      try {
+        const data = await apiFetch<QrSessionStatusResponse>(
+          `/onboarding/${activeOnboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+
+        if (data.fileUrl) {
+          setSignatureFileUrl(data.fileUrl);
+        } else {
+          setSignatureFileUrl(null);
+        }
+      } catch {
+        setSignatureFileUrl(null);
+      } finally {
+        setSignaturePreviewLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!hasOnboardingContext) return;
+    if (!signatureSessionId) {
+      setSignatureFileUrl(null);
+      return;
+    }
+
+    // If we already have a file URL, don't refetch unless the session id changes.
+    if (signatureFileUrl) return;
+
+    let cancelled = false;
+    const run = async () => {
+      const activeOnboardingId = await resolveOnboardingId();
+      if (!activeOnboardingId || cancelled) return;
+      await fetchSignaturePreview(activeOnboardingId, signatureSessionId);
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    fetchSignaturePreview,
+    hasOnboardingContext,
+    resolveOnboardingId,
+    signatureFileUrl,
+    signatureSessionId,
+  ]);
+
+  const handleResign = useCallback(async () => {
+    setSignatureFileUrl(null);
+    complianceForm.setValue("slaSignatureSessionId", "", {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    try {
+      await qrFlow.retrySession();
+    } catch {
+      showUserFacingErrorToast(
+        "We could not restart the signature link. Please try again.",
+      );
+    }
+  }, [complianceForm, qrFlow, setSignatureFileUrl]);
 
   const handleManualStatusRefresh = useCallback(async () => {
     try {
@@ -500,6 +580,45 @@ export function ComplianceStep({
               successTitle="Signature received from your phone"
               successDescription="Your signature has been saved successfully"
             />
+            {qrFlow.isUploaded ? (
+              <div className="rounded-lg border bg-card p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium">Signature preview</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => {
+                      void handleResign();
+                    }}
+                  >
+                    Edit / Re-sign
+                  </Button>
+                </div>
+                {signaturePreviewLoading ? (
+                  <p className="text-xs text-muted-foreground">
+                    Loading signature preview...
+                  </p>
+                ) : signatureFileUrl ? (
+                  <div className="rounded-md border bg-white p-3">
+                    <Image
+                      src={signatureFileUrl}
+                      alt="SLA signature preview"
+                      width={700}
+                      height={260}
+                      className="h-auto w-full max-w-full"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    We received your signature, but the preview is not available
+                    yet. You can continue, or re-sync to try again.
+                  </p>
+                )}
+              </div>
+            ) : null}
             {complianceForm.formState.errors.slaSignatureSessionId && (
               <p className="text-sm text-destructive">
                 {complianceForm.formState.errors.slaSignatureSessionId.message}
