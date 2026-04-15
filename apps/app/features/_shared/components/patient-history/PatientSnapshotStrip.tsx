@@ -4,10 +4,13 @@ import { Badge } from "@workspace/ui/components/badge";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card";
-import { Activity, AlertTriangle, Heart, Pill } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import { AlertCircle, AlertTriangle, Heart, Pill } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { PatientSnapshot } from "@workspace/types";
 
@@ -99,148 +102,174 @@ export function PatientSnapshotStrip({
   }
 
   return (
-    <div
-      className={cn(
-        "grid gap-3",
-        showVitals && latestVitals
-          ? "grid-cols-2 lg:grid-cols-4"
-          : "grid-cols-1 sm:grid-cols-3",
-      )}
-    >
-      <Card>
-        <CardHeader className="p-3 pb-1">
-          <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-            <Activity className="h-3.5 w-3.5" />
-            Conditions
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-1">
-          {activeConditions.length === 0 ? (
-            <p className="text-xs text-muted-foreground">None recorded</p>
-          ) : (
-            <div className="flex flex-wrap gap-1">
-              {activeConditions.slice(0, 4).map((c) => (
-                <Badge key={c.id} variant="secondary" className="text-xs h-5">
-                  {c.conditionName}
-                </Badge>
-              ))}
-              {activeConditions.length > 4 && (
-                <Badge variant="outline" className="text-xs h-5">
-                  +{activeConditions.length - 4}
-                </Badge>
-              )}
+    <Card>
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Clinical Snapshot
+              </p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center text-muted-foreground hover:text-foreground"
+                    aria-label="What is this?"
+                  >
+                    <AlertCircle className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Updated from active conditions, allergies, medications, and the latest recorded
+                  vitals.
+                </TooltipContent>
+              </Tooltip>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="p-3 pb-1">
-          <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-            <AlertTriangle className="h-3.5 w-3.5" />
-            Allergies
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-1">
-          {activeAllergies.length === 0 ? (
-            <p className="text-xs text-muted-foreground">None recorded</p>
-          ) : (
-            <div className="flex flex-wrap gap-1">
-              {activeAllergies.slice(0, 4).map((a) => (
-                <span
-                  key={a.id}
-                  className={cn(
-                    "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
-                    ALLERGY_SEVERITY_COLOR[a.severity] ?? "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {a.allergen}
-                </span>
-              ))}
-              {activeAllergies.length > 4 && (
-                <Badge variant="outline" className="text-xs h-5">
-                  +{activeAllergies.length - 4}
-                </Badge>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="p-3 pb-1">
-          <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-            <Pill className="h-3.5 w-3.5" />
-            Current Medications
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-1 space-y-1">
-          {activeMedications.length === 0 ? (
-            <p className="text-xs text-muted-foreground">None active</p>
-          ) : (
-            activeMedications.slice(0, 3).map((m) => (
-              <div key={m.medicationId} className="min-w-0">
-                <p className="text-xs font-medium truncate">{m.name}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {m.dosage} &middot; {m.frequency}
-                  {m.isPRN && " (PRN)"}
-                </p>
-              </div>
-            ))
-          )}
-          {activeMedications.length > 3 && (
-            <p className="text-xs text-muted-foreground">
-              +{activeMedications.length - 3} more
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Quick view of key clinical details for this patient.
             </p>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+          {showVitals && latestVitals?.recordedAt ? (
+            <p className="text-[11px] text-muted-foreground shrink-0">
+              Vitals as of {new Date(latestVitals.recordedAt).toLocaleDateString()}
+            </p>
+          ) : null}
+        </div>
 
-      {showVitals && (
-        <Card>
-          <CardHeader className="p-3 pb-1">
-            <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+        <div
+          className={cn(
+            "mt-3 grid gap-2",
+            showVitals ? "grid-cols-1 md:grid-cols-4" : "grid-cols-1 md:grid-cols-3",
+          )}
+        >
+          <div className="rounded-md border bg-muted/20 px-2.5 py-2">
+            <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
               <Heart className="h-3.5 w-3.5" />
-              Latest Vitals
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-1">
-            {!latestVitals ? (
-              <p className="text-xs text-muted-foreground">No vitals recorded</p>
-            ) : (
-              <div className="space-y-0.5">
-                {latestVitals.systolicBP && latestVitals.diastolicBP && (
-                  <p className="text-xs">
-                    <span className="text-muted-foreground">BP: </span>
-                    {latestVitals.systolicBP}/{latestVitals.diastolicBP} mmHg
-                  </p>
-                )}
-                {latestVitals.pulse && (
-                  <p className="text-xs">
-                    <span className="text-muted-foreground">HR: </span>
-                    {latestVitals.pulse} bpm
-                  </p>
-                )}
-                {latestVitals.temperature && (
-                  <p className="text-xs">
-                    <span className="text-muted-foreground">Temp: </span>
-                    {latestVitals.temperature}&deg;C
-                  </p>
-                )}
-                {latestVitals.spo2 && (
-                  <p className="text-xs">
-                    <span className="text-muted-foreground">SpO2: </span>
-                    {latestVitals.spo2}%
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(latestVitals.recordedAt).toLocaleDateString()}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+              Conditions
+            </p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {activeConditions.length === 0 ? (
+                <span className="text-xs text-muted-foreground">None recorded</span>
+              ) : (
+                <>
+                  {activeConditions.slice(0, 4).map((c) => (
+                    <Badge key={c.id} variant="secondary" className="text-xs h-5">
+                      {c.conditionName}
+                    </Badge>
+                  ))}
+                  {activeConditions.length > 4 && (
+                    <Badge variant="outline" className="text-xs h-5">
+                      +{activeConditions.length - 4}
+                    </Badge>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-md border bg-muted/20 px-2.5 py-2">
+            <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Allergies
+            </p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {activeAllergies.length === 0 ? (
+                <span className="text-xs text-muted-foreground">No known allergies</span>
+              ) : (
+                <>
+                  {activeAllergies.slice(0, 4).map((a) => (
+                    <span
+                      key={a.id}
+                      className={cn(
+                        "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
+                        ALLERGY_SEVERITY_COLOR[a.severity] ??
+                          "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {a.allergen}
+                    </span>
+                  ))}
+                  {activeAllergies.length > 4 && (
+                    <Badge variant="outline" className="text-xs h-5">
+                      +{activeAllergies.length - 4}
+                    </Badge>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-md border bg-muted/20 px-2.5 py-2">
+            <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+              <Pill className="h-3.5 w-3.5" />
+              Current Medications
+            </p>
+            <div className="mt-1 space-y-0.5">
+              {activeMedications.length === 0 ? (
+                <span className="text-xs text-muted-foreground">None active</span>
+              ) : (
+                <>
+                  {activeMedications.slice(0, 2).map((m) => (
+                    <div key={m.medicationId} className="min-w-0">
+                      <p className="text-xs font-medium truncate">{m.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {m.dosage}
+                        {m.frequency ? ` · ${m.frequency}` : ""}
+                        {m.isPRN && " (PRN)"}
+                      </p>
+                    </div>
+                  ))}
+                  {activeMedications.length > 2 && (
+                    <p className="text-xs text-muted-foreground">
+                      +{activeMedications.length - 2} more
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {showVitals && (
+            <div className="rounded-md border bg-muted/20 px-2.5 py-2">
+              <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                <Heart className="h-3.5 w-3.5" />
+                Latest Vitals
+              </p>
+              {!latestVitals ? (
+                <p className="mt-1 text-xs text-muted-foreground">No vitals recorded</p>
+              ) : (
+                <div className="mt-1 space-y-0.5">
+                  {latestVitals.systolicBP && latestVitals.diastolicBP && (
+                    <p className="text-xs">
+                      <span className="text-muted-foreground">BP: </span>
+                      {latestVitals.systolicBP}/{latestVitals.diastolicBP} mmHg
+                    </p>
+                  )}
+                  {latestVitals.pulse && (
+                    <p className="text-xs">
+                      <span className="text-muted-foreground">HR: </span>
+                      {latestVitals.pulse} bpm
+                    </p>
+                  )}
+                  {latestVitals.temperature && (
+                    <p className="text-xs">
+                      <span className="text-muted-foreground">Temp: </span>
+                      {latestVitals.temperature}&deg;C
+                    </p>
+                  )}
+                  {latestVitals.spo2 && (
+                    <p className="text-xs">
+                      <span className="text-muted-foreground">SpO2: </span>
+                      {latestVitals.spo2}%
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

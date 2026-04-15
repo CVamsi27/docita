@@ -22,7 +22,6 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
-import { format } from "date-fns";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";
@@ -155,26 +154,13 @@ export function PatientsPageUI({
                       <SortIcon column="gender" />
                     </div>
                   </TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    Blood Group
-                  </TableHead>
-                  <TableHead
-                    className="hidden md:table-cell cursor-pointer transition-colors hover:bg-muted/50"
-                    onClick={() => onSort("updatedAt")}
-                    aria-sort={getAriaSort("updatedAt")}
-                  >
-                    <div className="flex items-center">
-                      Last Updated
-                      <SortIcon column="updatedAt" />
-                    </div>
-                  </TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24">
+                    <TableCell colSpan={5} className="h-24">
                       <div className="space-y-2 px-4">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-2/3" />
@@ -184,7 +170,7 @@ export function PatientsPageUI({
                 ) : filteredPatients.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={5}
                       className="h-24 text-center text-muted-foreground"
                     >
                       {searchQuery
@@ -238,22 +224,6 @@ export function PatientsPageUI({
                         </TableCell>
                         <TableCell className="hidden sm:table-cell capitalize">
                           {patient.gender}
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          {patient.bloodGroup ? (
-                            <span className="font-medium">
-                              {patient.bloodGroup}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              --
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {patient.updatedAt
-                            ? format(new Date(patient.updatedAt), "MMM d, yyyy")
-                            : "-"}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1.5">

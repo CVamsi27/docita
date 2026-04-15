@@ -6,6 +6,7 @@ export const MedicalDocumentTypeSchema = z.enum([
   'DISCHARGE_SUMMARY',
   'REFERRAL_LETTER',
   'SICK_NOTE',
+  'OTHER',
 ]);
 
 export const MedicalDocumentStatusSchema = z.enum(['DRAFT', 'SIGNED', 'REVOKED']);

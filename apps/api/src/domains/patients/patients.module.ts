@@ -9,6 +9,7 @@ import { MedicalHistoryService } from './application/services/medical-history.se
 import { PatientMetricsService } from './application/services/patientMetrics.service';
 import { MedicationDoseService } from './application/services/medication-dose.service';
 import { PatientTimelineService } from './application/services/patient-timeline.service';
+import { PatientTagsService } from './application/services/patient-tags.service';
 import { PrismaPatientRepository } from './infrastructure/persistence/prisma-patient.repository';
 import { PrismaMedicationDoseRepository } from './infrastructure/persistence/prisma-medication-dose.repository';
 import { PrismaPatientTimelineRepository } from './infrastructure/persistence/prisma-patient-timeline.repository';
@@ -22,11 +23,13 @@ import { AiModule } from '@/shared/modules/ai-core/ai.module';
 import { MEDICATION_DOSE_REPOSITORY_TOKEN } from './core/repositories/medication-dose.repository.interface';
 import { PATIENT_TIMELINE_REPOSITORY_TOKEN } from './core/repositories/patient-timeline.repository.interface';
 import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-metrics.repository.interface';
+import { PatientTagsController } from './presentation/controllers/patient-tags.controller';
 
 @Module({
   imports: [PrismaModule, AuthModule, AuditModule, AiModule],
   controllers: [
     PatientsController,
+    PatientTagsController,
     MedicalHistoryController,
     PatientMetricsController,
     MedicationDoseController,
@@ -34,6 +37,7 @@ import { PATIENT_METRICS_REPOSITORY_TOKEN } from './core/repositories/patient-me
   ],
   providers: [
     PatientService,
+    PatientTagsService,
     MedicalHistoryService,
     PatientMetricsService,
     MedicationDoseService,

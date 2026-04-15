@@ -3124,6 +3124,7 @@ enum MedicalDocumentType {
   DISCHARGE_SUMMARY
   REFERRAL_LETTER
   SICK_NOTE
+  OTHER
 }
 
 enum MedicalDocumentStatus {

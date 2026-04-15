@@ -9,6 +9,19 @@ export const patientTagSchema = z.object({
 });
 export type PatientTag = z.infer<typeof patientTagSchema>;
 
+export const createPatientTagRequestSchema = z.object({
+  tag: z.string().min(1).max(50),
+  color: z.string().min(1).max(32),
+});
+export type CreatePatientTagRequest = z.infer<
+  typeof createPatientTagRequestSchema
+>;
+
+export const updatePatientTagRequestSchema = createPatientTagRequestSchema.partial();
+export type UpdatePatientTagRequest = z.infer<
+  typeof updatePatientTagRequestSchema
+>;
+
 export const isolationStatusSchema = z.enum([
   "NONE",
   "CONTACT",

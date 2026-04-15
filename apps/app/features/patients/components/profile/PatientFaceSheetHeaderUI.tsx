@@ -1,6 +1,11 @@
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import { AlertTriangle, Building2, ChevronLeft, Loader2, Phone, ShieldAlert } from "lucide-react";
 
 interface PatientFaceSheetHeaderUIProps {
@@ -67,6 +72,10 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
   } = props;
 
   const isMrnEditable = Boolean(onMrnChange && onMrnCommit);
+  const hasMedicalId = Boolean(mrn && mrn.trim().length > 0);
+  const allergiesLabel = hasAllergies
+    ? `Allergies: ${allergies ?? ""}`.trim()
+    : "No known allergies";
 
   return (
     <div className="sticky top-0 z-20 border-b bg-background/95 px-4 py-4 shadow-sm md:-mx-6 md:px-6">
@@ -118,7 +127,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
                   variant="secondary"
                   className="font-mono text-xs font-normal text-muted-foreground bg-muted/50 border-input"
                 >
-                  MRN: {mrn || "N/A"}
+                  Medical ID: {hasMedicalId ? mrn : "—"}
                 </Badge>
               )}
             </div>
@@ -160,16 +169,21 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               </Badge>
             )}
 
-            <Badge
-              variant={hasAllergies ? "destructive" : "secondary"}
-              className={`px-2.5 py-0.5 font-medium border ${
-                hasAllergies
-                  ? "badge-danger"
-                  : "badge-success"
-              }`}
-            >
-              {hasAllergies ? `Allergies: ${allergies}` : "NKA"}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant={hasAllergies ? "destructive" : "secondary"}
+                  className={`px-2.5 py-0.5 font-medium border ${
+                    hasAllergies ? "badge-danger" : "badge-success"
+                  }`}
+                >
+                  {allergiesLabel.length > 34
+                    ? `${allergiesLabel.slice(0, 33)}…`
+                    : allergiesLabel}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>{allergiesLabel}</TooltipContent>
+            </Tooltip>
           </div>
 
           {(insuranceProvider || emergencyContactName) && (

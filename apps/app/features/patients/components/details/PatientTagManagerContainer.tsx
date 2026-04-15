@@ -30,8 +30,12 @@ export function PatientTagManagerContainer({
     try {
       const data = await apiFetch<PatientTag[]>(`/patients/${patientId}/tags`);
       setTags(data);
-    } catch {
-      showUserFacingErrorToast("We could not load these tags. Please try again.");
+    } catch (err) {
+      showUserFacingErrorToast(
+        err,
+        "We could not load these tags. Please try again.",
+        "generic",
+      );
     }
   }, [patientId]);
 
@@ -56,8 +60,12 @@ export function PatientTagManagerContainer({
       setNewTag("");
       setNewColor("#3b82f6");
       onTagsUpdated?.();
-    } catch {
-      showUserFacingErrorToast("We could not add this tag. Please try again.");
+    } catch (err) {
+      showUserFacingErrorToast(
+        err,
+        "We could not add this tag. Please try again.",
+        "save",
+      );
     } finally {
       setLoading(false);
     }
@@ -72,9 +80,11 @@ export function PatientTagManagerContainer({
         method: "DELETE",
       });
       onTagsUpdated?.();
-    } catch {
+    } catch (err) {
       showUserFacingErrorToast(
+        err,
         "We could not remove this tag. Please try again.",
+        "save",
       );
       setTags(previousTags);
     }
@@ -98,9 +108,11 @@ export function PatientTagManagerContainer({
         body: JSON.stringify({ tag: newName, color: newTagColor }),
       });
       onTagsUpdated?.();
-    } catch {
+    } catch (err) {
       showUserFacingErrorToast(
+        err,
         "We could not save this tag. Please try again.",
+        "save",
       );
       setTags(previousTags);
     }

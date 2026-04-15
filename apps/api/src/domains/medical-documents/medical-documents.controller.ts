@@ -52,6 +52,7 @@ export class MedicalDocumentsController {
       validFrom?: string;
       validUntil?: string;
       doctorId: string;
+      pdfUrl?: string;
     },
   ) {
     const clinicId = this.getClinicId(req);

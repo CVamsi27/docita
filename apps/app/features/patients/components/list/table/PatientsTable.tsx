@@ -22,7 +22,6 @@ import {
   FileText,
   Pencil,
 } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 
 interface PatientsTableProps {
@@ -85,16 +84,6 @@ export function PatientsTable({
                   <SortIcon column="gender" />
                 </div>
               </TableHead>
-              <TableHead className="hidden md:table-cell">Blood Group</TableHead>
-              <TableHead
-                className="hidden md:table-cell cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => onSort("updatedAt")}
-              >
-                <div className="flex items-center">
-                  Last Updated
-                  <SortIcon column="updatedAt" />
-                </div>
-              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -102,7 +91,7 @@ export function PatientsTable({
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
                   Loading patients...
@@ -111,7 +100,7 @@ export function PatientsTable({
             ) : patients.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
                   {emptyMessage}
@@ -144,18 +133,6 @@ export function PatientsTable({
                     </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell capitalize">{patient.gender}</TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {patient.bloodGroup ? (
-                      <span className="font-medium">{patient.bloodGroup}</span>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">--</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {patient.updatedAt
-                      ? format(new Date(patient.updatedAt), "MMM d, yyyy")
-                      : "-"}
-                  </TableCell>
                   <TableCell
                     className="text-right"
                     onClick={(e) => e.stopPropagation()}

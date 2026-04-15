@@ -31,6 +31,7 @@ import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useMobileUpload } from "@/features/ocr/hooks/use-mobile-upload";
 
 interface MedicalDocument {
   id: string;
@@ -41,6 +42,7 @@ interface MedicalDocument {
   signedAt?: string;
   validFrom?: string;
   validUntil?: string;
+  pdfUrl?: string | null;
 }
 
 interface Props {
@@ -59,6 +61,7 @@ const TYPE_LABELS: Record<string, string> = {
   DISCHARGE_SUMMARY: "Discharge Summary",
   REFERRAL_LETTER: "Referral Letter",
   SICK_NOTE: "Sick Note",
+  OTHER: "Others",
 };
 
 export function MedicalDocumentList({ patientId }: Props) {
@@ -68,7 +71,10 @@ export function MedicalDocumentList({ patientId }: Props) {
   const [showNew, setShowNew] = useState(false);
   const [newType, setNewType] = useState("MEDICAL_CERTIFICATE");
   const [newTitle, setNewTitle] = useState("");
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [newFileUrl, setNewFileUrl] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const { showQr, setShowQr, qrUrl, startMobileUpload } = useMobileUpload();
 
   const load = useCallback(async () => {
     try {
@@ -125,17 +131,32 @@ export function MedicalDocumentList({ patientId }: Props) {
     }
     setCreating(true);
     try {
+      let pdfUrl: string | null = null;
+      if (newFile) {
+        const session = await api.post<{ id: string }>(`/uploads/session`, {});
+        const formData = new FormData();
+        formData.append("file", newFile);
+        const uploaded = await api.post<{ fileUrl?: string | null }>(
+          `/uploads/session/${session.id}`,
+          formData,
+        );
+        pdfUrl = uploaded?.fileUrl ?? null;
+      }
+
       await api.post("/medical-documents", {
         type: newType,
         patientId,
         title: newTitle.trim(),
         content: {},
         doctorId: user?.id ?? "",
+        ...(pdfUrl ? { pdfUrl } : {}),
       });
       toast.success("Document created");
       setShowNew(false);
       setNewTitle("");
       setNewType("MEDICAL_CERTIFICATE");
+      setNewFile(null);
+      setNewFileUrl(null);
       await load();
     } catch (err) {
       logger.error("Failed to create document", { err });
@@ -194,6 +215,65 @@ export function MedicalDocumentList({ patientId }: Props) {
                 onChange={(e) => setNewTitle(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Upload (optional)</Label>
+              <Input
+                type="file"
+                accept="application/pdf,image/jpeg,image/jpg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setNewFile(file);
+                  setNewFileUrl(file ? URL.createObjectURL(file) : null);
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    void startMobileUpload((file) => {
+                      setNewFile(file);
+                      setNewFileUrl(URL.createObjectURL(file));
+                    });
+                  }}
+                >
+                  Upload from phone
+                </Button>
+                {newFile ? (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {newFile.name}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    PDF or image
+                  </p>
+                )}
+              </div>
+              {showQr && qrUrl ? (
+                <div className="rounded-md border bg-muted/20 p-2">
+                  <p className="text-xs text-muted-foreground">
+                    Scan this QR code on your phone to upload.
+                  </p>
+                  <p className="text-xs font-mono break-all mt-1">{qrUrl}</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs mt-1"
+                    onClick={() => setShowQr(false)}
+                  >
+                    Hide
+                  </Button>
+                </div>
+              ) : null}
+              {newFileUrl ? (
+                <p className="text-xs text-muted-foreground">
+                  File selected.
+                </p>
+              ) : null}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNew(false)}>
@@ -226,6 +306,15 @@ export function MedicalDocumentList({ patientId }: Props) {
                 </Badge>
               </div>
             </CardHeader>
+            {doc.pdfUrl ? (
+              <CardContent className="py-0 px-4 pb-3">
+                <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                  <a href={doc.pdfUrl} target="_blank" rel="noreferrer">
+                    View uploaded file
+                  </a>
+                </Button>
+              </CardContent>
+            ) : null}
             {doc.status === "DRAFT" && (
               <CardContent className="py-2 px-4 flex gap-2">
                 <Button

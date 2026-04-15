@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 import {
   EditPatientDialog,
   PatientFaceSheetHeaderContainer as PatientFaceSheetHeader,
@@ -50,6 +51,10 @@ import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
 
 export default function PatientDetailPage() {
   const params = useParams();
+  const [activeTab, setActiveTab] = useState<"timeline" | "records" | "documents">(
+    "timeline",
+  );
+  const [isEditingRecords, setIsEditingRecords] = useState(false);
 
   const { state, handlers } = usePatientDetailLogic(params["id"] as string);
 
@@ -162,7 +167,17 @@ export default function PatientDetailPage() {
           onPatientUpdated={() => handleRefetch()}
         />
 
-        <Tabs defaultValue="timeline" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            const next = v as "timeline" | "records" | "documents";
+            setActiveTab(next);
+            if (next !== "records") {
+              setIsEditingRecords(false);
+            }
+          }}
+          className="w-full"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="timeline" className="flex-1 sm:flex-none">
@@ -180,6 +195,15 @@ export default function PatientDetailPage() {
             </TabsList>
 
             <div className="flex items-center gap-2 self-end sm:self-auto">
+              {activeTab === "records" && (
+                <Button
+                  size="sm"
+                  variant={isEditingRecords ? "default" : "outline"}
+                  onClick={() => setIsEditingRecords((v) => !v)}
+                >
+                  {isEditingRecords ? "Editing Records" : "Edit Records"}
+                </Button>
+              )}
               <PatientTagManager patientId={patient.id!} />
             </div>
           </div>
@@ -191,7 +215,7 @@ export default function PatientDetailPage() {
           <TabsContent value="records" className="mt-0">
             <PatientMedicalHistory
               patient={patient as PatientWithHistory}
-              readOnly={true}
+              readOnly={!isEditingRecords}
               variant="consultation"
             />
           </TabsContent>

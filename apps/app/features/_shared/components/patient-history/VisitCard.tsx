@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import {
   Activity,
@@ -137,6 +138,43 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
   const primaryDiagnosis = diagnoses.find((d) => d.isPrimary) ?? diagnoses[0];
 
   const statusBadge = meta?.status as string | null | undefined;
+  const statusKey = (statusBadge ?? "").toLowerCase().replace(/_/g, "-");
+  const isFutureAppointment =
+    event.type === "APPOINTMENT" && new Date(event.date).getTime() > Date.now();
+
+  const appointmentAction = (() => {
+    if (event.type !== "APPOINTMENT" || mode !== "full") return null;
+    if (isFutureAppointment) {
+      return {
+        label: "View only",
+        href: null as string | null,
+        variant: "outline" as const,
+        disabled: true,
+      };
+    }
+    if (statusKey.includes("in-progress") || statusKey.includes("in progress")) {
+      return {
+        label: "Edit consultation",
+        href: `/consultation/${event.id}?from=patient`,
+        variant: "default" as const,
+        disabled: false,
+      };
+    }
+    if (statusKey.includes("completed")) {
+      return {
+        label: "View consultation",
+        href: `/consultation/${event.id}?from=patient`,
+        variant: "outline" as const,
+        disabled: false,
+      };
+    }
+    return {
+      label: "Start consultation",
+      href: `/consultation/${event.id}?from=patient`,
+      variant: "default" as const,
+      disabled: false,
+    };
+  })();
   const typeLabel = mode === "portal" ? config.friendlyName : config.label.slice(0, -1);
 
   if (mode === "compact") {
@@ -175,16 +213,31 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
             <div className="flex items-start justify-between gap-2">
               <p className="font-medium truncate text-sm">{event.title}</p>
               <div className="flex items-center gap-1.5 shrink-0">
-                {mode === "full" && event.type === "APPOINTMENT" && (
-                  <Link
-                    href={`/consultation/${event.id}?from=patient`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Open
-                  </Link>
-                )}
+                {appointmentAction &&
+                  (appointmentAction.href ? (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant={appointmentAction.variant}
+                      className="h-7 px-2 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Link href={appointmentAction.href}>
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        {appointmentAction.label}
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant={appointmentAction.variant}
+                      className="h-7 px-2 text-xs"
+                      disabled={appointmentAction.disabled}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {appointmentAction.label}
+                    </Button>
+                  ))}
                 <span className="text-xs text-muted-foreground">{dateStr}</span>
                 {canExpand && (
                   expanded
