@@ -86,7 +86,9 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   const activeStepIndex = setupSteps.findIndex((step) =>
     step.authSteps.includes(currentStep),
   );
-  const isLogin = currentStep === "login";
+  const isLogin = ["login", "forgot-password", "reset-password"].includes(
+    currentStep,
+  );
   const heroKicker = isLogin ? "Welcome back" : "Getting started";
   const heroTitle = isLogin
     ? "Pick up where you left off."

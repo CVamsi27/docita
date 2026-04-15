@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <PreDashboardShell currentStep="forgot-password">
+    <PreDashboardShell currentStep="forgot-password" showProgress={false}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <h1 className="text-2xl sm:text-3xl font-bold">Reset Password</h1>
         <p className="text-muted-foreground text-sm">

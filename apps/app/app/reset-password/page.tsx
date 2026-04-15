@@ -70,7 +70,7 @@ function ResetPasswordInner() {
 
   if (!token) {
     return (
-      <PreDashboardShell currentStep="reset-password">
+      <PreDashboardShell currentStep="reset-password" showProgress={false}>
         <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">Reset Link Expired</h1>
@@ -87,7 +87,7 @@ function ResetPasswordInner() {
   }
 
   return (
-    <PreDashboardShell currentStep="reset-password">
+    <PreDashboardShell currentStep="reset-password" showProgress={false}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <h1 className="text-2xl sm:text-3xl font-bold">Set New Password</h1>
         <p className="text-muted-foreground text-sm">
