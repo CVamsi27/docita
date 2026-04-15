@@ -71,4 +71,26 @@ describe("PreDashboardShell", () => {
       expect(mocks.router.replace).not.toHaveBeenCalled();
     });
   });
+
+  it("omits the branding panel when showBrandingPanel is false", () => {
+    const { container } = render(
+      <PreDashboardShell currentStep="email" showBrandingPanel={false}>
+        <div>Email step</div>
+      </PreDashboardShell>,
+    );
+
+    expect(container.querySelector('[data-testid="branding-panel"]')).toBeNull();
+  });
+
+  it("renders the branding panel by default", () => {
+    const { container } = render(
+      <PreDashboardShell currentStep="choose-path">
+        <div>Choose path</div>
+      </PreDashboardShell>,
+    );
+
+    expect(
+      container.querySelector('[data-testid="branding-panel"]'),
+    ).not.toBeNull();
+  });
 });

@@ -45,6 +45,11 @@ interface PreDashboardShellProps {
   contentAlignment?: "center" | "start";
   /** Show sign-out button in the top-right corner */
   showSignOut?: boolean;
+  /**
+   * When false, the left branding rail is omitted (e.g. email-first step before
+   * we know login vs signup). Defaults to true for all other pre-dashboard pages.
+   */
+  showBrandingPanel?: boolean;
 }
 
 export function PreDashboardShell({
@@ -53,6 +58,7 @@ export function PreDashboardShell({
   contentMaxWidth = "max-w-md",
   contentAlignment = "center",
   showSignOut = false,
+  showBrandingPanel = true,
 }: PreDashboardShellProps) {
   const router = useRouter();
   const { logout, user } = useAuth();
@@ -69,8 +75,15 @@ export function PreDashboardShell({
   }, [currentStep, router, user?.emailVerified]);
 
   return (
-    <div className="grid h-screen grid-cols-1 overflow-hidden bg-background lg:grid-cols-[40%_60%]">
-      <AuthBrandingPanel currentStep={currentStep} />
+    <div
+      className={cn(
+        "grid h-screen grid-cols-1 overflow-hidden bg-background",
+        showBrandingPanel && "lg:grid-cols-[40%_60%]",
+      )}
+    >
+      {showBrandingPanel ? (
+        <AuthBrandingPanel currentStep={currentStep} />
+      ) : null}
 
       {/* Right panel keeps its own scroll so the branding rail stays fixed */}
       <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden">

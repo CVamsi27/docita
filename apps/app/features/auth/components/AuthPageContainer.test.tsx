@@ -83,6 +83,23 @@ describe("AuthPageContainer", () => {
     expect(mocks.checkEmail).not.toHaveBeenCalled();
   });
 
+  it("hides the branding panel on the email step and shows it after continue", async () => {
+    mocks.checkEmail.mockResolvedValue(false);
+
+    render(<AuthPageContainer />);
+
+    expect(screen.queryByTestId("auth-branding-panel")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: "new@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(
+      await screen.findByTestId("auth-branding-panel"),
+    ).toBeInTheDocument();
+  });
+
   it("shows a clear message when the email lookup fails", async () => {
     mocks.checkEmail.mockRejectedValue(new Error("network"));
 
