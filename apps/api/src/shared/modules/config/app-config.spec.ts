@@ -1,62 +1,71 @@
-import {
-  afterAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
-
-const ORIGINAL_ENV = process.env;
-
-function buildBaseEnv() {
-  return {
-    DATABASE_URL: 'postgresql://user:pass@localhost:5432/docita',
-    ENCRYPTION_KEY:
-      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-    APP_URL: 'https://api.docita.test',
-    NEXT_PUBLIC_APP_URL: 'https://app.docita.test',
-    NEXT_PUBLIC_API_URL: 'https://api.docita.test/api',
-    CORS_ORIGINS: 'https://app.docita.test',
-    NODE_ENV: 'production',
-  };
-}
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 describe('app-config validateEnv', () => {
+  const originalEnv = process.env;
+
+  function createBaseEnv(overrides: Record<string, string | undefined> = {}) {
+    return {
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgresql://user:password@db.example.com/docita',
+      ENCRYPTION_KEY:
+        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+      APP_URL: 'https://api.docita.work',
+      NEXT_PUBLIC_APP_URL: 'https://app.docita.work',
+      NEXT_PUBLIC_API_URL: 'https://api.docita.work/api',
+      CORS_ORIGINS: 'https://app.docita.work',
+      ...overrides,
+    };
+  }
+
   beforeEach(() => {
     jest.resetModules();
-    process.env = { ...buildBaseEnv() };
+    process.env = { ...originalEnv };
   });
 
-  afterAll(() => {
-    process.env = ORIGINAL_ENV;
+  afterEach(() => {
+    process.env = originalEnv;
+    jest.restoreAllMocks();
   });
 
-  it('allows worker runtime without JWT_SECRET', async () => {
-    process.env.WORKER_ENTRYPOINT = 'worker';
+  it('allows worker entrypoints to validate without JWT_SECRET', async () => {
+    process.env = createBaseEnv({
+      WORKER_ENTRYPOINT: 'worker',
+      JWT_SECRET: undefined,
+    });
 
     const { validateEnv } = await import('./app-config');
-    const config = validateEnv();
 
-    expect(config.WORKER_ENTRYPOINT).toBe('worker');
-    expect(config.JWT_SECRET).toBeUndefined();
+    expect(validateEnv()).toMatchObject({
+      WORKER_ENTRYPOINT: 'worker',
+      JWT_SECRET: undefined,
+    });
   });
 
-  it('fails fast for API runtime when JWT_SECRET is missing', async () => {
+  it('exits when the main API runtime has no JWT_SECRET', async () => {
+    process.env = createBaseEnv({
+      WORKER_ENTRYPOINT: 'main',
+      JWT_SECRET: undefined,
+    });
+
     const stderrSpy = jest
       .spyOn(process.stderr, 'write')
       .mockImplementation(() => true);
-    const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {
-      throw new Error('process.exit:1');
-    }) as never);
+    const exitSpy = jest
+      .spyOn(process, 'exit')
+      .mockImplementation(((code?: number) => {
+        throw new Error(`process.exit:${code ?? 0}`);
+      }) as never);
 
     const { validateEnv } = await import('./app-config');
 
     expect(() => validateEnv()).toThrow('process.exit:1');
-    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(stderrSpy).toHaveBeenCalledWith(
+      '\nAPI environment validation failed.\n',
+    );
+    expect(stderrSpy).toHaveBeenCalledWith(
+      'Please fix the following environment variables:\n',
+    );
     expect(stderrSpy).toHaveBeenCalledWith('  - JWT_SECRET: Required\n\n');
-
-    stderrSpy.mockRestore();
-    exitSpy.mockRestore();
+    expect(exitSpy).toHaveBeenCalledWith(1);
   });
 });
