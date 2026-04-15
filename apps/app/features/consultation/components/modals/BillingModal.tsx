@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { CreditCard, Plus, X } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useDefaultValue } from "@/lib/app-config-context";
 
 export interface LineItem {
   description: string;
@@ -36,8 +37,10 @@ export function BillingModal({
   patientId,
   onSaved,
 }: ModalProps) {
-  const [items, setItems] = useState<LineItem[]>([
-    { description: "Consultation Fee", quantity: 1, price: 0 },
+  const defaultConsultationFee = useDefaultValue("consultationFee");
+  const [hasCustomizedDefaultFee, setHasCustomizedDefaultFee] = useState(false);
+  const [items, setItems] = useState<LineItem[]>(() => [
+    { description: "Consultation Fee", quantity: 1, price: defaultConsultationFee },
   ]);
   const [dueDate, setDueDate] = useState<string>(
     new Date().toISOString().split("T")[0],
@@ -52,6 +55,21 @@ export function BillingModal({
 
   const createInvoice = useCreateInvoice();
   const { currency } = useLocaleCurrency();
+
+  useEffect(() => {
+    if (hasCustomizedDefaultFee) {
+      return;
+    }
+
+    setItems((prev) => {
+      if (prev.length !== 1) return prev;
+      const first = prev[0];
+      if (!first || first.description !== "Consultation Fee") return prev;
+      if (first.quantity !== 1) return prev;
+      if (first.price === defaultConsultationFee) return prev;
+      return [{ ...first, price: defaultConsultationFee }];
+    });
+  }, [defaultConsultationFee, hasCustomizedDefaultFee]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en", {
@@ -130,7 +148,14 @@ export function BillingModal({
       onSaved?.();
       onOpenChange?.(false);
 
-      setItems([{ description: "Consultation Fee", quantity: 1, price: 0 }]);
+      setItems([
+        {
+          description: "Consultation Fee",
+          quantity: 1,
+          price: defaultConsultationFee,
+        },
+      ]);
+      setHasCustomizedDefaultFee(false);
       setTaxRate(0);
       setDiscountValue(0);
     } catch {
@@ -153,6 +178,13 @@ export function BillingModal({
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
+    if (
+      index === 0 &&
+      newItems[index]?.description === "Consultation Fee" &&
+      field === "price"
+    ) {
+      setHasCustomizedDefaultFee(true);
+    }
   };
 
   const removeItem = (index: number) => {

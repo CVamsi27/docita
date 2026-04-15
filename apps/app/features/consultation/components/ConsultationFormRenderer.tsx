@@ -16,7 +16,7 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import {
   type GrowthChartData,
   type OphthalmologyExamData,
-  type Patient,
+  type PatientWithMedicalHistory,
 } from "@workspace/types";
 import type { DentalChartValue } from "./specialty/DentalChartUI";
 
@@ -76,7 +76,7 @@ interface ConsultationFormRendererProps {
   tabId: string;
   data: ConsultationData;
   handlers: ConsultationHandlers;
-  patient?: Patient;
+  patient?: PatientWithMedicalHistory;
   isLoading?: boolean;
 }
 
@@ -101,11 +101,16 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
       }
       if (patient) {
         return (
-          <PatientMedicalHistoryContainerLazy
-            patient={patient}
-            readOnly={false}
-            variant="consultation"
-          />
+          <div className="space-y-4">
+            <div className="rounded-xl border bg-muted/20 p-3 text-sm text-muted-foreground">
+              Changes here are saved automatically.
+            </div>
+            <PatientMedicalHistoryContainerLazy
+              patient={patient}
+              readOnly={false}
+              variant="consultation"
+            />
+          </div>
         );
       }
       return (
@@ -136,10 +141,16 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
       );
     case "growth-chart":
       return (
-        <GrowthChartUILazy
-          value={data.growthData}
-          onChange={handlers.setGrowthData}
-        />
+        <div className="space-y-4">
+          <div className="rounded-xl border bg-muted/20 p-3 text-sm text-muted-foreground">
+            Growth updates are saved when you click <span className="font-medium text-foreground">Save Draft</span>{" "}
+            or <span className="font-medium text-foreground">Complete Consultation</span>.
+          </div>
+          <GrowthChartUILazy
+            value={data.growthData}
+            onChange={handlers.setGrowthData}
+          />
+        </div>
       );
     case "diagnosis":
       return (

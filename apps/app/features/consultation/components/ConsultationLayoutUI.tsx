@@ -17,7 +17,6 @@ export function ConsultationLayoutUI({
 }: ConsultationLayoutUIProps) {
   return (
     <div className="flex-1 overflow-hidden flex overflow-x-hidden relative">
-      {}
       <aside
         className={cn(
           "hidden md:block border-r overflow-y-auto shrink-0",

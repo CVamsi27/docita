@@ -119,6 +119,11 @@ export function ChiefComplaintInput({
         {items.map((item, index) => {
           const isPrimary = index === 0;
           const hasComplaint = item.complaint.trim().length > 0;
+          const durationNumber = Number(item.durationValue);
+          const hasDurationValue = item.durationValue.trim().length > 0;
+          const isDurationValid = !hasComplaint
+            ? true
+            : hasDurationValue && Number.isFinite(durationNumber) && durationNumber > 0;
 
           return (
             <div
@@ -205,6 +210,7 @@ export function ChiefComplaintInput({
                   <Input
                     id={`duration-value-${index}`}
                     type="number"
+                    min="1"
                     placeholder="How long?"
                     value={item.durationValue}
                     onChange={(e) =>
@@ -213,6 +219,11 @@ export function ChiefComplaintInput({
                     readOnly={readOnly}
                     className="h-11 bg-background"
                   />
+                  {!readOnly && hasComplaint && !isDurationValid && (
+                    <p className="text-sm text-warning">
+                      Duration must be greater than 0.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

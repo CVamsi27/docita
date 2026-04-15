@@ -128,7 +128,7 @@ export const useCreateAppointment = () =>
 export const useUpdateAppointment = (id: string) =>
   useAPIMutation<Appointment, UpdateAppointmentRequest>(
     `/appointments/${id}`,
-    "PUT",
+    "PATCH",
     {
       invalidateKeys: [
         queryKeys.appointments.all(),

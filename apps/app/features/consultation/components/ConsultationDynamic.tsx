@@ -23,7 +23,7 @@ import { DiagnosisItem } from "./structured/DiagnosisInput";
 import { ExaminationData } from "./structured/ExaminationInput";
 import { Medication } from "./structured/PrescriptionInput";
 import { DentalChartValue } from "./specialty/DentalChartUI";
-import { usePatient } from "@/hooks/api/use-patients";
+import { usePatientWithMedicalHistory } from "@/hooks/api/use-patients";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { useSyncDiagnoses } from "@/hooks/api/use-appointments";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ import {
   GrowthChartData,
   OphthalmologyExamData,
   Patient,
+  PatientWithMedicalHistory,
 } from "@workspace/types";
 import {
   ConsultationProgressUI,
@@ -198,11 +199,12 @@ export const ClinicalDocumentationDynamic: FC<
     measurements: [],
   });
 
-  const { data: fetchedPatient, isLoading: isPatientLoading } = usePatient(
-    patientId || "",
-  );
+  const { data: fetchedPatient, isLoading: isPatientLoading } =
+    usePatientWithMedicalHistory(patientId || "");
 
-  const patient = fetchedPatient || (appointmentData?.patient as Patient);
+  const patient =
+    fetchedPatient ||
+    (appointmentData?.patient as unknown as PatientWithMedicalHistory);
   const createPrescription = useCreatePrescription();
   const syncDiagnoses = useSyncDiagnoses(appointmentId || "");
 
@@ -306,6 +308,20 @@ export const ClinicalDocumentationDynamic: FC<
     if (!onSave) return;
     setIsSaving(true);
     try {
+      const invalidDuration = chiefComplaint.find((c) => {
+        if (!c.complaint.trim()) return false;
+        const raw = c.durationValue?.trim?.() ?? "";
+        const n = Number(raw);
+        return !raw || !Number.isFinite(n) || n <= 0;
+      });
+
+      if (invalidDuration) {
+        showUserFacingErrorToast(
+          "Duration must be greater than 0 for recorded complaints.",
+        );
+        return;
+      }
+
       const isComplete = progress.isMinimumMet;
       const saveData: ConsultationSaveData = {
         chiefComplaint: chiefComplaint.map((c) => c.complaint).join(", "),

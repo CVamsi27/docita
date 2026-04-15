@@ -21,6 +21,9 @@ interface AppointmentsListUIProps {
   selectedDoctorId: string | undefined;
   filteredAppointments: (Appointment & { patient?: Patient })[];
   hasMoreAppointments?: boolean;
+  isToday?: boolean;
+  currentTimeSlot?: string;
+  currentTimeSlotRef?: React.RefObject<HTMLDivElement | null>;
   checkingIn: string | null;
   startingConsultationId: string | null;
   onCheckIn: (id: string) => void;
@@ -28,6 +31,8 @@ interface AppointmentsListUIProps {
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
   currentUserId?: string;
+  activeStartHour?: number;
+  activeEndHour?: number;
 }
 
 export function AppointmentsListUI({
@@ -39,6 +44,9 @@ export function AppointmentsListUI({
   selectedDoctorId,
   filteredAppointments,
   hasMoreAppointments = false,
+  isToday,
+  currentTimeSlot,
+  currentTimeSlotRef,
   checkingIn,
   startingConsultationId,
   onCheckIn,
@@ -102,7 +110,17 @@ export function AppointmentsListUI({
             )}
 
             {appointmentsByTime.map((apt) => (
-              <div key={apt.id || `${apt.patientId}-${apt.startTime}`}>
+              <div
+                key={apt.id || `${apt.patientId}-${apt.startTime}`}
+                ref={
+                  isToday &&
+                  currentTimeSlotRef &&
+                  currentTimeSlot &&
+                  format(new Date(apt.startTime), "HH:mm") === currentTimeSlot
+                    ? currentTimeSlotRef
+                    : undefined
+                }
+              >
                 <TimeSlotRow
                   appointment={apt}
                   checkingIn={checkingIn}

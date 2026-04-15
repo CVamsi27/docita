@@ -3,6 +3,7 @@ import { queryKeys } from "@workspace/data-access";
 import {
   CreatePatientRequest,
   Patient,
+  PatientWithMedicalHistory,
   UpdatePatientRequest,
 } from "@workspace/types";
 import {
@@ -89,6 +90,13 @@ export const usePatient = (id: string) =>
   useAPIQuery<Patient>(["patients", id], `/patients/${id}`, {
     enabled: !!id,
   });
+
+export const usePatientWithMedicalHistory = (id: string) =>
+  useAPIQuery<PatientWithMedicalHistory>(
+    ["patients", id, "with-medical-history"],
+    `/patients/${id}`,
+    { enabled: !!id },
+  );
 
 export const usePatientMedicalHistoryTimeline = (patientId: string) =>
   useAPIQuery<MedicalHistoryTimelineItem[]>(
