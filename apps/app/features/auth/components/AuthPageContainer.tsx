@@ -266,7 +266,7 @@ export function AuthPageContainer() {
       <div
         className={[
           "animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1",
-          step === "login" ? "text-center" : "text-center lg:text-left",
+          step === "signup" ? "text-center lg:text-left" : "text-center",
         ].join(" ")}
       >
         <h1 className="text-2xl sm:text-3xl font-bold">{STEP_TITLES[step]}</h1>
