@@ -27,7 +27,7 @@ export function ValuePropsSection() {
               </h2>
               <p className="text-lg text-muted-foreground mb-6">
                 Say goodbye to paper prescriptions, physical files, and storage
-                headaches. Docita transforms your clinic into a fully digital,
+                headaches. Docita transforms your facility into a fully digital,
                 eco-friendly practice.
               </p>
               <ul className="space-y-3">
@@ -35,7 +35,7 @@ export function ValuePropsSection() {
                   "Digital prescriptions accessible anywhere, anytime",
                   "No more lost or damaged paper records",
                   "Instant sharing via WhatsApp or email",
-                  "Reduce your clinic's carbon footprint",
+                  "Reduce your facility's carbon footprint",
                   "Save on printing and storage costs",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">

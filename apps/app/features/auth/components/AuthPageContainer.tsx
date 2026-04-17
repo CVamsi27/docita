@@ -195,14 +195,19 @@ export function AuthPageContainer() {
 
     const nextFieldErrors: FieldErrors = {};
 
-    const passwordValidation = passwordSchema.safeParse(password);
-    if (!passwordValidation.success) {
-      const firstIssue = passwordValidation.error.issues[0];
-      nextFieldErrors.password = firstIssue?.message ?? "Enter a valid password";
+    if (!password.trim()) {
+      nextFieldErrors.password = "Enter password";
+    } else {
+      const passwordValidation = passwordSchema.safeParse(password);
+      if (!passwordValidation.success) {
+        const firstIssue = passwordValidation.error.issues[0];
+        nextFieldErrors.password =
+          firstIssue?.message ?? "Enter a valid password";
+      }
     }
 
     if (!confirmPassword) {
-      nextFieldErrors.confirmPassword = "Please re-enter your password";
+      nextFieldErrors.confirmPassword = "Confirm password";
     } else if (password !== confirmPassword) {
       nextFieldErrors.confirmPassword = "Passwords do not match";
     }

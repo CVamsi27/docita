@@ -170,16 +170,16 @@ export default function UpgradePage() {
     effectiveCurrentTier < Tier.ENTERPRISE ? effectiveCurrentTier + 1 : null;
   const currentPlanStatusNotice =
     isTrialing || isTrialExpired
-      ? {
+          ? {
           title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
           badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
           description: isTrialExpired
-            ? "Your trial has ended and your clinic is now on the Free plan. Upgrade to continue paid features."
+            ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
             : daysLeftInPeriod !== null && daysLeftInPeriod > 0
               ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
               : "Your trial ends today. Upgrade anytime to keep paid features active.",
         }
-      : undefined;
+          : undefined;
 
   if (!user || !canAccessPage) {
     return (
@@ -203,7 +203,7 @@ export default function UpgradePage() {
               Upgrade Your Plan
             </h1>
             <p className="text-muted-foreground">
-              Choose a plan that fits your clinic now and scale when needed.
+              Choose a plan that fits your facility now and scale when needed.
             </p>
           </div>
         </div>

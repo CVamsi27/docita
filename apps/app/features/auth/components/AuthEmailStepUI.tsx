@@ -27,7 +27,7 @@ export function AuthEmailStepUI({
         id="email"
         type="email"
         label="Email Address"
-        placeholder="Enter your email address"
+        placeholder="Email address"
         value={email}
         onChange={onChangeEmail}
         fieldErrors={fieldErrors}

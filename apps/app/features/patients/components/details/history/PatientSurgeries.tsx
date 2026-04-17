@@ -61,7 +61,7 @@ export function PatientSurgeries({
         {(!patient.surgicalHistory || patient.surgicalHistory.length === 0) && (
           <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-muted/10">
             <span className="text-sm text-muted-foreground">
-              No surgical history recorded.
+              No surgical history recorded
             </span>
           </div>
         )}

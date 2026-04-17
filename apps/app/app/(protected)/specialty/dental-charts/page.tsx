@@ -90,8 +90,8 @@ export default function DentalChartsPage() {
         <Smile className="h-12 w-12 text-muted-foreground mx-auto" />
         <h1 className="text-2xl font-bold tracking-tight">Dental Charts</h1>
         <p className="text-muted-foreground">
-          Dental charting is only available for dental clinics. Your clinic is
-          configured as <strong>{clinic.type}</strong>.
+          Dental charting is only available for dental facilities. Your facility is
+          configured as <strong>{clinic.type}</strong>
         </p>
       </div>
     );
@@ -140,7 +140,7 @@ export default function DentalChartsPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by name or phone..."
+                    placeholder="Search by name or phone"
                     data-testid="dental-chart-patient-search"
                     value={search}
                     onChange={(e) => {

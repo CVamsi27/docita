@@ -21,9 +21,9 @@ const STEP_META: Record<AuthBrandingStep, { index: number; label: string }> = {
   "verify-email-sent": { index: 1, label: "Email verification" },
   "verify-email": { index: 1, label: "Email verification" },
   "choose-path": { index: 2, label: "Choose your path" },
-  onboarding: { index: 3, label: "Clinic setup" },
-  "join-clinic": { index: 3, label: "Clinic setup" },
-  "join-request-status": { index: 3, label: "Clinic setup" },
+  onboarding: { index: 3, label: "Facility setup" },
+  "join-clinic": { index: 3, label: "Facility setup" },
+  "join-request-status": { index: 3, label: "Facility setup" },
   "verify-doctor": { index: 3, label: "Profile verification" },
 };
 

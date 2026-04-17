@@ -50,7 +50,7 @@ export function PatientConditions({
           patient.medicalConditions.length === 0) && (
           <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-muted/10">
             <span className="text-sm text-muted-foreground">
-              No medical conditions known.
+              No medical conditions known
             </span>
           </div>
         )}
@@ -60,7 +60,7 @@ export function PatientConditions({
           <div className="relative flex-1">
             <Plus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Add new condition (e.g. Hypertension)"
+              placeholder="New condition, e.g. Hypertension"
               value={newCondition}
               onChange={(e) => onNewConditionChange(e.target.value)}
               onKeyDown={(e) => {

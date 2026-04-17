@@ -137,22 +137,22 @@ export function TeamInviteStep({
             <UserPlus className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <CardTitle>Step 3: Team Planning</CardTitle>
+            <CardTitle>Step 3: Invite Team</CardTitle>
             <CardDescription>
-              Add your initial team plan. You can finalize member accounts and permissions in Settings after setup.
+              Add the first team members you want to invite now and refine permissions in Settings after setup
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
-          <p className="text-sm font-medium">Role Guidance</p>
+          <p className="text-sm font-medium">Team guidance</p>
           <p className="text-xs text-muted-foreground">
             Your logged-in account is the clinic owner during onboarding. You
-            selected:
-            <span className="font-medium"> {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}</span>.
-            You can add more members now and update permissions later in
-            Settings.
+            selected
+            <span className="font-medium"> {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}</span>
+            , and you can add more members now and update permissions later in
+            Settings
           </p>
           {(ownerName || ownerEmail) && (
             <div className="rounded-md border bg-background px-3 py-2">
@@ -178,21 +178,26 @@ export function TeamInviteStep({
                 "grid gap-4 rounded-lg border p-4",
               )}
             >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-foreground">
-                  Member {index + 1}
-                </p>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Member {index + 1}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    This member will be invited during onboarding
+                  </p>
+                </div>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => removeMember(index)}
                   disabled={members.length === 1}
-                  className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
-                  aria-label="Remove member"
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                  aria-label={`Remove member ${index + 1}`}
+                  title="Remove member"
                 >
-                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                  Remove
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
 
@@ -202,7 +207,7 @@ export function TeamInviteStep({
                   <Input
                     id={`email-${index}`}
                     type="email"
-                    placeholder="Enter member email address"
+                    placeholder="Member email address"
                     value={member.email}
                     onChange={(e) =>
                       updateMember(index, "email", e.target.value)
@@ -226,7 +231,7 @@ export function TeamInviteStep({
                     }
                   >
                     <SelectTrigger id={`role-${index}`}>
-                      <SelectValue />
+                      <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLE_OPTIONS.map((opt) => (
@@ -257,14 +262,14 @@ export function TeamInviteStep({
             className="w-full"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Another Member
+            Add another member
           </Button>
         )}
 
         {validMembers.length > 0 && (
           <div className="rounded-lg border p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold">Members To Be Added</h4>
+              <h4 className="text-sm font-semibold">Members to be added</h4>
               <Badge variant="secondary">
                 {validMembers.length + (ownerEmail ? 1 : 0)}
               </Badge>
@@ -306,7 +311,7 @@ export function TeamInviteStep({
             onClick={onSkip}
             className="flex-1"
           >
-            Skip for Now
+            Skip for now
           </Button>
           <Button
             type="button"
@@ -314,7 +319,7 @@ export function TeamInviteStep({
             disabled={!hasValidMembers}
             className="flex-1"
           >
-            {hasValidMembers ? "Save Team Plan and Continue" : "Continue"}
+            {hasValidMembers ? "Save team and continue" : "Continue"}
           </Button>
         </div>
       </CardContent>

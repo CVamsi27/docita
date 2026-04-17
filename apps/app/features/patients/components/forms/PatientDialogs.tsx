@@ -73,14 +73,11 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
   const todayStr = new Date().toISOString().slice(0, 10);
   const patientCreateFormSchema = createPatientRequestSchema.superRefine(
     (val, ctx) => {
-      if (!val.dateOfBirth) return;
-      const dob = new Date(val.dateOfBirth as string | Date);
-      if (Number.isNaN(dob.getTime())) return;
-      if (dob.getTime() > Date.now()) {
+      if (!val.dateOfBirth) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["dateOfBirth"],
-          message: "Date of birth must not be in the future",
+          message: "Date of birth is required",
         });
       }
     },
@@ -96,7 +93,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
       phoneNumber: null,
       email: null,
       gender: "MALE",
-      dateOfBirth: null,
+      dateOfBirth: "",
       address: null,
     },
   });
@@ -155,7 +152,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                     <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter first name" />
+                    <Input {...field} placeholder="First name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,7 +169,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                     <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter last name" />
+                    <Input {...field} placeholder="Last name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,7 +186,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                     <Input
                       {...field}
                       value={field.value ?? ""}
-                      placeholder="Enter phone number"
+                      placeholder="Phone number"
                       inputMode="tel"
                     />
                   </FormControl>
@@ -209,7 +206,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                       {...field}
                       value={field.value ?? ""}
                       type="email"
-                      placeholder="Enter email"
+                      placeholder="Email address"
                     />
                   </FormControl>
                   <FormMessage />
@@ -253,7 +250,10 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               name="dateOfBirth"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date of Birth</FormLabel>
+                  <FormLabel>
+                    Date of Birth{" "}
+                    <span className="text-destructive ml-0.5">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -305,26 +305,10 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
 }) => {
   const updatePatient = useUpdatePatient(patient?.id ?? "");
   const todayStr = new Date().toISOString().slice(0, 10);
-
-  const patientUpdateFormSchema = updatePatientRequestSchema.superRefine(
-    (val, ctx) => {
-      if (!val.dateOfBirth) return;
-      const dob = new Date(val.dateOfBirth as string | Date);
-      if (Number.isNaN(dob.getTime())) return;
-      if (dob.getTime() > Date.now()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["dateOfBirth"],
-          message: "Date of birth must not be in the future",
-        });
-      }
-    },
-  );
-
-  type PatientUpdateFormValues = z.infer<typeof patientUpdateFormSchema>;
+  type PatientUpdateFormValues = z.infer<typeof updatePatientRequestSchema>;
 
   const form = useForm<PatientUpdateFormValues>({
-    resolver: zodResolver(patientUpdateFormSchema),
+    resolver: zodResolver(updatePatientRequestSchema),
     values: patient
       ? {
           firstName: patient.firstName ?? "",
@@ -388,9 +372,11 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               name="firstName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First Name</FormLabel>
+                  <FormLabel>
+                    First Name <span className="text-destructive ml-0.5">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter first name" />
+                    <Input {...field} placeholder="First name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -401,9 +387,11 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               name="lastName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Last Name</FormLabel>
+                  <FormLabel>
+                    Last Name <span className="text-destructive ml-0.5">*</span>
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Enter last name" />
+                    <Input {...field} placeholder="Last name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -419,7 +407,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                     <Input
                       {...field}
                       value={field.value ?? ""}
-                      placeholder="Enter phone number"
+                      placeholder="Phone number"
                       inputMode="tel"
                     />
                   </FormControl>
@@ -438,7 +426,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                       {...field}
                       value={field.value ?? ""}
                       type="email"
-                      placeholder="Enter email"
+                      placeholder="Email address"
                     />
                   </FormControl>
                   <FormMessage />
@@ -450,7 +438,9 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               name="gender"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gender</FormLabel>
+                  <FormLabel>
+                    Gender <span className="text-destructive ml-0.5">*</span>
+                  </FormLabel>
                   <Select
                     value={field.value ?? ""}
                     onValueChange={(value) => field.onChange(value as GenderValue)}

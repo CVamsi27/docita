@@ -411,11 +411,11 @@ export function useClinicRegistrationFlow() {
         user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
 
       const missingRequirements: string[] = [];
-      if (!details.name?.trim()) missingRequirements.push("clinic name (Step 1)");
-      if (!details.email?.trim()) missingRequirements.push("clinic email (Step 1)");
-      if (!details.phone?.trim()) missingRequirements.push("clinic phone (Step 1)");
-      if (!details.address?.trim()) missingRequirements.push("clinic address (Step 1)");
-      if (!details.type) missingRequirements.push("clinic type (Step 1)");
+      if (!details.name?.trim()) missingRequirements.push("facility name (Step 1)");
+      if (!details.email?.trim()) missingRequirements.push("facility email (Step 1)");
+      if (!details.phone?.trim()) missingRequirements.push("facility phone (Step 1)");
+      if (!details.address?.trim()) missingRequirements.push("facility address (Step 1)");
+      if (!details.type) missingRequirements.push("facility type (Step 1)");
       if (!user?.name?.trim()) missingRequirements.push("owner name");
       if (!user?.email?.trim()) missingRequirements.push("owner email");
       if (!complianceData.slaSignatureSessionId?.trim()) {
@@ -531,7 +531,7 @@ export function useClinicRegistrationFlow() {
         }
 
         toast.success("Registration Successful", {
-          description: "Your clinic has been registered. Redirecting...",
+          description: "Your facility has been registered. Redirecting...",
         });
 
         // Clear session persistence on successful completion

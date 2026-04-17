@@ -178,7 +178,7 @@ const AnalyticsHeader = () => (
     </div>
     <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics</h1>
     <p className="text-muted-foreground">
-      Insights and performance metrics for your clinic
+      Insights and performance metrics for your facility
     </p>
   </div>
 );

@@ -130,11 +130,11 @@ const LIMIT_ROW_DESCRIPTIONS: Record<string, string> = {
   "Patient Limit":
     "Maximum number of unique patient profiles you can actively manage in the plan",
   Doctors:
-    "Maximum number of doctor accounts that can practice under this clinic plan",
+    "Maximum number of doctor accounts that can practice under this facility plan",
   Storage:
     "Total cloud storage included for files like scanned records, prescriptions, and reports",
   Branches:
-    "Number of clinic locations/branches you can operate under one subscription",
+    "Number of facility locations/branches you can operate under one subscription",
   Consultations:
     "Number of consultations included in the billing cycle before overage charges apply",
   Prescriptions:
@@ -163,7 +163,7 @@ export function ComparisonTable({
       <div className="p-6 border-b">
         <h2 className="text-2xl font-bold text-center">Compare Plans</h2>
         <p className="text-center text-muted-foreground mt-2">
-          Find the perfect fit for your clinic&apos;s needs
+          Find the perfect fit for your facility&apos;s needs
         </p>
       </div>
       <div className="overflow-x-auto">

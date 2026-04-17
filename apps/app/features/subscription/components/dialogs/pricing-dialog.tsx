@@ -110,7 +110,7 @@ export function PricingDialog({
             Choose Your Plan
           </DialogTitle>
           <DialogDescription>
-            Select the plan that best fits your clinic&apos;s needs
+            Select the plan that best fits your facility&apos;s needs
           </DialogDescription>
         </DialogHeader>
         {}

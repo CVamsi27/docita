@@ -1,4 +1,5 @@
 import "@workspace/ui/globals.css";
+import "leaflet/dist/leaflet.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
@@ -6,8 +7,9 @@ import { SentryInitializer } from "@/components/common/monitoring/sentry-initial
 import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
 
 export const metadata = {
-  title: "Docita - Clinic OS",
-  description: "The operating system for modern clinics",
+  title: "Docita - Healthcare OS",
+  description: "The operating system for modern healthcare facilities",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",

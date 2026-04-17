@@ -14,10 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import PhoneInput from "react-phone-number-input";
+import PhoneInput, { type Country } from "react-phone-number-input";
 import { toast } from "sonner";
 import { CLINIC_TYPE_OPTIONS, type ClinicType, TIER_INFO, type TierName } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { resolveCountryCodeOrDefault } from "@workspace/utils";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -27,7 +28,7 @@ const AVAILABLE_TIERS: TierName[] = [
 ];
 
 const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
-  GENERAL: "Multi-specialty clinic",
+  GENERAL: "Multi-specialty facility",
   DENTAL: "Dentistry & Orthodontics",
   PEDIATRIC: "Child Health",
   ORTHOPEDIC: "Bone & Joint Specialist",
@@ -37,7 +38,7 @@ const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
   GYNECOLOGY: "Women's Health",
   OPHTHALMOLOGY: "Eye Care",
   PSYCHIATRY: "Mental Health",
-  SPECIALTY: "Custom specialty clinic",
+  SPECIALTY: "Custom specialty facility",
 };
 
 function normalizeTierName(tier: string): TierName {
@@ -84,6 +85,7 @@ interface Clinic {
   tier: string;
   type?: string;
   active: boolean;
+  settings?: Record<string, unknown>;
 }
 
 export function EditClinicDialog({
@@ -111,14 +113,14 @@ export function EditClinicDialog({
       address?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Enter the clinic name";
+    if (!formData.name.trim()) errors.name = "Enter the facility name";
     if (!formData.email.trim()) {
       errors.email = "Enter an email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Enter a valid email address";
     }
     if (!formData.phone.trim()) errors.phone = "Enter a phone number";
-    if (!formData.address.trim()) errors.address = "Enter the clinic address";
+    if (!formData.address.trim()) errors.address = "Enter the facility address";
 
     return errors;
   };
@@ -144,11 +146,11 @@ export function EditClinicDialog({
         await client.patch(`/internal/clinics/${clinic.id}`, formData);
         setOpen(false);
         onClinicUpdated();
-        toast.success("Clinic updated successfully");
+        toast.success("Facility updated successfully");
       } catch (error) {
         showUserFacingErrorToast(
           error,
-          "We could not save these clinic details. Please try again.",
+          "We could not save these facility details. Please try again.",
           "save",
         );
       } finally {
@@ -163,24 +165,24 @@ export function EditClinicDialog({
         variant="ghost"
         size="icon"
         onClick={() => setOpen(true)}
-        aria-label="Edit clinic"
+        aria-label="Edit facility"
       >
         <Pencil className="h-4 w-4" />
       </Button>
       <CRUDDialog
         open={open}
         onOpenChange={handleOpenChange}
-        title="Edit Clinic"
-        description="Update clinic details and status"
+        title="Edit Facility"
+        description="Update facility details and status"
         isLoading={loading}
         onSubmit={handleSubmit}
-        submitLabel={loading ? "Updating..." : "Update Clinic"}
+        submitLabel={loading ? "Updating..." : "Update Facility"}
       >
         <form className="space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Clinic Name</Label>
+                <Label htmlFor="edit-name">Facility Name</Label>
                 <Input
                   id="edit-name"
                   value={formData.name}
@@ -238,7 +240,9 @@ export function EditClinicDialog({
                   id="edit-phone"
                   value={formData.phone}
                   international
-                  defaultCountry="IN"
+                  defaultCountry={
+                    resolveCountryCodeOrDefault(clinic.settings) as Country
+                  }
                   onChange={(value: string | undefined) => {
                     setFormData({ ...formData, phone: value ?? "" });
                     if (fieldErrors.phone) {
@@ -246,7 +250,7 @@ export function EditClinicDialog({
                     }
                   }}
                   placeholder="Enter phone number"
-                  className="flex h-10 items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:items-center [&_.PhoneInputCountrySelect]:bg-transparent [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
+                  className="flex min-h-[5rem] min-w-0 flex-col gap-2 rounded-xl border border-input bg-background/60 p-3 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-10 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[9.5rem] [&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-lg [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={
                     fieldErrors.phone ? "edit-clinic-phone-error" : undefined
@@ -292,7 +296,7 @@ export function EditClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select clinic type" />
+                  <SelectValue placeholder="Select facility type" />
                 </SelectTrigger>
                 <SelectContent>
                   {CLINIC_TYPE_OPTIONS.map((type) => (

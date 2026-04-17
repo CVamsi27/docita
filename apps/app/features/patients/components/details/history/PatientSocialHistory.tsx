@@ -57,7 +57,7 @@ export function PatientSocialHistoryComp({
               disabled={readOnly}
             >
               <SelectTrigger id="smokingStatus">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="Smoking status" />
               </SelectTrigger>
               <SelectContent>
                 {(Object.keys(SMOKING_STATUS_LABELS) as SmokingStatus[]).map(
@@ -81,7 +81,7 @@ export function PatientSocialHistoryComp({
               disabled={readOnly}
             >
               <SelectTrigger id="alcoholUse">
-                <SelectValue placeholder="Select frequency" />
+                <SelectValue placeholder="Alcohol use" />
               </SelectTrigger>
               <SelectContent>
                 {(
@@ -111,7 +111,7 @@ export function PatientSocialHistoryComp({
             <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
             <Input
               id="dietaryRestrictions"
-              placeholder="e.g. Vegetarian, Gluten-free"
+              placeholder="Dietary restrictions, e.g. vegetarian or gluten-free"
               value={patient.socialHistory?.dietaryRestrictions || ""}
               onChange={(e) =>
                 onSocialHistoryUpdate("dietaryRestrictions", e.target.value)

@@ -127,14 +127,13 @@ export function PatientTimeline({
                 className="h-7 text-xs"
                 onClick={() => setShowPast((v) => !v)}
               >
-                {showPast ? "Hide past" : `Show past (${past.length})`}
+                {showPast ? "Hide past visits" : `View past visits (${past.length})`}
               </Button>
             </div>
           )}
 
-          {showPast && past.map((event) => (
-            <VisitCard key={event.id} event={event} mode={mode} />
-          ))}
+          {showPast &&
+            past.map((event) => <VisitCard key={event.id} event={event} mode={mode} />)}
 
           {upcomingOrToday.map((event) => (
             <VisitCard key={event.id} event={event} mode={mode} />

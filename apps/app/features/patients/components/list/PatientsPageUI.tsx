@@ -107,7 +107,7 @@ export function PatientsPageUI({
           <div className="mb-6 flex items-center gap-4">
             <div className="max-w-sm flex-1">
               <DebouncedSearchInput
-                placeholder="Search by name or phone..."
+                placeholder="Search by name or phone"
                 className="bg-background"
                 value={searchQuery}
                 onChange={onSearchChange}

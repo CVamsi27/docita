@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
 import { LoadingState } from "@workspace/ui/components/empty-state";
@@ -50,12 +51,11 @@ function AppointmentsContent() {
     startingConsultationId,
     user,
     isPendingMutation,
-    activeStartHour,
-    activeEndHour,
   } = state;
 
   const {
     handleCheckIn,
+    handleAppointmentAdded,
     handleStartConsultation,
     handleCancelAppointment,
     handleNoShowAppointment,
@@ -63,6 +63,33 @@ function AppointmentsContent() {
     setNoShowAptId,
     refetch,
   } = handlers;
+
+  const appointmentSummary = useMemo(() => {
+    const counts = filteredAppointments.reduce(
+      (acc, appointment) => {
+        acc.total += 1;
+        acc[appointment.status] = (acc[appointment.status] ?? 0) + 1;
+        return acc;
+      },
+      {
+        total: 0,
+        scheduled: 0,
+        confirmed: 0,
+        "checked-in": 0,
+        "in-progress": 0,
+        completed: 0,
+      } as Record<string, number>,
+    );
+
+    return [
+      { label: "Total", value: counts.total, tone: "border-border/60 bg-background/70" },
+      { label: "Scheduled", value: counts.scheduled, tone: "border-primary/20 bg-primary/5 text-primary" },
+      { label: "Confirmed", value: counts.confirmed, tone: "border-info/20 bg-info/5 text-info" },
+      { label: "Checked in", value: counts["checked-in"], tone: "border-success/20 bg-success/5 text-success" },
+      { label: "In progress", value: counts["in-progress"], tone: "border-warning/20 bg-warning/5 text-warning" },
+      { label: "Completed", value: counts.completed, tone: "border-muted/60 bg-muted/40 text-muted-foreground" },
+    ];
+  }, [filteredAppointments]);
 
   return (
     <FeatureGate
@@ -85,7 +112,7 @@ function AppointmentsContent() {
     >
       <AppPageScaffold>
         <AppointmentsPageHeaderUI
-          onAppointmentAdded={() => refetch()}
+          onAppointmentAdded={handleAppointmentAdded}
           selectedDate={date}
           isAddDialogOpen={isAddDialogOpen}
           onOpenChange={handleDialogChange}
@@ -93,6 +120,22 @@ function AppointmentsContent() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
+
+        <div className="flex flex-wrap gap-2">
+          {appointmentSummary.map((item) => (
+            <div
+              key={item.label}
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${item.tone}`}
+            >
+              <span className="text-xs font-medium uppercase tracking-wide opacity-70">
+                {item.label}
+              </span>
+              <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs">
+                {item.value}
+              </Badge>
+            </div>
+          ))}
+        </div>
 
         <div className="grid gap-6 md:grid-cols-[300px_1fr]">
           <AppointmentsCalendarUI
@@ -129,8 +172,6 @@ function AppointmentsContent() {
               setNoShowDialogOpen(true);
             }}
             currentUserId={user?.id}
-            activeStartHour={activeStartHour}
-            activeEndHour={activeEndHour}
           />
         </div>
       </AppPageScaffold>
@@ -141,8 +182,6 @@ function AppointmentsContent() {
         isLoading={isPendingMutation}
         onConfirm={handleCancelAppointment}
       />
-
-      {/* No-show remains a simple confirmation */}
       <ConfirmationDialog
         open={noShowDialogOpen}
         onOpenChange={setNoShowDialogOpen}

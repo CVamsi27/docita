@@ -86,7 +86,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Pricing That Scales With Your Clinic
+            Pricing That Scales With Your Facility
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             Start free, add capabilities as your team and patient volume grow.

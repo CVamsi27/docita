@@ -2,6 +2,7 @@ import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,13 +36,16 @@ export function AppointmentFormFields({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Type</FormLabel>
+            <FormDescription>
+              Use Other / Custom when the appointment does not fit a preset.
+            </FormDescription>
             <Select
               onValueChange={field.onChange}
               value={field.value ?? ""}
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Appointment type" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -61,13 +65,16 @@ export function AppointmentFormFields({
         <FormField
           control={form.control}
           name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Add any additional notes..."
-                  className="resize-none"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Notes</FormLabel>
+            <FormDescription>
+              Add anything the team should know before the visit.
+            </FormDescription>
+            <FormControl>
+              <Textarea
+                placeholder="Additional notes"
+                className="resize-none"
                   {...field}
                 />
               </FormControl>

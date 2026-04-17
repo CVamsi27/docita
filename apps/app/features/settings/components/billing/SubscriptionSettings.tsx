@@ -251,7 +251,7 @@ export function SubscriptionSettings() {
             </Badge>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            Contact your clinic administrator to manage subscription.
+            Contact your facility administrator to manage subscription.
           </p>
         </CardContent>
       </Card>

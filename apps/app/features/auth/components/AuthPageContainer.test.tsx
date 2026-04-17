@@ -140,7 +140,7 @@ describe("AuthPageContainer", () => {
     fireEvent.change(screen.getByLabelText(/^password/i), {
       target: { value: "Password@123" },
     });
-    fireEvent.change(screen.getByLabelText(/re-enter password/i), {
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
       target: { value: "Password@999" },
     });
     fireEvent.click(
@@ -149,6 +149,36 @@ describe("AuthPageContainer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
 
     expect(await screen.findByText("Passwords do not match")).toBeInTheDocument();
+    expect(mocks.register).not.toHaveBeenCalled();
+  });
+
+  it("shows required signup password messages when both password fields are blank", async () => {
+    mocks.checkEmail.mockResolvedValue(false);
+
+    render(<AuthPageContainer />);
+
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: "owner@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(await screen.findByText("Create your account")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/first name/i), {
+      target: { value: "Jane" },
+    });
+    fireEvent.change(screen.getByLabelText(/last name/i), {
+      target: { value: "Doe" },
+    });
+    fireEvent.click(
+      screen.getByRole("radio", { name: /yes, i'll also see patients/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
+
+    expect(await screen.findByText("Enter password")).toBeInTheDocument();
+    expect(
+      screen.getByText("Confirm password"),
+    ).toBeInTheDocument();
     expect(mocks.register).not.toHaveBeenCalled();
   });
 

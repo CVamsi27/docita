@@ -44,7 +44,7 @@ export function PatientPortalAppointmentsUI({
             <EmptyState
               icon={CalendarDays}
               title="No appointments scheduled"
-              description="Your next appointment will appear here with date, doctor, and clinic details"
+              description="Your next appointment will appear here with date, doctor, and facility details"
             />
           ) : (
             <div className="space-y-3 pb-4">

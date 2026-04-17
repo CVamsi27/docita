@@ -277,10 +277,10 @@ export default function DoctorsPage() {
             </div>
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Select clinic" />
+                <SelectValue placeholder="Select facility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Clinics</SelectItem>
+                <SelectItem value="all">All Facilities</SelectItem>
                 {Array.isArray(clinics) &&
                   clinics.map((clinic) => (
                     <SelectItem key={clinic.id} value={clinic.id}>
@@ -309,7 +309,7 @@ export default function DoctorsPage() {
           ) : filteredDoctors.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {selectedClinic === "all"
-                ? "Select a clinic to view doctors"
+                ? "Select a facility to view doctors"
                 : "No doctors found"}
             </div>
           ) : (

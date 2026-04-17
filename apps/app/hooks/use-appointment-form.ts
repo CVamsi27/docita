@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
 import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
 import { useCreateAppointment } from "@/hooks/api/use-appointments";
-import { queryKeys } from "@workspace/data-access";
 import {
+  Appointment,
   CreateAppointmentInput,
   createAppointmentSchema,
   Patient,
@@ -18,7 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UseAppointmentFormProps {
-  onAppointmentAdded: () => void;
+  onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
   preselectedPatientId?: string;
   startHour?: number;
@@ -57,14 +56,12 @@ export function useAppointmentForm({
     return searchedPatients;
   }, [searchedPatientsResponse, preselectedPatient, preselectedPatientId]);
 
-  const lastSinglePatientIdRef = useRef<string | null>(null);
   const { data: doctors = [], isLoading: doctorsLoading } = useDoctors();
 
   const filteredDoctors = doctors;
 
   const { mutateAsync: createAppointment, isPending: loading } =
     useCreateAppointment();
-  const queryClient = useQueryClient();
   const { config } = useAppConfig();
   const { user } = useAuth();
 
@@ -74,7 +71,9 @@ export function useAppointmentForm({
     let defaultStart = "";
 
     if (selectedDate) {
-      defaultStart = selectedDate.toISOString().slice(0, 16);
+      defaultStart = toLocalISOString(selectedDate, {
+        timezone: DEFAULT_TIMEZONE,
+      });
     } else {
       const now = new Date();
 
@@ -212,16 +211,10 @@ export function useAppointmentForm({
     }
   }, [open, watchedDoctorId, doctorSchedules, selectedDate, form]);
 
-  const lastSelectedDateRef = useRef<Date | undefined>(undefined);
   const lastPreselectedPatientIdRef = useRef<string | undefined>(undefined);
 
-  const currentPatientId = form.watch("patientId");
-
   useEffect(() => {
-    if (!open) return;
-    if (selectedDate === lastSelectedDateRef.current) return;
-    lastSelectedDateRef.current = selectedDate;
-    if (!selectedDate) return;
+    if (!open || !selectedDate) return;
 
     const start = new Date(selectedDate);
     start.setHours(startHour, 0, 0, 0);
@@ -245,24 +238,12 @@ export function useAppointmentForm({
     }
   }, [open, preselectedPatientId, form]);
 
-  useEffect(() => {
-    if (!open) return;
-    if (preselectedPatientId) return;
-    if (currentPatientId) return;
-    if (patients.length !== 1) return;
-    if (!patients[0]?.id) return;
-    if (lastSinglePatientIdRef.current === patients[0].id) return;
-
-    lastSinglePatientIdRef.current = patients[0].id;
-    form.setValue("patientId", patients[0].id, { shouldDirty: false });
-  }, [open, preselectedPatientId, currentPatientId, patients, form]);
-
   const onSubmit = useCallback(
     async (data: CreateAppointmentInput, onSuccess?: () => void) => {
       try {
         const durationMs = defaultDuration * 60000;
 
-        await createAppointment({
+        const createdAppointment = await createAppointment({
           ...data,
           startTime: new Date(data.startTime).toISOString(),
           endTime: new Date(
@@ -271,19 +252,13 @@ export function useAppointmentForm({
           ).toISOString(),
         });
 
-        // Target the shared query key prefix so all appointment list/detail views refresh.
-        await queryClient.invalidateQueries({
-          queryKey: queryKeys.appointments.all(),
-        });
-
         form.reset();
-        await onAppointmentAdded();
+        await onAppointmentAdded(createdAppointment);
         if (onSuccess) {
           await onSuccess();
         }
         toast.success("Appointment scheduled successfully");
       } catch (error) {
-
         showUserFacingErrorToast(
           error,
           "We could not schedule this appointment. Please try again.",
@@ -291,7 +266,7 @@ export function useAppointmentForm({
         );
       }
     },
-    [form, onAppointmentAdded, createAppointment, defaultDuration, queryClient],
+    [form, onAppointmentAdded, createAppointment, defaultDuration],
   );
 
   return {

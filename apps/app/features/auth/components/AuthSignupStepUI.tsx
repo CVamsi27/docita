@@ -47,19 +47,19 @@ const OWNER_ROLE_OPTIONS = [
     roleLabel: "Admin Doctor",
     title: "Yes, I'll also see patients",
     description:
-      "Use consultations, prescriptions, notes, and clinic management from the same owner account",
+      "Use consultations, prescriptions, notes, and facility management from the same owner account",
     helper:
-      "This creates an Admin Doctor account with clinical and clinic-management access",
+      "This creates an Admin Doctor account with clinical and facility-management access",
     badge: "Recommended",
   },
   {
     value: "ADMIN" as const,
     roleLabel: "Admin",
-    title: "No, I'll only manage the clinic",
+    title: "No, I'll only manage the facility",
     description:
-      "Use billing, clinic setup, team management, and operational tools without doctor workflows",
+      "Use billing, facility setup, team management, and operational tools without doctor workflows",
     helper:
-      "This creates an Admin account focused on clinic operations and staff management",
+      "This creates an Admin account focused on facility operations and staff management",
   },
 ];
 
@@ -103,7 +103,7 @@ export function AuthSignupStepUI({
           id="firstName"
           label="First Name"
           type="text"
-          placeholder="Enter your first name"
+          placeholder="First name"
           value={firstName}
           onChange={onChangeFirstName}
           fieldErrors={fieldErrors}
@@ -114,7 +114,7 @@ export function AuthSignupStepUI({
           id="lastName"
           label="Last Name"
           type="text"
-          placeholder="Enter your last name"
+          placeholder="Last name"
           value={lastName}
           onChange={onChangeLastName}
           fieldErrors={fieldErrors}
@@ -137,7 +137,7 @@ export function AuthSignupStepUI({
               autoComplete="new-password"
               required
               className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
-              placeholder="Enter your password"
+              placeholder="Password"
               aria-invalid={hasFieldError(fieldErrors, "password")}
               aria-describedby={
                 hasFieldError(fieldErrors, "password")
@@ -179,7 +179,7 @@ export function AuthSignupStepUI({
 
         <div className="space-y-2">
           <Label htmlFor="signup-confirm-password">
-            Re-enter Password
+            Confirm Password
             <span className="text-destructive ml-0.5">*</span>
           </Label>
           <div className="relative">
@@ -191,7 +191,7 @@ export function AuthSignupStepUI({
               autoComplete="new-password"
               required
               className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "confirmPassword")}`}
-              placeholder="Re-enter your password"
+              placeholder="Confirm password"
               aria-invalid={hasFieldError(fieldErrors, "confirmPassword")}
               aria-describedby={
                 hasFieldError(fieldErrors, "confirmPassword")
@@ -232,7 +232,7 @@ export function AuthSignupStepUI({
             <span className="text-destructive ml-0.5">*</span>
           </Label>
           <p className="text-xs text-muted-foreground">
-            Choose the setup that matches how you will use Docita on day one.
+            Choose the setup that matches how you will use Docita on day one
           </p>
         </div>
 
@@ -299,8 +299,8 @@ export function AuthSignupStepUI({
           className="text-xs text-muted-foreground"
         >
           {selectedOwnerRole
-            ? `${selectedOwnerRole.helper} You can update permissions later in Settings.`
-            : "Choose one answer to continue. You can change roles later in Settings."}
+            ? `${selectedOwnerRole.helper} You can update permissions later in Settings`
+            : "Choose one answer to continue and you can change roles later in Settings"}
         </p>
 
         {ownerRoleError && (

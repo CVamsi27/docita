@@ -139,7 +139,7 @@ export function SettingsPageUI({
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
               <p className="text-sm text-muted-foreground">
-                Manage your clinic preferences and configurations
+                Manage your facility preferences and configurations
               </p>
             </div>
           </div>

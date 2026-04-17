@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
+import { useDoctors } from "@/hooks/api/use-settings";
 import {
   useAppointments,
   useCancelAppointment,
@@ -11,7 +12,6 @@ import {
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useAuth } from "@/lib/auth-context";
-import { useClinic } from "@/lib/clinic-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
@@ -19,6 +19,7 @@ import {
   isClinicWideAppointmentRole,
   resolveDoctorScopedAppointmentFilter,
 } from "@workspace/types";
+import { queryKeys } from "@workspace/data-access";
 
 export const generateTimeSlots = () => {
   const slots = [];
@@ -62,9 +63,9 @@ export const useAppointmentsLogic = () => {
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const { user } = useAuth();
-  const { clinic } = useClinic();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
 
   // Use local calendar day (not UTC) to avoid off-by-one-day queries.
@@ -90,51 +91,7 @@ export const useAppointmentsLogic = () => {
   );
 
   const { data: doctors = [] } = useDoctors();
-  const { data: doctorSchedules = [] } = useDoctorSchedules(
-    doctorScope.scopedDoctorId || undefined,
-  );
-
   const doctorsList = doctors;
-
-  const clinicStartHour = useMemo(() => {
-    const t = clinic?.openingTime;
-    return t ? parseInt(t.split(":")[0] ?? "9", 10) : 9;
-  }, [clinic?.openingTime]);
-
-  const clinicEndHour = useMemo(() => {
-    const t = clinic?.closingTime;
-    return t ? parseInt(t.split(":")[0] ?? "18", 10) : 18;
-  }, [clinic?.closingTime]);
-
-  const { activeStartHour, activeEndHour } = useMemo(() => {
-    if (selectedDoctorId && doctorSchedules.length > 0 && date) {
-      const days = [
-        "SUNDAY",
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
-        "SATURDAY",
-      ];
-      const dayName = days[date.getDay()];
-      const schedule = doctorSchedules.find(
-        (s) => s.dayOfWeek === dayName && s.isActive,
-      );
-      if (schedule) {
-        const start = parseInt(schedule.startTime.split(":")[0] ?? "9", 10);
-        const end = parseInt(schedule.endTime.split(":")[0] ?? "18", 10);
-        return { activeStartHour: start, activeEndHour: end };
-      }
-    }
-    return { activeStartHour: clinicStartHour, activeEndHour: clinicEndHour };
-  }, [
-    selectedDoctorId,
-    doctorSchedules,
-    date,
-    clinicStartHour,
-    clinicEndHour,
-  ]);
 
   const {
     data: appointmentsResponse,
@@ -202,6 +159,27 @@ export const useAppointmentsLogic = () => {
   );
 
   const currentTimeSlot = useMemo(() => getCurrentTimeSlot(), []);
+  const appointmentsQueryParams = useMemo(
+    () => ({
+      ...(selectedDateStr ? { date: selectedDateStr } : {}),
+      ...(doctorScope.scopedDoctorId
+        ? { doctorId: doctorScope.scopedDoctorId }
+        : {}),
+      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      status: NON_CANCELLED_APPOINTMENT_STATUSES,
+      limit: 100,
+    }),
+    [
+      debouncedSearch,
+      doctorScope.scopedDoctorId,
+      NON_CANCELLED_APPOINTMENT_STATUSES,
+      selectedDateStr,
+    ],
+  );
+  const appointmentsQueryKey = useMemo(
+    () => queryKeys.appointments.list(appointmentsQueryParams),
+    [appointmentsQueryParams],
+  );
   const isToday = useMemo(() => {
     if (!date) return false;
     const today = new Date();
@@ -269,12 +247,76 @@ export const useAppointmentsLogic = () => {
     [checkInMutation, refetch],
   );
 
+  const updateCurrentAppointmentsCache = useCallback(
+    (updater: (items: Appointment[]) => Appointment[]) => {
+      queryClient.setQueryData(
+        appointmentsQueryKey,
+        (current:
+          | {
+              items?: Appointment[];
+              count?: number;
+              hasMore?: boolean;
+              nextCursor?: string | null;
+            }
+          | undefined) => {
+          if (!current?.items) {
+            return current;
+          }
+
+          const items = updater(current.items);
+          return {
+            ...current,
+            items,
+            count: items.length,
+          };
+        },
+      );
+    },
+    [appointmentsQueryKey, queryClient],
+  );
+
+  const handleAppointmentAdded = useCallback(
+    async (appointment: Appointment) => {
+      const createdDate = format(new Date(appointment.startTime), "yyyy-MM-dd");
+      const shouldAppendToCurrentView =
+        selectedDateStr === createdDate &&
+        (!doctorScope.scopedDoctorId ||
+          appointment.doctorId === doctorScope.scopedDoctorId);
+
+      if (shouldAppendToCurrentView) {
+        updateCurrentAppointmentsCache((items) => {
+          if (items.some((item) => item.id === appointment.id)) {
+            return items;
+          }
+
+          return [...items, appointment].sort(
+            (a, b) =>
+              new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+          );
+        });
+      }
+
+      await refetch();
+    },
+    [
+      doctorScope.scopedDoctorId,
+      refetch,
+      selectedDateStr,
+      updateCurrentAppointmentsCache,
+    ],
+  );
+
   const handleCancelAppointment = async (reason: string) => {
     if (!cancellingAptId) return;
     try {
       await cancelAppointmentMutation.mutateAsync({ reason });
       toast.success("Appointment cancelled successfully");
-      refetch();
+      updateCurrentAppointmentsCache((items) =>
+        items.filter((item) => item.id !== cancellingAptId),
+      );
+      setCancellingAptId(null);
+      setCancelDialogOpen(false);
+      await refetch();
     } catch {
       showUserFacingErrorToast(
         "We could not cancel this appointment. Please try again.",
@@ -289,7 +331,16 @@ export const useAppointmentsLogic = () => {
         status: "no-show",
       });
       toast.success("Appointment marked as no-show");
-      refetch();
+      updateCurrentAppointmentsCache((items) =>
+        items.map((item) =>
+          item.id === noShowAptId
+            ? ({ ...item, status: "no-show" } as Appointment)
+            : item,
+        ),
+      );
+      setNoShowAptId(null);
+      setNoShowDialogOpen(false);
+      await refetch();
     } catch {
       showUserFacingErrorToast(
         "We could not mark this appointment as missed. Please try again.",
@@ -327,12 +378,11 @@ export const useAppointmentsLogic = () => {
       user,
       isPendingMutation:
         cancelAppointmentMutation.isPending || updateAppointmentMutation.isPending,
-      activeStartHour,
-      activeEndHour,
     },
     handlers: {
       handleCheckIn,
       handleStartConsultation,
+      handleAppointmentAdded,
       handleCancelAppointment,
       handleNoShowAppointment,
       setCancellingAptId,

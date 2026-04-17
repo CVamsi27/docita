@@ -31,8 +31,6 @@ interface AppointmentsListUIProps {
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
   currentUserId?: string;
-  activeStartHour?: number;
-  activeEndHour?: number;
 }
 
 export function AppointmentsListUI({
@@ -63,78 +61,102 @@ export function AppointmentsListUI({
       ),
     [filteredAppointments],
   );
+  const selectedDoctorName =
+    selectedDoctorId &&
+    doctorsList.find((d) => d.id === selectedDoctorId)?.name;
+  const emptyStateDescription = selectedDoctorName
+    ? `Try another date or clear the Dr. ${selectedDoctorName} filter`
+    : "Try another date or schedule the first appointment for this day";
+
+  if (loading) {
+    return (
+      <Card className="border-border/60 bg-card/80 shadow-sm">
+        <CardContent className="py-16 text-center text-muted-foreground">
+          <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary" />
+          <p>Loading appointments...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="border-border/60 bg-card/80 shadow-sm">
+        <CardContent className="p-6">
+          <ErrorState
+            message="We could not load these appointments. Please try again."
+            onRetry={onRetry}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="border-border shadow-sm bg-card">
-      <CardHeader className="border-b border-border bg-muted/30 dark:bg-muted/10">
-        <CardTitle className="text-lg">
-          Schedule for {format(date ?? new Date(), "MMMM d, yyyy")}
-          {selectedDoctorId &&
-            doctorsList.find((d) => d.id === selectedDoctorId) && (
-              <span className="text-muted-foreground font-normal text-sm ml-2">
-                - Dr. {doctorsList.find((d) => d.id === selectedDoctorId)?.name}
-              </span>
-            )}
-        </CardTitle>
+    <Card className="overflow-hidden border-border/60 bg-card/90 shadow-sm backdrop-blur">
+      <CardHeader className="border-b border-border/60 bg-gradient-to-r from-muted/50 to-background px-5 py-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <CardTitle className="text-xl">
+              Appointments for {format(date ?? new Date(), "MMMM d, yyyy")}
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {selectedDoctorName
+                ? `Dr. ${selectedDoctorName} selected`
+                : "Sorted by start time"}
+            </p>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {appointmentsByTime.length} appointment
+            {appointmentsByTime.length !== 1 ? "s" : ""}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        {loading ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-primary" />
-            <p>Loading appointments...</p>
-          </div>
-        ) : isError ? (
-          <div className="p-6">
-            <ErrorState
-              message="We could not load these appointments. Please try again."
-              onRetry={onRetry}
-            />
-          </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto">
-            {hasMoreAppointments && (
-              <div className="border-b border-border bg-warning/10 px-4 py-2 text-xs text-muted-foreground">
-                Showing first 100 appointments for this view. Refine filters to
-                narrow results.
-              </div>
-            )}
-            {appointmentsByTime.length === 0 && (
-              <div className="p-6">
-                <EmptyState
-                  icon={CalendarDays}
-                  title="No appointments scheduled"
-                  description="There are no appointments for this day"
-                  className="h-[200px] border-2 border-dashed border-border rounded-lg bg-muted/10"
-                />
-              </div>
-            )}
+        <div className="space-y-4 p-4 sm:p-5">
+          {hasMoreAppointments && (
+            <div className="surface-warning rounded-xl px-4 py-3 text-sm">
+              Showing the first 100 appointments for this view. Refine the
+              filters to narrow results
+            </div>
+          )}
 
-            {appointmentsByTime.map((apt) => (
-              <div
-                key={apt.id || `${apt.patientId}-${apt.startTime}`}
-                ref={
-                  isToday &&
-                  currentTimeSlotRef &&
-                  currentTimeSlot &&
-                  format(new Date(apt.startTime), "HH:mm") === currentTimeSlot
-                    ? currentTimeSlotRef
-                    : undefined
-                }
-              >
-                <TimeSlotRow
-                  appointment={apt}
-                  checkingIn={checkingIn}
-                  startingConsultationId={startingConsultationId}
-                  onCheckIn={onCheckIn}
-                  onStartConsultation={onStartConsultation}
-                  onCancelClick={onCancelClick}
-                  onNoShowClick={onNoShowClick}
-                  currentUserId={currentUserId}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+          {appointmentsByTime.length === 0 ? (
+            <EmptyState
+              icon={CalendarDays}
+              title="No appointments scheduled"
+              description={emptyStateDescription}
+              className="min-h-[220px] rounded-2xl border border-dashed border-border bg-muted/20"
+            />
+          ) : (
+            <div className="space-y-3">
+              {appointmentsByTime.map((apt) => (
+                <div
+                  key={apt.id || `${apt.patientId}-${apt.startTime}`}
+                  ref={
+                    isToday &&
+                    currentTimeSlotRef &&
+                    currentTimeSlot &&
+                    format(new Date(apt.startTime), "HH:mm") === currentTimeSlot
+                      ? currentTimeSlotRef
+                      : undefined
+                  }
+                >
+                  <TimeSlotRow
+                    appointment={apt}
+                    checkingIn={checkingIn}
+                    startingConsultationId={startingConsultationId}
+                    onCheckIn={onCheckIn}
+                    onStartConsultation={onStartConsultation}
+                    onCancelClick={onCancelClick}
+                    onNoShowClick={onNoShowClick}
+                    currentUserId={currentUserId}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

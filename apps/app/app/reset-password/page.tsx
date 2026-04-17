@@ -17,8 +17,8 @@ import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell"
 
 const resetPasswordSchema = z
   .object({
-    newPassword: passwordSchema,
-    confirmPassword: z.string(),
+    newPassword: z.string().min(1, "Enter new password").pipe(passwordSchema),
+    confirmPassword: z.string().min(1, "Confirm password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
@@ -86,7 +86,7 @@ function ResetPasswordInner() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <h1 className="text-2xl sm:text-3xl font-bold">Set New Password</h1>
         <p className="text-muted-foreground text-sm">
-          Enter your new password below.
+          Choose a new password below
         </p>
       </div>
 
@@ -115,12 +115,14 @@ function ResetPasswordInner() {
             className="space-y-5"
           >
             <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">
+                New Password<span className="text-destructive ml-0.5">*</span>
+              </Label>
               <div className="relative">
                 <Input
                   id="newPassword"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter new password"
+                  placeholder="New password"
                   {...form.register("newPassword")}
                   className="h-11 pr-10"
                   autoFocus
@@ -150,11 +152,13 @@ function ResetPasswordInner() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">
+                Confirm Password<span className="text-destructive ml-0.5">*</span>
+              </Label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
-                placeholder="Confirm new password"
+                placeholder="Confirm password"
                 {...form.register("confirmPassword")}
                 className="h-11"
               />

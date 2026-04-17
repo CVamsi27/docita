@@ -55,14 +55,24 @@ const STATUS_COLORS: Record<string, string> = {
   REVOKED: "destructive",
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  MEDICAL_CERTIFICATE: "Medical Certificate",
-  FITNESS_CERTIFICATE: "Fitness Certificate",
-  DISCHARGE_SUMMARY: "Discharge Summary",
-  REFERRAL_LETTER: "Referral Letter",
-  SICK_NOTE: "Sick Note",
-  OTHER: "Others",
-};
+const DOCUMENT_TYPE_OPTIONS = [
+  "MEDICAL_CERTIFICATE",
+  "FITNESS_CERTIFICATE",
+  "DISCHARGE_SUMMARY",
+  "REFERRAL_LETTER",
+  "SICK_NOTE",
+  "OTHER",
+] as const;
+
+const DOCUMENT_TYPE_LABELS: Record<(typeof DOCUMENT_TYPE_OPTIONS)[number], string> =
+  {
+    MEDICAL_CERTIFICATE: "Medical Certificate",
+    FITNESS_CERTIFICATE: "Fitness Certificate",
+    DISCHARGE_SUMMARY: "Discharge Summary",
+    REFERRAL_LETTER: "Referral Letter",
+    SICK_NOTE: "Sick Note",
+    OTHER: "Other",
+  };
 
 export function MedicalDocumentList({ patientId }: Props) {
   const { user } = useAuth();
@@ -199,9 +209,9 @@ export function MedicalDocumentList({ patientId }: Props) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                  {DOCUMENT_TYPE_OPTIONS.map((value) => (
                     <SelectItem key={value} value={value}>
-                      {label}
+                      {DOCUMENT_TYPE_LABELS[value]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -215,8 +225,13 @@ export function MedicalDocumentList({ patientId }: Props) {
                 onChange={(e) => setNewTitle(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Upload (optional)</Label>
+            <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-sm font-medium">Upload document</Label>
+                <span className="text-xs text-muted-foreground">
+                  Optional, but recommended
+                </span>
+              </div>
               <Input
                 type="file"
                 accept="application/pdf,image/jpeg,image/jpg,image/png,image/webp"
@@ -226,12 +241,12 @@ export function MedicalDocumentList({ patientId }: Props) {
                   setNewFileUrl(file ? URL.createObjectURL(file) : null);
                 }}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-7 text-xs"
+                  className="h-8 text-xs"
                   onClick={() => {
                     void startMobileUpload((file) => {
                       setNewFile(file);
@@ -247,7 +262,7 @@ export function MedicalDocumentList({ patientId }: Props) {
                   </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    PDF or image
+                    PDF, PNG, JPG, or WebP
                   </p>
                 )}
               </div>
@@ -297,7 +312,9 @@ export function MedicalDocumentList({ patientId }: Props) {
                   <div>
                     <CardTitle className="text-sm">{doc.title}</CardTitle>
                     <p className="text-xs text-muted-foreground">
-                      {TYPE_LABELS[doc.type] || doc.type}
+                      {DOCUMENT_TYPE_LABELS[
+                        doc.type as keyof typeof DOCUMENT_TYPE_LABELS
+                      ] || doc.type}
                     </p>
                   </div>
                 </div>

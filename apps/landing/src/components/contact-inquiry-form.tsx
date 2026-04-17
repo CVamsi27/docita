@@ -51,7 +51,7 @@ function validateForm(data: ContactFormData): ContactErrors {
   }
 
   if (!data.clinic.trim()) {
-    errors.clinic = "Enter your clinic name";
+    errors.clinic = "Enter your facility name";
   }
 
   if (!data.message.trim()) {
@@ -108,7 +108,7 @@ export function ContactInquiryForm() {
       <CardHeader>
         <CardTitle>Send us a message</CardTitle>
         <CardDescription>
-          Share your clinic size and goals. We will respond with a practical rollout plan.
+          Share your facility size and goals. We will respond with a practical rollout plan.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -146,7 +146,7 @@ export function ContactInquiryForm() {
                   type="email"
                   value={formData.email}
                   onChange={(event) => updateField("email", event.target.value)}
-                  placeholder="doctor@clinic.com"
+                  placeholder="doctor@facility.com"
                   aria-invalid={Boolean(errors.email)}
                 />
                 {errors.email ? (
@@ -156,12 +156,12 @@ export function ContactInquiryForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="clinic">Clinic Name *</Label>
+              <Label htmlFor="clinic">Facility Name *</Label>
               <Input
                 id="clinic"
                 value={formData.clinic}
                 onChange={(event) => updateField("clinic", event.target.value)}
-                placeholder="Sunrise Family Clinic"
+                placeholder="Sunrise Family Facility"
                 aria-invalid={Boolean(errors.clinic)}
               />
               {errors.clinic ? (

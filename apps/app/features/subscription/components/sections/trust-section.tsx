@@ -11,7 +11,7 @@ export function TrustSection() {
     {
       icon: Clock,
       title: "99.9% Uptime",
-      description: "Reliable infrastructure ensures your clinic never stops",
+      description: "Reliable infrastructure ensures your facility never stops",
     },
     {
       icon: Award,

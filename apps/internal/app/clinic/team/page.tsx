@@ -244,7 +244,7 @@ export default function TeamPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team Management</h1>
           <p className="text-muted-foreground">
-            Manage your clinic team members
+            Manage your facility team members
           </p>
         </div>
         <Button
@@ -272,7 +272,7 @@ export default function TeamPage() {
         description={
           editingMember
             ? "Update team member information"
-            : "Add a new team member to your clinic"
+            : "Add a new team member to your facility"
         }
         isEditing={!!editingMember}
         isLoading={saveMemberMutation.isPending}
@@ -309,7 +309,7 @@ export default function TeamPage() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              placeholder="member@clinic.com"
+              placeholder="member@facility.com"
               required
             />
           </FormFieldGroup>

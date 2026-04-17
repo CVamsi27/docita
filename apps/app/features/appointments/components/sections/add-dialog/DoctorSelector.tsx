@@ -2,6 +2,7 @@ import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,18 +36,21 @@ export function DoctorSelector({
       render={({ field }) => (
         <FormItem>
           <FormLabel>Doctor</FormLabel>
+          <FormDescription>
+            Choose who will own the appointment on the schedule.
+          </FormDescription>
           <Select
             onValueChange={field.onChange}
             value={field.value ?? ""}
           >
             <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select doctor" />
+              <SelectTrigger className="min-h-11">
+                <SelectValue placeholder="Doctor" />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
               {doctorsLoading ? (
-                <div className="flex items-center justify-center p-2">
+                <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
               ) : (

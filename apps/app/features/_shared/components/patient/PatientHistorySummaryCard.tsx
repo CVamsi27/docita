@@ -90,7 +90,6 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {}
       <Card
         className={`overflow-hidden ${hasAllergies ? "border-destructive/30" : "border-success/30"}`}
       >
@@ -130,13 +129,12 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-2 text-sm text-success">
-              <span className="font-medium">NKA (No Known Allergies)</span>
+              <span className="font-medium">No known allergies</span>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {}
       {hasConditions && (
         <Collapsible defaultOpen={!compact}>
           <Card>
@@ -174,7 +172,6 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
         </Collapsible>
       )}
 
-      {}
       {hasSurgeries && (
         <Collapsible defaultOpen={!compact}>
           <Card>
@@ -225,7 +222,6 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
         </Collapsible>
       )}
 
-      {}
       {hasFamilyHistory && (
         <Collapsible defaultOpen={!compact}>
           <Card>
@@ -267,7 +263,6 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
         </Collapsible>
       )}
 
-      {}
       {hasSocialHistory && (
         <Collapsible defaultOpen={!compact}>
           <Card>

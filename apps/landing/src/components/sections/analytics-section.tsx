@@ -23,7 +23,7 @@ export function AnalyticsSection() {
             Grow Your Practice with Analytics
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Understand your clinic&apos;s performance with comprehensive reports
+            Understand your facility&apos;s performance with comprehensive reports
             on revenue, patient trends, and operational efficiency.
           </p>
         </div>

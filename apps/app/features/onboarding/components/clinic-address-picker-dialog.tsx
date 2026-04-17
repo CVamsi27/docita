@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Loader2, LocateFixed, MapPin, Search } from "lucide-react";
@@ -12,23 +12,211 @@ import {
   Marker,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import { MapContainer, Marker as LeafletMarker, TileLayer, useMapEvents } from "react-leaflet";
-import styles from "./clinic-address-picker-dialog.module.css";
+import {
+  MapContainer,
+  Marker as LeafletMarker,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import type { LeafletMouseEvent, LatLngExpression } from "leaflet";
 import type { LatLng as LeafletLatLng } from "leaflet";
+import type { Map as LeafletMapInstance } from "leaflet";
+import {
+  DEFAULT_COUNTRY_CODE,
+  normalizeCountryCode,
+} from "@workspace/utils";
+import styles from "./clinic-address-picker-dialog.module.css";
 
 type LatLng = { lat: number; lng: number };
+
+export type ClinicAddressDetails = {
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  countryCode: string;
+};
+
+export type ClinicAddressSelection = {
+  address: string;
+  location: LatLng;
+  details?: ClinicAddressDetails;
+};
 
 const DEFAULT_CENTER: LatLng = { lat: 20.5937, lng: 78.9629 }; // India
 const GOOGLE_LIBRARIES = ["places"] as const;
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 const SEARCH_DEBOUNCE_MS = 250;
 
+function resolveLeafletAsset(asset: string | { src: string }): string {
+  return typeof asset === "string" ? asset : asset.src;
+}
+
+const LEAFLET_MARKER_ICON = L.icon({
+  iconRetinaUrl: resolveLeafletAsset(markerIcon2x),
+  iconUrl: resolveLeafletAsset(markerIcon),
+  shadowUrl: resolveLeafletAsset(markerShadow),
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+// Leaflet still falls back to its default marker lookup in a few code paths,
+// so set the global defaults to the bundled assets as well.
+delete (
+  L.Icon.Default.prototype as typeof L.Icon.Default.prototype & {
+    _getIconUrl?: unknown;
+  }
+)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: resolveLeafletAsset(markerIcon2x),
+  iconUrl: resolveLeafletAsset(markerIcon),
+  shadowUrl: resolveLeafletAsset(markerShadow),
+});
+
+type OSMAddress = {
+  house_number?: string;
+  road?: string;
+  neighbourhood?: string;
+  suburb?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  municipality?: string;
+  county?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  country_code?: string;
+};
+
 type PlaceSuggestion = {
   id: string;
   label: string;
   position: LatLng;
+  details?: ClinicAddressDetails;
 };
+
+function hasText(value: string | undefined | null): value is string {
+  return Boolean(value?.trim());
+}
+
+function joinAddress(parts: Array<string | undefined | null>): string {
+  return parts.filter(hasText).join(", ");
+}
+
+function toAddressDetails(input: {
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  countryCode?: string;
+}): ClinicAddressDetails | null {
+  const details: ClinicAddressDetails = {
+    addressLine1: input.addressLine1?.trim() ?? "",
+    addressLine2: input.addressLine2?.trim() ?? "",
+    city: input.city?.trim() ?? "",
+    state: input.state?.trim() ?? "",
+    pincode: input.pincode?.trim() ?? "",
+    countryCode:
+      normalizeCountryCode(input.countryCode) ?? DEFAULT_COUNTRY_CODE,
+  };
+
+  if (
+    !details.addressLine1 &&
+    !details.addressLine2 &&
+    !details.city &&
+    !details.state &&
+    !details.pincode
+  ) {
+    return null;
+  }
+
+  return details;
+}
+
+function formatAddressDetails(details: ClinicAddressDetails): string {
+  return joinAddress([
+    details.addressLine1,
+    details.addressLine2,
+    details.city,
+    details.state,
+    details.pincode,
+    details.countryCode,
+  ]);
+}
+
+function parseOSMAddressDetails(address?: OSMAddress): ClinicAddressDetails | null {
+  if (!address) return null;
+
+  const line1 = joinAddress([address.house_number, address.road]);
+  const line2 = joinAddress([
+    address.neighbourhood,
+    address.suburb,
+    address.county,
+  ]);
+  const city =
+    address.city?.trim() ||
+    address.town?.trim() ||
+    address.village?.trim() ||
+    address.municipality?.trim() ||
+    "";
+
+  return (
+    toAddressDetails({
+      addressLine1: line1 || line2 || address.road || "",
+      addressLine2: line2 && line2 !== line1 ? line2 : "",
+      city,
+      state: address.state,
+      pincode: address.postcode,
+      countryCode: address.country_code,
+    }) ?? null
+  );
+}
+
+function getGoogleAddressComponent(
+  components: google.maps.GeocoderAddressComponent[] | undefined,
+  type: string,
+  shortName = false,
+): string {
+  const component = components?.find((entry) => entry.types.includes(type));
+  return shortName ? component?.short_name ?? "" : component?.long_name ?? "";
+}
+
+function parseGoogleAddressDetails(
+  components: google.maps.GeocoderAddressComponent[] | undefined,
+): ClinicAddressDetails | null {
+  if (!components?.length) return null;
+
+  return (
+    toAddressDetails({
+      addressLine1: joinAddress([
+        getGoogleAddressComponent(components, "street_number"),
+        getGoogleAddressComponent(components, "route"),
+      ]),
+      addressLine2: joinAddress([
+        getGoogleAddressComponent(components, "sublocality_level_1"),
+        getGoogleAddressComponent(components, "sublocality"),
+        getGoogleAddressComponent(components, "neighborhood"),
+      ]),
+      city:
+        getGoogleAddressComponent(components, "locality") ||
+        getGoogleAddressComponent(components, "postal_town") ||
+        getGoogleAddressComponent(components, "administrative_area_level_2"),
+      state: getGoogleAddressComponent(components, "administrative_area_level_1"),
+      pincode: getGoogleAddressComponent(components, "postal_code"),
+      countryCode: getGoogleAddressComponent(components, "country", true),
+    }) ?? null
+  );
+}
 
 function ClickToPick({
   onPick,
@@ -43,8 +231,49 @@ function ClickToPick({
   return null;
 }
 
-async function reverseGeocodeOSM(position: LatLng): Promise<string | null> {
-  const url = new URL("https://nominatim.openstreetmap.org/reverse");
+function LeafletMapSync({
+  active,
+  center,
+  zoom,
+  layoutVersion,
+}: {
+  active: boolean;
+  center: LatLngExpression;
+  zoom: number;
+  layoutVersion: number;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!active) return;
+    const frame = window.requestAnimationFrame(() => {
+      map.invalidateSize();
+      map.setView(center, zoom, { animate: false });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [active, center, zoom, layoutVersion, map]);
+
+  return null;
+}
+
+function LeafletMapHandle({
+  onReady,
+}: {
+  onReady: (map: LeafletMapInstance) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    onReady(map);
+  }, [map, onReady]);
+
+  return null;
+}
+
+async function reverseGeocodeOSM(
+  position: LatLng,
+): Promise<ClinicAddressSelection | null> {
+  const url = new URL(`${NOMINATIM_BASE}/reverse`);
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("lat", String(position.lat));
   url.searchParams.set("lon", String(position.lng));
@@ -53,19 +282,33 @@ async function reverseGeocodeOSM(position: LatLng): Promise<string | null> {
 
   const res = await fetch(url.toString(), {
     headers: {
-      // Best-effort; browsers may ignore this header.
       Accept: "application/json",
     },
   });
 
   if (!res.ok) return null;
-  const data = (await res.json()) as { display_name?: string };
-  return data.display_name?.trim() || null;
+
+  const data = (await res.json()) as {
+    display_name?: string;
+    address?: OSMAddress;
+  };
+  const details = parseOSMAddressDetails(data.address);
+  const address =
+    details ? formatAddressDetails(details) : data.display_name?.trim() || "";
+
+  if (!address) return null;
+
+  return {
+    address,
+    location: position,
+    details: details ?? undefined,
+  };
 }
 
 async function searchOSM(query: string): Promise<PlaceSuggestion[]> {
   const trimmed = query.trim();
   if (trimmed.length < 3) return [];
+
   const url = new URL(`${NOMINATIM_BASE}/search`);
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("q", trimmed);
@@ -75,12 +318,15 @@ async function searchOSM(query: string): Promise<PlaceSuggestion[]> {
   const res = await fetch(url.toString(), {
     headers: { Accept: "application/json" },
   });
+
   if (!res.ok) return [];
+
   const data = (await res.json()) as Array<{
     place_id: number;
     display_name?: string;
     lat?: string;
     lon?: string;
+    address?: OSMAddress;
   }>;
 
   return data
@@ -90,16 +336,21 @@ async function searchOSM(query: string): Promise<PlaceSuggestion[]> {
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
       const label = item.display_name?.trim();
       if (!label) return null;
-      return {
+
+      const suggestion: PlaceSuggestion = {
         id: String(item.place_id),
         label,
         position: { lat, lng },
-      } satisfies PlaceSuggestion;
+        details: parseOSMAddressDetails(item.address) ?? undefined,
+      };
+      return suggestion;
     })
     .filter((x): x is PlaceSuggestion => Boolean(x));
 }
 
-async function reverseGeocodeGoogle(position: LatLng): Promise<string | null> {
+async function reverseGeocodeGoogle(
+  position: LatLng,
+): Promise<ClinicAddressSelection | null> {
   if (typeof window === "undefined" || !window.google?.maps?.Geocoder) {
     return null;
   }
@@ -107,7 +358,19 @@ async function reverseGeocodeGoogle(position: LatLng): Promise<string | null> {
   const geocoder = new window.google.maps.Geocoder();
   const result = await geocoder.geocode({ location: position });
   const first = result.results?.[0];
-  return first?.formatted_address?.trim() || null;
+  if (!first) return null;
+
+  const details = parseGoogleAddressDetails(first.address_components);
+  const address =
+    details ? formatAddressDetails(details) : first.formatted_address?.trim() || "";
+
+  if (!address) return null;
+
+  return {
+    address,
+    location: position,
+    details: details ?? undefined,
+  };
 }
 
 export function ClinicAddressPickerDialog({
@@ -119,11 +382,12 @@ export function ClinicAddressPickerDialog({
   open: boolean;
   onOpenChange: (next: boolean) => void;
   initialAddress: string;
-  onConfirm: (value: { address: string; location: LatLng }) => void;
+  onConfirm: (value: ClinicAddressSelection) => void;
 }) {
   const [picked, setPicked] = useState<LatLng | null>(null);
-  const [resolvedAddress, setResolvedAddress] = useState<string>("");
-  const [addressDraft, setAddressDraft] = useState<string>(initialAddress);
+  const [resolvedAddress, setResolvedAddress] = useState("");
+  const [addressDraft, setAddressDraft] = useState(initialAddress);
+  const [addressDetails, setAddressDetails] = useState<ClinicAddressDetails | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [autocomplete, setAutocomplete] =
     useState<google.maps.places.Autocomplete | null>(null);
@@ -132,6 +396,11 @@ export function ClinicAddressPickerDialog({
   const [isSearching, setIsSearching] = useState(false);
   const lastSearchIdRef = useRef(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [googleMap, setGoogleMap] = useState<google.maps.Map | null>(null);
+  const [leafletMap, setLeafletMap] = useState<LeafletMapInstance | null>(null);
+  const [mapLayoutVersion, setMapLayoutVersion] = useState(0);
+  const mapViewportRef = useRef<HTMLDivElement | null>(null);
+  const didAutoLocateRef = useRef(false);
 
   const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
   const hasGoogleKey = Boolean(googleKey.trim());
@@ -145,26 +414,137 @@ export function ClinicAddressPickerDialog({
 
   const addressValue = addressDraft || resolvedAddress || initialAddress;
 
+  const center = useMemo(() => picked ?? DEFAULT_CENTER, [picked]);
+  const mapZoom = picked ? 16 : 5;
+  const centerExpression = useMemo<LatLngExpression>(
+    () => [center.lat, center.lng],
+    [center],
+  );
+  const triggerGoogleResize = useCallback(() => {
+    if (!shouldUseGoogle || !googleMap) return;
+    window.google.maps.event.trigger(googleMap, "resize");
+    googleMap.setCenter(center);
+  }, [center, googleMap, shouldUseGoogle]);
+
   useEffect(() => {
     if (!open) return;
     setAddressDraft(initialAddress);
+    setAddressDetails(null);
     setResolvedAddress("");
     setPicked(null);
     setSearchQuery("");
     setSuggestions([]);
     setShowSuggestions(false);
+    didAutoLocateRef.current = false;
   }, [initialAddress, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const node = mapViewportRef.current;
+    if (!node || typeof ResizeObserver === "undefined") return;
+
+    let frame = 0;
+    const bump = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        setMapLayoutVersion((version) => version + 1);
+      });
+    };
+
+    const observer = new ResizeObserver(bump);
+    observer.observe(node);
+    bump();
+
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open || !shouldUseGoogle || !googleMap) return;
+
+    const timeouts = [60, 220, 460].map((delay) =>
+      window.setTimeout(() => {
+        triggerGoogleResize();
+      }, delay),
+    );
+
+    return () => {
+      timeouts.forEach((id) => window.clearTimeout(id));
+    };
+  }, [googleMap, mapLayoutVersion, open, shouldUseGoogle, triggerGoogleResize]);
+
+  useEffect(() => {
+    if (!open || shouldUseGoogle || !leafletMap) return;
+
+    const timeouts = [0, 120, 280, 520].map((delay) =>
+      window.setTimeout(() => {
+        leafletMap.invalidateSize({ pan: false });
+        leafletMap.setView(centerExpression, mapZoom, {
+          animate: false,
+        });
+      }, delay),
+    );
+
+    return () => {
+      timeouts.forEach((id) => window.clearTimeout(id));
+    };
+  }, [centerExpression, mapZoom, leafletMap, open, shouldUseGoogle, mapLayoutVersion]);
+
+  useEffect(() => {
+    if (!open || picked || didAutoLocateRef.current) return;
+    if (!navigator.geolocation) return;
+
+    didAutoLocateRef.current = true;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const next = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setPicked(next);
+
+        void (async () => {
+          setIsResolving(true);
+          try {
+            const result = shouldUseGoogle
+              ? await reverseGeocodeGoogle(next)
+              : await reverseGeocodeOSM(next);
+
+            if (!result) return;
+            setResolvedAddress(result.address);
+            setAddressDraft(result.address);
+            setAddressDetails(result.details ?? null);
+          } finally {
+            setIsResolving(false);
+          }
+        })();
+      },
+      () => {
+        // Ignore geolocation denial; user can still choose manually.
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 60_000,
+      },
+    );
+  }, [open, picked, shouldUseGoogle]);
 
   const handlePick = useCallback(async (pos: LatLng) => {
     setPicked(pos);
     setIsResolving(true);
     try {
-      const display = await reverseGeocodeOSM(pos);
-      if (display) {
-        setResolvedAddress(display);
-        setAddressDraft(display);
+      const result = await reverseGeocodeOSM(pos);
+      if (result) {
+        setResolvedAddress(result.address);
+        setAddressDraft(result.address);
+        setAddressDetails(result.details ?? null);
       } else {
         setResolvedAddress("");
+        setAddressDetails(null);
       }
     } finally {
       setIsResolving(false);
@@ -175,12 +555,14 @@ export function ClinicAddressPickerDialog({
     setPicked(pos);
     setIsResolving(true);
     try {
-      const display = await reverseGeocodeGoogle(pos);
-      if (display) {
-        setResolvedAddress(display);
-        setAddressDraft(display);
+      const result = await reverseGeocodeGoogle(pos);
+      if (result) {
+        setResolvedAddress(result.address);
+        setAddressDraft(result.address);
+        setAddressDetails(result.details ?? null);
       } else {
         setResolvedAddress("");
+        setAddressDetails(null);
       }
     } finally {
       setIsResolving(false);
@@ -205,7 +587,7 @@ export function ClinicAddressPickerDialog({
         await handlePick(pos);
       }
     } catch {
-      // Silent fail; user can still click/search.
+      // Silent fail; users can still search and pick manually.
     } finally {
       setIsResolving(false);
     }
@@ -214,6 +596,7 @@ export function ClinicAddressPickerDialog({
   useEffect(() => {
     if (!open) return;
     if (shouldUseGoogle) return;
+
     const q = searchQuery.trim();
     if (q.length < 3) {
       setSuggestions([]);
@@ -222,7 +605,7 @@ export function ClinicAddressPickerDialog({
 
     const searchId = ++lastSearchIdRef.current;
     setIsSearching(true);
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       void (async () => {
         try {
           const results = await searchOSM(q);
@@ -236,235 +619,256 @@ export function ClinicAddressPickerDialog({
       })();
     }, SEARCH_DEBOUNCE_MS);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [open, searchQuery, shouldUseGoogle]);
-
-  const center = useMemo(() => {
-    if (picked) return picked;
-    return DEFAULT_CENTER;
-  }, [picked]);
-
-  const centerExpression = useMemo(
-    (): LatLngExpression => [center.lat, center.lng],
-    [center.lat, center.lng],
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Select clinic location</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,1080px)] max-w-none overflow-hidden p-0 data-[state=open]:animate-none data-[state=closed]:animate-none sm:w-[min(100vw-2rem,1080px)]">
+        <div className="flex h-full min-h-0 flex-col">
+          <DialogHeader className="border-b bg-background px-4 py-4 sm:px-6 sm:py-5">
+            <DialogTitle>Select facility location</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Search an address, then click the map or drag the pin to refine the location.
+            </p>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="place-search">Search address</Label>
-              {shouldUseGoogle ? (
-                <Autocomplete
-                  onLoad={(instance) => setAutocomplete(instance)}
-                  onPlaceChanged={() => {
-                    const place = autocomplete?.getPlace();
-                    const location = place?.geometry?.location;
-                    const formatted = place?.formatted_address?.trim();
-                    if (!location) return;
-                    const pos = { lat: location.lat(), lng: location.lng() };
-                    setPicked(pos);
-                    setResolvedAddress(formatted ?? "");
-                    setAddressDraft(formatted ?? "");
-                  }}
-                >
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="place-search"
-                      placeholder="Search for your clinic location"
-                      className="h-11 pl-9"
-                    />
-                  </div>
-                </Autocomplete>
-              ) : (
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="place-search"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSuggestions(true);
-                    }}
-                    onFocus={() => setShowSuggestions(true)}
-                    onBlur={() => {
-                      // Small delay so click on suggestion registers.
-                      window.setTimeout(() => setShowSuggestions(false), 120);
-                    }}
-                    placeholder="Search for your clinic location"
-                    className="h-11 pl-9"
-                  />
-                  {isSearching ? (
-                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-                  ) : null}
-                  {showSuggestions && suggestions.length > 0 ? (
-                    <div className="absolute z-50 mt-2 w-full rounded-lg border bg-popover shadow-md">
-                      {suggestions.map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          className="block w-full text-left px-3 py-2 text-sm hover:bg-muted/40"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            setPicked(s.position);
-                            setResolvedAddress(s.label);
-                            setAddressDraft(s.label);
-                            setSearchQuery(s.label);
-                            setSuggestions([]);
-                            setShowSuggestions(false);
-                          }}
-                        >
-                          <div className="line-clamp-2">{s.label}</div>
-                        </button>
-                      ))}
+          <div className="flex min-h-0 flex-1 flex-col bg-background">
+            <div className="border-b px-4 py-4 sm:px-6">
+              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                <div className="space-y-2">
+                  <Label htmlFor="place-search">Search address</Label>
+                  {shouldUseGoogle ? (
+                    <Autocomplete
+                      onLoad={(instance) => setAutocomplete(instance)}
+                      onPlaceChanged={() => {
+                        const place = autocomplete?.getPlace();
+                        const location = place?.geometry?.location;
+                        if (!location) return;
+
+                        const pos = { lat: location.lat(), lng: location.lng() };
+                        const formatted = place?.formatted_address?.trim();
+                        const details = parseGoogleAddressDetails(
+                          place?.address_components,
+                        );
+                        const address =
+                          formatted || (details ? formatAddressDetails(details) : "");
+
+                        setPicked(pos);
+                        setResolvedAddress(address);
+                        setAddressDraft(address);
+                        setAddressDetails(details);
+                      }}
+                    >
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="place-search"
+                          placeholder="Search for your facility location"
+                          className="h-11 pl-9"
+                        />
+                      </div>
+                    </Autocomplete>
+                  ) : (
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="place-search"
+                        value={searchQuery}
+                        onChange={(event) => {
+                          setSearchQuery(event.target.value);
+                          setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={() => {
+                          window.setTimeout(() => setShowSuggestions(false), 120);
+                        }}
+                        placeholder="Search for your facility location"
+                        className="h-11 pl-9"
+                      />
+                      {isSearching ? (
+                        <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                      ) : null}
+                      {showSuggestions && suggestions.length > 0 ? (
+                        <div className="absolute z-50 mt-2 w-full rounded-xl border bg-popover shadow-lg">
+                          {suggestions.map((suggestion) => (
+                            <button
+                              key={suggestion.id}
+                              type="button"
+                              className="block w-full px-3 py-2 text-left text-sm hover:bg-muted/40"
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => {
+                                setPicked(suggestion.position);
+                                setResolvedAddress(suggestion.label);
+                                setAddressDraft(suggestion.label);
+                                setAddressDetails(suggestion.details ?? null);
+                                setSearchQuery(suggestion.label);
+                                setSuggestions([]);
+                                setShowSuggestions(false);
+                              }}
+                            >
+                              <div className="line-clamp-2">{suggestion.label}</div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
-                  ) : null}
+                  )}
                 </div>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Search, then fine-tune by clicking the map or dragging the pin.
-              </p>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 w-full lg:w-auto"
+                  onClick={() => void handleUseMyLocation()}
+                  disabled={isResolving}
+                >
+                  <LocateFixed className="mr-2 h-4 w-4" />
+                  Use my location
+                </Button>
+              </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11"
-              onClick={() => void handleUseMyLocation()}
-              disabled={isResolving}
+            <div
+              ref={mapViewportRef}
+              className="relative flex-1 overflow-hidden p-3 sm:p-4"
             >
-              <LocateFixed className="mr-2 h-4 w-4" />
-              Use my location
-            </Button>
-          </div>
-
-          <div className={styles.mapRoot}>
-            {hasGoogleKey && !isGoogleLoaded && !googleLoadError ? (
-              <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Loading map...
-              </div>
-            ) : shouldUseGoogle ? (
-              <GoogleMap
-                mapContainerStyle={{ width: "100%", height: "100%" }}
-                center={center}
-                zoom={picked ? 16 : 5}
-                options={{
-                  fullscreenControl: false,
-                  mapTypeControl: false,
-                  streetViewControl: false,
-                }}
-                onClick={(e) => {
-                  const lat = e.latLng?.lat();
-                  const lng = e.latLng?.lng();
-                  if (typeof lat !== "number" || typeof lng !== "number") {
-                    return;
-                  }
-                  void handlePickWithGoogle({ lat, lng });
-                }}
-              >
-                {picked ? (
-                  <Marker
-                    position={picked}
-                    draggable
-                    onDragEnd={(e) => {
-                      const lat = e.latLng?.lat();
-                      const lng = e.latLng?.lng();
-                      if (typeof lat !== "number" || typeof lng !== "number") {
-                        return;
-                      }
+              <div className={styles.mapRoot}>
+                {hasGoogleKey && !isGoogleLoaded && !googleLoadError ? (
+                  <div className="flex h-full items-center justify-center rounded-xl border bg-muted/30 p-6 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading map...
+                  </div>
+                ) : shouldUseGoogle ? (
+                  <GoogleMap
+                    onLoad={(map) => {
+                      setGoogleMap(map);
+                      setMapLayoutVersion((version) => version + 1);
+                    }}
+                    mapContainerStyle={{ width: "100%", height: "100%" }}
+                    center={center}
+                    zoom={picked ? 16 : 5}
+                    options={{
+                      fullscreenControl: false,
+                      mapTypeControl: false,
+                      streetViewControl: false,
+                    }}
+                    onClick={(event) => {
+                      const lat = event.latLng?.lat();
+                      const lng = event.latLng?.lng();
+                      if (typeof lat !== "number" || typeof lng !== "number") return;
                       void handlePickWithGoogle({ lat, lng });
                     }}
-                  />
-                ) : null}
-              </GoogleMap>
-            ) : (
-              <MapContainer
-                center={centerExpression}
-                zoom={picked ? 16 : 5}
-                scrollWheelZoom
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <ClickToPick onPick={handlePick} />
-                {picked ? (
-                  <LeafletMarker
-                    position={[picked.lat, picked.lng]}
-                    draggable
-                    eventHandlers={{
-                      dragend: (e) => {
-                        const marker = e.target as { getLatLng: () => LeafletLatLng };
-                        const ll = marker.getLatLng();
-                        void handlePick({ lat: ll.lat, lng: ll.lng });
-                      },
-                    }}
-                  />
-                ) : null}
-              </MapContainer>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Coordinates</Label>
-              <div className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                {picked ? (
-                  <span className="font-mono">
-                    {picked.lat.toFixed(6)}, {picked.lng.toFixed(6)}
-                  </span>
+                  >
+                    {picked ? (
+                      <Marker
+                        position={picked}
+                        draggable
+                        onDragEnd={(event) => {
+                          const lat = event.latLng?.lat();
+                          const lng = event.latLng?.lng();
+                          if (typeof lat !== "number" || typeof lng !== "number") {
+                            return;
+                          }
+                          void handlePickWithGoogle({ lat, lng });
+                        }}
+                      />
+                    ) : null}
+                  </GoogleMap>
                 ) : (
-                  <span className="text-muted-foreground">Click the map to choose</span>
+                  <MapContainer
+                    center={centerExpression}
+                    zoom={mapZoom}
+                    scrollWheelZoom
+                  >
+                    <LeafletMapHandle onReady={setLeafletMap} />
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <ClickToPick onPick={handlePick} />
+                    <LeafletMapSync
+                      active={open}
+                      center={centerExpression}
+                      zoom={mapZoom}
+                      layoutVersion={mapLayoutVersion}
+                    />
+                    {picked ? (
+                      <LeafletMarker
+                        position={[picked.lat, picked.lng]}
+                        icon={LEAFLET_MARKER_ICON}
+                        draggable
+                        eventHandlers={{
+                          dragend: (event) => {
+                            const marker = event.target as {
+                              getLatLng: () => LeafletLatLng;
+                            };
+                            const ll = marker.getLatLng();
+                            void handlePick({ lat: ll.lat, lng: ll.lng });
+                          },
+                        }}
+                      />
+                    ) : null}
+                  </MapContainer>
                 )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="resolved-address">Address</Label>
-              <div className="relative">
-                <Input
-                  id="resolved-address"
-                  value={addressValue}
-                  onChange={(e) => setAddressDraft(e.target.value)}
-                />
-                {isResolving ? (
-                  <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-                ) : null}
+            <div className="grid gap-3 border-t bg-muted/10 px-4 py-4 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-end">
+              <div className="rounded-lg border bg-background px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                  <span>Coordinates</span>
+                </div>
+                <p className="mt-1 font-mono text-foreground">
+                  {picked
+                    ? `${picked.lat.toFixed(6)}, ${picked.lng.toFixed(6)}`
+                    : "Pick a location on the map"}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Address is auto-filled. You can edit it before confirming.
-              </p>
-            </div>
-          </div>
 
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                if (!picked) return;
-                onConfirm({ address: addressValue, location: picked });
-                onOpenChange(false);
-              }}
-              disabled={!picked || isResolving}
-            >
-              Use this location
-            </Button>
+              <div>
+                <Label htmlFor="resolved-address">Address</Label>
+                <div className="relative mt-2">
+                  <Input
+                    id="resolved-address"
+                    value={addressValue}
+                    onChange={(event) => setAddressDraft(event.target.value)}
+                  />
+                  {isResolving ? (
+                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row lg:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (!picked) return;
+                    onConfirm({
+                      address: addressValue,
+                      location: picked,
+                      details: addressDetails ?? undefined,
+                    });
+                    onOpenChange(false);
+                  }}
+                  disabled={!picked || isResolving}
+                >
+                  Use this location
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-

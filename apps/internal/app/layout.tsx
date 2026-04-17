@@ -4,7 +4,7 @@ import { Providers } from "./providers";
 
 export const metadata = {
   title: "Docita Internal - Internal Console",
-  description: "Manage clinics, users, and system settings",
+  description: "Manage facilities, users, and system settings",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",

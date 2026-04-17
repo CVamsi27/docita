@@ -100,7 +100,7 @@ export default function CreateDoctorPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Create Doctor</h1>
         <p className="text-muted-foreground">
-          Add a new doctor to your clinic team
+          Add a new doctor to your facility team
         </p>
       </div>
 

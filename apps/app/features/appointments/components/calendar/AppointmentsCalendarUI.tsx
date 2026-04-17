@@ -34,12 +34,14 @@ export function AppointmentsCalendarUI({
   onDoctorSelect,
 }: AppointmentsCalendarUIProps) {
   return (
-    <Card className="h-fit border border-border shadow-sm bg-card">
-      <CardContent className="p-3 space-y-3">
+    <Card className="h-fit border-border/60 bg-card/90 shadow-sm backdrop-blur">
+      <CardContent className="space-y-4 p-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-muted-foreground">Selected date</p>
-            <p className="text-sm font-semibold truncate">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Selected date
+            </p>
+            <p className="truncate text-sm font-semibold">
               {format(date ?? new Date(), "EEE, d MMM yyyy")}
             </p>
           </div>
@@ -63,7 +65,7 @@ export function AppointmentsCalendarUI({
               onDoctorSelect(value === "all" ? undefined : value)
             }
           >
-            <SelectTrigger className="w-full h-9 text-sm">
+            <SelectTrigger className="h-9 w-full text-sm">
               <SelectValue placeholder="All Doctors" />
             </SelectTrigger>
             <SelectContent>
@@ -77,12 +79,15 @@ export function AppointmentsCalendarUI({
           </Select>
         )}
 
-        <Calendar
-          mode="single"
-          selected={date ?? new Date()}
-          onSelect={onDateSelect}
-          className="w-full p-0 [--cell-size:--spacing(9)] sm:[--cell-size:--spacing(10)]"
-        />
+        <div className="rounded-2xl border border-border/60 bg-background/60 p-2">
+          <Calendar
+            mode="single"
+            required
+            selected={date ?? new Date()}
+            onSelect={onDateSelect}
+            className="w-full p-0 [--cell-size:--spacing(9)] sm:[--cell-size:--spacing(10)]"
+          />
+        </div>
       </CardContent>
     </Card>
   );

@@ -336,22 +336,22 @@ export default function PaymentProcessingPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5" />
-                Clinics Payment Management
+                Facilities Payment Management
               </CardTitle>
               <CardDescription>
-                Select a clinic to process payment or upgrade tier
+                Select a facility to process payment or upgrade tier
               </CardDescription>
             </CardHeader>
             <CardContent>
               {clinics.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No clinics found
+                  No facilities found
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                   <TableRow>
-                      <TableHead>Clinic Name</TableHead>
+                      <TableHead>Facility Name</TableHead>
                       <TableHead>Current Tier</TableHead>
                       <TableHead>Max Doctors</TableHead>
                       <TableHead>Max Patients</TableHead>
@@ -492,7 +492,7 @@ export default function PaymentProcessingPage() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Select the new tier for this clinic
+                      Select the new tier for this facility
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

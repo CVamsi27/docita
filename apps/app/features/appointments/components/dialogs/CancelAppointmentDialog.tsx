@@ -24,8 +24,8 @@ import { Textarea } from "@workspace/ui/components/textarea";
 
 const cancelReasonSchema = z
   .string()
-  .min(1, "Select a cancellation reason.")
-  .max(500, "Reason is too long.");
+  .min(1, "Select a cancellation reason")
+  .max(500, "Reason is too long");
 
 const OTHER_VALUE = "other";
 
@@ -48,7 +48,7 @@ export function CancelAppointmentDialog({
       { value: "doctor-unavailable", label: "Doctor unavailable" },
       { value: "clinic-closed", label: "Clinic closed" },
       { value: "duplicate", label: "Duplicate booking" },
-      { value: OTHER_VALUE, label: "Other" },
+      { value: OTHER_VALUE, label: "Other / Custom" },
     ],
     [],
   );
@@ -95,7 +95,7 @@ export function CancelAppointmentDialog({
             <div className="flex-1">
               <DialogTitle>Cancel Appointment</DialogTitle>
               <DialogDescription className="mt-2">
-                Please select a reason. The patient will not be notified automatically.
+                Choose a reason so the schedule stays auditable
               </DialogDescription>
             </div>
           </div>
@@ -106,7 +106,7 @@ export function CancelAppointmentDialog({
             <Label>Reason</Label>
             <Select value={selectedReason} onValueChange={setSelectedReason}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a reason" />
+                <SelectValue placeholder="Reason" />
               </SelectTrigger>
               <SelectContent>
                 {reasonOptions.map((opt) => (
@@ -124,7 +124,7 @@ export function CancelAppointmentDialog({
               <Textarea
                 value={otherReason}
                 onChange={(e) => setOtherReason(e.target.value)}
-                placeholder="Enter a short reason"
+                placeholder="Short reason"
                 className="min-h-[90px]"
               />
             </div>
@@ -157,4 +157,3 @@ export function CancelAppointmentDialog({
     </Dialog>
   );
 }
-

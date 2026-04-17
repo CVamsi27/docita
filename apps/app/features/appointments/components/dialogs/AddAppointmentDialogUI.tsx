@@ -63,40 +63,65 @@ export function AddAppointmentDialogUI({
       open={open}
       onOpenChange={onOpenChange}
       title="Schedule Appointment"
-      description="Create a new appointment for a patient"
+      description="Pick the patient, doctor, time, and visit type in one flow"
+      contentClassName="sm:max-w-[760px]"
     >
       <Form {...form}>
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <PatientSelector
-              form={form}
-              patients={patients}
-              patientsLoading={patientsLoading}
-              patientSearch={patientSearch}
-              setPatientSearch={setPatientSearch}
-              patientComboboxOpen={patientComboboxOpen}
-              setPatientComboboxOpen={setPatientComboboxOpen}
-            />
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+            <p className="text-sm font-semibold text-foreground">
+              Step 1. Who and when
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Start with the patient and doctor, then choose the time range for
+              the visit.
+            </p>
 
-            <DoctorSelector
-              form={form}
-              doctors={doctors}
-              doctorsLoading={doctorsLoading}
-            />
+            <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
+              <PatientSelector
+                form={form}
+                patients={patients}
+                patientsLoading={patientsLoading}
+                patientSearch={patientSearch}
+                setPatientSearch={setPatientSearch}
+                patientComboboxOpen={patientComboboxOpen}
+                setPatientComboboxOpen={setPatientComboboxOpen}
+              />
 
-            <TimeSlotPicker
-              form={form}
-              startHour={startHour}
-              endHour={endHour}
-            />
-
-            <AppointmentFormFields
-              form={form}
-              appointmentTypeOptions={appointmentTypeOptions}
-            />
+              <DoctorSelector
+                form={form}
+                doctors={doctors}
+                doctorsLoading={doctorsLoading}
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
+            <p className="text-sm font-semibold text-foreground">
+              Step 2. Timing and details
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Keep the slot within clinic hours and use the visit type to help
+              with reporting later.
+            </p>
+
+            <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="space-y-5">
+                <TimeSlotPicker
+                  form={form}
+                  startHour={startHour}
+                  endHour={endHour}
+                />
+              </div>
+
+              <AppointmentFormFields
+                form={form}
+                appointmentTypeOptions={appointmentTypeOptions}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"

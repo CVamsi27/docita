@@ -59,7 +59,7 @@ export function DashboardPageContainer() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Overview</h1>
           <p className="text-muted-foreground">
-            Monitor and manage all clinics across the platform.
+            Monitor and manage all facilities across the platform.
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -70,7 +70,7 @@ export function DashboardPageContainer() {
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clinics</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Facilities</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -128,14 +128,14 @@ export function DashboardPageContainer() {
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle>Clinics</CardTitle>
+              <CardTitle>Facilities</CardTitle>
               <CardDescription>
-                All registered clinics on the platform
+                All registered facilities on the platform
               </CardDescription>
             </div>
             <div className="relative w-full md:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search clinics..." className="pl-8" />
+              <Input placeholder="Search facilities..." className="pl-8" />
             </div>
           </div>
         </CardHeader>

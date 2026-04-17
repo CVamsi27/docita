@@ -3,9 +3,10 @@ import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Plus, Search } from "lucide-react";
+import type { Appointment } from "@workspace/types";
 
 interface AppointmentsPageHeaderUIProps {
-  onAppointmentAdded: () => void;
+  onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
   isAddDialogOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,7 +40,7 @@ export function AppointmentsPageHeaderUI({
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search by patient name or phone..."
+          placeholder="Search by patient name or phone"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-9"

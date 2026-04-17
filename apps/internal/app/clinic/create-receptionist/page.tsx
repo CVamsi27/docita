@@ -81,7 +81,7 @@ export default function CreateReceptionistPage() {
           Create Receptionist
         </h1>
         <p className="text-muted-foreground">
-          Add a new receptionist to your clinic team
+          Add a new receptionist to your facility team
         </p>
       </div>
 

@@ -72,6 +72,7 @@ interface PatientMedicalHistoryUIProps {
     value: string,
   ) => void;
   variant?: "default" | "consultation";
+  allowGrowthEdit?: boolean;
 }
 
 const asObject = (value: unknown): Record<string, unknown> =>
@@ -112,8 +113,10 @@ export function PatientMedicalHistoryUI({
   onRemoveFamilyHistory,
   onSocialHistoryUpdate,
   variant = "default",
+  allowGrowthEdit = true,
 }: PatientMedicalHistoryUIProps) {
   const isCompact = variant === "consultation";
+  const isGrowthReadOnly = readOnly || !allowGrowthEdit;
 
   const renderSpecialtySection = () => {
     const customData = asObject(patient.customData);
@@ -175,7 +178,7 @@ export function PatientMedicalHistoryUI({
               Object.fromEntries(Object.entries(val)),
             )
           }
-          readOnly={readOnly}
+          readOnly={isGrowthReadOnly}
         />
       );
     } else {
@@ -202,7 +205,7 @@ export function PatientMedicalHistoryUI({
             {title}
           </CardTitle>
           <CardDescription>
-            Clinic-specific baseline records for this patient.
+            Clinic-specific baseline records for this patient
           </CardDescription>
         </CardHeader>
         <CardContent>{component}</CardContent>
@@ -231,7 +234,7 @@ export function PatientMedicalHistoryUI({
             {!readOnly && (
               <CardDescription>
                 Add or remove conditions directly. Changes are saved
-                automatically.
+                automatically
               </CardDescription>
             )}
           </CardHeader>

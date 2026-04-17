@@ -2,12 +2,12 @@ import { z } from "zod";
 import { clinicTypeSchema } from "@workspace/types";
 
 export const clinicDetailsSchema = z.object({
-  name: z.string().min(2, "Enter the clinic name"),
+  name: z.string().min(2, "Enter the facility name"),
   email: z.string().email("Enter a valid email address"),
   phone: z
     .string()
     .regex(/^\+\d{8,15}$/, "Enter a valid phone number"),
-  address: z.string().min(5, "Enter the clinic address"),
+  address: z.string().min(5, "Enter the facility address"),
   type: clinicTypeSchema,
   facilityType: z.enum(["CLINIC", "HOSPITAL"]).default("CLINIC"),
 });

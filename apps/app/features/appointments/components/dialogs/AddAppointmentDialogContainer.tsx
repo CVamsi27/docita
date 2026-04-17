@@ -1,11 +1,17 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { Appointment } from "@workspace/types";
 import { useAppointmentForm } from "@/hooks/use-appointment-form";
 import { useFormOptions } from "@/lib/app-config-context";
 import { useClinic } from "@/lib/clinic-context";
 import { AddAppointmentDialogUI } from "./AddAppointmentDialogUI";
 
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
 interface AddAppointmentDialogContainerProps {
-  onAppointmentAdded: () => void;
+  onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -49,6 +55,20 @@ export function AddAppointmentDialogContainer({
     : 18;
 
   const appointmentTypeOptions = useFormOptions("appointmentType");
+  const mergedAppointmentTypeOptions = useMemo<SelectOption[]>(() => {
+    const fallbackOptions: SelectOption[] = [
+      { value: "other", label: "Other / Custom" },
+    ];
+
+    const merged = [...appointmentTypeOptions];
+    fallbackOptions.forEach((fallback) => {
+      if (!merged.some((option) => option.value === fallback.value)) {
+        merged.push(fallback);
+      }
+    });
+
+    return merged;
+  }, [appointmentTypeOptions]);
 
   const {
     form,
@@ -82,7 +102,7 @@ export function AddAppointmentDialogContainer({
       doctors={doctors}
       doctorsLoading={doctorsLoading}
       onSubmit={onSubmit}
-      appointmentTypeOptions={appointmentTypeOptions}
+      appointmentTypeOptions={mergedAppointmentTypeOptions}
       patientComboboxOpen={patientComboboxOpen}
       setPatientComboboxOpen={setPatientComboboxOpen}
       startHour={startHour}

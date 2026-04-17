@@ -34,7 +34,7 @@ export default function WhatsAppPage() {
             WhatsApp Integration
           </h1>
           <p className="text-muted-foreground">
-            Manage your clinic&apos;s WhatsApp Business API settings and
+            Manage your facility&apos;s WhatsApp Business API settings and
             automation.
           </p>
         </div>
@@ -72,7 +72,7 @@ export default function WhatsAppPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Send health tips, clinic updates, or holiday notices to your
+                Send health tips, facility updates, or holiday notices to your
                 patient list.
               </p>
               <Button

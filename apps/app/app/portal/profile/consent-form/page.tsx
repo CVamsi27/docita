@@ -91,7 +91,7 @@ export default function ConsentFormPage() {
             <p>
               I understand this processing follows applicable Indian data protection requirements,
               including the Digital Personal Data Protection Act, 2023 and healthcare record
-              handling practices as applicable to the clinic.
+              handling practices as applicable to the facility.
             </p>
             <p>
               <span className="font-medium">Current Choice:</span> {storageStatus}

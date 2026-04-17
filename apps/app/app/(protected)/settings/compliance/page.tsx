@@ -84,7 +84,7 @@ export default function ComplianceSettingsPage() {
         <h1 className="text-2xl font-semibold">Compliance</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Legal agreements, data protection, and audit information for your
-          clinic.
+          facility.
         </p>
       </div>
 
@@ -227,7 +227,7 @@ export default function ComplianceSettingsPage() {
               Audit Log
             </CardTitle>
             <CardDescription>
-              Recent system access and data change events for your clinic.
+              Recent system access and data change events for your facility.
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" asChild>

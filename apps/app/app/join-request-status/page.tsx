@@ -162,7 +162,7 @@ export default function JoinRequestStatusPage() {
         </Button>
         <h1 className="text-2xl sm:text-3xl font-bold">Join Request Status</h1>
         <p className="text-muted-foreground text-sm">
-          Your request is being reviewed by the clinic administrator
+          Your request is being reviewed by the facility administrator
         </p>
       </div>
 
@@ -231,7 +231,7 @@ export default function JoinRequestStatusPage() {
             <Building2 className="h-4 w-4" />
             <AlertTitle>What happens next?</AlertTitle>
             <AlertDescription className="space-y-1.5 mt-1.5 text-sm">
-              <p>The clinic administrator will review your request and respond within 7 days</p>
+              <p>The facility administrator will review your request and respond within 7 days</p>
               <p>You will receive notifications via WhatsApp and email when your request is reviewed</p>
             </AlertDescription>
           </Alert>

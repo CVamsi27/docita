@@ -41,7 +41,7 @@ const setupSteps: readonly SetupStep[] = [
   {
     icon: Building2,
     title: "Choose your path",
-    description: "Create a new clinic or join an existing one",
+    description: "Create a new facility or join an existing one",
     authSteps: ["choose-path"],
   },
   {
@@ -74,7 +74,7 @@ const assuranceItems = [
   },
   {
     icon: Stethoscope,
-    label: "Clinic-aware access",
+    label: "Facility-aware access",
   },
 ];
 
@@ -92,7 +92,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   const heroKicker = isLogin ? "Welcome back" : "Getting started";
   const heroTitle = isLogin
     ? "Pick up where you left off"
-    : "Everything in one guided path to your clinic";
+    : "Everything in one guided path to your facility";
   const heroDescription = isLogin
     ? "Sign in to manage appointments, patients, billing, and clinical workflows"
     : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
@@ -122,7 +122,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
           <span className="text-2xl font-bold text-foreground">docita</span>
         </div>
         <span className="rounded-full border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
-          Clinic workspace
+          Facility workspace
         </span>
       </div>
 

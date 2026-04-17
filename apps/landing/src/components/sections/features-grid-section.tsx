@@ -27,7 +27,7 @@ export function FeaturesGridSection() {
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything you need to run a modern clinic
+            Everything you need to run a modern facility
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
             A complete operating system for your medical practice, packed with
@@ -96,13 +96,13 @@ export function FeaturesGridSection() {
             {
               icon: Star,
               title: "Patient Feedback",
-              desc: "Collect and analyze patient feedback to improve your clinic's service quality",
+              desc: "Collect and analyze patient feedback to improve your facility's service quality",
               color: "text-warning",
               bg: "badge-warning",
             },
             {
               icon: Building2,
-              title: "Multi-Clinic Support",
+              title: "Multi-Facility Support",
               desc: "Manage multiple branches and doctors from a single admin dashboard",
               color: "text-primary",
               bg: "tier-pro",
@@ -117,7 +117,7 @@ export function FeaturesGridSection() {
             {
               icon: Keyboard,
               title: "Keyboard Shortcuts",
-              desc: "Power-user shortcuts to navigate and manage your clinic at lightning speed",
+              desc: "Power-user shortcuts to navigate and manage your facility at lightning speed",
               color: "text-muted-foreground",
               bg: "badge-muted",
             },

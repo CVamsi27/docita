@@ -2,6 +2,7 @@ import React from "react";
 import { FieldValues, Path, PathValue, UseFormReturn } from "react-hook-form";
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -51,6 +52,9 @@ export function PatientSelector<T extends FieldValues>({
       render={({ field }) => (
         <FormItem className="flex flex-col">
           <FormLabel>Patient</FormLabel>
+          <FormDescription>
+            Search by patient name or phone number.
+          </FormDescription>
           <Popover
             open={patientComboboxOpen}
             onOpenChange={setPatientComboboxOpen}
@@ -68,31 +72,36 @@ export function PatientSelector<T extends FieldValues>({
                     !field.value && "text-muted-foreground",
                   )}
                 >
-                  {field.value
-                    ? (() => {
-                        const patient = patients.find(
-                          (p) => p.id === field.value,
-                        );
-                        return patient
-                          ? `${patient.firstName} ${patient.lastName}`
-                          : "Select patient";
-                      })()
-                    : "Select patient"}
+                  <span className="truncate text-left">
+                    {field.value
+                      ? (() => {
+                          const patient = patients.find(
+                            (p) => p.id === field.value,
+                          );
+                          return patient
+                            ? `${patient.firstName} ${patient.lastName}`
+                            : "Patient";
+                        })()
+                      : "Patient"}
+                  </span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0 z-[100]" align="start">
+            <PopoverContent
+              className="z-[100] w-[320px] p-0 sm:w-[360px]"
+              align="start"
+            >
               <Command shouldFilter={false}>
                 <CommandInput
-                  placeholder="Search patients..."
+                  placeholder="Search patients"
                   value={patientSearch}
                   onValueChange={setPatientSearch}
                 />
                 <CommandList>
                   <CommandEmpty>
                     {patientsLoading ? (
-                      <div className="flex items-center justify-center p-4">
+                      <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         <span>Searching...</span>
                       </div>
@@ -125,7 +134,7 @@ export function PatientSelector<T extends FieldValues>({
                         />
                         <div className="flex flex-col">
                           <span>{`${patient.firstName} ${patient.lastName}`}</span>
-                          <span className="text-xs text-muted-foreground mr-2">
+                          <span className="mr-2 text-xs text-muted-foreground">
                             {patient.phoneNumber}
                           </span>
                         </div>

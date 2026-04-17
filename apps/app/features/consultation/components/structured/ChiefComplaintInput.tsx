@@ -71,7 +71,7 @@ export function ChiefComplaintInput({
       {
         id: crypto.randomUUID(),
         complaint: "",
-        durationValue: "",
+        durationValue: "1",
         durationUnit: "days",
         severity: "moderate",
         notes: "",

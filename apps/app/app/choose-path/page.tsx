@@ -15,13 +15,13 @@ import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell"
 
 const CREATE_BULLETS = [
   "Choose subscription plan",
-  "Configure clinic settings",
+  "Configure facility settings",
   "Invite team members",
   "Sign legal agreements",
 ];
 
 const JOIN_BULLETS = [
-  "Search for your clinic",
+  "Search for your facility",
   "Submit join request",
   "Wait for admin approval",
   "Start working immediately",
@@ -109,8 +109,8 @@ export default function ChoosePathPage() {
         <PathCard
           icon={<Building2 className="h-7 w-7 text-primary" />}
           iconBg="bg-primary/10"
-          title="Create New Clinic"
-          description="Set up your own clinic and choose a plan"
+          title="Create New Facility"
+          description="Set up your own facility and choose a plan"
           bullets={CREATE_BULLETS}
           buttonLabel="Get Started"
           buttonVariant="default"
@@ -123,10 +123,10 @@ export default function ChoosePathPage() {
         <PathCard
           icon={<Users className="h-7 w-7 text-info" />}
           iconBg="bg-info/10"
-          title="Join Existing Clinic"
-          description="Request access to a clinic in your organization"
+          title="Join Existing Facility"
+          description="Request access to a facility in your organization"
           bullets={JOIN_BULLETS}
-          buttonLabel="Search Clinics"
+          buttonLabel="Search Facilities"
           buttonVariant="outline"
           loading={loadingPath === "JOIN_CLINIC"}
           disabled={loadingPath !== null}

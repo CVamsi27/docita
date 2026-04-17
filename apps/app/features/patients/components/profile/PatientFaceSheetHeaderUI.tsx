@@ -1,17 +1,21 @@
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { AlertTriangle, Building2, ChevronLeft, Loader2, Phone, ShieldAlert } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  ChevronLeft,
+  Phone,
+  ShieldAlert,
+} from "lucide-react";
 
 interface PatientFaceSheetHeaderUIProps {
   firstName: string;
   lastName: string;
-  mrn?: string;
   age: number | string;
   gender: string;
   dateOfBirth: Date | string;
@@ -35,18 +39,12 @@ interface PatientFaceSheetHeaderUIProps {
 
   onBack?: () => void;
   actions?: React.ReactNode;
-
-  mrnDraft?: string;
-  mrnSaving?: boolean;
-  onMrnChange?: (value: string) => void;
-  onMrnCommit?: () => void;
 }
 
 export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
   const {
     firstName,
     lastName,
-    mrn,
     age,
     gender,
     dateOfBirth,
@@ -65,14 +63,8 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
     emergencyContactRelation,
     onBack,
     actions,
-    mrnDraft,
-    mrnSaving,
-    onMrnChange,
-    onMrnCommit,
   } = props;
 
-  const isMrnEditable = Boolean(onMrnChange && onMrnCommit);
-  const hasMedicalId = Boolean(mrn && mrn.trim().length > 0);
   const allergiesLabel = hasAllergies
     ? `Allergies: ${allergies ?? ""}`.trim()
     : "No known allergies";
@@ -95,41 +87,6 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-foreground truncate">
                 {lastName}, {firstName}
               </h1>
-              {isMrnEditable ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    Medical ID
-                  </span>
-                  <div className="relative">
-                    <Input
-                      value={mrnDraft ?? ""}
-                      onChange={(e) => onMrnChange?.(e.target.value)}
-                      onBlur={() => onMrnCommit?.()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          onMrnCommit?.();
-                          (e.currentTarget as HTMLInputElement).blur();
-                        }
-                      }}
-                      placeholder="Add Medical ID"
-                      className="h-7 w-[160px] font-mono text-xs bg-muted/20"
-                      aria-label="Medical ID"
-                      disabled={mrnSaving}
-                    />
-                    {mrnSaving ? (
-                      <Loader2 className="absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
-                    ) : null}
-                  </div>
-                </div>
-              ) : (
-                <Badge
-                  variant="secondary"
-                  className="font-mono text-xs font-normal text-muted-foreground bg-muted/50 border-input"
-                >
-                  Medical ID: {hasMedicalId ? mrn : "—"}
-                </Badge>
-              )}
             </div>
             <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
               <span className="font-medium text-foreground">{age}</span>

@@ -254,7 +254,7 @@ export function AnalyticsDashboard() {
             Analytics Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Real-time clinic performance metrics
+            Real-time facility performance metrics
           </p>
         </div>
         <button

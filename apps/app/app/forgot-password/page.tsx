@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,6 +51,10 @@ function ForgotPasswordPageContent() {
     defaultValues: { email: prefillEmail },
   });
 
+  useEffect(() => {
+    form.reset({ email: prefillEmail });
+  }, [form, prefillEmail]);
+
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setError("");
     try {
@@ -67,7 +71,7 @@ function ForgotPasswordPageContent() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <h1 className="text-2xl sm:text-3xl font-bold">Reset Password</h1>
         <p className="text-muted-foreground text-sm">
-          Enter your email address and we will send you a link to reset your password.
+          Enter your email address to receive a password reset link
         </p>
       </div>
 
@@ -82,7 +86,7 @@ function ForgotPasswordPageContent() {
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">Check your email</h2>
               <p className="text-sm text-muted-foreground">
-                If an account with that email exists, a password reset link has been sent.
+                If an account with that email exists, a password reset link has been sent
               </p>
             </div>
             <Button variant="outline" asChild className="w-full h-11">
@@ -103,7 +107,7 @@ function ForgotPasswordPageContent() {
               <Input
                 id="email"
                 type="email"
-                placeholder="doctor@docita.work"
+                placeholder="Email address"
                 {...form.register("email")}
                 className="h-11"
                 autoFocus

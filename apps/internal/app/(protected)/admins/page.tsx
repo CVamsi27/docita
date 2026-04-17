@@ -300,7 +300,7 @@ export default function AdminsPage() {
             </div>
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Select clinic" />
+                <SelectValue placeholder="Select facility" />
               </SelectTrigger>
               <SelectContent>
                 {Array.isArray(clinics) &&

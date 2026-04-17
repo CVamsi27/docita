@@ -222,7 +222,7 @@ export default function ProtectedLayout({
         setRedirectMessage("Taking you back to onboarding...");
         router.replace("/onboarding");
       } else {
-        setRedirectMessage("Taking you to clinic setup...");
+        setRedirectMessage("Taking you to facility setup...");
         router.replace("/choose-path");
       }
     }

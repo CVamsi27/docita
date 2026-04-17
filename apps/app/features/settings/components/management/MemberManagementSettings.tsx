@@ -317,7 +317,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   const onInviteSubmit = (data: InviteFormValues) => {
     if (!clinicId) {
       showUserFacingErrorToast(
-        "We could not identify this clinic. Please refresh and try again.",
+        "We could not identify this facility. Please refresh and try again.",
       );
       return;
     }
@@ -521,7 +521,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           <DialogHeader>
             <DialogTitle>Invite Team Member</DialogTitle>
             <DialogDescription>
-              Add a doctor or receptionist to your clinic team.
+              Add a doctor or receptionist to your facility team.
             </DialogDescription>
           </DialogHeader>
 
@@ -581,7 +581,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     <FormItem>
                       <Label>Email</Label>
                       <FormControl>
-                        <Input type="email" placeholder="name@clinic.com" {...field} />
+                        <Input type="email" placeholder="name@facility.com" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

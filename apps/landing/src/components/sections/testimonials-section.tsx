@@ -15,7 +15,7 @@ const testimonials = [
   },
   {
     quote:
-      "Managing a pediatric clinic with walk-ins was chaotic. Docita's queue management and appointment system brought order to the chaos. Parents love the WhatsApp reminders and the ability to access their child's medical history anytime.",
+      "Managing a pediatric practice with walk-ins was chaotic. Docita's queue management and appointment system brought order to the chaos. Parents love the WhatsApp reminders and the ability to access their child's medical history anytime.",
     name: "Dr. Priya Sharma",
     title: "Pediatrician, MBBS, DCH",
     location: "Delhi NCR",
@@ -59,7 +59,7 @@ export function TestimonialsSection() {
           <div className="inline-flex items-center gap-2 rounded-full bg-warning px-4 py-2 text-sm mb-4">
             <Star className="h-4 w-4 text-warning fill-amber-500" />
             <span className="font-medium text-warning dark:text-warning">
-              Trusted by 500+ Clinics
+              Trusted by 500+ Facilities
             </span>
           </div>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">

@@ -145,7 +145,7 @@ export function CurrentPlanCard({
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Contact your clinic administrator to change plans.
+            Contact your facility administrator to change plans.
           </p>
         )}
       </CardContent>

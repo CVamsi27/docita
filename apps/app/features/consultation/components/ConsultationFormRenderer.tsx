@@ -103,7 +103,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
         return (
           <div className="space-y-4">
             <div className="rounded-xl border bg-muted/20 p-3 text-sm text-muted-foreground">
-              Changes here are saved automatically.
+              History edits sync as you work.
             </div>
             <PatientMedicalHistoryContainerLazy
               patient={patient}
@@ -143,8 +143,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
       return (
         <div className="space-y-4">
           <div className="rounded-xl border bg-muted/20 p-3 text-sm text-muted-foreground">
-            Growth updates are saved when you click <span className="font-medium text-foreground">Save Draft</span>{" "}
-            or <span className="font-medium text-foreground">Complete Consultation</span>.
+            Growth updates are part of the consultation draft and save with the note.
           </div>
           <GrowthChartUILazy
             value={data.growthData}

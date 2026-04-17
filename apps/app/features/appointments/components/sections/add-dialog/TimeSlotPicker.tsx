@@ -2,6 +2,7 @@ import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import {
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,7 +31,10 @@ export function TimeSlotPicker({
         name="startTime"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>Start Time</FormLabel>
+            <FormLabel>Start time</FormLabel>
+            <FormDescription>
+              Pick a slot within clinic hours.
+            </FormDescription>
             <DateTimePicker
               value={
                 field.value instanceof Date
@@ -51,7 +55,10 @@ export function TimeSlotPicker({
         name="endTime"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>End Time (Optional)</FormLabel>
+            <FormLabel>End time (optional)</FormLabel>
+            <FormDescription>
+              Leave blank to use the default appointment length.
+            </FormDescription>
             <DateTimePicker
               value={
                 field.value instanceof Date

@@ -236,10 +236,10 @@ export function PatientMetricsHistoryUI({
         </CardHeader>
         <CardContent>
           {loadingHistory ? (
-            <p className="text-sm text-muted-foreground">Loading history...</p>
+            <p className="text-sm text-muted-foreground">Loading history</p>
           ) : timeline.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No metric records yet. Add a metric value to start tracking.
+              No metric records yet, add a metric value to start tracking
             </p>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -285,7 +285,7 @@ export function PatientMetricsHistoryUI({
         </CardHeader>
         <CardContent className="space-y-4">
           {loadingCategories || loadingSelected ? (
-            <p className="text-sm text-muted-foreground">Loading metrics...</p>
+            <p className="text-sm text-muted-foreground">Loading metrics</p>
           ) : (
             categories.map((category) => {
               const categoryId = String(category.id || "");
@@ -299,7 +299,7 @@ export function PatientMetricsHistoryUI({
                   <div className="space-y-2">
                     {definitions.length === 0 ? (
                       <p className="text-xs text-muted-foreground">
-                        No metrics in this category yet.
+                        No metrics in this category yet
                       </p>
                     ) : (
                       definitions.map((definition) => {
@@ -346,7 +346,7 @@ export function PatientMetricsHistoryUI({
             <div className="space-y-3">
               <Label className="text-sm">New Category</Label>
               <Input
-                placeholder="Category key (e.g. chronic_conditions)"
+                placeholder="Category key, e.g. chronic_conditions"
                 value={newCategoryKey}
                 onChange={(event) => setNewCategoryKey(event.target.value)}
               />
@@ -411,7 +411,7 @@ export function PatientMetricsHistoryUI({
                 </SelectContent>
               </Select>
               <Input
-                placeholder="Unit (optional, e.g. mmHg, kg)"
+                placeholder="Unit, optional, e.g. mmHg, kg"
                 value={newDefinitionUnit}
                 onChange={(event) => setNewDefinitionUnit(event.target.value)}
               />
@@ -461,7 +461,7 @@ export function PatientMetricsHistoryUI({
             <div className="space-y-2">
               <Label>Value</Label>
               <Input
-                placeholder="Enter value"
+                placeholder="Value"
                 value={valueInput}
                 onChange={(event) => setValueInput(event.target.value)}
               />

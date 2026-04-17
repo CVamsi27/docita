@@ -64,7 +64,7 @@ export function UsersPageContainer() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team Members</h1>
           <p className="text-muted-foreground mt-1">
-            View and manage all users across clinics
+            View and manage all users across facilities
           </p>
         </div>
       </div>
@@ -130,12 +130,12 @@ export function UsersPageContainer() {
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger
                 className="w-full md:w-[250px]"
-                aria-label="Filter by clinic"
+                aria-label="Filter by facility"
               >
-                <SelectValue placeholder="Select clinic" />
+                <SelectValue placeholder="Select facility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Clinics</SelectItem>
+                <SelectItem value="all">All Facilities</SelectItem>
                 {clinics.map((clinic) => (
                   <SelectItem key={clinic.id} value={clinic.id}>
                     {clinic.name}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -35,9 +35,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { getFacilityLabel } from "@workspace/utils";
 
 const clinicSettingsSchema = z.object({
-  name: requiredStringSchema("Clinic Name"),
+  name: requiredStringSchema("Facility Name"),
   address: requiredStringSchema("Address"),
   phone: phoneSchema,
   gstin: z.union([z.string().trim(), z.literal("")]).optional(),
@@ -50,10 +51,9 @@ export function ClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateClinic, isPending } = useUpdateClinicSettings();
   const [copied, setCopied] = useState(false);
-  const facilityLabel = useMemo(() => {
-    const stored = clinic?.settings?.facilityLabel;
-    return stored === "HOSPITAL" ? "Hospital" : "Clinic";
-  }, [clinic?.settings?.facilityLabel]);
+  const facilityLabel = getFacilityLabel(
+    clinic?.settings?.facilityLabel as "CLINIC" | "HOSPITAL" | undefined,
+  );
 
   const handleCopyCode = () => {
     const code = clinic?.referralCode;
@@ -93,12 +93,12 @@ export function ClinicGeneralSettings() {
   const handleSubmit = (data: ClinicSettingsFormValues) => {
     updateClinic(data, {
       onSuccess: () => {
-        toast.success("Clinic settings updated successfully");
+        toast.success("Facility settings updated successfully");
       },
       onError: (error) => {
         showUserFacingErrorToast(
           error,
-          "We could not save your clinic details. Please try again.",
+          "We could not save your facility details. Please try again.",
           "save",
         );
       },
@@ -143,7 +143,7 @@ export function ClinicGeneralSettings() {
                 size="sm"
                 className="h-7 w-7 p-0"
                 onClick={handleCopyCode}
-                title="Copy clinic code"
+                title={`Copy ${facilityLabel.toLowerCase()} code`}
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
               </Button>
@@ -170,7 +170,10 @@ export function ClinicGeneralSettings() {
                   error={form.formState.errors.name?.message}
                 >
                   <FormControl>
-                    <Input placeholder="Enter clinic name" {...field} />
+                    <Input
+                      placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
+                      {...field}
+                    />
                   </FormControl>
                 </FormFieldGroup>
               )}

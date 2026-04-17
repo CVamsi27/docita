@@ -8,7 +8,7 @@ import {
 } from "@/lib/landing-data";
 
 const statCards = [
-  { label: "Active Clinics", icon: Building2, key: "clinics" as const },
+  { label: "Active Facilities", icon: Building2, key: "clinics" as const },
   { label: "Doctors", icon: UserCog, key: "doctors" as const },
   { label: "Patients Managed", icon: Users, key: "patients" as const },
   { label: "Prescriptions", icon: FileText, key: "prescriptions" as const },

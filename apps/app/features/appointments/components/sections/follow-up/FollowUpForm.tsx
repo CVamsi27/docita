@@ -56,7 +56,7 @@ export function FollowUpForm({
           <Label className="text-xs">Type</Label>
           <Select value={followUpType} onValueChange={onTypeChange}>
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Follow-up type" />
             </SelectTrigger>
             <SelectContent>
               {followUpTypes.map((type) => (
@@ -73,7 +73,7 @@ export function FollowUpForm({
             <Clock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Select value={selectedTime} onValueChange={onTimeChange}>
               <SelectTrigger className="pl-8">
-                <SelectValue placeholder="Select time" />
+                <SelectValue placeholder="Time" />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 24 }).map((_, i) => {
@@ -147,7 +147,7 @@ export function FollowUpForm({
       <div className="space-y-2">
         <Label>Notes</Label>
         <Textarea
-          placeholder="Add any notes for the next visit..."
+          placeholder="Notes for the next visit"
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           className="h-20 resize-none"

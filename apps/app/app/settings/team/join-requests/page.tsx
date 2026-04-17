@@ -143,7 +143,7 @@ export default function JoinRequestsPage() {
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Team Join Requests</h1>
         <p className="text-muted-foreground">
-          Review and approve requests from users who want to join your clinic
+          Review and approve requests from users who want to join your facility
         </p>
       </div>
 
@@ -231,7 +231,7 @@ export default function JoinRequestsPage() {
           <DialogHeader>
             <DialogTitle>Approve Join Request</DialogTitle>
             <DialogDescription>
-              Approve {selectedRequest?.user.name} to join your clinic
+              Approve {selectedRequest?.user.name} to join your facility
             </DialogDescription>
           </DialogHeader>
 

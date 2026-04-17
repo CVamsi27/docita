@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
 import { useClinicSettings } from "@/hooks/api/use-settings";
@@ -39,15 +39,10 @@ export function PatientTagManagerContainer({
     }
   }, [patientId]);
 
-  const lastStateRef = useRef({ open: false, patientId: "" });
-  if (
-    open &&
-    (lastStateRef.current.open !== open ||
-      lastStateRef.current.patientId !== patientId)
-  ) {
-    loadTags();
-  }
-  lastStateRef.current = { open, patientId };
+  useEffect(() => {
+    if (!open) return;
+    void loadTags();
+  }, [open, loadTags]);
 
   const addTag = async (tag: string, color: string) => {
     setLoading(true);

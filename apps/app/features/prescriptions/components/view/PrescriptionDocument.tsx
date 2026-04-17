@@ -56,7 +56,7 @@ export function PrescriptionDocument({
               <div className="items-start pt-1">
                 <img
                   src={clinicInfo.logo}
-                  alt="Clinic Logo"
+                  alt="Facility Logo"
                   className="h-20 w-20 object-contain rounded-xl"
                 />
               </div>

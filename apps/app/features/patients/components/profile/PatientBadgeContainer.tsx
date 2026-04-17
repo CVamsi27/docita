@@ -11,7 +11,6 @@ interface PatientData {
   gender?: string;
   phone?: string;
   email?: string;
-  bloodGroup?: string;
   allergies?: string | string[];
   avatarUrl?: string;
 }
@@ -64,7 +63,6 @@ export function PatientBadgeContainer({
       gender={patient.gender}
       phone={patient.phone}
       email={patient.email}
-      bloodGroup={patient.bloodGroup}
       allergiesArray={allergiesArray}
       avatarUrl={patient.avatarUrl}
       size={size}

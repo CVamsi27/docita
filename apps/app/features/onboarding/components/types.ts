@@ -1,13 +1,32 @@
 import * as z from "zod";
 import { clinicTypeSchema } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import {
+  DEFAULT_COUNTRY_CODE,
+  DEFAULT_CURRENCY,
+  normalizeCountryCode,
+} from "@workspace/utils";
+import { isPossiblePhoneNumber, type Country } from "react-phone-number-input";
 
-export const clinicDetailsSchema = z.object({
+const emailInputSchema = z
+  .string()
+  .trim()
+  .optional()
+  .or(z.literal(""));
+
+const optionalTextSchema = z.string().trim().optional().or(z.literal(""));
+
+const clinicDetailsBaseSchema = z.object({
   name: z.string().min(2, "Use at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Enter at least 10 digits"),
-  address: z.string().min(5, "Enter the clinic address"),
+  email: emailInputSchema,
+  phone: z.string().trim(),
+  address: optionalTextSchema,
+  addressLine1: optionalTextSchema,
+  addressLine2: optionalTextSchema,
+  city: optionalTextSchema,
+  state: optionalTextSchema,
+  pincode: optionalTextSchema,
   type: clinicTypeSchema,
+  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]),
   countryCode: z
     .string()
     .trim()
@@ -25,6 +44,69 @@ export const clinicDetailsSchema = z.object({
     .optional()
     .or(z.literal("")),
 });
+
+export const clinicDetailsSchema = clinicDetailsBaseSchema.superRefine(
+  (data, ctx) => {
+    const email = data.email?.trim() ?? "";
+    if (email) {
+      const emailResult = z.string().email().safeParse(email);
+      if (!emailResult.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["email"],
+          message: "Please enter a valid email address",
+        });
+      }
+    }
+
+    const phone = data.phone.trim();
+    if (!phone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phone"],
+        message: "Enter your phone number",
+      });
+      return;
+    }
+
+    const country = (normalizeCountryCode(data.countryCode) ??
+      DEFAULT_COUNTRY_CODE) as Country;
+    if (!isPossiblePhoneNumber(phone, country)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phone"],
+        message: `Enter a valid phone number for ${country}`,
+      });
+    }
+
+    const addressLine1 = data.addressLine1?.trim() ?? "";
+    if (!addressLine1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["addressLine1"],
+        message: "Enter address line 1",
+      });
+    }
+
+    const city = data.city?.trim() ?? "";
+    if (!city) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["city"],
+        message: "Enter the city",
+      });
+    }
+
+    const state = data.state?.trim() ?? "";
+    if (!state) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["state"],
+        message: "Enter the state or province",
+      });
+    }
+  },
+);
 
 export const complianceSchema = z.object({
   acceptedSLA: z

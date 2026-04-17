@@ -31,7 +31,7 @@ export const TrendsBarChart = ({ data, loading }: TrendsChartProps) => (
   <Card>
     <CardHeader>
       <CardTitle>Top Diagnoses by ICD Code</CardTitle>
-      <CardDescription>Most common diagnoses in your clinic</CardDescription>
+      <CardDescription>Most common diagnoses in your facility</CardDescription>
     </CardHeader>
     <CardContent className="h-[400px]">
       {loading ? (

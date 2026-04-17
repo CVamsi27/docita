@@ -69,7 +69,7 @@ export default function JoinClinicPage() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      showUserFacingErrorToast('Enter a clinic name before searching');
+      showUserFacingErrorToast('Enter a facility name before searching');
       return;
     }
 
@@ -79,10 +79,10 @@ export default function JoinClinicPage() {
       setClinics(results as Clinic[]);
 
       if ((results as Clinic[]).length === 0) {
-        toast.info('No clinics found matching your search');
+        toast.info('No facilities found matching your search');
       }
     } catch (error) {
-      showUserFacingErrorToast('We could not search for clinics right now. Please try again.');
+      showUserFacingErrorToast('We could not search for facilities right now. Please try again.');
       logger.error('Search error', { error });
     } finally {
       setIsSearching(false);
@@ -124,7 +124,7 @@ export default function JoinClinicPage() {
     return (
       <PageTransitionLoader
         title="Request submitted"
-        description="Taking you to request status..."
+        description="Taking you to request status"
       />
     );
   }
@@ -146,9 +146,9 @@ export default function JoinClinicPage() {
           <ArrowLeft className="h-4 w-4 mr-1.5" />
           Back to Choose Path
         </Button>
-        <h1 className="text-2xl sm:text-3xl font-bold">Join a Clinic</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Join a Facility</h1>
         <p className="text-muted-foreground text-sm">
-          Search for your clinic by name, email, or referral code
+          Search for your facility by name, email, or referral code
         </p>
       </div>
 
@@ -160,7 +160,7 @@ export default function JoinClinicPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by clinic name, email, or code"
+              placeholder="Search by facility name, email, or code"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -175,7 +175,7 @@ export default function JoinClinicPage() {
         {clinics.length === 0 && searchQuery && !isSearching && (
           <Card className="p-8 text-center bg-card/80 backdrop-blur-sm">
             <p className="text-muted-foreground text-sm">
-              No clinics found. Try searching with a different term.
+              No facilities found, try a different search term
             </p>
           </Card>
         )}
@@ -249,7 +249,7 @@ export default function JoinClinicPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Select the role you will have in this clinic
+                Select the role you will have in this facility
               </p>
             </div>
 
@@ -258,7 +258,7 @@ export default function JoinClinicPage() {
                 Message to Admin <span className="text-muted-foreground">(Optional)</span>
               </label>
               <Textarea
-                placeholder="Introduce yourself or explain why you want to join..."
+                placeholder="Tell us why you want to join"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={500}

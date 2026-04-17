@@ -32,7 +32,7 @@ export default function ImportPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Import Data</h1>
         <p className="text-muted-foreground">
-          Digitize your clinic records by importing from Excel or scanning
+          Digitize your facility records by importing from Excel or scanning
           documents.
         </p>
       </div>

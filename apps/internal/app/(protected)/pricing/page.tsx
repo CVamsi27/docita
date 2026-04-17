@@ -238,7 +238,7 @@ export default function PricingPage() {
       });
       setOfferForm(DEFAULT_OFFER_FORM);
     } catch {
-      setSaveError("We could not save this clinic offer. Please try again.");
+      setSaveError("We could not save this facility offer. Please try again.");
     } finally {
       setSavingId(null);
     }
@@ -254,7 +254,7 @@ export default function PricingPage() {
         setOfferForm(DEFAULT_OFFER_FORM);
       }
     } catch {
-      setSaveError("We could not delete the clinic offer. Please try again.");
+      setSaveError("We could not delete the facility offer. Please try again.");
     } finally {
       setSavingId(null);
     }
@@ -299,7 +299,7 @@ export default function PricingPage() {
       <div>
         <h1 className="text-2xl font-bold">Pricing Management</h1>
         <p className="text-muted-foreground text-sm">
-          Manage tier pricing centrally and create clinic-specific offers for
+          Manage tier pricing centrally and create facility-specific offers for
           requested hospitals.
         </p>
       </div>
@@ -313,7 +313,7 @@ export default function PricingPage() {
       <Tabs defaultValue="tiers" className="space-y-4">
         <TabsList>
           <TabsTrigger value="tiers">Tier Pricing</TabsTrigger>
-          <TabsTrigger value="offers">Clinic Offers</TabsTrigger>
+          <TabsTrigger value="offers">Facility Offers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tiers">
@@ -523,7 +523,7 @@ export default function PricingPage() {
                     disabled={isLoadingClinics}
                   >
                     <option value="">
-                      {isLoadingClinics ? "Loading clinics..." : "Select clinic"}
+                      {isLoadingClinics ? "Loading facilities..." : "Select facility"}
                     </option>
                     {clinicOptions.map((clinic) => (
                       <option key={clinic.id} value={clinic.id}>

@@ -217,6 +217,7 @@ export default function PatientDetailPage() {
               patient={patient as PatientWithHistory}
               readOnly={!isEditingRecords}
               variant="consultation"
+              allowGrowthEdit={false}
             />
           </TabsContent>
 

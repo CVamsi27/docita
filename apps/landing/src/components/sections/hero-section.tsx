@@ -15,7 +15,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
         <div className="mb-8 inline-flex items-center gap-2 rounded-full border bg-background/50 px-4 py-2 text-sm backdrop-blur-sm">
           <Sparkles className="h-4 w-4 text-primary" />
           <span className="font-medium text-muted-foreground">
-            The Future of Clinic Management
+            The Future of Healthcare Management
           </span>
         </div>
         <h1 className="text-5xl font-bold tracking-tight sm:text-7xl bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">

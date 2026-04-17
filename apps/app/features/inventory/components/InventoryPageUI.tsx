@@ -64,7 +64,7 @@ export const InventoryPageUI: FC = () => {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
             <p className="text-muted-foreground">
-              Manage your clinic&apos;s inventory and supplies
+              Manage your facility&apos;s inventory and supplies
             </p>
           </div>
           <div className="flex gap-2">

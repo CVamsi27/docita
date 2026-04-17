@@ -140,7 +140,7 @@ export const useOCR = () => {
   const handleSave = async () => {
     try {
       if (!clinicId) {
-        showUserFacingErrorToast(null, "Select a clinic to continue", "form");
+        showUserFacingErrorToast(null, "Select a facility to continue", "form");
         return;
       }
       if (!user?.id) {

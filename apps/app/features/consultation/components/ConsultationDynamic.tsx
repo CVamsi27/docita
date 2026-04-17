@@ -12,7 +12,6 @@ import {
   Baby,
   Eye,
   FileText,
-  MessageSquare,
   Pill,
   Smile,
   Stethoscope,
@@ -27,9 +26,6 @@ import { usePatientWithMedicalHistory } from "@/hooks/api/use-patients";
 import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { useSyncDiagnoses } from "@/hooks/api/use-appointments";
 import { toast } from "sonner";
-import { Switch } from "@workspace/ui/components/switch";
-import { Label } from "@workspace/ui/components/label";
-import { fetchAPI } from "@/lib/api-core";
 import { ApiError } from "@/lib/errors";
 import {
   GrowthChartData,
@@ -161,7 +157,7 @@ export const ClinicalDocumentationDynamic: FC<
     {
       id: crypto.randomUUID(),
       complaint: "",
-      durationValue: "",
+      durationValue: "1",
       durationUnit: "days",
       severity: "moderate",
       notes: "",
@@ -190,8 +186,6 @@ export const ClinicalDocumentationDynamic: FC<
   const [diagnosis, setDiagnosis] = useState<DiagnosisItem[]>([]);
   const [treatment, setTreatment] = useState("");
   const [prescriptions, setPrescriptions] = useState<Medication[]>([]);
-  const [sendToWhatsapp, setSendToWhatsapp] = useState(true);
-
   const [dentalChart, setDentalChart] = useState<DentalChartValue>({});
   const [eyeExam, setEyeExam] = useState<OphthalmologyExamData>({});
   const [growthData, setGrowthData] = useState<GrowthChartData>({
@@ -210,14 +204,27 @@ export const ClinicalDocumentationDynamic: FC<
 
   useEffect(() => {
     if (appointmentData) {
+      const normalizeComplaintList = (
+        items: ChiefComplaintItem[],
+      ): ChiefComplaintItem[] =>
+        items.map((item) => ({
+          ...item,
+          durationValue:
+            item.complaint.trim() && (!item.durationValue || !item.durationValue.trim())
+              ? "1"
+              : item.durationValue,
+        }));
+
       if (appointmentData.chiefComplaintStructured?.length) {
-        setChiefComplaint(appointmentData.chiefComplaintStructured);
+        setChiefComplaint(
+          normalizeComplaintList(appointmentData.chiefComplaintStructured),
+        );
       } else if (appointmentData.chiefComplaint) {
         setChiefComplaint([
           {
             id: "legacy",
             complaint: appointmentData.chiefComplaint,
-            durationValue: "",
+            durationValue: "1",
             durationUnit: "days",
             severity: "moderate",
           },
@@ -363,12 +370,6 @@ export const ClinicalDocumentationDynamic: FC<
             prnInstructions: "",
             instructions: p.instructions || undefined,
           })),
-        });
-      }
-
-      if (sendToWhatsapp && appointmentId) {
-        await fetchAPI(`/appointments/${appointmentId}/whatsapp-summary`, {
-          method: "POST",
         });
       }
 
@@ -617,17 +618,6 @@ export const ClinicalDocumentationDynamic: FC<
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MessageSquare className="h-4 w-4 shrink-0" />
-            <Label htmlFor="whatsapp-summary" className="cursor-pointer hidden sm:inline">
-              Send to WhatsApp
-            </Label>
-            <Switch
-              id="whatsapp-summary"
-              checked={sendToWhatsapp}
-              onCheckedChange={setSendToWhatsapp}
-            />
-          </div>
           <Button
             size="sm"
             onClick={handleSaveData}

@@ -10,7 +10,6 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   FileText,
   FlaskConical,
   Heart,
@@ -146,10 +145,10 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
     if (event.type !== "APPOINTMENT" || mode !== "full") return null;
     if (isFutureAppointment) {
       return {
-        label: "View only",
-        href: null as string | null,
+        label: "View appointment",
+        href: `/appointments?id=${event.id}`,
         variant: "outline" as const,
-        disabled: true,
+        disabled: false,
       };
     }
     if (statusKey.includes("in-progress") || statusKey.includes("in progress")) {
@@ -219,11 +218,10 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
                       asChild
                       size="sm"
                       variant={appointmentAction.variant}
-                      className="h-7 px-2 text-xs"
+                      className="h-9 px-3 text-xs font-medium"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Link href={appointmentAction.href}>
-                        <ExternalLink className="h-3 w-3 mr-1" />
                         {appointmentAction.label}
                       </Link>
                     </Button>
@@ -231,7 +229,7 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
                     <Button
                       size="sm"
                       variant={appointmentAction.variant}
-                      className="h-7 px-2 text-xs"
+                      className="h-9 px-3 text-xs font-medium"
                       disabled={appointmentAction.disabled}
                       onClick={(e) => e.stopPropagation()}
                     >

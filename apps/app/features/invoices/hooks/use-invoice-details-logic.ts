@@ -82,7 +82,7 @@ export const useInvoiceDetailsLogic = (
       return;
     }
 
-    const clinicName = clinic?.name?.trim() || "our clinic";
+    const clinicName = clinic?.name?.trim() || "our facility";
     const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.id} for ${formatCurrency(invoice.totalAmount ?? 0)}. Thank you for visiting ${clinicName}.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;

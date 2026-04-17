@@ -50,7 +50,7 @@ export default function ClinicDashboard() {
 
   useEffect(() => {
     if (clinicQuery.isError) {
-      showUserFacingErrorToast("We could not load clinic details. Please try again.");
+      showUserFacingErrorToast("We could not load facility details. Please try again.");
     }
   }, [clinicQuery.isError]);
 
@@ -69,7 +69,7 @@ export default function ClinicDashboard() {
           Internal Admin Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Manage clinics, team, and operations
+          Manage facilities, team, and operations
         </p>
       </div>
 
@@ -82,7 +82,7 @@ export default function ClinicDashboard() {
                 <Building2 className="h-5 w-5" />
                 {clinic.name}
               </CardTitle>
-              <CardDescription>Your clinic information</CardDescription>
+              <CardDescription>Your facility information</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
@@ -143,7 +143,7 @@ export default function ClinicDashboard() {
         <Card>
           <CardContent className="pt-6">
             <p className="text-muted-foreground text-center">
-              We could not load clinic information. Please refresh and try again.
+              We could not load facility information. Please refresh and try again.
             </p>
           </CardContent>
         </Card>
