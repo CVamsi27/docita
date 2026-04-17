@@ -96,9 +96,13 @@ export class OnboardingWorkflowService {
     clinicData: ClinicDetailsDto,
     ipAddress?: string,
   ): Promise<Clinic> {
-    const existingClinic = await tx.clinic.findFirst({
-      where: { email: clinicData.email },
-    });
+    const normalizedEmail = clinicData.email?.trim() ?? '';
+
+    const existingClinic = normalizedEmail
+      ? await tx.clinic.findFirst({
+          where: { email: normalizedEmail },
+        })
+      : null;
 
     if (existingClinic) {
       throw new ConflictException('Clinic with this email already exists');
@@ -112,7 +116,7 @@ export class OnboardingWorkflowService {
     const clinic = await tx.clinic.create({
       data: {
         name: clinicData.name,
-        email: clinicData.email,
+        email: normalizedEmail,
         phone: clinicData.phone,
         address: clinicData.address,
         type: clinicData.type || 'GENERAL',
@@ -124,6 +128,7 @@ export class OnboardingWorkflowService {
         settings: {
           dataResidency: clinicData.dataResidency || 'IN',
           operatingCountryCode: clinicData.countryCode || 'IN',
+          facilityLabel: clinicData.facilityLabel || 'CLINIC',
           gstin: clinicData.gstin || undefined,
           privacyComplianceVersion: '1.0',
           onboardedAt: new Date().toISOString(),

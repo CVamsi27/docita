@@ -190,10 +190,11 @@ export class AppointmentService {
     reason: string,
     clinicId?: string,
     accessContext?: AppointmentAccessContext,
-  ): Promise<void> {
+  ): Promise<Appointment> {
     const appointment = await this.getAppointment(id, clinicId, accessContext);
     appointment.cancel(reason);
     await this.appointmentRepository.update(appointment);
+    return appointment;
   }
 
   async rescheduleAppointment(

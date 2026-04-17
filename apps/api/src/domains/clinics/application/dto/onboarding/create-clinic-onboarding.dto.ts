@@ -32,8 +32,11 @@ export const clinicDetailsSchema = z.object({
     .min(2, 'Clinic name must be at least 2 characters')
     .max(100, 'Clinic name cannot exceed 100 characters'),
   email: z
-    .string({ required_error: 'Clinic email is required' })
-    .email('Invalid email format'),
+    .string()
+    .trim()
+    .email('Invalid email format')
+    .optional()
+    .or(z.literal('')),
   phone: z.string({ required_error: 'Phone number is required' }),
   address: z
     .string({ required_error: 'Address is required' })
@@ -48,6 +51,7 @@ export const clinicDetailsSchema = z.object({
     .toUpperCase()
     .regex(/^[A-Z]{2}$/, 'countryCode must be a 2-letter ISO code')
     .optional(),
+  facilityLabel: z.enum(['CLINIC', 'HOSPITAL']).optional(),
   type: clinicTypeSchema.optional(),
   website: z.string().url('Invalid website URL').optional().or(z.literal('')),
   mrnPrefix: z.string().max(20).optional(),
