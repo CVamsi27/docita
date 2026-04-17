@@ -4,6 +4,7 @@ import {
   loginResponseSchema,
   validateSessionResponseSchema,
 } from "../src/contracts/auth";
+import { CLINIC_TYPE_OPTIONS } from "../src/shared/users";
 import { createPatientSchema } from "../src/patient/patients";
 
 describe("@workspace/types schemas", () => {
@@ -88,5 +89,11 @@ describe("@workspace/types schemas", () => {
 
     expect(valid.address).toBe("Street");
     expect(valid.allergies).not.toContain("<script>");
+  });
+
+  it("keeps the shared clinic type label consistent", () => {
+    expect(
+      CLINIC_TYPE_OPTIONS.find((option) => option.value === "SPECIALTY")?.label,
+    ).toBe("Others");
   });
 });

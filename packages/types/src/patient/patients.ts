@@ -2,6 +2,18 @@ import { z } from "zod";
 import { genderSchema } from "../shared/users";
 import { codeStatusSchema } from "../clinical/medical";
 import { stripHtmlTags } from "../api/sanitization";
+
+const pastDateOfBirthSchema = z
+  .union([z.string(), z.date()])
+  .refine(
+    (value) => {
+      const date = new Date(value);
+      return !Number.isNaN(date.getTime()) && date < new Date();
+    },
+    {
+      message: "Date of birth must be in the past",
+    },
+  );
 export const patientTagSchema = z.object({
   id: z.string(),
   tag: z.string(),
@@ -62,7 +74,7 @@ export const patientSchema = z.object({
   lastName: z.string().min(1, "Enter the patient's last name").max(100),
   preferredName: z.string().max(100).nullable().optional(),
   pronouns: z.string().max(50).nullable().optional(),
-  dateOfBirth: z.union([z.string(), z.date()]).nullable().optional(),
+  dateOfBirth: pastDateOfBirthSchema.nullable().optional(),
   gender: genderSchema,
   phoneNumber: z
     .string()
@@ -113,18 +125,7 @@ export const patientSchema = z.object({
 export type Patient = z.infer<typeof patientSchema>;
 
 export const createPatientSchema = patientSchema.extend({
-  dateOfBirth: z
-    .string()
-    .or(z.date())
-    .refine(
-      (val: string | Date) => {
-        const date = new Date(val);
-        return !isNaN(date.getTime()) && date < new Date();
-      },
-      {
-        message: "Date of birth must be in the past",
-      },
-    ),
+  dateOfBirth: pastDateOfBirthSchema,
 });
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;
 

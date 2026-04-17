@@ -3,10 +3,10 @@ import { userSchema } from "../shared/users";
 
 export const passwordSchema = z
   .string()
-  .min(8, "Use at least 8 characters.")
+  .min(8, "Use at least 8 characters")
   .regex(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/,
-    "Use uppercase, lowercase, a number, and a special character.",
+    "Use uppercase, lowercase, a number, and a special character",
   );
 
 const onboardingStepSchema = z.enum([
@@ -37,23 +37,23 @@ const authUserSchema = userSchema
 
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Enter a password."),
+  password: z.string().min(1, "Enter password"),
 });
 
 export const registerSchema = z.object({
   firstName: z
     .string()
-    .min(1, "Enter your first name.")
-    .min(2, "Use at least 2 characters."),
+    .min(1, "Enter your first name")
+    .min(2, "Use at least 2 characters"),
   lastName: z
     .string()
-    .min(1, "Enter your last name.")
-    .min(2, "Use at least 2 characters."),
+    .min(1, "Enter your last name")
+    .min(2, "Use at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   password: passwordSchema,
   clinicName: z
     .string()
-    .min(2, "Use at least 2 characters.")
+    .min(2, "Use at least 2 characters")
     .optional()
     .or(z.literal("")),
   role: z.enum(["ADMIN", "ADMIN_DOCTOR"]).optional(),
@@ -73,7 +73,7 @@ export const logoutSchema = z.object({
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Enter your current password."),
+    currentPassword: z.string().min(1, "Enter your current password"),
     newPassword: passwordSchema,
   })
   .refine((data) => data.currentPassword !== data.newPassword, {
