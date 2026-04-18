@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   appointmentSchema,
-  createAppointmentSchema,
+  createAppointmentBaseSchema,
   updateAppointmentSchema,
 } from "../operations/appointments";
 import {
@@ -19,8 +19,8 @@ import {
 
 export const appointmentResponseSchema = appointmentSchema;
 
-export const createAppointmentRequestSchema = createAppointmentSchema.extend({
-  clinicId: createAppointmentSchema.shape.clinicId.optional(),
+export const createAppointmentRequestSchema = createAppointmentBaseSchema.extend({
+  clinicId: createAppointmentBaseSchema.shape.clinicId.optional(),
 });
 
 export const updateAppointmentRequestSchema = updateAppointmentSchema.extend({

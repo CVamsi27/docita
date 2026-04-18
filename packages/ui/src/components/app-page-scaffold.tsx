@@ -16,9 +16,9 @@ export function AppPageScaffold({
   contentClassName,
 }: AppPageScaffoldProps) {
   return (
-    <section className={cn("mx-auto w-full max-w-7xl", className)}>
+    <section className={cn("mx-auto w-full min-w-0 max-w-7xl", className)}>
       {header ? <div className="mb-6">{header}</div> : null}
-      <div className={cn("space-y-6", contentClassName)}>{children}</div>
+      <div className={cn("min-w-0 space-y-6", contentClassName)}>{children}</div>
     </section>
   );
 }

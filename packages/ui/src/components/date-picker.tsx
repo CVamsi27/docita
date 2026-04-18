@@ -13,25 +13,33 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
 
-interface DatePickerProps {
+interface DatePickerProps
+  extends Omit<
+    React.ComponentProps<typeof Button>,
+    "children" | "onClick" | "onChange" | "type" | "value"
+  > {
   value?: Date | string;
   onChange?: (date: Date | undefined) => void;
   placeholder?: string;
   disabled?: boolean;
   maxDate?: Date;
   minDate?: Date;
-  className?: string;
 }
 
-function DatePicker({
-  value,
-  onChange,
-  placeholder = "Pick a date",
-  disabled = false,
-  maxDate,
-  minDate,
-  className,
-}: DatePickerProps) {
+const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
+  (
+    {
+      value,
+      onChange,
+      placeholder = "Pick a date",
+      disabled = false,
+      maxDate,
+      minDate,
+      className,
+      ...props
+    },
+    ref,
+  ) => {
   const [open, setOpen] = React.useState(false);
 
   const dateValue = React.useMemo(() => {
@@ -47,41 +55,47 @@ function DatePicker({
     setOpen(false);
   };
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !dateValue && "text-muted-foreground",
-            className,
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {dateValue ? format(dateValue, "PPP") : <span>{placeholder}</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={dateValue}
-          onSelect={handleSelect}
-          disabled={(date) => {
-            if (maxDate && date > maxDate) return true;
-            if (minDate && date < minDate) return true;
-            return false;
-          }}
-          defaultMonth={dateValue}
-          captionLayout="dropdown"
-          fromYear={1900}
-          toYear={new Date().getFullYear()}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  );
-}
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            ref={ref}
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !dateValue && "text-muted-foreground",
+              className,
+            )}
+            {...props}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {dateValue ? format(dateValue, "PPP") : <span>{placeholder}</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={dateValue}
+            onSelect={handleSelect}
+            disabled={(date) => {
+              if (maxDate && date > maxDate) return true;
+              if (minDate && date < minDate) return true;
+              return false;
+            }}
+            defaultMonth={dateValue}
+            captionLayout="dropdown"
+            fromYear={1900}
+            toYear={new Date().getFullYear()}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    );
+  },
+);
+
+DatePicker.displayName = "DatePicker";
 
 export { DatePicker };

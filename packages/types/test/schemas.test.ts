@@ -4,6 +4,7 @@ import {
   loginResponseSchema,
   validateSessionResponseSchema,
 } from "../src/contracts/auth";
+import { createAppointmentSchema } from "../src/operations/appointments";
 import { CLINIC_TYPE_OPTIONS } from "../src/shared/users";
 import { createPatientSchema } from "../src/patient/patients";
 
@@ -95,5 +96,51 @@ describe("@workspace/types schemas", () => {
     expect(
       CLINIC_TYPE_OPTIONS.find((option) => option.value === "SPECIALTY")?.label,
     ).toBe("Others");
+  });
+
+  it("rejects appointment times in the past and end times before start", () => {
+    const pastStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const futureStart = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+    const futureValidEnd = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString();
+    const beforeStartEnd = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+    expect(
+      createAppointmentSchema.safeParse({
+        patientId: "patient-1",
+        doctorId: "doctor-1",
+        clinicId: "clinic-1",
+        startTime: pastStart,
+        endTime: futureValidEnd,
+        status: "scheduled",
+        type: "consultation",
+        notes: "",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      createAppointmentSchema.safeParse({
+        patientId: "patient-1",
+        doctorId: "doctor-1",
+        clinicId: "clinic-1",
+        startTime: futureStart,
+        endTime: beforeStartEnd,
+        status: "scheduled",
+        type: "consultation",
+        notes: "",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      createAppointmentSchema.safeParse({
+        patientId: "patient-1",
+        doctorId: "doctor-1",
+        clinicId: "clinic-1",
+        startTime: futureStart,
+        endTime: futureValidEnd,
+        status: "scheduled",
+        type: "consultation",
+        notes: "",
+      }).success,
+    ).toBe(true);
   });
 });

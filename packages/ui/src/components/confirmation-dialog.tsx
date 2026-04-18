@@ -22,6 +22,7 @@ export interface ConfirmationDialogProps {
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void | Promise<void>;
+  onCancel?: () => void;
   type?: ConfirmationType;
   isLoading?: boolean;
   disabled?: boolean;
@@ -49,6 +50,7 @@ export function ConfirmationDialog({
   confirmText = "Confirm",
   cancelText = "Cancel",
   onConfirm,
+  onCancel,
   type = "info",
   isLoading = false,
   disabled = false,
@@ -88,7 +90,10 @@ export function ConfirmationDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              onCancel?.();
+              onOpenChange(false);
+            }}
             disabled={isLoading_ || disabled}
           >
             {cancelText}
