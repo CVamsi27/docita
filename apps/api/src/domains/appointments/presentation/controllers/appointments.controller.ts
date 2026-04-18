@@ -171,6 +171,7 @@ export class AppointmentsController {
   }
 
   @Patch(':id')
+  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
   @ApiOperation({ summary: 'Update appointment details' })
   async update(
     @Param('id') id: string,
@@ -200,6 +201,9 @@ export class AppointmentsController {
   }
 
   @Post(':id/vitals')
+  @Roles(
+    ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS, 'write'),
+  )
   @ApiOperation({ summary: 'Create or update appointment vitals' })
   @ZodSerializerDto(VitalsDto)
   async createVitals(
@@ -223,6 +227,9 @@ export class AppointmentsController {
   }
 
   @Patch(':id/vitals')
+  @Roles(
+    ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS, 'write'),
+  )
   @ApiOperation({ summary: 'Patch appointment vitals' })
   @ZodSerializerDto(VitalsDto)
   async updateVitals(

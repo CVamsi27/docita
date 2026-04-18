@@ -23,13 +23,14 @@ interface CreateReceptionistData {
   email: string;
   password: string;
   phoneNumber?: string;
+  role?: 'RECEPTIONIST' | 'NURSE';
 }
 
 interface UpdateMemberData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  role?: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
+  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
@@ -110,7 +111,7 @@ export class StaffManagementService {
         name: data.name,
         email: data.email,
         password: hashedPassword,
-        role: Role.RECEPTIONIST,
+        role: data.role === 'NURSE' ? Role.NURSE : Role.RECEPTIONIST,
         clinicId,
         phoneNumber: data.phoneNumber,
       },
@@ -204,7 +205,9 @@ export class StaffManagementService {
 
     if (
       data.role &&
-      ![Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR].includes(data.role)
+      ![Role.DOCTOR, Role.NURSE, Role.RECEPTIONIST, Role.ADMIN_DOCTOR].includes(
+        data.role,
+      )
     ) {
       throw new BadRequestException('Invalid role for clinic member update');
     }

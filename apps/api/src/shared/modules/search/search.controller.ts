@@ -13,19 +13,19 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { SearchService, SearchEntityType } from './search.service';
-import { AuthenticatedRequest } from '@workspace/types';
+import { APP_ACCESS_TARGETS, AuthenticatedRequest } from '@workspace/types';
 import { Role } from '@workspace/db';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 
 @ApiTags('search')
 @ApiBearerAuth('JWT-auth')
 @Controller('search')
 @Roles(
-  Role.ADMIN,
-  Role.DOCTOR,
-  Role.RECEPTIONIST,
-  Role.ADMIN_DOCTOR,
-  Role.INTERNAL,
+  ...new Set([
+    ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ),
+    Role.INTERNAL,
+  ]),
 )
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}

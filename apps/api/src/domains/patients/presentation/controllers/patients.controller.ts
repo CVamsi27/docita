@@ -38,7 +38,7 @@ import {
 @Controller('patients')
 @UseGuards(TierGuard)
 @RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
-@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS))
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ))
 export class PatientsController {
   constructor(private readonly patientService: PatientService) {}
 
@@ -59,6 +59,7 @@ export class PatientsController {
   }
 
   @Post()
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS, 'write'))
   @ApiOperation({ summary: 'Create new patient' })
   async create(
     @Request() req: RequestWithUser,
@@ -96,6 +97,7 @@ export class PatientsController {
   }
 
   @Patch(':id')
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_WRITE, 'write'))
   @ApiOperation({ summary: 'Update patient' })
   async update(
     @Request() req: RequestWithUser,
@@ -110,6 +112,7 @@ export class PatientsController {
   }
 
   @Delete(':id')
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS, 'write'))
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete patient' })
   async delete(@Request() req: RequestWithUser, @Param('id') id: string) {

@@ -40,9 +40,10 @@ interface OnboardingPaymentInput {
 }
 
 function toStaffRole(
-  role: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR',
+  role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR',
 ): Role {
   if (role === 'DOCTOR') return Role.DOCTOR;
+  if (role === 'NURSE') return Role.NURSE;
   if (role === 'ADMIN') return Role.ADMIN;
   if (role === 'ADMIN_DOCTOR') return Role.ADMIN_DOCTOR;
   return Role.RECEPTIONIST;

@@ -7,6 +7,7 @@ export interface SeedClinicUsersResult {
   defaultClinic: SeedEntityRef;
   clinicAdmin: SeedEntityRef;
   adminDoctor: SeedEntityRef;
+  nurse: SeedEntityRef;
   receptionist: SeedEntityRef;
   pendingNoClinicUser: SeedEntityRef;
   doctor1: SeedEntityRef;
@@ -417,6 +418,23 @@ export async function seedClinicUsers(
     },
   });
 
+  const nurse = await prisma.user.upsert({
+    where: { email: 'nurse@docita.work' },
+    update: {
+      clinicId: defaultClinic.id,
+      emailVerified: true,
+    },
+    create: {
+      email: 'nurse@docita.work',
+      password: hashedPassword,
+      name: 'Nurse Kavya',
+      role: 'NURSE',
+      clinicId: defaultClinic.id,
+      phoneNumber: '+91 9876543010',
+      emailVerified: true,
+    },
+  });
+
   const pendingNoClinicUser = await prisma.user.upsert({
     where: { email: 'pending.user@docita.work' },
     update: {
@@ -441,6 +459,7 @@ export async function seedClinicUsers(
     defaultClinic: { id: defaultClinic.id },
     clinicAdmin: { id: clinicAdmin.id },
     adminDoctor: { id: adminDoctor.id },
+    nurse: { id: nurse.id },
     receptionist: { id: receptionist.id },
     pendingNoClinicUser: { id: pendingNoClinicUser.id },
     doctor1: { id: doctor1.id },

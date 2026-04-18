@@ -16,6 +16,7 @@ function normalizeRole(role: unknown): Role {
 
   switch (role) {
     case Role.DOCTOR:
+    case Role.NURSE:
     case Role.RECEPTIONIST:
     case Role.ADMIN:
     case Role.INTERNAL:

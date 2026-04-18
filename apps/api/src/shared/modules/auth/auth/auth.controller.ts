@@ -238,6 +238,7 @@ export class AuthController {
   @Roles(
     Role.ADMIN,
     Role.DOCTOR,
+    Role.NURSE,
     Role.RECEPTIONIST,
     Role.ADMIN_DOCTOR,
     Role.INTERNAL,
@@ -274,6 +275,7 @@ export class AuthController {
   @Roles(
     Role.ADMIN,
     Role.DOCTOR,
+    Role.NURSE,
     Role.RECEPTIONIST,
     Role.ADMIN_DOCTOR,
     Role.INTERNAL,
