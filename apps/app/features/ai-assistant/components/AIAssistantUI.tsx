@@ -1,5 +1,7 @@
 import React, { FC } from "react";
 import { Badge } from "@workspace/ui/components/badge";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Tabs,
   TabsContent,
@@ -42,9 +44,28 @@ interface AIAssistantUIProps {
 export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
   return (
     <FeatureGuard feature={Feature.AI_PRESCRIPTION_ASSISTANT}>
-      <div className="flex-1 space-y-6">
-        <AIAssistantHeader />
-
+      <AppPageScaffold
+        header={
+          <PageHeader
+            title={
+              <span className="flex items-center gap-2">
+                <Sparkles className="h-7 w-7 text-primary" aria-hidden />
+                AI Assistant
+              </span>
+            }
+            description="AI-powered clinical decision support for prescriptions, diagnoses, and workflow automation."
+            actions={
+              <Badge
+                variant="secondary"
+                className="bg-linear-to-r from-destructive to-primary text-white"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                Docita Intelligence
+              </Badge>
+            }
+          />
+        }
+      >
         <Tabs
           value={state.activeTab}
           onValueChange={handlers.setActiveTab}
@@ -88,29 +109,7 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
             <SmartTasksTab state={state} handlers={handlers} />
           </TabsContent>
         </Tabs>
-      </div>
+      </AppPageScaffold>
     </FeatureGuard>
   );
 };
-
-const AIAssistantHeader = () => (
-  <div className="flex items-center justify-between">
-    <div>
-      <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
-        <Sparkles className="h-8 w-8 text-primary" />
-        AI Assistant
-      </h1>
-      <p className="text-muted-foreground">
-        AI-powered clinical decision support for prescriptions, diagnoses, and
-        workflow automation.
-      </p>
-    </div>
-    <Badge
-      variant="secondary"
-      className="bg-linear-to-r from-destructive to-primary text-white"
-    >
-      <Sparkles className="h-3 w-3 mr-1" />
-      Docita Intelligence
-    </Badge>
-  </div>
-);

@@ -141,7 +141,7 @@ function LegalCard({
             <Badge
               variant={accepted ? "default" : "outline"}
               className={cn(
-                "text-[10px] h-5 px-2",
+                "text-[var(--fs-2xs)] h-5 px-2",
                 accepted ? "bg-primary/90 text-primary-foreground" : "text-muted-foreground",
               )}
             >
@@ -248,12 +248,12 @@ function LegalDocumentDialog({
               <DialogTitle className="text-base md:text-lg">{title}</DialogTitle>
               <DialogDescription>{description}</DialogDescription>
             </div>
-            <Badge variant="outline" className="h-6 px-2.5 text-[10px]">
+            <Badge variant="outline" className="h-6 px-2.5 text-[var(--fs-2xs)]">
               Required
             </Badge>
           </div>
           <div className="pt-1 space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <div className="flex items-center justify-between text-[var(--fs-2xs)] text-muted-foreground">
               <span>Read progress</span>
               <span>{scrollProgress}%</span>
             </div>

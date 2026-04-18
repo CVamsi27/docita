@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Pill } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
-import Link from "next/link";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { EmptyState } from "@workspace/ui/components/empty-state";
 import {
   useDownloadPrescriptionPDF,
   usePrescriptions,
@@ -82,29 +83,28 @@ export default function PrescriptionsPage() {
     <FeatureGate
       feature={Feature.DIGITAL_PRESCRIPTIONS}
       fallback={
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-          <Pill className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">Digital Prescriptions</h2>
-          <p className="text-muted-foreground mb-4 max-w-md">
-            Create and manage digital prescriptions for your patients. Upgrade
-            to Core tier to unlock this feature.
-          </p>
-          <Button asChild>
-            <Link href="/settings?tab=subscription">Upgrade to Core</Link>
-          </Button>
-        </div>
+        <AppPageScaffold>
+          <EmptyState
+            icon={Pill}
+            title="Digital prescriptions"
+            description="Create and manage digital prescriptions for your patients. Upgrade to Core tier to unlock this feature."
+            action={{
+              label: "Upgrade to Core",
+              href: "/settings?tab=subscription",
+            }}
+            className="min-h-[50vh]"
+          />
+        </AppPageScaffold>
       }
     >
-      <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Prescriptions</h1>
-            <p className="text-muted-foreground">
-              View and manage all patient prescriptions.
-            </p>
-          </div>
-        </div>
-
+      <AppPageScaffold
+        header={
+          <PageHeader
+            title="Prescriptions"
+            description="View and manage all patient prescriptions."
+          />
+        }
+      >
         <PrescriptionsFilters
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -119,12 +119,12 @@ export default function PrescriptionsPage() {
         />
 
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[var(--fs-xs)] text-muted-foreground">
             Showing {filteredAndSortedPrescriptions.length} of{" "}
             {prescriptions.length} prescriptions
           </p>
         </div>
-      </div>
+      </AppPageScaffold>
     </FeatureGate>
   );
 }

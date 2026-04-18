@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePatientHistory } from "@/hooks/api/use-patient-history";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import {
@@ -44,12 +44,62 @@ export function PatientMedicalHistoryContainer({
 
   const { data: clinic } = useClinicSettings();
   const [draftPatient, setDraftPatient] = useState<PatientWithMedicalHistory>(
-    initialPatient,
+    () => freshPatient || initialPatient,
   );
 
+  const hasLocalEditsRef = useRef(false);
+  const hasSeededFromFreshRef = useRef(Boolean(freshPatient));
+  const pendingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
+  const syncedPatientIdRef = useRef<string | undefined>(initialPatient.id);
+
   useEffect(() => {
-    setDraftPatient(freshPatient || initialPatient);
-  }, [freshPatient, initialPatient]);
+    const nextId = initialPatient.id;
+    if (nextId && nextId !== syncedPatientIdRef.current) {
+      syncedPatientIdRef.current = nextId;
+      hasLocalEditsRef.current = false;
+      hasSeededFromFreshRef.current = false;
+      setDraftPatient(initialPatient);
+    }
+  }, [initialPatient]);
+
+  useEffect(() => {
+    if (
+      !hasSeededFromFreshRef.current &&
+      !hasLocalEditsRef.current &&
+      freshPatient &&
+      freshPatient.id === syncedPatientIdRef.current
+    ) {
+      hasSeededFromFreshRef.current = true;
+      setDraftPatient(freshPatient);
+    }
+  }, [freshPatient]);
+
+  useEffect(() => {
+    const timers = pendingTimersRef.current;
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
+
+  const DEBOUNCE_MS = 500;
+
+  const scheduleDebounced = useCallback(
+    (key: string, fn: () => void) => {
+      const existing = pendingTimersRef.current.get(key);
+      if (existing) {
+        clearTimeout(existing);
+      }
+      const timer = setTimeout(() => {
+        pendingTimersRef.current.delete(key);
+        fn();
+      }, DEBOUNCE_MS);
+      pendingTimersRef.current.set(key, timer);
+    },
+    [],
+  );
 
   const updateDraftPatient = useCallback(
     (
@@ -57,6 +107,7 @@ export function PatientMedicalHistoryContainer({
         current: PatientWithMedicalHistory,
       ) => PatientWithMedicalHistory,
     ) => {
+      hasLocalEditsRef.current = true;
       setDraftPatient((current) => updater(current));
     },
     [],
@@ -76,9 +127,11 @@ export function PatientMedicalHistoryContainer({
           [key]: value,
         } as PatientWithMedicalHistory["customData"],
       }));
-      operations.updateCustomData(key, value);
+      scheduleDebounced(`customData:${key}`, () =>
+        operations.updateCustomData(key, value),
+      );
     },
-    [operations, updateDraftPatient],
+    [operations, scheduleDebounced, updateDraftPatient],
   );
 
   const updateSocialHistory = useCallback(
@@ -99,9 +152,11 @@ export function PatientMedicalHistoryContainer({
           [field]: value,
         },
       }));
-      operations.updateSocialHistory(field, value);
+      scheduleDebounced(`socialHistory:${String(field)}`, () =>
+        operations.updateSocialHistory(field, value),
+      );
     },
-    [operations, updateDraftPatient],
+    [operations, scheduleDebounced, updateDraftPatient],
   );
 
   const addCondition = useCallback(() => {

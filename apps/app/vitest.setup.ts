@@ -13,3 +13,7 @@ if (!globalThis.ResizeObserver) {
     value: ResizeObserverMock,
   });
 }
+
+if (typeof Element !== "undefined" && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function scrollIntoView() {};
+}

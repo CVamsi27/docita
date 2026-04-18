@@ -2,13 +2,10 @@
 
 import { useParams } from "next/navigation";
 import { DataState } from "@workspace/ui/components/data-state";
-import {
-  ClinicalDocumentationDynamic,
-} from "@/features/consultation/components";
-import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
+import { ConsultationShell } from "@/features/consultation/workspace/ConsultationShell";
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
-import { ConsultationLayoutUI } from "@/features/consultation/components/ConsultationLayoutUI";
+import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
 import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointmentRules";
 import { Stethoscope } from "lucide-react";
 
@@ -24,11 +21,9 @@ export default function ConsultationPage() {
     isError,
     isAccessDenied,
     clinic,
-    isSidebarOpen,
-    defaultTab,
   } = state;
 
-  const { handleBack, handleSave, toggleSidebar } = handlers;
+  const { handleBack } = handlers;
 
   if (loading) {
     return (
@@ -87,22 +82,13 @@ export default function ConsultationPage() {
     appointmentData.status,
   );
 
-  const DesktopSidebar = (
-    <ConsultationSidebarContainer
-      appointmentData={appointmentData}
-      onClose={toggleSidebar}
-    />
-  );
-
   const MobileSidebar = (
-    <ConsultationSidebarContainer
-      appointmentData={appointmentData}
-    />
+    <ConsultationSidebarContainer appointmentData={appointmentData} />
   );
 
   return (
-    <div className="flex h-full flex-col bg-muted/20 p-2 sm:p-3 md:p-5">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/70 bg-background shadow-sm md:rounded-3xl">
+    <div className="flex h-full flex-col bg-muted/20">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
         <ConsultationPageHeaderUI
           patientName={patientName}
           appointmentDate={appointmentData.startTime}
@@ -116,24 +102,10 @@ export default function ConsultationPage() {
           MobileSidebarContent={MobileSidebar}
         />
 
-        <ConsultationLayoutUI
-          Sidebar={DesktopSidebar}
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={toggleSidebar}
-          MainContent={
-            <ClinicalDocumentationDynamic
-              appointmentId={appointmentId}
-              patientId={appointmentData.patientId}
-              doctorId={appointmentData.doctorId}
-              defaultTab={defaultTab}
-              onSave={handleSave}
-              isFocusMode={!isSidebarOpen}
-              onToggleFocus={toggleSidebar}
-              clinicType={clinic?.type}
-              appointmentData={appointmentData}
-              readOnly={consultationReadOnly}
-            />
-          }
+        <ConsultationShell
+          appointmentData={appointmentData}
+          clinicType={clinic?.type}
+          readOnly={consultationReadOnly}
         />
       </div>
     </div>

@@ -15,6 +15,7 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
   Tabs,
   TabsContent,
@@ -51,7 +52,6 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
-import { Loader2 } from "lucide-react";
 import { BackButton } from "@/components/common/navigation/back-button";
 
 export default function UpgradePage() {
@@ -187,12 +187,10 @@ export default function UpgradePage() {
   if (!user || !canAccessPage) {
     return (
       <AppPageScaffold>
-        <Card className="mx-auto w-full max-w-md">
-          <CardContent className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading subscription workspace...
-          </CardContent>
-        </Card>
+        <LoadingState
+          message="Loading subscription workspace..."
+          className="min-h-[40vh]"
+        />
       </AppPageScaffold>
     );
   }

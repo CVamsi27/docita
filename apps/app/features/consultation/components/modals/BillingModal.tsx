@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -196,17 +197,22 @@ export function BillingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-success" />
             Create Invoice
           </DialogTitle>
+          <DialogDescription>
+            Add billable line items and set a due date.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="flex flex-col gap-5 min-w-0">
           <div className="flex flex-wrap justify-between items-center gap-3">
-            <div className="text-sm font-medium">Line Items</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Line Items
+            </div>
             <div className="flex items-center gap-2">
               <Label>Due Date</Label>
               <DatePicker

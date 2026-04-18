@@ -84,12 +84,12 @@ export function PrescriptionInput({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-3">
+    <div className="space-y-3">
+      <div className="space-y-2">
         {medications.map((med, index) => (
           <div
             key={index}
-            className="p-4 bg-muted/20 border rounded-lg space-y-3 transition-colors hover:bg-muted/30"
+            className="p-3 bg-muted/20 border rounded-lg space-y-2 transition-colors hover:bg-muted/30"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -215,7 +215,7 @@ export function PrescriptionInput({
         <Button
           variant="outline"
           onClick={addMedication}
-          className="w-full border-dashed py-6 text-muted-foreground hover:text-primary"
+          className="w-full border-dashed py-3 text-muted-foreground hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Medication

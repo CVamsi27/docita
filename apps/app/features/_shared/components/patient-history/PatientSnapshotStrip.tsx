@@ -141,7 +141,7 @@ export function PatientSnapshotStrip({
             </p>
           </div>
           {showVitals && latestVitals?.recordedAt ? (
-            <p className="text-[11px] text-muted-foreground shrink-0">
+            <p className="text-[var(--fs-2xs)] text-muted-foreground shrink-0">
               Updated from vitals recorded on{" "}
               {new Date(latestVitals.recordedAt).toLocaleDateString()}
             </p>
@@ -233,7 +233,7 @@ interface SnapshotCellProps {
 function SnapshotCell({ icon: Icon, label, value, overflow }: SnapshotCellProps) {
   return (
     <div className="flex-1 rounded-lg border bg-muted/20 px-3 py-2">
-      <p className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+      <p className="flex items-center gap-1 text-[var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
         {label}
       </p>

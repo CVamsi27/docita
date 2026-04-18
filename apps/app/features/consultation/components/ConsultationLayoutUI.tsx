@@ -40,7 +40,7 @@ export function ConsultationLayoutUI({
             </Button>
           )}
 
-          <div className="p-4 md:p-6">
+          <div className="p-3 md:p-4">
             {MainContent}
           </div>
         </div>

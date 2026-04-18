@@ -103,7 +103,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
             {hasAllergies && (
               <Badge
                 variant="secondary"
-                className="ml-auto h-5 px-1.5 text-[10px]"
+                className="ml-auto h-5 px-1.5 text-[var(--fs-2xs)]"
               >
                 {allergies.length}
               </Badge>
@@ -121,7 +121,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                 >
                   {allergy.allergen}
                   {allergy.severity && (
-                    <span className="ml-1 opacity-70 text-[10px]">
+                    <span className="ml-1 opacity-70 text-[var(--fs-2xs)]">
                       ({humanizeUiLabel(allergy.severity)})
                     </span>
                   )}
@@ -146,7 +146,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                   Conditions
                   <Badge
                     variant="secondary"
-                    className="ml-1 h-5 px-1.5 text-[10px]"
+                    className="ml-1 h-5 px-1.5 text-[var(--fs-2xs)]"
                   >
                     {conditions.length}
                   </Badge>
@@ -183,7 +183,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                   Surgeries
                   <Badge
                     variant="secondary"
-                    className="ml-1 h-5 px-1.5 text-[10px]"
+                    className="ml-1 h-5 px-1.5 text-[var(--fs-2xs)]"
                   >
                     {surgeries.length}
                   </Badge>
@@ -205,7 +205,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                           {surgery.procedureName}
                         </span>
                         {surgery.procedureDate && (
-                          <span className="text-muted-foreground text-[10px]">
+                          <span className="text-muted-foreground text-[var(--fs-2xs)]">
                             {new Date(surgery.procedureDate).getFullYear()}
                           </span>
                         )}
@@ -233,7 +233,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                   Family History
                   <Badge
                     variant="secondary"
-                    className="ml-1 h-5 px-1.5 text-[10px]"
+                    className="ml-1 h-5 px-1.5 text-[var(--fs-2xs)]"
                   >
                     {familyHistory.length}
                   </Badge>
@@ -282,7 +282,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                   {socialHistory?.smokingStatus &&
                     socialHistory.smokingStatus !== "UNKNOWN" && (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
+                        <span className="text-muted-foreground text-[var(--fs-2xs)] uppercase tracking-wider">
                           Smoking
                         </span>
                         <span className="font-medium">
@@ -295,7 +295,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                   {socialHistory?.alcoholUse &&
                     socialHistory.alcoholUse !== "UNKNOWN" && (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
+                        <span className="text-muted-foreground text-[var(--fs-2xs)] uppercase tracking-wider">
                           Alcohol
                         </span>
                         <span className="font-medium">
@@ -307,7 +307,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                     )}
                   {socialHistory?.occupation && (
                     <div className="col-span-2 flex flex-col gap-0.5">
-                      <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
+                      <span className="text-muted-foreground text-[var(--fs-2xs)] uppercase tracking-wider">
                         Occupation
                       </span>
                       <span className="font-medium">
@@ -317,7 +317,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                   )}
                   {socialHistory?.dietaryRestrictions && (
                     <div className="col-span-2 flex flex-col gap-0.5">
-                      <span className="text-muted-foreground text-[10px] uppercase tracking-wider">
+                      <span className="text-muted-foreground text-[var(--fs-2xs)] uppercase tracking-wider">
                         Diet
                       </span>
                       <span className="font-medium">

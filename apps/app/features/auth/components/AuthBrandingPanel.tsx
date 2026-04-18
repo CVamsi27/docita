@@ -244,12 +244,12 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                           )}
                         </div>
                         {isActive && (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-primary shrink-0">
                             Now
                           </span>
                         )}
                         {isComplete && (
-                          <span className="text-[10px] font-medium text-success shrink-0">
+                          <span className="text-[var(--fs-2xs)] font-medium text-success shrink-0">
                             Done
                           </span>
                         )}

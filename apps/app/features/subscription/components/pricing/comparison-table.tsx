@@ -305,7 +305,7 @@ function FeatureCategoryRows({
                   {details.name}
                 </span>
                 {!details.isGenerallyAvailable && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  <Badge variant="secondary" className="text-[var(--fs-2xs)] px-1.5 py-0">
                     Planned
                   </Badge>
                 )}
@@ -337,7 +337,7 @@ function FeatureCategoryRows({
                   ) : !details.isGenerallyAvailable ? (
                     <Badge
                       variant="outline"
-                      className="text-[10px] px-1.5 py-0 text-muted-foreground"
+                      className="text-[var(--fs-2xs)] px-1.5 py-0 text-muted-foreground"
                     >
                       Planned
                     </Badge>

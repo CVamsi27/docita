@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import { PaymentSuccessModal } from "@/features/subscription/components";
 import { useSettingsLogic } from "@/features/settings/hooks/use-settings-logic";
 import { SettingsPageUI } from "@/features/settings/components/SettingsPageUI";
@@ -44,7 +45,7 @@ export default function SettingsPage() {
   return (
     <Suspense
       fallback={
-        <div className="container mx-auto py-6">Loading settings...</div>
+        <LoadingState message="Loading settings..." className="min-h-[40vh]" />
       }
     >
       <SettingsContent />

@@ -123,7 +123,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
         </div>
       </div>
 
-      <div ref={printRef} className="invoice-print-root print:p-0">
+      <div ref={printRef} className="print-sheet print:p-0">
         <Card className="border-none shadow-sm print:shadow-none print:border">
           <InvoiceHeader
             invoice={invoice}
@@ -177,22 +177,10 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
 
       <style>{`
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .invoice-print-root,
-          .invoice-print-root * {
-            visibility: visible;
-          }
-          .invoice-print-root {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
+          @page { size: A4; margin: 12mm; }
+          body * { visibility: hidden; }
+          .print-sheet, .print-sheet * { visibility: visible; }
+          .print-sheet { position: absolute; left: 0; top: 0; width: 100%; }
         }
       `}</style>
     </div>

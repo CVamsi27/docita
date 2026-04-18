@@ -115,7 +115,7 @@ export function PatientContextCardUI({
                   </span>
                 )}
                 {hasAllergies && (
-                  <Badge variant="destructive" className="text-[10px] h-5">
+                  <Badge variant="destructive" className="text-[var(--fs-2xs)] h-5">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Allergies
                   </Badge>
@@ -195,7 +195,7 @@ export function PatientContextCardUI({
                         <span>Blood Pressure</span>
                         <span>{patient.recentVitals.bp[0].value}</span>
                       </div>
-                      <div className="text-muted-foreground flex justify-between text-[10px]">
+                      <div className="text-muted-foreground flex justify-between text-[var(--fs-2xs)]">
                         <span>Previous:</span>
                         <span>
                           {patient.recentVitals.bp
@@ -215,7 +215,7 @@ export function PatientContextCardUI({
                         <span>Weight</span>
                         <span>{patient.recentVitals.weight[0].value}</span>
                       </div>
-                      <div className="text-muted-foreground flex justify-between text-[10px]">
+                      <div className="text-muted-foreground flex justify-between text-[var(--fs-2xs)]">
                         <span>Previous:</span>
                         <span>
                           {patient.recentVitals.weight

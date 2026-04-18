@@ -104,7 +104,7 @@ export function PatientBadgeUI({
                 <TooltipTrigger>
                   <Badge
                     variant="destructive"
-                    className="gap-1 h-5 text-[10px]"
+                    className="gap-1 h-5 text-[var(--fs-2xs)]"
                   >
                     <AlertTriangle className="h-3 w-3" />
                     Allergies

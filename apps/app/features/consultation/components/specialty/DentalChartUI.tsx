@@ -88,7 +88,7 @@ export function DentalChartUI({
         )}
         title={`Tooth ${toothId}: ${condition.label}`}
       >
-        <span className="text-[10px] text-muted-foreground">{toothId}</span>
+        <span className="text-[var(--fs-2xs)] text-muted-foreground">{toothId}</span>
         <div
           className={`w-3 h-3 rounded-full mt-1 ${getConditionColor(condition.value)}`}
         />

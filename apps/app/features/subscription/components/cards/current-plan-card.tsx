@@ -99,7 +99,7 @@ export function CurrentPlanCard({
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold">{statusNotice.title}</p>
                   {statusNotice.badgeLabel && (
-                    <Badge variant="outline" className="text-[11px]">
+                    <Badge variant="outline" className="text-[var(--fs-2xs)]">
                       {statusNotice.badgeLabel}
                     </Badge>
                   )}

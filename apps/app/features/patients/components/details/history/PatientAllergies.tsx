@@ -12,6 +12,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -126,8 +127,11 @@ export function PatientAllergies({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Allergy</DialogTitle>
+            <DialogDescription>
+              Update the allergen, severity, type, and reaction.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="flex flex-col gap-4 min-w-0">
             <div className="space-y-2">
               <Label>Allergen</Label>
               <Input

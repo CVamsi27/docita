@@ -269,8 +269,14 @@ function LeafletMapSync({
   useEffect(() => {
     if (!active) return;
     const frame = window.requestAnimationFrame(() => {
-      map.invalidateSize();
-      map.setView(center, zoom, { animate: false });
+      try {
+        const container = map.getContainer();
+        if (!container?.isConnected) return;
+        map.invalidateSize();
+        map.setView(center, zoom, { animate: false });
+      } catch {
+        // Ignore stale-map races while the dialog is remounting/closing.
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, [active, center, zoom, layoutVersion, map]);

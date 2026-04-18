@@ -8,7 +8,9 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
 import { Calendar, DollarSign, Users } from "lucide-react";
-import { BackButton } from "@/components/common/navigation/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
   Feature,
   FeatureGate,
@@ -79,11 +81,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   onTabChange,
 }) => {
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingState message="Loading analytics..." className="min-h-[60vh]" />;
   }
 
   const formatCurrency = (amount: number) =>
@@ -98,9 +96,14 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
       feature={Feature.ADVANCED_ANALYTICS}
       fallback={<AnalyticsUpgradeState />}
     >
-      <div className="flex-1 space-y-6">
-        <AnalyticsHeader />
-
+      <AppPageScaffold
+        header={
+          <PageHeader
+            title="Analytics"
+            description="Insights and performance metrics for your facility."
+          />
+        }
+      >
         <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <OverviewCard
             title="Total Patients"
@@ -160,19 +163,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
             />
           </TabsContent>
         </Tabs>
-      </div>
+      </AppPageScaffold>
     </FeatureGate>
   );
 };
-
-const AnalyticsHeader = () => (
-  <div>
-    <div className="flex items-center gap-2 mb-2">
-      <BackButton fallback="/dashboard" label="Back to Dashboard" />
-    </div>
-    <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Analytics</h1>
-    <p className="text-muted-foreground">
-      Insights and performance metrics for your facility
-    </p>
-  </div>
-);

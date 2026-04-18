@@ -32,7 +32,7 @@ export function PatientVitalsBannerUI({
               </span>
               <span className="text-xs text-muted-foreground">mmHg</span>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">
+            <p className="text-[var(--fs-2xs)] text-muted-foreground mt-1">
               {formatDistanceToNow(new Date(date), { addSuffix: true })}
             </p>
           </div>

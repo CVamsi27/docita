@@ -260,7 +260,7 @@ export function PricingDialog({
 
                   return (
                     <div className="mb-3 rounded-md border border-primary/20 bg-primary/5 px-2 py-1.5">
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-[var(--fs-2xs)] text-muted-foreground">
                         Est. with your usage
                       </p>
                       <p className="text-sm font-semibold text-foreground">
@@ -309,7 +309,7 @@ export function PricingDialog({
 
                   {tierFeatures.length > 0 && (
                     <div className="pt-2">
-                      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <p className="mb-1 text-[var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground">
                         Highlights
                       </p>
                       <ul className="space-y-1 text-xs text-muted-foreground">

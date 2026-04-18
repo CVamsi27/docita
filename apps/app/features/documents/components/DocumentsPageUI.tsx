@@ -5,6 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Badge } from "@workspace/ui/components/badge";
@@ -99,16 +101,14 @@ export function DocumentsPageUI({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Documents</h1>
-          <p className="text-muted-foreground">
-            View and manage all uploaded documents.
-          </p>
-        </div>
-      </div>
-
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Documents"
+          description="View and manage all uploaded documents."
+        />
+      }
+    >
       <div className="flex items-center gap-4">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -241,10 +241,10 @@ export function DocumentsPageUI({
       </Card>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[var(--fs-xs)] text-muted-foreground">
           Showing {documents.length} of {totalCount} documents
         </p>
       </div>
-    </div>
+    </AppPageScaffold>
   );
 }

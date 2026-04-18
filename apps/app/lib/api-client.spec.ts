@@ -53,7 +53,6 @@ vi.mock("@/lib/api-config", () => ({
 
 describe("api-client", () => {
   beforeEach(() => {
-    vi.resetModules();
     vi.unstubAllGlobals();
     mocks.showUserFacingErrorToast.mockReset();
     mocks.appSession.getToken.mockReset();

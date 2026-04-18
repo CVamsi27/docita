@@ -11,6 +11,7 @@ import {
 import { BackButton } from "@/components/common/navigation/back-button";
 import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
+import { DesktopTopBar } from "@/features/_shared/components/layout/desktop-top-bar";
 import { ClinicProvider, useClinic } from "@/lib/clinic-context";
 import {
   ResizableHandle,
@@ -357,6 +358,7 @@ export default function ProtectedLayout({
                     <ResizablePanel defaultSize={82}>
                       <div className="flex h-full flex-col overflow-hidden">
                         <MobileHeader onMenuClick={() => setMobileOpen(true)} />
+                        {!isConsultationRoute ? <DesktopTopBar /> : null}
                         <main
                           className={
                             isConsultationRoute

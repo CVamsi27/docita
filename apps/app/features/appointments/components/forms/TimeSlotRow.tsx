@@ -108,7 +108,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 </h3>
                 <Badge
                   variant="secondary"
-                  className={`text-[10px] capitalize ${
+                  className={`text-[var(--fs-2xs)] capitalize ${
                     apt.status === "confirmed"
                       ? "badge-info"
                       : apt.status === "checked-in"

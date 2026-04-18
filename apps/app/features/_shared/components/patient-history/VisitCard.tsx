@@ -214,10 +214,10 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
         </div>
         <div className="flex items-start justify-between gap-1">
           <p className="text-xs font-medium truncate leading-tight">{displayTitle}</p>
-          <span className="text-[10px] text-muted-foreground shrink-0">{dateStr}</span>
+          <span className="text-[var(--fs-2xs)] text-muted-foreground shrink-0">{dateStr}</span>
         </div>
         {event.type === "APPOINTMENT" && (primaryDiagnosis?.description || doctorName) && (
-          <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+          <p className="text-[var(--fs-2xs)] text-muted-foreground mt-0.5 truncate">
             {displayPrimaryDiagnosis || doctorName}
           </p>
         )}

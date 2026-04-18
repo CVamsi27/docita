@@ -1,10 +1,5 @@
-
-
 export { ConsultationTimerUI } from "./ConsultationTimerUI";
 export { ConsultationTimerContainer } from "./ConsultationTimerContainer";
-
-export { ConsultationProgressUI } from "./ConsultationProgressUI";
-export type { ConsultationStep } from "./ConsultationProgressUI";
 
 export {
   PrescriptionModal,
@@ -18,5 +13,3 @@ export {
 } from "./ClinicalModals";
 
 export { ConsultationSidebarUI } from "./ConsultationSidebarUI";
-
-export { ClinicalDocumentationDynamic } from "./ConsultationDynamic";

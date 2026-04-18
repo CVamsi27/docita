@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -42,6 +42,14 @@ const HELP_CATEGORIES = [
 export const HelpCenter: FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
+  const filteredCategories = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return HELP_CATEGORIES;
+    return HELP_CATEGORIES.filter((cat) =>
+      cat.title.toLowerCase().includes(q),
+    );
+  }, [searchQuery]);
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center space-y-4">
@@ -53,12 +61,19 @@ export const HelpCenter: FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
+            aria-label="Search help articles"
           />
         </div>
       </div>
 
+      {filteredCategories.length === 0 ? (
+        <div className="text-center text-[var(--fs-sm)] text-muted-foreground">
+          No help topics match your search.
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {HELP_CATEGORIES.map((cat) => (
+        {filteredCategories.map((cat) => (
           <Card
             key={cat.id}
             className="border-none shadow-lg hover:shadow-xl transition-all cursor-pointer group"

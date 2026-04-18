@@ -164,8 +164,20 @@ export interface DiagnosisSyncItem {
   isPrimary?: boolean;
 }
 
+export interface DiagnosesSyncRequestBody {
+  diagnoses: DiagnosisSyncItem[];
+  contentHash?: string;
+}
+
+export interface DiagnosesSyncResponse {
+  success: boolean;
+  contentHash?: string;
+  skipped?: boolean;
+  count?: number;
+}
+
 export const useSyncDiagnoses = (appointmentId: string) =>
-  useAPIMutation<{ success: boolean }, { diagnoses: DiagnosisSyncItem[] }>(
+  useAPIMutation<DiagnosesSyncResponse, DiagnosesSyncRequestBody>(
     `/appointments/${appointmentId}/diagnoses`,
     "POST",
     {

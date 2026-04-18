@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import { Loader2 } from "lucide-react";
+import { PrintSheet } from "@workspace/ui/components/print-sheet";
+import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
+import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { format } from "date-fns";
 import { usePrescription } from "@/hooks/api/use-clinical";
@@ -123,24 +124,21 @@ export default function PrescriptionViewPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading prescription...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Loading prescription..." className="min-h-[50vh]" />;
   }
 
   if (!prescription) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-muted-foreground">Prescription not found</p>
-        <Button onClick={() => router.push("/prescriptions")}>
-          Back to Prescriptions
-        </Button>
-      </div>
+      <EmptyState
+        icon={FileX}
+        title="Prescription not found"
+        description="The prescription you are looking for is unavailable."
+        action={{
+          label: "Back to Prescriptions",
+          onClick: () => router.push("/prescriptions"),
+        }}
+        className="min-h-[50vh]"
+      />
     );
   }
 
@@ -154,44 +152,25 @@ export default function PrescriptionViewPage() {
     !!prescription.appointmentId;
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
-      <PrescriptionHeader
-        createdAt={new Date(prescription.createdAt).toISOString()}
-        canEdit={canEdit}
-        hasWhatsAppAccess={hasWhatsAppAccess}
-        onBack={goBack}
-        onEdit={handleEdit}
-        onShareWhatsApp={handleShareWhatsApp}
-        onPrint={handlePrint}
-      />
+    <div className="flex flex-col gap-6 mx-auto w-full max-w-4xl">
+      <div className="print:hidden">
+        <PrescriptionHeader
+          createdAt={new Date(prescription.createdAt).toISOString()}
+          canEdit={canEdit}
+          hasWhatsAppAccess={hasWhatsAppAccess}
+          onBack={goBack}
+          onEdit={handleEdit}
+          onShareWhatsApp={handleShareWhatsApp}
+          onPrint={handlePrint}
+        />
+      </div>
 
-      <PrescriptionDocument
-        prescription={prescription}
-        clinicInfo={clinicInfo}
-      />
-
-      {}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .max-w-4xl,
-          .max-w-4xl * {
-            visibility: visible;
-          }
-          .max-w-4xl {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 20px;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-        }
-      `}</style>
+      <PrintSheet paperSize="a4" hidePrintButton>
+        <PrescriptionDocument
+          prescription={prescription}
+          clinicInfo={clinicInfo}
+        />
+      </PrintSheet>
     </div>
   );
 }
