@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,10 +10,12 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Calendar, Check, X } from "lucide-react";
+import { APIRequestError } from "@workspace/data-access";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 interface FollowUp {
   id: string;
@@ -31,28 +33,61 @@ interface FollowUp {
   };
 }
 
-export function FollowUpWidget() {
+function isExpectedAccessFailure(err: unknown): boolean {
+  if (!(err instanceof APIRequestError)) return false;
+  const status = err.status;
+  return status === 401 || status === 403 || status === 404;
+}
+
+function logPayloadFromError(err: unknown): Record<string, unknown> {
+  if (err instanceof APIRequestError) {
+    return {
+      name: err.name,
+      message: err.message,
+      status: err.status,
+      code: err.code,
+    };
+  }
+  if (err instanceof Error) {
+    return { name: err.name, message: err.message };
+  }
+  return { detail: String(err) };
+}
+
+interface FollowUpWidgetProps {
+  /** When set, loads follow-ups for this appointment only (consultation sidebar). */
+  appointmentId?: string;
+}
+
+export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [actioning, setActioning] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    setLoading(true);
     setLoadError(false);
     try {
-      const data = await api.get<FollowUp[]>("/follow-ups");
-      setFollowUps(data);
+      const data = await api.get<unknown>("/follow-ups", {
+        params: appointmentId ? { appointmentId } : undefined,
+      });
+      setFollowUps(Array.isArray(data) ? (data as FollowUp[]) : []);
     } catch (err) {
-      logger.error("Failed to load follow-ups", { err });
+      if (isExpectedAccessFailure(err)) {
+        setFollowUps([]);
+        return;
+      }
+      logger.error("Failed to load follow-ups", logPayloadFromError(err));
       setLoadError(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, [appointmentId]);
 
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [load]);
 
   const handleComplete = async (id: string) => {
     setActioning(id);
@@ -61,7 +96,7 @@ export function FollowUpWidget() {
       setFollowUps((prev) => prev.filter((fu) => fu.id !== id));
       toast.success("Follow-up marked as completed");
     } catch (err) {
-      logger.error("Failed to complete follow-up", { err });
+      logger.error("Failed to complete follow-up", logPayloadFromError(err));
       showUserFacingErrorToast(
         "We could not complete this follow-up. Please try again.",
       );
@@ -77,7 +112,7 @@ export function FollowUpWidget() {
       setFollowUps((prev) => prev.filter((fu) => fu.id !== id));
       toast.success("Follow-up cancelled");
     } catch (err) {
-      logger.error("Failed to cancel follow-up", { err });
+      logger.error("Failed to cancel follow-up", logPayloadFromError(err));
       showUserFacingErrorToast(
         "We could not cancel this follow-up. Please try again.",
       );
@@ -114,7 +149,7 @@ export function FollowUpWidget() {
             </div>
             <div className="flex items-center gap-1">
               <Badge variant="outline" className="text-xs">
-                {fu.status}
+                {humanizeUiLabel(fu.status)}
               </Badge>
               <Button
                 size="sm"

@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/table";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
 import { cn } from "@workspace/ui/lib/utils";
@@ -98,7 +99,7 @@ export function InvoiceHistoryDialog({
                             : "badge-warning",
                         )}
                       >
-                        {invoice.status}
+                        {humanizeUiLabel(invoice.status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

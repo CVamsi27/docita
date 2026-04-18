@@ -91,6 +91,7 @@ export function PrescriptionsTable({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="overflow-x-auto rounded-md border border-border">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
@@ -210,6 +211,7 @@ export function PrescriptionsTable({
             )}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

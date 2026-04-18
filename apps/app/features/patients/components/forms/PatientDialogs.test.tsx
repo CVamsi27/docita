@@ -2,6 +2,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AddPatientDialog } from "./PatientDialogs";
 
+vi.mock("@/lib/clinic-context", () => ({
+  useClinic: () => ({
+    clinic: { countryCode: "IN" },
+  }),
+}));
+
 vi.mock("@/hooks/api/use-patients", () => ({
   useCreatePatient: () => ({
     mutateAsync: vi.fn().mockResolvedValue(undefined),

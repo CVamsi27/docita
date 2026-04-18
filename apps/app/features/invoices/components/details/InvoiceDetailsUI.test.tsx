@@ -18,8 +18,8 @@ vi.mock("next/image", () => ({
   ),
 }));
 
-vi.mock("@/hooks/use-smart-back", () => ({
-  useSmartBack: () => vi.fn(),
+vi.mock("@/hooks/use-back-navigation", () => ({
+  useBackNavigation: () => vi.fn(),
 }));
 
 const useInvoiceDetailsLogicMock = vi.fn();

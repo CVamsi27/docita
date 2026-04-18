@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getPatientAgeDisplay,
   isPatientMinor,
+  validatePatientPhoneNumberForCountry,
   validatePatientData,
 } from "./patientRules";
 import type { Patient } from "@workspace/types";
@@ -105,10 +106,30 @@ describe("Patient Business Rules", () => {
       const errors = validatePatientData({
         firstName: "John",
         lastName: "Doe",
-        phoneNumber: "123",
+        phoneNumber: "+919876543210",
         email: "test@example.com",
       });
       expect(errors).toHaveLength(0);
+    });
+  });
+
+  describe("validatePatientPhoneNumberForCountry", () => {
+    it("should accept a valid number for the clinic country", () => {
+      expect(
+        validatePatientPhoneNumberForCountry("+919876543210", "IN"),
+      ).toBeNull();
+    });
+
+    it("should reject a number that does not match the clinic country", () => {
+      expect(
+        validatePatientPhoneNumberForCountry("+14155552671", "IN"),
+      ).toBe("Enter a valid phone number for the selected clinic country");
+    });
+
+    it("should fall back to the default clinic country when missing", () => {
+      expect(
+        validatePatientPhoneNumberForCountry("+919876543210", undefined),
+      ).toBeNull();
     });
   });
 });

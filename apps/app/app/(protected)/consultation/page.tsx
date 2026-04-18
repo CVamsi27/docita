@@ -6,8 +6,10 @@ import { ConsultationDashboardUI } from "@/features/consultation/components/Cons
 
 export default function ConsultationPage() {
   return (
-    <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
-      <ConsultationDashboardUI />
-    </FeatureGate>
+    <div className="h-full overflow-y-auto p-4 md:p-6">
+      <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
+        <ConsultationDashboardUI />
+      </FeatureGate>
+    </div>
   );
 }

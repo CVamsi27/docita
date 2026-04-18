@@ -1,4 +1,5 @@
 import { Button } from "@workspace/ui/components/button";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import { Input } from "@workspace/ui/components/input";
 import { Scissors, X } from "lucide-react";
 import { PatientWithMedicalHistory } from "@workspace/types";
@@ -79,11 +80,13 @@ export function PatientSurgeries({
               />
             </div>
           </div>
-          <Input
-            type="date"
-            value={newSurgeryDate}
-            onChange={(e) => onNewSurgeryDateChange(e.target.value)}
-            className="w-36"
+          <DatePicker
+            value={newSurgeryDate || undefined}
+            onChange={(date) =>
+              onNewSurgeryDateChange(date?.toISOString().slice(0, 10) ?? "")
+            }
+            placeholder="Procedure date"
+            className="w-44"
           />
           <Button
             type="button"

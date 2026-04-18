@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 
 interface Doctor {
   id: string;
@@ -33,29 +33,31 @@ export function AppointmentsCalendarUI({
   selectedDoctorId,
   onDoctorSelect,
 }: AppointmentsCalendarUIProps) {
+  const selectedDate = date ?? new Date();
+  const isTodaySelected = isSameDay(selectedDate, new Date());
+
   return (
-    <Card className="h-fit border-border/60 bg-card/90 shadow-sm backdrop-blur">
+    <Card className="h-fit border-border/60 bg-card/95 shadow-sm">
       <CardContent className="space-y-4 p-4">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Selected date
             </p>
-            <p className="truncate text-sm font-semibold">
-              {format(date ?? new Date(), "EEE, d MMM yyyy")}
+            <p className="mt-0.5 truncate text-base font-semibold text-foreground">
+              {format(selectedDate, "EEE, d MMM yyyy")}
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 px-2.5"
-              onClick={() => onDateSelect(new Date())}
-            >
-              Today
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 shrink-0 px-3"
+            onClick={() => onDateSelect(new Date())}
+            disabled={isTodaySelected}
+          >
+            Today
+          </Button>
         </div>
 
         {canViewAllDoctors && doctorsList.length > 0 && (
@@ -79,15 +81,14 @@ export function AppointmentsCalendarUI({
           </Select>
         )}
 
-        <div className="rounded-2xl border border-border/60 bg-background/60 p-2">
-          <Calendar
-            mode="single"
-            required
-            selected={date ?? new Date()}
-            onSelect={onDateSelect}
-            className="w-full p-0 [--cell-size:--spacing(9)] sm:[--cell-size:--spacing(10)]"
-          />
-        </div>
+        <Calendar
+          mode="single"
+          required
+          selected={selectedDate}
+          onSelect={onDateSelect}
+          className="w-full max-w-full p-0 [--cell-size:2rem] [&_[data-day]]:!size-auto [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_table]:w-full [&_td]:p-0.5"
+          classNames={{ root: "w-full max-w-full" }}
+        />
       </CardContent>
     </Card>
   );

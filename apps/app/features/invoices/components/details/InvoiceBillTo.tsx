@@ -1,6 +1,7 @@
 "use client";
 
 import { Invoice, Patient } from "@workspace/types";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 interface InvoiceBillToProps {
   invoice: Invoice & { patient?: Patient };
@@ -37,7 +38,9 @@ export function InvoiceBillTo({ invoice }: InvoiceBillToProps) {
           </p>
           <p>
             <span className="text-muted-foreground mr-2">Status:</span>
-            <span className="capitalize font-medium">{invoice.status}</span>
+            <span className="capitalize font-medium">
+              {humanizeUiLabel(invoice.status)}
+            </span>
           </p>
         </div>
       </div>

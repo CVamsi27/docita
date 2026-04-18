@@ -8,8 +8,10 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Patient } from "@workspace/types";
+import { useClinic } from "@/lib/clinic-context";
 import { useCreatePatient, useUpdatePatient } from "@/hooks/api/use-patients";
 import { Button } from "@workspace/ui/components/button";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import { FormDialog } from "@workspace/ui/components/form-dialog";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { Input } from "@workspace/ui/components/input";
@@ -32,6 +34,9 @@ import {
   createPatientRequestSchema,
   updatePatientRequestSchema,
 } from "@workspace/types";
+import {
+  validatePatientPhoneNumberForCountry,
+} from "@/features/patients/rules/patientRules";
 
 interface AddPatientDialogProps {
   open?: boolean;
@@ -69,8 +74,8 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
   onPatientAdded,
 }) => {
   const createPatient = useCreatePatient();
+  const { clinic } = useClinic();
 
-  const todayStr = new Date().toISOString().slice(0, 10);
   const patientCreateFormSchema = createPatientRequestSchema.superRefine(
     (val, ctx) => {
       if (!val.dateOfBirth) {
@@ -104,6 +109,19 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
     if (!isValid) return;
     try {
       const values = form.getValues();
+      const phoneError = validatePatientPhoneNumberForCountry(
+        values.phoneNumber,
+        clinic?.countryCode,
+      );
+      if (phoneError) {
+        form.setError("phoneNumber", {
+          type: "manual",
+          message: phoneError,
+        });
+        showUserFacingErrorToast(null, phoneError, "form");
+        return;
+      }
+
       await createPatient.mutateAsync(
         createPatientRequestSchema.parse({
           ...values,
@@ -255,18 +273,13 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                     <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      value={
-                        typeof field.value === "string"
-                          ? field.value
-                          : field.value instanceof Date
-                            ? field.value.toISOString().slice(0, 10)
-                            : ""
+                    <DatePicker
+                      value={field.value || undefined}
+                      onChange={(date) =>
+                        field.onChange(date?.toISOString().slice(0, 10) ?? "")
                       }
-                      type="date"
-                      max={todayStr}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      placeholder="Select date of birth"
+                      maxDate={new Date()}
                     />
                   </FormControl>
                   <FormMessage />
@@ -304,7 +317,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
   onPatientUpdated,
 }) => {
   const updatePatient = useUpdatePatient(patient?.id ?? "");
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const { clinic } = useClinic();
   type PatientUpdateFormValues = z.infer<typeof updatePatientRequestSchema>;
 
   const form = useForm<PatientUpdateFormValues>({
@@ -334,6 +347,19 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
     if (!isValid) return;
     try {
       const values = form.getValues();
+      const phoneError = validatePatientPhoneNumberForCountry(
+        values.phoneNumber,
+        clinic?.countryCode,
+      );
+      if (phoneError) {
+        form.setError("phoneNumber", {
+          type: "manual",
+          message: phoneError,
+        });
+        showUserFacingErrorToast(null, phoneError, "form");
+        return;
+      }
+
       await updatePatient.mutateAsync(
         updatePatientRequestSchema.parse({
           ...values,
@@ -469,18 +495,13 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                 <FormItem>
                   <FormLabel>Date of Birth</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      value={
-                        typeof field.value === "string"
-                          ? field.value
-                          : field.value instanceof Date
-                            ? field.value.toISOString().slice(0, 10)
-                            : ""
+                    <DatePicker
+                      value={field.value || undefined}
+                      onChange={(date) =>
+                        field.onChange(date?.toISOString().slice(0, 10) ?? "")
                       }
-                      type="date"
-                      max={todayStr}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      placeholder="Select date of birth"
+                      maxDate={new Date()}
                     />
                   </FormControl>
                   <FormMessage />

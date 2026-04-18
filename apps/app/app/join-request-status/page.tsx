@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Clock, CheckCircle2, XCircle, Building2, ArrowLeft } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, Building2 } from 'lucide-react';
 import { Card } from '@workspace/ui/components/card';
 import { Button } from '@workspace/ui/components/button';
 import { Alert, AlertDescription, AlertTitle } from '@workspace/ui/components/alert';
@@ -16,6 +16,7 @@ import { SupportContact } from "@/components/common/support-contact";
 import { useAuth } from '@/lib/auth-context';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
+import { BackButton } from "@/components/common/navigation/back-button";
 
 interface JoinRequest {
   id: string;
@@ -151,16 +152,11 @@ export default function JoinRequestStatusPage() {
       contentMaxWidth="max-w-2xl"
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/choose-path')}
+        <BackButton
+          fallback="/choose-path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1.5" />
-          Back
-        </Button>
-        <h1 className="text-2xl sm:text-3xl font-bold">Join Request Status</h1>
+        />
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Join Request Status</h1>
         <p className="text-muted-foreground text-sm">
           Your request is being reviewed by the facility administrator
         </p>

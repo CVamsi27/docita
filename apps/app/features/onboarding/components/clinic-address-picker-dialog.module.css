@@ -15,6 +15,20 @@
   background: #f8fafc;
 }
 
+/* Tailwind/base img max-width rules can break Leaflet tile rendering. */
+.mapRoot :global(.leaflet-container img),
+.mapRoot :global(.leaflet-container .leaflet-tile),
+.mapRoot :global(.leaflet-container .leaflet-marker-icon),
+.mapRoot :global(.leaflet-container .leaflet-marker-shadow) {
+  max-width: none !important;
+}
+
+.mapRoot :global(.leaflet-container .leaflet-pane),
+.mapRoot :global(.leaflet-container .leaflet-map-pane),
+.mapRoot :global(.leaflet-container .leaflet-tile-pane) {
+  will-change: transform;
+}
+
 .mapRoot :global(.leaflet-control-attribution) {
   font-size: 11px;
 }

@@ -62,7 +62,7 @@ export const InventoryPageUI: FC = () => {
         {}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Inventory</h1>
             <p className="text-muted-foreground">
               Manage your facility&apos;s inventory and supplies
             </p>

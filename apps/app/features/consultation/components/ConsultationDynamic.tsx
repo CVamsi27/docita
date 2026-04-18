@@ -1,6 +1,7 @@
 "use client";
 
 import React, { FC, useEffect, useState, useMemo } from "react";
+import { Badge } from "@workspace/ui/components/badge";
 import {
   Card,
   CardContent,
@@ -42,6 +43,7 @@ import {
   normalizeConsultationTab,
   getConsultationTabIds,
 } from "@/features/consultation/rules/consultationTabRouting";
+import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointmentRules";
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") {
@@ -102,6 +104,7 @@ interface ClinicalDocumentationDynamicProps {
   isFocusMode?: boolean;
   onToggleFocus?: () => void;
   clinicType?: string;
+  readOnly?: boolean;
 }
 
 interface ConsultationAppointmentData {
@@ -147,6 +150,7 @@ export const ClinicalDocumentationDynamic: FC<
   isFocusMode,
   onToggleFocus: _onToggleFocus,
   clinicType = "GENERAL",
+  readOnly = false,
 }) => {
   const [activeTab, setActiveTab] = useState<string>(() =>
     normalizeConsultationTab(defaultTab, clinicType),
@@ -201,6 +205,12 @@ export const ClinicalDocumentationDynamic: FC<
     (appointmentData?.patient as unknown as PatientWithMedicalHistory);
   const createPrescription = useCreatePrescription();
   const syncDiagnoses = useSyncDiagnoses(appointmentId || "");
+  const rawStatus = appointmentData?.status;
+  const isReadOnly =
+    readOnly ||
+    isConsultationReadOnlyStatus(
+      typeof rawStatus === "string" ? rawStatus : undefined,
+    );
 
   useEffect(() => {
     if (appointmentData) {
@@ -312,7 +322,7 @@ export const ClinicalDocumentationDynamic: FC<
   }, [appointmentData]);
 
   const handleSaveData = async () => {
-    if (!onSave) return;
+    if (!onSave || isReadOnly) return;
     setIsSaving(true);
     try {
       const invalidDuration = chiefComplaint.find((c) => {
@@ -610,7 +620,11 @@ export const ClinicalDocumentationDynamic: FC<
       <div className="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-background/95 p-3 shadow-sm">
         <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
           <span className="font-medium text-foreground truncate">
-            {progress.isMinimumMet ? "Ready to complete" : "Draft in progress"}
+            {isReadOnly
+              ? "Finalized consultation"
+              : progress.isMinimumMet
+                ? "Ready to complete"
+                : "Draft in progress"}
           </span>
           <span className="text-muted-foreground/50 hidden sm:inline">•</span>
           <span className="hidden sm:inline shrink-0">
@@ -618,14 +632,20 @@ export const ClinicalDocumentationDynamic: FC<
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={handleSaveData}
-            disabled={isSaving}
-            variant={progress.isMinimumMet ? "default" : "outline"}
-          >
-            {saveLabel}
-          </Button>
+          {isReadOnly ? (
+            <Badge variant="outline" className="h-8 px-3">
+              View only
+            </Badge>
+          ) : (
+            <Button
+              size="sm"
+              onClick={handleSaveData}
+              disabled={isSaving}
+              variant={progress.isMinimumMet ? "default" : "outline"}
+            >
+              {saveLabel}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -662,6 +682,7 @@ export const ClinicalDocumentationDynamic: FC<
             handlers={rendererHandlers}
             patient={patient}
             isLoading={isPatientLoading}
+            readOnly={isReadOnly}
           />
         </CardContent>
       </Card>

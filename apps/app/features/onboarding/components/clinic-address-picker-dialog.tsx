@@ -2,10 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Loader2, LocateFixed, MapPin, Search } from "lucide-react";
+import { Loader2, LocateFixed, MapPin, Search, X } from "lucide-react";
 import {
   Autocomplete,
   GoogleMap,
@@ -50,9 +57,24 @@ export type ClinicAddressSelection = {
 };
 
 const DEFAULT_CENTER: LatLng = { lat: 20.5937, lng: 78.9629 }; // India
-const GOOGLE_LIBRARIES = ["places"] as const;
+const GOOGLE_LIBRARIES: ("places")[] = ["places"];
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org";
 const SEARCH_DEBOUNCE_MS = 250;
+
+function isValidGoogleMapsApiKey(input: string): boolean {
+  const key = input.trim();
+  if (!key) return false;
+  // Prevent loading Google Maps with placeholder/non-key values.
+  if (
+    key === "undefined" ||
+    key === "null" ||
+    key === "YOUR_GOOGLE_MAPS_API_KEY" ||
+    key === "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY"
+  ) {
+    return false;
+  }
+  return /^AIza[0-9A-Za-z-_]{20,}$/.test(key);
+}
 
 function resolveLeafletAsset(asset: string | { src: string }): string {
   return typeof asset === "string" ? asset : asset.src;
@@ -399,16 +421,21 @@ export function ClinicAddressPickerDialog({
   const [googleMap, setGoogleMap] = useState<google.maps.Map | null>(null);
   const [leafletMap, setLeafletMap] = useState<LeafletMapInstance | null>(null);
   const [mapLayoutVersion, setMapLayoutVersion] = useState(0);
+  const [mapInstanceKey, setMapInstanceKey] = useState(0);
+  const [isMapViewportReady, setIsMapViewportReady] = useState(false);
+  const [isLeafletPainted, setIsLeafletPainted] = useState(false);
+  const [leafletRetryCount, setLeafletRetryCount] = useState(0);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const didAutoLocateRef = useRef(false);
 
-  const googleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const hasGoogleKey = Boolean(googleKey.trim());
+  const rawGoogleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const hasGoogleKey = isValidGoogleMapsApiKey(rawGoogleKey);
+  const googleKey = hasGoogleKey ? rawGoogleKey.trim() : "";
   const { isLoaded: isGoogleLoaded, loadError: googleLoadError } =
     useJsApiLoader({
       id: "google-maps-script",
       googleMapsApiKey: hasGoogleKey ? googleKey : "",
-      libraries: GOOGLE_LIBRARIES as unknown as ("places")[],
+      libraries: GOOGLE_LIBRARIES,
     });
   const shouldUseGoogle = hasGoogleKey && isGoogleLoaded && !googleLoadError;
 
@@ -428,6 +455,15 @@ export function ClinicAddressPickerDialog({
 
   useEffect(() => {
     if (!open) return;
+    setMapInstanceKey((value) => value + 1);
+    setIsMapViewportReady(false);
+    setIsLeafletPainted(false);
+    setLeafletRetryCount(0);
+    const frame = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setIsMapViewportReady(true);
+      });
+    });
     setAddressDraft(initialAddress);
     setAddressDetails(null);
     setResolvedAddress("");
@@ -436,6 +472,7 @@ export function ClinicAddressPickerDialog({
     setSuggestions([]);
     setShowSuggestions(false);
     didAutoLocateRef.current = false;
+    return () => window.cancelAnimationFrame(frame);
   }, [initialAddress, open]);
 
   useEffect(() => {
@@ -478,12 +515,18 @@ export function ClinicAddressPickerDialog({
   useEffect(() => {
     if (!open || shouldUseGoogle || !leafletMap) return;
 
-    const timeouts = [0, 120, 280, 520].map((delay) =>
+    const timeouts = [80, 220, 420, 700].map((delay) =>
       window.setTimeout(() => {
-        leafletMap.invalidateSize({ pan: false });
-        leafletMap.setView(centerExpression, mapZoom, {
-          animate: false,
-        });
+        try {
+          const container = leafletMap.getContainer();
+          if (!container?.isConnected) return;
+          leafletMap.invalidateSize({ pan: false });
+          leafletMap.setView(centerExpression, mapZoom, {
+            animate: false,
+          });
+        } catch {
+          // Ignore stale-map races while remounting.
+        }
       }, delay),
     );
 
@@ -491,6 +534,26 @@ export function ClinicAddressPickerDialog({
       timeouts.forEach((id) => window.clearTimeout(id));
     };
   }, [centerExpression, mapZoom, leafletMap, open, shouldUseGoogle, mapLayoutVersion]);
+
+  useEffect(() => {
+    if (!open || shouldUseGoogle || !isMapViewportReady || isLeafletPainted) return;
+    if (leafletRetryCount >= 2) return;
+
+    const timer = window.setTimeout(() => {
+      setLeafletRetryCount((count) => count + 1);
+      setIsLeafletPainted(false);
+      setMapInstanceKey((value) => value + 1);
+      setMapLayoutVersion((version) => version + 1);
+    }, 900);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    isLeafletPainted,
+    isMapViewportReady,
+    leafletRetryCount,
+    open,
+    shouldUseGoogle,
+  ]);
 
   useEffect(() => {
     if (!open || picked || didAutoLocateRef.current) return;
@@ -624,13 +687,33 @@ export function ClinicAddressPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,1080px)] max-w-none overflow-hidden p-0 data-[state=open]:animate-none data-[state=closed]:animate-none sm:w-[min(100vw-2rem,1080px)]">
+      <DialogContent
+        showCloseButton={false}
+        aria-describedby="clinic-location-dialog-description"
+        className="h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,1080px)] max-w-none overflow-hidden rounded-2xl border border-border/70 bg-background p-0 shadow-2xl data-[state=open]:animate-none data-[state=closed]:animate-none sm:w-[min(100vw-2rem,1080px)]"
+      >
         <div className="flex h-full min-h-0 flex-col">
           <DialogHeader className="border-b bg-background px-4 py-4 sm:px-6 sm:py-5">
-            <DialogTitle>Select facility location</DialogTitle>
-            <p className="text-sm text-muted-foreground">
+            <div className="flex items-start justify-between gap-3">
+              <DialogTitle>Select facility location</DialogTitle>
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Close location picker"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogClose>
+            </div>
+            <DialogDescription
+              id="clinic-location-dialog-description"
+              className="text-sm text-muted-foreground"
+            >
               Search an address, then click the map or drag the pin to refine the location.
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex min-h-0 flex-1 flex-col bg-background">
@@ -734,13 +817,19 @@ export function ClinicAddressPickerDialog({
               className="relative flex-1 overflow-hidden p-3 sm:p-4"
             >
               <div className={styles.mapRoot}>
-                {hasGoogleKey && !isGoogleLoaded && !googleLoadError ? (
+                {!isMapViewportReady ? (
+                  <div className="flex h-full items-center justify-center rounded-xl border bg-muted/30 p-6 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Preparing map...
+                  </div>
+                ) : hasGoogleKey && !isGoogleLoaded && !googleLoadError ? (
                   <div className="flex h-full items-center justify-center rounded-xl border bg-muted/30 p-6 text-sm text-muted-foreground">
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Loading map...
                   </div>
                 ) : shouldUseGoogle ? (
                   <GoogleMap
+                    key={`google-map-${mapInstanceKey}`}
                     onLoad={(map) => {
                       setGoogleMap(map);
                       setMapLayoutVersion((version) => version + 1);
@@ -777,6 +866,7 @@ export function ClinicAddressPickerDialog({
                   </GoogleMap>
                 ) : (
                   <MapContainer
+                    key={`leaflet-map-${mapInstanceKey}`}
                     center={centerExpression}
                     zoom={mapZoom}
                     scrollWheelZoom
@@ -785,6 +875,10 @@ export function ClinicAddressPickerDialog({
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      eventHandlers={{
+                        tileload: () => setIsLeafletPainted(true),
+                        load: () => setIsLeafletPainted(true),
+                      }}
                     />
                     <ClickToPick onPick={handlePick} />
                     <LeafletMapSync

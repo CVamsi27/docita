@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Building2, Mail, Phone, MapPin, ArrowLeft } from 'lucide-react';
+import { Search, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { Input } from '@workspace/ui/components/input';
 import { Button } from '@workspace/ui/components/button';
 import { Card } from '@workspace/ui/components/card';
@@ -17,6 +17,7 @@ import { PageTransitionLoader } from '@/components/common/loaders/page-transitio
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useAuth } from "@/lib/auth-context";
 import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
+import { BackButton } from "@/components/common/navigation/back-button";
 
 interface Clinic {
   id: string;
@@ -137,16 +138,12 @@ export default function JoinClinicPage() {
       showSignOut
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/choose-path')}
+        <BackButton
+          fallback="/choose-path"
+          label="Back to Choose Path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1.5" />
-          Back to Choose Path
-        </Button>
-        <h1 className="text-2xl sm:text-3xl font-bold">Join a Facility</h1>
+        />
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Join a Facility</h1>
         <p className="text-muted-foreground text-sm">
           Search for your facility by name, email, or referral code
         </p>

@@ -78,6 +78,7 @@ interface ConsultationFormRendererProps {
   handlers: ConsultationHandlers;
   patient?: PatientWithMedicalHistory;
   isLoading?: boolean;
+  readOnly?: boolean;
 }
 
 export const ConsultationFormRenderer = React.memo(function ConsultationFormRenderer({
@@ -86,6 +87,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
   handlers,
   patient,
   isLoading,
+  readOnly = false,
 }: ConsultationFormRendererProps) {
   switch (tabId) {
     case "chief-complaint":
@@ -93,6 +95,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
         <ChiefComplaintInput
           value={data.chiefComplaint}
           onChange={handlers.setChiefComplaint}
+          readOnly={readOnly}
         />
       );
     case "history":
@@ -103,11 +106,13 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
         return (
           <div className="space-y-4">
             <div className="rounded-xl border bg-muted/20 p-3 text-sm text-muted-foreground">
-              History edits sync as you work.
+              {readOnly
+                ? "This consultation is finalized, so history is view only."
+                : "History edits sync as you work."}
             </div>
             <PatientMedicalHistoryContainerLazy
               patient={patient}
-              readOnly={false}
+              readOnly={readOnly}
               variant="consultation"
             />
           </div>
@@ -123,6 +128,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
         <ExaminationInput
           value={data.examination}
           onChange={handlers.setExamination}
+          readOnly={readOnly}
         />
       );
     case "dental-chart":
@@ -130,6 +136,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
         <DentalChartUILazy
           value={data.dentalChart}
           onChange={handlers.setDentalChart}
+          readOnly={readOnly}
         />
       );
     case "vision-exam":
@@ -137,23 +144,31 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
         <VisionExamUILazy
           value={data.eyeExam}
           onChange={handlers.setEyeExam}
+          readOnly={readOnly}
         />
       );
     case "growth-chart":
       return (
         <div className="space-y-4">
           <div className="rounded-xl border bg-muted/20 p-3 text-sm text-muted-foreground">
-            Growth updates are part of the consultation draft and save with the note.
+            {readOnly
+              ? "Growth measurements are locked in completed consultations."
+              : "Growth updates are part of the consultation draft and save with the note."}
           </div>
           <GrowthChartUILazy
             value={data.growthData}
             onChange={handlers.setGrowthData}
+            readOnly={readOnly}
           />
         </div>
       );
     case "diagnosis":
       return (
-        <DiagnosisInput value={data.diagnosis} onChange={handlers.setDiagnosis} />
+        <DiagnosisInput
+          value={data.diagnosis}
+          onChange={handlers.setDiagnosis}
+          readOnly={readOnly}
+        />
       );
     case "treatment":
       return (
@@ -161,6 +176,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
           <PrescriptionInput
             value={data.prescriptions}
             onChange={handlers.setPrescriptions}
+            readOnly={readOnly}
           />
           <div className="space-y-2">
             <label className="text-sm font-medium">
@@ -170,6 +186,7 @@ export const ConsultationFormRenderer = React.memo(function ConsultationFormRend
               className="min-h-[100px]"
               placeholder="Additional treatment instructions, referrals, or notes..."
               value={data.treatment}
+              readOnly={readOnly}
               onChange={(e) => handlers.setTreatment(e.target.value)}
             />
           </div>

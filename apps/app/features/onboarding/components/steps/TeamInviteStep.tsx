@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, UserPlus } from "lucide-react";
+import { Info, Plus, Trash2, UserPlus } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -20,6 +20,12 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Badge } from "@workspace/ui/components/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 
 interface TeamMember {
@@ -73,6 +79,9 @@ export function TeamInviteStep({
   ]);
   const [emailErrors, setEmailErrors] = useState<Record<number, string>>({});
 
+  const hasRowContent = (member: TeamMember) =>
+    member.email.trim() !== "" || (member.name?.trim() ?? "") !== "";
+
   const addMember = () => {
     if (members.length < maxMembers) {
       setMembers([...members, { email: "", role: "DOCTOR", name: "" }]);
@@ -80,8 +89,32 @@ export function TeamInviteStep({
   };
 
   const removeMember = (index: number) => {
+    const member = members[index];
+    if (!member) return;
+
+    if (hasRowContent(member)) {
+      const updated = [...members];
+      updated[index] = { ...updated[index], email: "", name: "" };
+      setMembers(updated);
+      setEmailErrors((prev) => {
+        const next = { ...prev };
+        delete next[index];
+        return next;
+      });
+      return;
+    }
+
     if (members.length > 1) {
       setMembers(members.filter((_, i) => i !== index));
+      setEmailErrors((prev) => {
+        const next: Record<number, string> = {};
+        Object.entries(prev).forEach(([key, value]) => {
+          const errorIndex = Number(key);
+          if (errorIndex < index) next[errorIndex] = value;
+          if (errorIndex > index) next[errorIndex - 1] = value;
+        });
+        return next;
+      });
     }
   };
 
@@ -192,18 +225,20 @@ export function TeamInviteStep({
                   variant="ghost"
                   size="icon"
                   onClick={() => removeMember(index)}
-                  disabled={members.length === 1}
+                  disabled={members.length === 1 && !hasRowContent(member)}
                   className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                   aria-label={`Remove member ${index + 1}`}
-                  title="Remove member"
+                  title={hasRowContent(member) ? "Clear member details" : "Remove member"}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor={`email-${index}`}>Email</Label>
+              <div className="grid items-start gap-4 sm:grid-cols-2">
+                <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                  <Label htmlFor={`email-${index}`} className="leading-6">
+                    Email
+                  </Label>
                   <Input
                     id={`email-${index}`}
                     type="email"
@@ -212,25 +247,71 @@ export function TeamInviteStep({
                     onChange={(e) =>
                       updateMember(index, "email", e.target.value)
                     }
-                    className={emailErrors[index] ? "border-destructive" : ""}
+                    className={cn(
+                      "h-11 sm:h-11 rounded-xl",
+                      emailErrors[index] && "border-destructive",
+                    )}
                     aria-invalid={!!emailErrors[index]}
                   />
-                  {emailErrors[index] && (
-                    <p className="text-xs text-destructive">
-                      {emailErrors[index]}
-                    </p>
-                  )}
+                  <div className="min-h-4">
+                    {emailErrors[index] && (
+                      <p className="text-xs text-destructive">
+                        {emailErrors[index]}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`role-${index}`}>Role</Label>
+                <div className="group/role relative grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                  <div className="flex items-center justify-between leading-6">
+                    <Label htmlFor={`role-${index}`} className="leading-6">
+                      Role
+                    </Label>
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label="Role significance guide"
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground/70 opacity-0 transition-opacity group-hover/role:opacity-100 focus-visible:opacity-100 hover:text-foreground focus-visible:outline-none"
+                          >
+                            <Info className="h-3.5 w-3.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          align="end"
+                          className="max-w-[320px] p-3"
+                        >
+                          <p className="text-sm font-medium text-foreground">
+                            Team roles and significance
+                          </p>
+                          <div className="mt-2 space-y-2">
+                            {ROLE_OPTIONS.map((role) => (
+                              <div key={role.value} className="space-y-0.5">
+                                <p className="text-xs font-medium text-foreground">
+                                  {role.label}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {role.description}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Select
                     value={member.role}
                     onValueChange={(v) =>
                       updateMember(index, "role", v as TeamMember["role"])
                     }
                   >
-                    <SelectTrigger id={`role-${index}`}>
+                    <SelectTrigger
+                      id={`role-${index}`}
+                      className="w-full rounded-xl px-4 h-11 sm:h-11 data-[size=default]:h-11 data-[size=default]:sm:h-11"
+                    >
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -241,7 +322,7 @@ export function TeamInviteStep({
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground min-h-4">
                     {
                       ROLE_OPTIONS.find(
                         (option) => option.value === member.role,

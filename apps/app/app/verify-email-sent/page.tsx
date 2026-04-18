@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 const RESEND_VERIFICATION_COOLDOWN_MS = 120 * 1000;
 const RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY =
@@ -156,7 +157,7 @@ export default function VerifyEmailSentPage() {
           </div>
 
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Email verified</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Email verified</h1>
             <p className="text-muted-foreground text-sm">
               You can continue setup when you are ready.
             </p>
@@ -169,13 +170,13 @@ export default function VerifyEmailSentPage() {
             >
               Continue
             </Button>
-            <Button
+            <BackButton
+              fallback="/login"
+              label="Back to login"
               variant="ghost"
+              size="default"
               className="w-full h-11"
-              onClick={() => router.push("/login")}
-            >
-              Back to login
-            </Button>
+            />
           </div>
         </div>
       </PreDashboardShell>
@@ -227,7 +228,7 @@ export default function VerifyEmailSentPage() {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Check your email</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
           <p className="text-muted-foreground text-sm">We need to verify</p>
           <p className="font-medium text-sm">{email}</p>
           <p className="text-muted-foreground text-sm pt-1">

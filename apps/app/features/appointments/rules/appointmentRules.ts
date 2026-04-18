@@ -24,6 +24,11 @@ export const isAppointmentUpcoming = (appointment: Appointment): boolean => {
   return isAfter(appointmentDate, new Date());
 };
 
+/** Visit is finished: clinical record should not be edited in the consultation workspace. */
+export const isConsultationReadOnlyStatus = (
+  status: Appointment["status"] | string | undefined,
+): boolean => status === "completed" || status === "no-show";
+
 export const getAppointmentStatusDisplay = (status: string): string => {
   const normalizedStatus = status?.replace(/-/g, "_").toUpperCase();
 
@@ -33,7 +38,7 @@ export const getAppointmentStatusDisplay = (status: string): string => {
     case "CHECKED_IN":
       return "Checked In";
     case "IN_PROGRESS":
-      return "In Progress";
+      return "Active";
     case "COMPLETED":
       return "Completed";
     case "CANCELLED":

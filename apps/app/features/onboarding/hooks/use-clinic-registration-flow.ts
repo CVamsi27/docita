@@ -411,34 +411,41 @@ export function useClinicRegistrationFlow() {
         user?.role === "ADMIN_DOCTOR" ? "ADMIN_DOCTOR" : "ADMIN";
 
       const missingRequirements: string[] = [];
-      if (!details.name?.trim()) missingRequirements.push("facility name (Step 1)");
-      if (!details.email?.trim()) missingRequirements.push("facility email (Step 1)");
-      if (!details.phone?.trim()) missingRequirements.push("facility phone (Step 1)");
-      if (!details.address?.trim()) missingRequirements.push("facility address (Step 1)");
-      if (!details.type) missingRequirements.push("facility type (Step 1)");
+      const stepOneMissing: string[] = [];
+      const stepFourMissing: string[] = [];
+
+      if (!details.name?.trim()) stepOneMissing.push("facility name");
+      if (!details.phone?.trim()) stepOneMissing.push("facility phone");
+      if (!details.address?.trim()) stepOneMissing.push("facility address");
+      if (!details.type) stepOneMissing.push("facility type");
       if (!user?.name?.trim()) missingRequirements.push("owner name");
       if (!user?.email?.trim()) missingRequirements.push("owner email");
       if (!complianceData.slaSignatureSessionId?.trim()) {
-        missingRequirements.push("SLA signature upload (Step 4)");
+        stepFourMissing.push("SLA signature upload");
       }
       if (!complianceData.acceptedSLA) {
-        missingRequirements.push("SLA agreement acceptance (Step 4)");
+        stepFourMissing.push("SLA agreement acceptance");
       }
       if (!complianceData.acceptedPrivacyPolicy) {
-        missingRequirements.push("privacy policy acceptance (Step 4)");
+        stepFourMissing.push("privacy policy acceptance");
       }
       if (!complianceData.acceptedDataProcessing) {
-        missingRequirements.push("data processing agreement acceptance (Step 4)");
+        stepFourMissing.push("data processing agreement acceptance");
       }
 
+      missingRequirements.push(...stepOneMissing, ...stepFourMissing);
+
       if (missingRequirements.length > 0) {
-        showUserFacingErrorToast(
-          null,
-          "Please complete the required onboarding details before continuing",
-          "form",
+        // Keep existing user input intact and move to the earliest incomplete step.
+        if (stepOneMissing.length > 0) {
+          setStep(1);
+        } else {
+          setStep(4);
+        }
+
+        throw new Error(
+          `Complete the pending onboarding items before continuing: ${missingRequirements.join(", ")}`,
         );
-        restartOnboarding();
-        return;
       }
 
       const ownerName = user?.name ?? "";
@@ -563,7 +570,7 @@ export function useClinicRegistrationFlow() {
         );
       }
     },
-    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, restartOnboarding, user?.email, user?.name, user?.role],
+    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, restartOnboarding, setStep, user?.email, user?.name, user?.role],
   );
 
   return {

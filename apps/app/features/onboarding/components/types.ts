@@ -5,7 +5,12 @@ import {
   DEFAULT_CURRENCY,
   normalizeCountryCode,
 } from "@workspace/utils";
-import { isPossiblePhoneNumber, type Country } from "react-phone-number-input";
+import {
+  getCountryCallingCode,
+  isPossiblePhoneNumber,
+  parsePhoneNumber,
+  type Country,
+} from "react-phone-number-input";
 
 const emailInputSchema = z
   .string()
@@ -71,7 +76,13 @@ export const clinicDetailsSchema = clinicDetailsBaseSchema.superRefine(
 
     const country = (normalizeCountryCode(data.countryCode) ??
       DEFAULT_COUNTRY_CODE) as Country;
-    if (!isPossiblePhoneNumber(phone, country)) {
+    const isValidForCountry = isPossiblePhoneNumber(phone, country);
+    const parsed = parsePhoneNumber(phone, country);
+    const expectedCallingCode = getCountryCallingCode(country);
+    const matchesSelectedCountry =
+      parsed?.countryCallingCode === expectedCallingCode;
+
+    if (!isValidForCountry || !matchesSelectedCountry) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["phone"],

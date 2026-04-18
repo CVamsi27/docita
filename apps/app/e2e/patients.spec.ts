@@ -119,11 +119,23 @@ test.describe("Patient Management", () => {
     if (await addButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await addButton.click();
 
+      const today = new Date();
+      const dayLabel = today.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+
       await page.fill('input[placeholder*="First"]', "John");
       await page.fill('input[placeholder*="Last"]', "Doe");
       await page.fill('input[placeholder*="Phone"]', "9996543410");
       await page.selectOption('select[name="gender"]', "MALE");
-      await page.fill('input[type="date"]', "1990-01-01");
+      await page.getByLabel("Date of Birth").click();
+      await page
+        .locator('[data-slot="calendar"]')
+        .getByRole("button", { name: new RegExp(dayLabel) })
+        .click();
 
       await page.click('button[type="submit"]');
 

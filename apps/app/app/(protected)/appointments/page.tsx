@@ -95,19 +95,23 @@ function AppointmentsContent() {
     <FeatureGate
       feature={Feature.CALENDAR_SLOTS}
       fallback={
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-          <CalendarDays className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">
-            Appointment Scheduling
-          </h2>
-          <p className="text-muted-foreground mb-4 max-w-md">
-            Manage patient appointments with an intuitive calendar. Upgrade to
-            Core tier to unlock this feature.
-          </p>
-          <Button asChild>
-            <Link href="/settings?tab=subscription">Upgrade to Core</Link>
-          </Button>
-        </div>
+        <AppPageScaffold>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-card/50 p-8 text-center min-h-[50vh]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
+              <CalendarDays className="h-7 w-7 text-primary" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-2">
+              Appointment Scheduling
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-5 max-w-md">
+              Manage patient appointments with an intuitive calendar. Upgrade
+              to Core tier to unlock this feature.
+            </p>
+            <Button asChild>
+              <Link href="/settings?tab=subscription">Upgrade to Core</Link>
+            </Button>
+          </div>
+        </AppPageScaffold>
       }
     >
       <AppPageScaffold>
@@ -137,7 +141,7 @@ function AppointmentsContent() {
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(260px,300px)_minmax(0,1fr)]">
           <AppointmentsCalendarUI
             date={date}
             onDateSelect={setDate}

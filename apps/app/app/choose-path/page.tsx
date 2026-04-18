@@ -94,7 +94,7 @@ export default function ChoosePathPage() {
       showSignOut
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-        <h1 className="text-2xl sm:text-3xl font-bold">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
           {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
         </h1>
         <p className="text-muted-foreground text-sm">

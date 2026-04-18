@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
 import { usePermissions } from "@/hooks/use-permissions";
-import { toTitleCase } from "@/lib/formatters";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 interface TimeSlotRowProps {
   appointment: Appointment & { patient?: Patient };
@@ -49,98 +49,105 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     const aptStart = new Date(apt.startTime);
     const aptEnd = new Date(apt.endTime);
     const appointmentTypeLabel = apt.type
-      ? toTitleCase(apt.type.replaceAll("_", " "))
+      ? humanizeUiLabel(apt.type)
       : "General";
     const canAccessConsultation =
       canStartConsultation &&
       !!currentUserId &&
       apt.doctorId === currentUserId;
 
+    const isTerminalVisit =
+      apt.status === "completed" || apt.status === "no-show";
+    const isConsultationActive = apt.status === "in-progress";
+    const consultationPrimaryLabel = isTerminalVisit
+      ? "View"
+      : isConsultationActive
+        ? "Continue"
+        : "Start";
+    const consultationTitle = isTerminalVisit
+      ? "View consultation record"
+      : isConsultationActive
+        ? "Continue consultation"
+        : "Start consultation";
+
     return (
-      <div
-        className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-          apt.status === "checked-in"
-            ? "surface-success ring-1 ring-success/15"
-            : apt.status === "confirmed"
-              ? "surface-info ring-1 ring-info/15"
-              : apt.status === "completed"
-                ? "ring-1 ring-muted/30"
-                : ""
-        }`}
-      >
+      <div className="group relative @container/apt overflow-hidden rounded-xl border border-border/60 bg-card/95 pl-3 pr-3 py-3 transition-colors duration-150 hover:border-border hover:bg-card">
         <div
-          className={`absolute inset-y-0 left-0 w-1.5 ${
+          className={`absolute inset-y-0 left-0 w-1 ${
             apt.status === "checked-in"
               ? "bg-success"
               : apt.status === "confirmed"
                 ? "bg-info"
-                : apt.status === "completed"
-                  ? "bg-muted-foreground/40"
-                  : "bg-primary/40"
+                : apt.status === "in-progress"
+                  ? "bg-primary"
+                  : apt.status === "completed" || apt.status === "no-show"
+                    ? "bg-muted-foreground/40"
+                    : "bg-primary/60"
           }`}
+          aria-hidden="true"
         />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 flex-1 items-start gap-3 pl-1">
-            <div className="shrink-0 rounded-xl border border-border/60 bg-muted/30 px-3 py-2">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-semibold text-foreground">
-                  {format(aptStart, "h:mm a")}
-                </span>
+        <div className="flex flex-col gap-3 pl-2 @md/apt:flex-row @md/apt:items-center @md/apt:justify-between @md/apt:gap-4">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <div className="flex shrink-0 flex-col items-start">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground tabular-nums">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                {format(aptStart, "h:mm a")}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <span className="mt-0.5 pl-5 text-xs text-muted-foreground tabular-nums">
                 {format(aptEnd, "h:mm a")}
-              </p>
+              </span>
             </div>
 
-            <div className="min-w-0 space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="truncate text-base font-semibold text-foreground">
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h3 className="truncate text-sm font-semibold text-foreground">
                   {apt.patient
                     ? `${apt.patient.firstName} ${apt.patient.lastName}`
                     : `Patient ID: ${apt.patientId}`}
                 </h3>
                 <Badge
-                  variant={apt.status === "confirmed" ? "default" : "secondary"}
-                  className={`text-xs capitalize ${
+                  variant="secondary"
+                  className={`text-[10px] capitalize ${
                     apt.status === "confirmed"
                       ? "badge-info"
                       : apt.status === "checked-in"
                         ? "badge-success"
-                        : "badge-muted"
+                        : apt.status === "in-progress"
+                          ? "badge-info"
+                          : "badge-muted"
                   }`}
                 >
-                  {apt.status.replace("-", " ")}
+                  {humanizeUiLabel(apt.status)}
                 </Badge>
               </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
-                  <User className="h-3.5 w-3.5" />
+                  <User className="h-3 w-3" />
                   {apt.patient ? "Linked patient" : "Unlinked patient"}
                 </span>
-                <span className="hidden sm:inline">•</span>
+                <span aria-hidden="true">&middot;</span>
                 <span>{format(aptStart, "EEE, MMM d")}</span>
-                <span className="hidden sm:inline">•</span>
+                <span aria-hidden="true">&middot;</span>
                 <span>{appointmentTypeLabel}</span>
                 {apt.doctor?.name && (
                   <>
-                    <span className="hidden sm:inline">•</span>
-                    <span>Dr. {apt.doctor.name}</span>
+                    <span aria-hidden="true">&middot;</span>
+                    <span className="truncate">Dr. {apt.doctor.name}</span>
                   </>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 pl-1 sm:justify-end sm:pl-0">
+          <div className="flex flex-wrap items-center gap-1.5 @md/apt:flex-nowrap @md/apt:justify-end">
             {apt.status === "confirmed" && (
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => onCheckIn(apt.id!)}
                 disabled={checkingIn === apt.id}
-                className="gap-1.5 rounded-full px-3 text-xs hover:bg-primary/10 dark:hover:bg-primary/20"
+                className="h-8 gap-1.5 rounded-full px-3 text-xs"
                 title="Check in patient"
               >
                 {checkingIn === apt.id ? (
@@ -154,7 +161,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
             {apt.status === "checked-in" && (
               <Badge
                 variant="secondary"
-                className="badge-success gap-1 rounded-full"
+                className="badge-success h-8 gap-1 rounded-full px-3"
               >
                 <Check className="h-3 w-3" />
                 <span>In Queue</span>
@@ -163,26 +170,14 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
             {canAccessConsultation && (
               <Button
                 size="sm"
-                variant={apt.status === "completed" ? "outline" : "default"}
+                variant={isTerminalVisit ? "outline" : "default"}
                 onClick={() => onStartConsultation(apt.id!)}
                 disabled={startingConsultationId === apt.id}
-                className="gap-1.5 rounded-full px-3 text-xs"
-                title={
-                  apt.status === "completed"
-                    ? "View consultation"
-                    : apt.status === "in-progress"
-                      ? "Resume consultation"
-                      : "Start consultation"
-                }
+                className="h-8 gap-1.5 rounded-full px-3 text-xs"
+                title={consultationTitle}
               >
                 <Stethoscope className="h-3.5 w-3.5" />
-                <span>
-                  {apt.status === "completed"
-                    ? "View"
-                    : apt.status === "in-progress"
-                      ? "Resume"
-                      : "Start"}
-                </span>
+                <span>{consultationPrimaryLabel}</span>
               </Button>
             )}
             <DropdownMenu>
@@ -190,7 +185,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 shrink-0 rounded-full p-0"
+                  className="h-8 w-8 shrink-0 rounded-full p-0"
                   aria-label="More appointment actions"
                 >
                   <MoreVertical className="h-3.5 w-3.5" />

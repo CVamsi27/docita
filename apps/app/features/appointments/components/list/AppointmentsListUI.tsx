@@ -93,31 +93,31 @@ export function AppointmentsListUI({
   }
 
   return (
-    <Card className="overflow-hidden border-border/60 bg-card/90 shadow-sm backdrop-blur">
-      <CardHeader className="border-b border-border/60 bg-gradient-to-r from-muted/50 to-background px-5 py-4">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <CardTitle className="text-xl">
+    <Card className="h-fit overflow-hidden border-border/60 bg-card/95 shadow-sm">
+      <CardHeader className="border-b border-border/60 px-5 py-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <div className="min-w-0">
+            <CardTitle className="text-lg">
               Appointments for {format(date ?? new Date(), "MMMM d, yyyy")}
             </CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {selectedDoctorName
                 ? `Dr. ${selectedDoctorName} selected`
                 : "Sorted by start time"}
             </p>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="shrink-0 text-xs font-medium text-muted-foreground">
             {appointmentsByTime.length} appointment
             {appointmentsByTime.length !== 1 ? "s" : ""}
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="space-y-4 p-4 sm:p-5">
+        <div className="space-y-3 p-4">
           {hasMoreAppointments && (
-            <div className="surface-warning rounded-xl px-4 py-3 text-sm">
-              Showing the first 100 appointments for this view. Refine the
-              filters to narrow results
+            <div className="surface-warning rounded-lg px-3 py-2 text-xs">
+              Showing the first 100 appointments. Refine the filters to narrow
+              results.
             </div>
           )}
 
@@ -126,10 +126,10 @@ export function AppointmentsListUI({
               icon={CalendarDays}
               title="No appointments scheduled"
               description={emptyStateDescription}
-              className="min-h-[220px] rounded-2xl border border-dashed border-border bg-muted/20"
+              className="min-h-[220px] rounded-xl border border-dashed border-border bg-muted/20"
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {appointmentsByTime.map((apt) => (
                 <div
                   key={apt.id || `${apt.patientId}-${apt.startTime}`}

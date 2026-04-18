@@ -23,6 +23,7 @@ import {
   useDeleteNotification,
   useUnreadNotifications,
 } from "@/hooks/api/use-whatsapp";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 const PRIORITY_VARIANTS: Record<
   string,
@@ -189,7 +190,7 @@ export function NotificationFeed() {
                             {notification.title}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {notification.type.replaceAll("_", " ")}
+                            {humanizeUiLabel(notification.type)}
                           </p>
                           <p className="text-xs text-muted-foreground line-clamp-2">
                             {notification.message}

@@ -11,6 +11,7 @@ import {
 import { useClinic } from "@/lib/clinic-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { ApiError } from "@/lib/errors";
+import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
 
 interface UsePatientFormProps {
   onPatientAdded: () => void;
@@ -33,7 +34,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
   loading: boolean;
   onSubmit: (data: CreatePatientInput, onSuccess?: () => void) => Promise<void>;
 } {
-  const { clinicId } = useClinic();
+  const { clinicId, clinic } = useClinic();
   const { mutateAsync: createPatient, isPending: loading } = useCreatePatient();
 
   const defaultValues = useMemo(
@@ -64,6 +65,19 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
           const message = "Select a clinic to continue";
           form.setError("root", { type: "manual", message });
           showUserFacingErrorToast(null, message, "form");
+          return;
+        }
+
+        const phoneError = validatePatientPhoneNumberForCountry(
+          data.phoneNumber,
+          clinic?.countryCode,
+        );
+        if (phoneError) {
+          form.setError("phoneNumber", {
+            type: "manual",
+            message: phoneError,
+          });
+          showUserFacingErrorToast(null, phoneError, "form");
           return;
         }
 
@@ -101,7 +115,7 @@ export function usePatientForm({ onPatientAdded }: UsePatientFormProps): {
         }
       }
     },
-    [form, clinicId, onPatientAdded, createPatient],
+    [form, clinicId, clinic?.countryCode, onPatientAdded, createPatient],
   );
 
   return {

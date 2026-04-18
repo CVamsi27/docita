@@ -2,7 +2,6 @@ import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -29,22 +28,16 @@ export function AppointmentFormFields({
   appointmentTypeOptions,
 }: AppointmentFormFieldsProps) {
   return (
-    <>
+    <div className="space-y-4">
       <FormField
         control={form.control}
         name="type"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Type</FormLabel>
-            <FormDescription>
-              Use Other / Custom when the appointment does not fit a preset.
-            </FormDescription>
-            <Select
-              onValueChange={field.onChange}
-              value={field.value ?? ""}
-            >
+            <Select onValueChange={field.onChange} value={field.value ?? ""}>
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="min-h-11 w-full">
                   <SelectValue placeholder="Appointment type" />
                 </SelectTrigger>
               </FormControl>
@@ -61,28 +54,23 @@ export function AppointmentFormFields({
         )}
       />
 
-      <div className="md:col-span-2">
-        <FormField
-          control={form.control}
-          name="notes"
+      <FormField
+        control={form.control}
+        name="notes"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Notes</FormLabel>
-            <FormDescription>
-              Add anything the team should know before the visit.
-            </FormDescription>
+            <FormLabel>Notes (optional)</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Additional notes"
-                className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </>
+                placeholder="Anything the team should know before the visit"
+                className="min-h-24 resize-none"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
 }

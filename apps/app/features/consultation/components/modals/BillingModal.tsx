@@ -9,6 +9,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Select,
   SelectContent,
@@ -208,11 +209,13 @@ export function BillingModal({
             <div className="text-sm font-medium">Line Items</div>
             <div className="flex items-center gap-2">
               <Label>Due Date</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-36 sm:w-40 h-8"
+                onChange={(date) =>
+                  setDueDate(date?.toISOString().slice(0, 10) ?? "")
+                }
+                placeholder="Select due date"
+                className="w-40 h-8"
               />
             </div>
           </div>

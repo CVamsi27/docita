@@ -7,9 +7,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { ArrowLeft, Calendar, DollarSign, Users } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@workspace/ui/components/button";
+import { Calendar, DollarSign, Users } from "lucide-react";
+import { BackButton } from "@/components/common/navigation/back-button";
 import {
   Feature,
   FeatureGate,
@@ -169,14 +168,9 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
 const AnalyticsHeader = () => (
   <div>
     <div className="flex items-center gap-2 mb-2">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Link>
-      </Button>
+      <BackButton fallback="/dashboard" label="Back to Dashboard" />
     </div>
-    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics</h1>
+    <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Analytics</h1>
     <p className="text-muted-foreground">
       Insights and performance metrics for your facility
     </p>

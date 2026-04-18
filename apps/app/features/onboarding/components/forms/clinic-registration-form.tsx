@@ -22,6 +22,7 @@ import {
   clinicDetailsSchema,
   complianceSchema,
   type ComplianceSettings,
+  defaultClinicRegistrationData,
   defaultComplianceValues,
   type PlanSelection,
 } from "@/features/onboarding/components/types";
@@ -58,10 +59,26 @@ function hasMeaningfulClinicDraftData(
 ): boolean {
   if (!clinicDetails) return false;
 
-  return Object.values(clinicDetails).some((value) => {
-    if (typeof value === "string") return value.trim().length > 0;
-    return value !== undefined && value !== null;
+  const meaningfulStringFields: Array<keyof ClinicDetails> = [
+    "name",
+    "email",
+    "phone",
+    "address",
+    "addressLine1",
+    "addressLine2",
+    "city",
+    "state",
+    "pincode",
+    "website",
+    "gstin",
+  ];
+
+  const hasMeaningfulString = meaningfulStringFields.some((field) => {
+    const value = clinicDetails[field];
+    return typeof value === "string" && value.trim().length > 0;
   });
+
+  return hasMeaningfulString || Boolean(clinicDetails.type);
 }
 
 function getMissingClinicDetailsForProgress(
@@ -203,6 +220,17 @@ export function ClinicRegistrationForm({
   };
 
   const handleDiscardDraft = () => {
+    restartOnboarding();
+    clinicForm.reset({
+      ...defaultClinicRegistrationData.clinicDetails,
+      facilityLabel: "CLINIC",
+      countryCode: DEFAULT_COUNTRY_CODE,
+    });
+    complianceForm.reset({
+      ...defaultComplianceValues,
+    });
+    setStepError(null);
+    setPendingPaymentPlan(null);
     localStorage.removeItem(DRAFT_KEY);
     setShowDraftDialog(false);
     setSavedDraft(null);
@@ -306,9 +334,12 @@ export function ClinicRegistrationForm({
     setStepError(null);
     try {
       await submitRegistration(data, successCallback);
-    } catch {
+    } catch (error) {
       setStepError(
-        "We could not complete setup. Please check your details and try again.",
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not complete setup. Please check your details and try again.",
+          context: "form",
+        }),
       );
     }
   };
@@ -380,12 +411,12 @@ export function ClinicRegistrationForm({
             <DialogDescription>
               A saved draft was found from{" "}
               {savedDraft ? new Date(savedDraft.savedAt).toLocaleString() : "earlier"}
-              and would you like to restore it?
+              {" "}and would you like to restore it?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={handleDiscardDraft}>
-              Start Fresh
+              Start over
             </Button>
             <Button onClick={handleRestoreDraft}>Continue</Button>
           </DialogFooter>

@@ -24,7 +24,7 @@ describe("ToasterWrapper", () => {
 
     expect(toasterMock.mock.calls.at(-1)?.[0]).toMatchObject({
       closeButton: true,
-      duration: 7000,
+      duration: 5000,
       expand: true,
       richColors: true,
       position: "top-right",

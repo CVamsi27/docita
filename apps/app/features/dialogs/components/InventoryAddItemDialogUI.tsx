@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Input } from "@workspace/ui/components/input";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { requiredStringSchema } from "@/features/_shared/schemas/common.schemas";
 
@@ -190,11 +191,12 @@ export function InventoryAddItemDialogUI({
                 error={form.formState.errors.expiryDate?.message}
               >
                 <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-
-                    value={field.value || ""}
+                  <DatePicker
+                    value={field.value || undefined}
+                    onChange={(date) =>
+                      field.onChange(date?.toISOString().slice(0, 10) ?? "")
+                    }
+                    placeholder="Select expiry date"
                   />
                 </FormControl>
               </FormFieldGroup>

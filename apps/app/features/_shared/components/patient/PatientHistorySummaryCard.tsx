@@ -34,6 +34,7 @@ import {
   SMOKING_STATUS_LABELS,
   SmokingStatus,
 } from "@workspace/types";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 interface PatientHistorySummaryCardProps {
   conditions?: PatientMedicalCondition[];
@@ -121,7 +122,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                   {allergy.allergen}
                   {allergy.severity && (
                     <span className="ml-1 opacity-70 text-[10px]">
-                      ({allergy.severity.toLowerCase().replace("_", " ")})
+                      ({humanizeUiLabel(allergy.severity)})
                     </span>
                   )}
                 </Badge>

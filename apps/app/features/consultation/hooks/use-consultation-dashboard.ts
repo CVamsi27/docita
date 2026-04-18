@@ -1,4 +1,5 @@
 import {
+  type QueueItem,
   useAppointments,
   useQueueByDoctor,
   useStartConsultation,
@@ -11,6 +12,11 @@ import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  isQueueTokenCompleted,
+  isQueueTokenInProgress,
+  isQueueTokenWaiting,
+} from "@/lib/queue-token-status";
 
 export const useConsultationDashboard = () => {
   const router = useRouter();
@@ -40,23 +46,86 @@ export const useConsultationDashboard = () => {
   const startConsultation = useStartConsultation();
 
   const stats = useMemo(() => {
-    const today = appointmentsData?.items || [];
+    const todayAppts = appointmentsData?.items || [];
     const queue = queueData || [];
+    const appointmentIdsWithQueueToken = new Set(
+      queue
+        .map((q) => q.appointmentId)
+        .filter((id): id is string => Boolean(id)),
+    );
+    const inProgressFromQueue = queue.filter((q) =>
+      isQueueTokenInProgress(q.status),
+    ).length;
+    const inProgressAppointmentsOnly = todayAppts.filter(
+      (a) =>
+        a.status === "in-progress" &&
+        a.id &&
+        !appointmentIdsWithQueueToken.has(a.id),
+    ).length;
 
     return {
-      scheduledToday: today.length,
-      waiting: queue.filter((q) => q.status === "waiting").length,
-      inProgress: queue.filter((q) => q.status === "in-progress").length,
-      completed: queue.filter((q) => q.status === "completed").length,
+      scheduledToday: todayAppts.length,
+      waiting: queue.filter((q) => isQueueTokenWaiting(q.status)).length,
+      inProgress: inProgressFromQueue + inProgressAppointmentsOnly,
+      completed: queue.filter((q) => isQueueTokenCompleted(q.status)).length,
     };
   }, [appointmentsData, queueData]);
 
   const activeConsultations = useMemo(() => {
-    return (queueData || []).filter((q) => q.status === "in-progress");
-  }, [queueData]);
+    const fromQueue = (queueData || []).filter((q) =>
+      isQueueTokenInProgress(q.status),
+    );
+    const coveredAppointmentIds = new Set(
+      fromQueue
+        .map((q) => q.appointmentId)
+        .filter((id): id is string => Boolean(id)),
+    );
+    const todayAppts = appointmentsData?.items ?? [];
+    const withoutQueueToken: QueueItem[] = [];
+
+    for (const a of todayAppts) {
+      if (
+        a.status !== "in-progress" ||
+        !a.id ||
+        coveredAppointmentIds.has(a.id)
+      ) {
+        continue;
+      }
+
+      const updatedAt =
+        typeof a.updatedAt === "string"
+          ? a.updatedAt
+          : new Date(a.updatedAt as Date).toISOString();
+
+      withoutQueueToken.push({
+        id: `in-progress-appt-${a.id}`,
+        clinicId: a.clinicId,
+        patientId: a.patientId,
+        appointmentId: a.id,
+        doctorId: a.doctorId,
+        tokenNumber: 0,
+        status: "IN_PROGRESS",
+        priority: 0,
+        createdAt: updatedAt,
+        tokenType: "scheduled",
+        estimatedDuration: 30,
+        estimatedWaitTime: 0,
+        patient: a.patient
+          ? {
+              id: a.patient.id ?? a.patientId,
+              firstName: a.patient.firstName,
+              lastName: a.patient.lastName,
+              phoneNumber: a.patient.phoneNumber ?? "",
+            }
+          : undefined,
+      });
+    }
+
+    return [...fromQueue, ...withoutQueueToken];
+  }, [queueData, appointmentsData]);
 
   const waitingList = useMemo(() => {
-    return (queueData || []).filter((q) => q.status === "waiting");
+    return (queueData || []).filter((q) => isQueueTokenWaiting(q.status));
   }, [queueData]);
 
   const handleStartConsultation = async (appointmentId: string) => {

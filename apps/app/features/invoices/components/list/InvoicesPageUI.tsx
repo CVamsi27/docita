@@ -103,7 +103,7 @@ export const InvoicesPageUI: FC = () => {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Invoices</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Invoices</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
               Manage patient billing and invoices
             </p>
@@ -203,7 +203,7 @@ export const InvoicesPageUI: FC = () => {
             {loading ? (
               <LoadingState message="Loading invoices..." />
             ) : (
-              <div className="rounded-md border">
+              <div className="overflow-x-auto rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>

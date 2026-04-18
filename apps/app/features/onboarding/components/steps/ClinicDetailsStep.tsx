@@ -4,6 +4,10 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@workspace/ui/components/radio-group";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -31,8 +35,20 @@ import {
   type ClinicAddressSelection,
 } from "@/features/onboarding/components/clinic-address-picker-dialog";
 
+const FACILITY_LABEL_OPTIONS = [
+  { value: "CLINIC", label: "Clinic" },
+  { value: "HOSPITAL", label: "Hospital" },
+] as const;
+
 function hasText(value: string | undefined | null): value is string {
   return Boolean(value?.trim());
+}
+
+function resolveFacilityTypeLabel(
+  label: string,
+  facilityLabel: "Clinic" | "Hospital",
+): string {
+  return label.replace(/\bClinic\b/g, facilityLabel);
 }
 
 function composeClinicAddress(values: Partial<ClinicDetails>): string {
@@ -117,6 +133,7 @@ export function ClinicDetailsStep({
   onSubmit,
 }: ClinicDetailsStepProps) {
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
+  const shouldUseClinicTypeRadio = CLINIC_TYPE_OPTIONS.length < 4;
   const facilityLabel =
     clinicForm.watch("facilityLabel") === "HOSPITAL" ? "Hospital" : "Clinic";
   const [
@@ -196,7 +213,8 @@ export function ClinicDetailsStep({
               <Label htmlFor="facilityLabel">
                 Display as<span className="text-destructive ml-0.5">*</span>
               </Label>
-              <Select
+              <RadioGroup
+                id="facilityLabel"
                 value={clinicForm.watch("facilityLabel") ?? "CLINIC"}
                 onValueChange={(val) =>
                   clinicForm.setValue(
@@ -209,18 +227,30 @@ export function ClinicDetailsStep({
                     },
                   )
                 }
+                className="grid grid-cols-2 gap-3"
               >
-                <SelectTrigger id="facilityLabel">
-                  <SelectValue placeholder="Select display label" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CLINIC">Clinic</SelectItem>
-                  <SelectItem value="HOSPITAL">Hospital</SelectItem>
-                </SelectContent>
-              </Select>
+                {FACILITY_LABEL_OPTIONS.map((option) => (
+                  <label
+                    key={option.value}
+                    htmlFor={`facility-label-${option.value}`}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-3 rounded-xl border bg-background px-3 py-2.5 text-sm font-medium transition-colors",
+                      clinicForm.watch("facilityLabel") === option.value &&
+                        "border-primary bg-primary/5 text-primary",
+                    )}
+                  >
+                    <RadioGroupItem
+                      id={`facility-label-${option.value}`}
+                      value={option.value}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </RadioGroup>
               <p className="text-xs text-muted-foreground">
-                Controls whether the app shows {facilityLabel} or Hospital in key
-                headings
+                This sets your organization label across the product. We use it
+                in page headings, onboarding copy, patient-facing text, and
+                invoice/PDF clinic naming.
               </p>
             </div>
 
@@ -228,17 +258,18 @@ export function ClinicDetailsStep({
               <Label htmlFor="type">
                 {facilityLabel} Type<span className="text-destructive ml-0.5">*</span>
               </Label>
-              <Select
-                onValueChange={(val) =>
-                  clinicForm.setValue("type", val as ClinicType, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
-                }
-                value={clinicForm.watch("type") ?? ""}
-              >
-                <SelectTrigger
+              {shouldUseClinicTypeRadio ? (
+                <RadioGroup
+                  id="type"
+                  value={clinicForm.watch("type") ?? ""}
+                  onValueChange={(val) =>
+                    clinicForm.setValue("type", val as ClinicType, {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  className="grid grid-cols-1 gap-2 sm:grid-cols-2"
                   aria-invalid={!!clinicForm.formState.errors.type}
                   aria-describedby={
                     clinicForm.formState.errors.type
@@ -246,16 +277,58 @@ export function ClinicDetailsStep({
                       : undefined
                   }
                 >
-                  <SelectValue placeholder="Select facility type" />
-                </SelectTrigger>
-                <SelectContent>
                   {CLINIC_TYPE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
+                    <label
+                      key={option.value}
+                      htmlFor={`clinic-type-${option.value}`}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-3 rounded-xl border bg-background px-3 py-2.5 text-sm transition-colors",
+                        clinicForm.watch("type") === option.value &&
+                          "border-primary bg-primary/5 text-primary",
+                      )}
+                    >
+                      <RadioGroupItem
+                        id={`clinic-type-${option.value}`}
+                        value={option.value}
+                      />
+                      <span>
+                        {resolveFacilityTypeLabel(option.label, facilityLabel)}
+                      </span>
+                    </label>
                   ))}
-                </SelectContent>
-              </Select>
+                </RadioGroup>
+              ) : (
+                <Select
+                  onValueChange={(val) =>
+                    clinicForm.setValue("type", val as ClinicType, {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  value={clinicForm.watch("type") ?? ""}
+                >
+                  <SelectTrigger
+                    aria-invalid={!!clinicForm.formState.errors.type}
+                    aria-describedby={
+                      clinicForm.formState.errors.type
+                        ? "clinic-type-error"
+                        : undefined
+                    }
+                  >
+                    <SelectValue
+                      placeholder={`Select ${facilityLabel.toLowerCase()} type`}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CLINIC_TYPE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {resolveFacilityTypeLabel(option.label, facilityLabel)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {clinicForm.formState.errors.type && (
                 <p id="clinic-type-error" className="text-sm text-destructive">
                   {clinicForm.formState.errors.type.message}
@@ -290,8 +363,9 @@ export function ClinicDetailsStep({
                   clinicForm.setValue("countryCode", country.toUpperCase(), {
                     shouldDirty: true,
                     shouldTouch: true,
-                    shouldValidate: false,
+                    shouldValidate: true,
                   });
+                  void clinicForm.trigger("phone");
                 }}
                 className={cn(
                   "flex min-h-[5.25rem] min-w-0 flex-col gap-2 rounded-2xl border border-input bg-background/60 p-3 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-11",

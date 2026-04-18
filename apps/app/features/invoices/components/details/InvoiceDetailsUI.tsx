@@ -4,14 +4,13 @@ import { FC } from "react";
 import { Card, CardContent, CardFooter } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import {
-  ArrowLeft,
   Download,
   Edit,
   FileText,
   Printer,
   Share2,
 } from "lucide-react";
-import { useSmartBack } from "@/hooks/use-smart-back";
+import { BackButton } from "@/components/common/navigation/back-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +34,6 @@ interface InvoiceDetailsUIProps {
 export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   const searchParams = useSearchParams();
   const shouldAutoPrint = searchParams.get("print") === "true";
-  const goBack = useSmartBack("/invoices");
 
   const {
     invoice,
@@ -82,15 +80,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
     <div className="flex flex-col gap-6 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={goBack}
-            className="shrink-0"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
+          <BackButton fallback="/invoices" className="shrink-0" />
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
             Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
           </h1>

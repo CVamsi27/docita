@@ -36,24 +36,24 @@ vi.mock("@/features/_shared/components", () => ({
   SidebarMobileTrigger: () => null,
 }));
 
-vi.mock("@/features/_shared/components/navigation/smart-back-button", () => ({
-  SmartBackButton: () => null,
+vi.mock("@/components/common/navigation/back-button", () => ({
+  BackButton: () => null,
+}));
+
+vi.mock("@/hooks/use-can-go-back", () => ({
+  useCanGoBack: () => false,
 }));
 
 vi.mock("@/features/_shared/components/navigation/command-palette", () => ({
   CommandPalette: () => null,
 }));
 
-vi.mock("@/lib/stores/navigation-store", () => ({
-  useNavigationStore: () => ({
-    canGoBack: () => false,
-  }),
-}));
-
 vi.mock("@/providers/navigation-history-provider", () => ({
   NavigationHistoryProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
+  readInAppNavCount: () => 0,
+  readInAppNavEntry: () => null,
 }));
 
 vi.mock("@/lib/clinic-context", () => ({

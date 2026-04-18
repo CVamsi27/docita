@@ -21,6 +21,11 @@ import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  isQueueTokenCompleted,
+  isQueueTokenInProgress,
+  isQueueTokenWaiting,
+} from "@/lib/queue-token-status";
 
 export const QueueSettings = () => {
   const { data: queue, isLoading: queueLoading, isRefetching, refetch } = useQueue();
@@ -44,9 +49,15 @@ export const QueueSettings = () => {
 
   const stats = useMemo(() => {
     const items = queue ?? [];
-    const waiting = items.filter((item) => item.status === "waiting").length;
-    const called = items.filter((item) => item.status === "called").length;
-    const completed = items.filter((item) => item.status === "completed").length;
+    const waiting = items.filter((item) =>
+      isQueueTokenWaiting(item.status),
+    ).length;
+    const called = items.filter((item) =>
+      isQueueTokenInProgress(item.status),
+    ).length;
+    const completed = items.filter((item) =>
+      isQueueTokenCompleted(item.status),
+    ).length;
     const avgWait =
       items.length > 0
         ? Math.round(
@@ -219,7 +230,9 @@ export const QueueSettings = () => {
                   <p className="text-xl font-semibold">{stats.waiting}</p>
                 </div>
                 <div className="rounded-lg border p-3">
-                  <p className="text-xs text-muted-foreground">Called</p>
+                  <p className="text-xs text-muted-foreground">
+                    In consultation
+                  </p>
                   <p className="text-xl font-semibold">{stats.called}</p>
                 </div>
                 <div className="rounded-lg border p-3">

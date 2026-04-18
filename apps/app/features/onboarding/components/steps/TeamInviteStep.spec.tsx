@@ -3,28 +3,55 @@ import { describe, expect, it, vi } from "vitest";
 import { TeamInviteStep } from "./TeamInviteStep";
 
 describe("TeamInviteStep", () => {
-  it("keeps the remove action accessible at the row level and protects the final row", () => {
+  it("enables delete when email is typed and clears the row email", () => {
     render(
       <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
     );
 
-    expect(screen.getByText("Step 3: Invite Team")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Member email address"),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Add another member" })).toBeInTheDocument();
+    const emailInput = screen.getByPlaceholderText("Member email address");
+    const firstRemoveButton = screen.getByRole("button", { name: "Remove member 1" });
 
-    const firstRemoveButton = screen.getByRole("button", {
-      name: "Remove member 1",
-    });
-    expect(firstRemoveButton).toBeInTheDocument();
+    expect(firstRemoveButton).toBeDisabled();
+
+    fireEvent.change(emailInput, { target: { value: "doctor@example.com" } });
+    expect(firstRemoveButton).toBeEnabled();
+    expect(emailInput).toHaveValue("doctor@example.com");
+
     fireEvent.click(firstRemoveButton);
-    expect(
-      screen.getAllByRole("button", { name: "Remove member 1" }),
-    ).toHaveLength(1);
+    expect(emailInput).toHaveValue("");
+    expect(firstRemoveButton).toBeDisabled();
+  });
+
+  it("removes an empty additional member row", () => {
+    render(
+      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: /add another member/i }));
+    const secondRemoveButton = screen.getByRole("button", { name: "Remove member 2" });
+    expect(secondRemoveButton).toBeEnabled();
 
-    expect(screen.getByRole("button", { name: "Remove member 2" })).toBeInTheDocument();
+    fireEvent.click(secondRemoveButton);
+    expect(screen.queryByRole("button", { name: "Remove member 2" })).not.toBeInTheDocument();
+  });
+
+  it("shows role significance details from the info icon", async () => {
+    render(
+      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+    );
+
+    const roleGuideButton = screen.getByRole("button", {
+      name: "Role significance guide",
+    });
+    fireEvent.focus(roleGuideButton);
+
+    const roleGuideTitles = await screen.findAllByText("Team roles and significance");
+    expect(roleGuideTitles.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Admin Doctor").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        "Doctor with admin access who can help manage members and permissions",
+      ).length,
+    ).toBeGreaterThan(0);
   });
 });

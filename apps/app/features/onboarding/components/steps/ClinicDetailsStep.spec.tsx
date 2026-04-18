@@ -131,6 +131,33 @@ describe("clinicDetailsSchema", () => {
     const messages = result.error.issues.map((issue) => issue.message);
     expect(messages).toContain("Enter a valid phone number for GB");
   });
+
+  it("rejects phone numbers that belong to a different country than selected", () => {
+    const result = clinicDetailsSchema.safeParse({
+      name: "Clinic",
+      email: "",
+      phone: "+919876543210",
+      addressLine1: "123 Medical Lane",
+      addressLine2: "",
+      city: "London",
+      state: "Greater London",
+      pincode: "SW1A 1AA",
+      address: "123 Medical Lane, London, Greater London, SW1A 1AA, GB",
+      type: "GENERAL",
+      facilityLabel: "CLINIC",
+      countryCode: "GB",
+      website: "",
+      gstin: "",
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error("Expected validation to fail");
+    }
+
+    const messages = result.error.issues.map((issue) => issue.message);
+    expect(messages).toContain("Enter a valid phone number for GB");
+  });
 });
 
 describe("ClinicDetailsStep", () => {

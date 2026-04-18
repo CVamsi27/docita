@@ -8,11 +8,10 @@ import {
   Sidebar,
   SidebarMobileTrigger,
 } from "@/features/_shared/components";
-import { SmartBackButton } from "@/features/_shared/components/navigation/smart-back-button";
-import { useNavigationStore } from "@/lib/stores/navigation-store";
+import { BackButton } from "@/components/common/navigation/back-button";
+import { useCanGoBack } from "@/hooks/use-can-go-back";
 import { CommandPalette } from "@/features/_shared/components/navigation/command-palette";
 import { ClinicProvider, useClinic } from "@/lib/clinic-context";
-import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -160,15 +159,15 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
 }
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
-  const { canGoBack } = useNavigationStore();
+  const canGoBack = useCanGoBack();
   return (
     <header
       className="flex h-14 items-center gap-2 border-b bg-background px-3 md:hidden"
       aria-label="Mobile navigation"
     >
       <SidebarMobileTrigger onClick={onMenuClick} />
-      {canGoBack() ? (
-        <SmartBackButton fallback="/dashboard" label="" className="px-2" />
+      {canGoBack ? (
+        <BackButton fallback="/dashboard" iconOnly className="px-2" />
       ) : (
         <div className="flex h-10 items-center">
           <DocitaLogo />
@@ -192,7 +191,7 @@ export default function ProtectedLayout({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [redirectMessage, setRedirectMessage] = useState<string | null>(null);
   const sidebarPanelRef = useRef<ImperativePanelHandle>(null);
-  const wasAutoCollapseRouteRef = useRef(false);
+  const wasSettingsAutoCollapseRouteRef = useRef(false);
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
@@ -200,7 +199,6 @@ export default function ProtectedLayout({
   const isConsultationDetailRoute = Boolean(
     pathname && /^\/consultation\/[^/]+/.test(pathname),
   );
-  const isAutoCollapseRoute = isSettingsRoute || isConsultationDetailRoute;
 
   useEffect(() => {
     if (isLoading) return;
@@ -228,15 +226,29 @@ export default function ProtectedLayout({
     }
   }, [isLoading, user, router]);
 
+  // Consultation detail: collapse after the resizable shell exists (avoids a no-op during auth loading).
   useEffect(() => {
-    const wasAutoCollapseRoute = wasAutoCollapseRouteRef.current;
-    wasAutoCollapseRouteRef.current = isAutoCollapseRoute;
-
-    if (isAutoCollapseRoute && !wasAutoCollapseRoute) {
+    if (isLoading || !isConsultationDetailRoute) return;
+    const id = requestAnimationFrame(() => {
       sidebarPanelRef.current?.collapse();
       setIsCollapsed(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isLoading, pathname, isConsultationDetailRoute]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const wasSettingsAutoCollapseRoute = wasSettingsAutoCollapseRouteRef.current;
+    wasSettingsAutoCollapseRouteRef.current = isSettingsRoute;
+
+    if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
+      const id = requestAnimationFrame(() => {
+        sidebarPanelRef.current?.collapse();
+        setIsCollapsed(true);
+      });
+      return () => cancelAnimationFrame(id);
     }
-  }, [isAutoCollapseRoute]);
+  }, [isLoading, isSettingsRoute]);
 
   if (isLoading) {
     return (
@@ -278,12 +290,11 @@ export default function ProtectedLayout({
   }
 
   return (
-    <NavigationHistoryProvider>
-      <RealtimeProviders>
-        <ClinicProvider>
-          <DoctorVerificationGuard>
-            <SubscriptionGuard>
-              <PageAccessGuard>
+    <RealtimeProviders>
+      <ClinicProvider>
+        <DoctorVerificationGuard>
+          <SubscriptionGuard>
+            <PageAccessGuard>
                 <div className="flex h-screen overflow-hidden bg-background">
                   <ResizablePanelGroup direction="horizontal">
                     <ResizablePanel
@@ -362,13 +373,12 @@ export default function ProtectedLayout({
                     </ResizablePanel>
                   </ResizablePanelGroup>
                 </div>
-                <FloatingStartConsultation />
-                <CommandPalette />
-              </PageAccessGuard>
-            </SubscriptionGuard>
-          </DoctorVerificationGuard>
-        </ClinicProvider>
-      </RealtimeProviders>
-    </NavigationHistoryProvider>
+              <FloatingStartConsultation />
+              <CommandPalette />
+            </PageAccessGuard>
+          </SubscriptionGuard>
+        </DoctorVerificationGuard>
+      </ClinicProvider>
+    </RealtimeProviders>
   );
 }

@@ -14,6 +14,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 import { DashboardAppointment } from "@workspace/types";
 
@@ -117,7 +118,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                       {apt.patient?.firstName} {apt.patient?.lastName}
                     </p>
                     <p className="text-xs text-muted-foreground truncate capitalize">
-                      {apt.type?.replace(/_/g, " ").toLowerCase()}
+                      {humanizeUiLabel(apt.type)}
                     </p>
                   </div>
 

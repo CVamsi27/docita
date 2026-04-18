@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
-import { ArrowLeft, Printer } from "lucide-react";
+import { Printer } from "lucide-react";
 import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 const formatDateTime = (date?: string | null) => {
   if (!date) return "Not available";
@@ -42,12 +42,12 @@ export default function ConsentFormPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-4 p-4 md:p-6">
       <div className="flex items-center justify-between gap-2 print:hidden">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/portal/profile">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Profile
-          </Link>
-        </Button>
+        <BackButton
+          fallback="/portal/profile"
+          label="Back to Profile"
+          variant="outline"
+          size="sm"
+        />
         <Button size="sm" onClick={() => window.print()}>
           <Printer className="mr-2 h-4 w-4" />
           Print

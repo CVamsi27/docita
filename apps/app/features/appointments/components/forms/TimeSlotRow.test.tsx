@@ -1,0 +1,89 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import type { Appointment, Patient } from "@workspace/types";
+import { TimeSlotRow } from "./TimeSlotRow";
+
+vi.mock("@/hooks/use-permissions", () => ({
+  usePermissions: () => ({
+    canStartConsultation: true,
+  }),
+}));
+
+function createAppointment(
+  status: Appointment["status"],
+): Appointment & { patient?: Patient } {
+  return {
+    id: "apt-1",
+    patientId: "patient-1",
+    doctorId: "doctor-1",
+    status,
+    type: "follow_up",
+    startTime: "2026-04-18T10:00:00.000Z",
+    endTime: "2026-04-18T10:30:00.000Z",
+    createdAt: "2026-04-18T09:00:00.000Z",
+    updatedAt: "2026-04-18T09:00:00.000Z",
+    patient: {
+      id: "patient-1",
+      firstName: "Asha",
+      lastName: "Rao",
+      dateOfBirth: "1992-01-01",
+      gender: "FEMALE",
+      phoneNumber: "9999999991",
+    },
+  } as Appointment & { patient?: Patient };
+}
+
+describe("TimeSlotRow", () => {
+  it("shows Continue for in-progress appointments", () => {
+    render(
+      <TimeSlotRow
+        appointment={createAppointment("in-progress")}
+        checkingIn={null}
+        startingConsultationId={null}
+        onCheckIn={vi.fn()}
+        onStartConsultation={vi.fn()}
+        onCancelClick={vi.fn()}
+        onNoShowClick={vi.fn()}
+        currentUserId="doctor-1"
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Continue" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows View for no-show appointments", () => {
+    render(
+      <TimeSlotRow
+        appointment={createAppointment("no-show")}
+        checkingIn={null}
+        startingConsultationId={null}
+        onCheckIn={vi.fn()}
+        onStartConsultation={vi.fn()}
+        onCancelClick={vi.fn()}
+        onNoShowClick={vi.fn()}
+        currentUserId="doctor-1"
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "View" })).toBeInTheDocument();
+  });
+
+  it("shows View for completed appointments", () => {
+    render(
+      <TimeSlotRow
+        appointment={createAppointment("completed")}
+        checkingIn={null}
+        startingConsultationId={null}
+        onCheckIn={vi.fn()}
+        onStartConsultation={vi.fn()}
+        onCancelClick={vi.fn()}
+        onNoShowClick={vi.fn()}
+        currentUserId="doctor-1"
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "View" })).toBeInTheDocument();
+  });
+});

@@ -8,6 +8,7 @@ import { TierConfigProvider } from "@/lib/tier-config-context";
 import { AppConfigProvider } from "@/lib/app-config-context";
 import { ConfirmProvider } from "@/hooks/use-confirm";
 import { TooltipProvider } from "@workspace/ui/components/tooltip";
+import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -21,7 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <TierConfigProvider>
         <AppConfigProvider>
           <TooltipProvider delayDuration={300}>
-            <ConfirmProvider>{children}</ConfirmProvider>
+            <ConfirmProvider>
+              <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
+            </ConfirmProvider>
           </TooltipProvider>
         </AppConfigProvider>
       </TierConfigProvider>

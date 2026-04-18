@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
-const TOAST_DURATION_MS = 7000;
+const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
 
 export function ToasterWrapper() {

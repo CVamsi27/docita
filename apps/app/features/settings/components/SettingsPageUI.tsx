@@ -2,7 +2,7 @@ import { Search, Settings } from "lucide-react";
 import dynamic from "next/dynamic";
 import { cn } from "@workspace/ui/lib/utils";
 import { Input } from "@workspace/ui/components/input";
-import { SmartBackButton } from "@/features/_shared/components/navigation/smart-back-button";
+import { BackButton } from "@/components/common/navigation/back-button";
 import {
   Tabs,
   TabsContent,
@@ -126,26 +126,26 @@ export function SettingsPageUI({
   );
 
   return (
-    <div className="container mx-auto space-y-6 pb-24">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <SmartBackButton fallback="/dashboard" label="Back to Dashboard" />
-          </div>
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 pb-24">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0 space-y-3">
+          <BackButton fallback="/dashboard" label="Back to Dashboard" />
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
               <Settings className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
+                Settings
+              </h1>
+              <p className="text-sm md:text-base text-muted-foreground">
                 Manage your facility preferences and configurations
               </p>
             </div>
           </div>
         </div>
 
-        <div className="relative w-full md:w-72">
+        <div className="relative w-full md:w-72 md:shrink-0">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search settings..."

@@ -13,6 +13,7 @@ import { logger } from "@/lib/logger";
 import { API_URL } from "@/lib/api-config";
 import { SupportContact } from "@/components/common/support-contact";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 type VerifyState = "loading" | "success" | "error" | "missing";
 
@@ -97,10 +98,6 @@ function VerifyEmailInner() {
     router.push("/verify-email-sent");
   };
 
-  const handleBackToLogin = () => {
-    router.push("/login");
-  };
-
   return (
     <PreDashboardShell currentStep="verify-email">
       <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -128,7 +125,7 @@ function VerifyEmailInner() {
               </div>
             </div>
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold">Verification failed</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">Verification failed</h1>
               <p className="text-muted-foreground text-sm">
                 {state === "missing"
                   ? "No verification link was found. Please use the link from your email."
@@ -143,13 +140,13 @@ function VerifyEmailInner() {
               >
                 Request a new link
               </Button>
-              <Button
+              <BackButton
+                fallback="/login"
+                label="Back to login"
                 variant="ghost"
+                size="default"
                 className="w-full h-11"
-                onClick={handleBackToLogin}
-              >
-                Back to login
-              </Button>
+              />
             </div>
           </div>
         )}

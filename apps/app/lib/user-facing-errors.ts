@@ -9,7 +9,8 @@ import {
 
 export type { UserFacingErrorContext };
 
-const ERROR_TOAST_DURATION_MS = Number.POSITIVE_INFINITY;
+/** Long enough to read; still auto-dismisses (see ToasterWrapper default duration). */
+const ERROR_TOAST_DURATION_MS = 8000;
 
 export function getUserFacingFormError(
   error: unknown,

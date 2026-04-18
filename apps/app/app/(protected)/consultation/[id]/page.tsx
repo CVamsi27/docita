@@ -9,6 +9,7 @@ import { ConsultationSidebarContainer } from "@/features/consultation/components
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
 import { ConsultationLayoutUI } from "@/features/consultation/components/ConsultationLayoutUI";
+import { isConsultationReadOnlyStatus } from "@/features/appointments/rules/appointmentRules";
 import { Stethoscope } from "lucide-react";
 
 export default function ConsultationPage() {
@@ -31,7 +32,7 @@ export default function ConsultationPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-full items-center justify-center p-4 sm:p-6 md:p-8">
         <DataState status="loading" loadingMessage="Loading consultation..." />
       </div>
     );
@@ -39,7 +40,7 @@ export default function ConsultationPage() {
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-full items-center justify-center p-4 sm:p-6 md:p-8">
         <DataState
           status="error"
           errorMessage="We could not open this consultation. Please try again."
@@ -51,7 +52,7 @@ export default function ConsultationPage() {
 
   if (isAccessDenied) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-full items-center justify-center p-4 sm:p-6 md:p-8">
         <DataState
           status="error"
           errorMessage="Only the assigned doctor can open this consultation"
@@ -63,7 +64,7 @@ export default function ConsultationPage() {
 
   if (!appointmentData) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
+      <div className="flex h-full flex-col items-center justify-center gap-4 p-4 sm:p-6 md:p-8">
         <DataState
           status="empty"
           emptyIcon={Stethoscope}
@@ -82,6 +83,10 @@ export default function ConsultationPage() {
     ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
     : "Patient";
 
+  const consultationReadOnly = isConsultationReadOnlyStatus(
+    appointmentData.status,
+  );
+
   const DesktopSidebar = (
     <ConsultationSidebarContainer
       appointmentData={appointmentData}
@@ -96,37 +101,41 @@ export default function ConsultationPage() {
   );
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <ConsultationPageHeaderUI
-        patientName={patientName}
-        appointmentDate={appointmentData.startTime}
-        appointmentId={appointmentId}
-        patientId={appointmentData.patientId}
-        appointmentType={appointmentData.type}
-        appointmentStatus={appointmentData.status}
-        chiefComplaint={appointmentData.chiefComplaint ?? undefined}
-        onBack={handleBack}
-        MobileSidebarContent={MobileSidebar}
-      />
+    <div className="flex h-full flex-col bg-muted/20 p-2 sm:p-3 md:p-5">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/70 bg-background shadow-sm md:rounded-3xl">
+        <ConsultationPageHeaderUI
+          patientName={patientName}
+          appointmentDate={appointmentData.startTime}
+          appointmentId={appointmentId}
+          patientId={appointmentData.patientId}
+          appointmentType={appointmentData.type}
+          appointmentStatus={appointmentData.status}
+          readOnly={consultationReadOnly}
+          chiefComplaint={appointmentData.chiefComplaint ?? undefined}
+          onBack={handleBack}
+          MobileSidebarContent={MobileSidebar}
+        />
 
-      <ConsultationLayoutUI
-        Sidebar={DesktopSidebar}
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={toggleSidebar}
-        MainContent={
-          <ClinicalDocumentationDynamic
-            appointmentId={appointmentId}
-            patientId={appointmentData.patientId}
-            doctorId={appointmentData.doctorId}
-            defaultTab={defaultTab}
-            onSave={handleSave}
-            isFocusMode={!isSidebarOpen}
-            onToggleFocus={toggleSidebar}
-            clinicType={clinic?.type}
-            appointmentData={appointmentData}
-          />
-        }
-      />
+        <ConsultationLayoutUI
+          Sidebar={DesktopSidebar}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={toggleSidebar}
+          MainContent={
+            <ClinicalDocumentationDynamic
+              appointmentId={appointmentId}
+              patientId={appointmentData.patientId}
+              doctorId={appointmentData.doctorId}
+              defaultTab={defaultTab}
+              onSave={handleSave}
+              isFocusMode={!isSidebarOpen}
+              onToggleFocus={toggleSidebar}
+              clinicType={clinic?.type}
+              appointmentData={appointmentData}
+              readOnly={consultationReadOnly}
+            />
+          }
+        />
+      </div>
     </div>
   );
 }

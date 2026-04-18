@@ -48,7 +48,7 @@ export function DashboardStatsGridUI({
       bgColor: "from-success/20 to-success/10",
     },
     {
-      title: "In Progress",
+      title: "Active",
       value: inProgressToday,
       icon: Clock,
       color: "text-primary",

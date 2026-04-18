@@ -67,8 +67,10 @@ export default function VerifyDoctorPage() {
 
   const profile = doctorProfile ?? user;
   const hasSignature = !!profile?.signatureUrl;
-  const hasRegistration = !!profile?.registrationNumber;
-  const canContinue = hasSignature && hasRegistration;
+  const hasSavedRegistration = !!profile?.registrationNumber;
+  const hasDraftRegistration = registrationNumber.trim().length > 0;
+  const hasRegistrationProgress = hasSavedRegistration || hasDraftRegistration;
+  const canContinue = hasSignature && hasRegistrationProgress;
   const onboardingSignatureUrl = clinic?.slaSignatureUrl ?? null;
   const onboardingSignatureStoredUrl = clinic?.slaSignatureStoredUrl ?? null;
   const onboardingSignatureSourceUrl =
@@ -150,8 +152,8 @@ export default function VerifyDoctorPage() {
     }
   };
 
-  const handleSaveRegistration = async () => {
-    if (!registrationNumber.trim()) return;
+  const handleSaveRegistration = async (): Promise<boolean> => {
+    if (!registrationNumber.trim()) return false;
     setIsSavingReg(true);
     setRegistrationError(null);
     try {
@@ -161,6 +163,7 @@ export default function VerifyDoctorPage() {
       await refetch();
       toast.success("Registration number saved");
       setRegistrationNumber("");
+      return true;
     } catch (error) {
       if (error instanceof ApiError) {
         const validationErrors = error.details?.validationErrors;
@@ -181,7 +184,7 @@ export default function VerifyDoctorPage() {
             );
             setRegistrationError(safeMessage);
             showUserFacingErrorToast(null, safeMessage, "form");
-            return;
+            return false;
           }
 
           const firstFieldError = Object.values(fieldErrors).find(
@@ -195,7 +198,7 @@ export default function VerifyDoctorPage() {
             );
             setRegistrationError(safeMessage);
             showUserFacingErrorToast(null, safeMessage, "form");
-            return;
+            return false;
           }
         }
       }
@@ -205,14 +208,26 @@ export default function VerifyDoctorPage() {
         "We could not save this registration number. Please try again.",
         "save",
       );
+      return false;
     } finally {
       setIsSavingReg(false);
     }
   };
 
   const handleContinue = async () => {
-    setIsRedirecting(true);
+    if (!hasSignature) return;
+    if (!hasSavedRegistration && !registrationNumber.trim()) {
+      setRegistrationError("Please enter your registration number");
+      return;
+    }
+
     try {
+      if (!hasSavedRegistration) {
+        const saved = await handleSaveRegistration();
+        if (!saved) return;
+      }
+
+      setIsRedirecting(true);
       await refreshUser();
       router.replace("/dashboard");
     } catch {
@@ -256,7 +271,7 @@ export default function VerifyDoctorPage() {
     {
       label: "Medical Registration Number",
       description: "Your council registration number for verification",
-      done: hasRegistration,
+      done: hasRegistrationProgress,
       required: true,
     },
   ];
@@ -268,7 +283,7 @@ export default function VerifyDoctorPage() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl sm:text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
             Profile Verification
           </h1>
         </div>
@@ -467,7 +482,7 @@ export default function VerifyDoctorPage() {
 
         <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
           <div className="flex items-center gap-2">
-            {hasRegistration ? (
+            {hasRegistrationProgress ? (
               <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
             ) : (
               <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
@@ -476,7 +491,7 @@ export default function VerifyDoctorPage() {
               Step 2: Medical Registration Number
             </h2>
           </div>
-          {hasRegistration ? (
+          {hasSavedRegistration ? (
             <p className="text-sm text-muted-foreground">
               Saved:{" "}
               <span className="font-medium text-foreground">
@@ -491,7 +506,7 @@ export default function VerifyDoctorPage() {
               >
                 Enter your medical council registration number
               </Label>
-              <div className="flex gap-2">
+              <div className="relative">
                 <Input
                   id="registration-number"
                   placeholder="e.g. MH-12345"
@@ -502,22 +517,26 @@ export default function VerifyDoctorPage() {
                       setRegistrationError(null);
                     }
                   }}
+                  onBlur={() => {
+                    if (!registrationNumber.trim() || isSavingReg) return;
+                    void handleSaveRegistration();
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
+                    if (!registrationNumber.trim() || isSavingReg) return;
+                    void handleSaveRegistration();
+                  }}
                   aria-invalid={registrationError ? true : false}
-                  className={`flex-1 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
+                  className={`pr-10 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
                 />
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!registrationNumber.trim() || isSavingReg}
-                  onClick={handleSaveRegistration}
-                >
-                  {isSavingReg ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Save"
-                  )}
-                </Button>
+                {isSavingReg ? (
+                  <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                ) : null}
               </div>
+              <p className="text-xs text-muted-foreground">
+                Press Enter or click outside the field to save.
+              </p>
               {registrationError && (
                 <p className="text-xs text-destructive">{registrationError}</p>
               )}
@@ -528,10 +547,12 @@ export default function VerifyDoctorPage() {
         <div className="space-y-2">
           <Button
             className="w-full h-11"
-            disabled={!canContinue}
+            disabled={!canContinue || isSavingReg}
             onClick={handleContinue}
           >
-            Continue to Dashboard
+            {!hasSavedRegistration && hasDraftRegistration
+              ? "Register and Continue"
+              : "Continue to Dashboard"}
           </Button>
           {!canContinue && (
             <p className="text-center text-xs text-muted-foreground">

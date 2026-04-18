@@ -7,12 +7,20 @@ const mocks = vi.hoisted(() => ({
   searchParams: {
     get: vi.fn(),
   },
+  router: {
+    back: vi.fn(),
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  },
   apiPost: vi.fn(),
   loggerError: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => mocks.searchParams,
+  useRouter: () => mocks.router,
 }));
 
 vi.mock("@/lib/api-client", () => ({

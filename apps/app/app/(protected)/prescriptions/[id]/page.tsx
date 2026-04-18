@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Loader2 } from "lucide-react";
-import { useSmartBack } from "@/hooks/use-smart-back";
+import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { format } from "date-fns";
 import { usePrescription } from "@/hooks/api/use-clinical";
 import { useFeatureAccess } from "@/hooks/use-feature-access";
@@ -43,7 +43,7 @@ export default function PrescriptionViewPage() {
   const { clinic: contextClinic } = useClinic();
   const { user } = useAuth();
   const hasWhatsAppAccess = canAccess("WHATSAPP_MESSAGING"); 
-  const goBack = useSmartBack("/patients");
+  const goBack = useBackNavigation("/prescriptions");
 
   const {
     data: prescription,
@@ -124,7 +124,7 @@ export default function PrescriptionViewPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Loading prescription...</p>
@@ -135,9 +135,11 @@ export default function PrescriptionViewPage() {
 
   if (!prescription) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-4">
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Prescription not found</p>
-        <Button onClick={() => router.push("/records")}>Back to Records</Button>
+        <Button onClick={() => router.push("/prescriptions")}>
+          Back to Prescriptions
+        </Button>
       </div>
     );
   }

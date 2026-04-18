@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Separator } from "@workspace/ui/components/separator";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   CheckCircle2,
   FileText,
@@ -79,15 +81,15 @@ export default function ComplianceSettingsPage() {
   );
 
   return (
-    <div className="container mx-auto max-w-3xl py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Compliance</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Legal agreements, data protection, and audit information for your
-          facility.
-        </p>
-      </div>
-
+    <AppPageScaffold
+      className="max-w-3xl"
+      header={
+        <PageHeader
+          title="Compliance"
+          description="Legal agreements, data protection, and audit information for your facility."
+        />
+      }
+    >
       {compliance?.slaSignatureUrl && compliance.slaSignatureAcceptedAt && (
         <Alert>
           <CheckCircle2 className="h-4 w-4" />
@@ -261,6 +263,6 @@ export default function ComplianceSettingsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AppPageScaffold>
   );
 }

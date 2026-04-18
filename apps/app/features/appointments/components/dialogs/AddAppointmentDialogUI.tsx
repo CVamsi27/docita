@@ -36,6 +36,22 @@ interface AddAppointmentDialogUIProps {
   endHour: number;
 }
 
+interface SectionHeaderProps {
+  title: string;
+  description?: string;
+}
+
+function SectionHeader({ title, description }: SectionHeaderProps) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      {description && (
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      )}
+    </div>
+  );
+}
+
 export function AddAppointmentDialogUI({
   open,
   onOpenChange,
@@ -63,21 +79,17 @@ export function AddAppointmentDialogUI({
       open={open}
       onOpenChange={onOpenChange}
       title="Schedule Appointment"
-      description="Pick the patient, doctor, time, and visit type in one flow"
-      contentClassName="sm:max-w-[760px]"
+      description="Pick the patient, doctor, time, and visit type."
+      contentClassName="sm:max-w-[840px]"
     >
       <Form {...form}>
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-            <p className="text-sm font-semibold text-foreground">
-              Step 1. Who and when
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Start with the patient and doctor, then choose the time range for
-              the visit.
-            </p>
-
-            <div className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <section className="space-y-4">
+            <SectionHeader
+              title="Patient & doctor"
+              description="Who the appointment is for and who will see them."
+            />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <PatientSelector
                 form={form}
                 patients={patients}
@@ -87,45 +99,40 @@ export function AddAppointmentDialogUI({
                 patientComboboxOpen={patientComboboxOpen}
                 setPatientComboboxOpen={setPatientComboboxOpen}
               />
-
               <DoctorSelector
                 form={form}
                 doctors={doctors}
                 doctorsLoading={doctorsLoading}
               />
             </div>
-          </div>
+          </section>
 
-          <div className="rounded-2xl border border-border/60 bg-background/60 p-4">
-            <p className="text-sm font-semibold text-foreground">
-              Step 2. Timing and details
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Keep the slot within clinic hours and use the visit type to help
-              with reporting later.
-            </p>
+          <div className="border-t border-border/60" />
 
-            <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="space-y-5">
-                <TimeSlotPicker
-                  form={form}
-                  startHour={startHour}
-                  endHour={endHour}
-                />
-              </div>
-
+          <section className="space-y-4">
+            <SectionHeader
+              title="Schedule & type"
+              description="Keep the slot within clinic hours."
+            />
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <TimeSlotPicker
+                form={form}
+                startHour={startHour}
+                endHour={endHour}
+              />
               <AppointmentFormFields
                 form={form}
                 appointmentTypeOptions={appointmentTypeOptions}
               />
             </div>
-          </div>
+          </section>
 
-          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={loading}
             >
               Cancel
             </Button>

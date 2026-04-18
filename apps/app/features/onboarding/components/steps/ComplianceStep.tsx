@@ -33,6 +33,7 @@ import {
 } from "@/features/legal";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 import { apiFetch } from "@/lib/api-client";
+import { API_URL } from "@/lib/api-config";
 import { buildJsonHeaders } from "@/lib/csrf";
 import { toAbsoluteAppUrl } from "@/lib/url";
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
@@ -53,6 +54,29 @@ interface QrSessionStatusResponse {
   status?: string;
   uploaded?: boolean;
   fileUrl?: string | null;
+}
+
+function resolveSignaturePreviewUrl(fileUrl: string): string {
+  const trimmed = fileUrl.trim();
+  if (!trimmed) return "";
+
+  if (
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:") ||
+    /^https?:\/\//i.test(trimmed)
+  ) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("/")) {
+    const apiOrigin = new URL(
+      API_URL,
+      typeof window !== "undefined" ? window.location.origin : "http://localhost",
+    ).origin;
+    return `${apiOrigin}${trimmed}`;
+  }
+
+  return trimmed;
 }
 
 function isStaleOnboardingSessionError(error: unknown): boolean {
@@ -276,6 +300,7 @@ export function ComplianceStep({
   const hasSignatureSession = Boolean(signatureSessionId);
   const hasOnboardingContext = Boolean(onboardingId || ensureOnboardingId);
   const [signatureFileUrl, setSignatureFileUrl] = useState<string | null>(null);
+  const [signaturePreviewFailed, setSignaturePreviewFailed] = useState(false);
   const [signaturePreviewLoading, setSignaturePreviewLoading] = useState(false);
 
   const fetchQrSessionStatus = useCallback(
@@ -401,12 +426,15 @@ export function ComplianceStep({
         );
 
         if (data.fileUrl) {
-          setSignatureFileUrl(data.fileUrl);
+          setSignatureFileUrl(resolveSignaturePreviewUrl(data.fileUrl));
+          setSignaturePreviewFailed(false);
         } else {
           setSignatureFileUrl(null);
+          setSignaturePreviewFailed(false);
         }
       } catch {
         setSignatureFileUrl(null);
+        setSignaturePreviewFailed(false);
       } finally {
         setSignaturePreviewLoading(false);
       }
@@ -418,6 +446,7 @@ export function ComplianceStep({
     if (!hasOnboardingContext) return;
     if (!signatureSessionId) {
       setSignatureFileUrl(null);
+      setSignaturePreviewFailed(false);
       return;
     }
 
@@ -444,6 +473,7 @@ export function ComplianceStep({
 
   const handleResign = useCallback(async () => {
     setSignatureFileUrl(null);
+    setSignaturePreviewFailed(false);
     complianceForm.setValue("slaSignatureSessionId", "", {
       shouldDirty: true,
       shouldTouch: true,
@@ -600,7 +630,7 @@ export function ComplianceStep({
                   <p className="text-xs text-muted-foreground">
                     Loading signature preview...
                   </p>
-                ) : signatureFileUrl ? (
+                ) : signatureFileUrl && !signaturePreviewFailed ? (
                   <div className="rounded-md border bg-white p-3">
                     <Image
                       src={signatureFileUrl}
@@ -609,6 +639,9 @@ export function ComplianceStep({
                       height={260}
                       className="h-auto w-full max-w-full"
                       unoptimized
+                      onError={() => {
+                        setSignaturePreviewFailed(true);
+                      }}
                     />
                   </div>
                 ) : (

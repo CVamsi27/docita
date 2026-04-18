@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ import {
 } from "@/hooks/api/use-leaves";
 import { LeaveType, StaffLeave, LeavePlan } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   CASUAL: "Casual",
@@ -351,22 +353,34 @@ export function LeaveManagementSettings() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Start Date</Label>
-                <Input
-                  type="date"
-                  value={applyForm.startDate}
-                  onChange={(e) =>
-                    setApplyForm((f) => ({ ...f, startDate: e.target.value }))
+                <DatePicker
+                  value={applyForm.startDate || undefined}
+                  onChange={(date) =>
+                    setApplyForm((f) => ({
+                      ...f,
+                      startDate: date?.toISOString().slice(0, 10) ?? "",
+                      endDate:
+                        f.endDate &&
+                        date &&
+                        new Date(f.endDate) < date
+                          ? ""
+                          : f.endDate,
+                    }))
                   }
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>End Date</Label>
-                <Input
-                  type="date"
-                  value={applyForm.endDate}
-                  min={applyForm.startDate}
-                  onChange={(e) =>
-                    setApplyForm((f) => ({ ...f, endDate: e.target.value }))
+                <DatePicker
+                  value={applyForm.endDate || undefined}
+                  minDate={
+                    applyForm.startDate ? new Date(applyForm.startDate) : undefined
+                  }
+                  onChange={(date) =>
+                    setApplyForm((f) => ({
+                      ...f,
+                      endDate: date?.toISOString().slice(0, 10) ?? "",
+                    }))
                   }
                 />
               </div>
@@ -555,7 +569,7 @@ function LeaveRequestRow({
             {LEAVE_TYPE_LABELS[leave.leaveType]}
           </span>
           <Badge variant={STATUS_VARIANT[leave.status] ?? "secondary"}>
-            {leave.status}
+            {humanizeUiLabel(leave.status)}
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">

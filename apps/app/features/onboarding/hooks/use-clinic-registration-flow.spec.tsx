@@ -112,25 +112,31 @@ describe("useClinicRegistrationFlow", () => {
     );
   });
 
-  it("restarts from step 1 with precise missing fields when submit is attempted with incomplete data", async () => {
+  it("moves to the earliest incomplete step and surfaces missing items when submit is attempted with incomplete data", async () => {
     const { result } = renderHook(() => useClinicRegistrationFlow());
 
     act(() => {
       result.current.setStep(4);
     });
 
+    let submitError: unknown = null;
     await act(async () => {
-      await result.current.submitRegistration(validCompliance, vi.fn());
+      try {
+        await result.current.submitRegistration(validCompliance, vi.fn());
+      } catch (error) {
+        submitError = error;
+      }
     });
 
     await waitFor(() => {
       expect(result.current.step).toBe(1);
     });
 
-    expect(mocks.toast.error).toHaveBeenCalledWith(
-      "Please complete the required onboarding details before continuing",
-      { duration: Number.POSITIVE_INFINITY },
+    expect(submitError).toBeInstanceOf(Error);
+    expect((submitError as Error).message).toContain(
+      "Complete the pending onboarding items before continuing",
     );
+    expect(mocks.toast.error).not.toHaveBeenCalled();
     expect(sessionStorage.getItem("docita_onboarding_step")).toBe("1");
   });
 
@@ -201,7 +207,7 @@ describe("useClinicRegistrationFlow", () => {
 
     expect(mocks.toast.error).toHaveBeenCalledWith(
       "We could not finish setup. Please start again.",
-      { duration: Number.POSITIVE_INFINITY },
+      { duration: 8000 },
     );
   });
 

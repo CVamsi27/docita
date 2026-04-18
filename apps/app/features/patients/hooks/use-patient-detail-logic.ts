@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePatientData } from "@/hooks/use-patient-data";
 import { useAuth } from "@/lib/auth-context";
-import { useSmartBack } from "@/hooks/use-smart-back";
+import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useRepeatPrescription } from "@/hooks/use-repeat-prescription";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 
@@ -11,7 +11,7 @@ export const usePatientDetailLogic = (patientId: string) => {
   const { patient, appointments, documents, statistics, loading, error, refetch } =
     usePatientData(patientId);
   const { user } = useAuth();
-  const goBack = useSmartBack("/");
+  const goBack = useBackNavigation("/patients");
   const { canAccess } = usePermissionStore();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
