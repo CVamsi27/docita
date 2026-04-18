@@ -39,21 +39,20 @@ import {
   VisionSpecialtySection,
 } from "@/features/consultation/workspace/sections";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
-import type {
-  Appointment,
-  PatientWithMedicalHistory,
-} from "@workspace/types";
+import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
 
 interface ConsultationShellProps {
   appointmentData: Appointment & { patient?: PatientWithMedicalHistory };
   clinicType?: string;
   readOnly?: boolean;
+  isSidebarOpen?: boolean;
 }
 
 export function ConsultationShell({
   appointmentData,
   clinicType,
   readOnly,
+  isSidebarOpen = true,
 }: ConsultationShellProps) {
   const params = useParams();
   const appointmentId = params?.["id"] as string;
@@ -72,7 +71,9 @@ export function ConsultationShell({
 
   const effectivePatient =
     patient ||
-    (appointmentData.patient as unknown as PatientWithMedicalHistory | undefined);
+    (appointmentData.patient as unknown as
+      | PatientWithMedicalHistory
+      | undefined);
 
   const initialSectionFromUrl = searchParams?.get("section") ?? undefined;
   const [activeSectionId, setActiveSectionId] = useState<string>(() => {
@@ -159,9 +160,7 @@ export function ConsultationShell({
     const root = sectionRefs.current[rootId];
     root?.scrollIntoView({ behavior: "smooth", block: "start" });
     setTimeout(() => {
-      const input = document.querySelector<HTMLInputElement>(
-        selectorMap[kind],
-      );
+      const input = document.querySelector<HTMLInputElement>(selectorMap[kind]);
       input?.focus();
     }, 300);
   }, []);
@@ -182,7 +181,16 @@ export function ConsultationShell({
                 : section.id === "plan"
                   ? Pill
                   : Eye,
-        shortcut: section.letter === "S" ? "g s" : section.letter === "O" ? "g o" : section.letter === "A" ? "g a" : section.letter === "P" ? "g p" : undefined,
+        shortcut:
+          section.letter === "S"
+            ? "g s"
+            : section.letter === "O"
+              ? "g o"
+              : section.letter === "A"
+                ? "g a"
+                : section.letter === "P"
+                  ? "g p"
+                  : undefined,
         onRun: () => selectSection(section.id),
       })),
       {
@@ -391,12 +399,12 @@ export function ConsultationShell({
               <Button
                 size="sm"
                 onClick={onSaveClick}
-                disabled={saveState === "saving" || (!isDirty && saveState !== "error")}
+                disabled={
+                  saveState === "saving" || (!isDirty && saveState !== "error")
+                }
               >
                 <Save className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>
-                  {saveState === "saving" ? "Saving" : "Save draft"}
-                </span>
+                <span>{saveState === "saving" ? "Saving" : "Save draft"}</span>
               </Button>
             )}
           </div>
@@ -415,17 +423,23 @@ export function ConsultationShell({
           <div className="mx-auto flex max-w-3xl flex-col gap-4">
             {sections.map((section) => {
               const Node =
-                sectionComponents[
-                  section.id as keyof typeof sectionComponents
-                ];
+                sectionComponents[section.id as keyof typeof sectionComponents];
               return Node ?? null;
             })}
           </div>
         </main>
       </div>
 
-      <aside className="hidden xl:flex w-80 shrink-0 border-l bg-muted/10">
-        <ConsultationSidebarContainer appointmentData={appointmentData} />
+      <aside
+        className={cn(
+          "hidden xl:flex shrink-0 bg-muted/10 transition-[width,border-color] duration-200 overflow-hidden",
+          isSidebarOpen ? "w-80 border-l" : "w-0 border-l-0",
+        )}
+        aria-hidden={!isSidebarOpen}
+      >
+        {isSidebarOpen ? (
+          <ConsultationSidebarContainer appointmentData={appointmentData} />
+        ) : null}
       </aside>
 
       <CommandPalette

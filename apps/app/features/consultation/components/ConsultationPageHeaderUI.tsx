@@ -1,4 +1,12 @@
-import { ArrowLeft, CreditCard, HeartPulse, MoreVertical, PanelLeft, Clock, User } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  HeartPulse,
+  MoreVertical,
+  PanelLeft,
+  Clock,
+  User,
+} from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -39,6 +47,8 @@ interface ConsultationPageHeaderUIProps {
   chiefComplaint?: string;
   onBack: () => void;
   MobileSidebarContent?: React.ReactNode;
+  isDesktopSidebarOpen?: boolean;
+  onToggleDesktopSidebar?: () => void;
 }
 
 export function ConsultationPageHeaderUI({
@@ -52,30 +62,36 @@ export function ConsultationPageHeaderUI({
   chiefComplaint,
   onBack,
   MobileSidebarContent,
+  isDesktopSidebarOpen = true,
+  onToggleDesktopSidebar,
 }: ConsultationPageHeaderUIProps) {
   const [vitalsOpen, setVitalsOpen] = useState(false);
   const [billingOpen, setBillingOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const handleVitalsSaved = () => {
-    queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] });
+    queryClient.invalidateQueries({
+      queryKey: ["appointments", appointmentId],
+    });
     queryClient.invalidateQueries({ queryKey: ["patient-snapshot"] });
   };
 
   const handleBillingSaved = () => {
-    queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] });
+    queryClient.invalidateQueries({
+      queryKey: ["appointments", appointmentId],
+    });
     queryClient.invalidateQueries({ queryKey: ["billing"] });
   };
 
   const statusKey = (appointmentStatus ?? "").toLowerCase().replace(/-/g, "_");
-  const statusStyle = STATUS_STYLES[statusKey] ?? "bg-muted/50 text-muted-foreground border-muted";
+  const statusStyle =
+    STATUS_STYLES[statusKey] ??
+    "bg-muted/50 text-muted-foreground border-muted";
   const statusLabel = appointmentStatus
     ? humanizeUiLabel(appointmentStatus)
     : null;
 
-  const typeLabel = appointmentType
-    ? humanizeUiLabel(appointmentType)
-    : null;
+  const typeLabel = appointmentType ? humanizeUiLabel(appointmentType) : null;
 
   return (
     <>
@@ -93,7 +109,11 @@ export function ConsultationPageHeaderUI({
           {MobileSidebarContent && (
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden h-8 w-8 shrink-0"
+                >
                   <PanelLeft className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -109,17 +129,25 @@ export function ConsultationPageHeaderUI({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-sm font-bold leading-tight truncate">{patientName}</h1>
+                <h1 className="text-sm font-bold leading-tight truncate">
+                  {patientName}
+                </h1>
                 {statusLabel && (
                   <Badge
                     variant="outline"
-                    className={cn("text-xs h-5 px-1.5 font-medium hidden sm:inline-flex", statusStyle)}
+                    className={cn(
+                      "text-xs h-5 px-1.5 font-medium hidden sm:inline-flex",
+                      statusStyle,
+                    )}
                   >
                     {statusLabel}
                   </Badge>
                 )}
                 {typeLabel && (
-                  <Badge variant="outline" className="text-xs h-5 px-1.5 hidden md:inline-flex">
+                  <Badge
+                    variant="outline"
+                    className="text-xs h-5 px-1.5 hidden md:inline-flex"
+                  >
                     {typeLabel}
                   </Badge>
                 )}
@@ -149,6 +177,24 @@ export function ConsultationPageHeaderUI({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {onToggleDesktopSidebar && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden xl:flex gap-1.5 h-8"
+              onClick={onToggleDesktopSidebar}
+              title={
+                isDesktopSidebarOpen
+                  ? "Hide patient history"
+                  : "Show patient history"
+              }
+            >
+              <PanelLeft className="h-3.5 w-3.5" />
+              <span>
+                {isDesktopSidebarOpen ? "Hide history" : "Show history"}
+              </span>
+            </Button>
+          )}
           {!readOnly && (
             <>
               <ConsultationTimerContainer
@@ -177,7 +223,11 @@ export function ConsultationPageHeaderUI({
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="sm:hidden h-8 w-8">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:hidden h-8 w-8"
+                  >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>

@@ -21,9 +21,10 @@ export default function ConsultationPage() {
     isError,
     isAccessDenied,
     clinic,
+    isSidebarOpen,
   } = state;
 
-  const { handleBack } = handlers;
+  const { handleBack, toggleSidebar } = handlers;
 
   if (loading) {
     return (
@@ -100,12 +101,15 @@ export default function ConsultationPage() {
           chiefComplaint={appointmentData.chiefComplaint ?? undefined}
           onBack={handleBack}
           MobileSidebarContent={MobileSidebar}
+          isDesktopSidebarOpen={isSidebarOpen}
+          onToggleDesktopSidebar={toggleSidebar}
         />
 
         <ConsultationShell
           appointmentData={appointmentData}
           clinicType={clinic?.type}
           readOnly={consultationReadOnly}
+          isSidebarOpen={isSidebarOpen}
         />
       </div>
     </div>

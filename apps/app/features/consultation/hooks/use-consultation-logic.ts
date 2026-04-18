@@ -17,7 +17,7 @@ export const useConsultationLogic = (appointmentId: string) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { user, isLoading: authLoading } = useAuth();
   const { canStartConsultation } = usePermissions();
 
@@ -132,7 +132,10 @@ export const useConsultationLogic = (appointmentId: string) => {
       loading,
       isError,
       isAccessDenied:
-        !loading && !authLoading && !!appointmentData && !canAccessConsultationWorkspace,
+        !loading &&
+        !authLoading &&
+        !!appointmentData &&
+        !canAccessConsultationWorkspace,
       clinic,
       clinicType: clinic?.type,
       isSidebarOpen,

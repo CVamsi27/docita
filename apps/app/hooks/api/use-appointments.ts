@@ -5,6 +5,7 @@ import {
   AppointmentCancelRequest,
   CreateAppointmentRequest,
   Patient,
+  StartConsultationResponse,
   UpdateAppointmentRequest,
 } from "@workspace/types";
 import {
@@ -46,11 +47,6 @@ export interface QueueItem {
   };
   doctor?: { id: string; name: string };
   appointment?: { id: string; doctor: { id: string; name: string } };
-}
-
-export interface StartConsultationResponse {
-  appointmentId: string;
-  status: string;
 }
 
 type AppointmentQueryOptions = {

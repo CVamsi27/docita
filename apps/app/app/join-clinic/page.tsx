@@ -1,22 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, Building2, Mail, Phone, MapPin } from 'lucide-react';
-import { Input } from '@workspace/ui/components/input';
-import { Button } from '@workspace/ui/components/button';
-import { Card } from '@workspace/ui/components/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@workspace/ui/components/select';
-import { Textarea } from '@workspace/ui/components/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@workspace/ui/components/dialog';
-import { Badge } from '@workspace/ui/components/badge';
-import { toast } from 'sonner';
-import { typedApi } from '@/lib/api-client';
-import { logger } from '@/lib/logger';
-import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Search, Building2, Mail, Phone, MapPin } from "lucide-react";
+import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/button";
+import { Card } from "@workspace/ui/components/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
+import { Badge } from "@workspace/ui/components/badge";
+import { toast } from "sonner";
+import { typedApi } from "@/lib/api-client";
+import { logger } from "@/lib/logger";
+import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useAuth } from "@/lib/auth-context";
-import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
+import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";
 
 interface Clinic {
@@ -32,12 +43,12 @@ interface Clinic {
 export default function JoinClinicPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [clinics, setClinics] = useState<Clinic[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
-  const [requestedRole, setRequestedRole] = useState<string>('DOCTOR');
-  const [message, setMessage] = useState('');
+  const [requestedRole, setRequestedRole] = useState<string>("DOCTOR");
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -46,31 +57,31 @@ export default function JoinClinicPage() {
 
     if (!isAuthenticated) {
       setIsRedirecting(true);
-      router.replace('/login?next=/join-clinic');
+      router.replace("/login?next=/join-clinic");
       return;
     }
 
-    if (user?.clinicId || user?.onboardingStep === 'COMPLETED') {
+    if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
       setIsRedirecting(true);
-      router.replace('/dashboard');
+      router.replace("/dashboard");
       return;
     }
 
-    if (user?.onboardingStep === 'JOINING_CLINIC') {
+    if (user?.onboardingStep === "JOINING_CLINIC") {
       setIsRedirecting(true);
-      router.replace('/join-request-status');
+      router.replace("/join-request-status");
       return;
     }
 
-    if (user?.onboardingStep === 'CREATING_CLINIC') {
+    if (user?.onboardingStep === "CREATING_CLINIC") {
       setIsRedirecting(true);
-      router.replace('/onboarding');
+      router.replace("/onboarding");
     }
   }, [isAuthenticated, isLoading, router, user]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      showUserFacingErrorToast('Enter a facility name before searching');
+      showUserFacingErrorToast("Enter a facility name before searching");
       return;
     }
 
@@ -80,11 +91,13 @@ export default function JoinClinicPage() {
       setClinics(results as Clinic[]);
 
       if ((results as Clinic[]).length === 0) {
-        toast.info('No facilities found matching your search');
+        toast.info("No facilities found matching your search");
       }
     } catch (error) {
-      showUserFacingErrorToast('We could not search for facilities right now. Please try again.');
-      logger.error('Search error', { error });
+      showUserFacingErrorToast(
+        "We could not search for facilities right now. Please try again.",
+      );
+      logger.error("Search error", { error });
     } finally {
       setIsSearching(false);
     }
@@ -101,22 +114,22 @@ export default function JoinClinicPage() {
         message: message.trim() || undefined,
       });
 
-      toast.success('Join request submitted successfully!');
+      toast.success("Join request submitted successfully!");
       setSelectedClinic(null);
       setIsRedirecting(true);
-      router.replace('/join-request-status');
+      router.replace("/join-request-status");
     } catch (error) {
       showUserFacingErrorToast(
         "We could not submit this join request. Please try again.",
       );
-      logger.error('Submit error', { error });
+      logger.error("Submit error", { error });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
@@ -143,7 +156,9 @@ export default function JoinClinicPage() {
           label="Back to Choose Path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Join a Facility</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+          Join a Facility
+        </h1>
         <p className="text-muted-foreground text-sm">
           Search for your facility by name, email, or referral code
         </p>
@@ -164,8 +179,12 @@ export default function JoinClinicPage() {
               className="pl-10 h-11"
             />
           </div>
-          <Button onClick={handleSearch} disabled={isSearching} className="h-11">
-            {isSearching ? 'Searching...' : 'Search'}
+          <Button
+            onClick={handleSearch}
+            disabled={isSearching}
+            className="h-11"
+          >
+            {isSearching ? "Searching..." : "Search"}
           </Button>
         </div>
 
@@ -179,7 +198,10 @@ export default function JoinClinicPage() {
 
         <div className="space-y-3">
           {clinics.map((clinic) => (
-            <Card key={clinic.id} className="p-5 bg-card/80 backdrop-blur-sm shadow-md">
+            <Card
+              key={clinic.id}
+              className="p-5 bg-card/80 backdrop-blur-sm shadow-md"
+            >
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-start gap-3 mb-3">
@@ -218,7 +240,7 @@ export default function JoinClinicPage() {
                   size="sm"
                   className="sm:min-w-[140px] shrink-0"
                 >
-                  {clinic.canJoin ? 'Request to Join' : 'Request Pending'}
+                  {clinic.canJoin ? "Request to Join" : "Request Pending"}
                 </Button>
               </div>
             </Card>
@@ -226,7 +248,10 @@ export default function JoinClinicPage() {
         </div>
       </div>
 
-      <Dialog open={!!selectedClinic} onOpenChange={() => setSelectedClinic(null)}>
+      <Dialog
+        open={!!selectedClinic}
+        onOpenChange={() => setSelectedClinic(null)}
+      >
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Request to Join {selectedClinic?.name}</DialogTitle>
@@ -241,6 +266,7 @@ export default function JoinClinicPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="DOCTOR">Doctor</SelectItem>
+                  <SelectItem value="NURSE">Nurse</SelectItem>
                   <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
                   <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
                 </SelectContent>
@@ -252,7 +278,8 @@ export default function JoinClinicPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Message to Admin <span className="text-muted-foreground">(Optional)</span>
+                Message to Admin{" "}
+                <span className="text-muted-foreground">(Optional)</span>
               </label>
               <Textarea
                 placeholder="Tell us why you want to join"
@@ -276,7 +303,7 @@ export default function JoinClinicPage() {
               Cancel
             </Button>
             <Button onClick={handleSubmitRequest} disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting...' : 'Submit Request'}
+              {isSubmitting ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
         </DialogContent>

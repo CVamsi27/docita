@@ -30,7 +30,7 @@ import { cn } from "@workspace/ui/lib/utils";
 
 interface TeamMember {
   email: string;
-  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
+  role: "DOCTOR" | "NURSE" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
   name?: string;
 }
 
@@ -50,6 +50,11 @@ const ROLE_OPTIONS = [
     description: "Can manage consultations, notes, and clinical workflows",
   },
   {
+    value: "NURSE",
+    label: "Nurse",
+    description: "Can support patient care, review charts, and record vitals",
+  },
+  {
     value: "RECEPTIONIST",
     label: "Receptionist",
     description: "Can handle appointments, front desk, and patient check-in",
@@ -62,7 +67,8 @@ const ROLE_OPTIONS = [
   {
     value: "ADMIN_DOCTOR",
     label: "Admin Doctor",
-    description: "Doctor with admin access who can help manage members and permissions",
+    description:
+      "Doctor with admin access who can help manage members and permissions",
   },
 ];
 
@@ -133,7 +139,8 @@ export function TeamInviteStep({
 
       if (value && value.includes("@")) {
         const isDuplicate = updated.some(
-          (m, i) => i !== index && m.email.toLowerCase() === value.toLowerCase(),
+          (m, i) =>
+            i !== index && m.email.toLowerCase() === value.toLowerCase(),
         );
         const isOwner = ownerEmail?.toLowerCase() === value.toLowerCase();
 
@@ -149,7 +156,10 @@ export function TeamInviteStep({
 
   const handleSubmit = () => {
     const validMembers = members.filter(
-      (m) => m.email.trim() !== "" && m.email.includes("@") && !emailErrors[members.indexOf(m)],
+      (m) =>
+        m.email.trim() !== "" &&
+        m.email.includes("@") &&
+        !emailErrors[members.indexOf(m)],
     );
     onComplete(validMembers);
   };
@@ -172,7 +182,8 @@ export function TeamInviteStep({
           <div>
             <CardTitle>Step 3: Invite Team</CardTitle>
             <CardDescription>
-              Add the first team members you want to invite now and refine permissions in Settings after setup
+              Add the first team members you want to invite now and refine
+              permissions in Settings after setup
             </CardDescription>
           </div>
         </div>
@@ -183,17 +194,26 @@ export function TeamInviteStep({
           <p className="text-xs text-muted-foreground">
             Your logged-in account is the clinic owner during onboarding. You
             selected
-            <span className="font-medium"> {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}</span>
+            <span className="font-medium">
+              {" "}
+              {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}
+            </span>
             , and you can add more members now and update permissions later in
             Settings
           </p>
           {(ownerName || ownerEmail) && (
             <div className="rounded-md border bg-background px-3 py-2">
-              <p className="text-xs text-muted-foreground">Clinic Owner (already added)</p>
+              <p className="text-xs text-muted-foreground">
+                Clinic Owner (already added)
+              </p>
               <div className="mt-1 flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm font-medium text-foreground">{ownerName || "Owner"}</p>
-                  <p className="text-xs text-muted-foreground">{ownerEmail || ""}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {ownerName || "Owner"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {ownerEmail || ""}
+                  </p>
                 </div>
                 <Badge variant="outline">
                   {ownerRole === "ADMIN_DOCTOR" ? "Admin Doctor" : "Admin"}
@@ -205,12 +225,7 @@ export function TeamInviteStep({
 
         <div className="space-y-4">
           {members.map((member, index) => (
-            <div
-              key={index}
-              className={cn(
-                "grid gap-4 rounded-lg border p-4",
-              )}
-            >
+            <div key={index} className={cn("grid gap-4 rounded-lg border p-4")}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -228,7 +243,11 @@ export function TeamInviteStep({
                   disabled={members.length === 1 && !hasRowContent(member)}
                   className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                   aria-label={`Remove member ${index + 1}`}
-                  title={hasRowContent(member) ? "Clear member details" : "Remove member"}
+                  title={
+                    hasRowContent(member)
+                      ? "Clear member details"
+                      : "Remove member"
+                  }
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -372,11 +391,14 @@ export function TeamInviteStep({
                   key={`${member.email}-${member.role}`}
                   className="flex items-center justify-between rounded-md border bg-muted/20 px-3 py-2"
                 >
-                  <span className="text-sm text-foreground">{member.email}</span>
+                  <span className="text-sm text-foreground">
+                    {member.email}
+                  </span>
                   <Badge variant="outline">
                     {
-                      ROLE_OPTIONS.find((option) => option.value === member.role)
-                        ?.label
+                      ROLE_OPTIONS.find(
+                        (option) => option.value === member.role,
+                      )?.label
                     }
                   </Badge>
                 </div>

@@ -12,11 +12,7 @@ import {
   type Country,
 } from "react-phone-number-input";
 
-const emailInputSchema = z
-  .string()
-  .trim()
-  .optional()
-  .or(z.literal(""));
+const emailInputSchema = z.string().trim().optional().or(z.literal(""));
 
 const optionalTextSchema = z.string().trim().optional().or(z.literal(""));
 
@@ -42,10 +38,7 @@ const clinicDetailsBaseSchema = z.object({
   gstin: z
     .string()
     .trim()
-    .regex(
-      /^[0-9]{2}[A-Z0-9]{13}$/,
-      "Enter a valid 15-character GSTIN",
-    )
+    .regex(/^[0-9]{2}[A-Z0-9]{13}$/, "Enter a valid 15-character GSTIN")
     .optional()
     .or(z.literal("")),
 });
@@ -163,7 +156,7 @@ export interface PaymentDetails {
 
 export interface TeamMember {
   email: string;
-  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
+  role: "DOCTOR" | "NURSE" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
   name?: string;
 }
 

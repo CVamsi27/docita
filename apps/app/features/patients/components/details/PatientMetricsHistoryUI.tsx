@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -24,18 +29,25 @@ import {
 } from "@/features/patients/hooks/usePatients";
 
 type MetricValueType =
-  | "STRING"
+  | "TEXT"
   | "NUMBER"
   | "BOOLEAN"
   | "DATE"
   | "JSON"
-  | "SINGLE_SELECT"
-  | "MULTI_SELECT";
+  | "OPTION"
+  | "MULTI_OPTION";
 
 interface PatientMetricsHistoryUIProps {
   patientId: string;
   readOnly?: boolean;
   className?: string;
+  categoryKey?: string;
+  title?: string;
+  emptyHistoryMessage?: string;
+  emptyDefinitionsMessage?: string;
+  showTracking?: boolean;
+  showConfiguration?: boolean;
+  showRecording?: boolean;
 }
 
 function extractValue(values: Array<Record<string, unknown>>): string {
@@ -44,7 +56,8 @@ function extractValue(values: Array<Record<string, unknown>>): string {
   return values
     .map((value) => {
       if (typeof value.valueString === "string") return value.valueString;
-      if (typeof value.valueNumber === "number") return String(value.valueNumber);
+      if (typeof value.valueNumber === "number")
+        return String(value.valueNumber);
       if (typeof value.valueBoolean === "boolean")
         return value.valueBoolean ? "Yes" : "No";
       if (typeof value.valueDate === "string")
@@ -65,6 +78,13 @@ export function PatientMetricsHistoryUI({
   patientId,
   readOnly = false,
   className,
+  categoryKey,
+  title = "Complete Metrics History",
+  emptyHistoryMessage = "No metric records yet, add a metric value to start tracking",
+  emptyDefinitionsMessage = "No metrics in this category yet",
+  showTracking = true,
+  showConfiguration = !readOnly,
+  showRecording = !readOnly,
 }: PatientMetricsHistoryUIProps) {
   const { data: categoriesData, isLoading: loadingCategories } =
     usePatientMetricCategories(patientId);
@@ -85,7 +105,7 @@ export function PatientMetricsHistoryUI({
   const [newDefinitionKey, setNewDefinitionKey] = useState("");
   const [newDefinitionLabel, setNewDefinitionLabel] = useState("");
   const [newDefinitionType, setNewDefinitionType] =
-    useState<MetricValueType>("STRING");
+    useState<MetricValueType>("TEXT");
   const [newDefinitionUnit, setNewDefinitionUnit] = useState("");
   const [newDefinitionTracked, setNewDefinitionTracked] = useState(true);
 
@@ -93,8 +113,12 @@ export function PatientMetricsHistoryUI({
   const [valueInput, setValueInput] = useState("");
 
   const categories = useMemo(
-    () => (categoriesData as Array<Record<string, unknown>>) || [],
-    [categoriesData],
+    () =>
+      ((categoriesData as Array<Record<string, unknown>>) || []).filter(
+        (category) =>
+          !categoryKey || String(category.key || "") === categoryKey,
+      ),
+    [categoriesData, categoryKey],
   );
   const selectedMetrics = useMemo(
     () => (selectedData as Array<Record<string, unknown>>) || [],
@@ -111,17 +135,35 @@ export function PatientMetricsHistoryUI({
     return map;
   }, [selectedMetrics]);
 
-  const timeline =
-    ((historyData as { timeline?: Array<Record<string, unknown>> })?.timeline as
-      | Array<Record<string, unknown>>
-      | undefined) || [];
+  const filteredTimeline = useMemo(
+    () => {
+      const timeline =
+        ((historyData as { timeline?: Array<Record<string, unknown>> })
+          ?.timeline as Array<Record<string, unknown>> | undefined) || [];
+
+      return timeline.filter((record) => {
+        if (!categoryKey) {
+          return true;
+        }
+        const definition = (record.definition || {}) as Record<string, unknown>;
+        const category =
+          ((definition.category || {}) as Record<string, unknown>) || {};
+        return String(category.key || "") === categoryKey;
+      });
+    },
+    [categoryKey, historyData],
+  );
 
   const flatDefinitions = useMemo(() => {
     const output: Array<{ id: string; label: string; valueType: string }> = [];
     categories.forEach((category) => {
-      const definitions = (category.metricDefinitions as Array<Record<string, unknown>>) || [];
+      const definitions =
+        (category.metricDefinitions as Array<Record<string, unknown>>) || [];
       definitions.forEach((definition) => {
-        if (typeof definition.id === "string" && typeof definition.label === "string") {
+        if (
+          typeof definition.id === "string" &&
+          typeof definition.label === "string"
+        ) {
           output.push({
             id: definition.id,
             label: definition.label,
@@ -191,7 +233,9 @@ export function PatientMetricsHistoryUI({
   const onRecordValue = () => {
     if (!valueDefinitionId || !valueInput.trim()) return;
 
-    const definition = flatDefinitions.find((item) => item.id === valueDefinitionId);
+    const definition = flatDefinitions.find(
+      (item) => item.id === valueDefinitionId,
+    );
 
     if (!definition) return;
 
@@ -231,23 +275,27 @@ export function PatientMetricsHistoryUI({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <History className="h-5 w-5 text-primary" />
-            Complete Metrics History
+            {title}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loadingHistory ? (
             <p className="text-sm text-muted-foreground">Loading history</p>
-          ) : timeline.length === 0 ? (
+          ) : filteredTimeline.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No metric records yet, add a metric value to start tracking
+              {emptyHistoryMessage}
             </p>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-              {timeline.map((record) => {
+              {filteredTimeline.map((record) => {
                 const id = String(record.id || "");
-                const definition = (record.definition || {}) as Record<string, unknown>;
+                const definition = (record.definition || {}) as Record<
+                  string,
+                  unknown
+                >;
                 const category =
-                  ((definition.category || {}) as Record<string, unknown>) || {};
+                  ((definition.category || {}) as Record<string, unknown>) ||
+                  {};
                 const values =
                   (record.values as Array<Record<string, unknown>>) || [];
 
@@ -262,7 +310,9 @@ export function PatientMetricsHistoryUI({
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {String(category.name || "General")} •{" "}
-                        {new Date(String(record.recordedAt || new Date())).toLocaleString()}
+                        {new Date(
+                          String(record.recordedAt || new Date()),
+                        ).toLocaleString()}
                       </div>
                     </div>
                     <Badge variant="outline" className="max-w-[50%] truncate">
@@ -276,65 +326,84 @@ export function PatientMetricsHistoryUI({
         </CardContent>
       </Card>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Layers className="h-5 w-5 text-primary" />
-            Categories & Tracked Metrics
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {loadingCategories || loadingSelected ? (
-            <p className="text-sm text-muted-foreground">Loading metrics</p>
-          ) : (
-            categories.map((category) => {
-              const categoryId = String(category.id || "");
-              const categoryName = String(category.name || "Unnamed Category");
-              const definitions =
-                (category.metricDefinitions as Array<Record<string, unknown>>) || [];
+      {showTracking && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Layers className="h-5 w-5 text-primary" />
+              Categories & Tracked Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {loadingCategories || loadingSelected ? (
+              <p className="text-sm text-muted-foreground">Loading metrics</p>
+            ) : (
+              categories.map((category) => {
+                const categoryId = String(category.id || "");
+                const categoryName = String(
+                  category.name || "Unnamed Category",
+                );
+                const definitions =
+                  (category.metricDefinitions as Array<
+                    Record<string, unknown>
+                  >) || [];
 
-              return (
-                <div key={categoryId} className="rounded-lg border p-3">
-                  <div className="font-medium text-sm mb-2">{categoryName}</div>
-                  <div className="space-y-2">
-                    {definitions.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">
-                        No metrics in this category yet
-                      </p>
-                    ) : (
-                      definitions.map((definition) => {
-                        const definitionId = String(definition.id || "");
-                        const isTracked = selectionMap.get(definitionId) ?? Boolean(definition.isTracked);
+                return (
+                  <div key={categoryId} className="rounded-lg border p-3">
+                    <div className="font-medium text-sm mb-2">
+                      {categoryName}
+                    </div>
+                    <div className="space-y-2">
+                      {definitions.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          {emptyDefinitionsMessage}
+                        </p>
+                      ) : (
+                        definitions.map((definition) => {
+                          const definitionId = String(definition.id || "");
+                          const isTracked =
+                            selectionMap.get(definitionId) ??
+                            Boolean(definition.isTracked);
 
-                        return (
-                          <label
-                            key={definitionId}
-                            className="flex items-center justify-between gap-3 rounded border px-3 py-2"
-                          >
-                            <span className="text-sm">{String(definition.label || "Metric")}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">Track</span>
-                              <Checkbox
-                                checked={isTracked}
-                                disabled={readOnly || updateSelections.isPending}
-                                onCheckedChange={(value) =>
-                                  onToggleTracked(definitionId, Boolean(value))
-                                }
-                              />
-                            </div>
-                          </label>
-                        );
-                      })
-                    )}
+                          return (
+                            <label
+                              key={definitionId}
+                              className="flex items-center justify-between gap-3 rounded border px-3 py-2"
+                            >
+                              <span className="text-sm">
+                                {String(definition.label || "Metric")}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">
+                                  Track
+                                </span>
+                                <Checkbox
+                                  checked={isTracked}
+                                  disabled={
+                                    readOnly || updateSelections.isPending
+                                  }
+                                  onCheckedChange={(value) =>
+                                    onToggleTracked(
+                                      definitionId,
+                                      Boolean(value),
+                                    )
+                                  }
+                                />
+                              </div>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
+                );
+              })
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-      {!readOnly && (
+      {showConfiguration && !readOnly && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -404,7 +473,7 @@ export function PatientMetricsHistoryUI({
                   <SelectValue placeholder="Value type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="STRING">Text</SelectItem>
+                  <SelectItem value="TEXT">Text</SelectItem>
                   <SelectItem value="NUMBER">Number</SelectItem>
                   <SelectItem value="BOOLEAN">Boolean</SelectItem>
                   <SelectItem value="DATE">Date</SelectItem>
@@ -418,7 +487,9 @@ export function PatientMetricsHistoryUI({
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox
                   checked={newDefinitionTracked}
-                  onCheckedChange={(value) => setNewDefinitionTracked(Boolean(value))}
+                  onCheckedChange={(value) =>
+                    setNewDefinitionTracked(Boolean(value))
+                  }
                 />
                 Track by default
               </label>
@@ -434,27 +505,38 @@ export function PatientMetricsHistoryUI({
         </Card>
       )}
 
-      {!readOnly && (
+      {showRecording && !readOnly && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Settings2 className="h-5 w-5 text-primary" />
-              Record Metric Value
+              {categoryKey === "vitals"
+                ? "Record Vitals Value"
+                : "Record Metric Value"}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-[1.4fr_1fr_auto] items-end">
             <div className="space-y-2">
               <Label>Metric</Label>
-              <Select value={valueDefinitionId} onValueChange={setValueDefinitionId}>
+              <Select
+                value={valueDefinitionId}
+                onValueChange={setValueDefinitionId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select metric" />
                 </SelectTrigger>
                 <SelectContent>
-                  {flatDefinitions.map((definition) => (
-                    <SelectItem key={definition.id} value={definition.id}>
-                      {definition.label}
+                  {flatDefinitions.length === 0 ? (
+                    <SelectItem value="__empty" disabled>
+                      No metrics available yet
                     </SelectItem>
-                  ))}
+                  ) : (
+                    flatDefinitions.map((definition) => (
+                      <SelectItem key={definition.id} value={definition.id}>
+                        {definition.label}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

@@ -68,7 +68,7 @@ const inviteSchema = z.object({
   name: z.string().min(1, "Enter the team member's name"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Use at least 8 characters"),
-  role: z.enum(["DOCTOR", "RECEPTIONIST"]),
+  role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST"]),
   phoneNumber: z.string().optional(),
   specialization: z.string().optional(),
   qualification: z.string().optional(),
@@ -176,6 +176,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         phoneNumber: memberDraft.phoneNumber || undefined,
         role:
           memberDraft.role === "DOCTOR" ||
+          memberDraft.role === "NURSE" ||
           memberDraft.role === "RECEPTIONIST" ||
           memberDraft.role === "ADMIN_DOCTOR"
             ? memberDraft.role
@@ -298,7 +299,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       name: "",
       email: "",
       password: "",
-      role: "RECEPTIONIST",
+      role: "NURSE",
       phoneNumber: "",
       specialization: "",
       qualification: "",
@@ -340,12 +341,12 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             form.reset();
           },
           onError: (err) => {
-          showUserFacingErrorToast(
-            err,
-            "We could not send this doctor invitation. Please try again.",
-            "save",
-          );
-        },
+            showUserFacingErrorToast(
+              err,
+              "We could not send this doctor invitation. Please try again.",
+              "save",
+            );
+          },
         },
       );
       return;
@@ -357,17 +358,23 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         email: data.email,
         password: data.password,
         phoneNumber: data.phoneNumber || undefined,
+        role:
+          data.role === "NURSE" || data.role === "RECEPTIONIST"
+            ? data.role
+            : undefined,
       },
       {
         onSuccess: () => {
-          toast.success("Receptionist invited successfully");
+          toast.success(
+            `${data.role === "NURSE" ? "Nurse" : "Receptionist"} invited successfully`,
+          );
           setIsInviteOpen(false);
           form.reset();
         },
         onError: (err) => {
           showUserFacingErrorToast(
             err,
-            "We could not send this receptionist invitation. Please try again.",
+            `We could not send this ${data.role === "NURSE" ? "nurse" : "receptionist"} invitation. Please try again.`,
             "save",
           );
         },
@@ -377,13 +384,13 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   if (isLoading) {
     return (
-      <Card >
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Team Members</CardTitle>
-          <CardDescription>
-            Manage your {facilityLabel.toLowerCase()} staff
-          </CardDescription>
+            <CardDescription>
+              Manage your {facilityLabel.toLowerCase()} staff
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -405,7 +412,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   if (error) {
     return (
-      <Card >
+      <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
           We could not load your team members. Please try again.
         </CardContent>
@@ -414,7 +421,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   }
 
   return (
-    <Card >
+    <Card>
       <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <CardTitle>Team Members</CardTitle>
@@ -489,14 +496,17 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                               member.verificationStatus,
                             )}
                           >
-                            {getVerificationBadgeLabel(member.verificationStatus)}
+                            {getVerificationBadgeLabel(
+                              member.verificationStatus,
+                            )}
                           </Badge>
                           <Badge
                             variant={
                               member.signatureUploadedAt ? "default" : "outline"
                             }
                           >
-                            Signature {member.signatureUploadedAt ? "Ready" : "Missing"}
+                            Signature{" "}
+                            {member.signatureUploadedAt ? "Ready" : "Missing"}
                           </Badge>
                         </>
                       )}
@@ -521,7 +531,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           <DialogHeader>
             <DialogTitle>Invite Team Member</DialogTitle>
             <DialogDescription>
-              Add a doctor or receptionist to your facility team.
+              Add a doctor, nurse, or receptionist to your facility team.
             </DialogDescription>
           </DialogHeader>
 
@@ -552,7 +562,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     <FormItem>
                       <Label>Role</Label>
                       <Select
-                        value={field.value ?? "RECEPTIONIST"}
+                        value={field.value ?? "NURSE"}
                         onValueChange={field.onChange}
                       >
                         <FormControl>
@@ -561,6 +571,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="NURSE">Nurse</SelectItem>
                           <SelectItem value="RECEPTIONIST">
                             Receptionist
                           </SelectItem>
@@ -581,7 +592,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     <FormItem>
                       <Label>Email</Label>
                       <FormControl>
-                        <Input type="email" placeholder="name@facility.com" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="name@facility.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -609,7 +624,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   <FormItem>
                     <Label>Temporary Password</Label>
                     <FormControl>
-                      <Input type="password" placeholder="At least 8 characters" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="At least 8 characters"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -674,7 +693,9 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   disabled={!canInvite || isSaving}
                   className="w-full sm:w-auto"
                 >
-                  {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSaving && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Invite Member
                 </Button>
               </DialogFooter>
@@ -703,7 +724,10 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                 <Input
                   value={memberDraft.name || ""}
                   onChange={(e) =>
-                    setMemberDraft((prev) => ({ ...prev, name: e.target.value }))
+                    setMemberDraft((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
                   }
                 />
               </div>
@@ -713,22 +737,29 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   type="email"
                   value={memberDraft.email || ""}
                   onChange={(e) =>
-                    setMemberDraft((prev) => ({ ...prev, email: e.target.value }))
+                    setMemberDraft((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
                   }
                 />
               </div>
               <div>
                 <p className="text-muted-foreground">Role</p>
                 <Select
-                  value={String(memberDraft.role || "RECEPTIONIST")}
+                  value={String(memberDraft.role || "NURSE")}
                   onValueChange={(value) =>
-                    setMemberDraft((prev) => ({ ...prev, role: value as User["role"] }))
+                    setMemberDraft((prev) => ({
+                      ...prev,
+                      role: value as User["role"],
+                    }))
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="NURSE">Nurse</SelectItem>
                     <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
                     <SelectItem value="DOCTOR">Doctor</SelectItem>
                     <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
@@ -797,25 +828,36 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                         ) : (
                           <ShieldX className="mr-1 h-3.5 w-3.5" />
                         )}
-                        {getVerificationBadgeLabel(selectedMember.verificationStatus)}
+                        {getVerificationBadgeLabel(
+                          selectedMember.verificationStatus,
+                        )}
                       </Badge>
                       <Badge
                         variant={
-                          selectedMember.signatureUploadedAt ? "default" : "outline"
+                          selectedMember.signatureUploadedAt
+                            ? "default"
+                            : "outline"
                         }
                       >
-                        Signature {selectedMember.signatureUploadedAt ? "Ready" : "Missing"}
+                        Signature{" "}
+                        {selectedMember.signatureUploadedAt
+                          ? "Ready"
+                          : "Missing"}
                       </Badge>
                     </div>
                     <div className="space-y-1 text-xs text-muted-foreground">
                       <p>
-                        Last verification: {formatDate(selectedMember.verificationCheckedAt)}
+                        Last verification:{" "}
+                        {formatDate(selectedMember.verificationCheckedAt)}
                       </p>
                       <p>
-                        Signature uploaded: {formatDate(selectedMember.signatureUploadedAt)}
+                        Signature uploaded:{" "}
+                        {formatDate(selectedMember.signatureUploadedAt)}
                       </p>
                       {selectedMember.verificationReason && (
-                        <p>Verification note: {selectedMember.verificationReason}</p>
+                        <p>
+                          Verification note: {selectedMember.verificationReason}
+                        </p>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -823,7 +865,9 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => handleGenerateSignatureQr(selectedMember.id)}
+                        onClick={() =>
+                          handleGenerateSignatureQr(selectedMember.id)
+                        }
                         disabled={isManaging}
                       >
                         {isCreatingSignatureUploadSession && (
@@ -870,23 +914,27 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
               Close
             </Button>
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
-              <Button onClick={handleSaveMember} disabled={isManaging} className="w-full sm:w-auto">
+              <Button
+                onClick={handleSaveMember}
+                disabled={isManaging}
+                className="w-full sm:w-auto"
+              >
                 {isUpdatingMember && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 Save Changes
               </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveMember}
-              disabled={isManaging}
-              className="w-full sm:w-auto"
-            >
-              {isDeletingMember && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Remove
-            </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRemoveMember}
+                disabled={isManaging}
+                className="w-full sm:w-auto"
+              >
+                {isDeletingMember && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Remove
+              </Button>
             </div>
           </DialogFooter>
         </DialogContent>

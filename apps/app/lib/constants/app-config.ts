@@ -1,4 +1,3 @@
-
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 export interface SelectOption {
@@ -114,6 +113,7 @@ export const DEFAULT_FORM_OPTIONS: FormOptions = {
   ],
   userRole: [
     { value: "DOCTOR", label: "Doctor" },
+    { value: "NURSE", label: "Nurse" },
     { value: "RECEPTIONIST", label: "Receptionist" },
     { value: "ADMIN", label: "Admin" },
   ],

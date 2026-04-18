@@ -8,6 +8,7 @@ import {
   PatientFaceSheetHeaderContainer as PatientFaceSheetHeader,
   PatientTagManagerContainer as PatientTagManager,
 } from "@/features/patients/components";
+import { PatientMetricsHistoryUI } from "@/features/patients/components/details/PatientMetricsHistoryUI";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 
 const PatientMedicalHistory = dynamic(
@@ -20,17 +21,17 @@ const PatientMedicalHistory = dynamic(
 
 const MedicalDocumentList = dynamic(
   () =>
-    import(
-      "@/features/medical-documents/components/MedicalDocumentList"
-    ).then((m) => m.MedicalDocumentList),
+    import("@/features/medical-documents/components/MedicalDocumentList").then(
+      (m) => m.MedicalDocumentList,
+    ),
   { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
 );
 
 const UnifiedTimelineContainer = dynamic(
   () =>
-    import(
-      "@/features/patients/components/timeline/UnifiedTimelineContainer"
-    ).then((m) => m.UnifiedTimelineContainer),
+    import("@/features/patients/components/timeline/UnifiedTimelineContainer").then(
+      (m) => m.UnifiedTimelineContainer,
+    ),
   { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
 );
 import { Button } from "@workspace/ui/components/button";
@@ -43,6 +44,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
 import { CalendarPlus, Clock, FileText, Pencil, User } from "lucide-react";
+import { HeartPulse } from "lucide-react";
 import { Feature } from "@/lib/stores/permission-store";
 import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
@@ -51,9 +53,9 @@ import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
 
 export default function PatientDetailPage() {
   const params = useParams();
-  const [activeTab, setActiveTab] = useState<"timeline" | "records" | "documents">(
-    "timeline",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "timeline" | "records" | "vitals" | "documents"
+  >("timeline");
   const [isEditingRecords, setIsEditingRecords] = useState(false);
 
   const { state, handlers } = usePatientDetailLogic(params["id"] as string);
@@ -62,6 +64,9 @@ export default function PatientDetailPage() {
     loading,
     error,
     canAccessPatient,
+    canEditPatient,
+    canCreateAppointment,
+    canRecordPatientVitals,
     isEditDialogOpen,
     setIsEditDialogOpen,
     canAccess,
@@ -69,11 +74,7 @@ export default function PatientDetailPage() {
 
   const patient = state.patient;
 
-  const {
-    handleBackToPatients,
-    handleScheduleVisit,
-    handleRefetch,
-  } = handlers;
+  const { handleBackToPatients, handleScheduleVisit, handleRefetch } = handlers;
 
   const patientId = patient?.id ?? "";
   const { data: snapshot } = usePatientSnapshot(patientId);
@@ -141,23 +142,33 @@ export default function PatientDetailPage() {
         onBack={handleBackToPatients}
         actions={
           <>
-            {canAccess(Feature.CALENDAR_SLOTS) && (
+            {canAccess(Feature.CALENDAR_SLOTS) && canCreateAppointment && (
               <Button size="sm" onClick={handleScheduleVisit}>
                 <CalendarPlus className="h-4 w-4 mr-1.5" />
                 Schedule Visit
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={() => setIsEditDialogOpen(true)}>
-              <Pencil className="h-4 w-4 mr-1.5" />
-              Edit
-            </Button>
+            {canEditPatient && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Pencil className="h-4 w-4 mr-1.5" />
+                Edit
+              </Button>
+            )}
           </>
         }
       />
 
       <div className="space-y-6 py-6">
         {snapshot && (
-          <PatientSnapshotStrip snapshot={snapshot} layout="horizontal" showVitals />
+          <PatientSnapshotStrip
+            snapshot={snapshot}
+            layout="horizontal"
+            showVitals
+          />
         )}
 
         <EditPatientDialog
@@ -170,7 +181,7 @@ export default function PatientDetailPage() {
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
-            const next = v as "timeline" | "records" | "documents";
+            const next = v as "timeline" | "records" | "vitals" | "documents";
             setActiveTab(next);
             if (next !== "records") {
               setIsEditingRecords(false);
@@ -187,6 +198,10 @@ export default function PatientDetailPage() {
               <TabsTrigger value="records" className="flex-1 sm:flex-none">
                 <FileText className="mr-1.5 h-4 w-4" />
                 Records
+              </TabsTrigger>
+              <TabsTrigger value="vitals" className="flex-1 sm:flex-none">
+                <HeartPulse className="mr-1.5 h-4 w-4" />
+                Vitals
               </TabsTrigger>
               <TabsTrigger value="documents" className="flex-1 sm:flex-none">
                 <FileText className="mr-1.5 h-4 w-4" />
@@ -216,8 +231,22 @@ export default function PatientDetailPage() {
             <PatientMedicalHistory
               patient={patient as PatientWithHistory}
               readOnly={!isEditingRecords}
-              variant="consultation"
+              variant="default"
               allowGrowthEdit={false}
+            />
+          </TabsContent>
+
+          <TabsContent value="vitals" className="mt-0">
+            <PatientMetricsHistoryUI
+              patientId={patient.id!}
+              readOnly={!canRecordPatientVitals}
+              categoryKey="vitals"
+              title="Vitals History"
+              emptyHistoryMessage="No vitals have been recorded for this patient yet."
+              emptyDefinitionsMessage="Vitals will appear here after they are recorded for this patient."
+              showTracking={false}
+              showConfiguration={false}
+              showRecording={canRecordPatientVitals}
             />
           </TabsContent>
 

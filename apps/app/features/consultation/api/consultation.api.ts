@@ -1,23 +1,31 @@
 import { api } from "@/lib/api-client";
-import type { VitalSign } from "@workspace/types";
+import type {
+  AppointmentContractResponse,
+  StartConsultationResponse,
+  UpdateAppointmentRequest,
+  VitalSign,
+} from "@workspace/types";
 
 export const consultationApi = {
   // Consultation is represented by the appointment in the API.
   getByAppointmentId: (appointmentId: string) =>
-    api.get<unknown>(`/appointments/${appointmentId}`),
+    api.get<AppointmentContractResponse>(`/appointments/${appointmentId}`),
 
   // Start consultation for an appointment (requires doctor role).
-  create: (data: Record<string, unknown>) => {
+  create: (data: { appointmentId: string }) => {
     const appointmentId = String(data.appointmentId ?? "").trim();
     if (!appointmentId) {
       throw new Error("appointmentId is required to start a consultation");
     }
-    return api.post<unknown>(`/appointments/${appointmentId}/start-consultation`, {});
+    return api.post<StartConsultationResponse>(
+      `/appointments/${appointmentId}/start-consultation`,
+      {},
+    );
   },
 
   // Patch appointment details during consultation (server validates fields).
-  update: (appointmentId: string, data: Record<string, unknown>) =>
-    api.patch<unknown>(`/appointments/${appointmentId}`, data),
+  update: (appointmentId: string, data: UpdateAppointmentRequest) =>
+    api.patch<AppointmentContractResponse>(`/appointments/${appointmentId}`, data),
 
   addVitals: (appointmentId: string, vitals: VitalSign) =>
     api.post(`/appointments/${appointmentId}/vitals`, vitals),
