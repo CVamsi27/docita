@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircle, CheckCircle2, Info, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Info, Loader2, XCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -71,22 +71,20 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <div className="flex items-start gap-4">
-            {iconMap[type]}
-            <div className="flex-1">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 shrink-0">{iconMap[type]}</span>
+            <div className="flex-1 flex flex-col gap-1.5">
               <DialogTitle>{title}</DialogTitle>
               {description && (
-                <DialogDescription className="mt-2">
-                  {description}
-                </DialogDescription>
+                <DialogDescription>{description}</DialogDescription>
               )}
             </div>
           </div>
         </DialogHeader>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -105,7 +103,7 @@ export function ConfirmationDialog({
             disabled={isLoading_ || disabled}
             className="gap-2"
           >
-            {isLoading_ && <span className="animate-spin">⟳</span>}
+            {isLoading_ && <Loader2 className="h-4 w-4 animate-spin" />}
             {confirmText}
           </Button>
         </DialogFooter>

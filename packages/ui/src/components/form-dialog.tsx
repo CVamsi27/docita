@@ -17,14 +17,10 @@ export interface FormDialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
-  isEditing?: boolean;
   isLoading?: boolean;
-  submitLabel?: string;
-  cancelLabel?: string;
   contentClassName?: string;
   disabled?: boolean;
   children: React.ReactNode;
-  onCancel?: () => void;
 }
 
 export function FormDialog({
@@ -32,23 +28,21 @@ export function FormDialog({
   onOpenChange,
   title,
   description,
-  isEditing: _isEditing = false,
   isLoading,
-  submitLabel: _submitLabel,
-  cancelLabel: _cancelLabel = "Cancel",
   contentClassName,
   disabled = false,
   children,
-  onCancel: _onCancel,
 }: FormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn(
-          "sm:max-w-[600px] max-h-[85vh] sm:max-h-[90vh]",
-          contentClassName,
-        )}
+        className={cn("sm:max-w-[600px]", contentClassName)}
         onInteractOutside={(e: Event) => {
+          if (isLoading || disabled) {
+            e.preventDefault();
+          }
+        }}
+        onEscapeKeyDown={(e: KeyboardEvent) => {
           if (isLoading || disabled) {
             e.preventDefault();
           }
@@ -83,7 +77,7 @@ export function FormDialogFooter({
   onCancel,
 }: FormDialogFooterProps) {
   return (
-    <div className="flex justify-end gap-2 pt-4">
+    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-2">
       <Button
         type="button"
         variant="outline"

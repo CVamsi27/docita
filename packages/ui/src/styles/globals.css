@@ -66,6 +66,81 @@
   --sidebar-accent-foreground: oklch(0.49 0.14 250);
   --sidebar-border: oklch(0.92 0.01 261.692);
   --sidebar-ring: oklch(0.49 0.14 250);
+
+  /* Elevation ramp (surfaces) */
+  --surface-1: var(--card);
+  --surface-2: oklch(0.975 0.004 247);
+  --surface-3: oklch(0.955 0.006 248);
+
+  /* Typography scale */
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco,
+    "Roboto Mono", monospace;
+  --fs-2xs: 0.6875rem;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.875rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1rem;
+  --fs-xl: 1.125rem;
+  --fs-2xl: 1.25rem;
+  --fs-3xl: 1.5rem;
+  --fs-4xl: 1.875rem;
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.625;
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.01em;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Density + spacing */
+  --density-scale: 1;
+  --space-0: 0;
+  --space-1: calc(0.25rem * var(--density-scale));
+  --space-2: calc(0.5rem * var(--density-scale));
+  --space-3: calc(0.75rem * var(--density-scale));
+  --space-4: calc(1rem * var(--density-scale));
+  --space-5: calc(1.25rem * var(--density-scale));
+  --space-6: calc(1.5rem * var(--density-scale));
+  --space-8: calc(2rem * var(--density-scale));
+  --control-h-sm: calc(1.75rem * var(--density-scale));
+  --control-h-md: calc(2.25rem * var(--density-scale));
+  --control-h-lg: calc(2.75rem * var(--density-scale));
+
+  /* Focus rings */
+  --ring-width: 2px;
+  --ring-offset-width: 2px;
+  --ring-offset-color: var(--background);
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 320ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+[data-density="compact"] {
+  --density-scale: 0.85;
+}
+
+[data-density="spacious"] {
+  --density-scale: 1.1;
+}
+
+.dark {
+  --surface-1: var(--card);
+  --surface-2: oklch(0.155 0.025 261);
+  --surface-3: oklch(0.185 0.028 261);
 }
 
 .dark {
@@ -172,6 +247,25 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+  --font-sans-family: var(--font-sans);
+  --font-mono-family: var(--font-mono);
+
+  --font-size-2xs: var(--fs-2xs);
+  --font-size-xs: var(--fs-xs);
+  --font-size-sm: var(--fs-sm);
+  --font-size-base: var(--fs-base);
+  --font-size-md: var(--fs-md);
+  --font-size-lg: var(--fs-lg);
+  --font-size-xl: var(--fs-xl);
+  --font-size-2xl: var(--fs-2xl);
+  --font-size-3xl: var(--fs-3xl);
+  --font-size-4xl: var(--fs-4xl);
 }
 
 @layer components {
@@ -307,12 +401,32 @@
   html {
     overflow-x: hidden;
     max-width: 100vw;
+    font-family: var(--font-sans);
   }
 
   body {
     @apply bg-background text-foreground;
     overflow-x: hidden;
     max-width: 100vw;
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    line-height: var(--lh-normal);
+  }
+
+  :focus-visible {
+    outline: var(--ring-width) solid var(--ring);
+    outline-offset: var(--ring-offset-width);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
