@@ -71,6 +71,10 @@ export const APP_ACCESS_TARGETS = {
   API_WHATSAPP: "api.whatsapp",
   API_LAB_TESTS: "api.lab-tests",
   API_PATIENTS: "api.patients",
+  API_PATIENTS_READ: "api.patients.read",
+  API_PATIENTS_WRITE: "api.patients.write",
+  API_PATIENT_TIMELINE: "api.patient-timeline",
+  API_PATIENT_METRICS: "api.patient-metrics",
   API_DOCTORS: "api.doctors",
   API_PRESCRIPTIONS: "api.prescriptions",
   API_INVOICES: "api.invoices",
@@ -80,58 +84,78 @@ export const APP_ACCESS_TARGETS = {
 export type AppAccessTarget =
   (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
 
-const ALL_STAFF_ROLES: UserRole[] = [
+const DASHBOARD_ROLES: UserRole[] = [
+  "ADMIN",
+  "ADMIN_DOCTOR",
+  "DOCTOR",
+  "NURSE",
+  "RECEPTIONIST",
+];
+const SETTINGS_ROLES: UserRole[] = [
   "ADMIN",
   "ADMIN_DOCTOR",
   "DOCTOR",
   "RECEPTIONIST",
 ];
-
+const CARE_COORDINATION_ROLES: UserRole[] = [
+  "ADMIN",
+  "ADMIN_DOCTOR",
+  "DOCTOR",
+  "NURSE",
+  "RECEPTIONIST",
+];
+const CLINICAL_SUPPORT_ROLES: UserRole[] = [
+  "ADMIN",
+  "ADMIN_DOCTOR",
+  "DOCTOR",
+  "NURSE",
+];
 const ADMIN_BILLING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR"];
+const PRESCRIPTION_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
 const CLINICAL_CODING_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
 const ANALYTICS_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "DOCTOR"];
 const IMPORT_ROLES: UserRole[] = ["ADMIN", "ADMIN_DOCTOR", "INTERNAL"];
 
 export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
   [APP_ACCESS_TARGETS.PAGE_DASHBOARD]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: DASHBOARD_ROLES },
   },
   [APP_ACCESS_TARGETS.PAGE_SETTINGS]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: SETTINGS_ROLES },
   },
   [APP_ACCESS_TARGETS.PAGE_PROFILE]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: DASHBOARD_ROLES },
   },
   [APP_ACCESS_TARGETS.PAGE_PATIENTS]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CARE_COORDINATION_ROLES },
     feature: Feature.BASIC_PATIENT_MANAGEMENT,
   },
   [APP_ACCESS_TARGETS.PAGE_APPOINTMENTS]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CARE_COORDINATION_ROLES },
     feature: Feature.CALENDAR_SLOTS,
   },
   [APP_ACCESS_TARGETS.PAGE_CONSULTATION]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CARE_COORDINATION_ROLES },
     feature: Feature.CALENDAR_SLOTS,
   },
   [APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: PRESCRIPTION_ROLES },
     feature: Feature.DIGITAL_PRESCRIPTIONS,
   },
   [APP_ACCESS_TARGETS.PAGE_LAB_TESTS]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CLINICAL_SUPPORT_ROLES },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.PAGE_INVOICES]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVOICING,
   },
   [APP_ACCESS_TARGETS.PAGE_INVENTORY]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVENTORY,
   },
   [APP_ACCESS_TARGETS.PAGE_DOCUMENTS]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CLINICAL_SUPPORT_ROLES },
     feature: Feature.DOCUMENT_ARCHIVAL,
   },
   [APP_ACCESS_TARGETS.PAGE_ANALYTICS]: {
@@ -147,15 +171,15 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.EXCEL_IMPORT,
   },
   [APP_ACCESS_TARGETS.PAGE_WHATSAPP]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.WHATSAPP_MESSAGING,
   },
   [APP_ACCESS_TARGETS.PAGE_SPECIALTY]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CLINICAL_SUPPORT_ROLES },
     feature: Feature.CALENDAR_SLOTS,
   },
   [APP_ACCESS_TARGETS.PAGE_HOSPITAL]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CLINICAL_SUPPORT_ROLES },
     feature: Feature.FULL_EHR,
     comingSoon: true,
   },
@@ -181,8 +205,8 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.BASIC_ANALYTICS,
   },
   [APP_ACCESS_TARGETS.API_APPOINTMENTS]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: CARE_COORDINATION_ROLES },
+    write: { roles: CARE_COORDINATION_ROLES },
     feature: Feature.CALENDAR_SLOTS,
   },
   [APP_ACCESS_TARGETS.API_MEDICAL_CODING]: {
@@ -191,52 +215,74 @@ export const APP_ACCESS_MATRIX: Record<AppAccessTarget, AccessPolicy> = {
     feature: Feature.MEDICAL_CODING,
   },
   [APP_ACCESS_TARGETS.API_INVENTORY]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVENTORY,
   },
   [APP_ACCESS_TARGETS.API_QUEUE]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: CARE_COORDINATION_ROLES },
+    write: { roles: CARE_COORDINATION_ROLES },
     feature: Feature.QUEUE_MANAGEMENT,
   },
   [APP_ACCESS_TARGETS.API_MEDICAL_DOCUMENTS]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: CLINICAL_SUPPORT_ROLES },
+    write: { roles: CLINICAL_SUPPORT_ROLES },
     feature: Feature.DOCUMENT_ARCHIVAL,
   },
   [APP_ACCESS_TARGETS.API_WHATSAPP]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.WHATSAPP_MESSAGING,
   },
   [APP_ACCESS_TARGETS.API_LAB_TESTS]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: CLINICAL_SUPPORT_ROLES },
+    write: { roles: CLINICAL_SUPPORT_ROLES },
     feature: Feature.LAB_TESTS,
   },
   [APP_ACCESS_TARGETS.API_PATIENTS]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: CARE_COORDINATION_ROLES },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    feature: Feature.BASIC_PATIENT_MANAGEMENT,
+  },
+  [APP_ACCESS_TARGETS.API_PATIENTS_READ]: {
+    read: { roles: CARE_COORDINATION_ROLES },
+    feature: Feature.BASIC_PATIENT_MANAGEMENT,
+  },
+  [APP_ACCESS_TARGETS.API_PATIENTS_WRITE]: {
+    read: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST", "NURSE"],
+    },
+    write: {
+      roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST", "NURSE"],
+    },
+    feature: Feature.BASIC_PATIENT_MANAGEMENT,
+  },
+  [APP_ACCESS_TARGETS.API_PATIENT_TIMELINE]: {
+    read: { roles: CARE_COORDINATION_ROLES },
+    feature: Feature.BASIC_PATIENT_MANAGEMENT,
+  },
+  [APP_ACCESS_TARGETS.API_PATIENT_METRICS]: {
+    read: { roles: CARE_COORDINATION_ROLES },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE"] },
     feature: Feature.BASIC_PATIENT_MANAGEMENT,
   },
   [APP_ACCESS_TARGETS.API_DOCTORS]: {
-    read: { roles: ALL_STAFF_ROLES },
+    read: { roles: CARE_COORDINATION_ROLES },
     write: { roles: ADMIN_BILLING_ROLES },
   },
   [APP_ACCESS_TARGETS.API_PRESCRIPTIONS]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: PRESCRIPTION_ROLES },
+    write: { roles: PRESCRIPTION_ROLES },
     feature: Feature.DIGITAL_PRESCRIPTIONS,
   },
   [APP_ACCESS_TARGETS.API_INVOICES]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.INVOICING,
   },
   [APP_ACCESS_TARGETS.API_PAYMENTS]: {
-    read: { roles: ALL_STAFF_ROLES },
-    write: { roles: ALL_STAFF_ROLES },
+    read: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
+    write: { roles: ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "RECEPTIONIST"] },
     feature: Feature.PAYMENT_LINKS,
   },
 };

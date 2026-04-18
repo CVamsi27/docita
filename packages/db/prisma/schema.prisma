@@ -1777,6 +1777,7 @@ model WhatsappMessage {
 
 enum Role {
   DOCTOR
+  NURSE
   RECEPTIONIST
   ADMIN
   INTERNAL
