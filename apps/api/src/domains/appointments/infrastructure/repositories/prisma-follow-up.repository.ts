@@ -48,8 +48,19 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
   async findForAppointment(appointmentId: string, clinicId: string) {
     return this.getReadClient().followUp.findMany({
       where: { appointmentId, clinicId },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+        doctor: { select: { id: true, name: true } },
+      },
       orderBy: { createdAt: 'desc' },
-    });
+    }) as Promise<FollowUpWithRelations[]>;
   }
 
   async findByIdAndClinic(id: string, clinicId: string) {

@@ -407,7 +407,7 @@ export class AppConfigService {
   }
 
   getJwtExpiration(): string {
-    return this.getConfig().JWT_EXPIRATION || '7d';
+    return this.getConfig().JWT_EXPIRATION || '30d';
   }
 
   getEncryptionKey(): string {

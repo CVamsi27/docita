@@ -173,7 +173,7 @@ export class Appointment {
       doctorId: this.doctorId,
       startTime: this.startTime,
       endTime: this.endTime,
-      status: this.status.getValue(),
+      status: this.status.toJSON(),
       reason: this.reason,
       notes: this.notes,
       consultationNotes: this.consultationNotes,

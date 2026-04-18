@@ -6,7 +6,7 @@ export const EnvSchema = z.object({
   // API needs JWT_SECRET for auth. Worker-only processes should not fail hard
   // if JWT issuance/verification is not part of their runtime responsibilities.
   JWT_SECRET: z.string().min(32).optional(),
-  JWT_EXPIRATION: z.string().default('7d'),
+  JWT_EXPIRATION: z.string().default('30d'),
   ENCRYPTION_KEY: z.string().length(64),
   NODE_ENV: z
     .enum(['development', 'staging', 'production', 'test'])
