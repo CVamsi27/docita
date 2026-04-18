@@ -94,7 +94,7 @@ export function DataTable<T>({
   const totalPages = pageSize ? Math.max(1, Math.ceil(sorted.length / pageSize)) : 1;
 
   if (error) {
-    return <ErrorState message={error.message || "Failed to load"} />;
+    return <ErrorState message="We could not load this table. Please try again." />;
   }
 
   if (isLoading) {

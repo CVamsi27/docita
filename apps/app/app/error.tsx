@@ -23,15 +23,15 @@ export default function RootError({
           <AlertCircle className="h-8 w-8 text-destructive" />
         </div>
         <h2 className="mb-2 text-[var(--fs-xl)] font-semibold">
-          Something went wrong
+          We could not load this page
         </h2>
         <p className="mb-6 text-muted-foreground text-[var(--fs-sm)]">
-          We hit an unexpected error. Please try again or return home.
+          Please refresh the page or return home to continue.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()}>
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden />
-            Try again
+            Refresh page
           </Button>
           <Button
             variant="outline"
