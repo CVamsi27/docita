@@ -9,7 +9,7 @@ import {
 
 export type { UserFacingErrorContext };
 
-const ERROR_TOAST_DURATION_MS = Number.POSITIVE_INFINITY;
+const ERROR_TOAST_DURATION_MS = 8000;
 
 export function getSafeUserMessage(
   message: string | null | undefined,

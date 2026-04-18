@@ -18,6 +18,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -348,19 +349,23 @@ export function AnalyticsDashboard() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground"
+              <DatePicker
+                value={startDate || undefined}
+                onChange={(date) =>
+                  setStartDate(date?.toISOString().slice(0, 10) ?? "")
+                }
+                placeholder="Start date"
+                className="w-40"
               />
             </div>
             <span className="text-muted-foreground">to</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground"
+            <DatePicker
+              value={endDate || undefined}
+              onChange={(date) =>
+                setEndDate(date?.toISOString().slice(0, 10) ?? "")
+              }
+              placeholder="End date"
+              className="w-40"
             />
           </div>
         </div>

@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Tabs,
   TabsContent,
@@ -576,15 +577,15 @@ export default function PricingPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Valid until</label>
-                  <Input
-                    type="date"
-                    value={offerForm.validUntil}
-                    onChange={(e) =>
+                  <DatePicker
+                    value={offerForm.validUntil || undefined}
+                    onChange={(date) =>
                       setOfferForm((prev) => ({
                         ...prev,
-                        validUntil: e.target.value,
+                        validUntil: date?.toISOString().slice(0, 10) ?? "",
                       }))
                     }
+                    placeholder="Select date"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">

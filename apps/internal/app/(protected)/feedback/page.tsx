@@ -11,7 +11,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Input } from "@workspace/ui/components/input";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Select,
   SelectContent,
@@ -448,28 +448,28 @@ export default function FeedbackPage() {
               </div>
               <div>
                 <Label>Start Date</Label>
-                <Input
-                  type="date"
-                  value={filters.startDate || ""}
-                  onChange={(e) =>
+                <DatePicker
+                  value={filters.startDate || undefined}
+                  onChange={(date) =>
                     setFilters({
                       ...filters,
-                      startDate: e.target.value || undefined,
+                      startDate: date?.toISOString().slice(0, 10) ?? undefined,
                     })
                   }
+                  placeholder="Start date"
                 />
               </div>
               <div>
                 <Label>End Date</Label>
-                <Input
-                  type="date"
-                  value={filters.endDate || ""}
-                  onChange={(e) =>
+                <DatePicker
+                  value={filters.endDate || undefined}
+                  onChange={(date) =>
                     setFilters({
                       ...filters,
-                      endDate: e.target.value || undefined,
+                      endDate: date?.toISOString().slice(0, 10) ?? undefined,
                     })
                   }
+                  placeholder="End date"
                 />
               </div>
             </div>
