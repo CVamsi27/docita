@@ -13,11 +13,12 @@ import {
 } from '@nestjs/common';
 import { ClinicalService } from '@/domains/clinical/application/services/clinical.service';
 import {
-  IcdCode,
-  CptCode,
-  DoctorFavoriteCode,
-  Appointment,
-} from '@workspace/db';
+  ClinicalSettingsService,
+  medicalCodingSettingsSchema,
+  type MedicalCodingSettings,
+} from '@/domains/clinical/application/services/clinical-settings.service';
+import type { IcdCode, CptCode, DoctorFavoriteCode } from '@workspace/types';
+import type { Appointment } from '@workspace/db';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
@@ -27,18 +28,7 @@ import {
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
-import { PrismaService } from '@/prisma/prisma.service';
-import { z } from 'zod';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
-
-const medicalCodingSettingsSchema = z
-  .object({
-    enabled: z.boolean().optional(),
-    provider: z.string().min(1).optional(),
-    autoSuggest: z.boolean().optional(),
-    preferredSystem: z.string().min(1).optional(),
-  })
-  .strict();
 
 @Controller('clinical/medical-coding')
 @UseGuards(TierGuard)
@@ -47,26 +37,28 @@ const medicalCodingSettingsSchema = z
 export class MedicalCodingController {
   constructor(
     private readonly clinicalService: ClinicalService,
-    private readonly prisma: PrismaService,
+    private readonly settingsService: ClinicalSettingsService,
   ) {}
 
   @Get('icd/search')
   async searchIcd(@Query('q') query: string): Promise<IcdCode[]> {
-    return await this.clinicalService.searchIcdCodes(query);
+    return (await this.clinicalService.searchIcdCodes(query)) as IcdCode[];
   }
 
   @Get('icd/favorites')
   async getFavorites(
     @Request() req: RequestWithUser,
   ): Promise<(IcdCode | null)[]> {
-    return await this.clinicalService.getFavorites(req.user!.id);
+    return (await this.clinicalService.getFavorites(
+      req.user!.id,
+    )) as (IcdCode | null)[];
   }
 
   @Get('icd/common')
   async getCommonIcdCodes(@Query('limit') limit?: string): Promise<IcdCode[]> {
-    return await this.clinicalService.getCommonIcdCodes(
+    return (await this.clinicalService.getCommonIcdCodes(
       limit ? Number(limit) : 50,
-    );
+    )) as IcdCode[];
   }
 
   @Post('icd/favorites')
@@ -76,12 +68,12 @@ export class MedicalCodingController {
     @Body('description') description: string,
     @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
-    return await this.clinicalService.addFavorite(
+    return (await this.clinicalService.addFavorite(
       req.user!.id,
       code,
       description,
       category,
-    );
+    )) as DoctorFavoriteCode;
   }
 
   @Delete('icd/favorites/:icdCodeId')
@@ -94,21 +86,23 @@ export class MedicalCodingController {
 
   @Get('cpt/search')
   async searchCpt(@Query('q') query: string): Promise<CptCode[]> {
-    return await this.clinicalService.searchCptCodes(query);
+    return (await this.clinicalService.searchCptCodes(query)) as CptCode[];
   }
 
   @Get('cpt/favorites')
   async getCptFavorites(
     @Request() req: RequestWithUser,
   ): Promise<(CptCode | null)[]> {
-    return await this.clinicalService.getCptFavorites(req.user!.id);
+    return (await this.clinicalService.getCptFavorites(
+      req.user!.id,
+    )) as (CptCode | null)[];
   }
 
   @Get('cpt/common')
   async getCommonCptCodes(@Query('limit') limit?: string): Promise<CptCode[]> {
-    return await this.clinicalService.getCommonCptCodes(
+    return (await this.clinicalService.getCommonCptCodes(
       limit ? Number(limit) : 50,
-    );
+    )) as CptCode[];
   }
 
   @Post('cpt/favorites')
@@ -118,12 +112,12 @@ export class MedicalCodingController {
     @Body('description') description: string,
     @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
-    return await this.clinicalService.addCptFavorite(
+    return (await this.clinicalService.addCptFavorite(
       req.user!.id,
       code,
       description,
       category,
-    );
+    )) as DoctorFavoriteCode;
   }
 
   @Delete('cpt/favorites/:cptCodeId')
@@ -150,68 +144,18 @@ export class MedicalCodingController {
 
   @Get('settings')
   async getCodingSettings(@Request() req: RequestWithUser) {
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: req.user!.clinicId! },
-      select: { settings: true },
-    });
-
-    const settings =
-      clinic?.settings && typeof clinic.settings === 'object'
-        ? Object.fromEntries(Object.entries(clinic.settings))
-        : {};
-
-    return {
-      enabled: settings.medicalCodingEnabled !== false,
-      provider:
-        typeof settings.medicalCodingProvider === 'string'
-          ? settings.medicalCodingProvider
-          : 'internal',
-      autoSuggest: settings.medicalCodingAutoSuggest !== false,
-      preferredSystem:
-        typeof settings.medicalCodingPreferredSystem === 'string'
-          ? settings.medicalCodingPreferredSystem
-          : 'ICD-10',
-    };
+    return this.settingsService.getMedicalCodingSettings(req.user!.clinicId!);
   }
 
   @Put('settings')
   @UsePipes(new ZodValidationPipe(medicalCodingSettingsSchema))
   async updateCodingSettings(
     @Request() req: RequestWithUser,
-    @Body() body: Record<string, unknown>,
+    @Body() body: MedicalCodingSettings,
   ) {
-    const parsed = medicalCodingSettingsSchema.parse(body);
-    const clinic = await this.prisma.clinic.findUnique({
-      where: { id: req.user!.clinicId! },
-      select: { settings: true },
-    });
-
-    const currentSettings =
-      clinic?.settings && typeof clinic.settings === 'object'
-        ? Object.fromEntries(Object.entries(clinic.settings))
-        : {};
-
-    await this.prisma.clinic.update({
-      where: { id: req.user!.clinicId! },
-      data: {
-        settings: {
-          ...currentSettings,
-          ...(parsed.enabled !== undefined
-            ? { medicalCodingEnabled: parsed.enabled }
-            : {}),
-          ...(parsed.provider !== undefined
-            ? { medicalCodingProvider: parsed.provider }
-            : {}),
-          ...(parsed.autoSuggest !== undefined
-            ? { medicalCodingAutoSuggest: parsed.autoSuggest }
-            : {}),
-          ...(parsed.preferredSystem !== undefined
-            ? { medicalCodingPreferredSystem: parsed.preferredSystem }
-            : {}),
-        },
-      },
-    });
-
-    return { success: true };
+    return this.settingsService.updateMedicalCodingSettings(
+      req.user!.clinicId!,
+      body,
+    );
   }
 }

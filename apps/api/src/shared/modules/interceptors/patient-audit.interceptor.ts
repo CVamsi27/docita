@@ -187,7 +187,9 @@ export function classifySensitiveWrite(args: {
     path.startsWith('/lab-tests') ||
     path.startsWith('/clinical') ||
     path.startsWith('/inventory') ||
-    path.startsWith('/queue')
+    path.startsWith('/queue') ||
+    path.startsWith('/follow-ups') ||
+    path.startsWith('/vitals')
   ) {
     return {
       actionType: `CLINICAL_${method}`,

@@ -10,16 +10,17 @@ import {
   Query,
   BadRequestException,
   ForbiddenException,
+  UsePipes,
 } from '@nestjs/common';
+import { ZodValidationPipe, ZodSerializerDto } from 'nestjs-zod';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { Role } from '@workspace/db';
 import {
-  Prisma,
-  Role,
-  AppointmentStatus as PrismaAppointmentStatus,
-} from '@workspace/db';
-import { APP_ACCESS_TARGETS } from '@workspace/types';
+  APP_ACCESS_TARGETS,
+  diagnosesSyncRequestSchema,
+} from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
@@ -35,6 +36,8 @@ import {
   RescheduleAppointmentDto,
   UpdateAppointmentDto,
   VitalsDto,
+  DiagnosesSyncDto,
+  DiagnosesSyncResponseDto,
 } from '@/domains/appointments/application/dto/appointments.dto';
 import {
   appointmentDomainCreateSchema,
@@ -63,28 +66,6 @@ const parseAppointmentStatus = (
     case 'noshow':
     case 'no-show':
       return AppointmentStatusEnum.NOSHOW;
-    default:
-      return undefined;
-  }
-};
-
-const mapAppointmentStatusToPrisma = (
-  status: string | undefined,
-): PrismaAppointmentStatus | undefined => {
-  switch (status) {
-    case 'scheduled':
-      return PrismaAppointmentStatus.SCHEDULED;
-    case 'confirmed':
-    case 'checked-in':
-      return PrismaAppointmentStatus.CONFIRMED;
-    case 'in-progress':
-      return PrismaAppointmentStatus.IN_PROGRESS;
-    case 'completed':
-      return PrismaAppointmentStatus.COMPLETED;
-    case 'cancelled':
-      return PrismaAppointmentStatus.CANCELLED;
-    case 'no-show':
-      return PrismaAppointmentStatus.NO_SHOW;
     default:
       return undefined;
   }
@@ -196,15 +177,10 @@ export class AppointmentsController {
     @Request() req: RequestWithUser,
     @Body() body: UpdateAppointmentDto,
   ) {
-    const { status, ...rest } = body;
-    const data: Prisma.AppointmentUpdateInput = {
-      ...rest,
-      ...(status ? { status: mapAppointmentStatusToPrisma(status) } : {}),
-    };
     return this.appointmentService.updateAppointmentDetails(
       id,
       req.user!.clinicId!,
-      data,
+      body,
       this.getAccessContext(req),
     );
   }
@@ -225,6 +201,7 @@ export class AppointmentsController {
 
   @Post(':id/vitals')
   @ApiOperation({ summary: 'Create or update appointment vitals' })
+  @ZodSerializerDto(VitalsDto)
   async createVitals(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
@@ -247,6 +224,7 @@ export class AppointmentsController {
 
   @Patch(':id/vitals')
   @ApiOperation({ summary: 'Patch appointment vitals' })
+  @ZodSerializerDto(VitalsDto)
   async updateVitals(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
@@ -269,24 +247,25 @@ export class AppointmentsController {
 
   @Post(':id/diagnoses')
   @ApiOperation({ summary: 'Sync ICD-10 diagnoses for an appointment' })
+  @UsePipes(new ZodValidationPipe(diagnosesSyncRequestSchema))
+  @ZodSerializerDto(DiagnosesSyncResponseDto)
   async syncDiagnoses(
     @Param('id') id: string,
     @Request() req: RequestWithUser,
-    @Body()
-    body: {
-      diagnoses: Array<{
-        icdCodeId?: string;
-        notes?: string;
-        isPrimary?: boolean;
-      }>;
-    },
-  ) {
-    await this.appointmentService.syncDiagnoses(
+    @Body() body: DiagnosesSyncDto,
+  ): Promise<DiagnosesSyncResponseDto> {
+    const result = await this.appointmentService.syncDiagnoses(
       id,
       req.user!.clinicId!,
       body.diagnoses ?? [],
+      body.contentHash,
     );
-    return { success: true };
+    return {
+      success: true,
+      contentHash: result.contentHash,
+      skipped: result.skipped,
+      count: result.count,
+    };
   }
 
   @Patch(':id/cancel')

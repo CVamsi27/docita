@@ -17,21 +17,37 @@ describe('AppointmentService.syncDiagnoses', () => {
     jest.fn<
       (...args: unknown[]) => Promise<{ id: string; clinicId: string } | null>
     >();
+  const findManyMock = jest.fn<
+    (...args: unknown[]) => Promise<
+      Array<{
+        icdCodeId: string | null;
+        notes: string | null;
+        isPrimary: boolean;
+      }>
+    >
+  >();
   const deleteManyMock =
     jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
   const createManyMock =
     jest.fn<(...args: unknown[]) => Promise<{ count: number }>>();
+
+  const txProxy = {
+    diagnosis: {
+      deleteMany: deleteManyMock,
+      createMany: createManyMock,
+    },
+  };
 
   const prisma = {
     appointment: {
       findUnique: findUniqueMock,
     },
     diagnosis: {
-      deleteMany: deleteManyMock,
-      createMany: createManyMock,
+      findMany: findManyMock,
     },
-    $transaction: jest.fn(async (operations: Promise<unknown>[]) =>
-      Promise.all(operations),
+    $transaction: jest.fn(
+      async (callback: (tx: typeof txProxy) => Promise<unknown>) =>
+        callback(txProxy),
     ),
   } as never;
 
@@ -47,11 +63,12 @@ describe('AppointmentService.syncDiagnoses', () => {
       id: 'appt-1',
       clinicId: 'clinic-1',
     });
+    findManyMock.mockResolvedValue([]);
 
     deleteManyMock.mockResolvedValue({ count: 0 });
     createManyMock.mockResolvedValue({ count: 2 });
 
-    await service.syncDiagnoses('appt-1', 'clinic-1', [
+    const result = await service.syncDiagnoses('appt-1', 'clinic-1', [
       {
         notes: 'uncoded row',
         isPrimary: true,
@@ -82,5 +99,28 @@ describe('AppointmentService.syncDiagnoses', () => {
         },
       ],
     });
+    expect(result.skipped).toBe(false);
+    expect(result.count).toBe(2);
+    expect(result.contentHash).toBeDefined();
+  });
+
+  it('skips the write when the stored diagnoses already match the requested set', async () => {
+    findUniqueMock.mockResolvedValue({
+      id: 'appt-2',
+      clinicId: 'clinic-1',
+    });
+    findManyMock.mockResolvedValue([
+      { icdCodeId: 'icd-1', notes: 'note a', isPrimary: true },
+    ]);
+    deleteManyMock.mockReset();
+    createManyMock.mockReset();
+
+    const result = await service.syncDiagnoses('appt-2', 'clinic-1', [
+      { icdCodeId: 'icd-1', notes: 'note a', isPrimary: true },
+    ]);
+
+    expect(result.skipped).toBe(true);
+    expect(deleteManyMock).not.toHaveBeenCalled();
+    expect(createManyMock).not.toHaveBeenCalled();
   });
 });

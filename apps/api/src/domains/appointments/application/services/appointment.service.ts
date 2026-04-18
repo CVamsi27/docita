@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import {
   Injectable,
   Inject,
@@ -15,8 +16,13 @@ import {
   MetricCaptureScope,
   Prisma,
   Role,
+  AppointmentStatus as PrismaAppointmentStatus,
   VitalSign,
 } from '@workspace/db';
+import type {
+  DiagnosisSyncItem,
+  UpdateAppointmentRequest,
+} from '@workspace/types';
 import {
   CreateAppointmentUseCase,
   CreateAppointmentCommand,
@@ -155,29 +161,32 @@ export class AppointmentService {
       );
     }
 
-    if (appointment.status !== 'IN_PROGRESS') {
-      await this.prisma.appointment.update({
-        where: { id },
-        data: {
-          status: 'IN_PROGRESS',
-          version: { increment: 1 },
-        },
-      });
-    }
+    await this.prisma.$transaction(async (tx) => {
+      if (appointment.status !== 'IN_PROGRESS') {
+        await tx.appointment.update({
+          where: { id },
+          data: {
+            status: 'IN_PROGRESS',
+            version: { increment: 1 },
+          },
+        });
+      }
 
-    if (appointment.queueToken) {
-      const startTime = appointment.queueToken.consultationStart ?? new Date();
-      const calledAt = appointment.queueToken.calledAt ?? new Date();
+      if (appointment.queueToken) {
+        const startTime =
+          appointment.queueToken.consultationStart ?? new Date();
+        const calledAt = appointment.queueToken.calledAt ?? new Date();
 
-      await this.prisma.queueToken.update({
-        where: { id: appointment.queueToken.id },
-        data: {
-          status: 'IN_PROGRESS',
-          calledAt,
-          consultationStart: startTime,
-        },
-      });
-    }
+        await tx.queueToken.update({
+          where: { id: appointment.queueToken.id },
+          data: {
+            status: 'IN_PROGRESS',
+            calledAt,
+            consultationStart: startTime,
+          },
+        });
+      }
+    });
 
     return {
       appointmentId: appointment.id,
@@ -209,10 +218,49 @@ export class AppointmentService {
     await this.appointmentRepository.update(appointment);
   }
 
+  private mapStatusToPrisma(
+    status: UpdateAppointmentRequest['status'] | undefined,
+  ): PrismaAppointmentStatus | undefined {
+    switch (status) {
+      case 'scheduled':
+        return PrismaAppointmentStatus.SCHEDULED;
+      case 'confirmed':
+      case 'checked-in':
+        return PrismaAppointmentStatus.CONFIRMED;
+      case 'in-progress':
+        return PrismaAppointmentStatus.IN_PROGRESS;
+      case 'completed':
+        return PrismaAppointmentStatus.COMPLETED;
+      case 'cancelled':
+        return PrismaAppointmentStatus.CANCELLED;
+      case 'no-show':
+        return PrismaAppointmentStatus.NO_SHOW;
+      default:
+        return undefined;
+    }
+  }
+
+  private toPrismaAppointmentUpdate(
+    input: Partial<UpdateAppointmentRequest>,
+  ): Prisma.AppointmentUpdateInput {
+    const { status, ...rest } = input;
+    const prismaStatus = this.mapStatusToPrisma(status);
+    // rest matches Prisma scalar/JSON fields 1:1 for the allowlisted clinical
+    // keys defined in updateAppointmentRequestSchema, so we can spread safely
+    // into the Prisma update payload.
+    const patch: Prisma.AppointmentUpdateInput = {
+      ...(rest as unknown as Prisma.AppointmentUpdateInput),
+    };
+    if (prismaStatus) {
+      patch.status = prismaStatus;
+    }
+    return patch;
+  }
+
   async updateAppointmentDetails(
     id: string,
     clinicId: string,
-    data: Prisma.AppointmentUpdateInput,
+    data: Partial<UpdateAppointmentRequest>,
     accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
     const appointment = await this.prisma.appointment.findUnique({
@@ -238,10 +286,12 @@ export class AppointmentService {
       );
     }
 
+    const prismaPatch = this.toPrismaAppointmentUpdate(data);
+
     await this.prisma.appointment.update({
       where: { id },
       data: {
-        ...data,
+        ...prismaPatch,
         version: { increment: 1 },
       },
     });
@@ -287,15 +337,27 @@ export class AppointmentService {
     return this.getAppointment(id, clinicId, accessContext);
   }
 
+  private hashDiagnosesContent(diagnoses: DiagnosisSyncItem[]): string {
+    const canonical = diagnoses
+      .filter((d) => d.icdCodeId)
+      .map((d) => ({
+        icdCodeId: d.icdCodeId,
+        notes: d.notes?.trim() ?? '',
+        isPrimary: Boolean(d.isPrimary),
+      }))
+      .sort((a, b) => (a.icdCodeId! > b.icdCodeId! ? 1 : -1));
+    return createHash('sha256')
+      .update(JSON.stringify(canonical))
+      .digest('hex')
+      .slice(0, 32);
+  }
+
   async syncDiagnoses(
     appointmentId: string,
     clinicId: string,
-    diagnoses: Array<{
-      icdCodeId?: string;
-      notes?: string;
-      isPrimary?: boolean;
-    }>,
-  ): Promise<void> {
+    diagnoses: DiagnosisSyncItem[],
+    requestHash?: string,
+  ): Promise<{ contentHash: string; skipped: boolean; count: number }> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
       select: { id: true, clinicId: true },
@@ -312,28 +374,60 @@ export class AppointmentService {
     }
 
     const codedDiagnoses = diagnoses.filter((d) => d.icdCodeId);
+    const computedHash = this.hashDiagnosesContent(diagnoses);
+
+    if (requestHash && requestHash !== computedHash) {
+      throw new BadRequestException(
+        'Diagnosis payload content hash does not match supplied hash',
+      );
+    }
+
+    const existing = await this.prisma.diagnosis.findMany({
+      where: { appointmentId },
+      select: { icdCodeId: true, notes: true, isPrimary: true },
+    });
+    const existingHash = this.hashDiagnosesContent(
+      existing.map((d) => ({
+        icdCodeId: d.icdCodeId ?? undefined,
+        notes: d.notes ?? undefined,
+        isPrimary: d.isPrimary,
+      })),
+    );
+
+    if (existingHash === computedHash) {
+      return {
+        contentHash: computedHash,
+        skipped: true,
+        count: codedDiagnoses.length,
+      };
+    }
+
     const primaryDiagnosisIndex = codedDiagnoses.findIndex(
       (diagnosis) => diagnosis.isPrimary,
     );
 
-    await this.prisma.$transaction([
-      this.prisma.diagnosis.deleteMany({ where: { appointmentId } }),
-      ...(codedDiagnoses.length > 0
-        ? [
-            this.prisma.diagnosis.createMany({
-              data: codedDiagnoses.map((d, index) => ({
-                appointmentId,
-                icdCodeId: d.icdCodeId!,
-                notes: d.notes ?? null,
-                isPrimary:
-                  primaryDiagnosisIndex === -1
-                    ? index === 0
-                    : index === primaryDiagnosisIndex,
-              })),
-            }),
-          ]
-        : []),
-    ]);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.diagnosis.deleteMany({ where: { appointmentId } });
+      if (codedDiagnoses.length > 0) {
+        await tx.diagnosis.createMany({
+          data: codedDiagnoses.map((d, index) => ({
+            appointmentId,
+            icdCodeId: d.icdCodeId!,
+            notes: d.notes ?? null,
+            isPrimary:
+              primaryDiagnosisIndex === -1
+                ? index === 0
+                : index === primaryDiagnosisIndex,
+          })),
+        });
+      }
+    });
+
+    return {
+      contentHash: computedHash,
+      skipped: false,
+      count: codedDiagnoses.length,
+    };
   }
 
   async createVitals(

@@ -98,6 +98,69 @@ describe('Prescriptions (e2e)', () => {
     it('should reject unauthenticated request', async () => {
       await request(app.getHttpServer()).get('/prescriptions').expect(401);
     });
+
+    it('should filter prescriptions by patientId and honour limit', async () => {
+      const otherPatient = await factories.patient(clinicId);
+      const appointmentA = await factories.appointment(
+        patientId,
+        doctorId,
+        clinicId,
+      );
+      const appointmentB = await factories.appointment(
+        otherPatient.id,
+        doctorId,
+        clinicId,
+      );
+
+      await request(app.getHttpServer())
+        .post('/prescriptions')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          appointmentId: appointmentA.id,
+          patientId,
+          doctorId,
+          medications: [
+            {
+              name: 'Amoxicillin',
+              dosage: '500mg',
+              frequency: 'thrice daily',
+              duration: '7 days',
+            },
+          ],
+        })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/prescriptions')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          appointmentId: appointmentB.id,
+          patientId: otherPatient.id,
+          doctorId,
+          medications: [
+            {
+              name: 'Cetirizine',
+              dosage: '10mg',
+              frequency: 'once daily',
+              duration: '3 days',
+            },
+          ],
+        })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .get(`/prescriptions?patientId=${patientId}&limit=5`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThanOrEqual(1);
+      expect(
+        (response.body as Array<{ patientId: string }>).every(
+          (p) => p.patientId === patientId,
+        ),
+      ).toBe(true);
+    });
   });
 
   describe('POST /prescriptions', () => {

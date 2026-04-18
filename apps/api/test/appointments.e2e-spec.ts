@@ -278,4 +278,81 @@ describe('AppointmentsController (e2e)', () => {
         .expect(403);
     });
   });
+
+  describe('/appointments/:id/diagnoses (POST)', () => {
+    it('is idempotent when the same diagnoses are synced twice', async () => {
+      const icd = await prisma.icdCode.create({
+        data: {
+          code: 'A01.0',
+          description: 'Typhoid fever',
+          category: 'Infectious',
+        },
+      });
+
+      const appointment = await factories.appointment(
+        patient.id,
+        doctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 18000000),
+          endTime: new Date(Date.now() + 19800000),
+        },
+      );
+
+      const payload = {
+        diagnoses: [{ icdCodeId: icd.id, notes: 'primary', isPrimary: true }],
+      };
+
+      const first = await request(app.getHttpServer())
+        .post(`/appointments/${appointment.id}/diagnoses`)
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .send(payload)
+        .expect(201);
+
+      expect(first.body.success).toBe(true);
+      expect(first.body.skipped).toBe(false);
+      expect(first.body.count).toBe(1);
+      const hashAfterFirst: string = first.body.contentHash;
+      expect(hashAfterFirst).toBeTruthy();
+
+      const second = await request(app.getHttpServer())
+        .post(`/appointments/${appointment.id}/diagnoses`)
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .send(payload)
+        .expect(201);
+
+      expect(second.body.skipped).toBe(true);
+      expect(second.body.contentHash).toBe(hashAfterFirst);
+      expect(second.body.count).toBe(1);
+    });
+
+    it('rejects a stale contentHash from the client', async () => {
+      const icd = await prisma.icdCode.create({
+        data: {
+          code: 'B99',
+          description: 'Unspecified viral disease',
+          category: 'Infectious',
+        },
+      });
+
+      const appointment = await factories.appointment(
+        patient.id,
+        doctor.id,
+        clinic.id,
+        {
+          startTime: new Date(Date.now() + 21600000),
+          endTime: new Date(Date.now() + 23400000),
+        },
+      );
+
+      await request(app.getHttpServer())
+        .post(`/appointments/${appointment.id}/diagnoses`)
+        .set('Authorization', `Bearer ${jwtToken}`)
+        .send({
+          diagnoses: [{ icdCodeId: icd.id, notes: 'updated', isPrimary: true }],
+          contentHash: 'deadbeef',
+        })
+        .expect(400);
+    });
+  });
 });

@@ -18,7 +18,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   }
 
   async findAll(params: PrescriptionSearchParams): Promise<Prescription[]> {
-    const { clinicId, search, date } = params;
+    const { clinicId, search, date, patientId, limit } = params;
 
     if (!clinicId) {
       return [];
@@ -27,6 +27,10 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     const where: Prisma.PrescriptionWhereInput = {
       patient: { clinicId },
     };
+
+    if (patientId) {
+      where.patientId = patientId;
+    }
 
     if (search) {
       where.OR = [
@@ -85,6 +89,7 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
         },
       },
       orderBy: { createdAt: 'desc' },
+      ...(typeof limit === 'number' && limit > 0 ? { take: limit } : {}),
     });
   }
 
