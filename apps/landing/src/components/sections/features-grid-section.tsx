@@ -20,20 +20,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function FeaturesGridSection() {
   return (
     <section className="px-6 py-24 bg-muted/50" id="features">
-      <div className="mx-auto max-w-7xl">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything you need to run a modern facility
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            A complete operating system for your medical practice, packed with
-            powerful features.
-          </p>
-        </div>
+      <div className="ui-page-shell">
+        <SectionHeading
+          align="center"
+          size="section"
+          title="Everything you need to run a modern facility"
+          description="A complete operating system for your medical practice, packed with powerful features."
+          className="mb-16"
+          descriptionClassName="mx-auto max-w-2xl"
+        />
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[
@@ -124,7 +124,7 @@ export function FeaturesGridSection() {
           ].map((feature, i) => (
             <Card
               key={i}
-              className="border-none shadow-sm hover:shadow-md transition-all hover:-translate-y-1 bg-background"
+              className="bg-background hover:-translate-y-1 hover:shadow-md transition-all"
             >
               <CardHeader>
                 <div

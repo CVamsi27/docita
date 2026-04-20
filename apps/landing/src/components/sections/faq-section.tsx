@@ -1,4 +1,5 @@
 import { Button } from "@workspace/ui/components/button";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 const faqs = [
   {
@@ -37,14 +38,13 @@ export function FaqSection() {
   return (
     <section className="px-6 py-24 bg-muted/30" id="faq">
       <div className="mx-auto max-w-3xl">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Everything you need to know about Docita
-          </p>
-        </div>
+        <SectionHeading
+          align="center"
+          size="section"
+          title="Frequently Asked Questions"
+          description="Everything you need to know about Docita"
+          className="mb-16"
+        />
 
         <div className="space-y-4">
           {faqs.map((faq) => (
@@ -55,7 +55,9 @@ export function FaqSection() {
               <summary className="cursor-pointer list-none text-left font-medium outline-none">
                 <span className="flex items-center justify-between gap-4">
                   <span>{faq.question}</span>
-                  <span className="text-muted-foreground transition-transform group-open:rotate-45">+</span>
+                  <span className="text-muted-foreground transition-transform group-open:rotate-45">
+                    +
+                  </span>
                 </span>
               </summary>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">

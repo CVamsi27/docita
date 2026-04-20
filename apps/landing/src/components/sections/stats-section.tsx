@@ -1,9 +1,6 @@
 import { Building2, FileText, UserCog, Users } from "lucide-react";
 
-import {
-  formatStatValue,
-  type PlatformStats,
-} from "@/lib/landing-data";
+import { formatStatValue, type PlatformStats } from "@/lib/landing-data";
 
 interface StatsSectionProps {
   stats: PlatformStats | null;
@@ -19,7 +16,7 @@ export function StatsSection({ stats }: StatsSectionProps) {
 
   return (
     <section className="py-20 bg-primary text-primary-foreground">
-      <div className="container mx-auto px-6">
+      <div className="ui-page-shell px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {statCards.map((card) => (
             <article key={card.label} className="space-y-2">
@@ -29,7 +26,9 @@ export function StatsSection({ stats }: StatsSectionProps) {
               <p className="text-4xl font-bold">
                 {stats ? formatStatValue(stats[card.key]) : "—"}
               </p>
-              <p className="text-primary-foreground font-medium">{card.label}</p>
+              <p className="text-primary-foreground font-medium">
+                {card.label}
+              </p>
             </article>
           ))}
         </div>

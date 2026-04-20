@@ -2,11 +2,12 @@
 
 import { Baby, CheckCircle2, Smile, Stethoscope } from "lucide-react";
 import { Card } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function SpecialtiesSection() {
   return (
     <section className="px-6 py-24 bg-muted/30">
-      <div className="mx-auto max-w-7xl">
+      <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">
             <Stethoscope className="h-4 w-4 text-info" />
@@ -14,13 +15,13 @@ export function SpecialtiesSection() {
               Tailored for Your Specialty
             </span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            Built for Specialized Care
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            From dental charting to pediatric growth tracking, Docita adapts to
-            your specific clinical needs.
-          </p>
+          <SectionHeading
+            align="center"
+            size="section"
+            title="Built for Specialized Care"
+            description="From dental charting to pediatric growth tracking, Docita adapts to your specific clinical needs."
+            descriptionClassName="mx-auto max-w-2xl"
+          />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">

@@ -15,11 +15,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function TrustSecuritySection() {
   return (
     <section className="px-6 py-24 bg-background" id="security">
-      <div className="mx-auto max-w-7xl">
+      <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-foreground">
             <Shield className="h-4 w-4 text-success" />
@@ -27,13 +28,13 @@ export function TrustSecuritySection() {
               Enterprise-Grade Security
             </span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            Your Data is Safe With Us
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            We take data security seriously. Your patient information is
-            protected by industry-leading security measures.
-          </p>
+          <SectionHeading
+            align="center"
+            size="section"
+            title="Your Data is Safe With Us"
+            description="We take data security seriously. Your patient information is protected by industry-leading security measures."
+            descriptionClassName="mx-auto max-w-2xl"
+          />
         </div>
 
         {}
@@ -98,7 +99,7 @@ export function TrustSecuritySection() {
                 "Export your data anytime in standard formats. No vendor lock-in, ever.",
             },
           ].map((feature, i) => (
-            <Card key={i} className="border-none shadow-sm bg-muted/30">
+            <Card key={i} className="bg-muted/30">
               <CardHeader>
                 <div className="mb-2 inline-block rounded-lg bg-success/10 p-2 w-fit">
                   <feature.icon className="h-5 w-5 text-success" />

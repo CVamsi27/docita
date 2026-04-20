@@ -2,6 +2,9 @@
 
 import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@workspace/ui/components/button";
+import { Card, CardContent } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 const testimonials = [
   {
@@ -54,7 +57,7 @@ export function TestimonialsSection() {
 
   return (
     <section className="px-6 py-24 bg-muted/30" id="testimonials">
-      <div className="mx-auto max-w-7xl">
+      <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 rounded-full bg-warning px-4 py-2 text-sm mb-4">
             <Star className="h-4 w-4 text-warning fill-amber-500" />
@@ -62,21 +65,23 @@ export function TestimonialsSection() {
               Trusted by 500+ Facilities
             </span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            What Doctors Are Saying
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Join thousands of healthcare providers who have transformed their
-            practice with Docita
-          </p>
+          <SectionHeading
+            align="center"
+            size="section"
+            title="What Doctors Are Saying"
+            description="Join thousands of healthcare providers who have transformed their practice with Docita."
+            descriptionClassName="mx-auto max-w-2xl"
+          />
         </div>
 
         <div className="relative max-w-4xl mx-auto">
-          {}
-          <div className="relative overflow-hidden rounded-2xl bg-background border shadow-lg p-8 md:p-12">
+          <Card
+            className="relative overflow-hidden shadow-lg"
+            density="spacious"
+          >
             <Quote className="absolute top-6 left-6 h-12 w-12 text-primary/10" />
 
-            <div className="relative z-10">
+            <CardContent className="relative z-10 px-8 md:px-12">
               <p className="text-xl md:text-2xl text-foreground mb-8 leading-relaxed">
                 &ldquo;{testimonials[activeTestimonial].quote}&rdquo;
               </p>
@@ -108,23 +113,25 @@ export function TestimonialsSection() {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {}
           <div className="flex items-center justify-center gap-4 mt-8">
-            <button
+            <Button
               onClick={() =>
                 setActiveTestimonial(
                   (prev) =>
                     (prev - 1 + testimonials.length) % testimonials.length,
                 )
               }
-              className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+              className="rounded-full bg-muted hover:bg-muted/80"
+              size="icon-sm"
+              variant="ghost"
               aria-label="Previous testimonial"
             >
               <ChevronLeft className="h-5 w-5" />
-            </button>
+            </Button>
 
             <div className="flex gap-2">
               {testimonials.map((_, i) => (
@@ -141,15 +148,17 @@ export function TestimonialsSection() {
               ))}
             </div>
 
-            <button
+            <Button
               onClick={() =>
                 setActiveTestimonial((prev) => (prev + 1) % testimonials.length)
               }
-              className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+              className="rounded-full bg-muted hover:bg-muted/80"
+              size="icon-sm"
+              variant="ghost"
               aria-label="Next testimonial"
             >
               <ChevronRight className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>

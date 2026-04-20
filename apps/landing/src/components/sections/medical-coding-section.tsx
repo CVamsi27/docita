@@ -1,12 +1,13 @@
 "use client";
 
 import { Activity, CheckCircle2, Code2 } from "lucide-react";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function MedicalCodingSection() {
   return (
     <section className="px-6 py-24 bg-linear-to-b from-muted/30 to-background relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
-      <div className="mx-auto max-w-7xl relative z-10">
+      <div className="ui-page-shell relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">
@@ -15,14 +16,12 @@ export function MedicalCodingSection() {
                 ICD-10 Compliant
               </span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-              Standardized Medical Coding
-            </h2>
-            <p className="text-lg text-muted-foreground mb-6">
-              Document diagnoses and procedures with internationally recognized
-              ICD-10 and CPT codes. Improve billing accuracy, insurance claims
-              processing, and clinical documentation quality.
-            </p>
+            <SectionHeading
+              size="section"
+              title="Standardized Medical Coding"
+              description="Document diagnoses and procedures with internationally recognized ICD-10 and CPT codes. Improve billing accuracy, insurance claims processing, and clinical documentation quality."
+              className="mb-6"
+            />
             <ul className="space-y-4 mb-8">
               {[
                 {
@@ -110,9 +109,7 @@ export function MedicalCodingSection() {
                       <div className="font-medium">
                         Office visit - Established
                       </div>
-                      <div className="text-xs text-foreground/80">
-                        Level 3
-                      </div>
+                      <div className="text-xs text-foreground/80">Level 3</div>
                     </div>
                   </div>
                 </div>

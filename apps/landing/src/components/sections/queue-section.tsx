@@ -1,11 +1,12 @@
 "use client";
 
 import { CheckCircle2, Clock, Users } from "lucide-react";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function QueueSection() {
   return (
     <section className="px-6 py-24 bg-background relative overflow-hidden">
-      <div className="mx-auto max-w-7xl">
+      <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div className="order-2 lg:order-1 relative">
             <div className="rounded-2xl bg-linear-to-br from-warning/20 to-warning/10 p-8 backdrop-blur-sm border border-warning/30">
@@ -99,14 +100,12 @@ export function QueueSection() {
                 Smart Queue Management
               </span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-              Reduce Wait Times & Chaos
-            </h2>
-            <p className="text-lg text-muted-foreground mb-6">
-              Manage patient flow efficiently with our real-time token system.
-              Handle walk-ins and scheduled appointments seamlessly while
-              keeping patients informed.
-            </p>
+            <SectionHeading
+              size="section"
+              title="Reduce Wait Times & Chaos"
+              description="Manage patient flow efficiently with our real-time token system. Handle walk-ins and scheduled appointments seamlessly while keeping patients informed."
+              className="mb-6"
+            />
             <ul className="space-y-4">
               {[
                 {

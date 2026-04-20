@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
 
@@ -15,7 +16,12 @@ interface PricingSectionProps {
   appUrl: string;
 }
 
-const TIER_ORDER = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"] as const;
+const TIER_ORDER = [
+  "STARTER",
+  "ESSENTIAL",
+  "PROFESSIONAL",
+  "ENTERPRISE",
+] as const;
 
 const STARTER_FEATURES = [
   "Up to 50 patients",
@@ -83,19 +89,20 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
 
   return (
     <section className="px-6 py-24 relative overflow-hidden" id="pricing">
-      <div className="mx-auto max-w-7xl">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Pricing That Scales With Your Facility
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Start free, add capabilities as your team and patient volume grow.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            India-competitive pricing shown in {FALLBACK_PRICING_CONFIG.currency.symbol} (
-            {FALLBACK_PRICING_CONFIG.currency.code})
-          </p>
-        </div>
+      <div className="ui-page-shell">
+        <SectionHeading
+          align="center"
+          size="section"
+          title="Pricing That Scales With Your Facility"
+          description="Start free, add capabilities as your team and patient volume grow."
+          className="mb-4"
+          descriptionClassName="mx-auto max-w-2xl"
+        />
+        <p className="mb-12 text-center ui-helper-text">
+          India-competitive pricing shown in{" "}
+          {FALLBACK_PRICING_CONFIG.currency.symbol} (
+          {FALLBACK_PRICING_CONFIG.currency.code})
+        </p>
 
         <div className="grid gap-6 lg:grid-cols-4">
           {orderedTiers.map((tier, index) => {
@@ -131,9 +138,14 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   </CardDescription>
                   <div className="mt-4 flex items-end gap-2">
                     <span className="text-4xl font-bold tracking-tight">
-                      {formatTierPrice(tier.pricing.monthly, FALLBACK_PRICING_CONFIG.currency.symbol)}
+                      {formatTierPrice(
+                        tier.pricing.monthly,
+                        FALLBACK_PRICING_CONFIG.currency.symbol,
+                      )}
                     </span>
-                    <span className="pb-1 text-sm text-muted-foreground">/ month</span>
+                    <span className="pb-1 text-sm text-muted-foreground">
+                      / month
+                    </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Billed monthly. Annual plans include 2 months free.
