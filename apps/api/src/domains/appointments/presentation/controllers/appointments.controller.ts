@@ -10,17 +10,13 @@ import {
   Query,
   BadRequestException,
   ForbiddenException,
-  UsePipes,
 } from '@nestjs/common';
-import { ZodValidationPipe, ZodSerializerDto } from 'nestjs-zod';
+import { ZodSerializerDto } from 'nestjs-zod';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
-import {
-  APP_ACCESS_TARGETS,
-  diagnosesSyncRequestSchema,
-} from '@workspace/types';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
@@ -254,7 +250,6 @@ export class AppointmentsController {
 
   @Post(':id/diagnoses')
   @ApiOperation({ summary: 'Sync ICD-10 diagnoses for an appointment' })
-  @UsePipes(new ZodValidationPipe(diagnosesSyncRequestSchema))
   @ZodSerializerDto(DiagnosesSyncResponseDto)
   async syncDiagnoses(
     @Param('id') id: string,
