@@ -9,6 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { Input } from "@workspace/ui/components/input";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -130,7 +132,9 @@ export default function AdminsPage() {
 
   const invalidateAdmins = async () => {
     await queryClient.invalidateQueries({
-      queryKey: internalQueryKeys.internal.clinicAdmins(selectedClinic || "none"),
+      queryKey: internalQueryKeys.internal.clinicAdmins(
+        selectedClinic || "none",
+      ),
     });
   };
 
@@ -274,14 +278,11 @@ export default function AdminsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Admins</h1>
-          <p className="text-muted-foreground">
-            Manage clinic administrators and admin doctors
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Admins"
+        description="Manage clinic administrators and admin doctors"
+        size="compact"
+      />
 
       {}
       <Card>
@@ -333,11 +334,19 @@ export default function AdminsPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : filteredAdmins.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {selectedClinic
-                ? "No admins found. Create one by clicking 'Add Admin'"
-                : "Select a clinic to view admins"}
-            </div>
+            <EmptyState
+              icon={Shield}
+              title={
+                selectedClinic
+                  ? "No admins found"
+                  : "Select a clinic to view admins"
+              }
+              description={
+                selectedClinic
+                  ? "Create one by clicking 'Add Admin'."
+                  : "Choose a facility to load the administrator list."
+              }
+            />
           ) : (
             <Table>
               <TableHeader>

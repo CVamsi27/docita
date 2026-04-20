@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
@@ -70,20 +71,19 @@ export default function CreateReceptionistPage() {
       toast.success("Receptionist created successfully");
       router.push("/clinic/team");
     } catch {
-      showUserFacingErrorToast("We could not create this receptionist account. Please try again.");
+      showUserFacingErrorToast(
+        "We could not create this receptionist account. Please try again.",
+      );
     }
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Create Receptionist
-        </h1>
-        <p className="text-muted-foreground">
-          Add a new receptionist to your facility team
-        </p>
-      </div>
+      <PageHeader
+        title="Create Receptionist"
+        description="Add a new receptionist to your facility team"
+        size="compact"
+      />
 
       <Card className="max-w-2xl">
         <CardHeader>

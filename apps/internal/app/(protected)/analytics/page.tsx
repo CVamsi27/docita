@@ -1,6 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { Section } from "@workspace/ui/components/section";
 
 const AnalyticsDashboardLazy = dynamic(
   () =>
@@ -10,25 +13,24 @@ const AnalyticsDashboardLazy = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="rounded-lg border p-6 text-sm text-muted-foreground">
+      <Section contentClassName="ui-section-stack">
         Loading analytics dashboard...
-      </div>
+      </Section>
     ),
   },
 );
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground">
-          Overview of clinic performance, revenue, appointments, and patient
-          demographics.
-        </p>
-      </div>
-
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Analytics"
+          description="Overview of clinic performance, revenue, appointments, and patient demographics."
+        />
+      }
+    >
       <AnalyticsDashboardLazy />
-    </div>
+    </AppPageScaffold>
   );
 }

@@ -11,6 +11,8 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Badge } from "@workspace/ui/components/badge";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Table,
   TableBody,
@@ -176,12 +178,7 @@ export default function DoctorsPage() {
   }, [clinics, selectedClinic, setSelectedClinic]);
 
   const doctorsQuery = useQuery({
-    queryKey: [
-      "internal",
-      "doctors",
-      selectedClinic || "none",
-      clinics.length,
-    ],
+    queryKey: ["internal", "doctors", selectedClinic || "none", clinics.length],
     queryFn: async () => {
       if (selectedClinic === "all") {
         const allDoctorsArrays = await Promise.all(
@@ -229,9 +226,7 @@ export default function DoctorsPage() {
       doctor.clinicId || (selectedClinic !== "all" ? selectedClinic : "");
 
     if (!clinicId) {
-      showUserFacingErrorToast(
-        "Choose a clinic before opening doctor details",
-      );
+      showUserFacingErrorToast("Choose a clinic before opening doctor details");
       return;
     }
 
@@ -251,14 +246,11 @@ export default function DoctorsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Doctors</h1>
-          <p className="text-muted-foreground">
-            Monitor doctor profiles, specializations, and credentials
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Doctors"
+        description="Monitor doctor profiles, specializations, and credentials"
+        size="compact"
+      />
 
       {}
       <Card>
@@ -307,11 +299,15 @@ export default function DoctorsPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : filteredDoctors.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {selectedClinic === "all"
-                ? "Select a facility to view doctors"
-                : "No doctors found"}
-            </div>
+            <EmptyState
+              icon={Stethoscope}
+              title={
+                selectedClinic === "all"
+                  ? "Select a facility to view doctors"
+                  : "No doctors found"
+              }
+              description="Doctors matching the selected facility and search query will appear here."
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -365,7 +361,8 @@ export default function DoctorsPage() {
                             doctor.signatureUploadedAt ? "default" : "outline"
                           }
                         >
-                          Signature {doctor.signatureUploadedAt ? "Ready" : "Missing"}
+                          Signature{" "}
+                          {doctor.signatureUploadedAt ? "Ready" : "Missing"}
                         </Badge>
                       </div>
                     </TableCell>
@@ -482,13 +479,17 @@ export default function DoctorsPage() {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Last Verification</Label>
+                  <Label className="text-muted-foreground">
+                    Last Verification
+                  </Label>
                   <p className="font-medium">
                     {formatDate(selectedDoctor.verificationCheckedAt)}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Signature Uploaded</Label>
+                  <Label className="text-muted-foreground">
+                    Signature Uploaded
+                  </Label>
                   <p className="font-medium">
                     {formatDate(selectedDoctor.signatureUploadedAt)}
                   </p>
@@ -529,7 +530,9 @@ export default function DoctorsPage() {
 
               {selectedDoctor.verificationReason && (
                 <div>
-                  <Label className="text-muted-foreground">Verification Note</Label>
+                  <Label className="text-muted-foreground">
+                    Verification Note
+                  </Label>
                   <p className="mt-1">{selectedDoctor.verificationReason}</p>
                 </div>
               )}
@@ -654,7 +657,6 @@ export default function DoctorsPage() {
           )}
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

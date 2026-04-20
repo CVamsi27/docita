@@ -17,6 +17,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Tabs,
   TabsContent,
@@ -124,21 +125,18 @@ export default function BillingDashboard() {
       if (results[0].status === "fulfilled") {
         setMetrics(results[0].value);
       } else {
-
         setMetrics(null);
       }
 
       if (results[1].status === "fulfilled") {
         setSubscriptions(results[1].value);
       } else {
-
         setSubscriptions([]);
       }
 
       if (results[2].status === "fulfilled") {
         setPayments(results[2].value);
       } else {
-
         setPayments([]);
       }
     } catch (error) {
@@ -165,7 +163,6 @@ export default function BillingDashboard() {
     setSending(true);
     try {
       await billingAPI.sendReminder(subscription.id);
-
     } catch (error) {
       void error;
     } finally {
@@ -211,30 +208,31 @@ export default function BillingDashboard() {
 
   return (
     <div className="space-y-6">
-      {}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Billing Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Monitor subscriptions, revenue, and payment activity
-          </p>
-        </div>
-        <Button onClick={handleRefresh} disabled={refreshing} variant="outline" className="self-start sm:self-auto">
-          <RefreshCw
-            className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
-      </div>
+      <PageHeader
+        title="Billing Dashboard"
+        description="Monitor subscriptions, revenue, and payment activity"
+        size="compact"
+        actions={
+          <Button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            variant="outline"
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+        }
+      />
 
       <Card className="border-dashed bg-muted/30">
         <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <p className="font-semibold">Internal billing reminder</p>
             <p className="text-sm text-muted-foreground">
-              Keep requested hospital offers in WhatsApp, and do not charge a paid Indian plan until GSTIN is captured.
+              Keep requested hospital offers in WhatsApp, and do not charge a
+              paid Indian plan until GSTIN is captured.
             </p>
           </div>
           <Badge variant="outline" className="w-fit">

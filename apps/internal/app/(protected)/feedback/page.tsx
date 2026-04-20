@@ -11,6 +11,8 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Select,
@@ -43,11 +45,7 @@ import {
   ThumbsUp,
   Trash2,
 } from "lucide-react";
-import {
-  Feedback,
-  feedbackAPI,
-  FeedbackFilters,
-} from "@/lib/api";
+import { Feedback, feedbackAPI, FeedbackFilters } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import { internalQueryKeys } from "@/lib/query-keys";
@@ -105,7 +103,11 @@ export default function FeedbackPage() {
   }, [feedbacksQuery, statsQuery]);
 
   const updateStatusMutation = useMutation({
-    mutationFn: (payload: { id: string; status: string; adminNotes?: string }) =>
+    mutationFn: (payload: {
+      id: string;
+      status: string;
+      adminNotes?: string;
+    }) =>
       feedbackAPI.updateStatus(payload.id, {
         status: payload.status,
         adminNotes: payload.adminNotes,
@@ -162,7 +164,11 @@ export default function FeedbackPage() {
 
   const getStatusBadge = (status: string) => {
     const option = STATUS_OPTIONS.find((o) => o.value === status);
-    return <Badge className={option?.color || "badge-muted"}>{option?.label || status}</Badge>;
+    return (
+      <Badge className={option?.color || "badge-muted"}>
+        {option?.label || status}
+      </Badge>
+    );
   };
 
   const renderStars = (rating: number) => (
@@ -182,31 +188,31 @@ export default function FeedbackPage() {
 
   return (
     <div className="space-y-6">
-      {}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <MessageSquare className="h-8 w-8" />
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
+            <MessageSquare className="h-7 w-7" />
             Feedback Portal
-          </h1>
-          <p className="text-muted-foreground">
-            View and manage user feedback from all clinics
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
-          <Button variant="outline" onClick={loadData}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-      </div>
+          </span>
+        }
+        description="View and manage user feedback from all clinics"
+        size="compact"
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+            <Button variant="outline" onClick={loadData}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        }
+      />
 
       {}
       {stats && (
@@ -498,9 +504,11 @@ export default function FeedbackPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : feedbacks.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No feedback found
-            </div>
+            <EmptyState
+              icon={MessageSquare}
+              title="No feedback found"
+              description="Feedback entries will appear here once clinics start submitting responses."
+            />
           ) : (
             <div className="space-y-4">
               {feedbacks.map((feedback) => (

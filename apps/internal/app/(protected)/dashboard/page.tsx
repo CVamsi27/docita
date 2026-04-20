@@ -15,7 +15,6 @@ import { Input } from "@workspace/ui/components/input";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
-import { CreateClinicDialog } from "./create-clinic-dialog";
 import { ClinicList } from "./clinic-list";
 import {
   BarChart3,
@@ -116,7 +115,8 @@ export default function InternalDashboard() {
   const errorMessage = errorSource
     ? getUserFacingErrorMessage(errorSource, {
         context: "load",
-        fallback: "We could not load this dashboard. Please refresh and try again.",
+        fallback:
+          "We could not load this dashboard. Please refresh and try again.",
       })
     : "We could not load this dashboard. Please refresh and try again.";
   const loading =
@@ -204,17 +204,6 @@ export default function InternalDashboard() {
           </CardContent>
         </Card>
       )}
-      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Overview</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage all facilities across the platform.
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <CreateClinicDialog onClinicCreated={loadData} />
-        </div>
-      </div>
 
       {billing && (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
@@ -284,7 +273,9 @@ export default function InternalDashboard() {
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Facilities</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Facilities
+            </CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

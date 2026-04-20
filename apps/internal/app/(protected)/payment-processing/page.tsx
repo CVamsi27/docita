@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { EmptyState } from "@workspace/ui/components/empty-state";
 import {
   Table,
   TableBody,
@@ -131,12 +133,15 @@ export default function PaymentProcessingPage() {
   const queryClient = useQueryClient();
   const [selectedClinic, setSelectedClinic] = useState<Clinic | null>(null);
   const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
-  const [selectedTierPricing, setSelectedTierPricing] = useState<
-    TierPricing[]
-  >([]);
+  const [selectedTierPricing, setSelectedTierPricing] = useState<TierPricing[]>(
+    [],
+  );
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-  const formatCurrency = (amount: number, currency: string = DEFAULT_CURRENCY) =>
+  const formatCurrency = (
+    amount: number,
+    currency: string = DEFAULT_CURRENCY,
+  ) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency,
@@ -187,14 +192,17 @@ export default function PaymentProcessingPage() {
       const pricingData = await queryClient.fetchQuery({
         queryKey: ["pricing", "config", clinic.currency || DEFAULT_CURRENCY],
         queryFn: () =>
-          client.get<{ tiers?: Array<{ id: string; pricing?: { monthly?: number } }> }>(
-            `/pricing/config?currency=${clinic.currency || DEFAULT_CURRENCY}`,
-          ),
+          client.get<{
+            tiers?: Array<{ id: string; pricing?: { monthly?: number } }>;
+          }>(`/pricing/config?currency=${clinic.currency || DEFAULT_CURRENCY}`),
       });
       const nextPricing: TierPricing[] = Array.isArray(pricingData.tiers)
         ? pricingData.tiers.map((tier) => ({
             tier: tier.id,
-            price: typeof tier.pricing?.monthly === "number" ? tier.pricing.monthly : 0,
+            price:
+              typeof tier.pricing?.monthly === "number"
+                ? tier.pricing.monthly
+                : 0,
             billingCycle: "monthly",
             maxDoctors: -1,
             maxPatients: -1,
@@ -279,14 +287,11 @@ export default function PaymentProcessingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Payment Processing
-        </h1>
-        <p className="text-muted-foreground">
-          Process payments and manage clinic tier upgrades
-        </p>
-      </div>
+      <PageHeader
+        title="Payment Processing"
+        description="Process payments and manage clinic tier upgrades"
+        size="compact"
+      />
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -325,8 +330,12 @@ export default function PaymentProcessingPage() {
                 </Card>
               ))
             ) : (
-              <div className="col-span-full text-center py-8 text-muted-foreground">
-                <p>No tier pricing information available</p>
+              <div className="col-span-full">
+                <EmptyState
+                  icon={TrendingUp}
+                  title="No tier pricing information available"
+                  description="Pricing tiers will appear here once billing configuration is available."
+                />
               </div>
             )}
           </div>
@@ -344,13 +353,15 @@ export default function PaymentProcessingPage() {
             </CardHeader>
             <CardContent>
               {clinics.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No facilities found
-                </div>
+                <EmptyState
+                  icon={CreditCard}
+                  title="No facilities found"
+                  description="Facilities will appear here once they are provisioned for billing."
+                />
               ) : (
                 <Table>
                   <TableHeader>
-                  <TableRow>
+                    <TableRow>
                       <TableHead>Facility Name</TableHead>
                       <TableHead>Current Tier</TableHead>
                       <TableHead>Max Doctors</TableHead>
@@ -439,9 +450,9 @@ export default function PaymentProcessingPage() {
                   </p>
                   <p className="text-lg font-semibold">
                     {formatCurrency(
-                      (selectedTierPricing.find(
+                      selectedTierPricing.find(
                         (t) => t.tier === tierInfo.currentTier,
-                      )?.price ?? tierInfo.pricing),
+                      )?.price ?? tierInfo.pricing,
                       selectedClinic?.currency || DEFAULT_CURRENCY,
                     )}
                   </p>
@@ -462,9 +473,7 @@ export default function PaymentProcessingPage() {
                           selectedTierPricing.length > 0
                             ? selectedTierPricing
                             : tierPricing
-                        ).find(
-                          (t) => t.tier === value,
-                        );
+                        ).find((t) => t.tier === value);
                         if (tierData) {
                           form.setValue("amount", tierData.price.toString());
                         }
@@ -481,12 +490,12 @@ export default function PaymentProcessingPage() {
                           : tierPricing
                         ).map((tier) => (
                           <SelectItem key={tier.tier} value={tier.tier}>
-                            {tier.tier} - {formatCurrency(
+                            {tier.tier} -{" "}
+                            {formatCurrency(
                               tier.price,
                               selectedClinic?.currency || DEFAULT_CURRENCY,
                             )}
-                            /
-                            {tier.billingCycle}
+                            /{tier.billingCycle}
                           </SelectItem>
                         ))}
                       </SelectContent>

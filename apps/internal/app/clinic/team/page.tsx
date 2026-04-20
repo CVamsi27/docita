@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Table,
   TableBody,
@@ -240,25 +242,24 @@ export default function TeamPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team Management</h1>
-          <p className="text-muted-foreground">
-            Manage your facility team members
-          </p>
-        </div>
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditingMember(null);
-            resetForm();
-            setIsDialogOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Add Team Member
-        </Button>
-      </div>
+      <PageHeader
+        title="Team Management"
+        description="Manage your facility team members"
+        size="compact"
+        actions={
+          <Button
+            className="gap-2"
+            onClick={() => {
+              setEditingMember(null);
+              resetForm();
+              setIsDialogOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Add Team Member
+          </Button>
+        }
+      />
 
       <CRUDDialog
         open={isDialogOpen}
@@ -463,10 +464,11 @@ export default function TeamPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : members.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No team members yet. Click &quot;Add Team Member&quot; to get
-              started.
-            </div>
+            <EmptyState
+              icon={UserCheck}
+              title="No team members yet"
+              description='Click "Add Team Member" to get started.'
+            />
           ) : (
             <Table>
               <TableHeader>

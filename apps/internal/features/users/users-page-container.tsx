@@ -9,6 +9,8 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Badge } from "@workspace/ui/components/badge";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Table,
   TableBody,
@@ -60,14 +62,11 @@ export function UsersPageContainer() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team Members</h1>
-          <p className="text-muted-foreground mt-1">
-            View and manage all users across facilities
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Team Members"
+        description="View and manage all users across facilities"
+        size="compact"
+      />
 
       {hasError && (
         <Card className="border-destructive/40 bg-destructive/5">
@@ -160,11 +159,15 @@ export function UsersPageContainer() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {users.length === 0
-                ? "No team members found"
-                : "No users match your search criteria"}
-            </div>
+            <EmptyState
+              icon={Users}
+              title={
+                users.length === 0
+                  ? "No team members found"
+                  : "No users match your search criteria"
+              }
+              description="Try adjusting the facility filter or search query."
+            />
           ) : (
             <div className="rounded-md border">
               <Table>

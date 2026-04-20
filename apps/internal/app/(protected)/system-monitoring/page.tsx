@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
 import {
   Tabs,
@@ -106,19 +107,25 @@ export default function SystemMonitoringPage() {
       : 0;
   const heapUsagePercent = performance
     ? Math.round(
-        (performance.memory.heapUsed / Math.max(performance.memory.heapTotal, 1)) *
+        (performance.memory.heapUsed /
+          Math.max(performance.memory.heapTotal, 1)) *
           100,
       )
     : 0;
   const responseBuckets =
     dashboard?.last7Days.performance.responseTimeDistribution ?? [];
-  const slowestEndpoints = dashboard?.last7Days.performance.slowestEndpoints ?? [];
+  const slowestEndpoints =
+    dashboard?.last7Days.performance.slowestEndpoints ?? [];
   const throughputByMinute = useMemo(
     () => dashboard?.last7Days.performance.throughputByMinute ?? [],
     [dashboard],
   );
   const maxThroughputCount = useMemo(
-    () => throughputByMinute.reduce((max, bucket) => Math.max(max, bucket.count), 0),
+    () =>
+      throughputByMinute.reduce(
+        (max, bucket) => Math.max(max, bucket.count),
+        0,
+      ),
     [throughputByMinute],
   );
 
@@ -204,7 +211,13 @@ export default function SystemMonitoringPage() {
         description: "Average response time over the last hour",
       },
     ] as const;
-  }, [errorRate, errorsLastHour, liveResponseTime, monitoringHealth, requestsLastHour]);
+  }, [
+    errorRate,
+    errorsLastHour,
+    liveResponseTime,
+    monitoringHealth,
+    requestsLastHour,
+  ]);
 
   if (loading) {
     return (
@@ -216,36 +229,33 @@ export default function SystemMonitoringPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            System Monitoring
-          </h1>
-          <p className="text-muted-foreground">
-            Live health, performance, and request telemetry
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-          >
-            {autoRefresh ? "Auto-refresh: ON" : "Auto-refresh: OFF"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="System Monitoring"
+        description="Live health, performance, and request telemetry"
+        size="compact"
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAutoRefresh(!autoRefresh)}
+            >
+              {autoRefresh ? "Auto-refresh: ON" : "Auto-refresh: OFF"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
+          </div>
+        }
+      />
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
@@ -306,7 +316,9 @@ export default function SystemMonitoringPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Error Rate
+                </CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -351,7 +363,8 @@ export default function SystemMonitoringPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   User {monitoringHealth?.cpuUsage.user.toFixed(2) ?? "0.00"}s,
-                  system {monitoringHealth?.cpuUsage.system.toFixed(2) ?? "0.00"}s
+                  system{" "}
+                  {monitoringHealth?.cpuUsage.system.toFixed(2) ?? "0.00"}s
                 </p>
               </CardContent>
             </Card>
@@ -425,7 +438,9 @@ export default function SystemMonitoringPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Node Runtime</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Node Runtime
+                </CardTitle>
                 <Server className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -459,7 +474,9 @@ export default function SystemMonitoringPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Database Status</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Database Status
+                </CardTitle>
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -467,7 +484,9 @@ export default function SystemMonitoringPage() {
                   {database?.status ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {database ? `${database.queryResponseTimeMs}ms query time` : "Waiting for database stats"}
+                  {database
+                    ? `${database.queryResponseTimeMs}ms query time`
+                    : "Waiting for database stats"}
                 </p>
               </CardContent>
             </Card>
@@ -483,19 +502,35 @@ export default function SystemMonitoringPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span>RSS</span>
-                    <span>{performance ? formatBytesToMb(performance.memory.rss) : "N/A"}</span>
+                    <span>
+                      {performance
+                        ? formatBytesToMb(performance.memory.rss)
+                        : "N/A"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span>Heap used</span>
-                    <span>{performance ? formatBytesToMb(performance.memory.heapUsed) : "N/A"}</span>
+                    <span>
+                      {performance
+                        ? formatBytesToMb(performance.memory.heapUsed)
+                        : "N/A"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span>Heap total</span>
-                    <span>{performance ? formatBytesToMb(performance.memory.heapTotal) : "N/A"}</span>
+                    <span>
+                      {performance
+                        ? formatBytesToMb(performance.memory.heapTotal)
+                        : "N/A"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span>External</span>
-                    <span>{performance ? formatBytesToMb(performance.memory.external) : "N/A"}</span>
+                    <span>
+                      {performance
+                        ? formatBytesToMb(performance.memory.external)
+                        : "N/A"}
+                    </span>
                   </div>
                 </div>
                 <Progress value={heapUsagePercent} className="h-2" />
@@ -504,7 +539,9 @@ export default function SystemMonitoringPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Slowest Endpoints</CardTitle>
-                <CardDescription>Highest average duration over the last 7 days</CardDescription>
+                <CardDescription>
+                  Highest average duration over the last 7 days
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -514,11 +551,16 @@ export default function SystemMonitoringPage() {
                       className="rounded-lg border p-3"
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <p className="font-medium">{endpoint.method} {endpoint.path}</p>
-                        <Badge variant="outline">{endpoint.avgDuration.toFixed(2)}ms</Badge>
+                        <p className="font-medium">
+                          {endpoint.method} {endpoint.path}
+                        </p>
+                        <Badge variant="outline">
+                          {endpoint.avgDuration.toFixed(2)}ms
+                        </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {endpoint.count} requests, max {endpoint.maxDuration.toFixed(2)}ms
+                        {endpoint.count} requests, max{" "}
+                        {endpoint.maxDuration.toFixed(2)}ms
                       </p>
                     </div>
                   ))}
@@ -535,13 +577,17 @@ export default function SystemMonitoringPage() {
                   {throughputByMinute.slice(-12).map((bucket) => (
                     <div key={bucket.minute} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
-                        <span>{format(new Date(`${bucket.minute}:00Z`), "HH:mm")}</span>
+                        <span>
+                          {format(new Date(`${bucket.minute}:00Z`), "HH:mm")}
+                        </span>
                         <span>{bucket.count}</span>
                       </div>
                       <Progress
                         value={
                           maxThroughputCount > 0
-                            ? Math.round((bucket.count / maxThroughputCount) * 100)
+                            ? Math.round(
+                                (bucket.count / maxThroughputCount) * 100,
+                              )
                             : 0
                         }
                         className="h-2"
@@ -563,8 +609,13 @@ export default function SystemMonitoringPage() {
             <CardContent>
               <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-7">
                 {responseBuckets.map((bucket) => (
-                  <div key={bucket.range} className="rounded-lg border p-3 text-center">
-                    <p className="text-xs text-muted-foreground">{bucket.range}</p>
+                  <div
+                    key={bucket.range}
+                    className="rounded-lg border p-3 text-center"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      {bucket.range}
+                    </p>
                     <p className="mt-2 text-xl font-semibold">{bucket.count}</p>
                   </div>
                 ))}

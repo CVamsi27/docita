@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Building2,
   FileText,
@@ -55,22 +56,19 @@ export function DashboardPageContainer() {
           <p className="text-sm">Loading authentication...</p>
         </div>
       )}
-      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Overview</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage all facilities across the platform.
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <CreateClinicDialog onClinicCreated={refetch} />
-        </div>
-      </div>
+      <PageHeader
+        title="Overview"
+        description="Monitor and manage all facilities across the platform."
+        size="compact"
+        actions={<CreateClinicDialog onClinicCreated={refetch} />}
+      />
 
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Facilities</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Facilities
+            </CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
