@@ -97,9 +97,7 @@ describe('AppConfigService.getJwtSecret', () => {
       }),
     );
 
-    expect(service.getJwtSecret()).toBe(
-      WORKER_JWT_MODULE_PLACEHOLDER_SECRET,
-    );
+    expect(service.getJwtSecret()).toBe(WORKER_JWT_MODULE_PLACEHOLDER_SECRET);
   });
 
   it('throws for API runtime without JWT_SECRET', () => {
