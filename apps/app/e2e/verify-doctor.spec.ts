@@ -37,6 +37,54 @@ async function addAuthCookies(
   }
 }
 
+test.describe("verify-doctor auth cookies", () => {
+  test("stores auth cookies against the current app origin and refresh path", async ({
+    page,
+  }) => {
+    await addAuthCookies(page, {
+      accessToken: "access-token",
+      refreshToken: "refresh-token",
+    });
+
+    await expect
+      .poll(async () => page.context().cookies([`${APP_ORIGIN}/`]))
+      .toContainEqual(
+        expect.objectContaining({
+          name: "access_token",
+          value: "access-token",
+          path: "/",
+        }),
+      );
+
+    await expect
+      .poll(async () => page.context().cookies([`${APP_ORIGIN}/api/v1/auth/`]))
+      .toContainEqual(
+        expect.objectContaining({
+          name: "refresh_token",
+          value: "refresh-token",
+          path: "/api/v1/auth/",
+        }),
+      );
+  });
+
+  test("skips the refresh cookie when no refresh token is present", async ({
+    page,
+  }) => {
+    await addAuthCookies(page, {
+      accessToken: "access-token",
+      refreshToken: null,
+    });
+
+    await expect
+      .poll(async () => page.context().cookies([`${APP_ORIGIN}/api/v1/auth/`]))
+      .not.toContainEqual(
+        expect.objectContaining({
+          name: "refresh_token",
+        }),
+      );
+  });
+});
+
 function asRecord(value: unknown): JsonRecord {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
