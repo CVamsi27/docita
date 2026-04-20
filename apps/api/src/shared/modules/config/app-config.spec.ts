@@ -1,4 +1,11 @@
-import { afterAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 
 const ORIGINAL_ENV = process.env;
 
@@ -39,11 +46,9 @@ describe('app-config validateEnv', () => {
     const stderrSpy = jest
       .spyOn(process.stderr, 'write')
       .mockImplementation(() => true);
-    const exitSpy = jest
-      .spyOn(process, 'exit')
-      .mockImplementation((() => {
-        throw new Error('process.exit:1');
-      }) as never);
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation((() => {
+      throw new Error('process.exit:1');
+    }) as never);
 
     const { validateEnv } = await import('./app-config');
 
