@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@workspace/ui/lib/utils";
 
 const cardVariants = cva(
-  "bg-card text-card-foreground flex flex-col gap-4 sm:gap-6 rounded-2xl border py-4 sm:py-6 shadow-sm",
+  "ui-card-surface flex flex-col gap-4 sm:gap-6 py-4 sm:py-6",
   {
     variants: {
       interaction: {
@@ -12,9 +12,15 @@ const cardVariants = cva(
         interactive:
           "cursor-pointer transition-colors duration-150 hover:bg-muted/20 hover:border-primary/20 hover:shadow-md",
       },
+      density: {
+        compact: "gap-3 py-3 sm:py-4",
+        default: "",
+        spacious: "gap-5 sm:gap-7 py-5 sm:py-7",
+      },
     },
     defaultVariants: {
       interaction: "static",
+      density: "default",
     },
   },
 );
@@ -22,12 +28,13 @@ const cardVariants = cva(
 function Card({
   className,
   interaction,
+  density,
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof cardVariants>) {
   return (
     <div
       data-slot="card"
-      className={cn(cardVariants({ interaction, className }))}
+      className={cn(cardVariants({ interaction, density, className }))}
       {...props}
     />
   );
@@ -38,7 +45,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 sm:gap-2 px-4 sm:px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-4 sm:[.border-b]:pb-6",
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 sm:gap-2 px-4 sm:px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:border-border/60 [.border-b]:pb-4 sm:[.border-b]:pb-6",
         className,
       )}
       {...props}
@@ -50,10 +57,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn(
-        "leading-none font-semibold text-base sm:text-lg",
-        className,
-      )}
+      className={cn("ui-section-title", className)}
       {...props}
     />
   );
@@ -63,7 +67,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-muted-foreground text-xs sm:text-sm", className)}
+      className={cn("ui-helper-text", className)}
       {...props}
     />
   );

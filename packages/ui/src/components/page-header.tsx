@@ -11,6 +11,7 @@ interface PageHeaderProps {
   eyebrow?: React.ReactNode;
   className?: string;
   sticky?: boolean;
+  size?: "default" | "compact";
 }
 
 export function PageHeader({
@@ -22,6 +23,7 @@ export function PageHeader({
   eyebrow,
   className,
   sticky = false,
+  size = "default",
 }: PageHeaderProps) {
   return (
     <header
@@ -34,17 +36,27 @@ export function PageHeader({
     >
       {breadcrumbs ? <div className="min-w-0">{breadcrumbs}</div> : null}
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0 space-y-1">
-          {eyebrow ? (
-            <div className="text-[var(--fs-2xs)] font-medium uppercase tracking-[var(--tracking-wide)] text-muted-foreground">
-              {eyebrow}
-            </div>
-          ) : null}
-          <h1 className="text-[var(--fs-2xl)] md:text-[var(--fs-3xl)] font-semibold leading-tight tracking-[var(--tracking-tight)]">
+        <div
+          className={cn(
+            "min-w-0",
+            size === "compact" ? "space-y-0.5" : "ui-copy-stack",
+          )}
+        >
+          {eyebrow ? <div className="ui-eyebrow">{eyebrow}</div> : null}
+          <h1
+            className={cn(
+              size === "compact" ? "ui-section-title" : "ui-page-title",
+            )}
+          >
             {title}
           </h1>
           {description ? (
-            <p className="max-w-2xl text-[var(--fs-sm)] md:text-[var(--fs-base)] text-muted-foreground">
+            <p
+              className={cn(
+                "max-w-2xl",
+                size === "compact" ? "ui-section-subtitle" : "ui-page-subtitle",
+              )}
+            >
               {description}
             </p>
           ) : null}

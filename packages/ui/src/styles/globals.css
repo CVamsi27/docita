@@ -74,11 +74,11 @@
 
   /* Typography scale */
   --font-sans:
-    var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, "Noto Sans", sans-serif;
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --font-mono:
-    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco,
-    "Roboto Mono", monospace;
+    var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Monaco, "Roboto Mono", monospace;
   --fs-2xs: 0.6875rem;
   --fs-xs: 0.75rem;
   --fs-sm: 0.8125rem;
@@ -89,6 +89,8 @@
   --fs-2xl: 1.25rem;
   --fs-3xl: 1.5rem;
   --fs-4xl: 1.875rem;
+  --fs-5xl: 2.5rem;
+  --fs-6xl: 3.5rem;
   --lh-tight: 1.2;
   --lh-snug: 1.35;
   --lh-normal: 1.5;
@@ -266,14 +268,28 @@
   --font-size-2xl: var(--fs-2xl);
   --font-size-3xl: var(--fs-3xl);
   --font-size-4xl: var(--fs-4xl);
+  --font-size-5xl: var(--fs-5xl);
+  --font-size-6xl: var(--fs-6xl);
 }
 
 @layer components {
   .app-shell-bg {
     background-image:
-      radial-gradient(circle at 0% 0%, color-mix(in oklch, var(--primary) 10%, transparent) 0%, transparent 42%),
-      radial-gradient(circle at 100% 0%, color-mix(in oklch, var(--info) 9%, transparent) 0%, transparent 38%),
-      radial-gradient(circle at 50% 100%, color-mix(in oklch, var(--success) 7%, transparent) 0%, transparent 45%);
+      radial-gradient(
+        circle at 0% 0%,
+        color-mix(in oklch, var(--primary) 10%, transparent) 0%,
+        transparent 42%
+      ),
+      radial-gradient(
+        circle at 100% 0%,
+        color-mix(in oklch, var(--info) 9%, transparent) 0%,
+        transparent 38%
+      ),
+      radial-gradient(
+        circle at 50% 100%,
+        color-mix(in oklch, var(--success) 7%, transparent) 0%,
+        transparent 45%
+      );
     background-attachment: fixed;
   }
 
@@ -291,6 +307,97 @@
 
   .surface-danger {
     @apply border border-destructive/30 bg-destructive/10 text-destructive;
+  }
+
+  .surface-muted {
+    @apply border border-border/60 bg-muted/30 text-foreground;
+  }
+
+  .ui-page-shell {
+    @apply mx-auto w-full min-w-0 max-w-7xl;
+  }
+
+  .ui-page-stack {
+    @apply min-w-0 space-y-6 md:space-y-8;
+  }
+
+  .ui-section-stack {
+    @apply space-y-4 md:space-y-5;
+  }
+
+  .ui-copy-stack {
+    @apply space-y-1.5;
+  }
+
+  .ui-page-title {
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--tracking-tight);
+    font-weight: var(--fw-semibold);
+  }
+
+  .ui-page-subtitle {
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+    color: var(--muted-foreground);
+  }
+
+  .ui-section-title {
+    font-size: var(--fs-lg);
+    line-height: var(--lh-snug);
+    letter-spacing: var(--tracking-tight);
+    font-weight: var(--fw-semibold);
+  }
+
+  .ui-section-subtitle {
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+    color: var(--muted-foreground);
+  }
+
+  .ui-hero-title {
+    font-size: clamp(var(--fs-4xl), 5vw, var(--fs-6xl));
+    line-height: 1.05;
+    letter-spacing: calc(var(--tracking-tight) * 1.5);
+    font-weight: var(--fw-bold);
+  }
+
+  .ui-hero-subtitle {
+    font-size: var(--fs-lg);
+    line-height: var(--lh-relaxed);
+    color: var(--muted-foreground);
+  }
+
+  .ui-eyebrow {
+    font-size: var(--fs-2xs);
+    line-height: var(--lh-normal);
+    letter-spacing: 0.08em;
+    font-weight: var(--fw-medium);
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .ui-body {
+    font-size: var(--fs-base);
+    line-height: var(--lh-normal);
+  }
+
+  .ui-helper-text {
+    font-size: var(--fs-xs);
+    line-height: var(--lh-normal);
+    color: var(--muted-foreground);
+  }
+
+  .ui-card-surface {
+    @apply rounded-2xl border border-border/60 bg-card text-card-foreground shadow-sm;
+  }
+
+  .ui-panel {
+    @apply rounded-2xl border border-border/60 bg-card text-card-foreground shadow-sm;
+  }
+
+  .ui-panel-muted {
+    @apply rounded-2xl border border-border/60 bg-muted/30 text-foreground shadow-sm;
   }
 
   .icon-warning {
@@ -375,14 +482,37 @@
   }
 }
 
+@media (min-width: 768px) {
+  .ui-page-title {
+    font-size: var(--fs-3xl);
+  }
+
+  .ui-page-subtitle {
+    font-size: var(--fs-base);
+  }
+
+  .ui-section-title {
+    font-size: var(--fs-xl);
+  }
+}
+
 @keyframes docita-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes docita-shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(200%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
 }
 
 .docita-loading-pulse {

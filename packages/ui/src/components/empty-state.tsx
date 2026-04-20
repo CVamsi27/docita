@@ -5,19 +5,18 @@ import { Button } from "@workspace/ui/components/button";
 import { ChevronRight, Loader2, LucideIcon } from "lucide-react";
 
 export interface EmptyStateProps {
-  
   icon: LucideIcon;
-  
+
   title: string;
-  
+
   description?: string;
-  
+
   action?: {
     label: string;
     href?: string;
     onClick?: () => void;
   };
-  
+
   className?: string;
 }
 
@@ -29,12 +28,21 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <div className={cn("text-center py-8 text-muted-foreground", className)}>
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/50 mx-auto mb-4">
+    <div
+      className={cn(
+        "ui-section-stack py-8 text-center text-muted-foreground",
+        className,
+      )}
+    >
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
         <Icon className="h-8 w-8 text-muted-foreground/50" />
       </div>
-      <p className="font-medium">{title}</p>
-      {description && <p className="text-sm mt-1">{description}</p>}
+      <div className="ui-copy-stack">
+        <p className="ui-section-title">{title}</p>
+        {description ? (
+          <p className="ui-section-subtitle">{description}</p>
+        ) : null}
+      </div>
       {action &&
         (action.href ? (
           <Button asChild variant="link" className="mt-3">
@@ -50,19 +58,18 @@ export function EmptyState({
 }
 
 export interface SectionHeaderProps {
-  
   icon: LucideIcon;
-  
+
   title: string;
-  
+
   subtitle?: string;
-  
+
   action?: {
     label: string;
     href?: string;
     onClick?: () => void;
   };
-  
+
   className?: string;
 }
 
@@ -84,11 +91,9 @@ export function SectionHeader({
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
         </div>
-        <div>
-          <h3 className="text-lg font-semibold">{title}</h3>
-          {subtitle && (
-            <p className="text-sm text-muted-foreground">{subtitle}</p>
-          )}
+        <div className="ui-copy-stack">
+          <h3 className="ui-section-title">{title}</h3>
+          {subtitle && <p className="ui-section-subtitle">{subtitle}</p>}
         </div>
       </div>
       {action &&
@@ -120,11 +125,10 @@ export function SectionHeader({
 }
 
 export interface LoadingStateProps {
-  
   message?: string;
-  
+
   className?: string;
-  
+
   size?: "sm" | "default" | "lg";
 }
 
@@ -142,9 +146,14 @@ export function LoadingState({
   const sizes = sizeClasses[size];
 
   return (
-    <div className={cn("text-center py-8 text-muted-foreground", className)}>
+    <div
+      className={cn(
+        "ui-section-stack py-8 text-center text-muted-foreground",
+        className,
+      )}
+    >
       <Loader2
-        className={cn(sizes.icon, "mx-auto mb-4 animate-spin text-primary")}
+        className={cn(sizes.icon, "mx-auto animate-spin text-primary")}
       />
       <p className={sizes.text}>{message}</p>
     </div>

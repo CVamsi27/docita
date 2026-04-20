@@ -50,10 +50,19 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  density = "default",
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
+  density?: "compact" | "default" | "spacious";
 }) {
+  const densityClass =
+    density === "compact"
+      ? "p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-5"
+      : density === "spacious"
+        ? "p-6 sm:p-7 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:pb-7"
+        : "p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6";
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -62,12 +71,11 @@ function DialogContent({
         className={cn(
           "bg-background/95 supports-[backdrop-filter]:bg-background/85 supports-[backdrop-filter]:backdrop-blur-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "fixed z-50 flex flex-col gap-4 rounded-t-2xl sm:rounded-2xl border-0 shadow-2xl duration-200",
-          "p-5 sm:p-6",
+          "fixed z-50 flex flex-col gap-4 rounded-t-2xl sm:rounded-2xl border border-border/60 shadow-2xl duration-200",
+          densityClass,
           "max-h-[92dvh] overflow-y-auto overscroll-contain",
           "bottom-0 left-0 right-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2",
           "w-full sm:w-[calc(100%-2rem)] sm:max-w-lg",
-          "pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-6",
           "data-[state=open]:slide-in-from-bottom sm:data-[state=open]:slide-in-from-bottom-0",
           "data-[state=closed]:slide-out-to-bottom sm:data-[state=closed]:slide-out-to-bottom-0",
           className,
@@ -109,10 +117,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn(
-        "flex flex-col gap-1.5 text-left pr-10 sm:pr-8",
-        className,
-      )}
+      className={cn("flex flex-col gap-1.5 text-left pr-10 sm:pr-8", className)}
       {...props}
     />
   );
@@ -148,10 +153,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn(
-        "text-lg sm:text-xl font-semibold leading-tight tracking-tight text-foreground",
-        className,
-      )}
+      className={cn("ui-section-title", className)}
       {...props}
     />
   );
@@ -164,10 +166,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn(
-        "text-sm leading-relaxed text-muted-foreground",
-        className,
-      )}
+      className={cn("ui-section-subtitle", className)}
       {...props}
     />
   );

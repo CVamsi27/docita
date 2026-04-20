@@ -35,16 +35,10 @@ export function FormPage({
     >
       {(title || description || actions) && (
         <header className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0 space-y-1">
-            {title ? (
-              <h1 className="text-[var(--fs-2xl)] font-semibold leading-tight tracking-[var(--tracking-tight)]">
-                {title}
-              </h1>
-            ) : null}
+          <div className="min-w-0 ui-copy-stack">
+            {title ? <h1 className="ui-page-title">{title}</h1> : null}
             {description ? (
-              <p className="max-w-2xl text-[var(--fs-sm)] text-muted-foreground">
-                {description}
-              </p>
+              <p className="max-w-2xl ui-page-subtitle">{description}</p>
             ) : null}
           </div>
           {actions ? (
@@ -57,7 +51,8 @@ export function FormPage({
         <footer
           className={cn(
             "flex flex-wrap items-center justify-end gap-2 border-t border-border/60 bg-background/95 py-3",
-            stickyFooter && "sticky bottom-0 z-10 -mx-4 px-4 backdrop-blur md:-mx-6 md:px-6",
+            stickyFooter &&
+              "sticky bottom-0 z-10 -mx-4 px-4 backdrop-blur md:-mx-6 md:px-6",
           )}
         >
           {footer}

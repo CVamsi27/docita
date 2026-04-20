@@ -12,7 +12,17 @@ interface SectionProps {
   as?: keyof React.JSX.IntrinsicElements;
   id?: string;
   compact?: boolean;
+  tone?: "default" | "muted" | "info" | "success" | "warning" | "danger";
 }
+
+const toneClasses = {
+  default: "ui-panel",
+  muted: "ui-panel-muted",
+  info: "ui-panel surface-info",
+  success: "ui-panel surface-success",
+  warning: "ui-panel surface-warning",
+  danger: "ui-panel surface-danger",
+} as const;
 
 export function Section({
   title,
@@ -24,16 +34,14 @@ export function Section({
   as: Tag = "section",
   id,
   compact = false,
+  tone = "default",
 }: SectionProps) {
   const headingId = id ? `${id}-heading` : undefined;
   return (
     <Tag
       id={id}
       aria-labelledby={title && headingId ? headingId : undefined}
-      className={cn(
-        "rounded-[var(--radius-lg)] border border-border/60 bg-card text-card-foreground shadow-sm",
-        className,
-      )}
+      className={cn(toneClasses[tone], className)}
     >
       {(title || actions || description) && (
         <header
@@ -44,17 +52,12 @@ export function Section({
         >
           <div className="min-w-0 space-y-0.5">
             {title ? (
-              <h2
-                id={headingId}
-                className="text-[var(--fs-md)] font-semibold leading-tight"
-              >
+              <h2 id={headingId} className="ui-section-title">
                 {title}
               </h2>
             ) : null}
             {description ? (
-              <p className="text-[var(--fs-xs)] text-muted-foreground">
-                {description}
-              </p>
+              <p className="ui-helper-text">{description}</p>
             ) : null}
           </div>
           {actions ? (
@@ -64,12 +67,7 @@ export function Section({
           ) : null}
         </header>
       )}
-      <div
-        className={cn(
-          compact ? "p-3" : "p-4",
-          contentClassName,
-        )}
-      >
+      <div className={cn(compact ? "p-3" : "p-4", contentClassName)}>
         {children}
       </div>
     </Tag>

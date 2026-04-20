@@ -6,6 +6,7 @@ export * from "./breadcrumbs";
 export * from "./page-container";
 export * from "./page-layout";
 export * from "./section";
+export * from "./section-heading";
 export * from "./top-bar";
 export * from "./alert";
 export * from "./avatar";
