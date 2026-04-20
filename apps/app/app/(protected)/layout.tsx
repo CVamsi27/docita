@@ -196,7 +196,6 @@ export default function ProtectedLayout({
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const isSettingsRoute = pathname?.startsWith("/settings") ?? false;
-  const isConsultationRoute = pathname?.startsWith("/consultation") ?? false;
   const isConsultationDetailRoute = Boolean(
     pathname && /^\/consultation\/[^/]+/.test(pathname),
   );
@@ -358,10 +357,10 @@ export default function ProtectedLayout({
                     <ResizablePanel defaultSize={82}>
                       <div className="flex h-full flex-col overflow-hidden">
                         <MobileHeader onMenuClick={() => setMobileOpen(true)} />
-                        {!isConsultationRoute ? <DesktopTopBar /> : null}
+                        {!isConsultationDetailRoute ? <DesktopTopBar /> : null}
                         <main
                           className={
-                            isConsultationRoute
+                            isConsultationDetailRoute
                               ? "flex-1 overflow-hidden"
                               : "flex-1 overflow-y-auto p-4 md:p-6"
                           }

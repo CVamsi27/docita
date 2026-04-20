@@ -1,5 +1,10 @@
 import { Calendar } from "@workspace/ui/components/calendar";
-import { Card, CardContent } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import {
   Select,
@@ -37,16 +42,16 @@ export function AppointmentsCalendarUI({
   const isTodaySelected = isSameDay(selectedDate, new Date());
 
   return (
-    <Card className="h-fit border-border/60 bg-card/95 shadow-sm">
-      <CardContent className="space-y-4 p-4">
-        <div className="flex items-center justify-between gap-3">
+    <Card className="h-fit overflow-hidden border-border/60 bg-card/95 shadow-sm">
+      <CardHeader className="space-y-3 border-b border-border/60 px-5 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Selected date
             </p>
-            <p className="mt-0.5 truncate text-base font-semibold text-foreground">
+            <CardTitle className="mt-0.5 truncate text-lg">
               {format(selectedDate, "EEE, d MMM yyyy")}
-            </p>
+            </CardTitle>
           </div>
           <Button
             type="button"
@@ -80,15 +85,19 @@ export function AppointmentsCalendarUI({
             </SelectContent>
           </Select>
         )}
+      </CardHeader>
 
-        <Calendar
-          mode="single"
-          required
-          selected={selectedDate}
-          onSelect={onDateSelect}
-          className="w-full max-w-full p-0 [--cell-size:2rem] [&_[data-day]]:!size-auto [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_table]:w-full [&_td]:p-0.5"
-          classNames={{ root: "w-full max-w-full" }}
-        />
+      <CardContent className="p-0">
+        <div className="p-4">
+          <Calendar
+            mode="single"
+            required
+            selected={selectedDate}
+            onSelect={onDateSelect}
+            className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(7)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_table]:w-full [&_td]:p-0.5"
+            classNames={{ root: "w-full max-w-full" }}
+          />
+        </div>
       </CardContent>
     </Card>
   );

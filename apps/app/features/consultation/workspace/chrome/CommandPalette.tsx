@@ -86,7 +86,7 @@ export function CommandPalette({
                         }}
                       >
                         {Icon ? (
-                          <Icon className="h-4 w-4" aria-hidden="true" />
+                          <Icon className="h-4 w-4 mr-2" aria-hidden="true" />
                         ) : null}
                         <span>{action.label}</span>
                         {action.shortcut && (

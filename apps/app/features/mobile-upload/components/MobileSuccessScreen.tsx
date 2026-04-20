@@ -1,38 +1,35 @@
 import React from "react";
 import { CheckCircle2, FileText, Smartphone } from "lucide-react";
+import { Card, CardContent } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function MobileSuccessScreen() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center space-y-6">
-          {}
-          <div className="relative mx-auto w-24 h-24">
-            <div className="absolute inset-0 bg-success rounded-full animate-ping opacity-20" />
-            <div className="relative bg-success w-24 h-24 rounded-full flex items-center justify-center shadow-lg shadow-green-500/25">
-              <CheckCircle2 className="h-12 w-12 text-white" />
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <Card className="w-full max-w-sm" density="spacious">
+        <CardContent className="ui-section-stack text-center">
+          <div className="relative mx-auto h-24 w-24">
+            <div className="absolute inset-0 rounded-full bg-success animate-ping opacity-20" />
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-success shadow-lg shadow-success/20">
+              <CheckCircle2 className="h-12 w-12 text-success-foreground" />
             </div>
           </div>
 
-          {}
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-success">
-              Upload Complete!
-            </h1>
-            <p className="text-success text-sm leading-relaxed">
-              Your document has been sent to the desktop successfully. You can
-              safely close this page.
-            </p>
-          </div>
+          <SectionHeading
+            align="center"
+            size="page"
+            title={<span className="text-success">Upload Complete!</span>}
+            description="Your document has been sent to the desktop successfully. You can safely close this page."
+            descriptionClassName="text-success"
+          />
 
-          {}
-          <div className="flex items-center justify-center gap-2 text-success text-sm">
+          <div className="flex items-center justify-center gap-2 text-sm text-success">
             <Smartphone className="h-4 w-4" />
             <span className="text-xs">→</span>
             <FileText className="h-4 w-4" />
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
