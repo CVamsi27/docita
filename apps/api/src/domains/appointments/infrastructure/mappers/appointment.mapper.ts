@@ -114,7 +114,7 @@ export class AppointmentMapper {
       doctorId: plain.doctorId,
       startTime: plain.startTime,
       endTime: plain.endTime,
-      status: DOMAIN_TO_PRISMA_STATUS[plain.status],
+      status: DOMAIN_TO_PRISMA_STATUS[domain.getStatus().getValue()],
       notes: plain.notes || plain.reason || null,
       consultationNotes: plain.consultationNotes || null,
       observations: plain.observations || null,

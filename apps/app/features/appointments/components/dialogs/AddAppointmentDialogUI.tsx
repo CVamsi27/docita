@@ -36,6 +36,22 @@ interface AddAppointmentDialogUIProps {
   endHour: number;
 }
 
+interface SectionHeaderProps {
+  title: string;
+  description?: string;
+}
+
+function SectionHeader({ title, description }: SectionHeaderProps) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      {description && (
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      )}
+    </div>
+  );
+}
+
 export function AddAppointmentDialogUI({
   open,
   onOpenChange,
@@ -63,44 +79,60 @@ export function AddAppointmentDialogUI({
       open={open}
       onOpenChange={onOpenChange}
       title="Schedule Appointment"
-      description="Create a new appointment for a patient."
+      description="Pick the patient, doctor, time, and visit type."
+      contentClassName="sm:max-w-[840px]"
     >
       <Form {...form}>
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <PatientSelector
-              form={form}
-              patients={patients}
-              patientsLoading={patientsLoading}
-              patientSearch={patientSearch}
-              setPatientSearch={setPatientSearch}
-              patientComboboxOpen={patientComboboxOpen}
-              setPatientComboboxOpen={setPatientComboboxOpen}
+          <section className="space-y-4">
+            <SectionHeader
+              title="Patient & doctor"
+              description="Who the appointment is for and who will see them."
             />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <PatientSelector
+                form={form}
+                patients={patients}
+                patientsLoading={patientsLoading}
+                patientSearch={patientSearch}
+                setPatientSearch={setPatientSearch}
+                patientComboboxOpen={patientComboboxOpen}
+                setPatientComboboxOpen={setPatientComboboxOpen}
+              />
+              <DoctorSelector
+                form={form}
+                doctors={doctors}
+                doctorsLoading={doctorsLoading}
+              />
+            </div>
+          </section>
 
-            <DoctorSelector
-              form={form}
-              doctors={doctors}
-              doctorsLoading={doctorsLoading}
+          <div className="border-t border-border/60" />
+
+          <section className="space-y-4">
+            <SectionHeader
+              title="Schedule & type"
+              description="Keep the slot within clinic hours."
             />
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <TimeSlotPicker
+                form={form}
+                startHour={startHour}
+                endHour={endHour}
+              />
+              <AppointmentFormFields
+                form={form}
+                appointmentTypeOptions={appointmentTypeOptions}
+              />
+            </div>
+          </section>
 
-            <TimeSlotPicker
-              form={form}
-              startHour={startHour}
-              endHour={endHour}
-            />
-
-            <AppointmentFormFields
-              form={form}
-              appointmentTypeOptions={appointmentTypeOptions}
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={loading}
             >
               Cancel
             </Button>

@@ -7,6 +7,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Clinic, Invoice } from "@workspace/types";
 import Image from "next/image";
+import { useFacilityLabel } from "@/lib/facility-label";
 
 interface InvoiceHeaderProps {
   invoice: Invoice;
@@ -19,6 +20,7 @@ export function InvoiceHeader({
   formatDate,
   clinic,
 }: InvoiceHeaderProps) {
+  const facilityLabel = useFacilityLabel();
   return (
     <CardHeader className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b pb-6">
       <div className="flex flex-col gap-1">
@@ -27,7 +29,7 @@ export function InvoiceHeader({
             <div className="relative h-12 w-12 rounded-xl overflow-hidden border">
               <Image
                 src={clinic.logo || ""}
-                alt={clinic.name || "Clinic Logo"}
+                alt={clinic.name || `${facilityLabel} Logo`}
                 fill
                 className="object-cover"
               />
@@ -39,7 +41,7 @@ export function InvoiceHeader({
           )}
           <div>
             <CardTitle className="text-xl">
-              {clinic?.name || "Clinic Name"}
+              {clinic?.name || `${facilityLabel} Name`}
             </CardTitle>
             {clinic?.website && (
               <a

@@ -372,6 +372,23 @@ describe('AuthService', () => {
       });
     });
 
+    it('persists refresh tokens for 30 days', async () => {
+      const now = 1_700_000_000_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+
+      await service.login(mockUserWithoutPassword);
+
+      expect(prismaService.refreshToken.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            expiresAt: new Date(now + AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_MS),
+          }),
+        }),
+      );
+
+      nowSpy.mockRestore();
+    });
+
     it('adds patientId to token payload for patient users', async () => {
       const patientUser = {
         ...mockUserWithoutPassword,

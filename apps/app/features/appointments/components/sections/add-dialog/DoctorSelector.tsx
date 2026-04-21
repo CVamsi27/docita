@@ -40,13 +40,13 @@ export function DoctorSelector({
             value={field.value ?? ""}
           >
             <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select doctor" />
+              <SelectTrigger className="min-h-11 w-full">
+                <SelectValue placeholder="Doctor" />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
               {doctorsLoading ? (
-                <div className="flex items-center justify-center p-2">
+                <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
               ) : (

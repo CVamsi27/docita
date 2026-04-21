@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePatientHistory } from "@/hooks/api/use-patient-history";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import {
   PatientAllergy,
+  PatientFamilyHistory,
+  PatientMedicalCondition,
   PatientSocialHistory,
+  PatientSurgicalHistory,
   PatientWithMedicalHistory,
 } from "@workspace/types";
 import { PatientMedicalHistoryUI } from "./PatientMedicalHistoryUI";
@@ -14,6 +17,7 @@ interface PatientMedicalHistoryContainerProps {
   readOnly?: boolean;
   className?: string;
   variant?: "default" | "consultation";
+  allowGrowthEdit?: boolean;
 }
 
 export function PatientMedicalHistoryContainer({
@@ -21,6 +25,7 @@ export function PatientMedicalHistoryContainer({
   readOnly = false,
   className,
   variant,
+  allowGrowthEdit = true,
 }: PatientMedicalHistoryContainerProps) {
   const { operations, patient: freshPatient } = usePatientHistory(
     initialPatient.id || "",
@@ -38,6 +43,284 @@ export function PatientMedicalHistoryContainer({
   const [newFamilyRelation, setNewFamilyRelation] = useState("");
 
   const { data: clinic } = useClinicSettings();
+  const [draftPatient, setDraftPatient] = useState<PatientWithMedicalHistory>(
+    () => freshPatient || initialPatient,
+  );
+
+  const hasLocalEditsRef = useRef(false);
+  const hasSeededFromFreshRef = useRef(Boolean(freshPatient));
+  const pendingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
+  const syncedPatientIdRef = useRef<string | undefined>(initialPatient.id);
+
+  useEffect(() => {
+    const nextId = initialPatient.id;
+    if (nextId && nextId !== syncedPatientIdRef.current) {
+      syncedPatientIdRef.current = nextId;
+      hasLocalEditsRef.current = false;
+      hasSeededFromFreshRef.current = false;
+      setDraftPatient(initialPatient);
+    }
+  }, [initialPatient]);
+
+  useEffect(() => {
+    if (
+      !hasSeededFromFreshRef.current &&
+      !hasLocalEditsRef.current &&
+      freshPatient &&
+      freshPatient.id === syncedPatientIdRef.current
+    ) {
+      hasSeededFromFreshRef.current = true;
+      setDraftPatient(freshPatient);
+    }
+  }, [freshPatient]);
+
+  useEffect(() => {
+    const timers = pendingTimersRef.current;
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
+
+  const DEBOUNCE_MS = 500;
+
+  const scheduleDebounced = useCallback(
+    (key: string, fn: () => void) => {
+      const existing = pendingTimersRef.current.get(key);
+      if (existing) {
+        clearTimeout(existing);
+      }
+      const timer = setTimeout(() => {
+        pendingTimersRef.current.delete(key);
+        fn();
+      }, DEBOUNCE_MS);
+      pendingTimersRef.current.set(key, timer);
+    },
+    [],
+  );
+
+  const updateDraftPatient = useCallback(
+    (
+      updater: (
+        current: PatientWithMedicalHistory,
+      ) => PatientWithMedicalHistory,
+    ) => {
+      hasLocalEditsRef.current = true;
+      setDraftPatient((current) => updater(current));
+    },
+    [],
+  );
+
+  const updateCustomData = useCallback(
+    (
+      key: string,
+      value: string | number | boolean | Record<string, unknown>,
+    ) => {
+      updateDraftPatient((current) => ({
+        ...current,
+        customData: {
+          ...(current.customData && typeof current.customData === "object"
+            ? Object.fromEntries(Object.entries(current.customData))
+            : {}),
+          [key]: value,
+        } as PatientWithMedicalHistory["customData"],
+      }));
+      scheduleDebounced(`customData:${key}`, () =>
+        operations.updateCustomData(key, value),
+      );
+    },
+    [operations, scheduleDebounced, updateDraftPatient],
+  );
+
+  const updateSocialHistory = useCallback(
+    (field: keyof PatientSocialHistory, value: string) => {
+      updateDraftPatient((current) => ({
+        ...current,
+        socialHistory: {
+          ...(current.socialHistory ?? {
+            patientId: current.id || "",
+            alcoholFrequency: "",
+            substanceUse: "",
+            occupation: "",
+            occupationalHazards: "",
+            exerciseFrequency: "",
+            dietaryRestrictions: "",
+            notes: "",
+          }),
+          [field]: value,
+        },
+      }));
+      scheduleDebounced(`socialHistory:${String(field)}`, () =>
+        operations.updateSocialHistory(field, value),
+      );
+    },
+    [operations, scheduleDebounced, updateDraftPatient],
+  );
+
+  const addCondition = useCallback(() => {
+    if (!newCondition.trim()) return;
+    const conditionName = newCondition.trim();
+    updateDraftPatient((current) => {
+      const nextCondition: PatientMedicalCondition = {
+        id: crypto.randomUUID(),
+        patientId: current.id || "",
+        conditionName,
+        conditionType: "CHRONIC",
+        status: "ACTIVE",
+        diagnosedBy: "",
+        notes: "",
+        sourceType: "MANUAL",
+      };
+
+      return {
+        ...current,
+        medicalConditions: [...(current.medicalConditions || []), nextCondition],
+      };
+    });
+    operations.addCondition(conditionName);
+    setNewCondition("");
+  }, [newCondition, operations, updateDraftPatient]);
+
+  const addAllergy = useCallback(() => {
+    if (!newAllergy.trim()) return;
+    const allergen = newAllergy.trim();
+    updateDraftPatient((current) => {
+      const nextAllergy: PatientAllergy = {
+        id: crypto.randomUUID(),
+        patientId: current.id || "",
+        allergen,
+        severity: "MODERATE",
+        allergyType: "DRUG",
+        reaction: "",
+        verifiedBy: "",
+        isVerified: false,
+      };
+
+      return {
+        ...current,
+        patientAllergies: [...(current.patientAllergies || []), nextAllergy],
+      };
+    });
+    operations.addAllergy(allergen);
+    setNewAllergy("");
+  }, [newAllergy, operations, updateDraftPatient]);
+
+  const removeCondition = useCallback(
+    (id: string) => {
+      updateDraftPatient((current) => ({
+        ...current,
+        medicalConditions: (current.medicalConditions || []).filter(
+          (condition) => condition.id !== id,
+        ),
+      }));
+      operations.removeCondition(id);
+    },
+    [operations, updateDraftPatient],
+  );
+
+  const removeAllergy = useCallback(
+    (id: string) => {
+      updateDraftPatient((current) => ({
+        ...current,
+        patientAllergies: (current.patientAllergies || []).filter(
+          (allergy) => allergy.id !== id,
+        ),
+      }));
+      operations.removeAllergy(id);
+    },
+    [operations, updateDraftPatient],
+  );
+
+  const handleUpdateAllergy = useCallback(() => {
+    if (!editingAllergy) return;
+    updateDraftPatient((current) => ({
+      ...current,
+      patientAllergies: (current.patientAllergies || []).map((allergy) =>
+        allergy.id === editingAllergy.id ? editingAllergy : allergy,
+      ),
+    }));
+    operations.updateAllergy(editingAllergy);
+    setEditingAllergy(null);
+  }, [editingAllergy, operations, updateDraftPatient]);
+
+  const addSurgery = useCallback(() => {
+    if (!newSurgery.trim()) return;
+    const procedureName = newSurgery.trim();
+    const procedureDate = newSurgeryDate || undefined;
+    updateDraftPatient((current) => {
+      const nextSurgery: PatientSurgicalHistory = {
+        id: crypto.randomUUID(),
+        patientId: current.id || "",
+        procedureName,
+        procedureDate,
+        complications: "",
+        notes: "",
+      };
+
+      return {
+        ...current,
+        surgicalHistory: [...(current.surgicalHistory || []), nextSurgery],
+      };
+    });
+    operations.addSurgery(procedureName, procedureDate);
+    setNewSurgery("");
+    setNewSurgeryDate("");
+  }, [newSurgery, newSurgeryDate, operations, updateDraftPatient]);
+
+  const removeSurgery = useCallback(
+    (id: string) => {
+      updateDraftPatient((current) => ({
+        ...current,
+        surgicalHistory: (current.surgicalHistory || []).filter(
+          (surgery) => surgery.id !== id,
+        ),
+      }));
+      operations.removeSurgery(id);
+    },
+    [operations, updateDraftPatient],
+  );
+
+  const addFamilyHistory = useCallback(() => {
+    if (!newFamilyCondition.trim() || !newFamilyRelation.trim()) return;
+    const condition = newFamilyCondition.trim();
+    const relationship = newFamilyRelation.trim();
+    updateDraftPatient((current) => {
+      const nextFamily: PatientFamilyHistory = {
+        id: crypto.randomUUID(),
+        patientId: current.id || "",
+        condition,
+        relationship,
+      };
+
+      return {
+        ...current,
+        familyHistory: [...(current.familyHistory || []), nextFamily],
+      };
+    });
+    operations.addFamilyHistory(condition, relationship);
+    setNewFamilyCondition("");
+    setNewFamilyRelation("");
+  }, [
+    newFamilyCondition,
+    newFamilyRelation,
+    operations,
+    updateDraftPatient,
+  ]);
+
+  const removeFamilyHistory = useCallback(
+    (id: string) => {
+      updateDraftPatient((current) => ({
+        ...current,
+        familyHistory: (current.familyHistory || []).filter(
+          (familyHistory) => familyHistory.id !== id,
+        ),
+      }));
+      operations.removeFamilyHistory(id);
+    },
+    [operations, updateDraftPatient],
+  );
 
   if (variant !== "consultation") {
     return (
@@ -49,46 +332,7 @@ export function PatientMedicalHistoryContainer({
     );
   }
 
-  const patient = freshPatient || initialPatient;
-
-  const addCondition = () => {
-    if (!newCondition.trim()) return;
-    operations.addCondition(newCondition);
-    setNewCondition("");
-  };
-
-  const addAllergy = () => {
-    if (!newAllergy.trim()) return;
-    operations.addAllergy(newAllergy);
-    setNewAllergy("");
-  };
-
-  const handleUpdateAllergy = () => {
-    if (!editingAllergy) return;
-    operations.updateAllergy(editingAllergy);
-    setEditingAllergy(null);
-  };
-
-  const addSurgery = () => {
-    if (!newSurgery.trim()) return;
-    operations.addSurgery(newSurgery, newSurgeryDate || undefined);
-    setNewSurgery("");
-    setNewSurgeryDate("");
-  };
-
-  const addFamilyHistory = () => {
-    if (!newFamilyCondition.trim() || !newFamilyRelation.trim()) return;
-    operations.addFamilyHistory(newFamilyCondition, newFamilyRelation);
-    setNewFamilyCondition("");
-    setNewFamilyRelation("");
-  };
-
-  const handleSocialHistoryUpdate = (
-    field: keyof PatientSocialHistory,
-    value: string,
-  ) => {
-    operations.updateSocialHistory(field, value);
-  };
+  const patient = draftPatient;
 
   return (
     <PatientMedicalHistoryUI
@@ -96,15 +340,15 @@ export function PatientMedicalHistoryContainer({
       readOnly={readOnly}
       className={className}
       clinicType={clinic?.type}
-      onCustomDataUpdate={operations.updateCustomData}
+      onCustomDataUpdate={updateCustomData}
       newCondition={newCondition}
       onNewConditionChange={setNewCondition}
       onAddCondition={addCondition}
-      onRemoveCondition={operations.removeCondition}
+      onRemoveCondition={removeCondition}
       newAllergy={newAllergy}
       onNewAllergyChange={setNewAllergy}
       onAddAllergy={addAllergy}
-      onRemoveAllergy={operations.removeAllergy}
+      onRemoveAllergy={removeAllergy}
       editingAllergy={editingAllergy}
       onEditAllergy={setEditingAllergy}
       onUpdateAllergy={handleUpdateAllergy}
@@ -115,15 +359,16 @@ export function PatientMedicalHistoryContainer({
       onNewSurgeryChange={setNewSurgery}
       onNewSurgeryDateChange={setNewSurgeryDate}
       onAddSurgery={addSurgery}
-      onRemoveSurgery={operations.removeSurgery}
+      onRemoveSurgery={removeSurgery}
       newFamilyCondition={newFamilyCondition}
       onNewFamilyConditionChange={setNewFamilyCondition}
       newFamilyRelation={newFamilyRelation}
       onNewFamilyRelationChange={setNewFamilyRelation}
       onAddFamilyHistory={addFamilyHistory}
-      onRemoveFamilyHistory={operations.removeFamilyHistory}
-      onSocialHistoryUpdate={handleSocialHistoryUpdate}
+      onRemoveFamilyHistory={removeFamilyHistory}
+      onSocialHistoryUpdate={updateSocialHistory}
       variant={variant}
+      allowGrowthEdit={allowGrowthEdit}
     />
   );
 }

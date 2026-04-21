@@ -145,7 +145,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
       {bill.overageTotal === 0 ? (
         <Badge variant="secondary" className="self-start text-xs">All within included quota</Badge>
       ) : (
-        <p className="text-xs text-muted-foreground">Overage billed at month-end based on actual usage.</p>
+        <p className="text-xs text-muted-foreground">Overage billed at month-end based on actual usage</p>
       )}
     </div>
   );
@@ -158,7 +158,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
           Estimate Your Monthly Bill
         </CardTitle>
         <CardDescription>
-          Adjust the sliders to match your clinic&apos;s usage. You only pay for what you use beyond the included quota.
+          Adjust the sliders to match your facility&apos;s usage. You only pay for what you use beyond the included quota.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

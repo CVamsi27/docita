@@ -80,7 +80,7 @@ export function PatientPortalOverviewUI({
           <EmptyState
             icon={CalendarDays}
             title="No upcoming appointments yet"
-            description="Book your next visit to get started with the portal experience."
+            description="Book your next visit to get started with the portal experience"
           />
           <div className="flex justify-center pb-6">
             <Button asChild>

@@ -5,40 +5,58 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
+interface RateLimitKeyConfig {
+  limit: number;
+  windowMs?: number;
+}
+
 @Injectable()
 export class UserRateLimitService {
   private readonly userAttempts = new Map<string, RateLimitEntry>();
 
   private readonly WINDOW_MS = 60 * 1000;
-  private readonly MAX_ATTEMPTS_PER_USER = 30;
+  private readonly DEFAULT_MAX_ATTEMPTS_PER_USER = 120;
   private nextCleanupAt = 0;
 
-  checkRateLimit(userId: string): boolean {
+  /**
+   * Called with an optional bucket config so individual routes can raise the
+   * ceiling or fully skip rate limiting. Typical examples:
+   * - Consultation PATCH/POST flows: skip (already debounced + hashed).
+   * - Medical coding search: higher limit to support typeahead.
+   */
+  checkRateLimit(userId: string, config?: RateLimitKeyConfig): boolean {
+    if (config && config.limit <= 0) {
+      return true;
+    }
+
     const now = Date.now();
     this.cleanupExpiredEntries(now);
     const tracker = this.userAttempts.get(userId);
+    const windowMs = config?.windowMs ?? this.WINDOW_MS;
+    const limit = config?.limit ?? this.DEFAULT_MAX_ATTEMPTS_PER_USER;
 
     if (!tracker || now > tracker.resetTime) {
       this.userAttempts.set(userId, {
         count: 1,
-        resetTime: now + this.WINDOW_MS,
+        resetTime: now + windowMs,
       });
       return true;
     }
 
     tracker.count++;
 
-    return tracker.count <= this.MAX_ATTEMPTS_PER_USER;
+    return tracker.count <= limit;
   }
 
-  getRemainingRequests(userId: string): number {
+  getRemainingRequests(userId: string, limitOverride?: number): number {
     const now = Date.now();
     this.cleanupExpiredEntries(now);
     const tracker = this.userAttempts.get(userId);
+    const limit = limitOverride ?? this.DEFAULT_MAX_ATTEMPTS_PER_USER;
     if (!tracker || now > tracker.resetTime) {
-      return this.MAX_ATTEMPTS_PER_USER;
+      return limit;
     }
-    return Math.max(0, this.MAX_ATTEMPTS_PER_USER - tracker.count);
+    return Math.max(0, limit - tracker.count);
   }
 
   reset(userId: string): void {

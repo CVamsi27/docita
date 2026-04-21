@@ -1,4 +1,3 @@
-
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 
 export interface SelectOption {
@@ -60,7 +59,8 @@ export interface ClinicSettings {
   timezone: string;
   appointmentDuration: number;
   appointmentType?: string;
-  clinicType?: string; 
+  clinicType?: string;
+  facilityLabel?: "CLINIC" | "HOSPITAL";
 }
 
 export interface AppConfig {
@@ -90,6 +90,9 @@ export const DEFAULT_FORM_OPTIONS: FormOptions = {
     { value: "consultation", label: "Consultation" },
     { value: "follow-up", label: "Follow-up" },
     { value: "check-up", label: "Check-up" },
+    { value: "emergency", label: "Emergency" },
+    { value: "procedure", label: "Procedure" },
+    { value: "other", label: "Other / Custom" },
   ],
   appointmentStatus: [
     { value: "scheduled", label: "Scheduled", color: "purple" },
@@ -110,6 +113,7 @@ export const DEFAULT_FORM_OPTIONS: FormOptions = {
   ],
   userRole: [
     { value: "DOCTOR", label: "Doctor" },
+    { value: "NURSE", label: "Nurse" },
     { value: "RECEPTIONIST", label: "Receptionist" },
     { value: "ADMIN", label: "Admin" },
   ],

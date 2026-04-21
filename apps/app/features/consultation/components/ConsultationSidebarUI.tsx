@@ -71,6 +71,11 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
     `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
   const initials = `${patient.firstName?.[0] ?? ""}${patient.lastName?.[0] ?? ""}`;
 
+  const appointmentId =
+    rawData && "appointment" in rawData
+      ? (rawData as AppointmentWrapper).appointment.id
+      : (rawData as Appointment)?.id;
+
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 bg-background">
       <div className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 relative group">
@@ -130,7 +135,9 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
         </div>
       )}
 
-      <FollowUpWidget />
+      {appointmentId ? (
+        <FollowUpWidget appointmentId={appointmentId} />
+      ) : null}
 
       {(surgicalHistory.length > 0 || familyHistory.length > 0) && (
         <div className="space-y-4 pt-2 border-t">

@@ -45,13 +45,13 @@ function sanitizeValidationResult(
     message: result.message
       ? sanitizeUserFacingMessage(
           result.message,
-          "Please review this dosage before continuing.",
+          "Please review this dosage before continuing",
         )
       : undefined,
     suggestion: result.suggestion
       ? sanitizeUserFacingMessage(
           result.suggestion,
-          "Please review this dosage before continuing.",
+          "Please review this dosage before continuing",
         )
       : undefined,
   };
@@ -64,11 +64,11 @@ function sanitizeContraindicationResult(
     ...result,
     message: sanitizeUserFacingMessage(
       result.message,
-      "Please review this medicine before continuing.",
+      "Please review this medicine before continuing",
     ),
     recommendation: sanitizeUserFacingMessage(
       result.recommendation,
-      "Please review this medicine before continuing.",
+      "Please review this medicine before continuing",
     ),
     alternatives: result.alternatives?.map((alternative) =>
       sanitizeUserFacingMessage(alternative, alternative),
@@ -88,13 +88,13 @@ function sanitizeComprehensiveCheckResult(
     warnings: result.warnings.map((warning) =>
       sanitizeUserFacingMessage(
         warning,
-        "Please review this medicine before continuing.",
+        "Please review this medicine before continuing",
       ),
     ),
     errors: result.errors.map((error) =>
       sanitizeUserFacingMessage(
         error,
-        "Please review this medicine before continuing.",
+        "Please review this medicine before continuing",
       ),
     ),
   };

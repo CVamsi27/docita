@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -9,6 +10,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Select,
   SelectContent,
@@ -22,6 +24,7 @@ import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { CreditCard, Plus, X } from "lucide-react";
 import { ModalProps } from "./PrescriptionModal";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useDefaultValue } from "@/lib/app-config-context";
 
 export interface LineItem {
   description: string;
@@ -36,8 +39,10 @@ export function BillingModal({
   patientId,
   onSaved,
 }: ModalProps) {
-  const [items, setItems] = useState<LineItem[]>([
-    { description: "Consultation Fee", quantity: 1, price: 0 },
+  const defaultConsultationFee = useDefaultValue("consultationFee");
+  const [hasCustomizedDefaultFee, setHasCustomizedDefaultFee] = useState(false);
+  const [items, setItems] = useState<LineItem[]>(() => [
+    { description: "Consultation Fee", quantity: 1, price: defaultConsultationFee },
   ]);
   const [dueDate, setDueDate] = useState<string>(
     new Date().toISOString().split("T")[0],
@@ -52,6 +57,21 @@ export function BillingModal({
 
   const createInvoice = useCreateInvoice();
   const { currency } = useLocaleCurrency();
+
+  useEffect(() => {
+    if (hasCustomizedDefaultFee) {
+      return;
+    }
+
+    setItems((prev) => {
+      if (prev.length !== 1) return prev;
+      const first = prev[0];
+      if (!first || first.description !== "Consultation Fee") return prev;
+      if (first.quantity !== 1) return prev;
+      if (first.price === defaultConsultationFee) return prev;
+      return [{ ...first, price: defaultConsultationFee }];
+    });
+  }, [defaultConsultationFee, hasCustomizedDefaultFee]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en", {
@@ -89,7 +109,7 @@ export function BillingModal({
 
       if (validItems.length === 0) {
         showUserFacingErrorToast(
-          "Add at least one billing item before saving the invoice.",
+          "Add at least one billing item before saving the invoice",
         );
         return;
       }
@@ -130,7 +150,14 @@ export function BillingModal({
       onSaved?.();
       onOpenChange?.(false);
 
-      setItems([{ description: "Consultation Fee", quantity: 1, price: 0 }]);
+      setItems([
+        {
+          description: "Consultation Fee",
+          quantity: 1,
+          price: defaultConsultationFee,
+        },
+      ]);
+      setHasCustomizedDefaultFee(false);
       setTaxRate(0);
       setDiscountValue(0);
     } catch {
@@ -153,6 +180,13 @@ export function BillingModal({
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
+    if (
+      index === 0 &&
+      newItems[index]?.description === "Consultation Fee" &&
+      field === "price"
+    ) {
+      setHasCustomizedDefaultFee(true);
+    }
   };
 
   const removeItem = (index: number) => {
@@ -163,24 +197,31 @@ export function BillingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-success" />
             Create Invoice
           </DialogTitle>
+          <DialogDescription>
+            Add billable line items and set a due date.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="flex flex-col gap-5 min-w-0">
           <div className="flex flex-wrap justify-between items-center gap-3">
-            <div className="text-sm font-medium">Line Items</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Line Items
+            </div>
             <div className="flex items-center gap-2">
               <Label>Due Date</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-36 sm:w-40 h-8"
+                onChange={(date) =>
+                  setDueDate(date?.toISOString().slice(0, 10) ?? "")
+                }
+                placeholder="Select due date"
+                className="w-40 h-8"
               />
             </div>
           </div>

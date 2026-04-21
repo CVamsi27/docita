@@ -47,7 +47,7 @@ export function FollowUpSchedulerContainer({
 
   const handleSchedule = async () => {
     if (!selectedDate) {
-      showUserFacingErrorToast("Choose a follow-up date before scheduling.");
+      showUserFacingErrorToast("Choose a follow-up date before scheduling");
       return;
     }
 

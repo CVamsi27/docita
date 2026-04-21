@@ -6,7 +6,7 @@ import { Lock, Shield } from "lucide-react";
 import { useAuth, type User } from "@/lib/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
 import { ApiValidationError } from "@/lib/api-error";
-import { checkEmailSchema, getUserFacingErrorMessage } from "@workspace/types";
+import { checkEmailSchema, getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { AuthEmailStepUI } from "./AuthEmailStepUI";
 import { AuthLoginStepUI } from "./AuthLoginStepUI";
@@ -111,6 +111,7 @@ export function AuthPageContainer() {
 
   const handlePasswordChange = (value: string) => {
     setPassword(value);
+    clearFieldError("password");
     clearFieldError("confirmPassword");
   };
 
@@ -194,14 +195,25 @@ export function AuthPageContainer() {
 
     const nextFieldErrors: FieldErrors = {};
 
+    if (!password.trim()) {
+      nextFieldErrors.password = "Enter password";
+    } else {
+      const passwordValidation = passwordSchema.safeParse(password);
+      if (!passwordValidation.success) {
+        const firstIssue = passwordValidation.error.issues[0];
+        nextFieldErrors.password =
+          firstIssue?.message ?? "Enter a valid password";
+      }
+    }
+
     if (!confirmPassword) {
-      nextFieldErrors.confirmPassword = "Please re-enter your password.";
+      nextFieldErrors.confirmPassword = "Confirm password";
     } else if (password !== confirmPassword) {
-      nextFieldErrors.confirmPassword = "Passwords do not match.";
+      nextFieldErrors.confirmPassword = "Passwords do not match";
     }
 
     if (!ownerRole) {
-      nextFieldErrors.ownerRole = "Choose how you will use this owner account.";
+      nextFieldErrors.ownerRole = "Choose how you will use this owner account";
     }
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -231,7 +243,12 @@ export function AuthPageContainer() {
   };
 
   const handleForgotPassword = () => {
-    router.push("/forgot-password");
+    const normalizedEmail = email.trim();
+    router.push(
+      normalizedEmail
+        ? `/forgot-password?email=${encodeURIComponent(normalizedEmail)}`
+        : "/forgot-password",
+    );
   };
 
   const handleBack = () => {
@@ -260,9 +277,16 @@ export function AuthPageContainer() {
       currentStep={step}
       contentMaxWidth={contentMaxWidth}
       contentAlignment={contentAlignment}
+      showBrandingPanel={step !== "email"}
+      showProgress={step === "signup"}
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-        <h1 className="text-2xl sm:text-3xl font-bold">{STEP_TITLES[step]}</h1>
+      <div
+        className={[
+          "animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1",
+          step === "signup" ? "text-center lg:text-left" : "text-center",
+        ].join(" ")}
+      >
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{STEP_TITLES[step]}</h1>
         <p className="text-muted-foreground text-sm">
           {STEP_DESCRIPTIONS[step]}
         </p>

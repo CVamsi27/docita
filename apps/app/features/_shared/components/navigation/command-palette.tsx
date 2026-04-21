@@ -7,84 +7,81 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import type { UserRole, Feature } from "@workspace/types";
 import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@workspace/ui/components/command";
-import {
-  Calendar,
-  FileText,
-  Home,
-  Package,
-  PlusCircle,
-  Receipt,
-  Settings,
-  Stethoscope,
-  Users,
-} from "lucide-react";
+  CommandPaletteShell,
+  type CommandPaletteAction,
+} from "@workspace/ui/components/command-palette-shell";
+import { PlusCircle, Stethoscope } from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  navItems,
+  IPD_NAV_ITEM,
+  SETTINGS_NAV_ITEM,
+  type NavItem,
+} from "./nav-config";
 
-const navigationItems = [
+const GROUP_NAVIGATION = "Navigation";
+const GROUP_ACTIONS = "Actions";
+
+const QUICK_ACTIONS: Array<{
+  id: string;
+  label: string;
+  href?: string;
+  kind?: "navigate" | "start-consultation";
+  accessTarget?: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
+  keywords?: string[];
+  shortcut?: string;
+}> = [
   {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: Home,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
-  },
-  {
-    label: "Patients",
-    href: "/patients",
-    icon: Users,
+    id: "new-patient",
+    label: "New patient",
+    href: "/patients?new=true",
+    kind: "navigate",
     accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
+    keywords: ["create", "add", "register"],
+    shortcut: "N P",
   },
   {
-    label: "Appointments",
-    href: "/appointments",
-    icon: Calendar,
+    id: "new-appointment",
+    label: "New appointment",
+    href: "/appointments?new=true",
+    kind: "navigate",
     accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
+    keywords: ["schedule", "book"],
+    shortcut: "N A",
   },
-  { label: "Today's Queue", href: "/consultation", icon: Stethoscope },
   {
-    label: "Invoices",
-    href: "/invoices",
-    icon: Receipt,
+    id: "new-invoice",
+    label: "New invoice",
+    href: "/invoices/new",
+    kind: "navigate",
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
+    keywords: ["bill", "create"],
+    shortcut: "N I",
   },
   {
-    label: "Inventory",
-    href: "/inventory",
-    icon: Package,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
+    id: "start-consultation",
+    label: "Start consultation",
+    kind: "start-consultation",
+    keywords: ["queue", "next patient"],
   },
-  {
-    label: "Documents",
-    href: "/documents",
-    icon: FileText,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_DOCUMENTS,
-  },
-  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
-const quickActions = [
-  {
-    label: "New Patient",
-    action: "/patients?new=true",
-    icon: PlusCircle,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
-  },
-  {
-    label: "New Appointment",
-    action: "/appointments?new=true",
-    icon: PlusCircle,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
-  },
-  { label: "Start Consultation", action: "/consultation", icon: Stethoscope },
-];
+type CanAccessFeatureFn = (feature: Feature) => boolean;
+
+function navItemIsAccessible(
+  item: NavItem,
+  args: { role: UserRole | undefined; canAccess: CanAccessFeatureFn },
+): boolean {
+  if (!item.accessTarget) return true;
+  return canAccessTarget(
+    item.accessTarget,
+    { role: args.role, canAccessFeature: args.canAccess },
+    "read",
+  );
+}
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
@@ -92,12 +89,10 @@ export function CommandPalette() {
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
   const { canAccess } = usePermissionStore();
+
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
-    {
-      role: user?.role,
-      canAccessFeature: canAccess,
-    },
+    { role: user?.role, canAccessFeature: canAccess },
     "read",
   );
   const startConsultation = useStartConsultation();
@@ -111,75 +106,45 @@ export function CommandPalette() {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        setOpen((prev) => !prev);
+        return;
+      }
+
+      if (e.key === "/") {
+        const target = e.target as HTMLElement | null;
+        const isEditable =
+          !!target &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable);
+        if (!isEditable) {
+          e.preventDefault();
+          setOpen(true);
+        }
       }
     };
-
+    const openFromEvent = () => setOpen(true);
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
-
-  const filteredNavigationItems = useMemo(
-    () =>
-      navigationItems.filter((item) => {
-        if (!("accessTarget" in item) || !item.accessTarget) {
-          return true;
-        }
-        return canAccessTarget(
-          item.accessTarget,
-          {
-            role: user?.role,
-            canAccessFeature: canAccess,
-          },
-          "read",
-        );
-      }),
-    [canAccess, user?.role],
-  );
-
-  const filteredQuickActions = useMemo(() => {
-    return quickActions.filter((action) => {
-      if ("accessTarget" in action && action.accessTarget) {
-        const hasTargetAccess = canAccessTarget(
-          action.accessTarget,
-          {
-            role: user?.role,
-            canAccessFeature: canAccess,
-          },
-          "write",
-        );
-        if (!hasTargetAccess) return false;
-      }
-
-      if (action.label === "Start Consultation" && !canStartConsultation) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [canAccess, canStartConsultation, user?.role]);
-
-  const runCommand = useCallback((command: () => void | Promise<void>) => {
-    setOpen(false);
-    void command();
+    window.addEventListener("docita:open-command-palette", openFromEvent);
+    return () => {
+      document.removeEventListener("keydown", down);
+      window.removeEventListener("docita:open-command-palette", openFromEvent);
+    };
   }, []);
 
   const handleStartConsultation = useCallback(async () => {
     const queueItems = doctorQueue.data ?? [];
-    const inProgressAppointmentId = queueItems.find(
-      (item) =>
-        item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
+    const inProgress = queueItems.find(
+      (item) => item.appointmentId && item.status.toUpperCase() === "IN_PROGRESS",
     )?.appointmentId;
-    const waitingAppointmentId = queueItems.find(
+    const waiting = queueItems.find(
       (item) => item.appointmentId && item.status.toUpperCase() === "WAITING",
     )?.appointmentId;
-    const appointmentId = inProgressAppointmentId ?? waitingAppointmentId;
-
+    const appointmentId = inProgress ?? waiting;
     if (!appointmentId) {
       router.push("/consultation");
       return;
     }
-
     try {
       const result = await startConsultation.mutateAsync({ appointmentId });
       router.push(`/consultation/${result.appointmentId}`);
@@ -193,40 +158,64 @@ export function CommandPalette() {
     }
   }, [doctorQueue.data, router, startConsultation]);
 
+  const actions = useMemo<CommandPaletteAction[]>(() => {
+    const out: CommandPaletteAction[] = [];
+
+    const allNav = [...navItems, IPD_NAV_ITEM, SETTINGS_NAV_ITEM];
+    for (const item of allNav) {
+      if (!navItemIsAccessible(item, { role: user?.role, canAccess })) continue;
+      const Icon = item.icon;
+      out.push({
+        id: `nav-${item.href}`,
+        label: item.label,
+        group: GROUP_NAVIGATION,
+        icon: <Icon className="size-4" />,
+        onRun: () => router.push(item.href),
+      });
+    }
+
+    for (const action of QUICK_ACTIONS) {
+      if (action.accessTarget) {
+        const ok = canAccessTarget(
+          action.accessTarget,
+          { role: user?.role, canAccessFeature: canAccess },
+          "write",
+        );
+        if (!ok) continue;
+      }
+      if (action.kind === "start-consultation" && !canStartConsultation) continue;
+
+      out.push({
+        id: `action-${action.id}`,
+        label: action.label,
+        group: GROUP_ACTIONS,
+        icon: action.kind === "start-consultation" ? (
+          <Stethoscope className="size-4" />
+        ) : (
+          <PlusCircle className="size-4" />
+        ),
+        keywords: action.keywords,
+        shortcut: action.shortcut,
+        onRun: () => {
+          if (action.kind === "start-consultation") {
+            void handleStartConsultation();
+          } else if (action.href) {
+            router.push(action.href);
+          }
+        },
+      });
+    }
+
+    return out;
+  }, [canAccess, canStartConsultation, handleStartConsultation, router, user?.role]);
+
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Search or type a command..." />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Navigation">
-          {filteredNavigationItems.map((item) => (
-            <CommandItem
-              key={item.href}
-              onSelect={() => runCommand(() => router.push(item.href))}
-            >
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.label}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-        <CommandGroup heading="Quick Actions">
-          {filteredQuickActions.map((item) => (
-            <CommandItem
-              key={item.action}
-              onSelect={() =>
-                runCommand(() =>
-                  item.label === "Start Consultation"
-                    ? handleStartConsultation()
-                    : router.push(item.action),
-                )
-              }
-            >
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.label}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
-    </CommandDialog>
+    <CommandPaletteShell
+      open={open}
+      onOpenChange={setOpen}
+      actions={actions}
+      placeholder="Search or type a command..."
+      groupOrder={[GROUP_NAVIGATION, GROUP_ACTIONS]}
+    />
   );
 }

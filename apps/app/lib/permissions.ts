@@ -73,6 +73,12 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "viewPrescriptions",
     "createPrescription",
   ],
+  NURSE: [
+    "viewPatients",
+    "editPatient",
+    "viewAppointments",
+    "createAppointment",
+  ],
   RECEPTIONIST: [
     "viewPatients",
     "createPatient",
@@ -81,9 +87,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     "createAppointment",
     "viewInvoices",
   ],
-  PATIENT: [
-    "viewAppointments",
-  ],
+  PATIENT: ["viewAppointments"],
 };
 
 export function hasPermission(role: UserRole, permission: Permission): boolean {

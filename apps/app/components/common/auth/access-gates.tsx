@@ -6,6 +6,8 @@ import { useTierAccess } from "@/hooks/use-tier-access";
 import { useRouter } from "next/navigation";
 import type { Permission } from "@/lib/permissions";
 import { Feature, Tier } from "@workspace/types";
+import { Button } from "@workspace/ui/components/button";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 interface PermissionGateProps {
   requires: Permission | Permission[];
@@ -146,12 +148,13 @@ function UpgradePrompt({
           </>
         )}
       </p>
-      <button
+      <Button
         onClick={() => router.push("/settings?tab=subscription")}
-        className="btn-warning mt-4 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+        variant="secondary"
+        className="mt-4"
       >
         View Plans & Upgrade
-      </button>
+      </Button>
     </div>
   );
 }
@@ -170,12 +173,13 @@ function SubscriptionExpiredBanner() {
       <p className="mt-1 text-sm opacity-90">
         Your subscription has expired. Please renew to continue using Docita.
       </p>
-      <button
+      <Button
         onClick={() => router.push("/settings?tab=subscription")}
-        className="btn-danger mt-4 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+        variant="destructive"
+        className="mt-4"
       >
         Renew Subscription
-      </button>
+      </Button>
     </div>
   );
 }
@@ -223,8 +227,5 @@ function getTierDisplayName(tier: Tier): string {
 }
 
 function formatFeatureName(feature: Feature): string {
-  return feature
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (l) => l.toUpperCase());
+  return humanizeUiLabel(feature);
 }

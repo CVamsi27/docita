@@ -2,11 +2,11 @@ export const MAX_SIGNATURE_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 export function validateSignatureImageFile(file: File): string | null {
   if (!file.type.startsWith("image/")) {
-    return "Please choose an image file.";
+    return "Please choose an image file";
   }
 
   if (file.size > MAX_SIGNATURE_UPLOAD_BYTES) {
-    return "Use a file smaller than 5 MB.";
+    return "Use a file smaller than 5 MB";
   }
 
   return null;

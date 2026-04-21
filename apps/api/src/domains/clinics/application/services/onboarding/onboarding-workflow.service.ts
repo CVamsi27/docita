@@ -40,9 +40,10 @@ interface OnboardingPaymentInput {
 }
 
 function toStaffRole(
-  role: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR',
+  role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR',
 ): Role {
   if (role === 'DOCTOR') return Role.DOCTOR;
+  if (role === 'NURSE') return Role.NURSE;
   if (role === 'ADMIN') return Role.ADMIN;
   if (role === 'ADMIN_DOCTOR') return Role.ADMIN_DOCTOR;
   return Role.RECEPTIONIST;
@@ -96,9 +97,13 @@ export class OnboardingWorkflowService {
     clinicData: ClinicDetailsDto,
     ipAddress?: string,
   ): Promise<Clinic> {
-    const existingClinic = await tx.clinic.findFirst({
-      where: { email: clinicData.email },
-    });
+    const normalizedEmail = clinicData.email?.trim() ?? '';
+
+    const existingClinic = normalizedEmail
+      ? await tx.clinic.findFirst({
+          where: { email: normalizedEmail },
+        })
+      : null;
 
     if (existingClinic) {
       throw new ConflictException('Clinic with this email already exists');
@@ -112,7 +117,7 @@ export class OnboardingWorkflowService {
     const clinic = await tx.clinic.create({
       data: {
         name: clinicData.name,
-        email: clinicData.email,
+        email: normalizedEmail,
         phone: clinicData.phone,
         address: clinicData.address,
         type: clinicData.type || 'GENERAL',
@@ -123,6 +128,8 @@ export class OnboardingWorkflowService {
         referralCode,
         settings: {
           dataResidency: clinicData.dataResidency || 'IN',
+          operatingCountryCode: clinicData.countryCode || 'IN',
+          facilityLabel: clinicData.facilityLabel || 'CLINIC',
           gstin: clinicData.gstin || undefined,
           privacyComplianceVersion: '1.0',
           onboardedAt: new Date().toISOString(),

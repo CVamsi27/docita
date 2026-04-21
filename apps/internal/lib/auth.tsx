@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   setUser(null);
                   showUserFacingErrorToast(
                     null,
-                    "Please sign in again to continue.",
+                    "Please sign in again to continue",
                     "auth",
                   );
                 }
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(null);
                 showUserFacingErrorToast(
                   null,
-                  "Please sign in again to continue.",
+                  "Please sign in again to continue",
                   "auth",
                 );
               }
@@ -168,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (reason?: string) => {
       if (hasLoggedOutRef.current && !internalSession.getToken()) {
         if (reason) {
-          showUserFacingErrorToast(reason, "Please sign in again to continue.", "auth");
+          showUserFacingErrorToast(reason, "Please sign in again to continue", "auth");
         }
         router.replace("/");
         return Promise.resolve();
@@ -203,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (reason) {
             showUserFacingErrorToast(
               reason,
-              "Please sign in again to continue.",
+              "Please sign in again to continue",
               "auth",
             );
           }

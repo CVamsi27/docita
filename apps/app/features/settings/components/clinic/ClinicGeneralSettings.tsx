@@ -28,12 +28,21 @@ import {
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { getFacilityLabel } from "@workspace/utils";
 
 const clinicSettingsSchema = z.object({
-  name: requiredStringSchema("Clinic Name"),
+  name: requiredStringSchema("Facility Name"),
   address: requiredStringSchema("Address"),
   phone: phoneSchema,
   gstin: z.union([z.string().trim(), z.literal("")]).optional(),
+  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
 });
 
 type ClinicSettingsFormValues = z.infer<typeof clinicSettingsSchema>;
@@ -42,6 +51,9 @@ export function ClinicGeneralSettings() {
   const { data: clinic, isLoading } = useClinicSettings();
   const { mutate: updateClinic, isPending } = useUpdateClinicSettings();
   const [copied, setCopied] = useState(false);
+  const facilityLabel = getFacilityLabel(
+    clinic?.settings?.facilityLabel as "CLINIC" | "HOSPITAL" | undefined,
+  );
 
   const handleCopyCode = () => {
     const code = clinic?.referralCode;
@@ -59,6 +71,7 @@ export function ClinicGeneralSettings() {
       address: "",
       phone: "",
       gstin: "",
+      facilityLabel: "CLINIC",
     },
   });
 
@@ -69,6 +82,9 @@ export function ClinicGeneralSettings() {
         address: clinic.address || "",
         phone: clinic.phone || "",
         gstin: clinic.gstin || "",
+        facilityLabel:
+          (clinic.settings?.facilityLabel as "CLINIC" | "HOSPITAL" | undefined) ??
+          "CLINIC",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,12 +93,12 @@ export function ClinicGeneralSettings() {
   const handleSubmit = (data: ClinicSettingsFormValues) => {
     updateClinic(data, {
       onSuccess: () => {
-        toast.success("Clinic settings updated successfully");
+        toast.success("Facility settings updated successfully");
       },
       onError: (error) => {
         showUserFacingErrorToast(
           error,
-          "We could not save your clinic details. Please try again.",
+          "We could not save your facility details. Please try again.",
           "save",
         );
       },
@@ -108,13 +124,15 @@ export function ClinicGeneralSettings() {
   return (
     <Card >
       <CardHeader>
-        <CardTitle>Clinic Information</CardTitle>
-        <CardDescription>Basic clinic settings and information</CardDescription>
+        <CardTitle>{facilityLabel} Information</CardTitle>
+        <CardDescription>Basic settings and information</CardDescription>
       </CardHeader>
       <CardContent>
         {!!clinic?.referralCode && (
           <div className="mb-4 rounded-lg border bg-muted/30 p-4">
-            <p className="text-xs font-medium text-muted-foreground mb-1">Clinic Join Code</p>
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              {facilityLabel} Join Code
+            </p>
             <div className="flex items-center gap-2">
               <code className="text-sm font-mono font-semibold tracking-wider text-foreground">
                 {clinic.referralCode}
@@ -125,13 +143,14 @@ export function ClinicGeneralSettings() {
                 size="sm"
                 className="h-7 w-7 p-0"
                 onClick={handleCopyCode}
-                title="Copy clinic code"
+                title={`Copy ${facilityLabel.toLowerCase()} code`}
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Share this code with team members so they can find and join your clinic
+              Share this code with team members so they can find and join your{" "}
+              {facilityLabel.toLowerCase()}
             </p>
           </div>
         )}
@@ -146,12 +165,43 @@ export function ClinicGeneralSettings() {
               name="name"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Clinic Name"
+                  label={`${facilityLabel} Name`}
                   required
                   error={form.formState.errors.name?.message}
                 >
                   <FormControl>
-                    <Input placeholder="Enter clinic name" {...field} />
+                    <Input
+                      placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
+                      {...field}
+                    />
+                  </FormControl>
+                </FormFieldGroup>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="facilityLabel"
+              render={({ field }) => (
+                <FormFieldGroup
+                  label="Display as"
+                  hint="Controls whether the app shows Clinic or Hospital in key headings"
+                >
+                  <FormControl>
+                    <Select
+                      value={field.value ?? "CLINIC"}
+                      onValueChange={(value) =>
+                        field.onChange(value as "CLINIC" | "HOSPITAL")
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select display label" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CLINIC">Clinic</SelectItem>
+                        <SelectItem value="HOSPITAL">Hospital</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                 </FormFieldGroup>
               )}

@@ -37,7 +37,6 @@ describe("DoctorSelector", () => {
   it("renders safely when doctorId is initially undefined", () => {
     render(<TestFormWithoutInitialDoctor />);
 
-    expect(screen.getByText("Doctor")).toBeInTheDocument();
-    expect(screen.getByText("Select doctor")).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toHaveTextContent("Doctor");
   });
 });

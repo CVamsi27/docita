@@ -71,7 +71,7 @@ export function ChiefComplaintInput({
       {
         id: crypto.randomUUID(),
         complaint: "",
-        durationValue: "",
+        durationValue: "1",
         durationUnit: "days",
         severity: "moderate",
         notes: "",
@@ -95,18 +95,18 @@ export function ChiefComplaintInput({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {!readOnly && (
-        <div className="rounded-2xl border border-border bg-muted/20 p-4">
+        <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-primary/10 p-2 text-primary">
+            <div className="rounded-full bg-primary/10 p-1.5 text-primary">
               <Activity className="h-4 w-4" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <h3 className="text-sm font-semibold">
                 Capture the patient concern clearly
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Start with the main symptom, then add duration, severity, and
                 any useful clinical context.
               </p>
@@ -119,18 +119,23 @@ export function ChiefComplaintInput({
         {items.map((item, index) => {
           const isPrimary = index === 0;
           const hasComplaint = item.complaint.trim().length > 0;
+          const durationNumber = Number(item.durationValue);
+          const hasDurationValue = item.durationValue.trim().length > 0;
+          const isDurationValid = !hasComplaint
+            ? true
+            : hasDurationValue && Number.isFinite(durationNumber) && durationNumber > 0;
 
           return (
             <div
               key={item.id || index}
-              className={`space-y-4 rounded-2xl border p-4 transition-colors ${
+              className={`space-y-3 rounded-xl border p-3 transition-colors ${
                 isPrimary
                   ? "border-primary/30 bg-primary/5"
                   : "border-border bg-card hover:bg-muted/20"
               }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <div className="rounded-full bg-background p-1.5 text-primary shadow-sm">
                       <Activity className="h-4 w-4" />
@@ -141,10 +146,10 @@ export function ChiefComplaintInput({
                         : `Additional complaint ${index}`}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {isPrimary
                       ? "What is the main reason for this consultation?"
-                      : "Add another symptom or concern if it is clinically relevant."}
+                      : "Add another symptom or concern if it is clinically relevant"}
                   </p>
                 </div>
 
@@ -199,12 +204,13 @@ export function ChiefComplaintInput({
                 )}
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor={`duration-value-${index}`}>Duration</Label>
                   <Input
                     id={`duration-value-${index}`}
                     type="number"
+                    min="1"
                     placeholder="How long?"
                     value={item.durationValue}
                     onChange={(e) =>
@@ -213,6 +219,11 @@ export function ChiefComplaintInput({
                     readOnly={readOnly}
                     className="h-11 bg-background"
                   />
+                  {!readOnly && hasComplaint && !isDurationValid && (
+                    <p className="text-sm text-warning">
+                      Duration must be greater than 0.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -279,7 +290,7 @@ export function ChiefComplaintInput({
         <Button
           variant="outline"
           onClick={addItem}
-          className="w-full border-dashed py-6 text-muted-foreground hover:text-primary"
+          className="w-full border-dashed py-3 text-muted-foreground hover:text-primary"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Another Complaint

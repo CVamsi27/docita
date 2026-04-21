@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Table,
   TableBody,
@@ -207,11 +208,13 @@ export function AuditLogViewer() {
               </label>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                <DatePicker
+                  value={selectedDate || undefined}
+                  onChange={(date) =>
+                    setSelectedDate(date?.toISOString().slice(0, 10) ?? "")
+                  }
+                  placeholder="Select date"
+                  className="flex-1"
                 />
               </div>
             </div>

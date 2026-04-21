@@ -1,9 +1,10 @@
 import { z } from "zod";
 import {
   appointmentSchema,
-  createAppointmentSchema,
+  createAppointmentBaseSchema,
   updateAppointmentSchema,
 } from "../operations/appointments";
+import { appointmentStatusSchema } from "../shared/users";
 import {
   cardiologyExamDataSchema,
   clinicalInvestigationSchema,
@@ -19,8 +20,13 @@ import {
 
 export const appointmentResponseSchema = appointmentSchema;
 
-export const createAppointmentRequestSchema = createAppointmentSchema.extend({
-  clinicId: createAppointmentSchema.shape.clinicId.optional(),
+export const startConsultationResponseSchema = z.object({
+  appointmentId: z.string().min(1),
+  status: appointmentStatusSchema,
+});
+
+export const createAppointmentRequestSchema = createAppointmentBaseSchema.extend({
+  clinicId: createAppointmentBaseSchema.shape.clinicId.optional(),
 });
 
 export const updateAppointmentRequestSchema = updateAppointmentSchema.extend({
@@ -96,6 +102,9 @@ export const appointmentRescheduleRequestSchema = z
   }));
 
 export type AppointmentContractResponse = z.infer<typeof appointmentResponseSchema>;
+export type StartConsultationResponse = z.infer<
+  typeof startConsultationResponseSchema
+>;
 export type CreateAppointmentRequest = z.infer<
   typeof createAppointmentRequestSchema
 >;

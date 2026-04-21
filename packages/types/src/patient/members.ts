@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const userRoleSchema = z.enum([
   "DOCTOR",
+  "NURSE",
   "RECEPTIONIST",
   "ADMIN",
   "INTERNAL",
@@ -75,7 +76,11 @@ export const createMemberSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Use at least 6 characters."),
   phoneNumber: z.string().optional(),
-  role: z.literal("DOCTOR").or(z.literal("RECEPTIONIST")).optional(),
+  role: z
+    .literal("DOCTOR")
+    .or(z.literal("NURSE"))
+    .or(z.literal("RECEPTIONIST"))
+    .optional(),
 
   specialization: z.string().optional(),
   qualification: z.string().optional(),

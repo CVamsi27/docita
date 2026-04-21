@@ -58,7 +58,7 @@ function getClinicTypeDisplay(type?: string) {
     GYNECOLOGY: { name: "Gynecology", className: "tier-pro" },
     OPHTHALMOLOGY: { name: "Ophthalmology", className: "tier-core" },
     PSYCHIATRY: { name: "Psychiatry", className: "tier-pro" },
-    SPECIALTY: { name: "Specialty", className: "tier-plus" },
+    SPECIALTY: { name: "Others", className: "tier-plus" },
   };
   return typeLabels[normalizedType] || { name: "General", className: "badge-muted" };
 }
@@ -72,6 +72,7 @@ interface Clinic {
   tier?: string;
   type?: string;
   active?: boolean;
+  settings?: Record<string, unknown>;
   _count?: {
     users: number;
     patients: number;
@@ -90,7 +91,7 @@ export function ClinicList({
   if (loading) {
     return (
       <div className="flex h-24 items-center justify-center text-muted-foreground">
-        Loading clinics...
+        Loading facilities...
       </div>
     );
   }
@@ -174,6 +175,7 @@ export function ClinicList({
                       address: clinic.address ?? "",
                       tier: clinic.tier ?? "GENERAL",
                       active: clinic.active ?? true,
+                      settings: clinic.settings,
                     }}
                     onClinicUpdated={onUpdate}
                   />

@@ -73,7 +73,7 @@ export default function MobileUploadPage() {
           return;
         }
         if (error.status === 400) {
-          const message = "Please upload an image file.";
+          const message = "Please upload an image file";
           setErrorMessage(message);
           showUserFacingErrorToast(null, message, "upload");
           return;

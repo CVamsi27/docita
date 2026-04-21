@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { format } from "date-fns";
 import {
   Check,
@@ -20,31 +20,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
-import { TIME_SLOTS } from "@/features/appointments/hooks/use-appointments-logic";
 import { usePermissions } from "@/hooks/use-permissions";
-
-const isAppointmentInSlot = (
-  appointment: Appointment,
-  slotTime: string,
-  selectedDate: Date,
-) => {
-  const [slotHour, slotMinute] = slotTime.split(":").map(Number);
-  const slotStart = new Date(selectedDate);
-  slotStart.setHours(slotHour, slotMinute, 0, 0);
-  const slotEnd = new Date(slotStart);
-  slotEnd.setMinutes(slotEnd.getMinutes() + 30);
-
-  const aptStart = new Date(appointment.startTime);
-  const aptEnd = new Date(appointment.endTime);
-
-  return aptStart < slotEnd && aptEnd > slotStart;
-};
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 interface TimeSlotRowProps {
-  slotTime: string;
-  appointments: (Appointment & { patient?: Patient })[];
-  selectedDate: Date;
-  isCurrentSlot: boolean;
+  appointment: Appointment & { patient?: Patient };
   checkingIn: string | null;
   startingConsultationId: string | null;
   onCheckIn: (id: string) => void;
@@ -56,10 +36,7 @@ interface TimeSlotRowProps {
 
 export const TimeSlotRow = memo<TimeSlotRowProps>(
   ({
-    slotTime,
-    appointments,
-    selectedDate,
-    isCurrentSlot,
+    appointment: apt,
     checkingIn,
     startingConsultationId,
     onCheckIn,
@@ -68,177 +45,174 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     onNoShowClick,
     currentUserId,
   }) => {
-    const slotAppointments = useMemo(
-      () =>
-        appointments.filter((apt) =>
-          isAppointmentInSlot(apt, slotTime, selectedDate),
-        ),
-      [appointments, slotTime, selectedDate],
-    );
     const { canStartConsultation } = usePermissions();
+    const aptStart = new Date(apt.startTime);
+    const aptEnd = new Date(apt.endTime);
+    const appointmentTypeLabel = apt.type
+      ? humanizeUiLabel(apt.type)
+      : "General";
+    const canAccessConsultation =
+      canStartConsultation &&
+      !!currentUserId &&
+      apt.doctorId === currentUserId;
+
+    const isTerminalVisit =
+      apt.status === "completed" || apt.status === "no-show";
+    const isConsultationActive = apt.status === "in-progress";
+    const consultationPrimaryLabel = isTerminalVisit
+      ? "View"
+      : isConsultationActive
+        ? "Continue"
+        : "Start";
+    const consultationTitle = isTerminalVisit
+      ? "View consultation record"
+      : isConsultationActive
+        ? "Continue consultation"
+        : "Start consultation";
 
     return (
-      <div
-        className={`flex border-b transition-colors ${
-          isCurrentSlot
-            ? "bg-primary/10 dark:bg-primary/5 border-l-4 border-l-primary shadow-sm"
-            : "border-border hover:bg-muted/30 dark:hover:bg-muted/10"
-        } min-h-[60px]`}
-      >
+      <div className="group relative @container/apt overflow-hidden rounded-xl border border-border/60 bg-card/95 pl-3 pr-3 py-3 transition-colors duration-150 hover:border-border hover:bg-card">
         <div
-          className={`w-20 shrink-0 p-3 text-sm font-semibold border-r border-border transition-colors ${
-            isCurrentSlot
-              ? "text-primary bg-primary/5 dark:bg-primary/10"
-              : "text-muted-foreground"
+          className={`absolute inset-y-0 left-0 w-1 ${
+            apt.status === "checked-in"
+              ? "bg-success"
+              : apt.status === "confirmed"
+                ? "bg-info"
+                : apt.status === "in-progress"
+                  ? "bg-primary"
+                  : apt.status === "completed" || apt.status === "no-show"
+                    ? "bg-muted-foreground/40"
+                    : "bg-primary/60"
           }`}
-        >
-          {slotTime}
-        </div>
-        <div className="flex-1 p-2 relative">
-          {slotAppointments.length > 0 ? (
-            <div className="space-y-1.5">
-              {slotAppointments.map((apt) => {
-                const aptStart = new Date(apt.startTime);
-                const aptEnd = new Date(apt.endTime);
-                const canAccessConsultation =
-                  canStartConsultation &&
-                  !!currentUserId &&
-                  apt.doctorId === currentUserId;
-                const isFirstSlot =
-                  isAppointmentInSlot(apt, slotTime, selectedDate) &&
-                  (TIME_SLOTS.indexOf(slotTime) === 0 ||
-                    !isAppointmentInSlot(
-                      apt,
-                      TIME_SLOTS[TIME_SLOTS.indexOf(slotTime) - 1] || "",
-                      selectedDate,
-                    ));
+          aria-hidden="true"
+        />
 
-                return (
-                  <div
-                    key={apt.id}
-                    className={`flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-lg border transition-colors duration-150 ${
-                      apt.status === "checked-in"
-                        ? "surface-success"
-                        : apt.status === "confirmed"
-                          ? "surface-info"
-                          : apt.status === "completed"
-                            ? "bg-muted/30 border-border"
-                            : "bg-card border-border"
-                    }`}
-                  >
-                    <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                      {isFirstSlot && (
-                        <>
-                          <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                          <span className="text-xs font-semibold text-foreground">
-                            {format(aptStart, "h:mm a")} -{" "}
-                            {format(aptEnd, "h:mm a")}
-                          </span>
-                          <div className="h-4 w-px bg-border mx-1" />
-                        </>
-                      )}
-                      <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                      <span className="text-sm font-semibold truncate text-foreground">
-                        {apt.patient
-                          ? `${apt.patient.firstName} ${apt.patient.lastName}`
-                          : `Patient ID: ${apt.patientId}`}
-                      </span>
-                      <Badge
-                        variant={
-                          apt.status === "confirmed" ? "default" : "secondary"
-                        }
-                        className="text-xs shrink-0 capitalize"
-                      >
-                        {apt.status}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1 sm:gap-1.5 ml-2 shrink-0">
-                      {apt.status === "confirmed" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onCheckIn(apt.id!)}
-                          disabled={checkingIn === apt.id}
-                          className="gap-1 h-8 text-xs hover:bg-primary/10 dark:hover:bg-primary/20"
-                          title="Check in patient"
-                        >
-                          {checkingIn === apt.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <UserCheck className="h-3.5 w-3.5" />
-                          )}
-                          <span className="hidden sm:inline">Check-in</span>
-                        </Button>
-                      )}
-                      {apt.status === "checked-in" && (
-                        <Badge
-                          variant="secondary"
-                          className="gap-1 badge-success text-xs shrink-0"
-                        >
-                          <Check className="h-3 w-3" />
-                          <span className="hidden sm:inline">In Queue</span>
-                        </Badge>
-                      )}
-                      {canAccessConsultation && (
-                        <Button
-                          size="sm"
-                          variant={
-                            apt.status === "completed" ? "outline" : "default"
-                          }
-                          onClick={() => onStartConsultation(apt.id!)}
-                          disabled={startingConsultationId === apt.id}
-                          className="h-8 text-xs gap-1"
-                          title={apt.status === "completed" ? "View consultation" : apt.status === "in-progress" ? "Resume consultation" : "Start consultation"}
-                        >
-                          <Stethoscope className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">
-                            {apt.status === "completed"
-                              ? "View"
-                              : apt.status === "in-progress"
-                                ? "Resume"
-                                : "Start"}
-                          </span>
-                        </Button>
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                          >
-                            <MoreVertical className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/patients/${apt.patientId}`}
-                              className="flex items-center gap-2"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              View Patient
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onCancelClick(apt.id || "")}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            Cancel Appointment
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onNoShowClick(apt.id || "")}
-                          >
-                            Mark as No Show
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                );
-              })}
+        <div className="flex flex-col gap-3 pl-2 @md/apt:flex-row @md/apt:items-center @md/apt:justify-between @md/apt:gap-4">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <div className="flex shrink-0 flex-col items-start">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground tabular-nums">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                {format(aptStart, "h:mm a")}
+              </div>
+              <span className="mt-0.5 pl-5 text-xs text-muted-foreground tabular-nums">
+                {format(aptEnd, "h:mm a")}
+              </span>
             </div>
-          ) : null}
+
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h3 className="truncate text-sm font-semibold text-foreground">
+                  {apt.patient
+                    ? `${apt.patient.firstName} ${apt.patient.lastName}`
+                    : `Patient ID: ${apt.patientId}`}
+                </h3>
+                <Badge
+                  variant="secondary"
+                  className={`text-[var(--fs-2xs)] capitalize ${
+                    apt.status === "confirmed"
+                      ? "badge-info"
+                      : apt.status === "checked-in"
+                        ? "badge-success"
+                        : apt.status === "in-progress"
+                          ? "badge-info"
+                          : "badge-muted"
+                  }`}
+                >
+                  {humanizeUiLabel(apt.status)}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  {apt.patient ? "Linked patient" : "Unlinked patient"}
+                </span>
+                <span aria-hidden="true">&middot;</span>
+                <span>{format(aptStart, "EEE, MMM d")}</span>
+                <span aria-hidden="true">&middot;</span>
+                <span>{appointmentTypeLabel}</span>
+                {apt.doctor?.name && (
+                  <>
+                    <span aria-hidden="true">&middot;</span>
+                    <span className="truncate">Dr. {apt.doctor.name}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 @md/apt:flex-nowrap @md/apt:justify-end">
+            {apt.status === "confirmed" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onCheckIn(apt.id!)}
+                disabled={checkingIn === apt.id}
+                className="h-8 gap-1.5 rounded-full px-3 text-xs"
+                title="Check in patient"
+              >
+                {checkingIn === apt.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <UserCheck className="h-3.5 w-3.5" />
+                )}
+                <span>Check-in</span>
+              </Button>
+            )}
+            {apt.status === "checked-in" && (
+              <Badge
+                variant="secondary"
+                className="badge-success h-8 gap-1 rounded-full px-3"
+              >
+                <Check className="h-3 w-3" />
+                <span>In Queue</span>
+              </Badge>
+            )}
+            {canAccessConsultation && (
+              <Button
+                size="sm"
+                variant={isTerminalVisit ? "outline" : "default"}
+                onClick={() => onStartConsultation(apt.id!)}
+                disabled={startingConsultationId === apt.id}
+                className="h-8 gap-1.5 rounded-full px-3 text-xs"
+                title={consultationTitle}
+              >
+                <Stethoscope className="h-3.5 w-3.5" />
+                <span>{consultationPrimaryLabel}</span>
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 shrink-0 rounded-full p-0"
+                  aria-label="More appointment actions"
+                >
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[200px]">
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/patients/${apt.patientId}`}
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View Patient
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onCancelClick(apt.id || "")}
+                  className="text-destructive focus:text-destructive"
+                >
+                  Cancel Appointment
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onNoShowClick(apt.id || "")}>
+                  Mark as No Show
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     );

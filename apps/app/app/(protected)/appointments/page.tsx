@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { Badge } from "@workspace/ui/components/badge";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
 import { LoadingState } from "@workspace/ui/components/empty-state";
@@ -11,7 +12,12 @@ import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 
 import { useAppointmentsLogic } from "@/features/appointments/hooks/use-appointments-logic";
-import { AppointmentsCalendarUI, AppointmentsListUI, AppointmentsPageHeaderUI } from "@/features/appointments/components";
+import {
+  AppointmentsCalendarUI,
+  AppointmentsListUI,
+  AppointmentsPageHeaderUI,
+  CancelAppointmentDialog,
+} from "@/features/appointments/components";
 
 export const dynamic = "force-dynamic";
 
@@ -45,12 +51,11 @@ function AppointmentsContent() {
     startingConsultationId,
     user,
     isPendingMutation,
-    activeStartHour,
-    activeEndHour,
   } = state;
 
   const {
     handleCheckIn,
+    handleAppointmentAdded,
     handleStartConsultation,
     handleCancelAppointment,
     handleNoShowAppointment,
@@ -59,28 +64,59 @@ function AppointmentsContent() {
     refetch,
   } = handlers;
 
+  const appointmentSummary = useMemo(() => {
+    const counts = filteredAppointments.reduce(
+      (acc, appointment) => {
+        acc.total += 1;
+        acc[appointment.status] = (acc[appointment.status] ?? 0) + 1;
+        return acc;
+      },
+      {
+        total: 0,
+        scheduled: 0,
+        confirmed: 0,
+        "checked-in": 0,
+        "in-progress": 0,
+        completed: 0,
+      } as Record<string, number>,
+    );
+
+    return [
+      { label: "Total", value: counts.total, tone: "border-border/60 bg-background/70" },
+      { label: "Scheduled", value: counts.scheduled, tone: "border-primary/20 bg-primary/5 text-primary" },
+      { label: "Confirmed", value: counts.confirmed, tone: "border-info/20 bg-info/5 text-info" },
+      { label: "Checked in", value: counts["checked-in"], tone: "border-success/20 bg-success/5 text-success" },
+      { label: "In progress", value: counts["in-progress"], tone: "border-warning/20 bg-warning/5 text-warning" },
+      { label: "Completed", value: counts.completed, tone: "border-muted/60 bg-muted/40 text-muted-foreground" },
+    ];
+  }, [filteredAppointments]);
+
   return (
     <FeatureGate
       feature={Feature.CALENDAR_SLOTS}
       fallback={
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-          <CalendarDays className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold mb-2">
-            Appointment Scheduling
-          </h2>
-          <p className="text-muted-foreground mb-4 max-w-md">
-            Manage patient appointments with an intuitive calendar. Upgrade to
-            Core tier to unlock this feature.
-          </p>
-          <Button asChild>
-            <Link href="/settings?tab=subscription">Upgrade to Core</Link>
-          </Button>
-        </div>
+        <AppPageScaffold>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-card/50 p-8 text-center min-h-[50vh]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
+              <CalendarDays className="h-7 w-7 text-primary" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-2">
+              Appointment Scheduling
+            </h2>
+            <p className="text-sm md:text-base text-muted-foreground mb-5 max-w-md">
+              Manage patient appointments with an intuitive calendar. Upgrade
+              to Core tier to unlock this feature.
+            </p>
+            <Button asChild>
+              <Link href="/settings?tab=subscription">Upgrade to Core</Link>
+            </Button>
+          </div>
+        </AppPageScaffold>
       }
     >
       <AppPageScaffold>
         <AppointmentsPageHeaderUI
-          onAppointmentAdded={() => refetch()}
+          onAppointmentAdded={handleAppointmentAdded}
           selectedDate={date}
           isAddDialogOpen={isAddDialogOpen}
           onOpenChange={handleDialogChange}
@@ -89,7 +125,23 @@ function AppointmentsContent() {
           setSearchQuery={setSearchQuery}
         />
 
-        <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+        <div className="flex flex-wrap gap-2">
+          {appointmentSummary.map((item) => (
+            <div
+              key={item.label}
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${item.tone}`}
+            >
+              <span className="text-xs font-medium uppercase tracking-wide opacity-70">
+                {item.label}
+              </span>
+              <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs">
+                {item.value}
+              </Badge>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(260px,300px)_minmax(0,1fr)]">
           <AppointmentsCalendarUI
             date={date}
             onDateSelect={setDate}
@@ -124,24 +176,16 @@ function AppointmentsContent() {
               setNoShowDialogOpen(true);
             }}
             currentUserId={user?.id}
-            activeStartHour={activeStartHour}
-            activeEndHour={activeEndHour}
           />
         </div>
       </AppPageScaffold>
 
-      <ConfirmationDialog
+      <CancelAppointmentDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
-        title="Cancel Appointment"
-        description="Are you sure you want to cancel this appointment? The patient will not be notified automatically."
-        confirmText="Cancel Appointment"
-        cancelText="Keep Appointment"
-        type="danger"
         isLoading={isPendingMutation}
         onConfirm={handleCancelAppointment}
       />
-
       <ConfirmationDialog
         open={noShowDialogOpen}
         onOpenChange={setNoShowDialogOpen}

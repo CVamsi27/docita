@@ -191,7 +191,7 @@ export function PaymentStep({
         <CardTitle>Payment Details</CardTitle>
         <CardDescription>
           {isFree
-            ? "Your selected plan has no upfront cost."
+            ? "Your selected plan has no upfront cost"
             : "Complete payment to activate your subscription. You won't be charged until your trial ends."}
         </CardDescription>
       </CardHeader>

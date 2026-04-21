@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -23,11 +24,11 @@ const getPrescriptionComplianceErrorMessage = (error: unknown): string | null =>
   }
 
   if (error.code === "DOCTOR_SIGNATURE_REQUIRED") {
-    return "Add your signature before creating a prescription.";
+    return "Add your signature before creating a prescription";
   }
 
   if (error.code === "DOCTOR_VERIFICATION_REQUIRED") {
-    return "Finish your doctor verification before creating a prescription.";
+    return "Finish your doctor verification before creating a prescription";
   }
 
   return null;
@@ -78,7 +79,7 @@ export function PrescriptionModal({
     { enabled: !!patientId },
   );
 
-  const lastRx = lastRxData?.items?.[0];
+  const lastRx = lastRxData?.[0];
 
   const handleRepeatLastRx = () => {
     if (lastRx && lastRx.medications) {
@@ -94,7 +95,7 @@ export function PrescriptionModal({
       toast.success("Loaded medications from last prescription");
     } else {
       showUserFacingErrorToast(
-        "There is no previous prescription to copy for this patient.",
+        "There is no previous prescription to copy for this patient",
       );
     }
   };
@@ -107,7 +108,7 @@ export function PrescriptionModal({
 
       if (validMedications.length === 0) {
         showUserFacingErrorToast(
-          "Add at least one medicine before saving this prescription.",
+          "Add at least one medicine before saving this prescription",
         );
         return;
       }
@@ -187,18 +188,19 @@ export function PrescriptionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <Pill className="h-5 w-5 text-primary" />
-              Create Prescription
-            </DialogTitle>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            <Pill className="h-5 w-5 text-primary" />
+            Create Prescription
+          </DialogTitle>
+          <DialogDescription>
+            Add one or more medicines with dosage and duration.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-          <div className="flex justify-end mb-2">
+        <div className="flex flex-col gap-4 min-w-0">
+          <div className="flex justify-end">
             <Button
               variant="outline"
               size="sm"
@@ -211,9 +213,12 @@ export function PrescriptionModal({
           </div>
 
           {medications.map((med, index) => (
-            <div key={index} className="space-y-3 p-3 bg-muted/30 rounded-lg">
+            <div
+              key={index}
+              className="flex flex-col gap-3 p-4 bg-muted/40 rounded-xl border border-border/60"
+            >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Medication #{index + 1}
                 </span>
                 {medications.length > 1 && (

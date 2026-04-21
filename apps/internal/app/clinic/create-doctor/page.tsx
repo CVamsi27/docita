@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Select,
   SelectContent,
@@ -70,15 +71,15 @@ export default function CreateDoctorPage() {
 
     const errors: { name?: string; email?: string; password?: string } = {};
     if (!form.name.trim()) {
-      errors.name = "Enter the doctor's full name.";
+      errors.name = "Enter the doctor's full name";
     }
     if (!form.email.trim()) {
-      errors.email = "Enter an email address.";
+      errors.email = "Enter an email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       errors.email = "Enter a valid email address";
     }
     if (!form.password.trim()) {
-      errors.password = "Enter a password.";
+      errors.password = "Enter a password";
     }
 
     setFieldErrors(errors);
@@ -91,18 +92,19 @@ export default function CreateDoctorPage() {
       toast.success("Doctor created successfully");
       router.push("/clinic/team");
     } catch {
-      showUserFacingErrorToast("We could not create this doctor account. Please try again.");
+      showUserFacingErrorToast(
+        "We could not create this doctor account. Please try again.",
+      );
     }
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Create Doctor</h1>
-        <p className="text-muted-foreground">
-          Add a new doctor to your clinic team
-        </p>
-      </div>
+      <PageHeader
+        title="Create Doctor"
+        description="Add a new doctor to your facility team"
+        size="compact"
+      />
 
       <Card className="max-w-2xl">
         <CardHeader>

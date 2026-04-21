@@ -8,7 +8,7 @@ export default function PortalMetricsPage() {
       header={
         <PageHeader
           title="My Metrics"
-          description="Track trends and monitor your health metrics over time."
+          description="Track trends and monitor your health metrics over time"
         />
       }
     >

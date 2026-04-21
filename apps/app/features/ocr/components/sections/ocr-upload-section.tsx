@@ -107,9 +107,9 @@ export const OCRUploadSection = ({
           <div className="text-sm">
             <p className="font-medium mb-1">Tips for best results:</p>
             <ul className="list-disc pl-4 space-y-1">
-              <li>Ensure good lighting and clear handwriting.</li>
-              <li>Capture the entire page including headers.</li>
-              <li>Avoid shadows and blur.</li>
+              <li>Ensure good lighting and clear handwriting</li>
+              <li>Capture the entire page including headers</li>
+              <li>Avoid shadows and blur</li>
             </ul>
           </div>
         </CardContent>

@@ -1,6 +1,7 @@
 export * from "./calendar/AppointmentsCalendarUI";
 export * from "./dialogs/AddAppointmentDialogContainer";
 export * from "./dialogs/AddAppointmentDialogUI";
+export * from "./dialogs/CancelAppointmentDialog";
 export * from "./dialogs/FollowUpSchedulerContainer";
 export * from "./dialogs/FollowUpSchedulerUI";
 export * from "./forms/TimeSlotPickerContainer";

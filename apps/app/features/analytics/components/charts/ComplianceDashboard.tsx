@@ -86,7 +86,7 @@ export const ComplianceDashboard = ({
               <YAxis domain={[0, 100]} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" fill="#8884d8" name="Compliance %" />
+              <Bar dataKey="value" fill="var(--color-chart-1)" name="Compliance %" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>

@@ -5,6 +5,8 @@ import {
   appointmentRescheduleRequestSchema,
   appointmentResponseSchema,
   createAppointmentRequestSchema,
+  diagnosesSyncRequestSchema,
+  diagnosesSyncResponseSchema,
   listAppointmentsQuerySchema,
   updateAppointmentRequestSchema,
   vitalSignSchema,
@@ -52,3 +54,11 @@ export class PaginatedAppointmentResponseDto extends createZodDto(
 ) {}
 
 export class VitalSignResponseDto extends createZodDto(vitalSignSchema) {}
+
+export class DiagnosesSyncDto extends createZodDto(
+  diagnosesSyncRequestSchema,
+) {}
+
+export class DiagnosesSyncResponseDto extends createZodDto(
+  diagnosesSyncResponseSchema,
+) {}

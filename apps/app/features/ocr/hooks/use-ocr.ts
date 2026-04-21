@@ -4,6 +4,7 @@ import { useCreateAppointment } from "@/hooks/api/use-appointments";
 import { useProcessOCR } from "@/hooks/api/use-import";
 import { useCreatePatient } from "@/hooks/api/use-patients";
 import { useAuth } from "@/lib/auth-context";
+import { useClinic } from "@/lib/clinic-context";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
 import { OCRFormData } from "@/features/ocr/types";
@@ -12,6 +13,7 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 export const useOCR = () => {
   const router = useRouter();
   const { user } = useAuth();
+  const { clinicId } = useClinic();
 
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -137,11 +139,31 @@ export const useOCR = () => {
 
   const handleSave = async () => {
     try {
+      if (!clinicId) {
+        showUserFacingErrorToast(null, "Select a facility to continue", "form");
+        return;
+      }
+      if (!user?.id) {
+        showUserFacingErrorToast(null, "Please sign in again to continue", "auth");
+        return;
+      }
+      if (!formData.firstName.trim() || !formData.lastName.trim()) {
+        showUserFacingErrorToast(
+          null,
+          "Enter the patient's first and last name",
+          "form",
+        );
+        return;
+      }
+      if (!formData.phoneNumber.trim()) {
+        showUserFacingErrorToast(null, "Enter the patient's phone number", "form");
+        return;
+      }
 
       const patient = await createPatientMutation.mutateAsync({
-        firstName: formData.firstName || "Unknown",
-        lastName: formData.lastName || "",
-        phoneNumber: formData.phoneNumber || "0000000000",
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        phoneNumber: formData.phoneNumber.trim(),
         gender: formData.gender as "MALE" | "FEMALE" | "OTHER",
         dateOfBirth: new Date(
           new Date().getFullYear() - (parseInt(formData.age) || 0),
@@ -156,8 +178,8 @@ export const useOCR = () => {
 
       const appointment = await createAppointmentMutation.mutateAsync({
         patientId: patient.id!,
-        doctorId: user?.id || "default-doctor-id",
-        clinicId: "default-clinic-id",
+        doctorId: user.id,
+        clinicId,
         startTime: new Date().toISOString(),
         endTime: new Date(Date.now() + 30 * 60000).toISOString(),
         type: "consultation",

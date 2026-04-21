@@ -85,7 +85,7 @@ export default function PortalAppointmentsPage() {
       header={
         <PageHeader
           title="My Appointments"
-          description="Track upcoming and past visits."
+          description="Track upcoming and past visits"
         />
       }
     >
@@ -96,7 +96,7 @@ export default function PortalAppointmentsPage() {
         onRetry={() => void refetch()}
         emptyIcon={Calendar}
         emptyTitle="No appointments found"
-        emptyDescription="Your scheduled visits will appear here."
+        emptyDescription="Your scheduled visits will appear here"
       >
         <PatientPortalAppointmentsUI
           appointments={appointments}

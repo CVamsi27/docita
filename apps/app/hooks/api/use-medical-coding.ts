@@ -7,16 +7,24 @@ import {
 } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
+const MIN_MEDICAL_CODE_SEARCH_LENGTH = 2;
+
+function isMeaningfulMedicalCodeQuery(search: string): boolean {
+  return search.trim().length >= MIN_MEDICAL_CODE_SEARCH_LENGTH;
+}
+
 export const useICDCodes = (search: string) =>
   useAPIQuery<IcdCode[]>(
     ["icd-codes", search],
     `/clinical/medical-coding/icd/search?q=${encodeURIComponent(search)}`,
+    { enabled: isMeaningfulMedicalCodeQuery(search) },
   );
 
 export const useCPTCodes = (search: string) =>
   useAPIQuery<CptCode[]>(
     ["cpt-codes", search],
     `/clinical/medical-coding/cpt/search?q=${encodeURIComponent(search)}`,
+    { enabled: isMeaningfulMedicalCodeQuery(search) },
   );
 
 export const useICDFavorites = () =>
@@ -65,12 +73,12 @@ export const useSearchIcdCodes = (search: string) =>
   useAPIQuery<IcdCode[]>(
     ["icd-codes", search],
     `/clinical/medical-coding/icd/search?q=${encodeURIComponent(search || "")}`,
-    { enabled: true },
+    { enabled: isMeaningfulMedicalCodeQuery(search || "") },
   );
 
 export const useSearchCptCodes = (search: string) =>
   useAPIQuery<CptCode[]>(
     ["cpt-codes", search],
     `/clinical/medical-coding/cpt/search?q=${encodeURIComponent(search || "")}`,
-    { enabled: true },
+    { enabled: isMeaningfulMedicalCodeQuery(search || "") },
   );

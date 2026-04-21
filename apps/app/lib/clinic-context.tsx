@@ -47,6 +47,7 @@ export interface Clinic {
   referralCode?: string | null;
   slaSignatureUrl?: string | null;
   slaSignatureAcceptedAt?: string | null;
+  countryCode?: string;
 }
 
 interface ClinicContextType {

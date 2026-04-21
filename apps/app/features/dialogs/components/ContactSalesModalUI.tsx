@@ -87,7 +87,7 @@ export function ContactSalesModalUI({
             Contact Sales
           </DialogTitle>
           <DialogDescription>
-            Get in touch with our sales team to discuss your clinic&apos;s needs
+            Get in touch with our sales team to discuss your facility&apos;s needs
           </DialogDescription>
         </DialogHeader>
 
@@ -165,12 +165,12 @@ export function ContactSalesModalUI({
                   name="clinic"
                   render={({ field }) => (
                     <FormFieldGroup
-                      label="Clinic Name"
+                      label="Facility Name"
                       error={form.formState.errors.clinic?.message}
                     >
                       <FormControl>
                         <Input
-                          placeholder="Your clinic name"
+                          placeholder="Your facility name"
                           {...field}
                           value={field.value || ""}
                           disabled={isSubmitting}

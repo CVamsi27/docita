@@ -15,6 +15,7 @@ import type { User } from "@workspace/types";
 import { SignatureUploadQR } from "@/features/settings/components/signature-upload-qr";
 import Link from "next/link";
 import { CheckCircle2, PenLine } from "lucide-react";
+import { toAbsoluteApiUrl } from "@/lib/url";
 
 export function DoctorProfileSettings() {
   const { user } = useAuth();
@@ -28,6 +29,9 @@ export function DoctorProfileSettings() {
   const profile = doctorProfile ?? user;
   const hasSignature = !!profile?.signatureUrl;
   const hasRegistration = !!profile?.registrationNumber;
+  const resolvedSignatureUrl = profile?.signatureUrl
+    ? toAbsoluteApiUrl(profile.signatureUrl)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -52,10 +56,10 @@ export function DoctorProfileSettings() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {hasSignature && profile?.signatureUrl && (
+          {hasSignature && resolvedSignatureUrl && (
             <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
               <img
-                src={profile.signatureUrl}
+                src={resolvedSignatureUrl}
                 alt="Your current signature"
                 className="max-h-24 max-w-full object-contain"
               />
@@ -110,7 +114,7 @@ export function DoctorProfileSettings() {
             </div>
           ) : (
             <div className="flex items-center justify-between rounded-lg border border-dashed bg-muted/30 px-4 py-3">
-              <p className="text-sm text-muted-foreground">Not provided.</p>
+              <p className="text-sm text-muted-foreground">Not provided</p>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/verify-doctor">Add Registration Number</Link>
               </Button>

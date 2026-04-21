@@ -59,7 +59,15 @@ export class PrescriptionsService {
     private readonly pdfJobService: PdfJobServicePort,
   ) {}
 
-  async findAll(clinicId: string, params?: { search?: string; date?: string }) {
+  async findAll(
+    clinicId: string,
+    params?: {
+      search?: string;
+      date?: string;
+      patientId?: string;
+      limit?: number;
+    },
+  ) {
     return this.repository.findAll({
       clinicId,
       ...params,

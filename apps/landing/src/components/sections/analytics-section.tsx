@@ -7,11 +7,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function AnalyticsSection() {
   return (
     <section className="px-6 py-24 bg-background">
-      <div className="mx-auto max-w-7xl">
+      <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">
             <BarChart3 className="h-4 w-4 text-info" />
@@ -19,13 +20,13 @@ export function AnalyticsSection() {
               Data-Driven Insights
             </span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-            Grow Your Practice with Analytics
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Understand your clinic&apos;s performance with comprehensive reports
-            on revenue, patient trends, and operational efficiency.
-          </p>
+          <SectionHeading
+            align="center"
+            size="section"
+            title="Grow Your Practice with Analytics"
+            description="Understand your facility's performance with comprehensive reports on revenue, patient trends, and operational efficiency."
+            descriptionClassName="mx-auto max-w-2xl"
+          />
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">

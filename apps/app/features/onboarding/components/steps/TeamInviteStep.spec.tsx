@@ -1,0 +1,57 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { TeamInviteStep } from "./TeamInviteStep";
+
+describe("TeamInviteStep", () => {
+  it("enables delete when email is typed and clears the row email", () => {
+    render(
+      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+    );
+
+    const emailInput = screen.getByPlaceholderText("Member email address");
+    const firstRemoveButton = screen.getByRole("button", { name: "Remove member 1" });
+
+    expect(firstRemoveButton).toBeDisabled();
+
+    fireEvent.change(emailInput, { target: { value: "doctor@example.com" } });
+    expect(firstRemoveButton).toBeEnabled();
+    expect(emailInput).toHaveValue("doctor@example.com");
+
+    fireEvent.click(firstRemoveButton);
+    expect(emailInput).toHaveValue("");
+    expect(firstRemoveButton).toBeDisabled();
+  });
+
+  it("removes an empty additional member row", () => {
+    render(
+      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /add another member/i }));
+    const secondRemoveButton = screen.getByRole("button", { name: "Remove member 2" });
+    expect(secondRemoveButton).toBeEnabled();
+
+    fireEvent.click(secondRemoveButton);
+    expect(screen.queryByRole("button", { name: "Remove member 2" })).not.toBeInTheDocument();
+  });
+
+  it("shows role significance details from the info icon", async () => {
+    render(
+      <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
+    );
+
+    const roleGuideButton = screen.getByRole("button", {
+      name: "Role significance guide",
+    });
+    fireEvent.focus(roleGuideButton);
+
+    const roleGuideTitles = await screen.findAllByText("Team roles and significance");
+    expect(roleGuideTitles.length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Admin Doctor").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        "Doctor with admin access who can help manage members and permissions",
+      ).length,
+    ).toBeGreaterThan(0);
+  });
+});

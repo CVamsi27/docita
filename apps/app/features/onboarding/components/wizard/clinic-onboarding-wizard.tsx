@@ -30,7 +30,7 @@ export function ClinicOnboardingWizard() {
     return (
       <PageTransitionLoader
         title="Finalizing your registration..."
-        description="Taking you to your next step."
+        description="Taking you to your next step"
         fullscreen={false}
       />
     );
@@ -40,7 +40,7 @@ export function ClinicOnboardingWizard() {
     return (
       <PageTransitionLoader
         title="Preparing onboarding..."
-        description="Checking your account and saved progress."
+        description="Checking your account and saved progress"
         fullscreen={false}
       />
     );

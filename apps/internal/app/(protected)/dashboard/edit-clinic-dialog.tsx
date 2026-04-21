@@ -14,9 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import PhoneInput, { type Country } from "react-phone-number-input";
 import { toast } from "sonner";
-import { TIER_INFO, type TierName } from "@workspace/types";
+import { CLINIC_TYPE_OPTIONS, type ClinicType, TIER_INFO, type TierName } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { resolveCountryCodeOrDefault } from "@workspace/utils";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -25,61 +27,19 @@ const AVAILABLE_TIERS: TierName[] = [
   "ENTERPRISE",
 ];
 
-const CLINIC_TYPES = [
-  {
-    value: "GENERAL",
-    label: "General Medicine",
-    description: "Multi-specialty clinic",
-  },
-  {
-    value: "DENTAL",
-    label: "Dental Clinic",
-    description: "Dentistry & Orthodontics",
-  },
-  {
-    value: "PEDIATRIC",
-    label: "Pediatric Clinic",
-    description: "Child Health",
-  },
-  {
-    value: "ORTHOPEDIC",
-    label: "Orthopedic Clinic",
-    description: "Bone & Joint Specialist",
-  },
-  {
-    value: "CARDIOLOGY",
-    label: "Cardiology Clinic",
-    description: "Heart Specialist",
-  },
-  {
-    value: "DERMATOLOGY",
-    label: "Dermatology Clinic",
-    description: "Skin Care",
-  },
-  { value: "ENT", label: "ENT Clinic", description: "Ear, Nose & Throat" },
-  {
-    value: "GYNECOLOGY",
-    label: "Gynecology Clinic",
-    description: "Women's Health",
-  },
-  {
-    value: "OPHTHALMOLOGY",
-    label: "Ophthalmology Clinic",
-    description: "Eye Care",
-  },
-  {
-    value: "PSYCHIATRY",
-    label: "Psychiatry Clinic",
-    description: "Mental Health",
-  },
-  {
-    value: "SPECIALTY",
-    label: "Other Specialty",
-    description: "Custom specialty clinic",
-  },
-] as const;
-
-type ClinicType = (typeof CLINIC_TYPES)[number]["value"];
+const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
+  GENERAL: "Multi-specialty facility",
+  DENTAL: "Dentistry & Orthodontics",
+  PEDIATRIC: "Child Health",
+  ORTHOPEDIC: "Bone & Joint Specialist",
+  CARDIOLOGY: "Heart Specialist",
+  DERMATOLOGY: "Skin Care",
+  ENT: "Ear, Nose & Throat",
+  GYNECOLOGY: "Women's Health",
+  OPHTHALMOLOGY: "Eye Care",
+  PSYCHIATRY: "Mental Health",
+  SPECIALTY: "Custom specialty facility",
+};
 
 function normalizeTierName(tier: string): TierName {
   const legacyMapping: Record<string, TierName> = {
@@ -125,6 +85,7 @@ interface Clinic {
   tier: string;
   type?: string;
   active: boolean;
+  settings?: Record<string, unknown>;
 }
 
 export function EditClinicDialog({
@@ -152,14 +113,14 @@ export function EditClinicDialog({
       address?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Enter the clinic name.";
+    if (!formData.name.trim()) errors.name = "Enter the facility name";
     if (!formData.email.trim()) {
-      errors.email = "Enter an email address.";
+      errors.email = "Enter an email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Enter a valid email address";
     }
-    if (!formData.phone.trim()) errors.phone = "Enter a phone number.";
-    if (!formData.address.trim()) errors.address = "Enter the clinic address.";
+    if (!formData.phone.trim()) errors.phone = "Enter a phone number";
+    if (!formData.address.trim()) errors.address = "Enter the facility address";
 
     return errors;
   };
@@ -185,11 +146,11 @@ export function EditClinicDialog({
         await client.patch(`/internal/clinics/${clinic.id}`, formData);
         setOpen(false);
         onClinicUpdated();
-        toast.success("Clinic updated successfully");
+        toast.success("Facility updated successfully");
       } catch (error) {
         showUserFacingErrorToast(
           error,
-          "We could not save these clinic details. Please try again.",
+          "We could not save these facility details. Please try again.",
           "save",
         );
       } finally {
@@ -204,24 +165,24 @@ export function EditClinicDialog({
         variant="ghost"
         size="icon"
         onClick={() => setOpen(true)}
-        aria-label="Edit clinic"
+        aria-label="Edit facility"
       >
         <Pencil className="h-4 w-4" />
       </Button>
       <CRUDDialog
         open={open}
         onOpenChange={handleOpenChange}
-        title="Edit Clinic"
-        description="Update clinic details and status."
+        title="Edit Facility"
+        description="Update facility details and status"
         isLoading={loading}
         onSubmit={handleSubmit}
-        submitLabel={loading ? "Updating..." : "Update Clinic"}
+        submitLabel={loading ? "Updating..." : "Update Facility"}
       >
         <form className="space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name">Clinic Name</Label>
+                <Label htmlFor="edit-name">Facility Name</Label>
                 <Input
                   id="edit-name"
                   value={formData.name}
@@ -275,15 +236,21 @@ export function EditClinicDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-phone">Phone</Label>
-                <Input
+                <PhoneInput
                   id="edit-phone"
                   value={formData.phone}
-                  onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value });
+                  international
+                  defaultCountry={
+                    resolveCountryCodeOrDefault(clinic.settings) as Country
+                  }
+                  onChange={(value: string | undefined) => {
+                    setFormData({ ...formData, phone: value ?? "" });
                     if (fieldErrors.phone) {
                       setFieldErrors((prev) => ({ ...prev, phone: undefined }));
                     }
                   }}
+                  placeholder="Enter phone number"
+                  className="flex min-h-[5rem] min-w-0 flex-col gap-2 rounded-xl border border-input bg-background/60 p-3 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-10 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[9.5rem] [&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-lg [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={
                     fieldErrors.phone ? "edit-clinic-phone-error" : undefined
@@ -329,16 +296,18 @@ export function EditClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select clinic type" />
+                  <SelectValue placeholder="Select facility type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLINIC_TYPES.map((type) => (
+                  {CLINIC_TYPE_OPTIONS.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       <div className="flex flex-col">
                         <span className="font-medium">{type.label}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {type.description}
-                        </span>
+                        {CLINIC_TYPE_DESCRIPTIONS[type.value] ? (
+                          <span className="text-xs text-muted-foreground">
+                            {CLINIC_TYPE_DESCRIPTIONS[type.value]}
+                          </span>
+                        ) : null}
                       </div>
                     </SelectItem>
                   ))}

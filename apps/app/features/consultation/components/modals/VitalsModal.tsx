@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -59,7 +60,7 @@ export function VitalsModal({
 
       if (Object.keys(payload).length <= 1) {
         showUserFacingErrorToast(
-          "Enter at least one vital sign before saving.",
+          "Enter at least one vital sign before saving",
         );
         return;
       }
@@ -93,15 +94,20 @@ export function VitalsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <HeartPulse className="h-5 w-5 text-destructive" />
-            Record Vitals for {patientName}
+            Record Vitals
           </DialogTitle>
+          {patientName && (
+            <DialogDescription>
+              Capture baseline measurements for {patientName}.
+            </DialogDescription>
+          )}
         </DialogHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Height (cm)</Label>
             <Input

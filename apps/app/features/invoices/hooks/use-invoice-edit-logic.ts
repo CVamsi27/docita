@@ -10,16 +10,16 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 export const invoiceItemSchema = z.object({
   id: z.string().optional(),
-  description: z.string().min(1, "Enter a description."),
-  quantity: z.number().min(1, "Enter a quantity of at least 1."),
-  price: z.number().min(0, "Enter a valid price."),
+  description: z.string().min(1, "Enter a description"),
+  quantity: z.number().min(1, "Enter a quantity of at least 1"),
+  price: z.number().min(0, "Enter a valid price"),
 });
 
 export const invoiceSchema = z.object({
   status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED", "PARTIALLY_PAID"]),
   discount: z.number().min(0),
   notes: z.string().optional(),
-  items: z.array(invoiceItemSchema).min(1, "Add at least one item."),
+  items: z.array(invoiceItemSchema).min(1, "Add at least one item"),
 });
 
 export type InvoiceFormValues = z.infer<typeof invoiceSchema>;

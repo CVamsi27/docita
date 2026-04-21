@@ -12,7 +12,7 @@ const ClinicOnboardingWizard = dynamic(
     import("@/features/onboarding/components").then((mod) => ({
       default: mod.ClinicOnboardingWizard,
     })),
-  { ssr: true },
+  { ssr: false },
 );
 
 export default function OnboardingPage() {
@@ -46,7 +46,7 @@ export default function OnboardingPage() {
       user?.onboardingStep === "CHOOSE_PATH" ||
       user?.onboardingStep === "NOT_STARTED"
     ) {
-      setRedirectMessage("Taking you to clinic setup choices...");
+      setRedirectMessage("Taking you to facility setup choices...");
       router.replace("/choose-path");
     }
   }, [isAuthenticated, isLoading, user, router]);
@@ -68,9 +68,9 @@ export default function OnboardingPage() {
       showSignOut
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-bold">Set up your clinic</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Set up your facility</h1>
         <p className="text-muted-foreground text-sm">
-          Complete your clinic registration to get started.
+          Complete your facility registration to get started.
         </p>
       </div>
 

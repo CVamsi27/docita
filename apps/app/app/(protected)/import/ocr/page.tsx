@@ -5,9 +5,7 @@ import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { useMobileUpload } from "@/features/ocr/hooks/use-mobile-upload";
 import { useOCR } from "@/features/ocr/hooks/use-ocr";
 import { OCRMobileDialog, OCRResults, OCRUploadSection } from "@/features/ocr/components";
-import { Button } from "@workspace/ui/components/button";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 export default function OCRPage() {
   const {
@@ -42,14 +40,9 @@ export default function OCRPage() {
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/import">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Import
-            </Link>
-          </Button>
+          <BackButton fallback="/import" label="Back to Import" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
           Smart OCR Digitization
         </h1>
         <p className="text-muted-foreground">

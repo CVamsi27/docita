@@ -18,6 +18,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - Do not use npm or yarn in this repo.
 - Apps:
   - `apps/api` (NestJS)
+  - `apps/worker` (NestJS background worker)
   - `apps/app` (Next.js main app)
   - `apps/internal` (Next.js internal)
   - `apps/landing` (Astro marketing)
@@ -174,7 +175,10 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
   - relevant tests
   - build checks where change impact is broad
+- For worker changes, run `pnpm --filter @docita/worker run lint`, `pnpm --filter @docita/worker run check-types`, and the relevant build check before pushing.
+- For API flows covered by the API E2E workflow, run `pnpm --filter @docita/api run test:e2e` locally before pushing.
 - For frontend UX or markup changes, run the relevant accessibility audit (`pnpm audit:app`, `pnpm audit:internal`, or `pnpm audit:landing`).
+- For design-system or theme-token changes, run `pnpm check:colors`.
 - For `packages/db` changes that affect indexes, query plans, or migration safety, run the relevant DB guardrails from `@workspace/db` (`db:check-integrity`, `db:analyze-indexes`, `db:profile-queries`, `db:check-query-plans`, or `db:guardrail`).
 - When a pull request is already failing a GitHub Actions workflow, run the matching local command for that workflow before committing or pushing.
 - For dependency or lockfile changes, run `pnpm audit --audit-level=high` locally before pushing.
@@ -193,8 +197,10 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 - Do not deploy every app on every push to `main`.
 - Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
+- The production deploy workflow currently targets the API and the worker independently; keep those deploy paths and jobs scoped separately.
 - Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
 - Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
+- Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/.codex/worktrees/8bc6/docita/apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
 - Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
 
@@ -259,10 +265,13 @@ pnpm audit:landing
 pnpm check:hygiene
 pnpm verify:standard
 pnpm check:prisma-boundary
+pnpm check:colors
 pnpm db:generate
 pnpm db:migrate
 pnpm --filter @workspace/db run db:migrate:dry-run
 pnpm --filter @workspace/db run db:migrate:safe
+pnpm --filter @docita/api run test:e2e
+pnpm --filter @docita/worker run check-types
 pnpm perf:baseline
 pnpm perf:budget:warn
 pnpm perf:budget:enforce

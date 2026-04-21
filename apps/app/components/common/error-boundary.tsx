@@ -3,6 +3,13 @@
 import Link from "next/link";
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertCircle, Home, RefreshCcw } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { captureException, captureMessage } from "@/lib/sentry.client.config";
 
 interface Props {
@@ -46,33 +53,34 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center bg-card rounded-xl border border-border shadow-sm">
-          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-6">
-            <AlertCircle className="w-8 h-8 text-destructive" />
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight mb-2">
-            We could not load this section
-          </h2>
-          <p className="text-muted-foreground max-w-md mb-4">
-            Please try again or go back to the home page.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={this.handleReset}
-              className="inline-flex items-center justify-center px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium transition-colors hover:bg-primary/90"
-            >
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Try Again
-            </button>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center px-6 py-2 bg-secondary text-secondary-foreground rounded-lg font-medium transition-colors hover:bg-secondary/80"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </Link>
-          </div>
+        <div className="flex min-h-[400px] items-center justify-center p-6 text-center">
+          <Card className="w-full max-w-md">
+            <CardHeader className="items-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+                <AlertCircle className="h-8 w-8 text-destructive" />
+              </div>
+              <CardTitle className="text-2xl font-bold tracking-tight">
+                We could not load this section
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-muted-foreground">
+                Please try again or go back to the home page.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button onClick={this.handleReset} className="gap-2">
+                  <RefreshCcw className="h-4 w-4" />
+                  Try Again
+                </Button>
+                <Button asChild variant="secondary" className="gap-2">
+                  <Link href="/">
+                    <Home className="h-4 w-4" />
+                    Go Home
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }

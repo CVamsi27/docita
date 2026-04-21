@@ -1,6 +1,16 @@
 import type { Patient, User } from "@workspace/types";
 import { differenceInYears } from "date-fns";
+import {
+  DEFAULT_COUNTRY_CODE,
+  normalizeCountryCode,
+} from "@workspace/utils";
 import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
+import {
+  getCountryCallingCode,
+  isPossiblePhoneNumber,
+  parsePhoneNumber,
+  type Country,
+} from "react-phone-number-input";
 
 type PatientNameLike = {
   firstName?: string | null;
@@ -69,23 +79,63 @@ export const getPatientDisplayLabel = (patient: PatientNameLike): string => {
   return `${patient.firstName ?? ""} ${patient.lastName ?? ""}`.trim();
 };
 
-export const validatePatientData = (data: Partial<Patient>): string[] => {
+function resolvePhoneValidationCountry(
+  countryCode?: string | null,
+): Country {
+  return (normalizeCountryCode(countryCode) ?? DEFAULT_COUNTRY_CODE) as Country;
+}
+
+export const validatePatientPhoneNumberForCountry = (
+  phoneNumber: string | null | undefined,
+  clinicCountryCode?: string | null,
+): string | null => {
+  const phone = phoneNumber?.trim() ?? "";
+  if (!phone) {
+    return null;
+  }
+
+  const country = resolvePhoneValidationCountry(clinicCountryCode);
+  const isValidForCountry = isPossiblePhoneNumber(phone, country);
+  const parsed = parsePhoneNumber(phone, country);
+  const expectedCallingCode = getCountryCallingCode(country);
+  const matchesSelectedCountry =
+    parsed?.countryCallingCode === expectedCallingCode;
+
+  if (!isValidForCountry || !matchesSelectedCountry) {
+    return "Enter a valid phone number for the selected clinic country";
+  }
+
+  return null;
+};
+
+export const validatePatientData = (
+  data: Partial<Patient>,
+  clinicCountryCode?: string | null,
+): string[] => {
   const errors: string[] = [];
 
   if (!data.firstName?.trim()) {
-    errors.push("Enter the patient's first name.");
+    errors.push("Enter the patient's first name");
   }
 
   if (!data.lastName?.trim()) {
-    errors.push("Enter the patient's last name.");
+    errors.push("Enter the patient's last name");
   }
 
   if (!data.phoneNumber?.trim()) {
-    errors.push("Enter the patient's phone number.");
+    errors.push("Enter the patient's phone number");
+  } else {
+    const phoneError = validatePatientPhoneNumberForCountry(
+      data.phoneNumber,
+      clinicCountryCode,
+    );
+    if (phoneError) {
+      errors.push(phoneError);
+    }
   }
 
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.push("Enter a valid email address.");
+    errors.push("Enter a valid email address");
   }
 
   return errors;

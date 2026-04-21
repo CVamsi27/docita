@@ -2,25 +2,39 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePatientData } from "@/hooks/use-patient-data";
 import { useAuth } from "@/lib/auth-context";
-import { useSmartBack } from "@/hooks/use-smart-back";
+import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useRepeatPrescription } from "@/hooks/use-repeat-prescription";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export const usePatientDetailLogic = (patientId: string) => {
   const router = useRouter();
-  const { patient, appointments, documents, statistics, loading, error, refetch } =
-    usePatientData(patientId);
+  const {
+    patient,
+    appointments,
+    documents,
+    statistics,
+    loading,
+    error,
+    refetch,
+  } = usePatientData(patientId);
   const { user } = useAuth();
-  const goBack = useSmartBack("/");
+  const goBack = useBackNavigation("/patients");
   const { canAccess } = usePermissionStore();
+  const { canCreateAppointment, canEditPatient, canViewPatients, role } =
+    usePermissions();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const canAccessPatient = useMemo(() => {
-    if (!user || user.role !== "DOCTOR") return true; 
+    if (!user) return false;
+    return canViewPatients;
+  }, [canViewPatients, user]);
 
-    return true;
-  }, [user]);
+  const canRecordPatientVitals = useMemo(
+    () => ["ADMIN", "ADMIN_DOCTOR", "DOCTOR", "NURSE"].includes(role),
+    [role],
+  );
 
   const handleScheduleVisit = useCallback(() => {
     if (patient?.id) {
@@ -52,9 +66,13 @@ export const usePatientDetailLogic = (patientId: string) => {
       loading,
       error,
       canAccessPatient,
+      canEditPatient,
+      canCreateAppointment,
+      canRecordPatientVitals,
       isEditDialogOpen,
       setIsEditDialogOpen,
       user,
+      role,
       canAccess,
     },
     handlers: {

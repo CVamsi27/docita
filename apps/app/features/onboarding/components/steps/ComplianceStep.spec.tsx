@@ -164,6 +164,9 @@ describe("ComplianceStep", () => {
     expect(
       screen.getByText(/Signature received from your phone/i),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByAltText(/SLA signature preview/i),
+    ).toBeInTheDocument();
     expect(setIntervalSpy).toHaveBeenCalled();
     expect(clearIntervalSpy).toHaveBeenCalled();
 

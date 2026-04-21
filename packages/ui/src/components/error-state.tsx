@@ -23,13 +23,16 @@ export function ErrorState({
 
   return (
     <div
-      className={cn("text-center py-12 text-muted-foreground", className)}
+      className={cn(
+        "ui-section-stack py-12 text-center text-muted-foreground",
+        className,
+      )}
       role="alert"
     >
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 mx-auto mb-4">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
         <AlertCircle className="h-8 w-8 text-destructive" />
       </div>
-      <p className="font-medium text-foreground">{safeMessage}</p>
+      <p className="ui-section-title text-foreground">{safeMessage}</p>
       {onRetry && (
         <Button variant="outline" className="mt-4" onClick={onRetry}>
           Try again

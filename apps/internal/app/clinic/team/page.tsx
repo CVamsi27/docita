@@ -9,6 +9,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Table,
   TableBody,
@@ -145,21 +147,21 @@ export default function TeamPage() {
 
     if (!formData.name || !formData.email) {
       showUserFacingErrorToast(
-        "Enter the team member's name and email before continuing.",
+        "Enter the team member's name and email before continuing",
       );
       return;
     }
 
     if (!editingMember && !formData.password) {
       showUserFacingErrorToast(
-        "Enter a password before creating this team member.",
+        "Enter a password before creating this team member",
       );
       return;
     }
 
     if (formData.role === "DOCTOR" && !formData.registrationNumber) {
       showUserFacingErrorToast(
-        "Enter the doctor's registration number before continuing.",
+        "Enter the doctor's registration number before continuing",
       );
       return;
     }
@@ -240,25 +242,24 @@ export default function TeamPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team Management</h1>
-          <p className="text-muted-foreground">
-            Manage your clinic team members
-          </p>
-        </div>
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditingMember(null);
-            resetForm();
-            setIsDialogOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          Add Team Member
-        </Button>
-      </div>
+      <PageHeader
+        title="Team Management"
+        description="Manage your facility team members"
+        size="compact"
+        actions={
+          <Button
+            className="gap-2"
+            onClick={() => {
+              setEditingMember(null);
+              resetForm();
+              setIsDialogOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Add Team Member
+          </Button>
+        }
+      />
 
       <CRUDDialog
         open={isDialogOpen}
@@ -272,7 +273,7 @@ export default function TeamPage() {
         description={
           editingMember
             ? "Update team member information"
-            : "Add a new team member to your clinic"
+            : "Add a new team member to your facility"
         }
         isEditing={!!editingMember}
         isLoading={saveMemberMutation.isPending}
@@ -284,7 +285,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Full Name"
             required
-            error={formData.name ? undefined : "Enter the team member's name."}
+            error={formData.name ? undefined : "Enter the team member's name"}
           >
             <Input
               id="name"
@@ -300,7 +301,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Email"
             required
-            error={formData.email ? undefined : "Enter an email address."}
+            error={formData.email ? undefined : "Enter an email address"}
           >
             <Input
               id="email"
@@ -309,7 +310,7 @@ export default function TeamPage() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              placeholder="member@clinic.com"
+              placeholder="member@facility.com"
               required
             />
           </FormFieldGroup>
@@ -318,7 +319,7 @@ export default function TeamPage() {
         <FormFieldGroup
           label="Role"
           required
-          error={formData.role ? undefined : "Choose a role."}
+          error={formData.role ? undefined : "Choose a role"}
         >
           <Select
             value={formData.role}
@@ -343,7 +344,7 @@ export default function TeamPage() {
           <FormFieldGroup
             label="Password"
             required
-            error={formData.password ? undefined : "Enter a password."}
+            error={formData.password ? undefined : "Enter a password"}
           >
             <Input
               id="password"
@@ -433,7 +434,7 @@ export default function TeamPage() {
               error={
                 formData.registrationNumber
                   ? undefined
-                  : "Enter the doctor's registration number."
+                  : "Enter the doctor's registration number"
               }
             >
               <Input
@@ -463,10 +464,11 @@ export default function TeamPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : members.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No team members yet. Click &quot;Add Team Member&quot; to get
-              started.
-            </div>
+            <EmptyState
+              icon={UserCheck}
+              title="No team members yet"
+              description='Click "Add Team Member" to get started.'
+            />
           ) : (
             <Table>
               <TableHeader>

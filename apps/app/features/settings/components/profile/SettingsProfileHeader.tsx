@@ -8,6 +8,7 @@ import { useClinic } from "@/lib/clinic-context";
 const ROLE_LABELS: Record<string, string> = {
   ADMIN_DOCTOR: "Admin Doctor",
   DOCTOR: "Doctor",
+  NURSE: "Nurse",
   ADMIN: "Admin",
   RECEPTIONIST: "Receptionist",
   INTERNAL: "Internal",
@@ -40,7 +41,9 @@ export function SettingsProfileHeader() {
         </AvatarFallback>
       </Avatar>
       <div className="min-w-0 flex-1">
-        <p className="font-semibold text-foreground truncate">{user.name ?? "Unknown"}</p>
+        <p className="font-semibold text-foreground truncate">
+          {user.name ?? "Unknown"}
+        </p>
         <p className="text-xs text-muted-foreground truncate">{user.email}</p>
       </div>
       <div className="flex flex-col items-end gap-1.5 shrink-0">

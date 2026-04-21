@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getPatientAgeDisplay,
   isPatientMinor,
+  validatePatientPhoneNumberForCountry,
   validatePatientData,
 } from "./patientRules";
 import type { Patient } from "@workspace/types";
@@ -72,7 +73,7 @@ describe("Patient Business Rules", () => {
         lastName: "Doe",
         phoneNumber: "123",
       });
-      expect(errors).toContain("Enter the patient's first name.");
+      expect(errors).toContain("Enter the patient's first name");
     });
 
     it("should require lastName", () => {
@@ -80,7 +81,7 @@ describe("Patient Business Rules", () => {
         firstName: "John",
         phoneNumber: "123",
       });
-      expect(errors).toContain("Enter the patient's last name.");
+      expect(errors).toContain("Enter the patient's last name");
     });
 
     it("should require phoneNumber", () => {
@@ -88,7 +89,7 @@ describe("Patient Business Rules", () => {
         firstName: "John",
         lastName: "Doe",
       });
-      expect(errors).toContain("Enter the patient's phone number.");
+      expect(errors).toContain("Enter the patient's phone number");
     });
 
     it("should validate email format", () => {
@@ -98,17 +99,37 @@ describe("Patient Business Rules", () => {
         phoneNumber: "123",
         email: "invalid-email",
       });
-      expect(errors).toContain("Enter a valid email address.");
+      expect(errors).toContain("Enter a valid email address");
     });
 
     it("should pass valid data", () => {
       const errors = validatePatientData({
         firstName: "John",
         lastName: "Doe",
-        phoneNumber: "123",
+        phoneNumber: "+919876543210",
         email: "test@example.com",
       });
       expect(errors).toHaveLength(0);
+    });
+  });
+
+  describe("validatePatientPhoneNumberForCountry", () => {
+    it("should accept a valid number for the clinic country", () => {
+      expect(
+        validatePatientPhoneNumberForCountry("+919876543210", "IN"),
+      ).toBeNull();
+    });
+
+    it("should reject a number that does not match the clinic country", () => {
+      expect(
+        validatePatientPhoneNumberForCountry("+14155552671", "IN"),
+      ).toBe("Enter a valid phone number for the selected clinic country");
+    });
+
+    it("should fall back to the default clinic country when missing", () => {
+      expect(
+        validatePatientPhoneNumberForCountry("+919876543210", undefined),
+      ).toBeNull();
     });
   });
 });

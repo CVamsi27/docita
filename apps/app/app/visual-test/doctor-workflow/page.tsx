@@ -21,7 +21,7 @@ export default function DoctorWorkflowVisualTestPage() {
           header={
             <PageHeader
               title="Doctor Dashboard"
-              description="Current queue context and top actions."
+              description="Current queue context and top actions"
               actions={
                 <Button size="sm" className="gap-2">
                   <Stethoscope className="h-4 w-4" />
@@ -79,7 +79,7 @@ export default function DoctorWorkflowVisualTestPage() {
           header={
             <PageHeader
               title="Appointments"
-              description="Fast actions for same-screen scheduling and consult starts."
+              description="Fast actions for same-screen scheduling and consult starts"
             />
           }
         >
@@ -115,7 +115,7 @@ export default function DoctorWorkflowVisualTestPage() {
           header={
             <PageHeader
               title="Consultation"
-              description="Sticky clinical context with save and progress visibility."
+              description="Sticky clinical context with save and progress visibility"
             />
           }
         >
@@ -145,7 +145,7 @@ export default function DoctorWorkflowVisualTestPage() {
           header={
             <PageHeader
               title="Patients"
-              description="Consistent list + detail treatment across records and documents."
+              description="Consistent list + detail treatment across records and documents"
             />
           }
         >

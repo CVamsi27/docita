@@ -77,12 +77,12 @@ export const useInvoiceDetailsLogic = (
   const handleShareWhatsApp = () => {
     if (!invoice?.patient?.phoneNumber) {
       showUserFacingErrorToast(
-        "Add this patient's phone number before sharing the invoice on WhatsApp.",
+        "Add this patient's phone number before sharing the invoice on WhatsApp",
       );
       return;
     }
 
-    const clinicName = clinic?.name?.trim() || "our clinic";
+    const clinicName = clinic?.name?.trim() || "our facility";
     const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.id} for ${formatCurrency(invoice.totalAmount ?? 0)}. Thank you for visiting ${clinicName}.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;

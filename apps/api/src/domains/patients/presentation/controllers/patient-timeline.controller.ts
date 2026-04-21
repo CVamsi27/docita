@@ -7,15 +7,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { Role } from '@workspace/db';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
 import { parsePaginationInt } from '@/common/utils/string.utils';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 
 @ApiTags('patient-timeline')
 @Controller('patients/:patientId/timeline')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_TIMELINE))
 @ApiBearerAuth('JWT-auth')
 export class PatientTimelineController {
   constructor(

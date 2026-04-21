@@ -27,6 +27,8 @@ export const createPrescriptionRequestSchema = createPrescriptionSchema.extend({
 export const listPrescriptionsQuerySchema = z.object({
   search: z.string().optional(),
   date: z.string().optional(),
+  patientId: z.string().min(1).optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
 });
 
 export type PrescriptionContractResponse = z.infer<typeof prescriptionResponseSchema>;

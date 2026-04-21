@@ -10,6 +10,7 @@ import {
   Request,
   UsePipes,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { TemplatesService } from '@/domains/documents/application/services/templates.service';
 import { Role } from '@workspace/db';
@@ -36,7 +37,7 @@ export class TemplatesController {
     @Body() createTemplateDto: CreateTemplateDto,
   ) {
     if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
+      throw new ForbiddenException('Clinic ID not found');
     }
     return this.templatesService.create({
       ...createTemplateDto,
@@ -51,7 +52,7 @@ export class TemplatesController {
   ) {
     const { search, speciality } = query ?? {};
     if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
+      throw new ForbiddenException('Clinic ID not found');
     }
     return this.templatesService.findAll({
       search,
@@ -63,7 +64,7 @@ export class TemplatesController {
   @Get(':id')
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
     if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
+      throw new ForbiddenException('Clinic ID not found');
     }
     const template = await this.templatesService.findOne(id);
     if (!template || template.clinicId !== req.user.clinicId) {
@@ -80,7 +81,7 @@ export class TemplatesController {
     @Body() updateTemplateDto: UpdateTemplateDto,
   ) {
     if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
+      throw new ForbiddenException('Clinic ID not found');
     }
     const template = await this.templatesService.findOne(id);
     if (!template || template.clinicId !== req.user.clinicId) {
@@ -92,7 +93,7 @@ export class TemplatesController {
   @Delete(':id')
   async remove(@Request() req: RequestWithUser, @Param('id') id: string) {
     if (!req.user?.clinicId) {
-      throw new Error('Clinic ID not found');
+      throw new ForbiddenException('Clinic ID not found');
     }
     const template = await this.templatesService.findOne(id);
     if (!template || template.clinicId !== req.user.clinicId) {

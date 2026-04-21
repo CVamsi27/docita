@@ -25,24 +25,3 @@ export * from "./notifications/NotificationFeed";
 export * from "./notifications/ReminderSettingsUI";
 
 export { ReminderSettingsUI as ReminderSettings } from "./notifications/ReminderSettingsUI";
-
-export {
-  SubscriptionSettingsDynamic,
-  DoctorAvailabilitySettingsDynamic,
-  DrugInteractionCheckerDynamic,
-  FeedbackFormDynamic,
-  FeedbackDialogDynamic,
-  PatientBadgeDynamic,
-  FollowUpSchedulerDynamic,
-  ConsultationContentDynamic,
-  PrescriptionTemplateManagerDynamic,
-  AddAppointmentDialogDynamic,
-  PatientFormDialogDynamic,
-  BulkImportDialogDynamic,
-  FhirExportDialogDynamic,
-  AddWalkInDialogDynamic,
-  WhatsAppSettingsDialogDynamic,
-  WhatsAppBroadcastDialogDynamic,
-  AdmissionModalDynamic,
-  OnboardingTourDynamic,
-} from "./SettingsDynamic";

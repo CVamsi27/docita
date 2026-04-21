@@ -2,6 +2,7 @@
 
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 export type StatusType =
   | "completed"
@@ -80,7 +81,7 @@ export function StatusBadge({
   const displayLabel =
     label ||
     statusLabels[normalizedStatus] ||
-    status.replace(/_/g, " ").replace(/-/g, " ");
+    humanizeUiLabel(status);
 
   return (
     <Badge
@@ -151,7 +152,7 @@ export function PriorityBadge({
       {showDot && (
         <span className={cn("h-1.5 w-1.5 rounded-full", styles.dot)} />
       )}
-      {priority}
+      {humanizeUiLabel(priority)}
     </Badge>
   );
 }

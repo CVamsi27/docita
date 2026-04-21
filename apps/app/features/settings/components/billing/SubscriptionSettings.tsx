@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   Table,
@@ -156,17 +157,17 @@ function BillingHistory() {
                   }).format(invoice.amountCents / 100)}
                 </TableCell>
                 <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "capitalize",
-                      invoice.status === "paid"
-                        ? "badge-success"
-                        : "badge-warning",
-                    )}
-                  >
-                    {invoice.status}
-                  </Badge>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "capitalize",
+                    invoice.status === "paid"
+                      ? "badge-success"
+                      : "badge-warning",
+                  )}
+                >
+                    {humanizeUiLabel(invoice.status)}
+                </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   {invoice.invoiceUrl ? (
@@ -251,7 +252,7 @@ export function SubscriptionSettings() {
             </Badge>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            Contact your clinic administrator to manage subscription.
+            Contact your facility administrator to manage subscription.
           </p>
         </CardContent>
       </Card>
@@ -283,7 +284,7 @@ export function SubscriptionSettings() {
             <span>
               {trialDaysLeft > 0
                 ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your free CORE trial.`
-                : "Your free trial ends today."}{" "}
+                : "Your free trial ends today"}{" "}
               Add payment details to keep your CORE features.
             </span>
             <Button
@@ -362,7 +363,7 @@ export function SubscriptionSettings() {
               </Button>
               <WhatsAppButton
                 phoneNumber={supportPhone}
-                message="Hi Docita team, I need help with billing and onboarding."
+                message="Hi Docita team, I need help with billing and onboarding"
                 label="Message support"
                 variant="default"
               />
@@ -388,7 +389,7 @@ export function SubscriptionSettings() {
               <div>
                 <p className="text-sm text-muted-foreground">Billing cycle</p>
                 <p className="font-medium capitalize">
-                  {billingCycle.toLowerCase().replace("_", " ")}
+                  {humanizeUiLabel(billingCycle)}
                 </p>
               </div>
               <div>

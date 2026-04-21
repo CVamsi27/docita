@@ -1,5 +1,6 @@
 enum Role {
   DOCTOR
+  NURSE
   RECEPTIONIST
   ADMIN
   INTERNAL

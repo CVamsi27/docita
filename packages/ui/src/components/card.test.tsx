@@ -7,7 +7,7 @@ describe("Card", () => {
     const { container } = render(<Card>content</Card>);
     const card = container.firstChild;
 
-    expect(card).toHaveClass("shadow-sm");
+    expect(card).toHaveClass("ui-card-surface");
     expect(card).toHaveClass("transition-colors");
     expect(card).not.toHaveClass("cursor-pointer");
   });
@@ -18,5 +18,13 @@ describe("Card", () => {
 
     expect(card).toHaveClass("cursor-pointer");
     expect(card).toHaveClass("hover:shadow-md");
+  });
+
+  it("supports density variants", () => {
+    const { container } = render(<Card density="compact">content</Card>);
+    const card = container.firstChild;
+
+    expect(card).toHaveClass("py-3");
+    expect(card).toHaveClass("ui-card-surface");
   });
 });

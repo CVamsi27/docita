@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { patientsApi } from "@/features/patients/api/patients.api";
-import type { CreatePatientInput, UpdatePatientInput } from "@workspace/types";
 import type {
-  PatientMetricCategoryInput,
-  PatientMetricDefinitionInput,
-  PatientMetricHistoryQuery,
-  RecordPatientMetricValueInput,
-  UpsertPatientMetricSelectionsInput,
-} from "@/features/patients/api/patients.api";
+  CreateMetricCategoryInput,
+  CreateMetricDefinitionInput,
+  CreatePatientInput,
+  CreatePatientMetricValueInput,
+  MetricHistoryQueryInput,
+  UpdatePatientInput,
+  UpsertMetricSelectionsInput,
+} from "@workspace/types";
 import { queryKeys } from "@workspace/data-access";
 import { useAppMutation } from "@/lib/query-hooks";
 
@@ -48,7 +49,7 @@ export function usePatientMetricCategories(id: string) {
 
 export function usePatientMetricHistory(
   id: string,
-  query?: PatientMetricHistoryQuery,
+  query?: MetricHistoryQueryInput,
 ) {
   return useQuery({
     queryKey: queryKeys.patients.metrics.history(id, query),
@@ -67,7 +68,7 @@ export function usePatientSelectedMetrics(id: string) {
 
 export function useCreatePatientMetricCategory(id: string) {
   return useAppMutation({
-    mutationFn: (data: PatientMetricCategoryInput) =>
+    mutationFn: (data: CreateMetricCategoryInput) =>
       patientsApi.createMetricCategory(id, data),
     invalidateKeys: [queryKeys.patients.metrics.categories(id)],
     successMessage: "Metric category added",
@@ -77,7 +78,7 @@ export function useCreatePatientMetricCategory(id: string) {
 
 export function useCreatePatientMetricDefinition(id: string) {
   return useAppMutation({
-    mutationFn: (data: PatientMetricDefinitionInput) =>
+    mutationFn: (data: CreateMetricDefinitionInput) =>
       patientsApi.createMetricDefinition(id, data),
     invalidateKeys: [
       queryKeys.patients.metrics.categories(id),
@@ -90,17 +91,18 @@ export function useCreatePatientMetricDefinition(id: string) {
 
 export function useUpdatePatientSelectedMetrics(id: string) {
   return useAppMutation({
-    mutationFn: (data: UpsertPatientMetricSelectionsInput) =>
+    mutationFn: (data: UpsertMetricSelectionsInput) =>
       patientsApi.updateSelectedMetrics(id, data),
     invalidateKeys: [queryKeys.patients.metrics.selected(id)],
     successMessage: "Tracked metrics updated",
-    errorMessage: "We could not update this patient's tracked metrics. Please try again.",
+    errorMessage:
+      "We could not update this patient's tracked metrics. Please try again.",
   });
 }
 
 export function useRecordPatientMetricValue(id: string) {
   return useAppMutation({
-    mutationFn: (data: RecordPatientMetricValueInput) =>
+    mutationFn: (data: CreatePatientMetricValueInput) =>
       patientsApi.recordMetricValue(id, data),
     invalidateKeys: [queryKeys.patients.metrics.historyRoot(id)],
     successMessage: "Metric value recorded",

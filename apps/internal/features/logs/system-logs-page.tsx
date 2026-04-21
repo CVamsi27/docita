@@ -12,6 +12,7 @@ import { internalQueryKeys } from "@/lib/query-keys";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Table,
   TableBody,
@@ -258,23 +259,24 @@ export function SystemLogsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
-          <p className="text-muted-foreground">{description}</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw
-            className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </Button>
-      </div>
+      <PageHeader
+        title={title}
+        description={description}
+        size="compact"
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+        }
+      />
 
       {errorMessage && (
         <div className="surface-danger rounded-md p-3 text-sm">
@@ -363,7 +365,8 @@ export function SystemLogsPage({
       <div className="flex justify-end">
         {hasActiveFilters && (
           <Badge variant="outline" className="mr-2 badge-muted">
-            {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"} active
+            {activeFilterCount} filter{activeFilterCount === 1 ? "" : "s"}{" "}
+            active
           </Badge>
         )}
         <Button

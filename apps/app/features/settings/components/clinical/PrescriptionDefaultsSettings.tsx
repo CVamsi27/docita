@@ -207,7 +207,7 @@ export function PrescriptionDefaultsSettingsContainer() {
   const handleSave = () => {
     updateSettings(settings, {
       onSuccess: () => {
-        toast.success("Prescription defaults have been updated successfully.");
+        toast.success("Prescription defaults have been updated successfully");
         refetch();
       },
       onError: (error) => {

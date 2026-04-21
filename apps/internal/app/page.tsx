@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 import { useAuth } from "@/lib/auth";
 import { MAIN_APP_URL } from "@/lib/api-config";
 import { toast } from "sonner";
@@ -63,13 +64,13 @@ export default function InternalLogin() {
     const errors: { email?: string; password?: string } = {};
 
     if (!email.trim()) {
-      errors.email = "Enter an email address.";
+      errors.email = "Enter an email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = "Enter a valid email address";
     }
 
     if (!password.trim()) {
-      errors.password = "Enter a password.";
+      errors.password = "Enter a password";
     }
 
     setFieldErrors(errors);
@@ -111,10 +112,12 @@ export default function InternalLogin() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-center">Docita Internal</h1>
-          <p className="text-sm text-muted-foreground">
-            Internal Console - Product Owners & System Admins
-          </p>
+          <SectionHeading
+            align="center"
+            size="page"
+            title="Docita Internal"
+            description="Internal Console - Product Owners & System Admins"
+          />
         </div>
         <Card className="border-2 border-border shadow-xl rounded-lg">
           <CardHeader className="px-6 pt-8 pb-6">

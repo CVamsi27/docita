@@ -1,6 +1,18 @@
 import { z } from "zod";
 import { genderSchema } from "../shared/users";
 
+const pastDateOfBirthSchema = z
+  .union([z.string(), z.date()])
+  .refine(
+    (value) => {
+      const date = new Date(value);
+      return !Number.isNaN(date.getTime()) && date < new Date();
+    },
+    {
+      message: "Date of birth must be in the past",
+    },
+  );
+
 export const patientResponseSchema = z.object({
   id: z.string(),
   clinicId: z.string(),
@@ -10,7 +22,7 @@ export const patientResponseSchema = z.object({
   email: z.string().optional(),
   phoneNumber: z.string().optional(),
   gender: genderSchema,
-  dateOfBirth: z.union([z.string(), z.date()]).optional(),
+  dateOfBirth: pastDateOfBirthSchema.optional(),
   address: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
   createdAt: z.union([z.string(), z.date()]),
@@ -20,8 +32,8 @@ export const patientResponseSchema = z.object({
 
 export const createPatientRequestSchema = z.object({
   mrn: z.string().max(50).nullable().optional(),
-  firstName: z.string().min(1, "Enter the patient's first name.").max(100),
-  lastName: z.string().min(1, "Enter the patient's last name.").max(100),
+  firstName: z.string().min(1, "Enter the patient's first name").max(100),
+  lastName: z.string().min(1, "Enter the patient's last name").max(100),
   email: z
     .string()
     .email("Please enter a valid email address")
@@ -29,7 +41,7 @@ export const createPatientRequestSchema = z.object({
     .optional(),
   phoneNumber: z.string().min(10).max(20).nullable().optional(),
   gender: genderSchema,
-  dateOfBirth: z.union([z.string(), z.date()]).nullable().optional(),
+  dateOfBirth: pastDateOfBirthSchema.nullable().optional(),
   address: z.string().max(500).nullable().optional(),
   metadata: z.record(z.unknown()).nullable().optional(),
   clinicId: z.string().optional(),

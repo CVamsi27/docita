@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
 import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
 import { useCreateAppointment } from "@/hooks/api/use-appointments";
 import {
+  Appointment,
   CreateAppointmentInput,
   createAppointmentSchema,
   Patient,
@@ -17,7 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface UseAppointmentFormProps {
-  onAppointmentAdded: () => void;
+  onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
   preselectedPatientId?: string;
   startHour?: number;
@@ -56,14 +56,12 @@ export function useAppointmentForm({
     return searchedPatients;
   }, [searchedPatientsResponse, preselectedPatient, preselectedPatientId]);
 
-  const lastSinglePatientIdRef = useRef<string | null>(null);
   const { data: doctors = [], isLoading: doctorsLoading } = useDoctors();
 
   const filteredDoctors = doctors;
 
   const { mutateAsync: createAppointment, isPending: loading } =
     useCreateAppointment();
-  const queryClient = useQueryClient();
   const { config } = useAppConfig();
   const { user } = useAuth();
 
@@ -73,7 +71,9 @@ export function useAppointmentForm({
     let defaultStart = "";
 
     if (selectedDate) {
-      defaultStart = selectedDate.toISOString().slice(0, 16);
+      defaultStart = toLocalISOString(selectedDate, {
+        timezone: DEFAULT_TIMEZONE,
+      });
     } else {
       const now = new Date();
 
@@ -211,46 +211,39 @@ export function useAppointmentForm({
     }
   }, [open, watchedDoctorId, doctorSchedules, selectedDate, form]);
 
-  const lastSelectedDateRef = useRef<Date | undefined>(undefined);
   const lastPreselectedPatientIdRef = useRef<string | undefined>(undefined);
 
-  if (selectedDate !== lastSelectedDateRef.current) {
-    lastSelectedDateRef.current = selectedDate;
-    if (selectedDate) {
-      const start = new Date(selectedDate);
-      start.setHours(startHour, 0, 0, 0);
-      const localISOTime = toLocalISOString(start, {
-        timezone: DEFAULT_TIMEZONE,
-      });
-      form.setValue("startTime", localISOTime);
-    }
-  }
+  useEffect(() => {
+    if (!open || !selectedDate) return;
 
-  if (preselectedPatientId !== lastPreselectedPatientIdRef.current) {
+    const start = new Date(selectedDate);
+    start.setHours(startHour, 0, 0, 0);
+    const localISOTime = toLocalISOString(start, { timezone: DEFAULT_TIMEZONE });
+
+    const startTimeState = form.getFieldState("startTime");
+    if (!startTimeState.isDirty) {
+      form.setValue("startTime", localISOTime, { shouldDirty: false });
+    }
+  }, [open, selectedDate, startHour, form]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (preselectedPatientId === lastPreselectedPatientIdRef.current) return;
     lastPreselectedPatientIdRef.current = preselectedPatientId;
-    if (preselectedPatientId) {
-      form.setValue("patientId", preselectedPatientId);
-    }
-  }
+    if (!preselectedPatientId) return;
 
-  const currentPatientId = form.watch("patientId");
-  if (
-    !preselectedPatientId &&
-    !currentPatientId &&
-    patients.length === 1 &&
-    patients[0]?.id &&
-    lastSinglePatientIdRef.current !== patients[0].id
-  ) {
-    lastSinglePatientIdRef.current = patients[0].id;
-    form.setValue("patientId", patients[0].id);
-  }
+    const patientState = form.getFieldState("patientId");
+    if (!patientState.isDirty) {
+      form.setValue("patientId", preselectedPatientId, { shouldDirty: false });
+    }
+  }, [open, preselectedPatientId, form]);
 
   const onSubmit = useCallback(
     async (data: CreateAppointmentInput, onSuccess?: () => void) => {
       try {
         const durationMs = defaultDuration * 60000;
 
-        await createAppointment({
+        const createdAppointment = await createAppointment({
           ...data,
           startTime: new Date(data.startTime).toISOString(),
           endTime: new Date(
@@ -259,22 +252,13 @@ export function useAppointmentForm({
           ).toISOString(),
         });
 
-        await queryClient.invalidateQueries({
-          queryKey: ["appointments"],
-        });
-        await queryClient.refetchQueries({
-          queryKey: ["appointments"],
-          type: "active",
-        });
-
         form.reset();
-        await onAppointmentAdded();
+        await onAppointmentAdded(createdAppointment);
         if (onSuccess) {
           await onSuccess();
         }
         toast.success("Appointment scheduled successfully");
       } catch (error) {
-
         showUserFacingErrorToast(
           error,
           "We could not schedule this appointment. Please try again.",
@@ -282,7 +266,7 @@ export function useAppointmentForm({
         );
       }
     },
-    [form, onAppointmentAdded, createAppointment, defaultDuration, queryClient],
+    [form, onAppointmentAdded, createAppointment, defaultDuration],
   );
 
   return {

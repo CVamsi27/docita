@@ -346,7 +346,9 @@ export class AuthService {
       data: {
         token: refreshToken,
         userId: user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(
+          Date.now() + AUTH_CONSTANTS.REFRESH_TOKEN_MAX_AGE_MS,
+        ),
         tokenFamily: newTokenFamily,
         deviceName: deviceInfo?.deviceName,
         ipAddress: deviceInfo?.ipAddress,

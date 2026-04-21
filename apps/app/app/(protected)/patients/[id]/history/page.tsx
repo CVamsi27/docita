@@ -1,13 +1,11 @@
 "use client";
 
 import { use } from "react";
-import { Button } from "@workspace/ui/components/button";
-import { ArrowLeft } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { usePatient } from "@/hooks/api/use-patients";
 import { UnifiedTimelineContainer } from "@/features/patients/components/timeline/UnifiedTimelineContainer";
-import { useSmartBack } from "@/hooks/use-smart-back";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 interface PatientHistoryPageProps {
   params: Promise<{ id: string }>;
@@ -21,7 +19,6 @@ export default function PatientHistoryPage({
 
   const { data: patient, isLoading } = usePatient(patientId);
   const patientName = patient ? `${patient.firstName} ${patient.lastName}` : "";
-  const goBack = useSmartBack(`/patients/${patientId}`);
 
   if (isLoading) {
     return (
@@ -40,12 +37,12 @@ export default function PatientHistoryPage({
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={goBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Patient
-              </Button>
+              <BackButton
+                fallback={`/patients/${patientId}`}
+                label="Back to Patient"
+              />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Medical History</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Medical History</h1>
             <p className="text-muted-foreground">{patientName}</p>
           </div>
         </div>

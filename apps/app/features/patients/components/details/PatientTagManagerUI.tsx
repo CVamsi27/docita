@@ -182,14 +182,14 @@ export function PatientTagManagerUI({
             Patient Tags
           </DialogTitle>
           <DialogDescription>
-            Add tags to categorize and quickly identify patient conditions.
+            Add tags to categorize and quickly identify patient conditions
           </DialogDescription>
         </DialogHeader>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search tags..."
+            placeholder="Search tags"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -218,7 +218,7 @@ export function PatientTagManagerUI({
                   {searchQuery ? (
                     <p>No tags match &quot;{searchQuery}&quot;</p>
                   ) : (
-                    <p>No tags added yet. Add from presets or create custom.</p>
+                    <p>No tags added yet, add from presets or create custom</p>
                   )}
                 </div>
               ) : (
@@ -398,9 +398,9 @@ export function PatientTagManagerUI({
           <TabsContent value="custom" className="mt-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Tag Name</Label>
+                <Label>Tag name</Label>
                 <Input
-                  placeholder="Enter tag name..."
+                  placeholder="Tag name"
                   value={newTag}
                   onChange={(e) => onNewTagChange(e.target.value)}
                   onKeyDown={(e) => {

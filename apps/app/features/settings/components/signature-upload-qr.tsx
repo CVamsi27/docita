@@ -35,7 +35,7 @@ export function SignatureUploadQR() {
       }}
       isRevoking={revokeToken.isPending}
       title="Digital Signature"
-      description="Upload your signature to include it in prescriptions and medical documents."
+      description="Upload your signature to include it in prescriptions and medical documents"
       alertText="Generate a QR code to upload your signature from your mobile device. The link expires in 15 minutes for security."
       buttonLabel="Generate Upload Link"
       dialogTitle="Upload Signature via Mobile"

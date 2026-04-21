@@ -132,7 +132,7 @@ export async function fetchAPI<T>(
     if (error instanceof APIRequestError) {
       throw new ApiError(
         getUserFacingErrorMessage(error, {
-          fallback: "Please review the information on this screen and try again.",
+          fallback: "Please review the information on this screen and try again",
         }),
         error.status ?? 500,
         error.code ?? "API_ERROR",

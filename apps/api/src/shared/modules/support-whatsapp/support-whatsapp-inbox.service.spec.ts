@@ -148,6 +148,11 @@ interface SupportWhatsAppMessageFindFirstArgs {
   };
 }
 
+type SupportWhatsAppMessageFindUniqueArgs = {
+  where: { providerMessageId: string };
+  select: { id: true };
+};
+
 interface SupportWhatsAppClientMock {
   sendMessage: jest.Mock<
     (args: { to: string; message: string }) => Promise<{
@@ -177,6 +182,12 @@ describe('SupportWhatsAppInboxService', () => {
       (
         args: SupportWhatsAppMessageFindFirstArgs,
       ) => Promise<SupportWhatsAppMessageLookup | null>
+    >();
+  const supportWhatsAppMessageFindUnique =
+    jest.fn<
+      (
+        args: SupportWhatsAppMessageFindUniqueArgs,
+      ) => Promise<{ id: string } | null>
     >();
   const supportWhatsAppMessageCreate =
     jest.fn<
@@ -220,6 +231,7 @@ describe('SupportWhatsAppInboxService', () => {
   const mockPrisma = {
     supportWhatsAppMessage: {
       upsert: supportWhatsAppMessageUpsert,
+      findUnique: supportWhatsAppMessageFindUnique,
       findMany: supportWhatsAppMessageFindMany,
       findFirst: supportWhatsAppMessageFindFirst,
       create: supportWhatsAppMessageCreate,
@@ -238,6 +250,7 @@ describe('SupportWhatsAppInboxService', () => {
       .mockImplementation(() => undefined);
 
     supportWhatsAppMessageUpsert.mockResolvedValue(undefined);
+    supportWhatsAppMessageFindUnique.mockResolvedValue(null);
     supportWhatsAppMessageFindMany.mockResolvedValue([]);
     supportWhatsAppMessageFindFirst.mockResolvedValue(null);
     supportWhatsAppMessageCreate.mockImplementation(
@@ -308,7 +321,7 @@ describe('SupportWhatsAppInboxService', () => {
       id: 'wamid.inbound-001',
       timestamp: '1712923200',
       type: 'text',
-      text: { body: 'Need onboarding help' },
+      text: { body: 'Just checking' },
     };
 
     const rawPayload: WebhookValue = {
@@ -345,7 +358,7 @@ describe('SupportWhatsAppInboxService', () => {
       senderName: 'Rahul Sharma',
       direction: 'INBOUND',
       messageType: 'text',
-      messageBody: 'Need onboarding help',
+      messageBody: 'Just checking',
       rawPayload: storedRawPayload,
     });
     expect(upsertCall?.create).toMatchObject({
@@ -356,11 +369,57 @@ describe('SupportWhatsAppInboxService', () => {
       senderName: 'Rahul Sharma',
       direction: 'INBOUND',
       messageType: 'text',
-      messageBody: 'Need onboarding help',
+      messageBody: 'Just checking',
       status: 'NEW',
       rawPayload: storedRawPayload,
     });
     expect(upsertCall?.create.receivedAt).toBeInstanceOf(Date);
+  });
+
+  it('auto-replies to simple greetings with a support fallback', async () => {
+    const inboundMessage: WebhookMessage = {
+      from: '919876543210',
+      id: 'wamid.inbound-002',
+      timestamp: '1712923201',
+      type: 'text',
+      text: { body: 'Hi' },
+    };
+
+    supportWhatsAppMessageFindFirst.mockImplementation(
+      async (args: SupportWhatsAppMessageFindFirstArgs) => {
+        if (args.where.direction === 'OUTBOUND') {
+          return null;
+        }
+        return {
+          providerMessageId: inboundMessage.id,
+          supportPhoneNumber: '918790311010',
+        };
+      },
+    );
+
+    const rawPayload: WebhookValue = {
+      messaging_product: 'whatsapp',
+      metadata: {
+        display_phone_number: '918790311010',
+        phone_number_id: 'phone-number-id',
+      },
+      contacts: [
+        {
+          profile: { name: 'Rahul Sharma' },
+          wa_id: '919876543210',
+        },
+      ],
+      messages: [inboundMessage],
+    };
+
+    await service.recordIncomingMessages(rawPayload);
+
+    expect(mockWhatsappClient.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '919876543210',
+        message: expect.stringContaining('support@docita.work'),
+      }),
+    );
   });
 
   it('lists thread summaries newest first and clamps the requested limit', async () => {

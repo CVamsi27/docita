@@ -13,6 +13,7 @@ import {
   getSupportContactText,
   SUPPORT_EMAIL,
 } from "@/lib/support-contact";
+import { readInAppNavCount } from "@/providers/navigation-history-provider";
 
 interface Props {
   children: ReactNode;
@@ -126,7 +127,13 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
         actions: [
           {
             label: "Go Back",
-            action: () => window.history.back(),
+            action: () => {
+              if (readInAppNavCount() > 1) {
+                window.history.back();
+                return;
+              }
+              window.location.href = "/dashboard";
+            },
             variant: "outline",
           },
           {

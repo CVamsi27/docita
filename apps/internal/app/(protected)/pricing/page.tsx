@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
   Tabs,
   TabsContent,
@@ -75,7 +76,7 @@ const OFFER_TEMPLATES: OfferTemplate[] = [
     label: "3 months free",
     title: "3 months free with weekly feedback",
     description:
-      "Offer 100% discount for the first three months in exchange for weekly feedback and onboarding calls.",
+      "Offer 100% discount for the first three months in exchange for weekly feedback and onboarding calls",
     percentOff: 100,
     durationMonths: 3,
     notes: "Founders asked for hands-on onboarding. Keep the weekly feedback cadence.",
@@ -85,20 +86,20 @@ const OFFER_TEMPLATES: OfferTemplate[] = [
     label: "50% for 6 months",
     title: "Half-price launch offer",
     description:
-      "Reduce the first six months by 50% to close a skeptical clinic quickly.",
+      "Reduce the first six months by 50% to close a skeptical clinic quickly",
     percentOff: 50,
     durationMonths: 6,
-    notes: "Good for tier 2/3 city clinics that need a softer entry point.",
+    notes: "Good for tier 2/3 city clinics that need a softer entry point",
   },
   {
     key: "annual_soft_launch",
     label: "25% annual",
     title: "Annual soft-launch discount",
     description:
-      "Use this for annual commitment deals where payment is collected upfront.",
+      "Use this for annual commitment deals where payment is collected upfront",
     percentOff: 25,
     durationMonths: 12,
-    notes: "Best when the clinic is ready to commit and needs an intro discount.",
+    notes: "Best when the clinic is ready to commit and needs an intro discount",
   },
 ];
 
@@ -216,7 +217,7 @@ export default function PricingPage() {
 
   const saveOffer = async () => {
     if (!offerForm.clinicId || !offerForm.title.trim()) {
-      setSaveError("Pick a clinic and enter an offer title first.");
+      setSaveError("Pick a clinic and enter an offer title first");
       return;
     }
 
@@ -238,7 +239,7 @@ export default function PricingPage() {
       });
       setOfferForm(DEFAULT_OFFER_FORM);
     } catch {
-      setSaveError("We could not save this clinic offer. Please try again.");
+      setSaveError("We could not save this facility offer. Please try again.");
     } finally {
       setSavingId(null);
     }
@@ -254,7 +255,7 @@ export default function PricingPage() {
         setOfferForm(DEFAULT_OFFER_FORM);
       }
     } catch {
-      setSaveError("We could not delete the clinic offer. Please try again.");
+      setSaveError("We could not delete the facility offer. Please try again.");
     } finally {
       setSavingId(null);
     }
@@ -299,7 +300,7 @@ export default function PricingPage() {
       <div>
         <h1 className="text-2xl font-bold">Pricing Management</h1>
         <p className="text-muted-foreground text-sm">
-          Manage tier pricing centrally and create clinic-specific offers for
+          Manage tier pricing centrally and create facility-specific offers for
           requested hospitals.
         </p>
       </div>
@@ -313,7 +314,7 @@ export default function PricingPage() {
       <Tabs defaultValue="tiers" className="space-y-4">
         <TabsList>
           <TabsTrigger value="tiers">Tier Pricing</TabsTrigger>
-          <TabsTrigger value="offers">Clinic Offers</TabsTrigger>
+          <TabsTrigger value="offers">Facility Offers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tiers">
@@ -523,7 +524,7 @@ export default function PricingPage() {
                     disabled={isLoadingClinics}
                   >
                     <option value="">
-                      {isLoadingClinics ? "Loading clinics..." : "Select clinic"}
+                      {isLoadingClinics ? "Loading facilities..." : "Select facility"}
                     </option>
                     {clinicOptions.map((clinic) => (
                       <option key={clinic.id} value={clinic.id}>
@@ -576,15 +577,15 @@ export default function PricingPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Valid until</label>
-                  <Input
-                    type="date"
-                    value={offerForm.validUntil}
-                    onChange={(e) =>
+                  <DatePicker
+                    value={offerForm.validUntil || undefined}
+                    onChange={(date) =>
                       setOfferForm((prev) => ({
                         ...prev,
-                        validUntil: e.target.value,
+                        validUntil: date?.toISOString().slice(0, 10) ?? "",
                       }))
                     }
+                    placeholder="Select date"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">

@@ -61,6 +61,35 @@ function parseHostname(value: string): string | null {
   }
 }
 
+/**
+ * In development, email links must use http:// so they match the typical local
+ * Next.js server. Production and staging keep the configured scheme (usually https).
+ */
+function emailLinkBaseUrlFromAppUrl(
+  appUrl: string,
+  isDevelopment: boolean,
+): string {
+  const trimmed = appUrl.trim().replace(/\/+$/, '');
+  if (!isDevelopment) {
+    return trimmed;
+  }
+  try {
+    const parsed = new URL(
+      /^[a-zA-Z][a-zA-Z+\-.]*:\/\//.test(trimmed)
+        ? trimmed
+        : `http://${trimmed}`,
+    );
+    parsed.protocol = 'http:';
+    const path = parsed.pathname.replace(/\/+$/, '');
+    if (path && path !== '/') {
+      return `${parsed.origin}${path}`;
+    }
+    return parsed.origin;
+  } catch {
+    return trimmed;
+  }
+}
+
 function isIpAddress(hostname: string): boolean {
   return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':');
 }
@@ -176,6 +205,17 @@ export class AppConfigService {
 
   getAppUrl(): string {
     return this.getConfig().APP_URL;
+  }
+
+  /**
+   * Base URL for links in outbound email (welcome, password reset, email verification).
+   * In development, always uses http:// regardless of APP_URL scheme.
+   */
+  getEmailLinkBaseUrl(): string {
+    return emailLinkBaseUrlFromAppUrl(
+      this.getConfig().APP_URL,
+      this.isDevelopment(),
+    );
   }
 
   getFrontendAppUrl(): string {
@@ -367,7 +407,7 @@ export class AppConfigService {
   }
 
   getJwtExpiration(): string {
-    return this.getConfig().JWT_EXPIRATION || '7d';
+    return this.getConfig().JWT_EXPIRATION || '30d';
   }
 
   getEncryptionKey(): string {

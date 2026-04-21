@@ -47,7 +47,7 @@ export function useSubscriptionCheckout(
   const checkoutTier = useCallback(
     async ({ tier, billingCycle }: TierCheckoutParams) => {
       if (!token) {
-        throw new Error("Please sign in to manage your subscription.");
+        throw new Error("Please sign in to manage your subscription");
       }
       setIsProcessing(true);
       setProcessingId(`tier-${tier}`);

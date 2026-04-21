@@ -52,8 +52,8 @@ const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
 
 const PLAN_AUDIENCE: Record<string, string> = {
   STARTER: "Best for solo doctors wanting to start free",
-  ESSENTIAL: "Best for small clinics needing clear limits and simple billing",
-  PROFESSIONAL: "Best for multi-doctor clinics and growing practices",
+  ESSENTIAL: "Best for small facilities needing clear limits and simple billing",
+  PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
 
@@ -156,11 +156,11 @@ Please contact me with deployment and commercial details.`;
       <CardHeader>
         <CardTitle>Step 2: Choose Your Plan</CardTitle>
         <CardDescription>
-          Select a plan that fits your clinic needs. Paid plans redirect to
+          Select a plan that fits your facility needs. Paid plans redirect to
           Razorpay for secure checkout.
         </CardDescription>
         <p className="text-xs text-muted-foreground">
-          {pricingRegionLabel} for clinics in{" "}
+          {pricingRegionLabel} for facilities in{" "}
           {pricingConfig.currency.code === "INR" ? "India" : "your region"}.
         </p>
       </CardHeader>
@@ -229,7 +229,7 @@ Please contact me with deployment and commercial details.`;
                     currencySymbol={currencySymbol}
                     overageHint={
                       tierName === "ESSENTIAL"
-                        ? "₹0 for first 14 days, then regular billing."
+                        ? "₹0 for first 14 days, then regular billing"
                         : overageHint
                     }
                     buttonLabel={

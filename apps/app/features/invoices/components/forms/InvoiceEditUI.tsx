@@ -25,10 +25,11 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { ArrowLeft, FileText, Plus, Save } from "lucide-react";
+import { FileText, Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
 import { type InvoiceFormValues, useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
-import { useSmartBack } from "@/hooks/use-smart-back";
+import { BackButton } from "@/components/common/navigation/back-button";
+import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
@@ -39,7 +40,8 @@ interface InvoiceEditUIProps {
 }
 
 export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
-  const goBack = useSmartBack(`/invoices/${invoiceId}`);
+  const invoiceFallback = `/invoices/${invoiceId}`;
+  const goBack = useBackNavigation(invoiceFallback);
   const {
     form,
     fields,
@@ -68,7 +70,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
       <EmptyState
         icon={FileText}
         title="Invoice not found"
-        description="The invoice you are looking for does not exist."
+        description="The invoice you are looking for does not exist"
         action={{
           label: "Back to Invoices",
           onClick: () => router.push("/invoices"),
@@ -80,14 +82,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={goBack}
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Cancel
-        </Button>
+        <BackButton fallback={invoiceFallback} label="Cancel" />
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Edit Invoice</h1>
           <p className="text-muted-foreground">

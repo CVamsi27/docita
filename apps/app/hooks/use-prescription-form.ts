@@ -98,13 +98,13 @@ export function usePrescriptionForm({
   const validateForm = () => {
     const newValidations: MedicationValidation[] = medications.map((med) => {
       const v: MedicationValidation = {};
-      if (!med.name.trim()) v.name = "Enter the medicine name.";
-      if (!med.dosage.trim()) v.dosage = "Enter the dosage.";
+      if (!med.name.trim()) v.name = "Enter the medicine name";
+      if (!med.dosage.trim()) v.dosage = "Enter the dosage";
       if (!med.frequency.trim()) {
-        v.frequency = "Enter how often it should be taken.";
+        v.frequency = "Enter how often it should be taken";
       }
       if (!med.duration.trim()) {
-        v.duration = "Enter how long it should be taken.";
+        v.duration = "Enter how long it should be taken";
       }
       return v;
     });
@@ -118,7 +118,7 @@ export function usePrescriptionForm({
 
     if (!validateForm()) {
       showUserFacingErrorToast(
-        "Complete the medicine name, dosage, frequency, and duration for each entry.",
+        "Complete the medicine name, dosage, frequency, and duration for each entry",
       );
       return;
     }

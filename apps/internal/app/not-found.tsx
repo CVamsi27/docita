@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowLeft, FileQuestion, Home } from "lucide-react";
+import { FileQuestion, Home } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { BackButton } from "@/components/common/back-button";
 
 export default function NotFound() {
   return (
@@ -22,12 +25,12 @@ export default function NotFound() {
               Go to dashboard
             </Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link href="javascript:history.back()">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go back
-            </Link>
-          </Button>
+          <BackButton
+            fallback="/"
+            label="Go back"
+            variant="outline"
+            size="default"
+          />
         </div>
       </div>
     </div>

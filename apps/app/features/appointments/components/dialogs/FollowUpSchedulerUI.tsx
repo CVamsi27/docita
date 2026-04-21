@@ -146,7 +146,7 @@ export function FollowUpSchedulerUI({
                     {selectedDate ? (
                       format(selectedDate, "PPP")
                     ) : (
-                      <span>Pick a date</span>
+                      <span>Choose a date</span>
                     )}
                   </Button>
                 </PopoverTrigger>

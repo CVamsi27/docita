@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PreDashboardShell } from "./PreDashboardShell";
 
@@ -70,5 +70,38 @@ describe("PreDashboardShell", () => {
     await waitFor(() => {
       expect(mocks.router.replace).not.toHaveBeenCalled();
     });
+  });
+
+  it("omits the branding panel when showBrandingPanel is false", () => {
+    const { container } = render(
+      <PreDashboardShell currentStep="email" showBrandingPanel={false}>
+        <div>Email step</div>
+      </PreDashboardShell>,
+    );
+
+    expect(container.querySelector('[data-testid="branding-panel"]')).toBeNull();
+  });
+
+  it("renders the branding panel by default", () => {
+    const { container } = render(
+      <PreDashboardShell currentStep="choose-path">
+        <div>Choose path</div>
+      </PreDashboardShell>,
+    );
+
+    expect(
+      container.querySelector('[data-testid="branding-panel"]'),
+    ).not.toBeNull();
+  });
+
+  it("can hide the progress indicator", () => {
+    render(
+      <PreDashboardShell currentStep="email" showProgress={false}>
+        <div>Email step</div>
+      </PreDashboardShell>,
+    );
+
+    expect(screen.queryByText("Account setup")).not.toBeInTheDocument();
+    expect(screen.queryByText("1 / 4")).not.toBeInTheDocument();
   });
 });

@@ -40,7 +40,7 @@ export default function UploadSignaturePage() {
       } catch (err) {
         setError(
           getUserFacingErrorMessage(err, {
-            fallback: "This upload link is no longer available.",
+            fallback: "This upload link is no longer available",
             context: "verification",
           }),
         );

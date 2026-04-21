@@ -1777,6 +1777,7 @@ model WhatsappMessage {
 
 enum Role {
   DOCTOR
+  NURSE
   RECEPTIONIST
   ADMIN
   INTERNAL
@@ -3124,6 +3125,7 @@ enum MedicalDocumentType {
   DISCHARGE_SUMMARY
   REFERRAL_LETTER
   SICK_NOTE
+  OTHER
 }
 
 enum MedicalDocumentStatus {

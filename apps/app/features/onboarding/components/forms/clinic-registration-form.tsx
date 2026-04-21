@@ -22,6 +22,7 @@ import {
   clinicDetailsSchema,
   complianceSchema,
   type ComplianceSettings,
+  defaultClinicRegistrationData,
   defaultComplianceValues,
   type PlanSelection,
 } from "@/features/onboarding/components/types";
@@ -35,9 +36,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
+import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 
 const STEPS = [
-  { number: 1, label: "Clinic Details", estimatedTime: "2 min" },
+  { number: 1, label: "Facility Details", estimatedTime: "2 min" },
   { number: 2, label: "Choose Plan", estimatedTime: "3 min" },
   { number: 3, label: "Invite Team", estimatedTime: "2 min" },
   { number: 4, label: "Compliance", estimatedTime: "3 min" },
@@ -57,21 +59,36 @@ function hasMeaningfulClinicDraftData(
 ): boolean {
   if (!clinicDetails) return false;
 
-  return Object.values(clinicDetails).some((value) => {
-    if (typeof value === "string") return value.trim().length > 0;
-    return value !== undefined && value !== null;
+  const meaningfulStringFields: Array<keyof ClinicDetails> = [
+    "name",
+    "email",
+    "phone",
+    "address",
+    "addressLine1",
+    "addressLine2",
+    "city",
+    "state",
+    "pincode",
+    "website",
+    "gstin",
+  ];
+
+  const hasMeaningfulString = meaningfulStringFields.some((field) => {
+    const value = clinicDetails[field];
+    return typeof value === "string" && value.trim().length > 0;
   });
+
+  return hasMeaningfulString || Boolean(clinicDetails.type);
 }
 
 function getMissingClinicDetailsForProgress(
   clinicDetails: Partial<ClinicDetails> | undefined,
 ): string[] {
   const missing: string[] = [];
-  if (!clinicDetails?.name?.trim()) missing.push("clinic name");
-  if (!clinicDetails?.email?.trim()) missing.push("clinic email");
-  if (!clinicDetails?.phone?.trim()) missing.push("clinic phone");
-  if (!clinicDetails?.address?.trim()) missing.push("clinic address");
-  if (!clinicDetails?.type) missing.push("clinic type");
+  if (!clinicDetails?.name?.trim()) missing.push("facility name");
+  if (!clinicDetails?.phone?.trim()) missing.push("facility phone");
+  if (!clinicDetails?.address?.trim()) missing.push("facility address");
+  if (!clinicDetails?.type) missing.push("facility type");
   return missing;
 }
 
@@ -84,7 +101,7 @@ export function ClinicRegistrationForm({
   const { currency } = useLocaleCurrency();
   const supportPhone = getSupportPhoneNumber();
   const supportMessage =
-    "Hi Docita team, I need help with clinic onboarding and pricing for my hospital.";
+    "Hi Docita team, I need help with facility onboarding and pricing for my hospital";
   const [stepError, setStepError] = useState<string | null>(null);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);
@@ -119,6 +136,13 @@ export function ClinicRegistrationForm({
       email: "",
       phone: "",
       address: "",
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      state: "",
+      pincode: "",
+      facilityLabel: "CLINIC",
+      countryCode: DEFAULT_COUNTRY_CODE,
       website: "",
       gstin: "",
       ...(formData.clinicDetails as Partial<ClinicDetails>),
@@ -196,6 +220,17 @@ export function ClinicRegistrationForm({
   };
 
   const handleDiscardDraft = () => {
+    restartOnboarding();
+    clinicForm.reset({
+      ...defaultClinicRegistrationData.clinicDetails,
+      facilityLabel: "CLINIC",
+      countryCode: DEFAULT_COUNTRY_CODE,
+    });
+    complianceForm.reset({
+      ...defaultComplianceValues,
+    });
+    setStepError(null);
+    setPendingPaymentPlan(null);
     localStorage.removeItem(DRAFT_KEY);
     setShowDraftDialog(false);
     setSavedDraft(null);
@@ -222,7 +257,7 @@ export function ClinicRegistrationForm({
 
     if (isIndianCurrency && isPaidPlan && !options?.isCoreTrial && !clinicGstin?.trim()) {
       setStepError(
-        "Add your GSTIN in Clinic Details before charging a paid Indian plan. We need it for GST invoices.",
+        "Add your GSTIN in Facility Details before charging a paid Indian plan. We need it for GST invoices.",
       );
       return;
     }
@@ -299,9 +334,12 @@ export function ClinicRegistrationForm({
     setStepError(null);
     try {
       await submitRegistration(data, successCallback);
-    } catch {
+    } catch (error) {
       setStepError(
-        "We could not complete setup. Please check your details and try again.",
+        getUserFacingErrorMessage(error, {
+          fallback: "We could not complete setup. Please check your details and try again.",
+          context: "form",
+        }),
       );
     }
   };
@@ -355,7 +393,7 @@ export function ClinicRegistrationForm({
     setSavedDraft(null);
     setShowDraftDialog(false);
     setStepError(
-      `Onboarding progress was incomplete (${missingClinicData.join(", ")}). Started over from Step 1.`,
+      `Onboarding progress was incomplete (${missingClinicData.join(", ")}), so we started over from Step 1`,
     );
   }, [formData.clinicDetails, restartOnboarding, step]);
 
@@ -372,13 +410,13 @@ export function ClinicRegistrationForm({
             <DialogTitle>Continue where you left off?</DialogTitle>
             <DialogDescription>
               A saved draft was found from{" "}
-              {savedDraft ? new Date(savedDraft.savedAt).toLocaleString() : "earlier"}.
-              Would you like to restore it?
+              {savedDraft ? new Date(savedDraft.savedAt).toLocaleString() : "earlier"}
+              {" "}and would you like to restore it?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={handleDiscardDraft}>
-              Start Fresh
+              Start over
             </Button>
             <Button onClick={handleRestoreDraft}>Continue</Button>
           </DialogFooter>
@@ -520,10 +558,10 @@ export function ClinicRegistrationForm({
 
       <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <p className="font-semibold">Need hand-holding?</p>
+          <p className="font-semibold">Need help with setup?</p>
           <p className="text-sm text-muted-foreground">
-            We support onboarding, reminders, and follow-up over WhatsApp.
-            Reach us directly if you want a guided setup.
+            We support onboarding, reminders, and follow-up over WhatsApp and
+            you can reach us directly if you want a guided setup
           </p>
         </div>
         <WhatsAppButton

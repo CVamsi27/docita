@@ -23,11 +23,11 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
   const safeMessage = message
     ? getSafeUserMessage(
         message,
-        "Please review the information on this screen and try again.",
+        "Please review the information on this screen and try again",
       )
     : undefined;
   const safeDetails = details?.map((detail) =>
-    getSafeUserMessage(detail, "Please check this item."),
+    getSafeUserMessage(detail, "Please check this item"),
   );
 
   return (

@@ -142,6 +142,10 @@ export function useAppConfig() {
   return context;
 }
 
+export function useOptionalAppConfig() {
+  return useContext(AppConfigContext);
+}
+
 export function useFormOptions<K extends keyof FormOptions>(
   key: K,
 ): FormOptions[K] {

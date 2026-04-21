@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "./dialog";
 import { Button } from "./button";
+import { cn } from "@workspace/ui/lib/utils";
 
 export interface Step {
   id: string;
@@ -77,7 +78,7 @@ export function MultiStepDialog({
     }
   };
 
-  const isLoading_ = isLoading || isPending;
+  const busy = isLoading || isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -88,57 +89,73 @@ export function MultiStepDialog({
             <DialogDescription>{currentStep.description}</DialogDescription>
           )}
 
-          {}
-          <div className="mt-4 flex gap-2">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center gap-2 flex-1">
-                <button
-                  type="button"
-                  onClick={() => onStepChange(index)}
-                  disabled={disabled || isLoading_}
-                  className={`h-8 w-8 rounded-full text-xs font-medium transition-colors ${
-                    index === currentStepIndex
-                      ? "bg-primary text-primary-foreground"
-                      : index < currentStepIndex
-                        ? "bg-primary/30 text-primary"
-                        : "bg-muted text-muted-foreground"
-                  }`}
+          <div
+            role="list"
+            aria-label="Steps"
+            className="mt-4 flex items-center gap-2"
+          >
+            {steps.map((step, index) => {
+              const isActive = index === currentStepIndex;
+              const isCompleted = index < currentStepIndex;
+              return (
+                <div
+                  key={step.id}
+                  role="listitem"
+                  className="flex items-center gap-2 flex-1"
                 >
-                  {index + 1}
-                </button>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`h-1 flex-1 transition-colors ${
-                      index < currentStepIndex ? "bg-primary" : "bg-muted"
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
+                  <button
+                    type="button"
+                    onClick={() => onStepChange(index)}
+                    disabled={disabled || busy}
+                    aria-current={isActive ? "step" : undefined}
+                    aria-label={`Step ${index + 1}: ${step.title}`}
+                    className={cn(
+                      "inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      "disabled:opacity-60 disabled:cursor-not-allowed",
+                      isActive && "bg-primary text-primary-foreground",
+                      isCompleted && "bg-primary/20 text-primary",
+                      !isActive &&
+                        !isCompleted &&
+                        "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {index + 1}
+                  </button>
+                  {index < steps.length - 1 && (
+                    <div
+                      aria-hidden="true"
+                      className={cn(
+                        "h-0.5 flex-1 rounded-full transition-colors",
+                        index < currentStepIndex ? "bg-primary" : "bg-muted",
+                      )}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </DialogHeader>
 
-        {}
-        <div className="py-6">{children}</div>
+        <div className="py-2">{children}</div>
 
-        {}
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button
             type="button"
             variant="outline"
             onClick={() => (isLastStep ? onOpenChange(false) : handlePrev())}
-            disabled={isLoading_ || disabled}
+            disabled={busy || disabled}
             className="gap-2"
           >
-            {isLastStep ? "Cancel" : prevLabel}
             {!isFirstStep && !isLastStep && <ChevronLeft className="h-4 w-4" />}
+            {isLastStep ? "Cancel" : prevLabel}
           </Button>
 
           {!isLastStep && (
             <Button
               type="button"
               onClick={handleNext}
-              disabled={isLoading_ || disabled}
+              disabled={busy || disabled}
               className="gap-2"
             >
               {nextLabel}
@@ -150,10 +167,10 @@ export function MultiStepDialog({
             <Button
               type="button"
               onClick={handleComplete}
-              disabled={isLoading_ || disabled}
+              disabled={busy || disabled}
               className="gap-2"
             >
-              {isLoading_ && <span className="animate-spin">⟳</span>}
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
               {completeLabel}
             </Button>
           )}

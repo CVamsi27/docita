@@ -144,7 +144,7 @@ export function OrderLabTestDialog({
                           ) : patients.length === 0 ? (
                             <CommandEmpty>
                               {patientSearch
-                                ? "No patient found."
+                                ? "No patient found"
                                 : "Type to search patients..."}
                             </CommandEmpty>
                           ) : (

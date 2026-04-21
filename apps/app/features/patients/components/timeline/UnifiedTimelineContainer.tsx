@@ -68,7 +68,7 @@ export function UnifiedTimelineContainer({
         status="empty"
         emptyIcon={Clock3}
         emptyTitle="No timeline records available"
-        emptyDescription="Patient events will appear here as care activities are recorded."
+        emptyDescription="Patient events will appear here as care activities are recorded"
       />
     );
   }

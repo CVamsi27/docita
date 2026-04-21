@@ -38,12 +38,12 @@ describe("AuthSignupStepUI", () => {
       screen.getByRole("radio", { name: /yes, i'll also see patients/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("radio", { name: /no, i'll only manage the clinic/i }),
+      screen.getByRole("radio", { name: /no, i'll only manage the facility/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Create Account" }),
     ).toBeDisabled();
-    expect(screen.getByLabelText("Re-enter Password")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Confirm Password/i)).toBeInTheDocument();
     expect(screen.getByText("Recommended")).toBeInTheDocument();
   });
 

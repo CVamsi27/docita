@@ -58,12 +58,10 @@ export const usePatientPrescriptions = (
   options?: { limit?: number },
   queryOptions?: { enabled?: boolean },
 ) => {
-  return useAPIQuery<{
-    items: (Prescription & { patient: Patient })[];
-    count: number;
-  }>(
+  return useAPIQuery<(Prescription & { patient: Patient })[]>(
     ["prescriptions", "patient", patientId],
-    withQueryString(`/patients/${patientId}/prescriptions`, {
+    withQueryString("/prescriptions", {
+      patientId,
       limit: options?.limit,
     }),
     queryOptions,

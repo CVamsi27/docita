@@ -34,10 +34,10 @@ export function AdherenceChart({ summary, label }: AdherenceChartProps) {
 
   const message =
     adherenceRate >= 80
-      ? "Great adherence! Keep it up."
+      ? "Great adherence! Keep it up"
       : adherenceRate >= 50
-        ? "Room for improvement."
-        : "Please consult your doctor.";
+        ? "Room for improvement"
+        : "Please consult your doctor";
 
   return (
     <Card>

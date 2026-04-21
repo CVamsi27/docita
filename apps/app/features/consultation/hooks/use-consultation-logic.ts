@@ -7,8 +7,7 @@ import {
   useUpdateAppointment,
 } from "@/hooks/api/use-appointments";
 import { useClinicSettings } from "@/hooks/api/use-settings";
-import { useSmartBack } from "@/hooks/use-smart-back";
-import { useNavigationStore } from "@/lib/stores/navigation-store";
+import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { UpdateAppointmentInput } from "@workspace/types";
@@ -19,7 +18,6 @@ export const useConsultationLogic = (appointmentId: string) => {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { canGoBack } = useNavigationStore();
   const { user, isLoading: authLoading } = useAuth();
   const { canStartConsultation } = usePermissions();
 
@@ -43,15 +41,7 @@ export const useConsultationLogic = (appointmentId: string) => {
     return "/consultation";
   }, [fromPage, appointmentData?.patientId]);
 
-  const goBack = useSmartBack(fallbackRoute);
-
-  const handleBack = useCallback(() => {
-    if (canGoBack()) {
-      goBack();
-    } else {
-      router.push(fallbackRoute);
-    }
-  }, [canGoBack, goBack, router, fallbackRoute]);
+  const handleBack = useBackNavigation(fallbackRoute);
 
   const updateAppointment = useUpdateAppointment(appointmentId);
   const startConsultation = useStartConsultation();
@@ -142,7 +132,10 @@ export const useConsultationLogic = (appointmentId: string) => {
       loading,
       isError,
       isAccessDenied:
-        !loading && !authLoading && !!appointmentData && !canAccessConsultationWorkspace,
+        !loading &&
+        !authLoading &&
+        !!appointmentData &&
+        !canAccessConsultationWorkspace,
       clinic,
       clinicType: clinic?.type,
       isSidebarOpen,

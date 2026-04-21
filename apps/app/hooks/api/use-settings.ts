@@ -106,7 +106,7 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
     () => {
       if (!clinicId) {
         throw new Error(
-          "We could not identify this clinic. Please refresh and try again.",
+          "We could not identify this facility. Please refresh and try again.",
         );
       }
       return `/clinics/${clinicId}/doctors`;
@@ -122,7 +122,7 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
     () => {
       if (!clinicId) {
         throw new Error(
-          "We could not identify this clinic. Please refresh and try again.",
+          "We could not identify this facility. Please refresh and try again.",
         );
       }
       return `/clinics/${clinicId}/receptionists`;

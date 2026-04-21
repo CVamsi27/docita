@@ -74,7 +74,7 @@ describe("VerifyEmailPage", () => {
     vi.unstubAllGlobals();
   });
 
-  it("automatically moves to the next setup step after verification succeeds", async () => {
+  it("shows verified state and lets the user continue after verification succeeds", async () => {
     render(<VerifyEmailPage />);
 
     await waitFor(() => {
@@ -89,15 +89,15 @@ describe("VerifyEmailPage", () => {
 
     await waitFor(() => {
       expect(mocks.refreshUser).toHaveBeenCalledTimes(1);
-      expect(mocks.router.replace).toHaveBeenCalledWith("/choose-path");
     });
 
     expect(
-      screen.queryByRole("button", { name: /continue/i }),
-    ).not.toBeInTheDocument();
+      screen.getByText(/verified/i),
+    ).toBeInTheDocument();
+    expect(mocks.router.replace).toHaveBeenCalledWith("/verify-email/verified");
   });
 
-  it("still advances when refreshing the user after verification fails", async () => {
+  it("still shows verified state when refreshing the user after verification fails", async () => {
     mocks.refreshUser.mockRejectedValueOnce(new Error("refresh failed"));
 
     render(<VerifyEmailPage />);
@@ -112,16 +112,11 @@ describe("VerifyEmailPage", () => {
       );
     });
 
-    await waitFor(() => {
-      expect(mocks.router.replace).toHaveBeenCalledWith("/choose-path");
-    });
-
-    expect(
-      screen.getByText("Your account is ready. Taking you to the next step..."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/verified/i)).toBeInTheDocument();
     expect(
       screen.queryByText(/verification failed/i),
     ).not.toBeInTheDocument();
+    expect(mocks.router.replace).toHaveBeenCalledWith("/verify-email/verified");
   });
 
   it("does not call verification when the token is missing", () => {

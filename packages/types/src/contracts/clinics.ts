@@ -16,6 +16,17 @@ const bankAccountSchema = z.object({
   upiId: z.string().optional(),
 });
 
+const taxSettingsSchema = z.object({
+  countryCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2}$/),
+  regime: z.enum(["IN_GST", "VAT", "SALES_TAX", "NONE"]).optional(),
+  registrationId: z.string().optional(),
+  registrationLabel: z.string().optional(),
+});
+
 export const createClinicRequestSchema = z.object({
   name: z.string().min(1),
   address: z.string().min(1),
@@ -90,6 +101,8 @@ export const updateClinicSettingsRequestSchema = z.object({
   useSameBankAccountForSubscriptionAndReceipts: z.boolean().optional(),
   subscriptionPaymentBankAccount: bankAccountSchema.optional(),
   paymentReceivingBankAccount: bankAccountSchema.optional(),
+  taxSettings: taxSettingsSchema.optional(),
+  facilityLabel: z.enum(["CLINIC", "HOSPITAL"]).optional(),
 });
 
 export const createClinicDoctorRequestSchema = z.object({
@@ -107,13 +120,14 @@ export const createClinicReceptionistRequestSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   phoneNumber: z.string().optional(),
+  role: z.enum(["RECEPTIONIST", "NURSE"]).optional(),
 });
 
 export const updateClinicMemberRequestSchema = z.object({
   name: z.string().min(1).optional(),
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
-  role: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]).optional(),
+  role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"]).optional(),
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -150,12 +164,14 @@ export type UpdateClinicMemberRequest = z.infer<
 
 export const createJoinRequestSchema = z.object({
   clinicId: z.string().cuid(),
-  requestedRole: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]),
+  requestedRole: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"]),
   message: z.string().max(500).optional(),
 });
 
 export const approveJoinRequestSchema = z.object({
-  assignedRole: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN_DOCTOR"]).optional(),
+  assignedRole: z
+    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"])
+    .optional(),
   welcomeMessage: z.string().max(500).optional(),
 });
 

@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -20,13 +21,39 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <PreDashboardShell currentStep="forgot-password" showProgress={false}>
+          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
+            <div className="text-sm text-muted-foreground">Loading...</div>
+          </div>
+        </PreDashboardShell>
+      }
+    >
+      <ForgotPasswordPageContent />
+    </Suspense>
+  );
+}
+
+function ForgotPasswordPageContent() {
+  const searchParams = useSearchParams();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
+  const prefillEmail = useMemo(() => {
+    const raw = searchParams.get("email");
+    return typeof raw === "string" ? raw.trim() : "";
+  }, [searchParams]);
+
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: "" },
+    defaultValues: { email: prefillEmail },
   });
+
+  useEffect(() => {
+    form.reset({ email: prefillEmail });
+  }, [form, prefillEmail]);
 
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setError("");
@@ -40,11 +67,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <PreDashboardShell currentStep="forgot-password">
+    <PreDashboardShell currentStep="forgot-password" showProgress={false}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-bold">Reset Password</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Reset Password</h1>
         <p className="text-muted-foreground text-sm">
-          Enter your email address and we will send you a link to reset your password.
+          Enter your email address to receive a password reset link
         </p>
       </div>
 
@@ -59,15 +86,16 @@ export default function ForgotPasswordPage() {
             <div className="space-y-2">
               <h2 className="text-lg font-semibold">Check your email</h2>
               <p className="text-sm text-muted-foreground">
-                If an account with that email exists, a password reset link has been sent.
+                If an account with that email exists, a password reset link has been sent
               </p>
             </div>
-            <Button variant="outline" asChild className="w-full h-11">
-              <Link href="/login">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Sign In
-              </Link>
-            </Button>
+            <BackButton
+              fallback="/login"
+              label="Back to Sign In"
+              variant="outline"
+              size="default"
+              className="w-full h-11"
+            />
           </div>
         ) : (
           <form
@@ -80,7 +108,7 @@ export default function ForgotPasswordPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="doctor@docita.work"
+                placeholder="Email address"
                 {...form.register("email")}
                 className="h-11"
                 autoFocus
@@ -98,7 +126,7 @@ export default function ForgotPasswordPage() {
 
             <Button
               type="submit"
-              className="w-full h-11 text-base shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow"
+              className="w-full h-11 text-base"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
@@ -111,12 +139,13 @@ export default function ForgotPasswordPage() {
               )}
             </Button>
 
-            <Button variant="ghost" asChild className="w-full h-11">
-              <Link href="/login">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Sign In
-              </Link>
-            </Button>
+            <BackButton
+              fallback="/login"
+              label="Back to Sign In"
+              variant="ghost"
+              size="default"
+              className="w-full h-11"
+            />
           </form>
         )}
       </div>

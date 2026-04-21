@@ -2,10 +2,10 @@ import { z } from "zod";
 import { clinicTypeSchema } from "@workspace/types";
 
 export const clinicDetailsSchema = z.object({
-  name: z.string().min(2, "Enter the clinic name."),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Enter a phone number."),
-  address: z.string().min(5, "Enter the clinic address."),
+  name: z.string().min(2, "Enter the facility name"),
+  email: z.string().email("Enter a valid email address"),
+  phone: z.string().regex(/^\+\d{8,15}$/, "Enter a valid phone number"),
+  address: z.string().min(5, "Enter the facility address"),
   type: clinicTypeSchema,
   facilityType: z.enum(["CLINIC", "HOSPITAL"]).default("CLINIC"),
 });
@@ -21,7 +21,13 @@ export const teamInviteSchema = z.object({
     .array(
       z.object({
         email: z.string().email(),
-        role: z.enum(["DOCTOR", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"]),
+        role: z.enum([
+          "DOCTOR",
+          "NURSE",
+          "RECEPTIONIST",
+          "ADMIN",
+          "ADMIN_DOCTOR",
+        ]),
         name: z.string().optional(),
       }),
     )
@@ -30,13 +36,13 @@ export const teamInviteSchema = z.object({
 
 export const complianceSchema = z.object({
   acceptedSLA: z.boolean().refine((val) => val === true, {
-    message: "Please accept the service agreement.",
+    message: "Please accept the service agreement",
   }),
   acceptedPrivacy: z.boolean().refine((val) => val === true, {
-    message: "Please accept the privacy policy.",
+    message: "Please accept the privacy policy",
   }),
   acceptedTerms: z.boolean().refine((val) => val === true, {
-    message: "Please accept the terms of service.",
+    message: "Please accept the terms of service",
   }),
 });
 

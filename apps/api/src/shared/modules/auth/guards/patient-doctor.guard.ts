@@ -42,6 +42,7 @@ export class PatientDoctorGuard implements CanActivate {
       user.role === Role.ADMIN ||
       user.role === Role.ADMIN_DOCTOR ||
       user.role === Role.INTERNAL ||
+      user.role === Role.NURSE ||
       user.role === Role.RECEPTIONIST
     ) {
       return true;

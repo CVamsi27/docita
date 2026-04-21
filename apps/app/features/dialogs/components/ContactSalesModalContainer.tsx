@@ -43,7 +43,7 @@ export function ContactSalesModalContainer({
     createInquiry(payload, {
       onSuccess: () => {
         setSubmitted(true);
-        toast.success("Thank you! Our sales team will contact you soon.");
+        toast.success("Thank you! Our sales team will contact you soon");
         setTimeout(() => handleClose(), 3000);
       },
       onError: (err: Error) => {

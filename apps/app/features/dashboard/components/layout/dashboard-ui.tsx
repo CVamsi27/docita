@@ -110,7 +110,7 @@ export function DashboardUI({
             className="min-h-[50vh]"
             emptyIcon={LayoutDashboard}
             emptyTitle="Welcome to Docita"
-            emptyDescription="Your dashboard will come to life once you start adding patients and scheduling appointments."
+            emptyDescription="Your dashboard will come to life once you start adding patients and scheduling appointments"
             emptyAction={{ label: "Add your first patient", href: "/patients" }}
           />
         </div>
@@ -156,7 +156,12 @@ export function DashboardUI({
           )}
 
           <div className="space-y-4 sm:space-y-6">
-            <RecentPatientsUI patients={recentPatients} />
+            <RecentPatientsUI
+              patients={recentPatients.map((patient) => ({
+                ...patient,
+                phoneNumber: patient.phoneNumber ?? undefined,
+              }))}
+            />
 
             <DailyProgressUI
               completedToday={completedToday}

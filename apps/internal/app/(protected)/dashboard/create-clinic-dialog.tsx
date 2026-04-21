@@ -14,9 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import PhoneInput, { type Country } from "react-phone-number-input";
 import { toast } from "sonner";
-import { TIER_INFO, type TierName } from "@workspace/types";
+import { CLINIC_TYPE_OPTIONS, type ClinicType, TIER_INFO, type TierName } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 
 const AVAILABLE_TIERS: TierName[] = [
   "STARTER",
@@ -25,61 +27,19 @@ const AVAILABLE_TIERS: TierName[] = [
   "ENTERPRISE",
 ];
 
-const CLINIC_TYPES = [
-  {
-    value: "GENERAL",
-    label: "General Medicine",
-    description: "Multi-specialty clinic",
-  },
-  {
-    value: "DENTAL",
-    label: "Dental Clinic",
-    description: "Dentistry & Orthodontics",
-  },
-  {
-    value: "PEDIATRIC",
-    label: "Pediatric Clinic",
-    description: "Child Health",
-  },
-  {
-    value: "ORTHOPEDIC",
-    label: "Orthopedic Clinic",
-    description: "Bone & Joint Specialist",
-  },
-  {
-    value: "CARDIOLOGY",
-    label: "Cardiology Clinic",
-    description: "Heart Specialist",
-  },
-  {
-    value: "DERMATOLOGY",
-    label: "Dermatology Clinic",
-    description: "Skin Care",
-  },
-  { value: "ENT", label: "ENT Clinic", description: "Ear, Nose & Throat" },
-  {
-    value: "GYNECOLOGY",
-    label: "Gynecology Clinic",
-    description: "Women's Health",
-  },
-  {
-    value: "OPHTHALMOLOGY",
-    label: "Ophthalmology Clinic",
-    description: "Eye Care",
-  },
-  {
-    value: "PSYCHIATRY",
-    label: "Psychiatry Clinic",
-    description: "Mental Health",
-  },
-  {
-    value: "SPECIALTY",
-    label: "Other Specialty",
-    description: "Custom specialty clinic",
-  },
-] as const;
-
-type ClinicType = (typeof CLINIC_TYPES)[number]["value"];
+const CLINIC_TYPE_DESCRIPTIONS: Partial<Record<ClinicType, string>> = {
+  GENERAL: "Multi-specialty facility",
+  DENTAL: "Dentistry & Orthodontics",
+  PEDIATRIC: "Child Health",
+  ORTHOPEDIC: "Bone & Joint Specialist",
+  CARDIOLOGY: "Heart Specialist",
+  DERMATOLOGY: "Skin Care",
+  ENT: "Ear, Nose & Throat",
+  GYNECOLOGY: "Women's Health",
+  OPHTHALMOLOGY: "Eye Care",
+  PSYCHIATRY: "Mental Health",
+  SPECIALTY: "Custom specialty facility",
+};
 
 export function CreateClinicDialog({
   onClinicCreated,
@@ -123,23 +83,23 @@ export function CreateClinicDialog({
       adminPassword?: string;
     } = {};
 
-    if (!formData.name.trim()) errors.name = "Enter the clinic name.";
+    if (!formData.name.trim()) errors.name = "Enter the facility name";
     if (!formData.email.trim()) {
-      errors.email = "Enter the clinic email address.";
+      errors.email = "Enter the facility email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = "Enter a valid clinic email address";
+      errors.email = "Enter a valid facility email address";
     }
-    if (!formData.phone.trim()) errors.phone = "Enter a phone number.";
-    if (!formData.address.trim()) errors.address = "Enter the clinic address.";
+    if (!formData.phone.trim()) errors.phone = "Enter a phone number";
+    if (!formData.address.trim()) errors.address = "Enter the facility address";
 
-    if (!formData.adminName.trim()) errors.adminName = "Enter the admin's name.";
+    if (!formData.adminName.trim()) errors.adminName = "Enter the admin's name";
     if (!formData.adminEmail.trim()) {
-      errors.adminEmail = "Enter the admin's email address.";
+      errors.adminEmail = "Enter the admin's email address";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.adminEmail)) {
       errors.adminEmail = "Enter a valid admin email address";
     }
     if (!formData.adminPassword.trim()) {
-      errors.adminPassword = "Enter a password for the admin.";
+      errors.adminPassword = "Enter a password for the admin";
     }
 
     return errors;
@@ -172,11 +132,11 @@ export function CreateClinicDialog({
           adminPassword: "",
           adminType: "admin",
         });
-        toast.success("Clinic created successfully");
+        toast.success("Facility created successfully");
       } catch (error) {
         showUserFacingErrorToast(
           error,
-          "We could not create this clinic right now. Please try again.",
+          "We could not create this facility right now. Please try again.",
           "save",
         );
       } finally {
@@ -194,25 +154,25 @@ export function CreateClinicDialog({
         }}
       >
         <Plus className="mr-2 h-4 w-4" />
-        Add Clinic
+        Add Facility
       </Button>
       <CRUDDialog
         open={open}
         onOpenChange={setOpen}
-        title="Add New Clinic"
-        description="Create a new clinic and its admin account."
+        title="Add New Facility"
+        description="Create a new facility and its admin account"
         isLoading={loading}
         onSubmit={handleSubmit}
-        submitLabel={loading ? "Creating..." : "Create Clinic"}
+        submitLabel={loading ? "Creating..." : "Create Facility"}
       >
         <form className="space-y-6">
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              Clinic Details
+              Facility Details
             </h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Clinic Name</Label>
+                <Label htmlFor="name">Facility Name</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -266,15 +226,19 @@ export function CreateClinicDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input
+                <PhoneInput
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value });
+                  international
+                  defaultCountry={DEFAULT_COUNTRY_CODE as Country}
+                  onChange={(value: string | undefined) => {
+                    setFormData({ ...formData, phone: value ?? "" });
                     if (fieldErrors.phone) {
                       setFieldErrors((prev) => ({ ...prev, phone: undefined }));
                     }
                   }}
+                  placeholder="Enter phone number"
+                  className="flex min-h-[5rem] min-w-0 flex-col gap-2 rounded-xl border border-input bg-background/60 p-3 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-10 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[9.5rem] [&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-lg [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={
                     fieldErrors.phone ? "create-clinic-phone-error" : undefined
@@ -320,16 +284,18 @@ export function CreateClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select clinic type" />
+                  <SelectValue placeholder="Select facility type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CLINIC_TYPES.map((type) => (
+                  {CLINIC_TYPE_OPTIONS.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       <div className="flex flex-col">
                         <span className="font-medium">{type.label}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {type.description}
-                        </span>
+                        {CLINIC_TYPE_DESCRIPTIONS[type.value] ? (
+                          <span className="text-xs text-muted-foreground">
+                            {CLINIC_TYPE_DESCRIPTIONS[type.value]}
+                          </span>
+                        ) : null}
                       </div>
                     </SelectItem>
                   ))}

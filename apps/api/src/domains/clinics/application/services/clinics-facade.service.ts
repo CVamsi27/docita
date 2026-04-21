@@ -94,13 +94,14 @@ interface CreateReceptionistData {
   email: string;
   password: string;
   phoneNumber?: string;
+  role?: 'RECEPTIONIST' | 'NURSE';
 }
 
 interface UpdateMemberData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  role?: 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
+  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;

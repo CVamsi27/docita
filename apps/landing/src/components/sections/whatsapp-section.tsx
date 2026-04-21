@@ -6,11 +6,12 @@ import {
   MessageSquare,
   Stethoscope,
 } from "lucide-react";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function WhatsappSection() {
   return (
     <section className="px-6 py-24 bg-success/10 relative overflow-hidden">
-      <div className="mx-auto max-w-7xl relative z-10">
+      <div className="ui-page-shell relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div className="order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 rounded-full badge-success px-4 py-2 text-sm mb-4">
@@ -19,14 +20,12 @@ export function WhatsappSection() {
                 WhatsApp Integration
               </span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-              Connect Where Your Patients Are
-            </h2>
-            <p className="text-lg text-muted-foreground mb-6">
-              Send prescriptions, appointment reminders, and follow-up
-              instructions directly to your patients&apos; WhatsApp. No more
-              lost paper slips.
-            </p>
+            <SectionHeading
+              size="section"
+              title="Connect Where Your Patients Are"
+              description="Send prescriptions, appointment reminders, and follow-up instructions directly to your patients' WhatsApp. No more lost paper slips."
+              className="mb-6"
+            />
             <ul className="space-y-4">
               {[
                 "Instant prescription delivery via WhatsApp",
@@ -51,9 +50,7 @@ export function WhatsappSection() {
                     <Stethoscope className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-sm">
-                      Docita
-                    </div>
+                    <div className="font-semibold text-sm">Docita</div>
                     <div className="text-[10px] text-primary-foreground/95">
                       Business Account
                     </div>
@@ -70,7 +67,7 @@ export function WhatsappSection() {
                     </div>
                   </div>
                   <div className="bg-success/20 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
-                    <p>Thank you doctor! I&apos;ll be there.</p>
+                    <p>Thank you doctor! I&apos;ll be there</p>
                     <div className="mt-1 text-[10px] text-foreground/80 text-right">
                       09:32 AM
                     </div>

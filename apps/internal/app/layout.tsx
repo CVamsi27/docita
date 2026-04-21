@@ -1,10 +1,23 @@
 import "./globals.css";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { OptionalSentryInitializer } from "@/components/optional-sentry-initializer";
 import { Providers } from "./providers";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+});
+
 export const metadata = {
   title: "Docita Internal - Internal Console",
-  description: "Manage clinics, users, and system settings",
+  description: "Manage facilities, users, and system settings",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
@@ -18,7 +31,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
+    >
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased">
         <OptionalSentryInitializer
           enabled={process.env.DOCITA_CLOUDFLARE !== "1"}

@@ -1,11 +1,21 @@
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
-import { AlertTriangle, Building2, ChevronLeft, Phone, ShieldAlert } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import {
+  AlertTriangle,
+  Building2,
+  ChevronLeft,
+  Phone,
+  ShieldAlert,
+} from "lucide-react";
 
 interface PatientFaceSheetHeaderUIProps {
   firstName: string;
   lastName: string;
-  mrn?: string;
   age: number | string;
   gender: string;
   dateOfBirth: Date | string;
@@ -35,7 +45,6 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
   const {
     firstName,
     lastName,
-    mrn,
     age,
     gender,
     dateOfBirth,
@@ -56,6 +65,10 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
     actions,
   } = props;
 
+  const allergiesLabel = hasAllergies
+    ? `Allergies: ${allergies ?? ""}`.trim()
+    : "No known allergies";
+
   return (
     <div className="sticky top-0 z-20 border-b bg-background/95 px-4 py-4 shadow-sm md:-mx-6 md:px-6">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
@@ -74,12 +87,6 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-foreground truncate">
                 {lastName}, {firstName}
               </h1>
-              <Badge
-                variant="secondary"
-                className="font-mono text-xs font-normal text-muted-foreground bg-muted/50 border-input"
-              >
-                MRN: {mrn || "N/A"}
-              </Badge>
             </div>
             <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
               <span className="font-medium text-foreground">{age}</span>
@@ -119,16 +126,21 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               </Badge>
             )}
 
-            <Badge
-              variant={hasAllergies ? "destructive" : "secondary"}
-              className={`px-2.5 py-0.5 font-medium border ${
-                hasAllergies
-                  ? "badge-danger"
-                  : "badge-success"
-              }`}
-            >
-              {hasAllergies ? `Allergies: ${allergies}` : "NKA"}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant={hasAllergies ? "destructive" : "secondary"}
+                  className={`px-2.5 py-0.5 font-medium border ${
+                    hasAllergies ? "badge-danger" : "badge-success"
+                  }`}
+                >
+                  {allergiesLabel.length > 34
+                    ? `${allergiesLabel.slice(0, 33)}…`
+                    : allergiesLabel}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>{allergiesLabel}</TooltipContent>
+            </Tooltip>
           </div>
 
           {(insuranceProvider || emergencyContactName) && (

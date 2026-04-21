@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const userRoleSchema = z.enum([
   "DOCTOR",
+  "NURSE",
   "RECEPTIONIST",
   "ADMIN",
   "INTERNAL",
@@ -58,6 +59,7 @@ export const appointmentTypeSchema = z.enum([
   "check-up",
   "emergency",
   "procedure",
+  "other",
 ]);
 export type AppointmentType = z.infer<typeof appointmentTypeSchema>;
 
@@ -154,18 +156,23 @@ export const clinicTypeSchema = z.enum([
 export type ClinicType = z.infer<typeof clinicTypeSchema>;
 
 export const CLINIC_TYPE_LABELS: Record<ClinicType, string> = {
-  GENERAL: "General Medicine",
+  GENERAL: "General Clinic",
   DENTAL: "Dental Clinic",
-  PEDIATRIC: "Pediatric Care",
-  ORTHOPEDIC: "Orthopedic Center",
-  CARDIOLOGY: "Cardiology Center",
+  PEDIATRIC: "Pediatric Clinic",
+  ORTHOPEDIC: "Orthopedic Clinic",
+  CARDIOLOGY: "Cardiology Clinic",
   DERMATOLOGY: "Dermatology Clinic",
-  ENT: "ENT Specialist",
+  ENT: "ENT Clinic",
   GYNECOLOGY: "Gynecology Clinic",
-  OPHTHALMOLOGY: "Eye Care Center",
-  PSYCHIATRY: "Mental Health Clinic",
-  SPECIALTY: "Specialty Clinic",
+  OPHTHALMOLOGY: "Ophthalmology Clinic",
+  PSYCHIATRY: "Psychiatry Clinic",
+  SPECIALTY: "Others",
 };
+
+export const CLINIC_TYPE_OPTIONS = clinicTypeSchema.options.map((value) => ({
+  value,
+  label: CLINIC_TYPE_LABELS[value],
+}));
 
 export interface ClinicTypeFeatures {
   chiefComplaint: boolean;

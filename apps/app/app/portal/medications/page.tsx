@@ -83,7 +83,7 @@ export default function PortalMedicationsPage() {
       header={
         <PageHeader
           title="My Medications"
-          description="Track your medications and monitor adherence."
+          description="Track your medications and monitor adherence"
         />
       }
     >
@@ -92,7 +92,7 @@ export default function PortalMedicationsPage() {
         loadingMessage="Loading medications..."
         emptyIcon={Pill}
         emptyTitle="No Active Medications"
-        emptyDescription="You have no active medications at the moment."
+        emptyDescription="You have no active medications at the moment"
       >
         <MedicationsContent medications={medications ?? []} />
       </DataState>

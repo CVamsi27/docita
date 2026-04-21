@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/table";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
 import { cn } from "@workspace/ui/lib/utils";
@@ -60,7 +61,7 @@ export function InvoiceHistoryDialog({
           ) : !invoices || invoices.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-muted-foreground gap-2">
               <FileText className="h-12 w-12 opacity-20" />
-              <p>No billing records found yet.</p>
+              <p>No billing records found yet</p>
             </div>
           ) : (
             <Table>
@@ -98,7 +99,7 @@ export function InvoiceHistoryDialog({
                             : "badge-warning",
                         )}
                       >
-                        {invoice.status}
+                        {humanizeUiLabel(invoice.status)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">

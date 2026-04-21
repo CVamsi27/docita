@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard | Docita",
-  description: "Your clinic dashboard",
+  description: "Your facility dashboard",
 };
 
 export default function DashboardLayout({

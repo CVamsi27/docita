@@ -3,6 +3,7 @@ export type RestrictionRole =
   | "ADMIN"
   | "ADMIN_DOCTOR"
   | "DOCTOR"
+  | "NURSE"
   | "RECEPTIONIST"
   | "PATIENT";
 
@@ -24,6 +25,7 @@ export const DOCTOR_SCOPED_APPOINTMENT_ROLES: ReadonlySet<string> = new Set([
 export const CLINIC_WIDE_APPOINTMENT_ROLES: ReadonlySet<string> = new Set([
   "ADMIN",
   "ADMIN_DOCTOR",
+  "NURSE",
   "RECEPTIONIST",
   "INTERNAL",
 ]);

@@ -1,5 +1,6 @@
 
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+export { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 
 export function formatDate(

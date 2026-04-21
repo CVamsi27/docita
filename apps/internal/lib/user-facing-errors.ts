@@ -9,18 +9,18 @@ import {
 
 export type { UserFacingErrorContext };
 
-const ERROR_TOAST_DURATION_MS = Number.POSITIVE_INFINITY;
+const ERROR_TOAST_DURATION_MS = 8000;
 
 export function getSafeUserMessage(
   message: string | null | undefined,
-  fallback = "Please review the information on this screen and try again.",
+  fallback = "Please review the information on this screen and try again",
 ): string {
   return sanitizeUserFacingMessage(message, fallback);
 }
 
 export function showUserFacingErrorToast(
   error: unknown,
-  fallback = "Please review the information on this screen and try again.",
+  fallback = "Please review the information on this screen and try again",
   context: UserFacingErrorContext = "generic",
 ): void {
   toast.error(

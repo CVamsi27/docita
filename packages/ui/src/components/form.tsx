@@ -146,7 +146,7 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField();
   const body = error
-    ? sanitizeUserFacingMessage(String(error?.message ?? ""), "Please check this field.")
+    ? sanitizeUserFacingMessage(String(error?.message ?? ""), "Please check this field")
     : props.children;
 
   if (!body) {

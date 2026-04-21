@@ -9,6 +9,57 @@ import { UserRateLimitService } from '@/shared/modules/services/user-rate-limit.
 import { AuthenticatedRequest } from '@workspace/types';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
+/**
+ * Route-level overrides for the per-user rate limiter. Keys are
+ * `METHOD url-pattern` (pattern matches against the request's `originalUrl`).
+ * A `limit` of 0 skips rate limiting entirely.
+ */
+interface RouteRateLimitOverride {
+  method: string;
+  pattern: RegExp;
+  limit: number;
+  windowMs?: number;
+}
+
+const ROUTE_OVERRIDES: RouteRateLimitOverride[] = [
+  // Consultation mutations: already debounced + content-hash gated on client.
+  // A 20ms-typing clinician can burst up to 1500/min; we keep a safety ceiling
+  // but put it well above realistic typing speed.
+  {
+    method: 'PATCH',
+    pattern: /\/appointments\/[^/]+$/,
+    limit: 600,
+  },
+  {
+    method: 'PATCH',
+    pattern: /\/patients\/[^/]+$/,
+    limit: 600,
+  },
+  {
+    method: 'POST',
+    pattern: /\/appointments\/[^/]+\/diagnoses$/,
+    limit: 300,
+  },
+  // Typeahead search needs a higher ceiling than the default because each
+  // keystroke may cost a query during active entry.
+  {
+    method: 'GET',
+    pattern: /\/clinical\/medical-coding\/(icd|cpt)\/search/,
+    limit: 300,
+  },
+];
+
+const DEFAULT_CLINICIAN_LIMIT = 120;
+
+function resolveOverride(
+  method: string,
+  url: string,
+): RouteRateLimitOverride | undefined {
+  return ROUTE_OVERRIDES.find(
+    (override) => override.method === method && override.pattern.test(url),
+  );
+}
+
 @Injectable()
 export class UserRateLimitGuard implements CanActivate {
   constructor(private readonly userRateLimitService: UserRateLimitService) {}
@@ -21,8 +72,22 @@ export class UserRateLimitGuard implements CanActivate {
       return true;
     }
 
-    if (!this.userRateLimitService.checkRateLimit(userId)) {
-      const remaining = this.userRateLimitService.getRemainingRequests(userId);
+    const expressReq = request as unknown as {
+      method?: string;
+      originalUrl?: string;
+      url?: string;
+    };
+    const method = (expressReq.method ?? 'GET').toUpperCase();
+    const url = expressReq.originalUrl ?? expressReq.url ?? '';
+
+    const override = resolveOverride(method, url);
+    const limit = override?.limit ?? DEFAULT_CLINICIAN_LIMIT;
+
+    if (!this.userRateLimitService.checkRateLimit(userId, { limit })) {
+      const remaining = this.userRateLimitService.getRemainingRequests(
+        userId,
+        limit,
+      );
       throw new HttpException(
         {
           statusCode: HttpStatus.TOO_MANY_REQUESTS,

@@ -24,6 +24,11 @@ export const isAppointmentUpcoming = (appointment: Appointment): boolean => {
   return isAfter(appointmentDate, new Date());
 };
 
+/** Visit is finished: clinical record should not be edited in the consultation workspace. */
+export const isConsultationReadOnlyStatus = (
+  status: Appointment["status"] | string | undefined,
+): boolean => status === "completed" || status === "no-show";
+
 export const getAppointmentStatusDisplay = (status: string): string => {
   const normalizedStatus = status?.replace(/-/g, "_").toUpperCase();
 
@@ -33,7 +38,7 @@ export const getAppointmentStatusDisplay = (status: string): string => {
     case "CHECKED_IN":
       return "Checked In";
     case "IN_PROGRESS":
-      return "In Progress";
+      return "Active";
     case "COMPLETED":
       return "Completed";
     case "CANCELLED":
@@ -87,22 +92,22 @@ export const validateAppointmentData = (
   const errors: string[] = [];
 
   if (!data.patientId) {
-    errors.push("Select a patient.");
+    errors.push("Select a patient");
   }
 
   if (!data.doctorId) {
-    errors.push("Select a doctor.");
+    errors.push("Select a doctor");
   }
 
   if (!data.startTime) {
-    errors.push("Choose a start time.");
+    errors.push("Choose a start time");
   }
 
   if (data.startTime && data.endTime) {
     const start = new Date(data.startTime);
     const end = new Date(data.endTime);
     if (isAfter(start, end)) {
-      errors.push("Choose an end time after the start time.");
+      errors.push("Choose an end time after the start time");
     }
   }
 

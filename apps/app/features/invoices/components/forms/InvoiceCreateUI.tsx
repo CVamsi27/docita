@@ -25,9 +25,10 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { ArrowLeft, Plus, Save } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
 import { type CreateInvoiceFormValues, useInvoiceCreateLogic } from "@/features/invoices/hooks/use-invoice-create-logic";
+import { BackButton } from "@/components/common/navigation/back-button";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
@@ -60,14 +61,7 @@ export const InvoiceCreateUI: FC = () => {
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push("/invoices")}
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Cancel
-        </Button>
+        <BackButton fallback="/invoices" label="Cancel" />
         <div>
           <h1 className="text-2xl font-bold tracking-tight">New Invoice</h1>
           <p className="text-muted-foreground">

@@ -22,7 +22,7 @@ export interface IFollowUpRepository {
   findForAppointment(
     appointmentId: string,
     clinicId: string,
-  ): Promise<FollowUp[]>;
+  ): Promise<FollowUpWithRelations[]>;
 
   findByIdAndClinic(id: string, clinicId: string): Promise<FollowUp | null>;
 

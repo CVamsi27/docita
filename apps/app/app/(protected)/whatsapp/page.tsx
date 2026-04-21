@@ -10,6 +10,8 @@ import {
 } from "@workspace/ui/components/card";
 import { MessageSquare, Send, Settings, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { useWhatsappStats } from "@/hooks/api/use-whatsapp";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
@@ -27,19 +29,16 @@ export default function WhatsAppPage() {
 
   return (
     <FeatureGuard feature="WHATSAPP_MESSAGING">
-      {}
-      <div className="flex-1 space-y-6 max-w-4xl mx-auto">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            WhatsApp Integration
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your clinic&apos;s WhatsApp Business API settings and
-            automation.
-          </p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
+      <AppPageScaffold
+        className="max-w-5xl"
+        header={
+          <PageHeader
+            title="WhatsApp Integration"
+            description="Manage your facility's WhatsApp Business API settings and automation."
+          />
+        }
+      >
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -72,7 +71,7 @@ export default function WhatsAppPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Send health tips, clinic updates, or holiday notices to your
+                Send health tips, facility updates, or holiday notices to your
                 patient list.
               </p>
               <Button
@@ -154,7 +153,7 @@ export default function WhatsAppPage() {
           onClose={() => setIsSettingsDialogOpen(false)}
           onSuccess={() => setIsSettingsDialogOpen(false)}
         />
-      </div>
+      </AppPageScaffold>
     </FeatureGuard>
   );
 }

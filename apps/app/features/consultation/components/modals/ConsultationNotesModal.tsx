@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -59,17 +60,19 @@ export function ConsultationNotesModal({
             <StickyNote className="h-5 w-5 text-warning" />
             Add Clinical Notes
           </DialogTitle>
+          {patientName && (
+            <DialogDescription>Notes for {patientName}.</DialogDescription>
+          )}
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Notes for {patientName}</Label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Enter clinical observations, diagnosis, and plan..."
-              className="min-h-[120px] sm:min-h-[200px]"
-            />
-          </div>
+        <div className="flex flex-col gap-2 min-w-0">
+          <Label htmlFor="consultation-notes">Observations</Label>
+          <Textarea
+            id="consultation-notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Clinical observations, diagnosis, and plan..."
+            className="min-h-[160px] sm:min-h-[220px]"
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange?.(false)}>

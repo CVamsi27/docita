@@ -1,4 +1,12 @@
-import { ArrowLeft, CreditCard, HeartPulse, MoreVertical, PanelLeft, Clock, User } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  HeartPulse,
+  MoreVertical,
+  PanelLeft,
+  Clock,
+  User,
+} from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -13,6 +21,7 @@ import {
   SheetTrigger,
 } from "@workspace/ui/components/sheet";
 import { cn } from "@workspace/ui/lib/utils";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 import { VitalsModal } from "./modals/VitalsModal";
 import { BillingModal } from "./modals/BillingModal";
@@ -34,9 +43,12 @@ interface ConsultationPageHeaderUIProps {
   patientId?: string;
   appointmentType?: string;
   appointmentStatus?: string;
+  readOnly?: boolean;
   chiefComplaint?: string;
   onBack: () => void;
   MobileSidebarContent?: React.ReactNode;
+  isDesktopSidebarOpen?: boolean;
+  onToggleDesktopSidebar?: () => void;
 }
 
 export function ConsultationPageHeaderUI({
@@ -46,33 +58,40 @@ export function ConsultationPageHeaderUI({
   patientId,
   appointmentType,
   appointmentStatus,
+  readOnly = false,
   chiefComplaint,
   onBack,
   MobileSidebarContent,
+  isDesktopSidebarOpen = true,
+  onToggleDesktopSidebar,
 }: ConsultationPageHeaderUIProps) {
   const [vitalsOpen, setVitalsOpen] = useState(false);
   const [billingOpen, setBillingOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const handleVitalsSaved = () => {
-    queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] });
+    queryClient.invalidateQueries({
+      queryKey: ["appointments", appointmentId],
+    });
     queryClient.invalidateQueries({ queryKey: ["patient-snapshot"] });
   };
 
   const handleBillingSaved = () => {
-    queryClient.invalidateQueries({ queryKey: ["appointments", appointmentId] });
+    queryClient.invalidateQueries({
+      queryKey: ["appointments", appointmentId],
+    });
     queryClient.invalidateQueries({ queryKey: ["billing"] });
   };
 
   const statusKey = (appointmentStatus ?? "").toLowerCase().replace(/-/g, "_");
-  const statusStyle = STATUS_STYLES[statusKey] ?? "bg-muted/50 text-muted-foreground border-muted";
+  const statusStyle =
+    STATUS_STYLES[statusKey] ??
+    "bg-muted/50 text-muted-foreground border-muted";
   const statusLabel = appointmentStatus
-    ? appointmentStatus.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
+    ? humanizeUiLabel(appointmentStatus)
     : null;
 
-  const typeLabel = appointmentType
-    ? appointmentType.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
-    : null;
+  const typeLabel = appointmentType ? humanizeUiLabel(appointmentType) : null;
 
   return (
     <>
@@ -90,7 +109,11 @@ export function ConsultationPageHeaderUI({
           {MobileSidebarContent && (
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden h-8 w-8 shrink-0"
+                >
                   <PanelLeft className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
@@ -106,17 +129,25 @@ export function ConsultationPageHeaderUI({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-sm font-bold leading-tight truncate">{patientName}</h1>
+                <h1 className="text-sm font-bold leading-tight truncate">
+                  {patientName}
+                </h1>
                 {statusLabel && (
                   <Badge
                     variant="outline"
-                    className={cn("text-xs h-5 px-1.5 font-medium hidden sm:inline-flex", statusStyle)}
+                    className={cn(
+                      "text-xs h-5 px-1.5 font-medium hidden sm:inline-flex",
+                      statusStyle,
+                    )}
                   >
                     {statusLabel}
                   </Badge>
                 )}
                 {typeLabel && (
-                  <Badge variant="outline" className="text-xs h-5 px-1.5 hidden md:inline-flex">
+                  <Badge
+                    variant="outline"
+                    className="text-xs h-5 px-1.5 hidden md:inline-flex"
+                  >
                     {typeLabel}
                   </Badge>
                 )}
@@ -146,44 +177,78 @@ export function ConsultationPageHeaderUI({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <ConsultationTimerContainer appointmentId={appointmentId} className="hidden sm:flex" />
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden sm:flex gap-1.5 h-8"
-            onClick={() => setVitalsOpen(true)}
-            title="Record vital signs"
-          >
-            <HeartPulse className="h-3.5 w-3.5 text-destructive" />
-            <span className="hidden md:inline">Vitals</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden sm:flex gap-1.5 h-8"
-            onClick={() => setBillingOpen(true)}
-            title="Create invoice"
-          >
-            <CreditCard className="h-3.5 w-3.5 text-success" />
-            <span className="hidden md:inline">Invoice</span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="sm:hidden h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
+          {onToggleDesktopSidebar && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden xl:flex gap-1.5 h-8"
+              onClick={onToggleDesktopSidebar}
+              title={
+                isDesktopSidebarOpen
+                  ? "Hide patient history"
+                  : "Show patient history"
+              }
+            >
+              <PanelLeft className="h-3.5 w-3.5" />
+              <span>
+                {isDesktopSidebarOpen ? "Hide history" : "Show history"}
+              </span>
+            </Button>
+          )}
+          {!readOnly && (
+            <>
+              <ConsultationTimerContainer
+                appointmentId={appointmentId}
+                className="hidden sm:flex"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex gap-1.5 h-8"
+                onClick={() => setVitalsOpen(true)}
+                title="Record vital signs"
+              >
+                <HeartPulse className="h-3.5 w-3.5 text-destructive" />
+                <span className="hidden md:inline">Vitals</span>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setVitalsOpen(true)}>
-                <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
-                Vitals
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setBillingOpen(true)}>
-                <CreditCard className="mr-2 h-4 w-4 text-success" />
-                Invoice
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex gap-1.5 h-8"
+                onClick={() => setBillingOpen(true)}
+                title="Create invoice"
+              >
+                <CreditCard className="h-3.5 w-3.5 text-success" />
+                <span className="hidden md:inline">Invoice</span>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:hidden h-8 w-8"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setVitalsOpen(true)}>
+                    <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
+                    Vitals
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setBillingOpen(true)}>
+                    <CreditCard className="mr-2 h-4 w-4 text-success" />
+                    Invoice
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+          {readOnly && (
+            <Badge variant="outline" className="hidden sm:inline-flex h-8 px-3">
+              View only
+            </Badge>
+          )}
         </div>
       </header>
 

@@ -128,19 +128,19 @@ const KEY_FEATURE_CATEGORIES = FEATURE_CATEGORIES.slice(0, 4);
 
 const LIMIT_ROW_DESCRIPTIONS: Record<string, string> = {
   "Patient Limit":
-    "Maximum number of unique patient profiles you can actively manage in the plan.",
+    "Maximum number of unique patient profiles you can actively manage in the plan",
   Doctors:
-    "Maximum number of doctor accounts that can practice under this clinic plan.",
+    "Maximum number of doctor accounts that can practice under this facility plan",
   Storage:
-    "Total cloud storage included for files like scanned records, prescriptions, and reports.",
+    "Total cloud storage included for files like scanned records, prescriptions, and reports",
   Branches:
-    "Number of clinic locations/branches you can operate under one subscription.",
+    "Number of facility locations/branches you can operate under one subscription",
   Consultations:
-    "Number of consultations included in the billing cycle before overage charges apply.",
+    "Number of consultations included in the billing cycle before overage charges apply",
   Prescriptions:
-    "Number of digital prescriptions included in the billing cycle.",
+    "Number of digital prescriptions included in the billing cycle",
   Invoices:
-    "Number of invoices you can generate in the billing cycle.",
+    "Number of invoices you can generate in the billing cycle",
 };
 
 export function ComparisonTable({
@@ -163,7 +163,7 @@ export function ComparisonTable({
       <div className="p-6 border-b">
         <h2 className="text-2xl font-bold text-center">Compare Plans</h2>
         <p className="text-center text-muted-foreground mt-2">
-          Find the perfect fit for your clinic&apos;s needs
+          Find the perfect fit for your facility&apos;s needs
         </p>
       </div>
       <div className="overflow-x-auto">
@@ -305,7 +305,7 @@ function FeatureCategoryRows({
                   {details.name}
                 </span>
                 {!details.isGenerallyAvailable && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  <Badge variant="secondary" className="text-[var(--fs-2xs)] px-1.5 py-0">
                     Planned
                   </Badge>
                 )}
@@ -337,7 +337,7 @@ function FeatureCategoryRows({
                   ) : !details.isGenerallyAvailable ? (
                     <Badge
                       variant="outline"
-                      className="text-[10px] px-1.5 py-0 text-muted-foreground"
+                      className="text-[var(--fs-2xs)] px-1.5 py-0 text-muted-foreground"
                     >
                       Planned
                     </Badge>

@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 const RESEND_VERIFICATION_COOLDOWN_MS = 120 * 1000;
 const RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY =
@@ -68,9 +69,7 @@ export default function VerifyEmailSentPage() {
     }
 
     if (user.emailVerified === true) {
-      const nextPath = getNextPathForVerifiedUser(user);
-      setRedirectMessage("Email verified. Taking you to the next step...");
-      router.replace(nextPath);
+      setRedirectMessage(null);
       return;
     }
 
@@ -147,6 +146,43 @@ export default function VerifyEmailSentPage() {
     );
   }
 
+  if (user?.emailVerified === true) {
+    return (
+      <PreDashboardShell currentStep="verify-email-sent" showSignOut>
+        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
+              <CheckCircle2 className="h-8 w-8 text-success" />
+            </div>
+          </div>
+
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight">Email verified</h1>
+            <p className="text-muted-foreground text-sm">
+              You can continue setup when you are ready.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              className="w-full h-11"
+              onClick={() => router.push(getNextPathForVerifiedUser(user))}
+            >
+              Continue
+            </Button>
+            <BackButton
+              fallback="/login"
+              label="Back to login"
+              variant="ghost"
+              size="default"
+              className="w-full h-11"
+            />
+          </div>
+        </div>
+      </PreDashboardShell>
+    );
+  }
+
   const handleResend = async () => {
     setResending(true);
     try {
@@ -192,7 +228,7 @@ export default function VerifyEmailSentPage() {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Check your email</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
           <p className="text-muted-foreground text-sm">We need to verify</p>
           <p className="font-medium text-sm">{email}</p>
           <p className="text-muted-foreground text-sm pt-1">
@@ -222,8 +258,8 @@ export default function VerifyEmailSentPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <div className="space-y-1 text-muted-foreground">
-                <p>Check your inbox and spam folder for a message from Docita.</p>
-                <p>The link stays active for 24 hours and you can request a fresh one anytime.</p>
+                <p>Check your inbox and spam folder for a message from Docita</p>
+                <p>The link stays active for 24 hours and you can request a fresh one anytime</p>
               </div>
             </div>
           </div>

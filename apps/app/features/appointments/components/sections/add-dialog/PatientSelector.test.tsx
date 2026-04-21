@@ -93,7 +93,7 @@ describe("PatientSelector", () => {
     render(<TestForm />);
 
     fireEvent.click(screen.getByRole("combobox"));
-    const searchInput = screen.getByPlaceholderText("Search patients...");
+    const searchInput = screen.getByPlaceholderText("Search patients");
 
     fireEvent.keyDown(searchInput, { key: "ArrowDown" });
     fireEvent.keyDown(searchInput, { key: "ArrowDown" });

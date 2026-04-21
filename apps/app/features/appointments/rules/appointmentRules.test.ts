@@ -6,6 +6,7 @@ import {
   getAppointmentStatusDisplay,
   isAppointmentPast,
   isAppointmentToday,
+  isConsultationReadOnlyStatus,
   validateAppointmentData,
 } from "./appointmentRules";
 
@@ -123,6 +124,18 @@ describe("Appointment Business Rules", () => {
     });
   });
 
+  describe("isConsultationReadOnlyStatus", () => {
+    it("is true for completed and no-show", () => {
+      expect(isConsultationReadOnlyStatus("completed")).toBe(true);
+      expect(isConsultationReadOnlyStatus("no-show")).toBe(true);
+    });
+
+    it("is false for active visits", () => {
+      expect(isConsultationReadOnlyStatus("in-progress")).toBe(false);
+      expect(isConsultationReadOnlyStatus("scheduled")).toBe(false);
+    });
+  });
+
   describe("getAppointmentStatusDisplay", () => {
     it("should return Scheduled for scheduled status", () => {
       expect(getAppointmentStatusDisplay("scheduled")).toBe("Scheduled");
@@ -130,6 +143,10 @@ describe("Appointment Business Rules", () => {
 
     it("should return Checked In for checked-in status", () => {
       expect(getAppointmentStatusDisplay("checked-in")).toBe("Checked In");
+    });
+
+    it("should return Active for in-progress status", () => {
+      expect(getAppointmentStatusDisplay("in-progress")).toBe("Active");
     });
   });
 

@@ -85,7 +85,7 @@ describe("token storage", () => {
     );
 
     await expect(tokenStorage.refreshToken()).rejects.toThrow(
-      "Please sign in again to continue.",
+      "Please sign in again to continue",
     );
   });
 });

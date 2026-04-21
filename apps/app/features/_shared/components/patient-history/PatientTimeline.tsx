@@ -33,9 +33,20 @@ export function PatientTimeline({
   isLoading,
 }: PatientTimelineProps) {
   const [showAll, setShowAll] = useState(false);
+  const [showPast, setShowPast] = useState(false);
+
+  const sortedEvents = [...events].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+
+  const now = Date.now();
+  const upcomingOrToday = sortedEvents.filter(
+    (e) => new Date(e.date).getTime() >= now,
+  );
+  const past = sortedEvents.filter((e) => new Date(e.date).getTime() < now);
 
   if (mode === "compact") {
-    const visibleEvents = showAll ? events : events.slice(0, 10);
+    const visibleEvents = showAll ? sortedEvents : sortedEvents.slice(0, 10);
     return (
       <div className="space-y-0">
         {events.length === 0 ? (
@@ -103,7 +114,28 @@ export function PatientTimeline({
         </div>
       ) : (
         <div className="space-y-2">
-          {events.map((event) => (
+          {past.length > 0 && (
+            <div className="flex items-center justify-between gap-2 py-1">
+              <p className="text-xs text-muted-foreground">
+                {showPast
+                  ? "Past events"
+                  : `${past.length} past event${past.length === 1 ? "" : "s"} hidden`}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setShowPast((v) => !v)}
+              >
+                {showPast ? "Hide past visits" : `View past visits (${past.length})`}
+              </Button>
+            </div>
+          )}
+
+          {showPast &&
+            past.map((event) => <VisitCard key={event.id} event={event} mode={mode} />)}
+
+          {upcomingOrToday.map((event) => (
             <VisitCard key={event.id} event={event} mode={mode} />
           ))}
         </div>

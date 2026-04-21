@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   ArrowRight,
   Database,
@@ -28,17 +30,16 @@ import { BulkImportDialog } from "@/features/dialogs/components/BulkImportDialog
 export default function ImportPage() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   return (
-    <div className="flex-1 space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Import Data</h1>
-        <p className="text-muted-foreground">
-          Digitize your clinic records by importing from Excel or scanning
-          documents.
-        </p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        {}
+    <AppPageScaffold
+      className="max-w-5xl"
+      header={
+        <PageHeader
+          title="Import Data"
+          description="Digitize your facility records by importing from Excel or scanning documents."
+        />
+      }
+    >
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
         <Card className="relative overflow-hidden">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -82,7 +83,6 @@ export default function ImportPage() {
           </CardContent>
         </Card>
 
-        {}
         <Card className="relative overflow-hidden">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -137,7 +137,6 @@ export default function ImportPage() {
         </Card>
       </div>
 
-      {}
       <Card className="surface-info relative overflow-hidden">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -180,7 +179,6 @@ export default function ImportPage() {
         </CardContent>
       </Card>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Import Tips</CardTitle>
@@ -203,13 +201,12 @@ export default function ImportPage() {
         </CardContent>
       </Card>
 
-      {}
       {showBulkImport && (
         <BulkImportDialog
           open={showBulkImport}
           onOpenChange={setShowBulkImport}
         />
       )}
-    </div>
+    </AppPageScaffold>
   );
 }

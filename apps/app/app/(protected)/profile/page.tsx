@@ -10,6 +10,8 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { useAuth } from "@/lib/auth-context";
 import { useUpdateProfile } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
@@ -30,7 +32,7 @@ export default function ProfilePage() {
 
   const handleSaveChanges = async () => {
     if (!formData.name.trim()) {
-      showUserFacingErrorToast("Enter your name before saving.");
+      showUserFacingErrorToast("Enter your name before saving");
       return;
     }
 
@@ -50,18 +52,19 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings and preferences.
-        </p>
-      </div>
-
+    <AppPageScaffold
+      className="max-w-3xl"
+      header={
+        <PageHeader
+          title="Profile"
+          description="Manage your account settings and preferences."
+        />
+      }
+    >
       <Card className="border-border shadow-sm">
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Update your personal details here.</CardDescription>
+          <CardDescription>Update your personal details here</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
@@ -96,6 +99,6 @@ export default function ProfilePage() {
       </Card>
 
       <ChangePasswordSettings />
-    </div>
+    </AppPageScaffold>
   );
 }

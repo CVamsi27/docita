@@ -2,11 +2,13 @@
 
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 import {
   EditPatientDialog,
   PatientFaceSheetHeaderContainer as PatientFaceSheetHeader,
   PatientTagManagerContainer as PatientTagManager,
 } from "@/features/patients/components";
+import { PatientMetricsHistoryUI } from "@/features/patients/components/details/PatientMetricsHistoryUI";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 
 const PatientMedicalHistory = dynamic(
@@ -19,17 +21,17 @@ const PatientMedicalHistory = dynamic(
 
 const MedicalDocumentList = dynamic(
   () =>
-    import(
-      "@/features/medical-documents/components/MedicalDocumentList"
-    ).then((m) => m.MedicalDocumentList),
+    import("@/features/medical-documents/components/MedicalDocumentList").then(
+      (m) => m.MedicalDocumentList,
+    ),
   { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
 );
 
 const UnifiedTimelineContainer = dynamic(
   () =>
-    import(
-      "@/features/patients/components/timeline/UnifiedTimelineContainer"
-    ).then((m) => m.UnifiedTimelineContainer),
+    import("@/features/patients/components/timeline/UnifiedTimelineContainer").then(
+      (m) => m.UnifiedTimelineContainer,
+    ),
   { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
 );
 import { Button } from "@workspace/ui/components/button";
@@ -42,6 +44,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
 import { CalendarPlus, Clock, FileText, Pencil, User } from "lucide-react";
+import { HeartPulse } from "lucide-react";
 import { Feature } from "@/lib/stores/permission-store";
 import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
@@ -50,6 +53,10 @@ import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
 
 export default function PatientDetailPage() {
   const params = useParams();
+  const [activeTab, setActiveTab] = useState<
+    "timeline" | "records" | "vitals" | "documents"
+  >("timeline");
+  const [isEditingRecords, setIsEditingRecords] = useState(false);
 
   const { state, handlers } = usePatientDetailLogic(params["id"] as string);
 
@@ -57,6 +64,9 @@ export default function PatientDetailPage() {
     loading,
     error,
     canAccessPatient,
+    canEditPatient,
+    canCreateAppointment,
+    canRecordPatientVitals,
     isEditDialogOpen,
     setIsEditDialogOpen,
     canAccess,
@@ -64,11 +74,7 @@ export default function PatientDetailPage() {
 
   const patient = state.patient;
 
-  const {
-    handleBackToPatients,
-    handleScheduleVisit,
-    handleRefetch,
-  } = handlers;
+  const { handleBackToPatients, handleScheduleVisit, handleRefetch } = handlers;
 
   const patientId = patient?.id ?? "";
   const { data: snapshot } = usePatientSnapshot(patientId);
@@ -106,7 +112,7 @@ export default function PatientDetailPage() {
           className="min-h-[50vh]"
           emptyIcon={User}
           emptyTitle="Patient not found"
-          emptyDescription="This patient record is unavailable."
+          emptyDescription="This patient record is unavailable"
           emptyAction={{
             label: "Back to Patients",
             onClick: handleBackToPatients,
@@ -122,7 +128,7 @@ export default function PatientDetailPage() {
         <DataState
           status="error"
           className="min-h-[50vh]"
-          errorMessage="You do not have access to this patient."
+          errorMessage="You do not have access to this patient"
           onRetry={handleBackToPatients}
         />
       </AppPageScaffold>
@@ -136,23 +142,33 @@ export default function PatientDetailPage() {
         onBack={handleBackToPatients}
         actions={
           <>
-            {canAccess(Feature.CALENDAR_SLOTS) && (
+            {canAccess(Feature.CALENDAR_SLOTS) && canCreateAppointment && (
               <Button size="sm" onClick={handleScheduleVisit}>
                 <CalendarPlus className="h-4 w-4 mr-1.5" />
                 Schedule Visit
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={() => setIsEditDialogOpen(true)}>
-              <Pencil className="h-4 w-4 mr-1.5" />
-              Edit
-            </Button>
+            {canEditPatient && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Pencil className="h-4 w-4 mr-1.5" />
+                Edit
+              </Button>
+            )}
           </>
         }
       />
 
       <div className="space-y-6 py-6">
         {snapshot && (
-          <PatientSnapshotStrip snapshot={snapshot} layout="horizontal" showVitals />
+          <PatientSnapshotStrip
+            snapshot={snapshot}
+            layout="horizontal"
+            showVitals
+          />
         )}
 
         <EditPatientDialog
@@ -162,7 +178,17 @@ export default function PatientDetailPage() {
           onPatientUpdated={() => handleRefetch()}
         />
 
-        <Tabs defaultValue="timeline" className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            const next = v as "timeline" | "records" | "vitals" | "documents";
+            setActiveTab(next);
+            if (next !== "records") {
+              setIsEditingRecords(false);
+            }
+          }}
+          className="w-full"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="timeline" className="flex-1 sm:flex-none">
@@ -173,6 +199,10 @@ export default function PatientDetailPage() {
                 <FileText className="mr-1.5 h-4 w-4" />
                 Records
               </TabsTrigger>
+              <TabsTrigger value="vitals" className="flex-1 sm:flex-none">
+                <HeartPulse className="mr-1.5 h-4 w-4" />
+                Vitals
+              </TabsTrigger>
               <TabsTrigger value="documents" className="flex-1 sm:flex-none">
                 <FileText className="mr-1.5 h-4 w-4" />
                 Docs
@@ -180,6 +210,15 @@ export default function PatientDetailPage() {
             </TabsList>
 
             <div className="flex items-center gap-2 self-end sm:self-auto">
+              {activeTab === "records" && (
+                <Button
+                  size="sm"
+                  variant={isEditingRecords ? "default" : "outline"}
+                  onClick={() => setIsEditingRecords((v) => !v)}
+                >
+                  {isEditingRecords ? "Editing Records" : "Edit Records"}
+                </Button>
+              )}
               <PatientTagManager patientId={patient.id!} />
             </div>
           </div>
@@ -191,8 +230,23 @@ export default function PatientDetailPage() {
           <TabsContent value="records" className="mt-0">
             <PatientMedicalHistory
               patient={patient as PatientWithHistory}
-              readOnly={true}
-              variant="consultation"
+              readOnly={!isEditingRecords}
+              variant="default"
+              allowGrowthEdit={false}
+            />
+          </TabsContent>
+
+          <TabsContent value="vitals" className="mt-0">
+            <PatientMetricsHistoryUI
+              patientId={patient.id!}
+              readOnly={!canRecordPatientVitals}
+              categoryKey="vitals"
+              title="Vitals History"
+              emptyHistoryMessage="No vitals have been recorded for this patient yet."
+              emptyDefinitionsMessage="Vitals will appear here after they are recorded for this patient."
+              showTracking={false}
+              showConfiguration={false}
+              showRecording={canRecordPatientVitals}
             />
           </TabsContent>
 

@@ -186,6 +186,12 @@ export class ConfigService {
               'appointmentDuration',
               DEFAULT_APPOINTMENT_DURATION,
             ),
+            clinicType: this.readString(clinicSettings, 'clinicType', ''),
+            facilityLabel: this.readString(
+              clinicSettings,
+              'facilityLabel',
+              'CLINIC',
+            ),
           },
         };
       }

@@ -7,11 +7,12 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function ValuePropsSection() {
   return (
     <section className="px-6 py-20 bg-linear-to-b from-background to-muted/30">
-      <div className="mx-auto max-w-7xl">
+      <div className="ui-page-shell">
         <div className="grid gap-12 lg:gap-16">
           {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
@@ -22,20 +23,18 @@ export function ValuePropsSection() {
                   Eco-Friendly Practice
                 </span>
               </div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-                Complete Paperless Implementation
-              </h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                Say goodbye to paper prescriptions, physical files, and storage
-                headaches. Docita transforms your clinic into a fully digital,
-                eco-friendly practice.
-              </p>
+              <SectionHeading
+                size="section"
+                title="Complete Paperless Implementation"
+                description="Say goodbye to paper prescriptions, physical files, and storage headaches. Docita transforms your facility into a fully digital, eco-friendly practice."
+                className="mb-6"
+              />
               <ul className="space-y-3">
                 {[
                   "Digital prescriptions accessible anywhere, anytime",
                   "No more lost or damaged paper records",
                   "Instant sharing via WhatsApp or email",
-                  "Reduce your clinic's carbon footprint",
+                  "Reduce your facility's carbon footprint",
                   "Save on printing and storage costs",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
@@ -66,14 +65,12 @@ export function ValuePropsSection() {
                   Complete Medical Timeline
                 </span>
               </div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-                Track Entire Patient History
-              </h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                Every visit, prescription, test result, and document in one
-                unified timeline. Never lose track of a patient&apos;s medical
-                journey again.
-              </p>
+              <SectionHeading
+                size="section"
+                title="Track Entire Patient History"
+                description="Every visit, prescription, test result, and document in one unified timeline. Never lose track of a patient's medical journey again."
+                className="mb-6"
+              />
               <ul className="space-y-3">
                 {[
                   "Complete medical history at your fingertips",
@@ -106,18 +103,14 @@ export function ValuePropsSection() {
             <div className="order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 rounded-full tier-pro px-4 py-2 text-sm mb-4">
                 <ShieldCheck className="h-4 w-4 text-primary" />
-                <span className="font-medium text-primary"> 
-                  Zero Errors
-                </span>
+                <span className="font-medium text-primary">Zero Errors</span>
               </div>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-                Perfect Clinical Accuracy
-              </h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                Eliminate handwriting interpretation errors completely. Every
-                prescription is crystal clear, every dosage is precise, every
-                instruction is legible.
-              </p>
+              <SectionHeading
+                size="section"
+                title="Perfect Clinical Accuracy"
+                description="Eliminate handwriting interpretation errors completely. Every prescription is crystal clear, every dosage is precise, every instruction is legible."
+                className="mb-6"
+              />
               <ul className="space-y-3">
                 {[
                   "Digital prescriptions are always 100% legible",

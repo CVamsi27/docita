@@ -33,11 +33,13 @@ import {
 } from "@/features/legal";
 import type { ComplianceSettings } from "@/features/onboarding/components/types";
 import { apiFetch } from "@/lib/api-client";
+import { API_URL } from "@/lib/api-config";
 import { buildJsonHeaders } from "@/lib/csrf";
 import { toAbsoluteAppUrl } from "@/lib/url";
 import { PhoneSignatureQrPanel } from "@/features/_shared/components/signature/phone-signature-qr-panel";
 import { usePhoneSignatureQrFlow } from "@/features/_shared/hooks/use-phone-signature-qr-flow";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import Image from "next/image";
 
 type LegalDocumentType = "sla" | "privacy" | "dpa";
 interface ComplianceStepProps {
@@ -52,6 +54,29 @@ interface QrSessionStatusResponse {
   status?: string;
   uploaded?: boolean;
   fileUrl?: string | null;
+}
+
+function resolveSignaturePreviewUrl(fileUrl: string): string {
+  const trimmed = fileUrl.trim();
+  if (!trimmed) return "";
+
+  if (
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:") ||
+    /^https?:\/\//i.test(trimmed)
+  ) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("/")) {
+    const apiOrigin = new URL(
+      API_URL,
+      typeof window !== "undefined" ? window.location.origin : "http://localhost",
+    ).origin;
+    return `${apiOrigin}${trimmed}`;
+  }
+
+  return trimmed;
 }
 
 function isStaleOnboardingSessionError(error: unknown): boolean {
@@ -116,7 +141,7 @@ function LegalCard({
             <Badge
               variant={accepted ? "default" : "outline"}
               className={cn(
-                "text-[10px] h-5 px-2",
+                "text-[var(--fs-2xs)] h-5 px-2",
                 accepted ? "bg-primary/90 text-primary-foreground" : "text-muted-foreground",
               )}
             >
@@ -223,12 +248,12 @@ function LegalDocumentDialog({
               <DialogTitle className="text-base md:text-lg">{title}</DialogTitle>
               <DialogDescription>{description}</DialogDescription>
             </div>
-            <Badge variant="outline" className="h-6 px-2.5 text-[10px]">
+            <Badge variant="outline" className="h-6 px-2.5 text-[var(--fs-2xs)]">
               Required
             </Badge>
           </div>
           <div className="pt-1 space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <div className="flex items-center justify-between text-[var(--fs-2xs)] text-muted-foreground">
               <span>Read progress</span>
               <span>{scrollProgress}%</span>
             </div>
@@ -274,6 +299,9 @@ export function ComplianceStep({
   const signatureSessionId = complianceForm.watch("slaSignatureSessionId");
   const hasSignatureSession = Boolean(signatureSessionId);
   const hasOnboardingContext = Boolean(onboardingId || ensureOnboardingId);
+  const [signatureFileUrl, setSignatureFileUrl] = useState<string | null>(null);
+  const [signaturePreviewFailed, setSignaturePreviewFailed] = useState(false);
+  const [signaturePreviewLoading, setSignaturePreviewLoading] = useState(false);
 
   const fetchQrSessionStatus = useCallback(
     async (activeOnboardingId: string, sessionId: string): Promise<boolean> => {
@@ -378,13 +406,95 @@ export function ComplianceStep({
   const refreshQrStatus = qrFlow.refreshStatus;
   const copyQrLink = qrFlow.copyLink;
 
+  const resolveOnboardingId = useCallback(async (): Promise<string | null> => {
+    if (ensureOnboardingId) {
+      return await ensureOnboardingId();
+    }
+    return onboardingId ?? null;
+  }, [ensureOnboardingId, onboardingId]);
+
+  const fetchSignaturePreview = useCallback(
+    async (activeOnboardingId: string, sessionId: string) => {
+      setSignaturePreviewLoading(true);
+      try {
+        const data = await apiFetch<QrSessionStatusResponse>(
+          `/onboarding/${activeOnboardingId}/sla-signature-session/${sessionId}/status?ts=${Date.now()}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+
+        if (data.fileUrl) {
+          setSignatureFileUrl(resolveSignaturePreviewUrl(data.fileUrl));
+          setSignaturePreviewFailed(false);
+        } else {
+          setSignatureFileUrl(null);
+          setSignaturePreviewFailed(false);
+        }
+      } catch {
+        setSignatureFileUrl(null);
+        setSignaturePreviewFailed(false);
+      } finally {
+        setSignaturePreviewLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!hasOnboardingContext) return;
+    if (!signatureSessionId) {
+      setSignatureFileUrl(null);
+      setSignaturePreviewFailed(false);
+      return;
+    }
+
+    // If we already have a file URL, don't refetch unless the session id changes.
+    if (signatureFileUrl) return;
+
+    let cancelled = false;
+    const run = async () => {
+      const activeOnboardingId = await resolveOnboardingId();
+      if (!activeOnboardingId || cancelled) return;
+      await fetchSignaturePreview(activeOnboardingId, signatureSessionId);
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    fetchSignaturePreview,
+    hasOnboardingContext,
+    resolveOnboardingId,
+    signatureFileUrl,
+    signatureSessionId,
+  ]);
+
+  const handleResign = useCallback(async () => {
+    setSignatureFileUrl(null);
+    setSignaturePreviewFailed(false);
+    complianceForm.setValue("slaSignatureSessionId", "", {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    try {
+      await qrFlow.retrySession();
+    } catch {
+      showUserFacingErrorToast(
+        "We could not restart the signature link. Please try again.",
+      );
+    }
+  }, [complianceForm, qrFlow, setSignatureFileUrl]);
+
   const handleManualStatusRefresh = useCallback(async () => {
     try {
       const isUploaded = await refreshQrStatus();
       if (isUploaded) {
         toast.success("Signature synced");
       } else {
-        toast.message("We have not received the signature yet.");
+        toast.message("We have not received the signature yet");
       }
     } catch {
       showUserFacingErrorToast("We could not refresh the signature status. Please try again.");
@@ -414,21 +524,21 @@ export function ComplianceStep({
     {
       key: "sla",
       title: "Service Level Agreement",
-      summary: "Platform uptime, support timelines, incident response, and governance commitments.",
+      summary: "Platform uptime, support timelines, incident response, and governance commitments",
       accepted: !!complianceForm.watch("acceptedSLA"),
       fieldKey: "acceptedSLA",
     },
     {
       key: "privacy",
       title: "Privacy Policy & Data Consent",
-      summary: "How patient data is collected, stored, and processed under DPDP regulations.",
+      summary: "How patient data is collected, stored, and processed under DPDP regulations",
       accepted: !!complianceForm.watch("acceptedPrivacyPolicy"),
       fieldKey: "acceptedPrivacyPolicy",
     },
     {
       key: "dpa",
       title: "Data Processing Agreement",
-      summary: "Your obligations as a data fiduciary and our role as a data processor.",
+      summary: "Your obligations as a data fiduciary and our role as a data processor",
       accepted: !!complianceForm.watch("acceptedDataProcessing"),
       fieldKey: "acceptedDataProcessing",
     },
@@ -438,10 +548,10 @@ export function ComplianceStep({
 
   const legalDocumentConfig = activeLegalDoc
     ? activeLegalDoc === "sla"
-      ? { title: "Service Level Agreement", description: "Review the SLA terms before accepting.", content: <SLAContent /> }
+      ? { title: "Service Level Agreement", description: "Review the SLA terms before accepting", content: <SLAContent /> }
       : activeLegalDoc === "privacy"
-        ? { title: "Privacy Policy & Data Consent", description: "Review privacy and consent terms before accepting.", content: <PrivacyPolicyContent /> }
-        : { title: "Data Processing Agreement", description: "Review data processing obligations before accepting.", content: <DataProcessingAgreementContent /> }
+        ? { title: "Privacy Policy & Data Consent", description: "Review privacy and consent terms before accepting", content: <PrivacyPolicyContent /> }
+        : { title: "Data Processing Agreement", description: "Review data processing obligations before accepting", content: <DataProcessingAgreementContent /> }
     : null;
 
   return (
@@ -497,9 +607,51 @@ export function ComplianceStep({
                   ? "Missing onboarding session ID for QR signature. Go back to Step 3 and continue once to re-initialize."
                   : undefined
               }
-              successTitle="Signature received from your phone."
-              successDescription="Your signature has been saved successfully."
+              successTitle="Signature received from your phone"
+              successDescription="Your signature has been saved successfully"
             />
+            {qrFlow.isUploaded ? (
+              <div className="rounded-lg border bg-card p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium">Signature preview</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => {
+                      void handleResign();
+                    }}
+                  >
+                    Edit / Re-sign
+                  </Button>
+                </div>
+                {signaturePreviewLoading ? (
+                  <p className="text-xs text-muted-foreground">
+                    Loading signature preview...
+                  </p>
+                ) : signatureFileUrl && !signaturePreviewFailed ? (
+                  <div className="rounded-md border bg-white p-3">
+                    <Image
+                      src={signatureFileUrl}
+                      alt="SLA signature preview"
+                      width={700}
+                      height={260}
+                      className="h-auto w-full max-w-full"
+                      unoptimized
+                      onError={() => {
+                        setSignaturePreviewFailed(true);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    We received your signature, but the preview is not available
+                    yet. You can continue, or re-sync to try again.
+                  </p>
+                )}
+              </div>
+            ) : null}
             {complianceForm.formState.errors.slaSignatureSessionId && (
               <p className="text-sm text-destructive">
                 {complianceForm.formState.errors.slaSignatureSessionId.message}

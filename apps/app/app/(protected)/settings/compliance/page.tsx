@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Separator } from "@workspace/ui/components/separator";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   CheckCircle2,
   FileText,
@@ -43,22 +45,22 @@ const DATA_RETENTION_POLICIES = [
   {
     category: "Patient Records",
     retention: "7 years",
-    description: "Medical records retained per DPDP Act 2023 guidelines.",
+    description: "Medical records retained per DPDP Act 2023 guidelines",
   },
   {
     category: "Appointment History",
     retention: "5 years",
-    description: "Appointment logs retained for continuity of care.",
+    description: "Appointment logs retained for continuity of care",
   },
   {
     category: "Audit Logs",
     retention: "3 years",
-    description: "System access and data change logs.",
+    description: "System access and data change logs",
   },
   {
     category: "Prescription Data",
     retention: "7 years",
-    description: "Prescription records per clinical documentation standards.",
+    description: "Prescription records per clinical documentation standards",
   },
 ];
 
@@ -79,15 +81,15 @@ export default function ComplianceSettingsPage() {
   );
 
   return (
-    <div className="container mx-auto max-w-3xl py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Compliance</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Legal agreements, data protection, and audit information for your
-          clinic.
-        </p>
-      </div>
-
+    <AppPageScaffold
+      className="max-w-3xl"
+      header={
+        <PageHeader
+          title="Compliance"
+          description="Legal agreements, data protection, and audit information for your facility."
+        />
+      }
+    >
       {compliance?.slaSignatureUrl && compliance.slaSignatureAcceptedAt && (
         <Alert>
           <CheckCircle2 className="h-4 w-4" />
@@ -227,7 +229,7 @@ export default function ComplianceSettingsPage() {
               Audit Log
             </CardTitle>
             <CardDescription>
-              Recent system access and data change events for your clinic.
+              Recent system access and data change events for your facility.
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" asChild>
@@ -261,6 +263,6 @@ export default function ComplianceSettingsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AppPageScaffold>
   );
 }

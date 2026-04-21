@@ -4,7 +4,7 @@ export default function LogsPage() {
   return (
     <SystemLogsPage
       title="System Logs"
-      description="View and filter system events and errors."
+      description="View and filter system events and errors"
       defaultLimit={50}
       moduleColumnWidthClass="w-[150px]"
     />

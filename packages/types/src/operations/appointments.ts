@@ -43,6 +43,13 @@ export const APPOINTMENT_PRIORITY_COLORS: Record<AppointmentPriority, string> =
     EMERGENCY: "badge-danger",
   };
 
+const normalizeAppointmentDate = (
+  value: string | Date,
+): Date | undefined => {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
 export const appointmentSchema = z.object({
   id: z.string().optional(),
   patientId: z.string().min(1, "Select a patient."),
@@ -127,10 +134,10 @@ export const appointmentSchema = z.object({
       }),
     )
     .optional(),
-});
+  });
 export type Appointment = z.infer<typeof appointmentSchema>;
 
-export const createAppointmentSchema = appointmentSchema.omit({
+export const createAppointmentBaseSchema = appointmentSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -156,9 +163,45 @@ export const createAppointmentSchema = appointmentSchema.omit({
   dermatologyExam: true,
   psychiatryExam: true,
 });
+
+export const createAppointmentSchema = createAppointmentBaseSchema.superRefine(
+  (data, ctx) => {
+  const startTime = normalizeAppointmentDate(data.startTime);
+  const endTime =
+    typeof data.endTime === "string" && data.endTime.trim() === ""
+      ? undefined
+      : normalizeAppointmentDate(data.endTime);
+  const now = new Date();
+
+  if (!startTime) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["startTime"],
+      message: "Enter a valid start time.",
+    });
+    return;
+  }
+
+  if (startTime.getTime() < now.getTime()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["startTime"],
+      message: "Start time cannot be in the past.",
+    });
+  }
+
+  if (endTime && endTime.getTime() <= startTime.getTime()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["endTime"],
+      message: "End time must be after the start time.",
+    });
+  }
+  },
+);
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
-export const updateAppointmentSchema = createAppointmentSchema.partial();
+export const updateAppointmentSchema = createAppointmentBaseSchema.partial();
 export type UpdateAppointmentInput = z.infer<typeof updateAppointmentSchema>;
 
 export const updateClinicalNoteSchema = clinicalNoteSchema;

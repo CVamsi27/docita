@@ -1,9 +1,11 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 import {
   Appointment,
+  AppointmentCancelRequest,
   CreateAppointmentRequest,
   Patient,
+  StartConsultationResponse,
   UpdateAppointmentRequest,
 } from "@workspace/types";
 import {
@@ -47,11 +49,6 @@ export interface QueueItem {
   appointment?: { id: string; doctor: { id: string; name: string } };
 }
 
-export interface StartConsultationResponse {
-  appointmentId: string;
-  status: string;
-}
-
 type AppointmentQueryOptions = {
   date?: string;
   startDate?: string;
@@ -86,12 +83,15 @@ export const useAppointments = (
   return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     queryKeys.appointments.list(normalizedOptions),
     url,
-    { enabled: options !== null },
+    { enabled: options !== null, placeholderData: keepPreviousData },
   );
 };
 
 export const useTodayAppointments = (enabled: boolean = true) => {
-  const today = new Date().toISOString().split("T")[0] ?? "";
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+  const localDate = new Date(now.getTime() - offsetMs);
+  const today = localDate.toISOString().split("T")[0] ?? "";
   return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
@@ -124,7 +124,19 @@ export const useCreateAppointment = () =>
 export const useUpdateAppointment = (id: string) =>
   useAPIMutation<Appointment, UpdateAppointmentRequest>(
     `/appointments/${id}`,
-    "PUT",
+    "PATCH",
+    {
+      invalidateKeys: [
+        queryKeys.appointments.all(),
+        queryKeys.appointments.detail(id),
+      ],
+    },
+  );
+
+export const useCancelAppointment = (id: string) =>
+  useAPIMutation<Appointment, AppointmentCancelRequest>(
+    `/appointments/${id}/cancel`,
+    "PATCH",
     {
       invalidateKeys: [
         queryKeys.appointments.all(),
@@ -148,8 +160,20 @@ export interface DiagnosisSyncItem {
   isPrimary?: boolean;
 }
 
+export interface DiagnosesSyncRequestBody {
+  diagnoses: DiagnosisSyncItem[];
+  contentHash?: string;
+}
+
+export interface DiagnosesSyncResponse {
+  success: boolean;
+  contentHash?: string;
+  skipped?: boolean;
+  count?: number;
+}
+
 export const useSyncDiagnoses = (appointmentId: string) =>
-  useAPIMutation<{ success: boolean }, { diagnoses: DiagnosisSyncItem[] }>(
+  useAPIMutation<DiagnosesSyncResponse, DiagnosesSyncRequestBody>(
     `/appointments/${appointmentId}/diagnoses`,
     "POST",
     {

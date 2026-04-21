@@ -46,19 +46,19 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({ onSubmit }) => {
     const errors: AdmissionFormErrors = {};
 
     if (!formData.patientId.trim()) {
-      errors.patientId = "Select a patient.";
+      errors.patientId = "Select a patient";
     }
     if (!formData.wardId) {
-      errors.wardId = "Select a ward.";
+      errors.wardId = "Select a ward";
     }
     if (!formData.bedId) {
-      errors.bedId = "Select a bed.";
+      errors.bedId = "Select a bed";
     }
     if (!formData.attendingDoctorId) {
-      errors.attendingDoctorId = "Select the attending doctor.";
+      errors.attendingDoctorId = "Select the attending doctor";
     }
     if (!formData.diagnosis.trim()) {
-      errors.diagnosis = "Enter the admission diagnosis.";
+      errors.diagnosis = "Enter the admission diagnosis";
     }
 
     return errors;

@@ -1,5 +1,5 @@
 import { DEFAULT_CURRENCY } from "@workspace/utils";
-import { Bed, CheckCircle2, Search, Users } from "lucide-react";
+import { Bed, CheckCircle2, Users } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,6 +8,10 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { LoadingState } from "@workspace/ui/components/empty-state";
+import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 
 interface BedInfo {
@@ -55,81 +59,67 @@ export function BedManagementUI({
   setSearchQuery,
 }: BedManagementUIProps) {
   if (isLoading) {
-    return (
-      <div className="p-8 text-center text-muted-foreground">
-        Loading bed status...
-      </div>
-    );
+    return <LoadingState message="Loading bed status..." className="min-h-[40vh]" />;
   }
 
   const { totalBeds, occupiedBeds, availableBeds, occupancyRate } = stats;
 
-  return (
-    <div className="space-y-6 container mx-auto py-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Bed Management</h1>
-          <p className="text-muted-foreground mt-1">
-            Real-time status of wards and beds
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search patients, beds..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Button variant="outline">Manage Wards</Button>
-          <Button variant="default" onClick={() => setShowAdmissionModal(true)}>
-            New Admission
-          </Button>
-        </div>
-      </div>
+  const statItems: StatItem[] = [
+    {
+      id: "total",
+      label: "Total Beds",
+      value: totalBeds,
+      description: "Across all wards",
+      icon: <Bed className="h-4 w-4" />,
+    },
+    {
+      id: "occupied",
+      label: "Occupied",
+      value: occupiedBeds,
+      description: `${occupancyRate}% Occupancy rate`,
+      icon: <Users className="h-4 w-4" />,
+      accent: "warning",
+    },
+    {
+      id: "available",
+      label: "Available",
+      value: availableBeds,
+      description: "Ready for admission",
+      icon: <CheckCircle2 className="h-4 w-4" />,
+      accent: "success",
+    },
+  ];
 
+  return (
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Bed Management"
+          description="Real-time status of wards and beds."
+          actions={
+            <div className="flex flex-wrap gap-2">
+              <Input
+                type="search"
+                placeholder="Search patients, beds..."
+                className="w-full sm:w-64"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button variant="outline">Manage Wards</Button>
+              <Button onClick={() => setShowAdmissionModal(true)}>
+                New Admission
+              </Button>
+            </div>
+          }
+        />
+      }
+    >
       <AdmissionModal
         open={showAdmissionModal}
         onOpenChange={setShowAdmissionModal}
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Beds</CardTitle>
-            <Bed className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalBeds}</div>
-            <p className="text-xs text-muted-foreground">Across all wards</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Occupied</CardTitle>
-            <Users className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{occupiedBeds}</div>
-            <p className="text-xs text-muted-foreground">
-              {occupancyRate}% Occupancy rate
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{availableBeds}</div>
-            <p className="text-xs text-muted-foreground">Ready for admission</p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatGrid items={statItems} columns={3} />
 
       <div className="grid gap-6">
         {wards?.map((ward) => (
@@ -175,7 +165,7 @@ export function BedManagementUI({
                         >
                           <Bed className="h-4 w-4 mx-auto mb-1 opacity-70" />
                           {bed.bedNumber}
-                          <span className="block text-[10px] opacity-70 mt-0.5 lowercase">
+                          <span className="block text-[var(--fs-2xs)] opacity-70 mt-0.5 lowercase">
                             {bed.status}
                           </span>
                         </div>
@@ -188,6 +178,6 @@ export function BedManagementUI({
           </Card>
         ))}
       </div>
-    </div>
+    </AppPageScaffold>
   );
 }

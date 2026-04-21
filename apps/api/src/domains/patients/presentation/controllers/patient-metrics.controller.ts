@@ -9,7 +9,7 @@ import {
   Request,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@workspace/db';
+import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequestWithUser } from '@/common/types/common.types';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
@@ -21,9 +21,10 @@ import {
   MetricHistoryQueryDto,
   UpsertMetricSelectionsDto,
 } from '@/domains/patients/application/dto/patient-metrics.dto';
+import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 
 @Controller('patients/:patientId/metrics')
-@Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS))
 export class PatientMetricsController {
   constructor(
     private readonly patientService: PatientService,
@@ -53,6 +54,9 @@ export class PatientMetricsController {
   }
 
   @Post('categories')
+  @Roles(
+    ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS, 'write'),
+  )
   async createCategory(
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,
@@ -63,6 +67,9 @@ export class PatientMetricsController {
   }
 
   @Post('definitions')
+  @Roles(
+    ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS, 'write'),
+  )
   async createDefinition(
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,
@@ -86,6 +93,9 @@ export class PatientMetricsController {
   }
 
   @Put('selected')
+  @Roles(
+    ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS, 'write'),
+  )
   async upsertSelectedMetrics(
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,
@@ -100,6 +110,9 @@ export class PatientMetricsController {
   }
 
   @Post('values')
+  @Roles(
+    ...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS, 'write'),
+  )
   async recordMetricValue(
     @Param('patientId') patientId: string,
     @Request() req: RequestWithUser,

@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "./dialog";
@@ -48,7 +49,7 @@ export function CRUDDialog({
       if (onSubmit) {
         await onSubmit(e);
       }
-    } catch (_error) {
+    } catch {
       return;
     }
   };
@@ -62,16 +63,21 @@ export function CRUDDialog({
             e.preventDefault();
           }
         }}
+        onEscapeKeyDown={(e: KeyboardEvent) => {
+          if (isLoading || disabled) {
+            e.preventDefault();
+          }
+        }}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {children}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4 min-w-0">{children}</div>
 
-          <div className="flex justify-end gap-2 pt-4">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -90,7 +96,7 @@ export function CRUDDialog({
                 submitLabel || (isEditing ? "Update" : "Create")
               )}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

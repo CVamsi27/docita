@@ -41,7 +41,7 @@ export function ConsentBanner() {
         dataStorageConsent,
       });
 
-      toast.success("Your privacy preferences have been updated.");
+      toast.success("Your privacy preferences have been updated");
 
       setDismissed(true);
     } catch (_error) {

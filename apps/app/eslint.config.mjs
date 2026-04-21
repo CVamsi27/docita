@@ -104,6 +104,17 @@ export default [
           message:
             "Avoid transition-all in doctor/portal route files. Use explicit transitions like transition-colors duration-150.",
         },
+        {
+          selector: "Literal[value=/text-2xl sm:text-3xl font-bold/]",
+          message:
+            "Use PageHeader or SectionHeading for page titles instead of hardcoded heading scales.",
+        },
+        {
+          selector:
+            "Literal[value=/bg-background rounded-lg border border-border p-6/]",
+          message:
+            "Use Card or Section primitives for panel shells instead of repeating border/padding classes.",
+        },
       ],
     },
   },

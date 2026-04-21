@@ -44,7 +44,7 @@ export const RevenueBarChart = ({ data, loading }: RevenueChartProps) => (
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="revenue" fill="#00C49F" name="Revenue" />
+            <Bar dataKey="revenue" fill="var(--color-chart-2)" name="Revenue" />
           </BarChart>
         </ResponsiveContainer>
       ) : (
@@ -77,7 +77,7 @@ export const RevenuePieChart = ({ data, loading }: RevenueChartProps) => (
               labelLine={false}
               label={({ payload }) => `${payload.code}: ${payload.count}`}
               outerRadius={120}
-              fill="#8884d8"
+              fill="var(--color-chart-1)"
               dataKey="count"
             >
               {data.slice(0, 8).map((_entry, index) => (

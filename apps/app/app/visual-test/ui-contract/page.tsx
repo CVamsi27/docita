@@ -15,7 +15,7 @@ export default function UiContractVisualTestPage() {
           header={
             <PageHeader
               title="Patient Workspace"
-              description="A consistent page scaffold and heading treatment."
+              description="A consistent page scaffold and heading treatment"
               actions={
                 <Button size="sm">
                   <Plus className="h-4 w-4" />
@@ -70,7 +70,7 @@ export default function UiContractVisualTestPage() {
               status="empty"
               emptyIcon={Calendar}
               emptyTitle="No appointments found"
-              emptyDescription="New appointments will appear here."
+              emptyDescription="New appointments will appear here"
               emptyAction={{ label: "Schedule", href: "#" }}
             />
           </CardContent>

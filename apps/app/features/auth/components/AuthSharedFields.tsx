@@ -1,5 +1,5 @@
-import { AlertCircle, ArrowLeft } from "lucide-react";
-import { Button } from "@workspace/ui/components/button";
+import { AlertCircle } from "lucide-react";
+import { BackButton } from "@workspace/ui/components/back-button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import type { FieldErrors } from "@/features/auth/types/auth";
@@ -101,16 +101,14 @@ export function BackEmailField({
         Email Address
       </Label>
       <div className="flex items-center gap-2">
-        <Button
-          type="button"
+        <BackButton
+          onBack={onBack}
+          iconOnly
           variant="ghost"
           size="icon"
           className="h-11 w-11"
-          onClick={onBack}
-          aria-label="Go back"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+          ariaLabel="Go back"
+        />
         <div className="flex-1">
           <Input
             id={id}

@@ -26,13 +26,14 @@ describe('access-matrix.util', () => {
   it('maps workspace role names to database roles and filters invalid values', () => {
     mockedTypes.getAccessRoles.mockReturnValue([
       'ADMIN',
+      'NURSE',
       'DOCTOR',
       'UNKNOWN_ROLE',
     ]);
 
     const roles = getDbRolesForTarget('page.patients', 'read');
 
-    expect(roles).toEqual([Role.ADMIN, Role.DOCTOR]);
+    expect(roles).toEqual([Role.ADMIN, Role.NURSE, Role.DOCTOR]);
     expect(mockedTypes.getAccessRoles).toHaveBeenCalledWith(
       'page.patients',
       'read',

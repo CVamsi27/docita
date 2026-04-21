@@ -29,6 +29,6 @@ describe("internal dashboard page", () => {
   it("renders the overview page", async () => {
     renderWithQueryClient(<InternalDashboard />);
 
-    expect(await screen.findByRole("heading", { name: "Overview" })).toBeInTheDocument();
+    expect(await screen.findByText("Total Facilities")).toBeInTheDocument();
   });
 });

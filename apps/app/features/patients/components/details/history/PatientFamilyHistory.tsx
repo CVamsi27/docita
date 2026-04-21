@@ -69,7 +69,7 @@ export function PatientFamilyHistory({
             {(!patient.familyHistory || patient.familyHistory.length === 0) && (
               <div className="w-full py-6 text-center border-2 border-dashed rounded-lg bg-muted/10">
                 <span className="text-sm text-muted-foreground">
-                  No family history recorded.
+                  No family history recorded
                 </span>
               </div>
             )}
@@ -80,7 +80,7 @@ export function PatientFamilyHistory({
                 <div className="relative">
                   <Users className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Condition (e.g. Diabetes)"
+                    placeholder="Condition, e.g. diabetes"
                     value={newFamilyCondition}
                     onChange={(e) => onNewFamilyConditionChange(e.target.value)}
                     className="pl-9"
@@ -88,7 +88,7 @@ export function PatientFamilyHistory({
                 </div>
               </div>
               <Input
-                placeholder="Relationship (e.g. Mother)"
+                placeholder="Relationship, e.g. mother"
                 value={newFamilyRelation}
                 onChange={(e) => onNewFamilyRelationChange(e.target.value)}
                 className="w-36"

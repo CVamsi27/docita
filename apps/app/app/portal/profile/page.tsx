@@ -45,7 +45,7 @@ export default function PatientProfilePage() {
         [field]: value,
       });
 
-      toast.success("Your consent preferences have been saved.");
+      toast.success("Your consent preferences have been saved");
     } catch (_error) {
       showUserFacingErrorToast(
         "We could not save your preferences. Please try again.",
@@ -56,14 +56,14 @@ export default function PatientProfilePage() {
   const handleDeleteAccount = async () => {
     if (!deletionReason.trim()) {
       showUserFacingErrorToast(
-        "Tell us why you want to delete your account before continuing.",
+        "Tell us why you want to delete your account before continuing",
       );
       return;
     }
 
     if (!confirmDeletion) {
       showUserFacingErrorToast(
-        "Please confirm that you want to delete your account before submitting.",
+        "Please confirm that you want to delete your account before submitting",
       );
       return;
     }
@@ -89,7 +89,7 @@ export default function PatientProfilePage() {
       header={
         <PageHeader
           title="Profile Settings"
-          description="Manage your personal information and privacy preferences."
+          description="Manage your personal information and privacy preferences"
         />
       }
     >

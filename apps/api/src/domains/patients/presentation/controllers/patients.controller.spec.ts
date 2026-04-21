@@ -89,6 +89,21 @@ describe('PatientsController (Authorization)', () => {
       expect(metadata).toBeDefined();
       expect(metadata).toContain(Role.DOCTOR);
       expect(metadata).toContain(Role.ADMIN);
+      expect(metadata).toContain(Role.NURSE);
+    });
+
+    it('should expose nurse access for patient updates but not patient creation', () => {
+      const updateMetadata = Reflect.getMetadata(
+        'roles',
+        PatientsController.prototype.update,
+      );
+      const createMetadata = Reflect.getMetadata(
+        'roles',
+        PatientsController.prototype.create,
+      );
+
+      expect(updateMetadata).toContain(Role.NURSE);
+      expect(createMetadata).not.toContain(Role.NURSE);
     });
 
     it('should allow DOCTOR role to access patients', async () => {

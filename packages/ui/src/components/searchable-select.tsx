@@ -37,7 +37,7 @@ export function SearchableSelect({
   onValueChange,
   placeholder = "Select an option...",
   searchPlaceholder = "Search...",
-  emptyMessage = "No results found.",
+  emptyMessage = "No results found",
   loading = false,
   disabled = false,
   className,

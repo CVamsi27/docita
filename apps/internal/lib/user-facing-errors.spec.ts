@@ -8,7 +8,7 @@ vi.mock("sonner", () => ({
 }));
 
 describe("internal user-facing error toasts", () => {
-  it("keeps error messages visible until they are dismissed", async () => {
+  it("auto-dismisses error toasts after a few seconds", async () => {
     const { toast } = await import("sonner");
 
     showUserFacingErrorToast(
@@ -19,7 +19,7 @@ describe("internal user-facing error toasts", () => {
 
     expect(toast.error).toHaveBeenCalledWith(
       "We could not save your changes. Please try again.",
-      { duration: Number.POSITIVE_INFINITY },
+      { duration: 8000 },
     );
   });
 });

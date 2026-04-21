@@ -6,24 +6,20 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, ArrowLeft, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { api } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
-import { getUserFacingErrorMessage } from "@workspace/types";
+import { getUserFacingErrorMessage, passwordSchema } from "@workspace/types";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 const resetPasswordSchema = z
   .object({
-    newPassword: z
-      .string()
-      .min(8, "Use at least 8 characters.")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
-    confirmPassword: z.string(),
+    newPassword: z.string().min(1, "Enter new password").pipe(passwordSchema),
+    confirmPassword: z.string().min(1, "Confirm password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
@@ -70,10 +66,10 @@ function ResetPasswordInner() {
 
   if (!token) {
     return (
-      <PreDashboardShell currentStep="reset-password">
+      <PreDashboardShell currentStep="reset-password" showProgress={false}>
         <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Reset Link Expired</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Reset Link Expired</h1>
             <p className="text-sm text-destructive">
               This reset link is invalid or has expired. Please request a new one.
             </p>
@@ -87,11 +83,11 @@ function ResetPasswordInner() {
   }
 
   return (
-    <PreDashboardShell currentStep="reset-password">
+    <PreDashboardShell currentStep="reset-password" showProgress={false}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-bold">Set New Password</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Set New Password</h1>
         <p className="text-muted-foreground text-sm">
-          Enter your new password below.
+          Choose a new password below
         </p>
       </div>
 
@@ -120,12 +116,14 @@ function ResetPasswordInner() {
             className="space-y-5"
           >
             <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">
+                New Password<span className="text-destructive ml-0.5">*</span>
+              </Label>
               <div className="relative">
                 <Input
                   id="newPassword"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter new password"
+                  placeholder="New password"
                   {...form.register("newPassword")}
                   className="h-11 pr-10"
                   autoFocus
@@ -155,11 +153,13 @@ function ResetPasswordInner() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">
+                Confirm Password<span className="text-destructive ml-0.5">*</span>
+              </Label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
-                placeholder="Confirm new password"
+                placeholder="Confirm password"
                 {...form.register("confirmPassword")}
                 className="h-11"
               />
@@ -176,7 +176,7 @@ function ResetPasswordInner() {
 
             <Button
               type="submit"
-              className="w-full h-11 text-base shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow"
+              className="w-full h-11 text-base"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
@@ -189,12 +189,13 @@ function ResetPasswordInner() {
               )}
             </Button>
 
-            <Button variant="ghost" asChild className="w-full h-11">
-              <Link href="/login">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Sign In
-              </Link>
-            </Button>
+            <BackButton
+              fallback="/login"
+              label="Back to Sign In"
+              variant="ghost"
+              size="default"
+              className="w-full h-11"
+            />
           </form>
         )}
       </div>
@@ -209,7 +210,7 @@ export default function ResetPasswordPage() {
         <PreDashboardShell currentStep="reset-password">
           <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6">
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold">Reset Password</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">Reset Password</h1>
               <p className="text-sm text-muted-foreground">Loading…</p>
             </div>
           </div>

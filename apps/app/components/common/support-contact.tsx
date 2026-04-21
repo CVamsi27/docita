@@ -36,7 +36,7 @@ export function SupportContact({ className }: { className?: string }) {
           .
         </>
       ) : (
-        "."
+        ""
       )}
     </p>
   );

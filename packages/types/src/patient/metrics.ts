@@ -23,7 +23,9 @@ export const createMetricCategorySchema = z.object({
   description: z.string().optional(),
   order: z.number().int().min(0).optional(),
 });
-export type CreateMetricCategoryInput = z.infer<typeof createMetricCategorySchema>;
+export type CreateMetricCategoryInput = z.infer<
+  typeof createMetricCategorySchema
+>;
 
 export const createMetricOptionSchema = z.object({
   value: z.string().min(1),
@@ -104,3 +106,108 @@ export const metricHistoryQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).optional(),
 });
 export type MetricHistoryQueryInput = z.infer<typeof metricHistoryQuerySchema>;
+
+export const metricOptionResponseSchema = z.object({
+  id: z.string(),
+  definitionId: z.string().optional(),
+  value: z.string(),
+  label: z.string(),
+  order: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+});
+export type MetricOptionResponse = z.infer<typeof metricOptionResponseSchema>;
+
+export const metricDefinitionResponseSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  label: z.string(),
+  description: z.string().nullable().optional(),
+  valueType: z.string().optional(),
+  unit: z.string().nullable().optional(),
+  cardinality: z.string().nullable().optional(),
+  scope: z.string().nullable().optional(),
+  isCustom: z.boolean().optional(),
+  isPatientScoped: z.boolean().optional(),
+  patientId: z.string().nullable().optional(),
+  isTrackedByDefault: z.boolean().optional(),
+  isTracked: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+  order: z.number().int().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+  metricOptions: z.array(metricOptionResponseSchema).optional(),
+  category: z
+    .object({
+      id: z.string(),
+      key: z.string(),
+      name: z.string(),
+    })
+    .optional(),
+});
+export type MetricDefinitionResponse = z.infer<
+  typeof metricDefinitionResponseSchema
+>;
+
+export const metricCategoryResponseSchema = z.object({
+  id: z.string(),
+  clinicId: z.string().optional(),
+  key: z.string(),
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  order: z.number().int().optional(),
+  isSystem: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+  metricDefinitions: z.array(metricDefinitionResponseSchema).default([]),
+});
+export type MetricCategoryResponse = z.infer<
+  typeof metricCategoryResponseSchema
+>;
+
+export const metricRecordValueResponseSchema = z.object({
+  id: z.string(),
+  metricRecordId: z.string().optional(),
+  valueString: z.string().nullable().optional(),
+  valueNumber: z.number().nullable().optional(),
+  valueBoolean: z.boolean().nullable().optional(),
+  valueDate: z.string().or(z.date()).nullable().optional(),
+  valueJson: z.record(z.unknown()).nullable().optional(),
+  optionId: z.string().nullable().optional(),
+  option: metricOptionResponseSchema.nullable().optional(),
+});
+export type MetricRecordValueResponse = z.infer<
+  typeof metricRecordValueResponseSchema
+>;
+
+export const metricRecordResponseSchema = z.object({
+  id: z.string(),
+  clinicId: z.string().optional(),
+  patientId: z.string().optional(),
+  definitionId: z.string().optional(),
+  appointmentId: z.string().nullable().optional(),
+  recordedAt: z.string().or(z.date()),
+  recordedById: z.string().nullable().optional(),
+  source: z.string().optional(),
+  notes: z.string().nullable().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+  definition: metricDefinitionResponseSchema.extend({
+    category: z.object({
+      id: z.string().optional(),
+      key: z.string(),
+      name: z.string().optional(),
+    }),
+  }),
+  values: z.array(metricRecordValueResponseSchema).default([]),
+});
+export type MetricRecordResponse = z.infer<typeof metricRecordResponseSchema>;
+
+export const metricHistoryResponseSchema = z.object({
+  total: z.number().int(),
+  timeline: z.array(metricRecordResponseSchema),
+  byCategory: z.record(z.array(metricRecordResponseSchema)),
+});
+export type MetricHistoryResponse = z.infer<typeof metricHistoryResponseSchema>;

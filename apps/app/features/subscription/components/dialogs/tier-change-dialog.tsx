@@ -169,7 +169,7 @@ export function TierChangeDialog({
           </DialogTitle>
           <DialogDescription>
             {isUpgrade
-              ? "Unlock more features for your clinic"
+              ? "Unlock more features for your facility"
               : "You'll lose access to some features"}
           </DialogDescription>
         </DialogHeader>
@@ -182,7 +182,7 @@ export function TierChangeDialog({
             <div>
               <h3 className="text-lg font-semibold">Plan Updated!</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Your clinic is now on the {selectedInfo.name} plan.
+                Your facility is now on the {selectedInfo.name} plan.
               </p>
             </div>
             <Button onClick={handleClose} className="mt-4">

@@ -33,7 +33,7 @@ describe('JwtStrategy', () => {
 
   const mockAppConfigService = {
     getJwtSecret: jest.fn(() => 'test-secret-key'),
-    getJwtExpiration: jest.fn(() => '7d'),
+    getJwtExpiration: jest.fn(() => '30d'),
   };
 
   beforeEach(async () => {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { LabTest } from '@/domains/clinical/core/entities/lab-test.entity';
 import { LabOrder } from '@/domains/clinical/core/entities/lab-order.entity';
@@ -17,14 +17,117 @@ import {
   Appointment,
 } from '@workspace/db';
 
+/**
+ * Lightweight LRU cache for medical-coding searches. Typeahead input drives a
+ * high query volume, so caching the normalized query → rows mapping dramatically
+ * cuts DB load during active consultation documentation.
+ */
+class MedicalCodeLruCache<T> {
+  private readonly store = new Map<string, { value: T[]; expiresAt: number }>();
+
+  constructor(
+    private readonly capacity: number,
+    private readonly ttlMs: number,
+  ) {}
+
+  get(key: string): T[] | undefined {
+    const entry = this.store.get(key);
+    if (!entry) return undefined;
+    if (entry.expiresAt < Date.now()) {
+      this.store.delete(key);
+      return undefined;
+    }
+    this.store.delete(key);
+    this.store.set(key, entry);
+    return entry.value;
+  }
+
+  set(key: string, value: T[]): void {
+    if (this.store.has(key)) {
+      this.store.delete(key);
+    } else if (this.store.size >= this.capacity) {
+      const oldestKey = this.store.keys().next().value;
+      if (oldestKey) this.store.delete(oldestKey);
+    }
+    this.store.set(key, {
+      value,
+      expiresAt: Date.now() + this.ttlMs,
+    });
+  }
+
+  clear(): void {
+    this.store.clear();
+  }
+}
+
+const CODE_CACHE_TTL_MS = 5 * 60 * 1000;
+const CODE_CACHE_CAPACITY = 512;
+
 @Injectable()
 export class PrismaClinicalRepository
-  implements ILabRepository, IMedicalCodingRepository
+  implements ILabRepository, IMedicalCodingRepository, OnModuleInit
 {
+  private readonly logger = new Logger(PrismaClinicalRepository.name);
+  private readonly icdSearchCache = new MedicalCodeLruCache<IcdCode>(
+    CODE_CACHE_CAPACITY,
+    CODE_CACHE_TTL_MS,
+  );
+  private readonly cptSearchCache = new MedicalCodeLruCache<CptCode>(
+    CODE_CACHE_CAPACITY,
+    CODE_CACHE_TTL_MS,
+  );
+
   constructor(private prisma: PrismaService) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
+  }
+
+  private cacheKey(query: string, limit: number): string {
+    return `${query.trim().toLowerCase()}|${limit}`;
+  }
+
+  async onModuleInit(): Promise<void> {
+    // Best-effort pre-warm: load the top-N favorited ICD/CPT codes. Failures
+    // must never block startup.
+    try {
+      await this.prewarmFromFavorites();
+    } catch (error) {
+      this.logger.warn(
+        `Failed to prewarm medical-coding cache: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private async prewarmFromFavorites(): Promise<void> {
+    const [icdCommon, cptCommon] = await Promise.all([
+      this.getReadClient().icdCode.findMany({
+        where: { isCommon: true },
+        take: 50,
+      }),
+      this.getReadClient().cptCode.findMany({
+        where: { isCommon: true },
+        take: 50,
+      }),
+    ]);
+
+    const icdQueries = new Set<string>();
+    const cptQueries = new Set<string>();
+    for (const item of icdCommon) {
+      if (item.code) icdQueries.add(item.code.slice(0, 3).toLowerCase());
+    }
+    for (const item of cptCommon) {
+      if (item.code) cptQueries.add(item.code.slice(0, 3).toLowerCase());
+    }
+
+    await Promise.all([
+      ...Array.from(icdQueries).map((q) =>
+        this.searchIcdCodes(q).catch(() => [] as IcdCode[]),
+      ),
+      ...Array.from(cptQueries).map((q) =>
+        this.searchCptCodes(q).catch(() => [] as CptCode[]),
+      ),
+    ]);
   }
 
   async findAllTests(clinicId: string): Promise<LabTest[]> {
@@ -174,7 +277,11 @@ export class PrismaClinicalRepository
 
   async searchIcdCodes(query: string, limit = 20): Promise<IcdCode[]> {
     if (!query?.trim()) return [];
-    return this.getReadClient().icdCode.findMany({
+    const key = this.cacheKey(query, limit);
+    const cached = this.icdSearchCache.get(key);
+    if (cached) return cached;
+
+    const result = await this.getReadClient().icdCode.findMany({
       where: {
         OR: [
           { code: { contains: query.trim(), mode: 'insensitive' } },
@@ -184,11 +291,17 @@ export class PrismaClinicalRepository
       orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       take: limit,
     });
+    this.icdSearchCache.set(key, result);
+    return result;
   }
 
   async searchCptCodes(query: string, limit = 20): Promise<CptCode[]> {
     if (!query?.trim()) return [];
-    return this.getReadClient().cptCode.findMany({
+    const key = this.cacheKey(query, limit);
+    const cached = this.cptSearchCache.get(key);
+    if (cached) return cached;
+
+    const result = await this.getReadClient().cptCode.findMany({
       where: {
         OR: [
           { code: { contains: query.trim(), mode: 'insensitive' } },
@@ -198,6 +311,14 @@ export class PrismaClinicalRepository
       orderBy: [{ isCommon: 'desc' }, { code: 'asc' }],
       take: limit,
     });
+    this.cptSearchCache.set(key, result);
+    return result;
+  }
+
+  /** Used by favorites mutations to invalidate cached search results. */
+  invalidateSearchCaches(): void {
+    this.icdSearchCache.clear();
+    this.cptSearchCache.clear();
   }
 
   async getFavorites(userId: string): Promise<IcdCode[]> {

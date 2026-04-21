@@ -86,12 +86,12 @@ export default function DentalChartsPage() {
 
   if (clinic?.type && clinic.type !== "DENTAL") {
     return (
-      <div className="container mx-auto py-8 max-w-2xl text-center space-y-4">
+      <div className="mx-auto w-full max-w-2xl py-8 text-center space-y-4">
         <Smile className="h-12 w-12 text-muted-foreground mx-auto" />
-        <h1 className="text-2xl font-bold tracking-tight">Dental Charts</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Dental Charts</h1>
         <p className="text-muted-foreground">
-          Dental charting is only available for dental clinics. Your clinic is
-          configured as <strong>{clinic.type}</strong>.
+          Dental charting is only available for dental facilities. Your facility is
+          configured as <strong>{clinic.type}</strong>
         </p>
       </div>
     );
@@ -99,17 +99,17 @@ export default function DentalChartsPage() {
 
   return (
     <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
-      <div className="container mx-auto py-6 space-y-6 max-w-5xl">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+      <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
               <Smile className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
+            <div className="min-w-0">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
                 Dental Charts
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Interactive tooth charting and documentation
               </p>
             </div>
@@ -140,7 +140,7 @@ export default function DentalChartsPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search by name or phone..."
+                    placeholder="Search by name or phone"
                     data-testid="dental-chart-patient-search"
                     value={search}
                     onChange={(e) => {

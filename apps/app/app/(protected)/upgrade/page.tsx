@@ -13,6 +13,9 @@ import {
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
   Tabs,
   TabsContent,
@@ -49,7 +52,7 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
-import { Loader2 } from "lucide-react";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 export default function UpgradePage() {
   const { currentTier, canAccess } = usePermissionStore();
@@ -170,44 +173,45 @@ export default function UpgradePage() {
     effectiveCurrentTier < Tier.ENTERPRISE ? effectiveCurrentTier + 1 : null;
   const currentPlanStatusNotice =
     isTrialing || isTrialExpired
-      ? {
+          ? {
           title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
           badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
           description: isTrialExpired
-            ? "Your trial has ended and your clinic is now on the Free plan. Upgrade to continue paid features."
+            ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
             : daysLeftInPeriod !== null && daysLeftInPeriod > 0
               ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
               : "Your trial ends today. Upgrade anytime to keep paid features active.",
         }
-      : undefined;
+          : undefined;
 
   if (!user || !canAccessPage) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading subscription workspace...
-          </CardContent>
-        </Card>
-      </div>
+      <AppPageScaffold>
+        <LoadingState
+          message="Loading subscription workspace..."
+          className="min-h-[40vh]"
+        />
+      </AppPageScaffold>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 min-h-screen">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-1 border-b">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">
-              Upgrade Your Plan
-            </h1>
-            <p className="text-muted-foreground">
-              Choose a plan that fits your clinic now and scale when needed.
-            </p>
-          </div>
+    <AppPageScaffold
+      header={
+        <div className="space-y-2">
+          <BackButton
+            fallback="/settings?tab=subscription"
+            label="Back"
+            className="-ml-2"
+          />
+          <PageHeader
+            title="Upgrade your plan"
+            description="Choose a plan that fits your facility now and scale when needed."
+          />
         </div>
-
+      }
+    >
+      <div className="space-y-6">
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={effectiveCurrentTier}
@@ -238,7 +242,7 @@ export default function UpgradePage() {
               </Button>
             </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:[&>*:last-child:nth-child(3n+1)]:col-start-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {featuresByTier
               .filter((t) => t.tier !== Tier.INTELLIGENCE)
               .map(({ tier, info, features }) => {
@@ -440,6 +444,6 @@ export default function UpgradePage() {
           onOpenChange={setShowInvoiceHistory}
         />
       </div>
-    </div>
+    </AppPageScaffold>
   );
 }

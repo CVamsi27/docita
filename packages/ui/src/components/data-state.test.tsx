@@ -51,9 +51,7 @@ describe("DataState", () => {
       />,
     );
 
-    expect(
-      screen.getByText("We could not fetch records. Please try again."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("We could not fetch records")).toBeInTheDocument();
     screen.getByRole("button", { name: "Try again" }).click();
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
@@ -66,9 +64,7 @@ describe("DataState", () => {
       />,
     );
 
-    expect(
-      screen.getByText("We could not load appointments. Please try again."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("We could not load appointments")).toBeInTheDocument();
   });
 
   it("hides technical error details before rendering", () => {
@@ -79,9 +75,7 @@ describe("DataState", () => {
       />,
     );
 
-    expect(
-      screen.getByText("We could not load this section. Please try again."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("We could not load this section")).toBeInTheDocument();
     expect(screen.queryByText(/Prisma/i)).not.toBeInTheDocument();
   });
 
@@ -90,7 +84,7 @@ describe("DataState", () => {
       <FormMessageFixture message="Response validation failed: HTTP 500" />,
     );
 
-    expect(await screen.findByText("Please check this field.")).toBeInTheDocument();
+    expect(await screen.findByText("Please check this field")).toBeInTheDocument();
     expect(screen.queryByText(/HTTP 500/i)).not.toBeInTheDocument();
   });
 

@@ -13,7 +13,6 @@ import {
 import {
   AlertTriangle,
   Calendar,
-  Droplets,
   Mail,
   Phone,
   User,
@@ -26,7 +25,6 @@ interface PatientBadgeUIProps {
   gender?: string;
   phone?: string;
   email?: string;
-  bloodGroup?: string;
   allergiesArray: string[];
   avatarUrl?: string;
   size?: "sm" | "md" | "lg";
@@ -44,7 +42,6 @@ export function PatientBadgeUI({
   gender,
   phone,
   email,
-  bloodGroup,
   allergiesArray,
   avatarUrl,
   size = "md",
@@ -107,7 +104,7 @@ export function PatientBadgeUI({
                 <TooltipTrigger>
                   <Badge
                     variant="destructive"
-                    className="gap-1 h-5 text-[10px]"
+                    className="gap-1 h-5 text-[var(--fs-2xs)]"
                   >
                     <AlertTriangle className="h-3 w-3" />
                     Allergies
@@ -126,17 +123,6 @@ export function PatientBadgeUI({
               </Tooltip>
             )}
 
-            {bloodGroup && (
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge variant="outline" className="gap-1 h-5 text-[10px]">
-                    <Droplets className="h-3 w-3 text-destructive" />
-                    {bloodGroup}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>Blood Group: {bloodGroup}</TooltipContent>
-              </Tooltip>
-            )}
           </div>
 
           {showDetails && (

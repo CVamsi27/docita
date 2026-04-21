@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { captureException } from "@/lib/sentry.client.config";
 
 export default function ConsultationError({
   error,
@@ -13,7 +14,7 @@ export default function ConsultationError({
   reset: () => void;
 }) {
   useEffect(() => {
-
+    captureException(error, { digest: error.digest, scope: "consultation" });
   }, [error]);
 
   return (

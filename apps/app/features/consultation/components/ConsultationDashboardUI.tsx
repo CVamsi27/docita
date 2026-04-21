@@ -26,6 +26,7 @@ import {
   Avatar,
   AvatarFallback,
 } from "@workspace/ui/components/avatar";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 export const ConsultationDashboardUI: FC = () => {
   const {
@@ -45,7 +46,7 @@ export const ConsultationDashboardUI: FC = () => {
         header={
           <PageHeader
             title="Consultation"
-            description="Manage your daily consultations and patient queue."
+            description="Manage your daily consultations and patient queue"
           />
         }
       >
@@ -62,7 +63,7 @@ export const ConsultationDashboardUI: FC = () => {
       header={
         <PageHeader
           title="Consultation"
-          description="Manage your daily consultations and patient queue."
+          description="Manage your daily consultations and patient queue"
           actions={
             <Button onClick={() => router.push("/appointments")}>
               <Calendar className="mr-2 h-4 w-4" />
@@ -72,7 +73,6 @@ export const ConsultationDashboardUI: FC = () => {
         />
       }
     >
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -96,7 +96,7 @@ export const ConsultationDashboardUI: FC = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -117,8 +117,11 @@ export const ConsultationDashboardUI: FC = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>In Progress</CardTitle>
-            <CardDescription>Currently active consultations</CardDescription>
+            <CardTitle>Active consultations</CardTitle>
+            <CardDescription>
+              Visits in progress for today&apos;s queue (you have already
+              started or called the patient). Continue the clinical record.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {activeConsultations.length === 0 ? (
@@ -168,11 +171,13 @@ export const ConsultationDashboardUI: FC = () => {
                             item.appointmentId || item.id,
                           )
                         }
-                      >
-                        Resume
+                        >
+                        Continue
                       </Button>
                     ) : (
-                      <Badge variant="outline" className="shrink-0">View only</Badge>
+                      <Badge variant="outline" className="shrink-0">
+                        View only
+                      </Badge>
                     )}
                   </div>
                 ))}
@@ -183,8 +188,11 @@ export const ConsultationDashboardUI: FC = () => {
 
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Waiting Room</CardTitle>
-            <CardDescription>Patients checked in and waiting</CardDescription>
+            <CardTitle>Waiting room</CardTitle>
+            <CardDescription>
+              Checked-in patients on today&apos;s queue who have not been
+              called in yet. Start their visit when you are ready.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {waitingList.length === 0 ? (
@@ -209,7 +217,7 @@ export const ConsultationDashboardUI: FC = () => {
                         </p>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <Badge variant="outline" className="text-xs">
-                            {item.tokenType}
+                            {humanizeUiLabel(item.tokenType)}
                           </Badge>
                           <span className="text-xs sm:text-sm text-muted-foreground">
                             Wait: {item.estimatedWaitTime} min
@@ -230,10 +238,12 @@ export const ConsultationDashboardUI: FC = () => {
                         }
                       >
                         <Play className="mr-2 h-3 w-3" />
-                        Start
+                        Open
                       </Button>
                     ) : (
-                      <Badge variant="outline" className="shrink-0">View only</Badge>
+                      <Badge variant="outline" className="shrink-0">
+                        View only
+                      </Badge>
                     )}
                   </div>
                 ))}

@@ -10,7 +10,7 @@ export default function PatientMedicalHistoryPage() {
       header={
         <PageHeader
           title="My Health History"
-          description="Review your timeline, records, and longitudinal care context."
+          description="Review your timeline, records, and longitudinal care context"
         />
       }
     >

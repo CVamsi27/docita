@@ -71,4 +71,33 @@ describe("canAccessTarget", () => {
       }),
     ).toBe(false);
   });
+
+  it("allows nurses into patient and appointment workflows but not billing or prescriptions", () => {
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_PATIENTS, {
+        role: "NURSE",
+        canAccessFeature: () => true,
+      }),
+    ).toBe(true);
+
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.API_PATIENT_METRICS, {
+        role: "NURSE",
+        canAccessFeature: () => true,
+      }),
+    ).toBe(true);
+
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS, {
+        role: "NURSE",
+        canAccessFeature: () => true,
+      }),
+    ).toBe(false);
+
+    expect(
+      canAccessTarget(APP_ACCESS_TARGETS.PAGE_UPGRADE, {
+        role: "NURSE",
+      }),
+    ).toBe(false);
+  });
 });

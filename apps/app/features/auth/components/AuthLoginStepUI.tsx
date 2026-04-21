@@ -55,7 +55,10 @@ export function AuthLoginStepUI({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">
+            Password
+            <span className="text-destructive ml-0.5">*</span>
+          </Label>
           <Button
             variant="link"
             className="px-0 h-auto text-xs font-normal"
@@ -75,7 +78,7 @@ export function AuthLoginStepUI({
             autoComplete="current-password"
             required
             className={`pr-10 h-11 bg-background/50 ${fieldClass(fieldErrors, "password")}`}
-            placeholder="Enter your password"
+            placeholder="Password"
             autoFocus
             aria-invalid={hasFieldError(fieldErrors, "password")}
             aria-describedby={
@@ -112,7 +115,7 @@ export function AuthLoginStepUI({
       <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         <p>
-          Secure workspace sign-in with encrypted sessions and account lockout protection.
+          Secure workspace sign-in with encrypted sessions and account lockout protection
         </p>
       </div>
 

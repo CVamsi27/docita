@@ -131,7 +131,7 @@ export function AdvancedMetricsCharts({
             <EmptyState
               icon={TrendingUp}
               label="No revenue trend data"
-              sublabel="Revenue trend points will appear once invoices are generated."
+              sublabel="Revenue trend points will appear once invoices are generated"
             />
           )}
         </CardContent>
@@ -285,7 +285,7 @@ export function AdvancedMetricsCharts({
             <EmptyState
               icon={Users}
               label="No doctor performance data"
-              sublabel="Doctor metrics will appear once appointments are recorded and billed."
+              sublabel="Doctor metrics will appear once appointments are recorded and billed"
             />
           )}
         </CardContent>

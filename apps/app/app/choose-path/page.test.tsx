@@ -135,7 +135,7 @@ describe("ChoosePathPage", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /get started/i })).toBeEnabled();
-      expect(screen.getByRole("button", { name: /search clinics/i })).toBeEnabled();
+      expect(screen.getByRole("button", { name: /search facilities/i })).toBeEnabled();
     });
 
     expect(mocks.router.replace).not.toHaveBeenCalled();

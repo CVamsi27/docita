@@ -1,49 +1,29 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { sanitizeUserFacingMessage } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import {
   useAuth,
-  type User,
   VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
 } from "@/lib/auth-context";
 import { logger } from "@/lib/logger";
 import { API_URL } from "@/lib/api-config";
 import { SupportContact } from "@/components/common/support-contact";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { BackButton } from "@/components/common/navigation/back-button";
 
 type VerifyState = "loading" | "success" | "error" | "missing";
-
-function getPostVerificationPath(user: User | null): string {
-  if (user?.clinicId) {
-    return "/dashboard";
-  }
-
-  switch (user?.onboardingStep) {
-    case "JOINING_CLINIC":
-      return "/join-request-status";
-    case "CREATING_CLINIC":
-      return "/onboarding";
-    default:
-      return "/choose-path";
-  }
-}
 
 function VerifyEmailInner() {
   const searchParams = useSearchParams();
   const token = useMemo(() => searchParams.get("token"), [searchParams]);
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
-  const latestUserRef = useRef<User | null>(user);
+  const { refreshUser } = useAuth();
   const [state, setState] = useState<VerifyState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
-
-  useEffect(() => {
-    latestUserRef.current = user;
-  }, [user]);
 
   useEffect(() => {
     if (!token) {
@@ -68,6 +48,7 @@ function VerifyEmailInner() {
 
         if (res.ok) {
           setState("success");
+          router.replace("/verify-email/verified");
           if (typeof window !== "undefined") {
             try {
               window.sessionStorage.removeItem(
@@ -79,18 +60,12 @@ function VerifyEmailInner() {
               });
             }
           }
-          let refreshedUser: User | null = null;
           try {
-            refreshedUser = await refreshUser();
+            await refreshUser();
           } catch (refreshError) {
             logger.error("Could not refresh user after email verification", {
               refreshError,
             });
-          }
-          if (!cancelled) {
-            router.replace(
-              getPostVerificationPath(refreshedUser ?? latestUserRef.current),
-            );
           }
           return;
         }
@@ -98,7 +73,7 @@ function VerifyEmailInner() {
         const data = await res.json().catch(() => ({}));
         const safeMessage = sanitizeUserFacingMessage(
           (data as { message?: string }).message,
-          "The verification link is invalid or has expired.",
+          "The verification link is invalid or has expired",
         );
         setErrorMessage(safeMessage);
         setState("error");
@@ -123,10 +98,6 @@ function VerifyEmailInner() {
     router.push("/verify-email-sent");
   };
 
-  const handleBackToLogin = () => {
-    router.push("/login");
-  };
-
   return (
     <PreDashboardShell currentStep="verify-email">
       <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -140,18 +111,9 @@ function VerifyEmailInner() {
         )}
 
         {state === "success" && (
-          <div className="space-y-6" role="status" aria-live="polite">
-            <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
-                <CheckCircle className="h-8 w-8 text-success" />
-              </div>
-            </div>
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold">Email verified</h1>
-              <p className="text-muted-foreground text-sm">
-                Your account is ready. Taking you to the next step...
-              </p>
-            </div>
+          <div className="flex flex-col items-center gap-4 py-4" role="status" aria-live="polite">
+            <CheckCircle className="h-10 w-10 text-success" />
+            <p className="text-sm font-semibold text-foreground">Verified</p>
           </div>
         )}
 
@@ -163,7 +125,7 @@ function VerifyEmailInner() {
               </div>
             </div>
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold">Verification failed</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">Verification failed</h1>
               <p className="text-muted-foreground text-sm">
                 {state === "missing"
                   ? "No verification link was found. Please use the link from your email."
@@ -178,13 +140,13 @@ function VerifyEmailInner() {
               >
                 Request a new link
               </Button>
-              <Button
+              <BackButton
+                fallback="/login"
+                label="Back to login"
                 variant="ghost"
+                size="default"
                 className="w-full h-11"
-                onClick={handleBackToLogin}
-              >
-                Back to login
-              </Button>
+              />
             </div>
           </div>
         )}

@@ -14,6 +14,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
 
 import { DashboardAppointment } from "@workspace/types";
@@ -104,7 +105,7 @@ export function DoctorDashboardCardsUI({
                   {currentPatient.patient?.lastName}
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground capitalize truncate">
-                  {currentPatient.type?.replace(/_/g, " ").toLowerCase()} •{" "}
+                  {humanizeUiLabel(currentPatient.type)} •{" "}
                   {format(new Date(currentPatient.startTime), "h:mm a")}
                 </p>
               </div>

@@ -23,7 +23,7 @@ const setupSteps: readonly SetupStep[] = [
   {
     icon: FileCheck2,
     title: "Set up your account",
-    description: "Enter your details or sign in to continue.",
+    description: "Enter your details or sign in to continue",
     authSteps: [
       "email",
       "login",
@@ -35,19 +35,19 @@ const setupSteps: readonly SetupStep[] = [
   {
     icon: KeyRound,
     title: "Verify access",
-    description: "Confirm your email before moving ahead.",
+    description: "Confirm your email before moving ahead",
     authSteps: ["verify-email", "verify-email-sent"],
   },
   {
     icon: Building2,
     title: "Choose your path",
-    description: "Create a new clinic or join an existing one.",
+    description: "Create a new facility or join an existing one",
     authSteps: ["choose-path"],
   },
   {
     icon: UserCheck,
     title: "Complete setup",
-    description: "Finish onboarding, team setup, and profile verification.",
+    description: "Finish onboarding, team setup, and profile verification",
     authSteps: [
       "onboarding",
       "join-clinic",
@@ -58,7 +58,7 @@ const setupSteps: readonly SetupStep[] = [
   {
     icon: LayoutDashboard,
     title: "Start the day",
-    description: "Open appointments, patients, prescriptions, and billing.",
+    description: "Open appointments, patients, prescriptions, and billing",
     authSteps: [],
   },
 ];
@@ -74,7 +74,7 @@ const assuranceItems = [
   },
   {
     icon: Stethoscope,
-    label: "Clinic-aware access",
+    label: "Facility-aware access",
   },
 ];
 
@@ -86,6 +86,16 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   const activeStepIndex = setupSteps.findIndex((step) =>
     step.authSteps.includes(currentStep),
   );
+  const isLogin = ["login", "forgot-password", "reset-password"].includes(
+    currentStep,
+  );
+  const heroKicker = isLogin ? "Welcome back" : "Getting started";
+  const heroTitle = isLogin
+    ? "Pick up where you left off"
+    : "Everything in one guided path to your facility";
+  const heroDescription = isLogin
+    ? "Sign in to manage appointments, patients, billing, and clinical workflows"
+    : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
 
   return (
     <aside
@@ -112,113 +122,144 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
           <span className="text-2xl font-bold text-foreground">docita</span>
         </div>
         <span className="rounded-full border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
-          Clinic workspace
+          Facility workspace
         </span>
       </div>
 
       <div className="relative z-10 px-8 xl:px-10">
         <div className="max-w-xl space-y-4">
-          <p className="text-sm font-medium text-primary">Getting started</p>
+          <p className="text-sm font-medium text-primary">{heroKicker}</p>
           <h2 className="text-3xl font-bold leading-[1.1] text-foreground xl:text-4xl">
-            Everything in one guided path to your clinic.
+            {heroTitle}
           </h2>
           <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            Account setup, email verification, onboarding — each step unlocks
-            the next. You only do this once.
+            {heroDescription}
           </p>
         </div>
 
         <div className="mt-8 max-w-lg rounded-2xl border bg-background/85 p-4 shadow-sm backdrop-blur">
-          <div className="mb-3 flex items-center justify-between border-b pb-3">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                Your setup journey
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {activeStepIndex >= 0
-                  ? `Step ${activeStepIndex + 1} of ${setupSteps.length} — keep going`
-                  : "Ready to begin"}
-              </p>
+          {isLogin ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b pb-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Sign in
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Use your email and password to continue
+                  </p>
+                </div>
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  Existing account
+                </span>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                  Access your dashboard, appointments, billing, and clinical
+                  workflows
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                  If you forgot your password, choose “Forgot password” to
+                  reset it
+                </li>
+              </ul>
             </div>
-            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-              {activeStepIndex >= 0
-                ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
-                : "Start"}
-            </span>
-          </div>
+          ) : (
+            <>
+              <div className="mb-3 flex items-center justify-between border-b pb-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Your setup journey
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {activeStepIndex >= 0
+                      ? `Step ${activeStepIndex + 1} of ${setupSteps.length} — keep going`
+                      : "Ready to begin"}
+                  </p>
+                </div>
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  {activeStepIndex >= 0
+                    ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
+                    : "Start"}
+                </span>
+              </div>
 
-          <ol className="space-y-2">
-            {setupSteps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = index === activeStepIndex;
-              const isComplete =
-                activeStepIndex >= 0 && index < activeStepIndex;
-              const isUpcoming =
-                activeStepIndex >= 0 && index > activeStepIndex;
+              <ol className="space-y-2">
+                {setupSteps.map((step, index) => {
+                  const Icon = step.icon;
+                  const isActive = index === activeStepIndex;
+                  const isComplete =
+                    activeStepIndex >= 0 && index < activeStepIndex;
+                  const isUpcoming =
+                    activeStepIndex >= 0 && index > activeStepIndex;
 
-              return (
-                <li
-                  key={step.title}
-                  aria-current={isActive ? "step" : undefined}
-                  className={cn(
-                    "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
-                    isActive
-                      ? "border-primary/40 bg-primary/5 shadow-sm"
-                      : isComplete
-                        ? "border-success/20 bg-success/5"
-                        : "border-transparent",
-                    isUpcoming && "opacity-50",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
-                      isActive
-                        ? "border-primary/40 bg-background text-primary"
-                        : isComplete
-                          ? "border-success/30 bg-success/10 text-success"
-                          : "border-border/50 bg-card/50 text-muted-foreground",
-                    )}
-                  >
-                    {isComplete ? (
-                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
-                    ) : (
-                      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex items-center gap-2 flex-1">
-                    <div className="flex-1">
-                      <p
+                  return (
+                    <li
+                      key={step.title}
+                      aria-current={isActive ? "step" : undefined}
+                      className={cn(
+                        "flex gap-3 rounded-lg border px-3 py-2.5 transition-all duration-300",
+                        isActive
+                          ? "border-primary/40 bg-primary/5 shadow-sm"
+                          : isComplete
+                            ? "border-success/20 bg-success/5"
+                            : "border-transparent",
+                        isUpcoming && "opacity-50",
+                      )}
+                    >
+                      <div
                         className={cn(
-                          "text-sm font-semibold leading-tight",
-                          isComplete
-                            ? "text-muted-foreground"
-                            : "text-foreground",
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                          isActive
+                            ? "border-primary/40 bg-background text-primary"
+                            : isComplete
+                              ? "border-success/30 bg-success/10 text-success"
+                              : "border-border/50 bg-card/50 text-muted-foreground",
                         )}
                       >
-                        {step.title}
-                      </p>
-                      {isActive && (
-                        <p className="text-xs leading-4 text-muted-foreground mt-0.5">
-                          {step.description}
-                        </p>
-                      )}
-                    </div>
-                    {isActive && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
-                        Now
-                      </span>
-                    )}
-                    {isComplete && (
-                      <span className="text-[10px] font-medium text-success shrink-0">
-                        Done
-                      </span>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+                        {isComplete ? (
+                          <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                        ) : (
+                          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex items-center gap-2 flex-1">
+                        <div className="flex-1">
+                          <p
+                            className={cn(
+                              "text-sm font-semibold leading-tight",
+                              isComplete
+                                ? "text-muted-foreground"
+                                : "text-foreground",
+                            )}
+                          >
+                            {step.title}
+                          </p>
+                          {isActive && (
+                            <p className="text-xs leading-4 text-muted-foreground mt-0.5">
+                              {step.description}
+                            </p>
+                          )}
+                        </div>
+                        {isActive && (
+                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-primary shrink-0">
+                            Now
+                          </span>
+                        )}
+                        {isComplete && (
+                          <span className="text-[var(--fs-2xs)] font-medium text-success shrink-0">
+                            Done
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </>
+          )}
         </div>
       </div>
 

@@ -57,23 +57,21 @@ function TestFormWithoutInitialType() {
   );
 }
 
+const NOTES_PLACEHOLDER = "Anything the team should know before the visit";
+
 describe("AppointmentFormFields", () => {
   it("renders type and notes fields", () => {
     render(<TestForm />);
 
     expect(screen.getByText("Type")).toBeInTheDocument();
-    expect(screen.getByText("Notes")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Add any additional notes..."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Notes (optional)")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(NOTES_PLACEHOLDER)).toBeInTheDocument();
   });
 
   it("updates notes value", () => {
     render(<TestForm />);
 
-    const notesInput = screen.getByPlaceholderText(
-      "Add any additional notes...",
-    );
+    const notesInput = screen.getByPlaceholderText(NOTES_PLACEHOLDER);
     fireEvent.change(notesInput, {
       target: { value: "Patient requested evening slot" },
     });
@@ -88,9 +86,7 @@ describe("AppointmentFormFields", () => {
       screen.getByRole("button", { name: "Trigger Notes Error" }),
     );
 
-    const notesInput = screen.getByPlaceholderText(
-      "Add any additional notes...",
-    );
+    const notesInput = screen.getByPlaceholderText(NOTES_PLACEHOLDER);
     expect(notesInput).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByText("Notes are required")).toBeInTheDocument();
   });
@@ -99,6 +95,6 @@ describe("AppointmentFormFields", () => {
     render(<TestFormWithoutInitialType />);
 
     expect(screen.getByText("Type")).toBeInTheDocument();
-    expect(screen.getByText("Notes")).toBeInTheDocument();
+    expect(screen.getByText("Notes (optional)")).toBeInTheDocument();
   });
 });

@@ -28,20 +28,17 @@ export function AppointmentFormFields({
   appointmentTypeOptions,
 }: AppointmentFormFieldsProps) {
   return (
-    <>
+    <div className="space-y-4">
       <FormField
         control={form.control}
         name="type"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Type</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              value={field.value ?? ""}
-            >
+            <Select onValueChange={field.onChange} value={field.value ?? ""}>
               <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                <SelectTrigger className="min-h-11 w-full">
+                  <SelectValue placeholder="Appointment type" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -57,25 +54,23 @@ export function AppointmentFormFields({
         )}
       />
 
-      <div className="md:col-span-2">
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Add any additional notes..."
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </>
+      <FormField
+        control={form.control}
+        name="notes"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Notes (optional)</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Anything the team should know before the visit"
+                className="min-h-24 resize-none"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
 }

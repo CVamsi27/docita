@@ -3,13 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@workspace/ui/components/badge";
+import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import {
   Activity,
   Calendar,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   FileText,
   FlaskConical,
   Heart,
@@ -19,6 +19,7 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
+import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { format } from "date-fns";
 import type { TimelineEvent, TimelineEventType } from "@workspace/types";
 
@@ -114,6 +115,11 @@ export interface VisitCardProps {
   defaultExpanded?: boolean;
 }
 
+const capitalizeFirstLetter = (value?: string | null): string => {
+  if (!value) return "";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
+
 export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const config = EVENT_TYPE_CONFIG[event.type];
@@ -129,14 +135,75 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
 
   const meta = event.metadata as Record<string, unknown>;
   const doctorName = meta?.doctorName as string | null | undefined;
+  const consultationId = meta?.consultationId as string | null | undefined;
   const vitals = meta?.vitals as VitalsMetadata | null | undefined;
   const medications = (meta?.medications ?? []) as MedicationMetadata[];
   const diagnoses = (meta?.diagnoses ?? []) as DiagnosisMetadata[];
   const treatmentPlan = meta?.treatmentPlan as string | null | undefined;
   const observations = meta?.observations as string | null | undefined;
   const primaryDiagnosis = diagnoses.find((d) => d.isPrimary) ?? diagnoses[0];
+  const displayTitle = capitalizeFirstLetter(event.title);
+  const displayPrimaryDiagnosis = capitalizeFirstLetter(
+    primaryDiagnosis?.description ?? null,
+  );
+  const displayEventDescription = capitalizeFirstLetter(event.description);
 
   const statusBadge = meta?.status as string | null | undefined;
+  const statusKey = (statusBadge ?? "").toLowerCase().replace(/_/g, "-");
+  const isFutureAppointment =
+    event.type === "APPOINTMENT" && new Date(event.date).getTime() > Date.now();
+  const consultationHref = consultationId
+    ? `/consultation/${consultationId}?from=patient`
+    : `/consultation/${event.id}?from=patient`;
+  const hasConsultation =
+    Boolean(consultationId) ||
+    statusKey.includes("in-progress") ||
+    statusKey.includes("completed");
+
+  const appointmentAction = (() => {
+    if (event.type !== "APPOINTMENT" || mode !== "full") return null;
+    if (isFutureAppointment) {
+      return {
+        label: "View appointment",
+        href: `/appointments?id=${event.id}`,
+        variant: "default" as const,
+        disabled: false,
+      };
+    }
+    if (statusKey.includes("in-progress") || statusKey.includes("in progress")) {
+      return {
+        label: "Edit consultation",
+        href: `/consultation/${event.id}?from=patient`,
+        variant: "default" as const,
+        disabled: false,
+      };
+    }
+    if (statusKey.includes("completed")) {
+      return {
+        label: "View consultation",
+        href: `/consultation/${event.id}?from=patient`,
+        variant: "outline" as const,
+        disabled: false,
+      };
+    }
+    return {
+      label: "Start consultation",
+      href: `/consultation/${event.id}?from=patient`,
+      variant: "default" as const,
+      disabled: false,
+    };
+  })();
+  const consultationAction =
+    event.type === "APPOINTMENT" &&
+    mode === "full" &&
+    appointmentAction?.label !== "View consultation"
+      ? {
+          label: "View consultation",
+          href: hasConsultation ? consultationHref : undefined,
+          variant: "default" as const,
+          disabled: !hasConsultation,
+        }
+      : null;
   const typeLabel = mode === "portal" ? config.friendlyName : config.label.slice(0, -1);
 
   if (mode === "compact") {
@@ -146,12 +213,12 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
           <Icon className={cn("h-2.5 w-2.5", config.color)} />
         </div>
         <div className="flex items-start justify-between gap-1">
-          <p className="text-xs font-medium truncate leading-tight">{event.title}</p>
-          <span className="text-[10px] text-muted-foreground shrink-0">{dateStr}</span>
+          <p className="text-xs font-medium truncate leading-tight">{displayTitle}</p>
+          <span className="text-[var(--fs-2xs)] text-muted-foreground shrink-0">{dateStr}</span>
         </div>
         {event.type === "APPOINTMENT" && (primaryDiagnosis?.description || doctorName) && (
-          <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
-            {primaryDiagnosis?.description ?? doctorName}
+          <p className="text-[var(--fs-2xs)] text-muted-foreground mt-0.5 truncate">
+            {displayPrimaryDiagnosis || doctorName}
           </p>
         )}
       </div>
@@ -173,18 +240,56 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
-              <p className="font-medium truncate text-sm">{event.title}</p>
+              <p className="font-medium truncate text-sm">{displayTitle}</p>
               <div className="flex items-center gap-1.5 shrink-0">
-                {mode === "full" && event.type === "APPOINTMENT" && (
-                  <Link
-                    href={`/consultation/${event.id}?from=patient`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Open
-                  </Link>
-                )}
+                {appointmentAction &&
+                  (appointmentAction.href ? (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant={appointmentAction.variant}
+                      className="h-9 px-3 text-xs font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Link href={appointmentAction.href}>
+                        {appointmentAction.label}
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant={appointmentAction.variant}
+                      className="h-9 px-3 text-xs font-medium"
+                      disabled={appointmentAction.disabled}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {appointmentAction.label}
+                    </Button>
+                  ))}
+                {consultationAction &&
+                  (consultationAction.href ? (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant={consultationAction.variant}
+                      className="h-9 px-3 text-xs font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Link href={consultationAction.href}>
+                        {consultationAction.label}
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant={consultationAction.variant}
+                      className="h-9 px-3 text-xs font-medium"
+                      disabled={consultationAction.disabled}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {consultationAction.label}
+                    </Button>
+                  ))}
                 <span className="text-xs text-muted-foreground">{dateStr}</span>
                 {canExpand && (
                   expanded
@@ -199,16 +304,16 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
                 {typeLabel}
               </Badge>
               {statusBadge && (
-                <Badge variant="secondary" className="text-xs h-4 px-1.5">
-                  {statusBadge}
+              <Badge variant="secondary" className="text-xs h-4 px-1.5">
+                  {humanizeUiLabel(statusBadge)}
                 </Badge>
               )}
               {event.type === "APPOINTMENT" && doctorName && (
                 <span className="text-xs text-muted-foreground">Dr. {doctorName}</span>
               )}
-              {event.type === "APPOINTMENT" && primaryDiagnosis?.description && (
+              {event.type === "APPOINTMENT" && displayPrimaryDiagnosis && (
                 <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                  &middot; {primaryDiagnosis.description}
+                  &middot; {displayPrimaryDiagnosis}
                 </span>
               )}
             </div>
@@ -327,8 +432,8 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
                   </div>
                 )}
 
-                {event.type !== "APPOINTMENT" && event.type !== "PRESCRIPTION" && event.description && (
-                  <p className="text-xs text-muted-foreground">{event.description}</p>
+                {event.type !== "APPOINTMENT" && event.type !== "PRESCRIPTION" && displayEventDescription && (
+                  <p className="text-xs text-muted-foreground">{displayEventDescription}</p>
                 )}
               </div>
             )}

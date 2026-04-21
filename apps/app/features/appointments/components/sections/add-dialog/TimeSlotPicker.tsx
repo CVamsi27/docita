@@ -23,14 +23,17 @@ export function TimeSlotPicker({
   startHour,
   endHour,
 }: TimeSlotPickerProps) {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
   return (
-    <>
+    <div className="space-y-4">
       <FormField
         control={form.control}
         name="startTime"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>Start Time</FormLabel>
+            <FormLabel>Start time</FormLabel>
             <DateTimePicker
               value={
                 field.value instanceof Date
@@ -40,6 +43,7 @@ export function TimeSlotPicker({
               onChange={field.onChange}
               startHour={startHour}
               endHour={endHour}
+              minDate={todayStart}
             />
             <FormMessage />
           </FormItem>
@@ -51,7 +55,7 @@ export function TimeSlotPicker({
         name="endTime"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>End Time (Optional)</FormLabel>
+            <FormLabel>End time (optional)</FormLabel>
             <DateTimePicker
               value={
                 field.value instanceof Date
@@ -66,6 +70,6 @@ export function TimeSlotPicker({
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }

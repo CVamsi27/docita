@@ -9,13 +9,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
 import { useAuth } from "@/lib/auth";
-import {
-  healthAPI,
-  monitoringAPI,
-  performanceAPI,
-} from "@/lib/api";
+import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api";
 import { internalQueryKeys } from "@/lib/query-keys";
 import {
   Activity,
@@ -114,10 +111,11 @@ export default function PerformancePage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
-          <p className="text-muted-foreground">Loading live performance metrics...</p>
-        </div>
+        <PageHeader
+          title="Performance"
+          description="Loading live performance metrics..."
+          size="compact"
+        />
         <div className="flex items-center justify-center h-40">
           <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -128,12 +126,11 @@ export default function PerformancePage() {
   if (!runtime || !database || !health) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
-          <p className="text-muted-foreground">
-            We could not load these live performance metrics. Please try again.
-          </p>
-        </div>
+        <PageHeader
+          title="Performance"
+          description="We could not load these live performance metrics. Please try again."
+          size="compact"
+        />
       </div>
     );
   }
@@ -146,12 +143,11 @@ export default function PerformancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Performance</h1>
-        <p className="text-muted-foreground">
-          Live runtime, database, and request metrics
-        </p>
-      </div>
+      <PageHeader
+        title="Performance"
+        description="Live runtime, database, and request metrics"
+        size="compact"
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -202,7 +198,10 @@ export default function PerformancePage() {
           <CardContent>
             <div className="text-2xl font-bold text-success">
               {health.requestsLastHour > 0
-                ? ((health.errorsLastHour / health.requestsLastHour) * 100).toFixed(2)
+                ? (
+                    (health.errorsLastHour / health.requestsLastHour) *
+                    100
+                  ).toFixed(2)
                 : "0.00"}
               %
             </div>
@@ -286,7 +285,9 @@ export default function PerformancePage() {
             <div className="rounded-lg border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  {getStatusIcon(health.databaseConnected ? "healthy" : "critical")}
+                  {getStatusIcon(
+                    health.databaseConnected ? "healthy" : "critical",
+                  )}
                   <div>
                     <p className="font-medium">Monitoring DB</p>
                     <p className="text-sm text-muted-foreground">
@@ -294,7 +295,9 @@ export default function PerformancePage() {
                     </p>
                   </div>
                 </div>
-                {getStatusBadge(health.databaseConnected ? "healthy" : "critical")}
+                {getStatusBadge(
+                  health.databaseConnected ? "healthy" : "critical",
+                )}
               </div>
             </div>
           </div>

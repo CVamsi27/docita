@@ -2,6 +2,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AddPatientDialog } from "./PatientDialogs";
 
+vi.mock("@/lib/clinic-context", () => ({
+  useClinic: () => ({
+    clinic: { countryCode: "IN" },
+  }),
+}));
+
 vi.mock("@/hooks/api/use-patients", () => ({
   useCreatePatient: () => ({
     mutateAsync: vi.fn().mockResolvedValue(undefined),
@@ -29,7 +35,13 @@ describe("AddPatientDialog", () => {
     expect(screen.getByLabelText("Phone")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Gender *")).toBeInTheDocument();
-    expect(screen.getByLabelText("Date of Birth")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Date of Birth/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("First name")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Last name")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Phone number")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Email address"),
+    ).toBeInTheDocument();
   });
 
   it("updates first name input value", () => {

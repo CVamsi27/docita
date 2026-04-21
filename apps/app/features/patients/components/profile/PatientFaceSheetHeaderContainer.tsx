@@ -37,7 +37,6 @@ export function PatientFaceSheetHeaderContainer({
     <PatientFaceSheetHeaderUI
       firstName={patient.firstName}
       lastName={patient.lastName}
-      mrn={patient.mrn ?? undefined}
       age={age}
       gender={patient.gender || "UNKNOWN"}
       dateOfBirth={patient.dateOfBirth!}

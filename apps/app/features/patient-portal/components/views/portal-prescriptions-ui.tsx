@@ -44,7 +44,7 @@ export function PatientPortalPrescriptionsUI({
             <EmptyState
               icon={FileText}
               title="No prescriptions available"
-              description="Prescriptions will appear here after your consultation is completed."
+              description="Prescriptions will appear here after your consultation is completed"
             />
           ) : (
             <div className="space-y-3 pb-4">

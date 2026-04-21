@@ -1,15 +1,8 @@
 import { FC } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
 import { Button } from "@workspace/ui/components/button";
-import {
-  Feature,
-  FeatureGate,
-} from "@/features/_shared/components/auth/feature-gate";
 import { InventoryAddItemDialog } from "@/features/dialogs/components/InventoryAddItemDialogContainer";
 import { InventoryItemDetailsContainer as InventoryItemDetails } from "@/features/inventory/components";
 import {
@@ -46,132 +39,98 @@ export const InventoryPageUI: FC = () => {
     refetch,
   } = useInventoryLogic();
 
+  const statItems: StatItem[] = [
+    {
+      id: "total-items",
+      label: "Total Items",
+      value: stats?.totalItems ?? 0,
+      description: "Unique products",
+      icon: <Package className="h-4 w-4" />,
+    },
+    {
+      id: "total-stock",
+      label: "Total Stock",
+      value: stats?.totalStock ?? 0,
+      description: "Units in inventory",
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      id: "low-stock",
+      label: "Low Stock",
+      value: stats?.lowStock ?? 0,
+      description: "Items need restock",
+      icon: <TrendingDown className="h-4 w-4" />,
+      accent: "warning",
+    },
+    {
+      id: "alerts",
+      label: "Alerts",
+      value: stats?.critical ?? 0,
+      description: "Critical stock levels",
+      icon: <AlertTriangle className="h-4 w-4" />,
+      accent: "danger",
+    },
+  ];
+
   return (
-    <FeatureGate
-      feature={Feature.INVENTORY}
-      fallback={
-        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6">
-          <h2 className="text-2xl font-bold mb-2">Inventory Management</h2>
-          <p className="text-muted-foreground mb-4">
-            Upgrade to access inventory management features
-          </p>
-        </div>
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Inventory"
+          description="Manage your facility's inventory and supplies."
+          actions={
+            <div className="flex gap-2">
+              <Button variant="outline" className="gap-2" onClick={handleRefresh}>
+                <RefreshCw
+                  className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
+              <Button
+                className="gap-2"
+                onClick={() => setIsAddItemDialogOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                Add Item
+              </Button>
+            </div>
+          }
+        />
       }
     >
-      <div className="flex flex-col gap-6 container mx-auto">
-        {}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory</h1>
-            <p className="text-muted-foreground">
-              Manage your clinic&apos;s inventory and supplies
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" onClick={handleRefresh}>
-              <RefreshCw
-                className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </Button>
-            <Button
-              className="gap-2"
-              onClick={() => setIsAddItemDialogOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Add Item
-            </Button>
-          </div>
-        </div>
+      <StatGrid items={statItems} columns={4} />
 
-        {}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Items</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalItems ?? 0}</div>
-              <p className="text-xs text-muted-foreground">Unique products</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalStock ?? 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Units in inventory
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-              <TrendingDown className="h-4 w-4 text-warning" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-warning">
-                {stats?.lowStock ?? 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Items need restock
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Alerts</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-destructive" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-destructive">
-                {stats?.critical ?? 0}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Critical stock levels
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+      <InventoryFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+        stockFilter={stockFilter}
+        setStockFilter={setStockFilter}
+        uniqueCategories={uniqueCategories}
+      />
 
-        {}
-        <InventoryFilters
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          categoryFilter={categoryFilter}
-          setCategoryFilter={setCategoryFilter}
-          stockFilter={stockFilter}
-          setStockFilter={setStockFilter}
-          uniqueCategories={uniqueCategories}
-        />
+      <InventoryTable
+        items={filteredInventory}
+        isLoading={isLoading}
+        onViewItem={setSelectedItemId}
+        getStockStatus={getStockStatus}
+      />
 
-        {}
-        <InventoryTable
-          items={filteredInventory}
-          isLoading={isLoading}
-          onViewItem={setSelectedItemId}
-          getStockStatus={getStockStatus}
-        />
+      <InventoryAddItemDialog
+        isOpen={isAddItemDialogOpen}
+        onClose={() => setIsAddItemDialogOpen(false)}
+        onSuccess={() => {
+          setIsAddItemDialogOpen(false);
+          refetch();
+        }}
+      />
 
-        <InventoryAddItemDialog
-          isOpen={isAddItemDialogOpen}
-          onClose={() => setIsAddItemDialogOpen(false)}
-          onSuccess={() => {
-            setIsAddItemDialogOpen(false);
-            refetch();
-          }}
-        />
-
-        <InventoryItemDetails
-          itemId={selectedItemId}
-          open={!!selectedItemId}
-          onOpenChange={(open: boolean) => !open && setSelectedItemId(null)}
-        />
-      </div>
-    </FeatureGate>
+      <InventoryItemDetails
+        itemId={selectedItemId}
+        open={!!selectedItemId}
+        onOpenChange={(open: boolean) => !open && setSelectedItemId(null)}
+      />
+    </AppPageScaffold>
   );
 };

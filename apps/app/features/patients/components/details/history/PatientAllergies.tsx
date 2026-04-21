@@ -12,6 +12,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -86,7 +87,7 @@ export function PatientAllergies({
             <div className="w-full py-6 text-center border-2 border-dashed rounded-lg surface-success">
               <span className="text-sm font-medium flex items-center justify-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-success" />
-                NKA (No Known Allergies)
+                No known allergies
               </span>
             </div>
           )}
@@ -96,7 +97,7 @@ export function PatientAllergies({
             <div className="relative flex-1">
               <Plus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Add new allergy (e.g. Penicillin)"
+                placeholder="New allergy, e.g. Penicillin"
                 value={newAllergy}
                 onChange={(e) => onNewAllergyChange(e.target.value)}
                 onKeyDown={(e) => {
@@ -126,8 +127,11 @@ export function PatientAllergies({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Allergy</DialogTitle>
+            <DialogDescription>
+              Update the allergen, severity, type, and reaction.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="flex flex-col gap-4 min-w-0">
             <div className="space-y-2">
               <Label>Allergen</Label>
               <Input
@@ -205,7 +209,7 @@ export function PatientAllergies({
             <div className="space-y-2">
               <Label>Reaction</Label>
               <Input
-                placeholder="e.g., Anaphylaxis, Rash, Hives, Swelling"
+                placeholder="Reaction, e.g. Anaphylaxis, rash, hives, swelling"
                 value={editingAllergy?.reaction || ""}
                 onChange={(e) =>
                   onEditingAllergyChange({

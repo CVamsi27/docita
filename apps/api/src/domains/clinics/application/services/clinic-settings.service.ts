@@ -72,6 +72,15 @@ interface ClinicSettingsData {
     branchName?: string;
     upiId?: string;
   };
+
+  facilityLabel?: 'CLINIC' | 'HOSPITAL';
+
+  taxSettings?: {
+    countryCode: string;
+    regime?: 'IN_GST' | 'VAT' | 'SALES_TAX' | 'NONE';
+    registrationId?: string;
+    registrationLabel?: string;
+  };
 }
 
 @Injectable()
@@ -157,6 +166,8 @@ export class ClinicSettingsService {
         data.useSameBankAccountForSubscriptionAndReceipts,
       subscriptionPaymentBankAccount: data.subscriptionPaymentBankAccount,
       paymentReceivingBankAccount: data.paymentReceivingBankAccount,
+      facilityLabel: data.facilityLabel,
+      taxSettings: data.taxSettings,
     };
 
     const cleanSettings = Object.fromEntries(

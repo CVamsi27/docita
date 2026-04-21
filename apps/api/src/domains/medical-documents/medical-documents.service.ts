@@ -53,6 +53,7 @@ export class MedicalDocumentsService {
     content: Record<string, unknown>;
     validFrom?: string;
     validUntil?: string;
+    pdfUrl?: string;
   }) {
     return this.medicalDocumentsRepository.create({
       type: this.toMedicalDocumentType(data.type),
@@ -66,6 +67,7 @@ export class MedicalDocumentsService {
       content: data.content as Prisma.InputJsonValue,
       validFrom: data.validFrom ? new Date(data.validFrom) : null,
       validUntil: data.validUntil ? new Date(data.validUntil) : null,
+      ...(data.pdfUrl ? { pdfUrl: data.pdfUrl } : {}),
       status: MedicalDocumentStatus.DRAFT,
     });
   }

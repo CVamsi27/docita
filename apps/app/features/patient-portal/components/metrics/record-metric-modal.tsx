@@ -47,7 +47,7 @@ export function RecordMetricModal({
     setLocalError(null);
 
     if (!value.trim()) {
-      setLocalError("Enter a value.");
+      setLocalError("Enter a value");
       return;
     }
 
@@ -64,7 +64,7 @@ export function RecordMetricModal({
       ) {
         const num = parseFloat(value);
         if (isNaN(num)) {
-          setLocalError("Enter a valid number.");
+          setLocalError("Enter a valid number");
           return;
         }
         payload.valueNumber = num;

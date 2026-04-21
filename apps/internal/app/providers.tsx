@@ -6,8 +6,9 @@ import { ThemeProvider } from "next-themes";
 import { type ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
+import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
 
-const TOAST_DURATION_MS = 7000;
+const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -40,7 +41,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          {children}
+          <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
           <Toaster
             closeButton
             duration={TOAST_DURATION_MS}

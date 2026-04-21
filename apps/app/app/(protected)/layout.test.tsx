@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   router: {
     replace: vi.fn(),
   },
+  pathname: "/dashboard",
   auth: {
     user: {
       id: "user-1",
@@ -19,7 +20,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/dashboard",
+  usePathname: () => mocks.pathname,
   useRouter: () => mocks.router,
 }));
 
@@ -36,24 +37,28 @@ vi.mock("@/features/_shared/components", () => ({
   SidebarMobileTrigger: () => null,
 }));
 
-vi.mock("@/features/_shared/components/navigation/smart-back-button", () => ({
-  SmartBackButton: () => null,
+vi.mock("@/components/common/navigation/back-button", () => ({
+  BackButton: () => null,
+}));
+
+vi.mock("@/hooks/use-can-go-back", () => ({
+  useCanGoBack: () => false,
 }));
 
 vi.mock("@/features/_shared/components/navigation/command-palette", () => ({
   CommandPalette: () => null,
 }));
 
-vi.mock("@/lib/stores/navigation-store", () => ({
-  useNavigationStore: () => ({
-    canGoBack: () => false,
-  }),
+vi.mock("@/features/_shared/components/layout/desktop-top-bar", () => ({
+  DesktopTopBar: () => <div data-testid="desktop-top-bar" />,
 }));
 
 vi.mock("@/providers/navigation-history-provider", () => ({
   NavigationHistoryProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
+  readInAppNavCount: () => 0,
+  readInAppNavEntry: () => null,
 }));
 
 vi.mock("@/lib/clinic-context", () => ({
@@ -121,6 +126,7 @@ vi.mock("@workspace/ui/components/docita-logo", () => ({
 describe("ProtectedLayout", () => {
   beforeEach(() => {
     mocks.router.replace.mockReset();
+    mocks.pathname = "/dashboard";
     mocks.auth = {
       user: {
         id: "user-1",
@@ -147,5 +153,18 @@ describe("ProtectedLayout", () => {
     expect(
       screen.getByTestId("page-transition-loader"),
     ).toHaveTextContent("Redirecting...");
+  });
+
+  it("shows the desktop top bar on the consultation dashboard route", async () => {
+    mocks.pathname = "/consultation";
+    mocks.auth.user.emailVerified = true;
+
+    render(
+      <ProtectedLayout>
+        <div>child</div>
+      </ProtectedLayout>,
+    );
+
+    expect(screen.getByTestId("desktop-top-bar")).toBeInTheDocument();
   });
 });

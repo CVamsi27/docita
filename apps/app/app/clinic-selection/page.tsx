@@ -43,11 +43,11 @@ export default function ClinicSelectionPage() {
         <div className="mx-auto flex w-full max-w-3xl items-center justify-center">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <CardTitle>Preparing your clinic access</CardTitle>
+              <CardTitle>Preparing your facility access</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Loading clinic workflow...
+              Loading facility workflow...
             </CardContent>
           </Card>
         </div>
@@ -58,7 +58,7 @@ export default function ClinicSelectionPage() {
   return (
     <PageTransitionLoader
       title="Redirecting..."
-      description="Taking you to the request-based clinic join flow."
+      description="Taking you to the request-based facility join flow"
     />
   );
 }
