@@ -10,7 +10,6 @@ export * from "./consultation/floating-start-consultation";
 export * from "./whatsapp/whatsapp-button";
 export * from "./patient/PatientHistorySummaryCard";
 export * from "./feedback/offline-status-banner";
-export * from "./layout/login-layout";
 export * from "./layout/providers";
 export * from "./layout/toaster-wrapper";
 export * from "./layout/web-vitals-reporter";
