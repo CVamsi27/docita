@@ -152,6 +152,47 @@ export class ClinicsService {
     return this.clinicSettingsService.updateSettings(id, data);
   }
 
+  async getComplianceSummary(clinicId: string) {
+    return this.clinicSettingsService.getComplianceSummary(clinicId);
+  }
+
+  listDataSubjectRequests(
+    clinicId: string,
+    status?: Parameters<ClinicSettingsService['listDataSubjectRequests']>[1],
+  ) {
+    return this.clinicSettingsService.listDataSubjectRequests(clinicId, status);
+  }
+
+  createDataSubjectRequest(
+    clinicId: string,
+    input: Parameters<ClinicSettingsService['createDataSubjectRequest']>[1],
+    actorUserId: string,
+    ipAddress?: string,
+  ) {
+    return this.clinicSettingsService.createDataSubjectRequest(
+      clinicId,
+      input,
+      actorUserId,
+      ipAddress,
+    );
+  }
+
+  updateDataSubjectRequest(
+    clinicId: string,
+    requestId: string,
+    input: Parameters<ClinicSettingsService['updateDataSubjectRequest']>[2],
+    actorUserId: string,
+    ipAddress?: string,
+  ) {
+    return this.clinicSettingsService.updateDataSubjectRequest(
+      clinicId,
+      requestId,
+      input,
+      actorUserId,
+      ipAddress,
+    );
+  }
+
   async getPrescriptionDefaults(clinicId: string) {
     return this.clinicSettingsService.getPrescriptionDefaults(clinicId);
   }

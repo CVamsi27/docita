@@ -7,6 +7,10 @@ interface StatsSectionProps {
 }
 
 export function StatsSection({ stats }: StatsSectionProps) {
+  if (!stats) {
+    return null;
+  }
+
   const statCards = [
     { label: "Active Clinics", icon: Building2, key: "clinics" as const },
     { label: "Doctors", icon: UserCog, key: "doctors" as const },
@@ -23,9 +27,7 @@ export function StatsSection({ stats }: StatsSectionProps) {
               <div className="flex justify-center mb-4 opacity-80">
                 <card.icon className="h-8 w-8" />
               </div>
-              <p className="text-4xl font-bold">
-                {stats ? formatStatValue(stats[card.key]) : "—"}
-              </p>
+              <p className="text-4xl font-bold">{formatStatValue(stats[card.key])}</p>
               <p className="text-primary-foreground font-medium">
                 {card.label}
               </p>

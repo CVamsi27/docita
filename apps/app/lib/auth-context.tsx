@@ -21,41 +21,23 @@ import {
   readLoginLockoutUntil,
 } from "@/lib/auth-lockout";
 import {
+  appAuthUserSchema,
   checkEmailResponseSchema,
   checkEmailSchema,
   loginResponseSchema,
   loginSchema,
   registerResponseSchema,
   registerSchema,
-  type UserRole,
+  validateSessionResponseSchema,
+  type AppAuthUser,
 } from "@workspace/types";
 
 const AUTH_RESPONSE_ERROR_MESSAGE =
   "We could not sign you in right now. Please try again.";
 export const VERIFICATION_EMAIL_STATUS_STORAGE_KEY =
   "docita_verification_email_status";
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  clinicId?: string | null;
-  emailVerified?: boolean;
-  onboardingStep?:
-    | "NOT_STARTED"
-    | "CHOOSE_PATH"
-    | "CREATING_CLINIC"
-    | "JOINING_CLINIC"
-    | "COMPLETED";
-  signatureUrl?: string | null;
-  registrationNumber?: string | null;
-  verificationStatus?:
-    | "UNVERIFIED"
-    | "PENDING"
-    | "VERIFIED"
-    | "REJECTED"
-    | "FAILED";
-}
+
+export type User = AppAuthUser;
 
 interface AuthContextType {
   user: User | null;
@@ -87,19 +69,6 @@ interface AuthPayload {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-function getStoredUser(): User | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const storedUser = localStorage.getItem("docita_user");
-    if (storedUser && storedUser !== "undefined") {
-      return JSON.parse(storedUser);
-    }
-  } catch {
-    localStorage.removeItem("docita_user");
-  }
-  return null;
-}
 
 function extractAuthPayload(raw: unknown): AuthPayload | null {
   const directRegister = registerResponseSchema.safeParse(raw);
@@ -152,6 +121,31 @@ function extractAuthPayload(raw: unknown): AuthPayload | null {
   }
 
   return null;
+}
+
+function parseValidatedUser(raw: unknown): User | null {
+  const response = validateSessionResponseSchema.safeParse(raw);
+  if (response.success) {
+    return appAuthUserSchema.parse(response.data.user);
+  }
+
+  if (raw && typeof raw === "object" && "user" in raw) {
+    const nested = appAuthUserSchema.safeParse((raw as { user?: unknown }).user);
+    if (nested.success) {
+      return nested.data;
+    }
+  }
+
+  const direct = appAuthUserSchema.safeParse(raw);
+  return direct.success ? direct.data : null;
+}
+
+function clearLegacyUserStorage() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem("docita_user");
 }
 
 function isAuthFailure(error: unknown): boolean {
@@ -226,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     persistToken(null);
     appSession.clearSession();
+    clearLegacyUserStorage();
     setUserRole("");
     persistVerificationEmailStatus(null);
     setLoginLockoutUntil(null);
@@ -243,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { mutateAsync: validateAuth } = useMutation({
     mutationFn: (headers?: HeadersInit) =>
-      apiFetch<{ user: User }>("/auth/validate", {
+      apiFetch<unknown>("/auth/validate", {
         method: "GET",
         headers,
       }),
@@ -300,28 +295,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasInitializedSessionRef.current = true;
 
     const persistedLockoutUntil = readLoginLockoutUntil();
+    clearLegacyUserStorage();
     if (persistedLockoutUntil) {
       setLoginLockoutUntil(persistedLockoutUntil);
     }
 
-    const cachedUser = getStoredUser();
-    if (cachedUser) {
-      setUser(cachedUser);
-      setUserRole(cachedUser.role);
-      hasSetRoleRef.current = true;
-    } else {
+    if (!appSession.getToken()) {
       setIsLoading(false);
       return;
     }
 
     const validateSession = async () => {
       try {
-        const data = await validateAuth(undefined);
-        if (data?.user) {
-          setUser(data.user);
-          setUserRole(data.user.role);
+        const userData = parseValidatedUser(await validateAuth(undefined));
+        if (userData) {
+          setUser(userData);
+          setUserRole(userData.role);
           hasSetRoleRef.current = true;
-          localStorage.setItem("docita_user", JSON.stringify(data.user));
           if (!appSession.getToken()) {
             await refreshAccessToken();
           }
@@ -339,12 +329,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-          const retryData = await validateAuth(undefined);
-          if (retryData?.user) {
-            setUser(retryData.user);
-            setUserRole(retryData.user.role);
+          const retryUser = parseValidatedUser(await validateAuth(undefined));
+          if (retryUser) {
+            setUser(retryUser);
+            setUserRole(retryUser.role);
             hasSetRoleRef.current = true;
-            localStorage.setItem("docita_user", JSON.stringify(retryData.user));
             return;
           }
           clearSession();
@@ -367,15 +356,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const handler = (e: StorageEvent) => {
       try {
-        if (e.key === "docita_user") {
-          if (e.newValue) {
-            const parsed = JSON.parse(e.newValue);
-            setUser(parsed);
-            if (parsed?.role) setUserRole(parsed.role);
-          } else {
-            setUser(null);
-            setUserRole("");
-          }
+        if (e.key === "docita_token" && !e.newValue) {
+          setUser(null);
+          setUserRole("");
         }
       } catch {
         // ignore malformed storage entries
@@ -394,22 +377,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...(csrfToken ? { "X-XSRF-TOKEN": csrfToken } : {}),
       };
 
-      const data = await validateAuth(headers);
-      if (data?.user) {
-        setUser(data.user);
-        setUserRole(data.user.role);
-        localStorage.setItem("docita_user", JSON.stringify(data.user));
-        return data.user;
+      const userData = parseValidatedUser(await validateAuth(headers));
+      if (userData) {
+        setUser(userData);
+        setUserRole(userData.role);
+        return userData;
       }
 
       const refreshed = await refreshAccessToken();
       if (refreshed) {
-        const retryData = await validateAuth(headers);
-        if (retryData?.user) {
-          setUser(retryData.user);
-          setUserRole(retryData.user.role);
-          localStorage.setItem("docita_user", JSON.stringify(retryData.user));
-          return retryData.user;
+        const retryUser = parseValidatedUser(await validateAuth(headers));
+        if (retryUser) {
+          setUser(retryUser);
+          setUserRole(retryUser.role);
+          return retryUser;
         }
       }
 
@@ -435,10 +416,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let userData = authPayload?.user ?? null;
 
       if (!userData) {
-        const validateData = await validateAuth({
+        userData = parseValidatedUser(await validateAuth({
           "Content-Type": "application/json",
-        });
-        userData = validateData?.user ?? null;
+        }));
       }
 
       if (!userData) {
@@ -458,7 +438,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(userData);
       setUserRole(userData.role);
-      localStorage.setItem("docita_user", JSON.stringify(userData));
       setLoginLockoutUntil(null);
       persistLoginLockoutUntil(null);
 
@@ -555,10 +534,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let userData = authPayload?.user ?? null;
 
     if (!userData) {
-      const validateData = await validateAuth({
+      userData = parseValidatedUser(await validateAuth({
         "Content-Type": "application/json",
-      });
-      userData = validateData?.user ?? null;
+      }));
     }
 
     if (!userData) {
@@ -572,7 +550,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setUser(userData);
     setUserRole(userData.role);
-    localStorage.setItem("docita_user", JSON.stringify(userData));
 
     if (userData.emailVerified === false) {
       persistVerificationEmailStatus(

@@ -1,5 +1,12 @@
-const CACHE_VERSION = "docita-shell-v1";
+const CACHE_VERSION = "docita-shell-v2";
 const SHELL_ASSETS = ["/offline.html"];
+const SAFE_STATIC_PATHS = [
+  "/offline.html",
+  "/manifest.json",
+  "/branding/",
+  "/icons/",
+  "/_next/static/",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -27,7 +34,12 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  if (url.pathname.startsWith("/api/")) {
+  if (
+    request.method !== "GET" ||
+    url.pathname.startsWith("/api/") ||
+    request.headers.has("authorization") ||
+    request.headers.has("cookie")
+  ) {
     return;
   }
 
@@ -38,7 +50,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (request.method !== "GET") {
+  if (!SAFE_STATIC_PATHS.some((path) => url.pathname.startsWith(path))) {
     return;
   }
 

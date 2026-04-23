@@ -2,7 +2,13 @@
 
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { SectionHeading } from "@workspace/ui/components/section-heading";
-import { ClipboardList, Pill, Receipt, Stethoscope } from "lucide-react";
+import {
+  ClipboardList,
+  FileSpreadsheet,
+  Pill,
+  Receipt,
+  Stethoscope,
+} from "lucide-react";
 
 export function HowItWorksSection() {
   return (
@@ -11,8 +17,8 @@ export function HowItWorksSection() {
         <SectionHeading
           align="center"
           size="section"
-          title="Streamlined Clinical Workflow"
-          description="From patient check-in to final billing, Docita optimizes every step of your practice."
+          title="A rollout your front desk can actually adopt"
+          description="Start from the records and habits your clinic already has, then move day-to-day operations into one reliable workflow."
           className="mb-16"
           descriptionClassName="mx-auto max-w-2xl"
         />
@@ -20,30 +26,36 @@ export function HowItWorksSection() {
         <div className="relative">
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-primary/30 to-transparent -translate-y-1/2 hidden lg:block" />
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 relative z-10">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5 relative z-10">
             {[
               {
                 step: "01",
-                title: "Check-in & Queue",
-                desc: "Patient arrives, gets a token, and enters the smart queue system",
-                icon: ClipboardList,
+                title: "Import Existing Records",
+                desc: "Bring over spreadsheets, paper scans, and your existing patient list before the team changes its daily routine.",
+                icon: FileSpreadsheet,
               },
               {
                 step: "02",
-                title: "Consultation",
-                desc: "Doctor reviews history, records vitals, and adds clinical notes",
-                icon: Stethoscope,
+                title: "Check-in & Queue",
+                desc: "Reception logs walk-ins and appointments in one queue instead of juggling paper registers and phone calls.",
+                icon: ClipboardList,
               },
               {
                 step: "03",
-                title: "Prescription",
-                desc: "Digital prescription generated instantly with AI assistance",
-                icon: Pill,
+                title: "Consultation & Prescription",
+                desc: "Doctors review history, capture clinical details, and generate clear digital prescriptions.",
+                icon: Stethoscope,
               },
               {
                 step: "04",
-                title: "Billing & Leave",
-                desc: "Automated invoice generation and payment collection",
+                title: "Billing & Follow-up",
+                desc: "Send invoices, reminders, and follow-up instructions without leaving the clinic workflow.",
+                icon: Pill,
+              },
+              {
+                step: "05",
+                title: "Collections & Audit Trail",
+                desc: "Track payments, export data, and keep role-based records of sensitive actions.",
                 icon: Receipt,
               },
             ].map((item, i) => (

@@ -27,7 +27,7 @@ export const useReminderSettingsLogic = () => {
       const clinicSettings =
         (clinic.settings as ClinicAppSettings) || null;
       setSettings({
-        reminderBefore: clinicSettings?.reminderBefore || "1",
+        reminderBefore: String(clinicSettings?.reminderBefore || "1"),
         reminderUnit: clinicSettings?.reminderUnit || "day",
       });
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { FC } from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -76,6 +77,7 @@ export const CodingQueue: FC<{
     patientName: string;
     date: string;
     status: string;
+    reviewHref?: string;
   }>;
 }> = ({ items = [] }) => {
   return (
@@ -104,9 +106,19 @@ export const CodingQueue: FC<{
               >
                 <div>
                   <p className="font-medium">{item.patientName}</p>
-                  <p className="text-sm text-muted-foreground">{item.date}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {item.date} - {item.status}
+                  </p>
                 </div>
-                <Button size="sm">Review</Button>
+                {item.reviewHref ? (
+                  <Button size="sm" asChild>
+                    <Link href={item.reviewHref}>Review</Link>
+                  </Button>
+                ) : (
+                  <Button size="sm" disabled>
+                    Review
+                  </Button>
+                )}
               </div>
             ))}
           </div>

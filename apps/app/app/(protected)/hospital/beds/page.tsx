@@ -14,6 +14,8 @@ export default function BedManagementPage() {
     setSearchQuery,
     showAdmissionModal,
     setShowAdmissionModal,
+    admitPatient,
+    isAdmitting,
   } = useIpdLogic();
 
   return (
@@ -26,6 +28,8 @@ export default function BedManagementPage() {
         setSearchQuery={setSearchQuery}
         showAdmissionModal={showAdmissionModal}
         setShowAdmissionModal={setShowAdmissionModal}
+        onAdmitPatient={admitPatient}
+        isAdmitting={isAdmitting}
       />
     </FeatureGate>
   );

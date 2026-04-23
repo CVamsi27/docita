@@ -1,0 +1,86 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+
+const workflows = [
+  "Appointment reminders before the visit",
+  "Prescription PDFs after the consultation",
+  "Invoices and payment receipts from billing",
+  "Follow-up instructions and recall nudges",
+];
+---
+
+<MainLayout
+  canonicalPath="/whatsapp-workflows"
+  title="WhatsApp Workflows for Clinics | Docita"
+  description="Use WhatsApp for reminders, prescriptions, receipts, and follow-ups from one clinic workflow."
+>
+  <section class="px-6 py-16">
+    <div class="ui-page-shell">
+      <div class="max-w-3xl">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-success">
+          WhatsApp workflows
+        </p>
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+          Turn the channel patients already use into a cleaner clinic workflow
+        </h1>
+        <p class="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+          In India, WhatsApp is not an add-on channel. It is where clinics already
+          coordinate reminders, updates, and follow-ups. Docita brings those
+          messages closer to prescriptions, billing, and patient records so the
+          team is not stitching the workflow together manually.
+        </p>
+      </div>
+
+      <div class="mt-10 grid gap-8 lg:grid-cols-[1fr_0.95fr]">
+        <article class="rounded-3xl border border-border/70 bg-background p-8">
+          <h2 class="text-2xl font-semibold">Core clinic use cases</h2>
+          <ul class="mt-4 list-disc space-y-3 pl-6 text-sm text-muted-foreground">
+            {workflows.map((workflow) => (
+              <li>{workflow}</li>
+            ))}
+          </ul>
+
+          <h3 class="mt-8 text-lg font-semibold">Why this matters</h3>
+          <p class="mt-3 text-sm leading-6 text-muted-foreground">
+            Clinics reduce missed visits, lost paper slips, and back-and-forth
+            reception work when reminders, prescription sharing, and receipts
+            come from the same place as the appointment and billing workflow.
+          </p>
+        </article>
+
+        <article class="rounded-3xl border border-success/20 bg-success/5 p-8">
+          <h2 class="text-2xl font-semibold">Consent and control</h2>
+          <p class="mt-4 text-sm leading-6 text-muted-foreground">
+            Messaging should stay under clinic control. Docita keeps WhatsApp
+            workflows tied to clinic settings, patient contact data, and
+            consent-aware communication decisions rather than treating the
+            channel as an uncontrolled blast tool.
+          </p>
+
+          <h3 class="mt-8 text-lg font-semibold">What to show in a demo</h3>
+          <ul class="mt-3 list-disc space-y-2 pl-6 text-sm text-muted-foreground">
+            <li>Reminder configuration tied to appointments</li>
+            <li>Prescription sharing after consultation</li>
+            <li>Invoice and receipt flow from billing</li>
+            <li>Follow-up communication from one patient record</li>
+          </ul>
+
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/contact"
+              class="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Book a WhatsApp demo
+            </a>
+            <a
+              href="/trust"
+              class="inline-flex items-center justify-center rounded-xl border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              Review trust details
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</MainLayout>

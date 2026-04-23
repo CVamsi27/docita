@@ -1,7 +1,15 @@
 import { useMemo, useState } from "react";
-import { useAPIQuery } from "@/lib/api-core";
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 import { useDebounce } from "@workspace/hooks/use-debounce";
-import { Bed as BedType, Room, Ward } from "@workspace/types";
+import {
+  type Admission,
+  type AdmitPatientRequest,
+  type Bed as BedType,
+  type DischargePatientRequest,
+  type Room,
+  type TransferPatientRequest,
+  type Ward,
+} from "@workspace/types";
 
 export interface WardWithRooms extends Ward {
   rooms: (Room & { beds: BedType[] })[];
@@ -10,11 +18,50 @@ export interface WardWithRooms extends Ward {
 export const useIpdLogic = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
+  const [showAdmissionModal, setShowAdmissionModal] = useState(false);
 
   const { data: wards, isLoading } = useAPIQuery<WardWithRooms[]>(
-    ["wards", debouncedSearch],
+    ["ipd", "wards", debouncedSearch],
     `/ipd/wards${debouncedSearch ? `?search=${encodeURIComponent(debouncedSearch)}` : ""}`,
+    { staleTime: 15 * 1000 },
   );
+
+  const { data: activeAdmissions } = useAPIQuery<Admission[]>(
+    ["ipd", "admissions", "active"],
+    "/ipd/admissions?status=ADMITTED",
+    { staleTime: 15 * 1000 },
+  );
+
+  const admitPatientMutation = useAPIMutation<Admission, AdmitPatientRequest>(
+    "/ipd/admissions",
+    "POST",
+    {
+      invalidateKeys: [
+        ["ipd", "wards"],
+        ["ipd", "admissions", "active"],
+      ],
+    },
+  );
+
+  const transferPatientMutation = useAPIMutation<
+    Admission,
+    TransferPatientRequest
+  >("/ipd/transfers", "POST", {
+    invalidateKeys: [
+      ["ipd", "wards"],
+      ["ipd", "admissions", "active"],
+    ],
+  });
+
+  const dischargePatientMutation = useAPIMutation<
+    Admission,
+    DischargePatientRequest
+  >("/ipd/discharges", "POST", {
+    invalidateKeys: [
+      ["ipd", "wards"],
+      ["ipd", "admissions", "active"],
+    ],
+  });
 
   const normalizedWards = useMemo(() => {
     if (!wards) return undefined;
@@ -29,15 +76,15 @@ export const useIpdLogic = () => {
       })),
     }));
   }, [wards]);
-  const [showAdmissionModal, setShowAdmissionModal] = useState(false);
-
   const stats = useMemo(() => {
     if (!normalizedWards)
       return {
         totalBeds: 0,
         occupiedBeds: 0,
         availableBeds: 0,
+        maintenanceBeds: 0,
         occupancyRate: 0,
+        activeAdmissions: activeAdmissions?.length ?? 0,
       };
 
     const totalBeds = normalizedWards.reduce(
@@ -57,6 +104,19 @@ export const useIpdLogic = () => {
     }, 0);
 
     const availableBeds = totalBeds - occupiedBeds;
+    const maintenanceBeds = normalizedWards.reduce((acc, ward) => {
+      const wardMaintenance =
+        (ward.rooms?.reduce(
+          (rAcc, room) =>
+            rAcc +
+            room.beds.filter(
+              (b) => String(b.status).toUpperCase() === "MAINTENANCE",
+            ).length,
+          0,
+        ) || 0);
+
+      return acc + wardMaintenance;
+    }, 0);
     const occupancyRate =
       totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
 
@@ -64,9 +124,11 @@ export const useIpdLogic = () => {
       totalBeds,
       occupiedBeds,
       availableBeds,
+      maintenanceBeds,
       occupancyRate,
+      activeAdmissions: activeAdmissions?.length ?? occupiedBeds,
     };
-  }, [normalizedWards]);
+  }, [activeAdmissions?.length, normalizedWards]);
 
   return {
     wards: normalizedWards,
@@ -76,5 +138,11 @@ export const useIpdLogic = () => {
     setSearchQuery,
     showAdmissionModal,
     setShowAdmissionModal,
+    admitPatient: admitPatientMutation.mutateAsync,
+    transferPatient: transferPatientMutation.mutateAsync,
+    dischargePatient: dischargePatientMutation.mutateAsync,
+    isAdmitting: admitPatientMutation.isPending,
+    isTransferring: transferPatientMutation.isPending,
+    isDischarging: dischargePatientMutation.isPending,
   };
 };

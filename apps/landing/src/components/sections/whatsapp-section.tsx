@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  ArrowRight,
   CheckCircle2,
   FileText,
   MessageSquare,
   Stethoscope,
 } from "lucide-react";
+import { Button } from "@workspace/ui/components/button";
 import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function WhatsappSection() {
@@ -22,8 +24,8 @@ export function WhatsappSection() {
             </div>
             <SectionHeading
               size="section"
-              title="Connect Where Your Patients Are"
-              description="Send prescriptions, appointment reminders, and follow-up instructions directly to your patients' WhatsApp. No more lost paper slips."
+              title="Run patient communication where Indian clinics already operate"
+              description="Share prescriptions, appointment reminders, receipts, and follow-up instructions in one familiar channel instead of chasing calls and paper slips."
               className="mb-6"
             />
             <ul className="space-y-4">
@@ -32,7 +34,7 @@ export function WhatsappSection() {
                 "Automated appointment reminders",
                 "Follow-up care instructions",
                 "Payment receipts and invoices",
-                "Two-way patient communication",
+                "Consent-aware patient communication settings",
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-success mt-0.5 shrink-0" />
@@ -40,6 +42,21 @@ export function WhatsappSection() {
                 </li>
               ))}
             </ul>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild className="gap-2">
+                <a href="/whatsapp-workflows">
+                  See WhatsApp workflows
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button asChild variant="outline" className="bg-background/70">
+                <a href="/contact">Book a WhatsApp demo</a>
+              </Button>
+            </div>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Patient consent and message configuration remain under clinic
+              control.
+            </p>
           </div>
           <div className="order-1 lg:order-2 flex justify-center">
             <div className="relative w-[280px] h-[560px] bg-card rounded-[3rem] border-8 border-card shadow-2xl overflow-hidden">

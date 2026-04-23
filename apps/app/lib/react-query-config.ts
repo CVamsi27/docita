@@ -1,6 +1,8 @@
 export const QUERY_STALE_TIMES = {
   APPOINTMENT_QUEUE: 15 * 1000,
   CLINIC_QUEUE: 15 * 1000,
+  IPD_CENSUS: 15 * 1000,
+  IPD_BEDS: 15 * 1000,
   PAYMENT_STATUS: 10 * 1000,
   DASHBOARD: 30 * 1000,
   ANALYTICS: 30 * 1000,
@@ -46,7 +48,7 @@ export function getQueryOptions(
   return {
     staleTime: getStaleTime(dataType),
     gcTime: QUERY_GC_TIMES.DEFAULT,
-    refetchOnWindowFocus: options?.refetchOnWindowFocus ?? true,
-    refetchOnMount: options?.refetchOnMount ?? true,
+    refetchOnWindowFocus: options?.refetchOnWindowFocus ?? false,
+    refetchOnMount: options?.refetchOnMount ?? false,
   };
 }

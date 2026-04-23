@@ -10,12 +10,12 @@ const faqs = [
   {
     question: "Is my patient data secure?",
     answer:
-      "Yes. We use banking-grade 256-bit encryption and comply with HIPAA and local data protection regulations.",
+      "Docita uses encrypted transport and storage, role-based access, audit trails, and India-hosted backend systems. We describe the controls we currently operate rather than claiming unsupported certifications.",
   },
   {
     question: "Can I import my existing patient data?",
     answer:
-      "Absolutely. We offer easy bulk import tools for Excel/CSV files, and our support team can help you migrate from other software.",
+      "Absolutely. We support Excel/CSV imports today, and the rollout is designed so standard clinic data can be reviewed and moved quickly without forcing the team to start from scratch.",
   },
   {
     question: "How does the pricing work?",
@@ -30,7 +30,7 @@ const faqs = [
   {
     question: "What if I need help?",
     answer:
-      "We offer email and chat support for all plans. Enterprise plans include a dedicated account manager and priority phone support.",
+      "We offer email and chat support for all plans. Higher tiers are intended for stronger rollout support, and enterprise customers can work with us on custom onboarding needs.",
   },
 ];
 

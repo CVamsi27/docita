@@ -13,6 +13,7 @@ import { PageHeader } from "@workspace/ui/components/page-header";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
+import type { AdmitPatientRequest, Admission } from "@workspace/types";
 
 interface BedInfo {
   id: string;
@@ -41,10 +42,14 @@ interface BedManagementUIProps {
     totalBeds: number;
     occupiedBeds: number;
     availableBeds: number;
+    maintenanceBeds?: number;
     occupancyRate: number;
+    activeAdmissions?: number;
   };
   showAdmissionModal: boolean;
   setShowAdmissionModal: (show: boolean) => void;
+  onAdmitPatient: (data: AdmitPatientRequest) => Promise<Admission>;
+  isAdmitting: boolean;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
@@ -55,6 +60,8 @@ export function BedManagementUI({
   stats,
   showAdmissionModal,
   setShowAdmissionModal,
+  onAdmitPatient,
+  isAdmitting,
   searchQuery,
   setSearchQuery,
 }: BedManagementUIProps) {
@@ -62,7 +69,13 @@ export function BedManagementUI({
     return <LoadingState message="Loading bed status..." className="min-h-[40vh]" />;
   }
 
-  const { totalBeds, occupiedBeds, availableBeds, occupancyRate } = stats;
+  const {
+    totalBeds,
+    occupiedBeds,
+    availableBeds,
+    occupancyRate,
+    activeAdmissions,
+  } = stats;
 
   const statItems: StatItem[] = [
     {
@@ -87,6 +100,13 @@ export function BedManagementUI({
       description: "Ready for admission",
       icon: <CheckCircle2 className="h-4 w-4" />,
       accent: "success",
+    },
+    {
+      id: "admissions",
+      label: "Active Admissions",
+      value: activeAdmissions ?? occupiedBeds,
+      description: "Patients currently admitted",
+      icon: <Users className="h-4 w-4" />,
     },
   ];
 
@@ -117,9 +137,15 @@ export function BedManagementUI({
       <AdmissionModal
         open={showAdmissionModal}
         onOpenChange={setShowAdmissionModal}
+        wards={wards}
+        isSubmitting={isAdmitting}
+        onSubmit={async (data) => {
+          await onAdmitPatient(data);
+          setShowAdmissionModal(false);
+        }}
       />
 
-      <StatGrid items={statItems} columns={3} />
+      <StatGrid items={statItems} columns={4} />
 
       <div className="grid gap-6">
         {wards?.map((ward) => (

@@ -1,5 +1,3 @@
-
-
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
 
 export interface ConfirmDialogProps {

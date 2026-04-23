@@ -84,7 +84,7 @@ export function usePortalOtpAuth() {
       );
       if (result.access_token) {
         appSession.setToken(result.access_token);
-        localStorage.setItem("docita_user", JSON.stringify(result.user));
+        localStorage.removeItem("docita_user");
       }
       window.location.href = "/portal";
     } catch (err) {

@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma } from '@workspace/db';
+import type { AppAuditLogSummary } from '@workspace/types';
 
 export interface AuditLogData {
   clinicId: string;
@@ -172,6 +173,33 @@ export class AuditService {
       );
       throw error;
     }
+  }
+
+  async getRecentAuditSummary(
+    clinicId: string,
+    limit: number = 5,
+  ): Promise<AppAuditLogSummary[]> {
+    const take = Math.min(Math.max(limit, 1), 25);
+    const logs = await this.prisma.auditLog.findMany({
+      where: { clinicId },
+      orderBy: { createdAt: 'desc' },
+      take,
+      select: {
+        id: true,
+        action: true,
+        createdAt: true,
+        user: {
+          select: { name: true },
+        },
+      },
+    });
+
+    return logs.map((log) => ({
+      id: log.id,
+      action: log.action,
+      createdAt: log.createdAt.toISOString(),
+      actor: log.user ? { name: log.user.name } : undefined,
+    }));
   }
 
   archiveOldLogs(daysOld: number = 90): void {

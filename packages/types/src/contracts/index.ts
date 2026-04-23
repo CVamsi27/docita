@@ -3,6 +3,7 @@ export * from "./appointments";
 export * from "./consultation";
 export * from "../medical-documents";
 export * from "./analytics";
+export * from "./app";
 export * from "./billing";
 export * from "./clinics";
 export * from "./documents";
