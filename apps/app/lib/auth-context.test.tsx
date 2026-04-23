@@ -77,18 +77,6 @@ describe("AuthProvider", () => {
   });
 
   it("clears an invalid cached session when validate and refresh both fail", async () => {
-    localStorage.setItem(
-      "docita_user",
-      JSON.stringify({
-        id: "user-1",
-        email: "owner@example.com",
-        name: "Owner One",
-        role: "ADMIN",
-        clinicId: null,
-        onboardingStep: "CHOOSE_PATH",
-      }),
-    );
-
     mocks.apiFetch.mockRejectedValue({ status: 403 });
     mocks.session.refreshAccessToken.mockResolvedValue(false);
 
@@ -109,18 +97,6 @@ describe("AuthProvider", () => {
   });
 
   it("hydrates the latest onboarding step from validate", async () => {
-    localStorage.setItem(
-      "docita_user",
-      JSON.stringify({
-        id: "user-1",
-        email: "owner@example.com",
-        name: "Owner One",
-        role: "ADMIN",
-        clinicId: null,
-        onboardingStep: "CHOOSE_PATH",
-      }),
-    );
-
     mocks.apiFetch.mockResolvedValue({
       valid: true,
       user: {
@@ -143,9 +119,7 @@ describe("AuthProvider", () => {
 
     expect(result.current.user?.onboardingStep).toBe("CREATING_CLINIC");
     expect(mocks.setUserRole).toHaveBeenCalledWith("ADMIN");
-    expect(JSON.parse(localStorage.getItem("docita_user") ?? "{}")).toMatchObject({
-      onboardingStep: "CREATING_CLINIC",
-    });
+    expect(localStorage.getItem("docita_user")).toBeNull();
   });
 
   it("routes unverified users to verify-email-sent immediately after login", async () => {

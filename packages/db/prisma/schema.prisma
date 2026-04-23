@@ -86,6 +86,7 @@ model User {
   linkedPatient         Patient?
   recordedMetricRecords PatientMetricRecord[]
   patientDoctors        PatientDoctor[]       @relation("DoctorPatients")
+  handledDataSubjectRequests DataSubjectRequest[] @relation("HandledDataSubjectRequests")
 
   @@index([clinicId])
   @@index([specialization])
@@ -301,6 +302,7 @@ model Patient {
   medicationDoses   MedicationDose[]
   labTestOrders     LabTestOrder[]
   patientDoctors    PatientDoctor[]
+  dataSubjectRequests DataSubjectRequest[]
 
   @@index([mrn])
   @@index([phoneNumber])
@@ -936,6 +938,7 @@ model Clinic {
   apiKeys                  ApiKey[]
   patientDoctors           PatientDoctor[]
   pdfJobs                  PdfJob[]
+  dataSubjectRequests      DataSubjectRequest[]
 }
 
 model MetricCategory {
@@ -2140,6 +2143,50 @@ model ConsentTemplate {
   @@index([clinicId])
   @@index([consentType])
   @@index([isActive])
+}
+
+enum DataSubjectRequestType {
+  ACCESS
+  EXPORT
+  CORRECTION
+  DELETION
+  CONSENT_WITHDRAWAL
+}
+
+enum DataSubjectRequestStatus {
+  OPEN
+  IN_REVIEW
+  FULFILLED
+  REJECTED
+  CANCELLED
+}
+
+model DataSubjectRequest {
+  id                  String                   @id @default(cuid())
+  clinicId            String
+  patientId           String?
+  requestType         DataSubjectRequestType
+  status              DataSubjectRequestStatus @default(OPEN)
+  requestedByName     String?
+  requestedByRelation String?
+  requestChannel      String?
+  requestDetails      String?
+  dueAt               DateTime?
+  completedAt         DateTime?
+  handledById         String?
+  handledAt           DateTime?
+  resolutionNotes     String?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  clinic    Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patient   Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+  handledBy User?    @relation("HandledDataSubjectRequests", fields: [handledById], references: [id])
+
+  @@index([clinicId, status])
+  @@index([clinicId, requestType])
+  @@index([patientId])
+  @@index([dueAt])
 }
 
 model MrnSequence {

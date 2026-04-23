@@ -8,3 +8,7 @@
 .cta-ring {
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 28%, transparent);
 }
+:root {
+  --font-inter: "Inter";
+  --font-jetbrains-mono: "JetBrains Mono";
+}

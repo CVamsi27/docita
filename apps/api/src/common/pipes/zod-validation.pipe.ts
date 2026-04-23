@@ -22,7 +22,6 @@ export class ZodValidationPipe implements PipeTransform {
       this.logger.error('[ZodValidationPipe] Validation error', {
         path: metadata.type,
         errors: zodError?.errors,
-        value: value,
       });
 
       throw createZodValidationException(zodError);

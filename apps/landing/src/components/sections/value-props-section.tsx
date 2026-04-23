@@ -20,22 +20,22 @@ export function ValuePropsSection() {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-foreground">
                 <CheckCircle2 className="h-4 w-4 text-success" />
                 <span className="font-medium text-foreground">
-                  Eco-Friendly Practice
+                  Paper-to-cloud rollout
                 </span>
               </div>
               <SectionHeading
                 size="section"
-                title="Complete Paperless Implementation"
-                description="Say goodbye to paper prescriptions, physical files, and storage headaches. Docita transforms your facility into a fully digital, eco-friendly practice."
+                title="Start from your current records, not from a blank screen"
+                description="Move from registers, loose sheets, and Excel exports into a single workflow without forcing the clinic to relearn everything at once."
                 className="mb-6"
               />
               <ul className="space-y-3">
                 {[
-                  "Digital prescriptions accessible anywhere, anytime",
-                  "No more lost or damaged paper records",
-                  "Instant sharing via WhatsApp or email",
-                  "Reduce your facility's carbon footprint",
-                  "Save on printing and storage costs",
+                  "Import patients from Excel or CSV with duplicate checks",
+                  "Archive paper documents and keep them attached to patient history",
+                  "Share digital prescriptions and reports over WhatsApp or email",
+                  "Run the front desk and doctor workflow from one place",
+                  "Keep the switch manageable for staff who already work from registers",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
@@ -50,7 +50,7 @@ export function ValuePropsSection() {
                   <FileText className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute -top-4 -right-4 rounded-full border border-success/30 bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-lg">
-                  100% Digital
+                  Migration-ready
                 </div>
               </div>
             </div>
@@ -62,13 +62,13 @@ export function ValuePropsSection() {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">
                 <Users className="h-4 w-4 text-info" />
                 <span className="font-medium text-foreground">
-                  Complete Medical Timeline
+                  One patient timeline
                 </span>
               </div>
               <SectionHeading
                 size="section"
-                title="Track Entire Patient History"
-                description="Every visit, prescription, test result, and document in one unified timeline. Never lose track of a patient's medical journey again."
+                title="See the full patient journey without hunting across files"
+                description="Appointments, prescriptions, vitals, documents, lab results, and notes stay together so the next visit starts with context."
                 className="mb-6"
               />
               <ul className="space-y-3">
@@ -107,8 +107,8 @@ export function ValuePropsSection() {
               </div>
               <SectionHeading
                 size="section"
-                title="Perfect Clinical Accuracy"
-                description="Eliminate handwriting interpretation errors completely. Every prescription is crystal clear, every dosage is precise, every instruction is legible."
+                title="Cleaner prescriptions, clearer billing, fewer handoff mistakes"
+                description="Legible prescriptions, standardized coding support, and structured records reduce the operational mess that slows small clinics down."
                 className="mb-6"
               />
               <ul className="space-y-3">
@@ -116,8 +116,8 @@ export function ValuePropsSection() {
                   "Digital prescriptions are always 100% legible",
                   "No more misread handwriting or dosage errors",
                   "Standardized medical coding (ICD-10 compliant)",
-                  "Reduce medication errors to absolute zero",
-                  "Improve patient safety and treatment outcomes",
+                  "Send invoices and receipts from the same visit workflow",
+                  "Keep a traceable record of what was prescribed, billed, and shared",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
@@ -132,7 +132,7 @@ export function ValuePropsSection() {
                   <ShieldCheck className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute -top-4 -right-4 bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-                  100% Accurate
+                  Clear workflow
                 </div>
               </div>
             </div>

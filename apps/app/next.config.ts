@@ -42,6 +42,39 @@ function resolveApiProxyTarget(): string {
 }
 
 const API_PROXY_TARGET = resolveApiProxyTarget();
+const CONNECT_SOURCES = [
+  "'self'",
+  "https://api.docita.work",
+  "wss://api.docita.work",
+  "https://*.sentry.io",
+  process.env.NEXT_PUBLIC_API_URL,
+  process.env.NEXT_PUBLIC_SOCKET_URL,
+  process.env.NEXT_PUBLIC_ANALYTICS_URL,
+]
+  .filter((source): source is string => Boolean(source))
+  .map((source) => {
+    try {
+      const url = new URL(source);
+      return url.origin;
+    } catch {
+      return source;
+    }
+  });
+
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "form-action 'self'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "style-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+  `connect-src ${Array.from(new Set(CONNECT_SOURCES)).join(" ")}`,
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
+].join("; ");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -139,6 +172,41 @@ const nextConfig: NextConfig = {
     }
 
     return rewrites;
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: CONTENT_SECURITY_POLICY,
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(self), payment=(self)",
+          },
+        ],
+      },
+    ];
   },
 };
 

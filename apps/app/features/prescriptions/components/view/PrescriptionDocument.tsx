@@ -15,7 +15,7 @@ interface ClinicInfo {
   address?: string;
   phone?: string;
   email?: string;
-  logo?: string;
+  logo?: string | null;
 }
 
 interface PrescriptionData {

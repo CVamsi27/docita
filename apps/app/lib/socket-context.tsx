@@ -22,13 +22,20 @@ const SocketContext = createContext<SocketContextType>({
   reconnect: () => {},
 });
 
-export function SocketProvider({ children }: { children: React.ReactNode }) {
+export function SocketProvider({
+  children,
+  enabled = true,
+}: {
+  children: React.ReactNode;
+  enabled?: boolean;
+}) {
   const { token, isAuthenticated, logout } = useAuth();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const logoutRef = useRef(logout);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const connectTimeoutRef = useRef<number | null>(null);
   const authRecoveryInFlightRef = useRef(false);
 
   useEffect(() => {
@@ -73,7 +80,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, [reconnectSocket]);
 
   useEffect(() => {
-    if (!isAuthenticated || !token) {
+    if (!enabled || !isAuthenticated || !token) {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -91,6 +98,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     const socketInstance = io(socketUrl, {
       auth: { token },
+      autoConnect: false,
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -156,8 +164,26 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     setSocket(socketInstance);
 
+    // Defer the initial connect so StrictMode's mount/unmount cycle in dev
+    // can clean up without racing the WebSocket handshake.
+    connectTimeoutRef.current = window.setTimeout(() => {
+      if (socketRef.current === socketInstance) {
+        socketInstance.connect();
+      }
+    }, 0);
+
     return () => {
-      socketInstance.disconnect();
+      if (connectTimeoutRef.current !== null) {
+        window.clearTimeout(connectTimeoutRef.current);
+        connectTimeoutRef.current = null;
+      }
+
+      if (socketInstance.connected) {
+        socketInstance.disconnect();
+      } else {
+        socketInstance.off();
+      }
+
       if (socketRef.current === socketInstance) {
         socketRef.current = null;
       }
@@ -166,7 +192,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         reconnectTimeoutRef.current = null;
       }
     };
-  }, [token, isAuthenticated, reconnectSocket, recoverSocketAuth]);
+  }, [enabled, token, isAuthenticated, reconnectSocket, recoverSocketAuth]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, reconnect }}>

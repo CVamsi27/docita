@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import {
   Card,
@@ -12,7 +14,24 @@ import {
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
+import { Input } from "@workspace/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import { Separator } from "@workspace/ui/components/separator";
+import { Textarea } from "@workspace/ui/components/textarea";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import {
@@ -22,24 +41,24 @@ import {
   Database,
   ClipboardList,
   ExternalLink,
+  Inbox,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";
-import { useAPIQuery } from "@/lib/api-core";
-
-interface ClinicCompliance {
-  slaSignatureUrl: string | null;
-  slaSignatureAcceptedAt: string | null;
-  consentTemplateEnabled?: boolean;
-  consentTemplateUpdatedAt?: string | null;
-}
-
-interface AuditLogEntry {
-  id: string;
-  action: string;
-  createdAt: string;
-  actor?: { name: string };
-}
+import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  createDataSubjectRequestSchema,
+  type CreateDataSubjectRequest,
+  type DataSubjectRequestStatus,
+  type DataSubjectRequestType,
+  type UpdateDataSubjectRequest,
+} from "@workspace/types";
+import type {
+  AppAuditLogSummary,
+  AppComplianceSummary,
+  AppDataSubjectRequest,
+} from "@workspace/types";
 
 const DATA_RETENTION_POLICIES = [
   {
@@ -64,21 +83,146 @@ const DATA_RETENTION_POLICIES = [
   },
 ];
 
+const REQUEST_TYPE_OPTIONS: Array<{
+  value: DataSubjectRequestType;
+  label: string;
+}> = [
+  { value: "EXPORT", label: "Data export" },
+  { value: "ACCESS", label: "Access request" },
+  { value: "DELETION", label: "Deletion review" },
+  { value: "CONSENT_WITHDRAWAL", label: "Consent withdrawal" },
+  { value: "CORRECTION", label: "Correction request" },
+];
+
+const INITIAL_REQUEST_FORM: CreateDataSubjectRequest = {
+  requestType: "EXPORT",
+  patientId: "",
+  requestedByName: "",
+  requestedByRelation: "",
+  requestChannel: "in_person",
+  requestDetails: "",
+  dueAt: "",
+};
+
+type UpdateRequestPayload = UpdateDataSubjectRequest & {
+  requestId: string;
+};
+
+function toDisplayText(value: string): string {
+  return value
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function isOpenRequest(status: DataSubjectRequestStatus): boolean {
+  return status === "OPEN" || status === "IN_REVIEW";
+}
+
 export default function ComplianceSettingsPage() {
   const { user } = useAuth();
   const clinicId = user?.clinicId ?? "";
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [requestForm, setRequestForm] =
+    useState<CreateDataSubjectRequest>(INITIAL_REQUEST_FORM);
 
-  const { data: compliance } = useAPIQuery<ClinicCompliance>(
+  const { data: compliance } = useAPIQuery<AppComplianceSummary>(
     ["clinic-compliance", clinicId],
     `/clinics/${clinicId}/compliance`,
     { enabled: !!clinicId },
   );
 
-  const { data: recentAuditLogs } = useAPIQuery<AuditLogEntry[]>(
+  const { data: recentAuditLogs } = useAPIQuery<AppAuditLogSummary[]>(
     ["audit-logs-recent", clinicId],
     `/audit/recent?limit=5`,
     { enabled: !!clinicId },
   );
+
+  const { data: dataSubjectRequests = [] } = useAPIQuery<
+    AppDataSubjectRequest[]
+  >(
+    ["data-subject-requests", clinicId],
+    `/clinics/${clinicId}/data-subject-requests`,
+    { enabled: !!clinicId },
+  );
+
+  const invalidateComplianceData = [
+    ["clinic-compliance", clinicId],
+    ["data-subject-requests", clinicId],
+    ["audit-logs-recent", clinicId],
+  ] as const;
+
+  const createRequestMutation = useAPIMutation<
+    AppDataSubjectRequest,
+    CreateDataSubjectRequest
+  >(`/clinics/${clinicId}/data-subject-requests`, "POST", {
+    invalidateKeys: invalidateComplianceData,
+    onSuccess: () => {
+      toast.success("Patient rights request logged");
+      setRequestDialogOpen(false);
+      setRequestForm(INITIAL_REQUEST_FORM);
+    },
+    onError: (error) => {
+      showUserFacingErrorToast(
+        error,
+        "We could not log this patient rights request. Please try again.",
+        "form",
+      );
+    },
+  });
+
+  const updateRequestMutation = useAPIMutation<
+    AppDataSubjectRequest,
+    UpdateRequestPayload
+  >(
+    (variables) =>
+      `/clinics/${clinicId}/data-subject-requests/${variables.requestId}`,
+    "PATCH",
+    {
+      invalidateKeys: invalidateComplianceData,
+      onSuccess: () => {
+        toast.success("Patient rights request updated");
+      },
+      onError: (error) => {
+        showUserFacingErrorToast(
+          error,
+          "We could not update this patient rights request. Please try again.",
+          "form",
+        );
+      },
+    },
+  );
+
+  const handleCreateRequest = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const parsed = createDataSubjectRequestSchema.safeParse({
+      ...requestForm,
+      patientId: requestForm.patientId || undefined,
+      requestedByName: requestForm.requestedByName || undefined,
+      requestedByRelation: requestForm.requestedByRelation || undefined,
+      requestChannel: requestForm.requestChannel || undefined,
+      requestDetails: requestForm.requestDetails || undefined,
+      dueAt: requestForm.dueAt || undefined,
+    });
+
+    if (!parsed.success) {
+      showUserFacingErrorToast(
+        null,
+        "Please check the request details and try again",
+        "form",
+      );
+      return;
+    }
+
+    createRequestMutation.mutate(parsed.data);
+  };
+
+  const updateRequestStatus = (
+    requestId: string,
+    status: DataSubjectRequestStatus,
+  ) => {
+    updateRequestMutation.mutate({ requestId, status });
+  };
 
   return (
     <AppPageScaffold
@@ -127,6 +271,266 @@ export default function ComplianceSettingsPage() {
           <ClinicSlaSignatureQR clinicId={clinicId} />
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Inbox className="h-5 w-5" />
+                Patient Rights Requests
+              </CardTitle>
+              <CardDescription>
+                Track open access, export, withdrawal, and deletion requests
+                that require facility follow-up.
+              </CardDescription>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setRequestDialogOpen(true)}
+              disabled={!clinicId}
+            >
+              Log request
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Exports open</p>
+            <p className="text-2xl font-semibold">
+              {compliance?.dataExportRequestsOpen ?? 0}
+            </p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Withdrawals open</p>
+            <p className="text-2xl font-semibold">
+              {compliance?.withdrawalRequestsOpen ?? 0}
+            </p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Deletion reviews</p>
+            <p className="text-2xl font-semibold">
+              {compliance?.dataDeletionRequestsOpen ?? 0}
+            </p>
+          </div>
+          {dataSubjectRequests.length > 0 && (
+            <div className="sm:col-span-3 space-y-2 pt-2">
+              {dataSubjectRequests.slice(0, 5).map((request) => (
+                <div
+                  key={request.id}
+                  className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {toDisplayText(request.requestType)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Due{" "}
+                      {request.dueAt
+                        ? format(new Date(request.dueAt), "PPP")
+                        : "not set"}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline">
+                      {toDisplayText(request.status)}
+                    </Badge>
+                    {isOpenRequest(request.status) && (
+                      <>
+                        {request.status === "OPEN" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              updateRequestStatus(request.id, "IN_REVIEW")
+                            }
+                            disabled={updateRequestMutation.isPending}
+                          >
+                            Review
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            updateRequestStatus(request.id, "FULFILLED")
+                          }
+                          disabled={updateRequestMutation.isPending}
+                        >
+                          Fulfill
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            updateRequestStatus(request.id, "REJECTED")
+                          }
+                          disabled={updateRequestMutation.isPending}
+                        >
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>Log patient rights request</DialogTitle>
+            <DialogDescription>
+              Capture the operational request without attaching raw exports or
+              unnecessary clinical details.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={handleCreateRequest}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="request-type">
+                  Request type
+                </label>
+                <Select
+                  value={requestForm.requestType}
+                  onValueChange={(value) =>
+                    setRequestForm((current) => ({
+                      ...current,
+                      requestType: value as DataSubjectRequestType,
+                    }))
+                  }
+                >
+                  <SelectTrigger id="request-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REQUEST_TYPE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="request-due">
+                  Due date
+                </label>
+                <Input
+                  id="request-due"
+                  type="date"
+                  value={String(requestForm.dueAt ?? "")}
+                  onChange={(event) =>
+                    setRequestForm((current) => ({
+                      ...current,
+                      dueAt: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="patient-id">
+                  Patient ID
+                </label>
+                <Input
+                  id="patient-id"
+                  value={requestForm.patientId ?? ""}
+                  placeholder="Optional patient record ID"
+                  onChange={(event) =>
+                    setRequestForm((current) => ({
+                      ...current,
+                      patientId: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="channel">
+                  Request channel
+                </label>
+                <Input
+                  id="channel"
+                  value={requestForm.requestChannel ?? ""}
+                  placeholder="in_person, whatsapp, email"
+                  onChange={(event) =>
+                    setRequestForm((current) => ({
+                      ...current,
+                      requestChannel: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="requester">
+                  Requested by
+                </label>
+                <Input
+                  id="requester"
+                  value={requestForm.requestedByName ?? ""}
+                  placeholder="Name or initials"
+                  onChange={(event) =>
+                    setRequestForm((current) => ({
+                      ...current,
+                      requestedByName: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="relation">
+                  Relation
+                </label>
+                <Input
+                  id="relation"
+                  value={requestForm.requestedByRelation ?? ""}
+                  placeholder="self, guardian, nominee"
+                  onChange={(event) =>
+                    setRequestForm((current) => ({
+                      ...current,
+                      requestedByRelation: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="details">
+                Request details
+              </label>
+              <Textarea
+                id="details"
+                value={requestForm.requestDetails ?? ""}
+                placeholder="Short operational note. Avoid copying clinical records here."
+                onChange={(event) =>
+                  setRequestForm((current) => ({
+                    ...current,
+                    requestDetails: event.target.value,
+                  }))
+                }
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setRequestDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createRequestMutation.isPending}>
+                Save request
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
