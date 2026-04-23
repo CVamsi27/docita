@@ -4,7 +4,7 @@ import {
   DEFAULT_COUNTRY_CODE,
   normalizeCountryCode,
 } from "@workspace/utils";
-import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
+import { CLINIC_ADMIN_ROLES, hasPermission } from "@/lib/permissions";
 import {
   getCountryCallingCode,
   isPossiblePhoneNumber,
@@ -33,7 +33,6 @@ export const requiresGuardianConsent = (patient: Patient): boolean => {
 };
 
 export const canDeletePatient = (_patient: Patient, user: User): boolean => {
-
   if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR"))
     return false;
 
@@ -41,11 +40,10 @@ export const canDeletePatient = (_patient: Patient, user: User): boolean => {
 };
 
 export const canEditPatient = (user: User): boolean => {
-  return ["admin", "doctor", "receptionist"].includes(user.role);
+  return hasPermission(user.role, "editPatient");
 };
 
 export const canViewPatient = (user: User): boolean => {
-
   return !!user;
 };
 

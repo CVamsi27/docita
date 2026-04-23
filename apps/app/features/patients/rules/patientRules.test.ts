@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  canEditPatient,
   getPatientAgeDisplay,
   isPatientMinor,
   validatePatientPhoneNumberForCountry,
   validatePatientData,
 } from "./patientRules";
-import type { Patient } from "@workspace/types";
+import type { Patient, User, UserRole } from "@workspace/types";
+
+const userWithRole = (role: UserRole): User => ({ role }) as User;
 
 describe("Patient Business Rules", () => {
   describe("isPatientMinor", () => {
@@ -130,6 +133,15 @@ describe("Patient Business Rules", () => {
       expect(
         validatePatientPhoneNumberForCountry("+919876543210", undefined),
       ).toBeNull();
+    });
+  });
+
+  describe("canEditPatient", () => {
+    it("uses the shared uppercase role permission map", () => {
+      expect(canEditPatient(userWithRole("DOCTOR"))).toBe(true);
+      expect(canEditPatient(userWithRole("NURSE"))).toBe(true);
+      expect(canEditPatient(userWithRole("RECEPTIONIST"))).toBe(true);
+      expect(canEditPatient(userWithRole("PATIENT"))).toBe(false);
     });
   });
 });
