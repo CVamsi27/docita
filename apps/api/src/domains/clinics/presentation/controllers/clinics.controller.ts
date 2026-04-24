@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -30,6 +31,13 @@ import {
   JoinClinicDto,
   JoinClinicSchema,
 } from '@/domains/clinics/application/dto/clinics.dto';
+import {
+  createDataSubjectRequestSchema,
+  dataSubjectRequestStatusSchema,
+  updateDataSubjectRequestSchema,
+  type CreateDataSubjectRequest,
+  type UpdateDataSubjectRequest,
+} from '@workspace/types';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { UserResponseDto } from '@/domains/users/application/dto/users.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -55,6 +63,78 @@ export class ClinicsController {
   @ZodSerializerDto(ClinicListResponseDto)
   findAll() {
     return this.clinicsService.findAll();
+  }
+
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
+  @Get(':id/compliance')
+  async getComplianceSummary(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    if (req.user?.clinicId !== id) {
+      throw new ForbiddenException(
+        'You can only view compliance for your own clinic',
+      );
+    }
+
+    return this.clinicsService.getComplianceSummary(id);
+  }
+
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @Get(':id/data-subject-requests')
+  async listDataSubjectRequests(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Query('status') status?: string,
+  ) {
+    this.assertOwnClinic(req, id);
+    const parsedStatus = status
+      ? dataSubjectRequestStatusSchema.safeParse(status)
+      : undefined;
+
+    if (parsedStatus && !parsedStatus.success) {
+      throw new BadRequestException('Invalid request status');
+    }
+
+    return this.clinicsService.listDataSubjectRequests(id, parsedStatus?.data);
+  }
+
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @Post(':id/data-subject-requests')
+  @UsePipes(new ZodValidationPipe(createDataSubjectRequestSchema))
+  async createDataSubjectRequest(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+    @Body() body: CreateDataSubjectRequest,
+  ) {
+    this.assertOwnClinic(req, id);
+
+    return this.clinicsService.createDataSubjectRequest(
+      id,
+      body,
+      this.getUserId(req),
+      this.getIpAddress(req),
+    );
+  }
+
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @Patch(':id/data-subject-requests/:requestId')
+  @UsePipes(new ZodValidationPipe(updateDataSubjectRequestSchema))
+  async updateDataSubjectRequest(
+    @Param('id') id: string,
+    @Param('requestId') requestId: string,
+    @Request() req: RequestWithUser,
+    @Body() body: UpdateDataSubjectRequest,
+  ) {
+    this.assertOwnClinic(req, id);
+
+    return this.clinicsService.updateDataSubjectRequest(
+      id,
+      requestId,
+      body,
+      this.getUserId(req),
+      this.getIpAddress(req),
+    );
   }
 
   @Get(':id')
@@ -144,6 +224,26 @@ export class ClinicsController {
       );
     }
     return this.clinicsService.getReceptionists(clinicId);
+  }
+
+  private assertOwnClinic(req: RequestWithUser, clinicId: string): void {
+    if (req.user?.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'You can only manage compliance for your own clinic',
+      );
+    }
+  }
+
+  private getUserId(req: RequestWithUser): string {
+    if (!req.user?.id) {
+      throw new ForbiddenException('Authenticated user is required');
+    }
+
+    return req.user.id;
+  }
+
+  private getIpAddress(req: RequestWithUser): string | undefined {
+    return req.ip || req.socket?.remoteAddress;
   }
 }
 

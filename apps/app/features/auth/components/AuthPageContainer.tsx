@@ -358,7 +358,7 @@ export function AuthPageContainer() {
         </span>
         <span className="flex items-center gap-1">
           <Lock className="h-3 w-3" />
-          HIPAA Ready
+          Privacy Controls
         </span>
       </div>
     </PreDashboardShell>

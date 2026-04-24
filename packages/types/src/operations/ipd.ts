@@ -14,6 +14,7 @@ export const AdmissionStatus = z.enum([
   "DISCHARGED",
   "TRANSFERRED",
 ]);
+export type AdmissionStatusType = z.infer<typeof AdmissionStatus>;
 
 export const wardSchema = z.object({
   id: z.string(),
@@ -58,10 +59,72 @@ export const admissionSchema = z.object({
   admittingDoctorId: z.string().nullable().optional(),
 });
 
+export const transferSchema = z.object({
+  id: z.string(),
+  admissionId: z.string(),
+  fromBedId: z.string(),
+  toBedId: z.string(),
+  reason: z.string().nullable().optional(),
+  transferredAt: z.date().or(z.string()),
+  transferredById: z.string().nullable().optional(),
+});
+
+export const inpatientCensusSchema = z.object({
+  totalBeds: z.number().int().nonnegative(),
+  occupiedBeds: z.number().int().nonnegative(),
+  availableBeds: z.number().int().nonnegative(),
+  maintenanceBeds: z.number().int().nonnegative().optional(),
+  occupancyRate: z.number().min(0).max(100),
+  admissionsToday: z.number().int().nonnegative().optional(),
+  dischargesToday: z.number().int().nonnegative().optional(),
+  transfersToday: z.number().int().nonnegative().optional(),
+});
+
 export type Ward = z.infer<typeof wardSchema>;
 export type Room = z.infer<typeof roomSchema>;
 export type Bed = z.infer<typeof bedSchema>;
 export type Admission = z.infer<typeof admissionSchema>;
+export type Transfer = z.infer<typeof transferSchema>;
+export type InpatientCensus = z.infer<typeof inpatientCensusSchema>;
+
+export const admitPatientRequestSchema = z.object({
+  patientId: z.string().min(1),
+  bedId: z.string().min(1),
+  admittingDoctorId: z.string().min(1),
+  admissionDate: z.string().or(z.date()).optional(),
+  admissionReason: z.string().optional(),
+  diagnosis: z.string().optional(),
+  notes: z.string().optional(),
+  emergencyContact: z
+    .object({
+      name: z.string().min(1),
+      phone: z.string().min(1),
+      relation: z.string().min(1),
+    })
+    .optional(),
+});
+
+export const transferPatientRequestSchema = z.object({
+  admissionId: z.string().min(1),
+  toBedId: z.string().min(1),
+  reason: z.string().min(3).optional(),
+});
+
+export const dischargePatientRequestSchema = z.object({
+  admissionId: z.string().min(1),
+  dischargeDate: z.string().or(z.date()).optional(),
+  dischargeSummary: z.string().min(3).optional(),
+  dischargeInstructions: z.string().optional(),
+  followUpDate: z.string().or(z.date()).optional(),
+});
+
+export type AdmitPatientRequest = z.infer<typeof admitPatientRequestSchema>;
+export type TransferPatientRequest = z.infer<
+  typeof transferPatientRequestSchema
+>;
+export type DischargePatientRequest = z.infer<
+  typeof dischargePatientRequestSchema
+>;
 
 export interface CreateWardDto {
   name: string;

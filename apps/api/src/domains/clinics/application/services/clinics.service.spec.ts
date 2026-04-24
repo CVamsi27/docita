@@ -9,6 +9,7 @@ import { StaffManagementService } from './staff-management.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { CLINIC_DATA_REPOSITORY_TOKEN } from '@/domains/clinics/core/repositories/clinic-data.repository.interface';
+import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import { Role } from '@workspace/db';
 import * as bcrypt from 'bcrypt';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
@@ -206,6 +207,12 @@ describe('ClinicsService', () => {
             createDefault: jest.fn().mockReturnValue({}),
             validate: jest.fn().mockImplementation((s) => s),
             partialValidate: jest.fn().mockImplementation((s) => s),
+          },
+        },
+        {
+          provide: AuditService,
+          useValue: {
+            logAction: jest.fn(),
           },
         },
         {

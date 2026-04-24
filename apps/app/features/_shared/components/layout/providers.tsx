@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 
 import { SocketProvider } from "@/lib/socket-context";
@@ -40,5 +41,14 @@ export function RealtimeProviders({
 }: {
   children: React.ReactNode;
 }) {
-  return <SocketProvider>{children}</SocketProvider>;
+  const pathname = usePathname();
+  const enabled = [
+    "/dashboard",
+    "/consultation",
+    "/hospital",
+    "/settings",
+    "/whatsapp",
+  ].some((prefix) => pathname?.startsWith(prefix));
+
+  return <SocketProvider enabled={enabled}>{children}</SocketProvider>;
 }

@@ -9,50 +9,12 @@ import {
   UpdateDoctorRequest,
   UpdateProfileRequest,
   User,
+  type AppClinicSettings,
   subscriptionCurrentResponseSchema,
 } from "@workspace/types";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 
-export interface CustomField {
-  name: string;
-  type: string;
-  required: boolean;
-}
-
-export interface ClinicAppSettings {
-  theme?: "light" | "dark" | "system";
-  primaryColor?: string;
-  compactMode?: boolean;
-  whatsappNotifications?: boolean;
-  inAppNotifications?: boolean;
-  pushNotifications?: boolean;
-  appointmentAlerts?: boolean;
-  reportAlerts?: boolean;
-  reminderBefore?: string;
-  reminderUnit?: string;
-  twoFactorAuth?: boolean;
-  sessionTimeout?: string | number;
-  auditLogs?: boolean;
-  whatsappAppointmentReminders?: boolean;
-  whatsappFollowUpMessages?: boolean;
-  whatsappBirthdayWishes?: boolean;
-  whatsappMedicineReminders?: boolean;
-  customFields?: CustomField[];
-  followUpReminderEnabled?: boolean;
-  followUpReminderBefore?: string;
-  followUpReminderUnit?: string;
-  invoiceReminderEnabled?: boolean;
-  invoiceReminderBefore?: string;
-  invoiceReminderUnit?: string;
-  prescriptionReminderEnabled?: boolean;
-  prescriptionReminderBefore?: string;
-  prescriptionReminderUnit?: string;
-  scheduleNotificationEnabled?: boolean;
-  scheduleNotificationBefore?: string;
-  scheduleNotificationUnit?: string;
-  whatsappPreAppointmentEnabled?: boolean;
-  whatsappPreAppointmentMinutes?: number;
-}
+export type ClinicAppSettings = AppClinicSettings;
 
 export interface DoctorSchedule {
   id: string;

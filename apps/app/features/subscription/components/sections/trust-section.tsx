@@ -5,8 +5,8 @@ export function TrustSection() {
   const trustItems = [
     {
       icon: Shield,
-      title: "Bank-Grade Security",
-      description: "256-bit encryption & HIPAA compliant data handling",
+      title: "Encrypted Infrastructure",
+      description: "Modern encryption with role-based access and audit-aware workflows",
     },
     {
       icon: Clock,

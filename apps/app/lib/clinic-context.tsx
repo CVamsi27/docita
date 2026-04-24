@@ -12,43 +12,9 @@ import React, {
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { useClinicSocket } from "@/hooks/use-clinic-socket";
 import { fetchWithSession } from "@/lib/fetch-with-session";
+import { appClinicSchema, type AppClinic } from "@workspace/types";
 
-export interface Clinic {
-  id: string;
-  name: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  logo?: string;
-  gstin?: string | null;
-  tier?: "STARTER" | "ESSENTIAL" | "PROFESSIONAL" | "ENTERPRISE" | string;
-  type?:
-    | "GENERAL"
-    | "DENTAL"
-    | "PEDIATRIC"
-    | "ORTHOPEDIC"
-    | "CARDIOLOGY"
-    | "DERMATOLOGY"
-    | "ENT"
-    | "GYNECOLOGY"
-    | "OPHTHALMOLOGY"
-    | "PSYCHIATRY"
-    | "SPECIALTY"
-    | string;
-  facilityType?: "CLINIC" | "HOSPITAL";
-  intelligenceAddon?: "NONE" | "ACTIVE";
-  features?: Record<string, boolean>;
-  trialEndsAt?: string;
-  subscriptionStatus?: string;
-  whatsappAutomation?: { enabled: boolean };
-  openingTime?: string;
-  closingTime?: string;
-  slotDuration?: number;
-  referralCode?: string | null;
-  slaSignatureUrl?: string | null;
-  slaSignatureAcceptedAt?: string | null;
-  countryCode?: string;
-}
+export type Clinic = AppClinic;
 
 interface ClinicContextType {
   clinicId: string | null;
@@ -61,20 +27,18 @@ interface ClinicContextType {
 
 const ClinicContext = createContext<ClinicContextType | undefined>(undefined);
 
-function getStoredClinic(): { id: string | null; clinic: Clinic | null } {
+function getStoredClinicId(): string | null {
   if (typeof window === "undefined") {
-    return { id: null, clinic: null };
+    return null;
   }
   try {
     const savedClinicId = localStorage.getItem("selectedClinicId");
-    const savedClinic = localStorage.getItem("selectedClinic");
-    if (savedClinicId && savedClinic) {
-      return { id: savedClinicId, clinic: JSON.parse(savedClinic) };
-    }
+    localStorage.removeItem("selectedClinic");
+    return savedClinicId && savedClinicId.length > 0 ? savedClinicId : null;
   } catch {
 
   }
-  return { id: null, clinic: null };
+  return null;
 }
 
 function subscribeToWindowFocus(callback: () => void) {
@@ -92,6 +56,33 @@ function subscribeToWindowFocus(callback: () => void) {
     window.removeEventListener("focus", handleFocus);
     document.removeEventListener("visibilitychange", handleVisibilityChange);
   };
+}
+
+function toBooleanFeatureOverrides(
+  value: Clinic["features"],
+): Record<string, boolean> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, boolean] => typeof entry[1] === "boolean",
+    ),
+  );
+}
+
+function getFacilityLabelFromSettings(
+  value: Clinic["settings"],
+): "CLINIC" | "HOSPITAL" | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const facilityLabel = Object.fromEntries(Object.entries(value)).facilityLabel;
+  return facilityLabel === "CLINIC" || facilityLabel === "HOSPITAL"
+    ? facilityLabel
+    : undefined;
 }
 
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
@@ -119,16 +110,20 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       if (clinicData.intelligenceAddon) {
         setIntelligence(clinicData.intelligenceAddon === "ACTIVE");
       }
-      if (clinicData.features) {
-        setFeatureOverrides(clinicData.features);
+      const featureOverrides = toBooleanFeatureOverrides(clinicData.features);
+      if (featureOverrides) {
+        setFeatureOverrides(featureOverrides);
       }
 
       if (clinicData.type) {
         setClinicType(clinicData.type);
       }
 
-      if (clinicData.facilityType) {
-        setFacilityType(clinicData.facilityType);
+      const facilityType =
+        clinicData.facilityType ??
+        getFacilityLabelFromSettings(clinicData.settings);
+      if (facilityType) {
+        setFacilityType(facilityType);
       }
     },
     [
@@ -158,13 +153,13 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (response.ok) {
-        const clinicData = await response.json();
-        if (clinicData && clinicData.id && clinicData.name) {
+        const parsedClinic = appClinicSchema.safeParse(await response.json());
+        if (parsedClinic.success) {
+          const clinicData = parsedClinic.data;
           setClinicId(clinicData.id);
           setClinicState(clinicData);
           updatePermissionsFromClinic(clinicData);
           localStorage.setItem("selectedClinicId", clinicData.id);
-          localStorage.setItem("selectedClinic", JSON.stringify(clinicData));
         }
       }
     } catch {
@@ -175,14 +170,12 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   }, [updatePermissionsFromClinic]);
 
   useEffect(() => {
-    const stored = getStoredClinic();
-    if (stored.id && stored.clinic) {
-      setClinicId(stored.id);
-      setClinicState(stored.clinic);
-      updatePermissionsFromClinic(stored.clinic);
+    const storedClinicId = getStoredClinicId();
+    if (storedClinicId) {
+      setClinicId(storedClinicId);
     }
     setMounted(true);
-  }, [updatePermissionsFromClinic]);
+  }, []);
 
   useSyncExternalStore(
     useCallback(
@@ -214,12 +207,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         setClinicState((prev) =>
           prev ? { ...prev, tier: data.tier as Clinic["tier"] } : prev,
         );
-        const storedClinic = localStorage.getItem("selectedClinic");
-        if (storedClinic) {
-          const parsed = JSON.parse(storedClinic);
-          parsed.tier = data.tier;
-          localStorage.setItem("selectedClinic", JSON.stringify(parsed));
-        }
       }
       if (data.intelligenceAddon) {
         setIntelligence(data.intelligenceAddon === "ACTIVE");
@@ -228,21 +215,22 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   });
 
   const setClinic = (newClinic: Clinic) => {
-    setClinicId(newClinic.id);
-    setClinicState(newClinic);
+    const parsedClinic = appClinicSchema.parse(newClinic);
+    setClinicId(parsedClinic.id);
+    setClinicState(parsedClinic);
 
-    if (newClinic.tier) {
-      setTier(newClinic.tier);
+    if (parsedClinic.tier) {
+      setTier(parsedClinic.tier);
     }
-    if (newClinic.intelligenceAddon) {
-      setIntelligence(newClinic.intelligenceAddon === "ACTIVE");
+    if (parsedClinic.intelligenceAddon) {
+      setIntelligence(parsedClinic.intelligenceAddon === "ACTIVE");
     }
-    if (newClinic.features) {
-      setFeatureOverrides(newClinic.features);
+    const featureOverrides = toBooleanFeatureOverrides(parsedClinic.features);
+    if (featureOverrides) {
+      setFeatureOverrides(featureOverrides);
     }
 
-    localStorage.setItem("selectedClinicId", newClinic.id);
-    localStorage.setItem("selectedClinic", JSON.stringify(newClinic));
+    localStorage.setItem("selectedClinicId", parsedClinic.id);
   };
 
   return (

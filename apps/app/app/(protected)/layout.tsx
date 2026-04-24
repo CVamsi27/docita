@@ -325,14 +325,12 @@ export default function ProtectedLayout({
                         onMobileOpenChange={setMobileOpen}
                       />
                     </ResizablePanel>
-                    <ResizableHandle
-                      className="hidden md:flex overflow-visible"
-                      onDragging={setIsDragging}
-                    >
+                    <div className="relative hidden md:flex overflow-visible">
+                      <ResizableHandle onDragging={setIsDragging} />
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-7 left-1/2 z-30 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border/70 bg-background text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground cursor-pointer"
+                        className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           const next = !isCollapsed;
@@ -353,7 +351,7 @@ export default function ProtectedLayout({
                           <PanelLeftClose className="h-3 w-3 shrink-0" />
                         )}
                       </Button>
-                    </ResizableHandle>
+                    </div>
                     <ResizablePanel defaultSize={82}>
                       <div className="flex h-full flex-col overflow-hidden">
                         <MobileHeader onMenuClick={() => setMobileOpen(true)} />

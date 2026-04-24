@@ -1,0 +1,103 @@
+---
+import MainLayout from "@/layouts/main-layout.astro";
+
+const rolloutSteps = [
+  {
+    title: "Share your current records",
+    description:
+      "Start with Excel, CSV exports, scanned files, or a small sample from the existing register.",
+  },
+  {
+    title: "Review mappings and duplicates",
+    description:
+      "Confirm which columns map to patients, contact details, history, and billing fields before anything is imported.",
+  },
+  {
+    title: "Go live with one clinic workflow",
+    description:
+      "Begin with the workflow the clinic needs immediately: patient records, prescriptions, billing, reminders, or queue management.",
+  },
+];
+---
+
+<MainLayout
+  canonicalPath="/paper-to-cloud"
+  title="Paper to Cloud Rollout | Docita"
+  description="Move your clinic from paper files, Excel sheets, and WhatsApp chaos into one reliable workflow with Docita."
+>
+  <section class="px-6 py-16">
+    <div class="ui-page-shell">
+      <div class="max-w-3xl">
+        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-primary">
+          Paper to Cloud
+        </p>
+        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+          Move from paper files and Excel without pausing the clinic
+        </h1>
+        <p class="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+          Docita is designed to help Indian clinics switch gradually. The goal is
+          not a giant implementation project. The goal is getting existing
+          records reviewed, the first workflow live quickly, and the front desk
+          comfortable using it on real clinic work.
+        </p>
+      </div>
+
+      <div class="mt-10 grid gap-4 lg:grid-cols-3">
+        {rolloutSteps.map((step, index) => (
+          <article class="rounded-3xl border border-border/70 bg-muted/30 p-6">
+            <p class="text-sm font-semibold text-primary">0{index + 1}</p>
+            <h2 class="mt-3 text-xl font-semibold">{step.title}</h2>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
+              {step.description}
+            </p>
+          </article>
+        ))}
+      </div>
+
+      <div class="mt-12 grid gap-8 lg:grid-cols-[1fr_0.95fr]">
+        <article class="rounded-3xl border border-border/70 bg-background p-8">
+          <h2 class="text-2xl font-semibold">Standard rollout target</h2>
+          <p class="mt-4 text-sm leading-6 text-muted-foreground">
+            For standard spreadsheet-based rollouts, Docita is targeting first
+            data review in one business day and first workflow value inside 48
+            hours. Complex historical cleanups and custom enterprise migrations
+            may take longer, but the default operating principle is speed with
+            review, not delay with paperwork.
+          </p>
+
+          <h3 class="mt-8 text-lg font-semibold">Best fit for this rollout</h3>
+          <ul class="mt-3 list-disc space-y-2 pl-6 text-sm text-muted-foreground">
+            <li>Multi-specialty private clinics with 1-5 doctors</li>
+            <li>Reception-led appointment, queue, and billing workflows</li>
+            <li>Clinics currently using Excel, basic software, or paper registers</li>
+          </ul>
+        </article>
+
+        <article class="rounded-3xl border border-primary/20 bg-primary/5 p-8">
+          <h2 class="text-2xl font-semibold">What to send for a rollout review</h2>
+          <ul class="mt-4 list-disc space-y-2 pl-6 text-sm text-muted-foreground">
+            <li>One current patient spreadsheet or export</li>
+            <li>Examples of prescriptions, invoices, or forms used today</li>
+            <li>Doctor roster, timings, and reception workflow notes</li>
+            <li>Any WhatsApp reminder or follow-up process already in use</li>
+          </ul>
+
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/contact"
+              class="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Talk about migration
+            </a>
+            <a
+              href="/whatsapp-workflows"
+              class="inline-flex items-center justify-center rounded-xl border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              See WhatsApp workflows
+            </a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</MainLayout>

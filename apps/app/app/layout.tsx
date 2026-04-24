@@ -6,17 +6,20 @@ import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/compo
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
+import { WebVitalsReporter } from "@/features/_shared/components/layout/web-vitals-reporter";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: false,
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
   display: "swap",
+  preload: false,
 });
 
 export const metadata = {
@@ -50,6 +53,7 @@ export default function RootLayout({
       <body className="app-shell-bg font-sans bg-background text-foreground antialiased overflow-x-hidden">
         <SentryInitializer />
         <ClientErrorReporter />
+        <WebVitalsReporter />
         <ReactQueryProvider>
           <AuthProvider>
             <Providers>

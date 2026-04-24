@@ -75,10 +75,10 @@ export function SLAContent() {
           <li>
             <h3 className="mt-0 mb-2">4. Compliance</h3>
             <ul>
-              <li>DPDP Act 2023 (India) compliant</li>
-              <li>HIPAA best practices followed</li>
-              <li>ISO 27001 certified infrastructure</li>
-              <li>SOC 2 Type II audited</li>
+              <li>DPDP-aware privacy and consent controls</li>
+              <li>India-hosted backend infrastructure (Mumbai region)</li>
+              <li>Role-based access and audit logging for sensitive workflows</li>
+              <li>Formal certifications are not claimed here unless separately documented</li>
             </ul>
           </li>
 

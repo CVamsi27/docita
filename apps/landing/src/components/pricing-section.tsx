@@ -45,7 +45,7 @@ const ESSENTIAL_FEATURES = [
   "Insurance billing",
   "Digital intake forms",
   "Prescription templates",
-  "AI features — Coming Soon",
+  "AI assistant flows (planned)",
 ];
 
 const PROFESSIONAL_FEATURES = [
@@ -53,15 +53,15 @@ const PROFESSIONAL_FEATURES = [
   "2,000 consultations/month included",
   "Up to 5 doctors",
   "WhatsApp messaging (2,000 msgs/mo)",
-  "Broadcast campaigns",
-  "Patient segmentation",
-  "Full EHR (IPD, vitals, clinical notes)",
-  "Custom branding on reports",
-  "Multi-location analytics",
-  "Bulk data import suite",
-  "REST API access (10k calls/day)",
-  "SSO (Google / Azure AD)",
-  "Custom letterhead",
+  "Broadcast campaigns (planned)",
+  "Patient segmentation (planned)",
+  "Full EHR / IPD extensions (planned)",
+  "Custom branding on reports (planned)",
+  "Multi-location analytics (planned)",
+  "Bulk data import suite (planned)",
+  "API access (planned)",
+  "SSO (planned)",
+  "Custom letterhead (planned)",
   "Priority support with SLA",
 ];
 
@@ -93,8 +93,8 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
         <SectionHeading
           align="center"
           size="section"
-          title="Pricing That Scales With Your Facility"
-          description="Start free, add capabilities as your team and patient volume grow."
+          title="Pricing that fits Indian clinic operations"
+          description="Start with the workflow your clinic needs today, then add deeper capabilities as doctor count and patient volume grow."
           className="mb-4"
           descriptionClassName="mx-auto max-w-2xl"
         />
@@ -129,7 +129,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   {isFeatured && (
                     <div className="mb-3 inline-flex w-fit items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                       <Sparkles className="h-3.5 w-3.5" />
-                      Most Popular
+                      Best fit for growing clinics
                     </div>
                   )}
                   <CardTitle className="text-2xl">{tier.name}</CardTitle>
@@ -165,6 +165,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                       ))}
                     </ul>
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    Features marked as planned are part of the rollout roadmap,
+                    not promised as live functionality today.
+                  </p>
                   <Button
                     asChild
                     className="w-full gap-2"

@@ -7,7 +7,6 @@ export const resolveAppLoginPath = (currentPath: string) =>
 export const appSession = createBrowserSessionManager({
   apiUrl: API_URL,
   tokenStorageKey: "docita_token",
-  userStorageKey: "docita_user",
   publicPaths: [
     "/login",
     "/register",

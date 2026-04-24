@@ -69,6 +69,7 @@ import { PublicModule } from './shared/modules/public/public.module';
 import { MedicalDocumentsModule } from './domains/medical-documents/medical-documents.module';
 import { InventoryModule } from './domains/inventory/inventory.module';
 import { LeaveModule } from './domains/leave/leave.module';
+import { IpdModule } from './domains/ipd/ipd.module';
 
 @Module({
   imports: [
@@ -175,6 +176,7 @@ import { LeaveModule } from './domains/leave/leave.module';
     MedicalDocumentsModule,
     InventoryModule,
     LeaveModule,
+    IpdModule,
   ],
   controllers: [AppController],
   providers: [

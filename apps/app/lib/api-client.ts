@@ -2,55 +2,7 @@ import { API_URL } from "./api-config";
 import { getAPIClient } from "@workspace/data-access";
 import { API_ROUTES } from "@workspace/types";
 import { appSession } from "./session";
-import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
-
-function toRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  return Object.fromEntries(Object.entries(value));
-}
-
-function extractErrorCode(value: unknown): string | undefined {
-  const data = toRecord(value);
-  const directCode = data?.code;
-  if (typeof directCode === "string") return directCode;
-  const nestedError = toRecord(data?.error);
-  const code = nestedError?.code;
-  return typeof code === "string" ? code : undefined;
-}
-
-function shouldSuppressDevToast(message: string): boolean {
-  if (process.env.NODE_ENV !== "development") {
-    return false;
-  }
-
-  const lowered = message.toLowerCase();
-  return (
-    lowered.includes("fast refresh") ||
-    lowered.includes("next dev") ||
-    lowered.includes("pnpm") ||
-    lowered.includes("cache bypass, force executing") ||
-    lowered.includes("prisma:error") ||
-    lowered.includes("invalid `this.prisma") ||
-    message.includes("\n")
-  );
-}
-
-function getRedirectPathForForbiddenCode(code?: string): string | null {
-  switch (code) {
-    case "EMAIL_NOT_VERIFIED":
-      return "/verify-email-sent";
-    case "SUBSCRIPTION_INACTIVE":
-    case "INSUFFICIENT_TIER":
-      return "/settings?tab=subscription";
-    case "NO_CLINIC":
-      return "/choose-path";
-    default:
-      return null;
-  }
-}
+import { handleApiClientError } from "./api-client-error-handler";
 
 const client = getAPIClient({
   baseURL: API_URL.endsWith("/") ? API_URL : `${API_URL}/`,
@@ -67,45 +19,7 @@ const client = getAPIClient({
     }
     return config;
   },
-  onError: async (error) => {
-    if (error.status === 401) {
-      if (typeof window !== "undefined") {
-        const refreshed = await appSession.refreshAccessToken();
-        if (refreshed) {
-          return;
-        }
-
-        appSession.clearSession();
-        appSession.redirectToLogin();
-      }
-      return;
-    }
-
-    const errorCode = extractErrorCode(error.data);
-    const redirectPath =
-      error.status === 403 ? getRedirectPathForForbiddenCode(errorCode) : null;
-
-    if (redirectPath && typeof window !== "undefined") {
-      window.location.assign(redirectPath);
-      return;
-    }
-
-    const fallback =
-      error.status && error.status >= 400 && error.status < 500
-        ? "Please check the information and try again"
-        : "Please review the information on this screen and try again";
-
-    if (!shouldSuppressDevToast(error.message || "")) {
-      showUserFacingErrorToast(
-        error,
-        fallback,
-        error.status && error.status >= 400 && error.status < 500
-          ? "form"
-          : "generic",
-      );
-    }
-
-  },
+  onError: handleApiClientError,
 });
 
 export const api = {
