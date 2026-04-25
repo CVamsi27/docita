@@ -61,13 +61,35 @@ const CONNECT_SOURCES = [
     }
   });
 
+const IMAGE_SOURCES = [
+  "'self'",
+  "data:",
+  "blob:",
+  "https:",
+  process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_PUBLIC_API_URL,
+  process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_PUBLIC_APP_URL,
+]
+  .filter((source): source is string => Boolean(source))
+  .map((source) => {
+    if (source.endsWith(":")) {
+      return source;
+    }
+
+    try {
+      const url = new URL(source);
+      return url.origin;
+    } catch {
+      return source;
+    }
+  });
+
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
   "form-action 'self'",
-  "img-src 'self' data: blob: https:",
+  `img-src ${Array.from(new Set(IMAGE_SOURCES)).join(" ")}`,
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,

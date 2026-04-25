@@ -1,4 +1,7 @@
+import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { APIRequestContext, Page } from "@playwright/test";
 import {
   clinicSchema,
@@ -14,6 +17,93 @@ export interface UserData {
   email: string;
   clinicId: string;
   accessToken: string;
+}
+
+function getRepoRoot(): string {
+  return resolve(process.cwd(), "..", "..");
+}
+
+function readDatabaseUrl(): string {
+  const fromEnv = process.env["DATABASE_URL"]?.trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  const envPath = resolve(getRepoRoot(), ".env");
+  const file = readFileSync(envPath, "utf8");
+
+  for (const line of file.split(/\r?\n/)) {
+    if (!line.startsWith("DATABASE_URL=")) continue;
+    const value = line.slice("DATABASE_URL=".length).trim();
+    if (!value) break;
+    return value.replace(/^"(.*)"$/, "$1");
+  }
+
+  throw new Error("DATABASE_URL was not found in process.env or the repository .env file.");
+}
+
+async function fetchVerificationToken(email: string): Promise<string | null> {
+  const output = execFileSync(
+    "node",
+    [
+      "-r",
+      "ts-node/register/transpile-only",
+      "apps/api/scripts/fetch-verification-token.ts",
+    ],
+    {
+      cwd: getRepoRoot(),
+      env: {
+        ...process.env,
+        DATABASE_URL: readDatabaseUrl(),
+        VERIFICATION_EMAIL: email,
+      },
+      encoding: "utf8",
+    },
+  ).trim();
+
+  if (!output) {
+    return null;
+  }
+
+  const parsed = JSON.parse(output) as {
+    emailVerified?: boolean;
+    emailVerificationToken?: string | null;
+  };
+
+  if (parsed.emailVerified) {
+    return null;
+  }
+
+  return parsed.emailVerificationToken ?? null;
+}
+
+export async function verifyEmailIfNeeded(
+  request: APIRequestContext,
+  email: string,
+  emailVerified?: boolean,
+): Promise<void> {
+  if (emailVerified) {
+    return;
+  }
+
+  const verificationToken = await fetchVerificationToken(email);
+  if (!verificationToken) {
+    throw new Error(`Verification token was not found for ${email}`);
+  }
+
+  const verifyEmailRes = await request.post(`${API_URL}/auth/verify-email`, {
+    headers: {
+      Cookie: "XSRF-TOKEN=e2e-csrf-token",
+      "X-XSRF-TOKEN": "e2e-csrf-token",
+    },
+    data: {
+      token: verificationToken,
+    },
+  });
+
+  if (!verifyEmailRes.ok()) {
+    throw new Error(`Email verification failed: ${await verifyEmailRes.text()}`);
+  }
 }
 
 export function createUniqueClientIp(): string {
@@ -61,14 +151,19 @@ export async function setupTestUser(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
     "base64",
   );
+  const clientIp = requestHeaders["X-Forwarded-For"] ?? createUniqueClientIp();
+  const requestHeadersWithClientIp = {
+    "X-Forwarded-For": clientIp,
+    ...requestHeaders,
+  };
 
   const authHeaders = (token: string) => ({
     Authorization: `Bearer ${token}`,
-    ...requestHeaders,
+    ...requestHeadersWithClientIp,
   });
 
   const registerRes = await request.post(`${API_URL}/auth/register`, {
-    headers: requestHeaders,
+    headers: requestHeadersWithClientIp,
     data: {
       email,
       password,
@@ -85,6 +180,12 @@ export async function setupTestUser(
   const registerData = await registerRes.json();
   let accessToken = registerData.access_token || registerData.accessToken;
   const userId = registerData.user.id;
+
+  await verifyEmailIfNeeded(
+    request,
+    email,
+    registerData.user?.emailVerified,
+  );
 
   const choosePathRes = await request.post(`${API_URL}/onboarding/choose-path`, {
     headers: authHeaders(accessToken),
