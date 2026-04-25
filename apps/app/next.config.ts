@@ -82,7 +82,6 @@ const IMAGE_SOURCES = [
       return source;
     }
   });
-
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
