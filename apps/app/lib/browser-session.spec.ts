@@ -38,6 +38,19 @@ describe("createBrowserSessionManager", () => {
     expect(session.getCsrfToken()).toBe("test-csrf-token");
   });
 
+  it("resyncs the in-memory token from localStorage on read", () => {
+    const session = createBrowserSessionManager({
+      apiUrl: "http://localhost:3001/api/v1",
+      tokenStorageKey: "docita_token",
+      userStorageKey: "docita_user",
+    });
+
+    session.setToken("stale-token");
+    localStorage.setItem("docita_token", "fresh-token");
+
+    expect(session.getToken()).toBe("fresh-token");
+  });
+
   it("refreshes token once for concurrent calls", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
