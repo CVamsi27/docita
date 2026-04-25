@@ -2,7 +2,7 @@ import "@workspace/ui/globals.css";
 import "leaflet/dist/leaflet.css";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
-import { LoginLayout, Providers, ToasterWrapper } from "@/features/_shared/components";
+import { Providers, ToasterWrapper } from "@/features/_shared/components";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 import { SentryInitializer } from "@/components/common/monitoring/sentry-initializer";
 import { ClientErrorReporter } from "@/components/common/monitoring/client-error-reporter";
@@ -57,7 +57,7 @@ export default function RootLayout({
         <ReactQueryProvider>
           <AuthProvider>
             <Providers>
-              <LoginLayout>{children}</LoginLayout>
+              {children}
               <ToasterWrapper />
             </Providers>
           </AuthProvider>
