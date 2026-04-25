@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
-import { API_URL } from "./utils/patient-helpers";
+import { API_URL, verifyEmailIfNeeded } from "./utils/patient-helpers";
 
 test.describe("Clinic Registration Flow", () => {
   async function registerAndOpenOnboarding(
@@ -30,6 +30,7 @@ test.describe("Clinic Registration Flow", () => {
 
     const registerData = await registerRes.json();
     const authToken = registerData.access_token || registerData.accessToken;
+    await verifyEmailIfNeeded(request, email, registerData.user?.emailVerified);
     await page.context().addCookies([
       {
         name: "access_token",

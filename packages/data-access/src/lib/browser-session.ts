@@ -83,6 +83,15 @@ export function createBrowserSessionManager(config: BrowserSessionConfig) {
   };
 
   const getToken = (): string | null => {
+    if (!isBrowser()) {
+      return inMemoryToken;
+    }
+
+    const persistedToken = readPersistedToken();
+    if (persistedToken !== inMemoryToken) {
+      inMemoryToken = persistedToken;
+    }
+
     return inMemoryToken;
   };
 
