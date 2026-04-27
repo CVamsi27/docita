@@ -14,7 +14,10 @@ import {
 import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
 import { getSupportPhoneNumber } from "@/lib/support-contact";
 import { CurrentPlanCard } from "@/features/subscription/components/cards/current-plan-card";
-import { PaymentSuccessModal } from "@/features/subscription/components";
+import {
+  PaymentSuccessModal,
+  TrialOfferBanner,
+} from "@/features/subscription/components";
 import {
   Card,
   CardContent,
@@ -25,12 +28,12 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Badge } from "@workspace/ui/components/badge";
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 import {
-  AlertTriangle,
-  Clock,
-  XCircle,
-} from "lucide-react";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert";
+import { AlertTriangle, Clock, XCircle } from "lucide-react";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 
@@ -59,7 +62,7 @@ export function SubscriptionSettings() {
 
   if (isLoading) {
     return (
-      <Card >
+      <Card>
         <CardContent className="pt-6">
           <div className="flex items-center space-x-4">
             <div className="space-y-2">
@@ -86,7 +89,7 @@ export function SubscriptionSettings() {
 
   if (!isAdmin) {
     return (
-      <Card >
+      <Card>
         <CardHeader>
           <CardTitle>Subscription</CardTitle>
           <CardDescription>Your current plan details</CardDescription>
@@ -120,9 +123,46 @@ export function SubscriptionSettings() {
   const isPaymentDue =
     subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
   const isExpired = subscriptionStatus === "EXPIRED";
+  const isInGracePeriod = subscriptionStatus === "GRACE";
+  const currentPlanStatusNotice = isExpired
+    ? {
+        title: "Subscription Expired",
+        badgeLabel: "Workspace Locked",
+        description:
+          "Your facility is locked until payment is completed. Choose a plan to restore access.",
+        actionLabel: "Choose a Plan",
+        onAction: () => router.push("/upgrade"),
+        variant: "destructive" as const,
+      }
+    : isInGracePeriod
+      ? {
+          title: "Payment Grace Period",
+          badgeLabel: "Access Restricted",
+          description:
+            "Your missed payment has placed this facility in grace period. Resolve payment before the workspace locks.",
+          actionLabel: "Resolve Payment",
+          onAction: () => router.push("/upgrade"),
+          variant: "warning" as const,
+        }
+      : isPaymentDue
+        ? {
+            title: "Payment Past Due",
+            badgeLabel: "Action Required",
+            description:
+              "Your payment is overdue. Resolve payment to keep Docita access active.",
+            actionLabel: "Resolve Payment",
+            onAction: () => router.push("/upgrade"),
+            variant: "warning" as const,
+          }
+        : undefined;
 
   return (
     <div className="space-y-6">
+      <TrialOfferBanner
+        actionLabel="Open upgrade"
+        onAction={() => router.push("/upgrade")}
+      />
+
       {trialDaysLeft !== null && (
         <Alert className="border-info/40 bg-info/10">
           <Clock className="h-4 w-4 text-info" />
@@ -166,14 +206,35 @@ export function SubscriptionSettings() {
         </Alert>
       )}
 
+      {isInGracePeriod && (
+        <Alert className="border-warning/40 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertTitle>Payment Grace Period</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>
+              Payment is still unresolved. Some access may be restricted until
+              payment is completed.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => router.push("/upgrade")}
+              className="shrink-0"
+            >
+              Resolve Payment
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {isExpired && (
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
-          <AlertTitle>Trial Expired</AlertTitle>
+          <AlertTitle>Subscription Expired</AlertTitle>
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
-              Your free trial has ended. Choose a plan to continue using
-              Docita.
+              Your facility workspace is locked. Choose a plan and complete
+              payment to restore access.
             </span>
             <Button
               size="sm"
@@ -228,6 +289,7 @@ export function SubscriptionSettings() {
                 block: "start",
               })
             }
+            statusNotice={currentPlanStatusNotice}
           />
 
           <div className="rounded-xl border bg-background/60 p-4 md:p-5">
@@ -264,7 +326,9 @@ export function SubscriptionSettings() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Billing History</CardTitle>
-              <CardDescription>View and download past invoices</CardDescription>
+                <CardDescription>
+                  View and download past invoices
+                </CardDescription>
               </div>
               <Button variant="outline" onClick={() => router.push("/upgrade")}>
                 Manage payment

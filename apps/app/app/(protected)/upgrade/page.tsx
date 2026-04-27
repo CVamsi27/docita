@@ -31,6 +31,7 @@ import {
   PaymentSuccessModal,
   TierCard,
   TierChangeDialog,
+  TrialOfferBanner,
   TrustSection,
   UsagePricingCalculator,
 } from "@/features/subscription/components";
@@ -71,13 +72,11 @@ export default function UpgradePage() {
   const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
   const plansRef = useRef<HTMLDivElement>(null);
 
-  const { checkoutTier } = useSubscriptionCheckout(
-    (data) => {
-      setSuccessData(data);
-      setShowSuccessModal(true);
-      setShowTierChangeDialog(false);
-    },
-  );
+  const { checkoutTier } = useSubscriptionCheckout((data) => {
+    setSuccessData(data);
+    setShowSuccessModal(true);
+    setShowTierChangeDialog(false);
+  });
 
   const canAccessPage = canAccessTarget(
     APP_ACCESS_TARGETS.PAGE_UPGRADE,
@@ -110,6 +109,10 @@ export default function UpgradePage() {
     isTrialing && subscriptionPeriodEnd !== null
       ? subscriptionPeriodEnd.getTime() <= Date.now()
       : false;
+  const isSubscriptionExpired = subscriptionStatus === "EXPIRED";
+  const isPaymentPastDue =
+    subscriptionStatus === "PAST_DUE" || subscriptionStatus === "PAYMENT_DUE";
+  const isInGracePeriod = subscriptionStatus === "GRACE";
   const effectiveCurrentTier = isTrialExpired ? Tier.STARTER : currentTier;
 
   useEffect(() => {
@@ -172,17 +175,49 @@ export default function UpgradePage() {
 
   const nextTier =
     effectiveCurrentTier < Tier.ENTERPRISE ? effectiveCurrentTier + 1 : null;
-  const currentPlanStatusNotice =
-    isTrialing || isTrialExpired
-          ? {
-          title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
-          badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
-          description: isTrialExpired
-            ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
-            : daysLeftInPeriod !== null && daysLeftInPeriod > 0
-              ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
-              : "Your trial ends today. Upgrade anytime to keep paid features active.",
+  const currentPlanStatusNotice = isSubscriptionExpired
+    ? {
+        title: "Subscription Expired",
+        badgeLabel: "Workspace Locked",
+        description:
+          "Your facility is locked because the subscription has expired. Choose a plan and complete payment to restore access.",
+        actionLabel: "Choose a Plan",
+        onAction: scrollToPlans,
+        variant: "destructive" as const,
+      }
+    : isInGracePeriod
+      ? {
+          title: "Payment Grace Period",
+          badgeLabel: "Access Restricted",
+          description:
+            "Your subscription is in grace period after a missed payment. Complete payment now to prevent the workspace from being locked.",
+          actionLabel: "Resolve Payment",
+          onAction: scrollToPlans,
+          variant: "warning" as const,
         }
+      : isPaymentPastDue
+        ? {
+            title: "Payment Past Due",
+            badgeLabel: "Action Required",
+            description:
+              "Your payment is overdue. Complete payment to keep Docita access active.",
+            actionLabel: "Resolve Payment",
+            onAction: scrollToPlans,
+            variant: "warning" as const,
+          }
+        : isTrialing || isTrialExpired
+          ? {
+              title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
+              badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
+              description: isTrialExpired
+                ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
+                : daysLeftInPeriod !== null && daysLeftInPeriod > 0
+                  ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
+                  : "Your trial ends today. Upgrade anytime to keep paid features active.",
+              variant: isTrialExpired
+                ? ("warning" as const)
+                : ("default" as const),
+            }
           : undefined;
 
   if (!user || !canAccessPage) {
@@ -213,6 +248,11 @@ export default function UpgradePage() {
       }
     >
       <div className="space-y-6">
+        <TrialOfferBanner
+          actionLabel="View Essential trial"
+          onAction={scrollToPlans}
+        />
+
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={effectiveCurrentTier}
@@ -228,7 +268,8 @@ export default function UpgradePage() {
             <div>
               <h2 className="text-lg font-semibold">Choose a plan</h2>
               <p className="text-sm text-muted-foreground">
-                Select a plan below. The confirmation step appears only after you choose one.
+                Select a plan below. The confirmation step appears only after
+                you choose one.
               </p>
             </div>
             <div className="inline-flex items-center gap-1 rounded-xl border bg-background p-1 self-start sm:self-auto">
@@ -260,9 +301,10 @@ export default function UpgradePage() {
                   TIER_OVERAGE_RATES_BY_CURRENCY[
                     currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
                   ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
-                const currencySymbol = PRICING_CURRENCY_SYMBOLS[
-                  currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-                ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+                const currencySymbol =
+                  PRICING_CURRENCY_SYMBOLS[
+                    currency as keyof typeof PRICING_CURRENCY_SYMBOLS
+                  ] ?? PRICING_CURRENCY_SYMBOLS.INR;
                 const whatsappRate =
                   tierName === "ESSENTIAL" ||
                   tierName === "PROFESSIONAL" ||
@@ -318,7 +360,9 @@ export default function UpgradePage() {
             <CardContent className="py-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold">Planned Roadmap</h2>
-                <Badge variant="outline">Not included in today&apos;s access</Badge>
+                <Badge variant="outline">
+                  Not included in today&apos;s access
+                </Badge>
               </div>
               <div className="flex flex-wrap gap-2">
                 {plannedFeatures.map((entry) => (
@@ -364,7 +408,13 @@ export default function UpgradePage() {
           </TabsContent>
 
           <TabsContent value="calculator" className="pt-4">
-            <UsagePricingCalculator currency={currency as Parameters<typeof UsagePricingCalculator>[0]["currency"]} />
+            <UsagePricingCalculator
+              currency={
+                currency as Parameters<
+                  typeof UsagePricingCalculator
+                >[0]["currency"]
+              }
+            />
           </TabsContent>
 
           <TabsContent value="missing" className="pt-4 space-y-6">
@@ -394,10 +444,7 @@ export default function UpgradePage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={scrollToPlans}
-              >
+              <Button variant="outline" onClick={scrollToPlans}>
                 View plans
               </Button>
               <Button onClick={() => setShowContactSalesModal(true)}>

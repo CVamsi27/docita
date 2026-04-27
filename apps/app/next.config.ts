@@ -46,6 +46,9 @@ const CONNECT_SOURCES = [
   "'self'",
   "https://api.docita.work",
   "wss://api.docita.work",
+  "https://api.razorpay.com",
+  "https://checkout.razorpay.com",
+  "https://lumberjack.razorpay.com",
   "https://*.sentry.io",
   DEFAULT_PUBLIC_API_URL,
   DEFAULT_PUBLIC_SOCKET_URL,
@@ -84,6 +87,17 @@ const IMAGE_SOURCES = [
       return source;
     }
   });
+const SCRIPT_SOURCES = [
+  "'self'",
+  "'unsafe-inline'",
+  process.env.NODE_ENV === "development" ? "'unsafe-eval'" : undefined,
+  "https://checkout.razorpay.com",
+].filter((source): source is string => Boolean(source));
+const FRAME_SOURCES = [
+  "'self'",
+  "https://api.razorpay.com",
+  "https://checkout.razorpay.com",
+];
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -93,8 +107,9 @@ const CONTENT_SECURITY_POLICY = [
   `img-src ${Array.from(new Set(IMAGE_SOURCES)).join(" ")}`,
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+  `script-src ${Array.from(new Set(SCRIPT_SOURCES)).join(" ")}`,
   `connect-src ${Array.from(new Set(CONNECT_SOURCES)).join(" ")}`,
+  `frame-src ${Array.from(new Set(FRAME_SOURCES)).join(" ")}`,
   "worker-src 'self' blob:",
   "manifest-src 'self'",
 ].join("; ");
