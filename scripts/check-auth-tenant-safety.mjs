@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -58,6 +58,9 @@ const trackedFiles = execSync('git ls-files "apps/api/src/**/*.ts"', {
 
 for (const relPath of trackedFiles) {
   const fullPath = resolve(repoRoot, relPath);
+  if (!existsSync(fullPath)) {
+    continue;
+  }
   const content = readFileSync(fullPath, 'utf8');
 
   if (/runUnrestricted\(\s*\(\)\s*=>/.test(content)) {
