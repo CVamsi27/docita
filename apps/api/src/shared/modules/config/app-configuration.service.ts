@@ -347,12 +347,12 @@ export class AppConfigService {
     };
   }
 
-  getResendApiKey(): string {
-    return this.getConfig().RESEND_API_KEY || '';
+  getZeptoMailSendMailToken(): string {
+    return this.getConfig().ZEPTOMAIL_SENDMAIL_TOKEN || '';
   }
 
-  getResendApiUrl(): string {
-    return this.getConfig().RESEND_API_URL;
+  getZeptoMailApiUrl(): string {
+    return this.getConfig().ZEPTOMAIL_API_URL;
   }
 
   getEmailFrom(): string {

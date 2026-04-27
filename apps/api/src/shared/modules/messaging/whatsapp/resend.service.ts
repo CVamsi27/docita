@@ -14,8 +14,8 @@ import {
 } from '@workspace/db';
 
 @Injectable()
-export class ResendService {
-  private readonly logger = new Logger(ResendService.name);
+export class WhatsappResendService {
+  private readonly logger = new Logger(WhatsappResendService.name);
 
   constructor(
     private readonly prisma: PrismaService,

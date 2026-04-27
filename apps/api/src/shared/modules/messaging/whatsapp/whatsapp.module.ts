@@ -7,7 +7,7 @@ import { TemplateDataService } from './template-data.service';
 import { TemplateVariableService } from './template-variable.service';
 import { TemplateResolutionService } from './template-resolution.service';
 import { TemplateModeService } from './template-mode.service';
-import { ResendService } from './resend.service';
+import { WhatsappResendService } from './resend.service';
 import { SystemEventsService } from './system-events.service';
 import { ApprovalService } from './approval.service';
 import { MessagingService } from './messaging.service';
@@ -35,7 +35,7 @@ import { SupportWhatsAppModule } from '@/shared/modules/support-whatsapp';
     TemplatesFacadeService,
     { provide: 'TemplatesService', useClass: TemplatesFacadeService },
 
-    ResendService,
+    WhatsappResendService,
     SystemEventsService,
     ApprovalService,
     MessagingService,

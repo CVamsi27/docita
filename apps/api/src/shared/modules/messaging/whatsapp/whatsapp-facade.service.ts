@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
-import { ResendService } from './resend.service';
+import { WhatsappResendService } from './resend.service';
 import { SystemEventsService } from './system-events.service';
 import { ApprovalService } from './approval.service';
 import { MessagingService } from './messaging.service';
@@ -12,7 +12,7 @@ import { SendTemplateDto } from './dto/send-template.dto';
 export class WhatsappService {
   constructor(
     private readonly templatesService: TemplatesService,
-    private readonly resendService: ResendService,
+    private readonly resendService: WhatsappResendService,
     private readonly systemEventsService: SystemEventsService,
     private readonly approvalService: ApprovalService,
     private readonly messagingService: MessagingService,
