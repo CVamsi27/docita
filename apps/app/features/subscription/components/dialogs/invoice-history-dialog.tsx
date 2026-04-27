@@ -8,21 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
 import { Button } from "@workspace/ui/components/button";
-import { Badge } from "@workspace/ui/components/badge";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
-import { cn } from "@workspace/ui/lib/utils";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 
 interface InvoiceHistoryDialogProps {
   open: boolean;
@@ -36,10 +25,6 @@ export function InvoiceHistoryDialog({
   onResolvePayment,
 }: InvoiceHistoryDialogProps) {
   const { data: invoices, isLoading } = useBillingHistory(open);
-
-  const handleDownload = (invoiceUrl: string) => {
-    window.open(invoiceUrl, "_blank");
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,88 +40,11 @@ export function InvoiceHistoryDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-auto min-h-[300px]">
-          {isLoading ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin" />
-              <p className="text-sm">Loading billing history...</p>
-            </div>
-          ) : !invoices || invoices.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground gap-2">
-              <FileText className="h-12 w-12 opacity-20" />
-              <p className="font-medium text-foreground">No billing records yet</p>
-              <p className="max-w-sm text-sm">
-                Payments and receipts will appear here after checkout.
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoices.map((invoice) => {
-                    const isPaid = invoice.status === "paid";
-                    return (
-                      <TableRow key={invoice.id}>
-                        <TableCell>
-                          {new Date(invoice.createdAt).toLocaleDateString("en-IN")}
-                        </TableCell>
-                        <TableCell className="max-w-[220px] truncate">
-                          {invoice.description || "Subscription Payment"}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {new Intl.NumberFormat("en-IN", {
-                            style: "currency",
-                            currency: invoice.currency || DEFAULT_CURRENCY,
-                          }).format(invoice.amountCents / 100)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "capitalize",
-                              isPaid ? "badge-success" : "badge-warning",
-                            )}
-                          >
-                            {humanizeUiLabel(invoice.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {invoice.invoiceUrl ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownload(invoice.invoiceUrl!)}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              PDF
-                            </Button>
-                          ) : !isPaid && onResolvePayment ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={onResolvePayment}
-                            >
-                              Pay now
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <BillingHistoryTable
+            invoices={invoices}
+            isLoading={isLoading}
+            onPayNow={onResolvePayment}
+          />
         </div>
 
         <DialogFooter className="border-t pt-3">

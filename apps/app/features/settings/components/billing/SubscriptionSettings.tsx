@@ -25,177 +25,18 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
 import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert";
 import {
   AlertTriangle,
   Clock,
-  Download,
-  FileText,
-  Loader2,
   XCircle,
 } from "lucide-react";
-import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
 
-function BillingHistory({ onResolvePayment }: { onResolvePayment: () => void }) {
+function BillingHistory() {
   const { data: invoices, isLoading } = useBillingHistory();
-
-  const handleDownload = (invoiceUrl: string) => {
-    window.open(invoiceUrl, "_blank");
-  };
-
-  const handleExportCsv = () => {
-    if (!invoices || invoices.length === 0) return;
-
-    const header = [
-      "Date",
-      "Description",
-      "Amount",
-      "Currency",
-      "Status",
-      "ReceiptUrl",
-    ];
-
-    const rows = invoices.map((invoice) => {
-      const formattedDate = new Date(invoice.createdAt).toISOString();
-      const description = (invoice.description || "Subscription Payment").replaceAll(
-        '"',
-        '""',
-      );
-      const amount = (invoice.amountCents / 100).toFixed(2);
-      const currency = invoice.currency || DEFAULT_CURRENCY;
-      const status = invoice.status;
-      const receipt = invoice.invoiceUrl || "";
-
-      return [
-        formattedDate,
-        `"${description}"`,
-        amount,
-        currency,
-        status,
-        `"${receipt}"`,
-      ].join(",");
-    });
-
-    const csvContent = [header.join(","), ...rows].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
-      `billing-history-${new Date().toISOString().slice(0, 10)}.csv`,
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!invoices || invoices.length === 0) {
-    return (
-      <div className="rounded-lg border bg-muted/20 py-10 text-center text-muted-foreground">
-        <FileText className="mx-auto mb-2 h-10 w-10 opacity-20" />
-        <p className="font-medium text-foreground">No billing history yet</p>
-        <p className="mt-1 text-sm">Receipts and invoices will appear after checkout.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={handleExportCsv}
-          disabled={!invoices || invoices.length === 0}
-        >
-          <Download className="h-4 w-4" />
-          Export All CSV
-        </Button>
-      </div>
-
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Receipt</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invoices.map((invoice) => {
-              const isPaid = invoice.status === "paid";
-              return (
-                <TableRow key={invoice.id}>
-                  <TableCell>{new Date(invoice.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-muted-foreground">
-                    {invoice.description || "Subscription Payment"}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {new Intl.NumberFormat(undefined, {
-                      style: "currency",
-                      currency: invoice.currency || DEFAULT_CURRENCY,
-                    }).format(invoice.amountCents / 100)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "capitalize",
-                        isPaid ? "badge-success" : "badge-warning",
-                      )}
-                    >
-                      {humanizeUiLabel(invoice.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {invoice.invoiceUrl ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownload(invoice.invoiceUrl!)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    ) : !isPaid ? (
-                      <Button variant="outline" size="sm" onClick={onResolvePayment}>
-                        Pay now
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
+  return <BillingHistoryTable invoices={invoices} isLoading={isLoading} />;
 }
 
 export function SubscriptionSettings() {
@@ -431,7 +272,7 @@ export function SubscriptionSettings() {
             </div>
           </CardHeader>
           <CardContent>
-            <BillingHistory onResolvePayment={() => router.push("/upgrade")} />
+            <BillingHistory />
           </CardContent>
         </Card>
       </div>

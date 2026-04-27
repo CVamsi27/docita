@@ -165,13 +165,14 @@ export function SettingsPageUI({
       >
         <aside className="w-full shrink-0 md:sticky md:top-4 md:w-56 lg:w-64">
           <TabsList className="flex h-auto w-full flex-row gap-0.5 overflow-x-auto bg-transparent p-0 pb-1 md:flex-col md:items-stretch md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {filteredTabs.map((category) => {
+            {filteredTabs.map((category, categoryIndex) => {
               const isDangerCategory = category.category === "Danger Zone";
               return (
                 <div key={category.category}>
                   <div
                     className={cn(
-                      "hidden md:block px-2 py-1.5 text-xs font-semibold uppercase tracking-wider mb-1 mt-3 first:mt-0",
+                      "hidden md:block px-2 py-1.5 text-xs font-semibold uppercase tracking-wider mb-1",
+                      categoryIndex > 0 && "mt-3",
                       isDangerCategory
                         ? "text-destructive/60"
                         : "text-muted-foreground/70",
