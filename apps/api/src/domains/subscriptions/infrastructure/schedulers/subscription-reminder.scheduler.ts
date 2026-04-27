@@ -7,6 +7,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { BillingCycle, ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { TIER_LIMITS } from '@workspace/types';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
+import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 
 @Injectable()
 export class SubscriptionReminderScheduler {
@@ -19,6 +20,7 @@ export class SubscriptionReminderScheduler {
     private readonly expireUseCase: ExpireSubscriptionUseCase,
     private readonly graceUseCase: EnterGracePeriodUseCase,
     private readonly prisma: PrismaService,
+    private readonly adminAlerts: AdminAlertsService,
   ) {}
 
   private isDatabaseAuthError(error: unknown): boolean {
@@ -76,16 +78,44 @@ export class SubscriptionReminderScheduler {
     ];
 
     try {
+      const results: Array<
+        Awaited<ReturnType<NotifyExpiringSubscriptionsUseCase['execute']>>
+      > = [];
       await this.prisma.runUnrestricted(async () => {
         for (const schedule of schedules) {
           const targetDate = new Date(now);
           targetDate.setDate(targetDate.getDate() + schedule.days);
-          await this.notifyUseCase.execute({
+          const result = await this.notifyUseCase.execute({
             targetDate,
             reminderType: schedule.type,
           });
+          results.push(result);
         }
       });
+
+      const attempted = results.reduce((sum, r) => sum + r.attemptedClinics, 0);
+      const sent = results.reduce((sum, r) => sum + r.sent, 0);
+      const failed = results.reduce((sum, r) => sum + r.failed, 0);
+
+      if (attempted > 0) {
+        const byType = results
+          .map(
+            (r) =>
+              `${r.reminderType}: attempted=${r.attemptedClinics}, sent=${r.sent}, failed=${r.failed}`,
+          )
+          .join('\n');
+
+        await this.adminAlerts.sendAdminAlert({
+          alertKey: `subscription_expiry_reminders_daily`,
+          severity: failed > 0 ? 'warn' : 'info',
+          subject: 'Subscription expiry reminders summary',
+          text:
+            `Subscription expiry reminders executed.\n` +
+            `Attempted: ${attempted}\nSent: ${sent}\nFailed: ${failed}\n\n` +
+            byType,
+          dedupeWindowMs: 12 * 60 * 60 * 1000,
+        });
+      }
     } catch (error) {
       if (this.isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;

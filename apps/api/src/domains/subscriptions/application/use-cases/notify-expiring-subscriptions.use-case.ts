@@ -4,10 +4,19 @@ import {
   ISubscriptionRepository,
 } from '@/domains/subscriptions/application/ports';
 import { PrismaService } from '@/prisma/prisma.service';
+import { EmailService } from '@/shared/modules/messaging/email/email.service';
 
 export interface NotifyExpiringSubscriptionsRequest {
   targetDate: Date;
   reminderType: string;
+}
+
+export interface NotifyExpiringSubscriptionsResult {
+  reminderType: string;
+  matchedSubscriptions: number;
+  attemptedClinics: number;
+  sent: number;
+  failed: number;
 }
 
 @Injectable()
@@ -16,11 +25,44 @@ export class NotifyExpiringSubscriptionsUseCase {
 
   constructor(
     @Inject(SUBSCRIPTION_REPOSITORY_TOKEN)
-    private readonly subscriptionRepo: ISubscriptionRepository,
+    private readonly _subscriptionRepo: ISubscriptionRepository,
     private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
   ) {}
 
-  async execute(request: NotifyExpiringSubscriptionsRequest): Promise<void> {
+  private parseDays(reminderType: string): number | null {
+    const match = reminderType.match(/expiry_(\d+)d/);
+    if (!match) return null;
+    const days = Number(match[1]);
+    return Number.isFinite(days) ? days : null;
+  }
+
+  private buildEmail(reminderType: string, clinicName: string, end: Date) {
+    const days = this.parseDays(reminderType);
+    const endDate = end.toLocaleDateString('en-IN', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+
+    const subject =
+      days !== null
+        ? `Docita subscription expires in ${days} day${days === 1 ? '' : 's'}`
+        : 'Docita subscription expiring';
+
+    const text =
+      `Your Docita subscription for "${clinicName}" is expiring soon.\n` +
+      `Current period end: ${endDate}\n\n` +
+      'To avoid interruption, please ensure payment is completed before expiry.\n' +
+      'If you need help, reply to this email.';
+
+    return { subject, text };
+  }
+
+  async execute(
+    request: NotifyExpiringSubscriptionsRequest,
+  ): Promise<NotifyExpiringSubscriptionsResult> {
     const { targetDate, reminderType } = request;
     const startOfDay = new Date(targetDate);
     startOfDay.setHours(0, 0, 0, 0);
@@ -45,7 +87,13 @@ export class NotifyExpiringSubscriptionsUseCase {
     });
 
     if (subscriptions.length === 0) {
-      return;
+      return {
+        reminderType,
+        matchedSubscriptions: 0,
+        attemptedClinics: 0,
+        sent: 0,
+        failed: 0,
+      };
     }
 
     const reminderCutoff = new Date();
@@ -67,7 +115,19 @@ export class NotifyExpiringSubscriptionsUseCase {
       existingReminders.map((reminder) => reminder.clinicId),
     );
     const sentAt = new Date();
-    const remindersToCreate = [];
+    const remindersToCreate: Array<{
+      clinicId: string;
+      subscriptionId: string;
+      type: string;
+      channel: string;
+      status: string;
+      sentAt: Date | null;
+      errorMessage: string | null;
+    }> = [];
+
+    let attemptedClinics = 0;
+    let sent = 0;
+    let failed = 0;
 
     for (const sub of subscriptions) {
       if (processedClinicIds.has(sub.clinicId)) {
@@ -79,22 +139,97 @@ export class NotifyExpiringSubscriptionsUseCase {
         `Sending reminder ${reminderType} to clinic ${sub.clinicId}`,
       );
 
-      remindersToCreate.push({
-        clinicId: sub.clinicId,
-        subscriptionId: sub.id,
-        type: reminderType,
-        channel: 'EMAIL',
-        sentAt,
-      });
+      attemptedClinics += 1;
+
+      const to = (sub.clinic?.users ?? [])
+        .map((u) => u.email)
+        .filter((email): email is string => Boolean(email));
+
+      if (to.length === 0) {
+        failed += 1;
+        remindersToCreate.push({
+          clinicId: sub.clinicId,
+          subscriptionId: sub.id,
+          type: reminderType,
+          channel: 'EMAIL',
+          status: 'failed',
+          sentAt: null,
+          errorMessage: 'No admin email recipients found for clinic',
+        });
+        continue;
+      }
+
+      const clinicName = sub.clinic?.name ?? `Clinic ${sub.clinicId}`;
+      const email = this.buildEmail(
+        reminderType,
+        clinicName,
+        sub.currentPeriodEnd,
+      );
+
+      try {
+        const result = await this.emailService.send({
+          to,
+          subject: email.subject,
+          text: email.text,
+        });
+
+        if (result.success) {
+          sent += 1;
+          remindersToCreate.push({
+            clinicId: sub.clinicId,
+            subscriptionId: sub.id,
+            type: reminderType,
+            channel: 'EMAIL',
+            status: 'sent',
+            sentAt,
+            errorMessage: null,
+          });
+        } else {
+          failed += 1;
+          remindersToCreate.push({
+            clinicId: sub.clinicId,
+            subscriptionId: sub.id,
+            type: reminderType,
+            channel: 'EMAIL',
+            status: 'failed',
+            sentAt: null,
+            errorMessage: result.error ?? 'Email send failed',
+          });
+        }
+      } catch (error) {
+        failed += 1;
+        remindersToCreate.push({
+          clinicId: sub.clinicId,
+          subscriptionId: sub.id,
+          type: reminderType,
+          channel: 'EMAIL',
+          status: 'failed',
+          sentAt: null,
+          errorMessage: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
     if (remindersToCreate.length === 0) {
-      return;
+      return {
+        reminderType,
+        matchedSubscriptions: subscriptions.length,
+        attemptedClinics: 0,
+        sent: 0,
+        failed: 0,
+      };
     }
 
     await this.prisma.subscriptionReminder.createMany({
       data: remindersToCreate,
-      skipDuplicates: true,
     });
+
+    return {
+      reminderType,
+      matchedSubscriptions: subscriptions.length,
+      attemptedClinics,
+      sent,
+      failed,
+    };
   }
 }

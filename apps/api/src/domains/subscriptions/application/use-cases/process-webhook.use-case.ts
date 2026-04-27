@@ -21,6 +21,7 @@ import {
   SubscriptionStatus,
 } from '@/domains/subscriptions/core/value-objects';
 import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
+import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 
 @Injectable()
 export class ProcessWebhookUseCase {
@@ -34,6 +35,7 @@ export class ProcessWebhookUseCase {
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
     private readonly activateSubscription: ActivateSubscriptionUseCase,
+    private readonly adminAlerts: AdminAlertsService,
   ) {}
   private readNoteString(
     notes: Record<string, unknown> | undefined,
@@ -50,6 +52,16 @@ export class ProcessWebhookUseCase {
   ): Promise<void> {
     if (!this.paymentGateway.verifyWebhookSignature(rawBody, signature)) {
       this.logger.warn('Invalid webhook signature');
+      await this.adminAlerts.sendAdminAlert({
+        alertKey: 'razorpay_webhook_signature_invalid',
+        severity: 'warn',
+        subject: 'Invalid Razorpay webhook signature',
+        text:
+          'Received a Razorpay webhook with an invalid signature.\n' +
+          `Event: ${payload.event}\n` +
+          'Action: Verify RAZORPAY_WEBHOOK_SECRET matches Razorpay dashboard configuration.',
+        dedupeWindowMs: 30 * 60 * 1000,
+      });
       throw new BadRequestException('Invalid signature');
     }
 
@@ -140,6 +152,20 @@ export class ProcessWebhookUseCase {
       tier: tier.value,
       subscriptionStatus: SubscriptionStatusEnum.ACTIVE,
     });
+
+    await this.adminAlerts.sendAdminAlert({
+      alertKey: `subscription_activated:${clinicId}`,
+      severity: 'info',
+      subject: 'Subscription activated',
+      text:
+        'A clinic subscription was activated via Razorpay.\n' +
+        `Clinic: ${clinicId}\n` +
+        `Tier: ${tier.value}\n` +
+        `Cycle: ${cycle.value}\n` +
+        `RazorpaySubscriptionId: ${sub.id}\n` +
+        `PeriodEnd: ${periodEnd.toISOString()}`,
+      dedupeWindowMs: 10 * 60 * 1000,
+    });
   }
 
   private async handleSubscriptionCharged(payload: RazorpayWebhookPayload) {
@@ -169,6 +195,21 @@ export class ProcessWebhookUseCase {
       razorpayOrderId: payment.order_id || '',
       description: 'Subscription renewal',
     });
+
+    await this.adminAlerts.sendAdminAlert({
+      alertKey: `subscription_renewed:${clinicId}:${payment.order_id ?? 'unknown'}`,
+      severity: 'info',
+      subject: 'Subscription renewed (charged)',
+      text:
+        'A subscription charge was received from Razorpay.\n' +
+        `Clinic: ${clinicId}\n` +
+        `RazorpaySubscriptionId: ${sub.id}\n` +
+        `RazorpayPaymentId: ${payment.id}\n` +
+        `RazorpayOrderId: ${payment.order_id ?? ''}\n` +
+        `Amount: ${payment.amount} ${payment.currency}\n` +
+        `PeriodEnd: ${periodEnd.toISOString()}`,
+      dedupeWindowMs: 10 * 60 * 1000,
+    });
   }
 
   private async handleSubscriptionPending(payload: RazorpayWebhookPayload) {
@@ -187,6 +228,17 @@ export class ProcessWebhookUseCase {
         {},
       );
     }
+
+    await this.adminAlerts.sendAdminAlert({
+      alertKey: `subscription_pending:${clinicId}:${sub.id}`,
+      severity: 'warn',
+      subject: 'Subscription pending / past due',
+      text:
+        'A subscription entered pending status in Razorpay.\n' +
+        `Clinic: ${clinicId}\n` +
+        `RazorpaySubscriptionId: ${sub.id}`,
+      dedupeWindowMs: 60 * 60 * 1000,
+    });
   }
 
   private async handleSubscriptionHalted(payload: RazorpayWebhookPayload) {
@@ -207,6 +259,17 @@ export class ProcessWebhookUseCase {
         {},
       );
     }
+
+    await this.adminAlerts.sendAdminAlert({
+      alertKey: `subscription_halted:${clinicId}:${sub.id}`,
+      severity: 'critical',
+      subject: 'Subscription halted',
+      text:
+        'A subscription was halted in Razorpay (grace period entered).\n' +
+        `Clinic: ${clinicId}\n` +
+        `RazorpaySubscriptionId: ${sub.id}`,
+      dedupeWindowMs: 60 * 60 * 1000,
+    });
   }
 
   private async handleSubscriptionCancelled(payload: RazorpayWebhookPayload) {
@@ -221,6 +284,17 @@ export class ProcessWebhookUseCase {
       subscription.cancel(false);
       await this.subscriptionRepo.save(subscription);
     }
+
+    await this.adminAlerts.sendAdminAlert({
+      alertKey: `subscription_cancelled:${clinicId}:${sub.id}`,
+      severity: 'warn',
+      subject: 'Subscription cancelled',
+      text:
+        'A subscription was cancelled in Razorpay.\n' +
+        `Clinic: ${clinicId}\n` +
+        `RazorpaySubscriptionId: ${sub.id}`,
+      dedupeWindowMs: 60 * 60 * 1000,
+    });
   }
 
   private async handlePaymentCaptured(payload: RazorpayWebhookPayload) {
@@ -249,6 +323,19 @@ export class ProcessWebhookUseCase {
         { paymentId: payment.id },
       );
     }
+
+    await this.adminAlerts.sendAdminAlert({
+      alertKey: `payment_captured:${clinicId}:${payment.order_id ?? payment.id}`,
+      severity: 'info',
+      subject: 'Payment captured',
+      text:
+        'A payment was captured in Razorpay.\n' +
+        `Clinic: ${clinicId}\n` +
+        `RazorpayPaymentId: ${payment.id}\n` +
+        `RazorpayOrderId: ${payment.order_id ?? ''}\n` +
+        `Amount: ${payment.amount} ${payment.currency}`,
+      dedupeWindowMs: 10 * 60 * 1000,
+    });
   }
 
   private async handlePaymentFailed(payload: RazorpayWebhookPayload) {
@@ -261,5 +348,18 @@ export class ProcessWebhookUseCase {
         'failed',
       );
     }
+
+    await this.adminAlerts.sendAdminAlert({
+      alertKey: `payment_failed:${payment.order_id ?? payment.id}`,
+      severity: 'critical',
+      subject: 'Payment failed',
+      text:
+        'A payment failed in Razorpay.\n' +
+        `RazorpayPaymentId: ${payment.id}\n` +
+        `RazorpayOrderId: ${payment.order_id ?? ''}\n` +
+        `Amount: ${payment.amount} ${payment.currency}\n` +
+        `Clinic: ${payment.notes?.clinic_id ?? 'unknown'}`,
+      dedupeWindowMs: 30 * 60 * 1000,
+    });
   }
 }

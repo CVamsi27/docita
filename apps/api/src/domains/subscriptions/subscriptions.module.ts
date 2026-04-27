@@ -33,9 +33,16 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
+import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.module';
 
 @Module({
-  imports: [PrismaModule, BillingModule, PaymentsModule, EmailModule],
+  imports: [
+    PrismaModule,
+    BillingModule,
+    PaymentsModule,
+    EmailModule,
+    AdminAlertsModule,
+  ],
   controllers: [SubscriptionsController, SubscriptionsWebhookController],
   providers: [
     SubscriptionPricingService,

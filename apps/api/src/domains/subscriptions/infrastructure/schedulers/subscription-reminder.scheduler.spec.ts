@@ -4,10 +4,19 @@ import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/u
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler';
+import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 
 describe('SubscriptionReminderScheduler', () => {
   let scheduler: SubscriptionReminderScheduler;
-  const notifyExecuteMock = jest.fn<() => Promise<void>>();
+  const notifyExecuteMock = jest
+    .fn<NotifyExpiringSubscriptionsUseCase['execute']>()
+    .mockResolvedValue({
+      reminderType: 'expiry_7d',
+      matchedSubscriptions: 0,
+      attemptedClinics: 0,
+      sent: 0,
+      failed: 0,
+    });
   const expireExecuteMock =
     jest.fn<(subscriptionId: string) => Promise<void>>();
   const graceExecuteMock = jest.fn<(subscriptionId: string) => Promise<void>>();
@@ -60,11 +69,22 @@ describe('SubscriptionReminderScheduler', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const adminAlerts = Object.create(
+      AdminAlertsService.prototype,
+    ) as AdminAlertsService;
+    adminAlerts.sendAdminAlert = jest
+      .fn<AdminAlertsService['sendAdminAlert']>()
+      .mockResolvedValue(false);
+    adminAlerts.markRecovered = jest
+      .fn<AdminAlertsService['markRecovered']>()
+      .mockResolvedValue(false);
+
     scheduler = new SubscriptionReminderScheduler(
       notifyUseCase,
       expireUseCase,
       graceUseCase,
       prisma,
+      adminAlerts,
     );
   });
 
