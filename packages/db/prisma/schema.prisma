@@ -2386,6 +2386,26 @@ model SystemMetric {
   @@index([metricType, recordedAt])
 }
 
+model PlatformAlert {
+  id             String   @id @default(cuid())
+  /**
+   * Stable identifier for deduping alerts across restarts.
+   * Example: "db_unreachable", "email_provider_unhealthy", "razorpay_webhook_signature_invalid"
+   */
+  alertKey        String
+  environment     String
+  status          String   @default("OPEN") // OPEN | RECOVERED
+  firstSeenAt     DateTime @default(now())
+  lastSeenAt      DateTime @default(now())
+  lastNotifiedAt  DateTime?
+  recoveredAt     DateTime?
+  metadata        Json?
+
+  @@unique([alertKey, environment])
+  @@index([environment, status, lastSeenAt])
+  @@index([alertKey, environment])
+}
+
 model PerformanceAggregate {
   id            String   @id @default(cuid())
   path          String
