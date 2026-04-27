@@ -13,15 +13,22 @@ import {
 import { PDFService } from './pdf.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
+  invoiceTaxSummarySchema,
   invoiceItemSchema,
+  taxRegistrationSnapshotSchema,
+  taxSettingsSchema,
   type InvoiceItem,
+  type InvoiceTaxSummary,
   type EnqueuePdfJobResponse,
+  type TaxRegistrationSnapshot,
+  type TaxSettings,
   extractPdfTheme,
 } from '@workspace/types';
 import {
   IInvoiceRepository,
   INVOICE_REPOSITORY_TOKEN,
   InvoiceDetail,
+  PatientInvoiceContext,
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
@@ -30,20 +37,20 @@ import {
   ClaimReadinessResult,
   ClaimValidationService,
 } from '@/domains/billing/core/services/claim-validation.service';
+import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
+const DEFAULT_INVOICE_DUE_DAYS = 30;
+
+const toPrismaJson = <T>(value: T): Prisma.InputJsonValue =>
+  JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 
 const toPrismaInvoiceItems = (items: InvoiceItem[]): Prisma.InputJsonValue => {
   const parsedItems = invoiceItemSchema.array().parse(items);
-  return parsedItems.map((item) => ({
-    id: item.id,
-    description: item.description,
-    quantity: item.quantity,
-    price: item.price,
-  })) as Prisma.InputJsonValue;
+  return toPrismaJson(parsedItems);
 };
 
 const parseInvoiceItems = (items: Prisma.JsonValue): InvoiceItem[] => {
@@ -76,6 +83,56 @@ const isJsonObject = (
 ): value is Prisma.JsonObject =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
+const readJsonString = (
+  object: Prisma.JsonObject | undefined,
+  key: string,
+): string | undefined => {
+  const value = object?.[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+};
+
+const parseTaxSettings = (
+  settings: Prisma.JsonValue | null | undefined,
+): TaxSettings => {
+  const settingsObject = isJsonObject(settings) ? settings : undefined;
+  const rawTaxSettings = settingsObject?.taxSettings;
+  const taxSettingsObject = isJsonObject(rawTaxSettings)
+    ? rawTaxSettings
+    : undefined;
+
+  return taxSettingsSchema.parse({
+    countryCode: 'IN',
+    regime: 'IN_GST',
+    registrationId: readJsonString(settingsObject, 'gstin'),
+    ...taxSettingsObject,
+  });
+};
+
+const parseTaxRegistrationSnapshot = (
+  value: Prisma.JsonValue | null,
+): TaxRegistrationSnapshot | undefined => {
+  const parsed = taxRegistrationSnapshotSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+};
+
+const parseInvoiceTaxSummary = (
+  value: Prisma.JsonValue | null,
+): InvoiceTaxSummary | undefined => {
+  const parsed = invoiceTaxSummarySchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+};
+
+const extractGstinStateCode = (gstin?: string): string | undefined => {
+  const stateCode = gstin?.slice(0, 2);
+  return stateCode && /^\d{2}$/.test(stateCode) ? stateCode : undefined;
+};
+
+const addDays = (date: Date, days: number): Date => {
+  const dueDate = new Date(date);
+  dueDate.setDate(dueDate.getDate() + days);
+  return dueDate;
+};
+
 const extractClinicGstin = (
   clinic:
     | {
@@ -93,8 +150,15 @@ const extractClinicGstin = (
     return undefined;
   }
 
-  const gstin = settings.gstin;
-  return typeof gstin === 'string' && gstin.trim() ? gstin.trim() : undefined;
+  const gstin = readJsonString(settings, 'gstin');
+  if (gstin) {
+    return gstin;
+  }
+
+  const taxSettings = isJsonObject(settings.taxSettings)
+    ? settings.taxSettings
+    : undefined;
+  return readJsonString(taxSettings, 'registrationId');
 };
 
 @Injectable()
@@ -103,6 +167,7 @@ export class InvoicesService {
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly repository: IInvoiceRepository,
     private readonly pdfService: PDFService,
+    private readonly taxCalculator: TaxCalculatorService,
     private readonly eventEmitter: EventEmitter2,
     private readonly usageTracking: UsageTrackingService,
     private readonly storageProvider: StorageProvider,
@@ -126,6 +191,69 @@ export class InvoicesService {
       targetStatus === InvoiceStatus.PARTIALLY_PAID ||
       targetStatus === InvoiceStatus.OVERDUE
     );
+  }
+
+  private buildTaxSnapshots(patient: PatientInvoiceContext): {
+    taxSettings: TaxSettings;
+    seller: TaxRegistrationSnapshot;
+    buyer: TaxRegistrationSnapshot;
+  } {
+    const taxSettings = parseTaxSettings(patient.clinic.settings);
+    const gstin =
+      taxSettings.registrationId || extractClinicGstin(patient.clinic);
+    const stateCode = taxSettings.stateCode || extractGstinStateCode(gstin);
+    const seller = taxRegistrationSnapshotSchema.parse({
+      countryCode: taxSettings.countryCode,
+      regime: taxSettings.regime,
+      registrationId: gstin,
+      registrationLabel:
+        taxSettings.registrationLabel || (gstin ? 'GSTIN' : undefined),
+      legalName: taxSettings.legalName || patient.clinic.name,
+      address: patient.clinic.address || undefined,
+      stateCode,
+      stateName: taxSettings.stateName,
+    });
+    const buyer = taxRegistrationSnapshotSchema.parse({
+      countryCode: seller.countryCode,
+      regime: seller.regime,
+      legalName: `${patient.firstName} ${patient.lastName}`.trim(),
+      address: patient.address || undefined,
+      stateCode: seller.stateCode,
+      stateName: seller.stateName,
+    });
+
+    return { taxSettings, seller, buyer };
+  }
+
+  private async calculateTaxForPatientInvoice(
+    patientId: string,
+    clinicId: string | undefined,
+    items: InvoiceItem[],
+  ): Promise<{
+    patient: PatientInvoiceContext;
+    taxSettings: TaxSettings;
+    seller: TaxRegistrationSnapshot;
+    buyer: TaxRegistrationSnapshot;
+    calculation: ReturnType<TaxCalculatorService['calculateInvoice']>;
+  }> {
+    const patient = await this.repository.findPatientContext(
+      patientId,
+      clinicId,
+    );
+    if (!patient) {
+      throw new NotFoundException(`Patient ${patientId} not found`);
+    }
+
+    const { taxSettings, seller, buyer } = this.buildTaxSnapshots(patient);
+    const calculation = this.taxCalculator.calculateInvoice({
+      items,
+      currency: patient.clinic.currency || undefined,
+      seller,
+      buyer,
+      reverseCharge: false,
+    });
+
+    return { patient, taxSettings, seller, buyer, calculation };
   }
 
   async findAll(
@@ -152,8 +280,8 @@ export class InvoicesService {
     }
 
     if (clinicId) {
-      const patientClinicId = invoice.patient?.clinic?.id;
-      if (patientClinicId && patientClinicId !== clinicId) {
+      const invoiceClinicId = invoice.clinicId ?? invoice.patient?.clinic?.id;
+      if (invoiceClinicId && invoiceClinicId !== clinicId) {
         throw new NotFoundException(`Invoice ${id} not found`);
       }
     }
@@ -175,14 +303,45 @@ export class InvoicesService {
     doctorLicenseNumber?: string;
     clinicId?: string;
   }): Promise<InvoiceDetail> {
+    const issuedAt = new Date();
+    const { patient, taxSettings, seller, buyer, calculation } =
+      await this.calculateTaxForPatientInvoice(
+        data.patientId,
+        data.clinicId,
+        data.items,
+      );
+    const invoiceNumber = await this.repository.nextInvoiceNumber(
+      patient.clinic.id,
+      issuedAt,
+      taxSettings.invoicePrefix,
+    );
+    const dueDate = addDays(issuedAt, DEFAULT_INVOICE_DUE_DAYS);
+
     const invoice = await this.repository.create({
       appointment: data.appointmentId
         ? { connect: { id: data.appointmentId } }
         : undefined,
       patient: { connect: { id: data.patientId } },
-      total: data.total,
+      clinic: { connect: { id: patient.clinic.id } },
+      invoiceNumber,
+      invoiceType: calculation.invoiceType,
+      currency: calculation.summary.currency,
+      total: calculation.grandTotal,
+      subtotal: calculation.subtotal,
+      discountTotal: calculation.discountTotal,
+      taxTotal: calculation.taxTotal,
+      grandTotal: calculation.grandTotal,
+      taxSummary: toPrismaJson(calculation.summary),
+      sellerTaxSnapshot: toPrismaJson(seller),
+      buyerTaxSnapshot: toPrismaJson(buyer),
+      placeOfSupplyStateCode: calculation.summary.placeOfSupply?.stateCode,
+      placeOfSupplyStateName: calculation.summary.placeOfSupply?.stateName,
+      reverseCharge: calculation.summary.reverseCharge,
+      issuedAt,
+      dueDate,
+      eInvoiceRequired: calculation.summary.eInvoice?.required ?? false,
       status: data.status,
-      items: toPrismaInvoiceItems(data.items),
+      items: toPrismaInvoiceItems(calculation.items),
       doctorName: data.doctorName,
       doctorEmail: data.doctorEmail,
       doctorPhone: data.doctorPhone,
@@ -192,15 +351,13 @@ export class InvoicesService {
       doctorLicenseNumber: data.doctorLicenseNumber,
     });
 
-    if (data.clinicId) {
-      this.eventEmitter.emit('invoice.generated', {
-        invoiceId: invoice.id,
-        clinicId: data.clinicId,
-      });
-      this.usageTracking
-        .trackInvoice(data.clinicId, invoice.id)
-        .catch(() => {});
-    }
+    this.eventEmitter.emit('invoice.generated', {
+      invoiceId: invoice.id,
+      clinicId: patient.clinic.id,
+    });
+    this.usageTracking
+      .trackInvoice(patient.clinic.id, invoice.id)
+      .catch(() => {});
 
     return invoice;
   }
@@ -219,10 +376,52 @@ export class InvoicesService {
       await this.claimValidationService.assertClaimReady(id, clinicId);
     }
 
-    return this.repository.update(id, {
-      ...data,
-      items: data.items ? toPrismaInvoiceItems(data.items) : undefined,
-    });
+    const updateData: Prisma.InvoiceUpdateInput = {
+      status: data.status,
+    };
+
+    if (data.items) {
+      let seller = parseTaxRegistrationSnapshot(existing.sellerTaxSnapshot);
+      let buyer = parseTaxRegistrationSnapshot(existing.buyerTaxSnapshot);
+
+      if (!seller || !buyer) {
+        const recalculationContext = await this.calculateTaxForPatientInvoice(
+          existing.patientId,
+          clinicId ?? existing.clinicId ?? undefined,
+          data.items,
+        );
+        seller = recalculationContext.seller;
+        buyer = recalculationContext.buyer;
+      }
+
+      const calculation = this.taxCalculator.calculateInvoice({
+        items: data.items,
+        currency: existing.currency,
+        seller,
+        buyer,
+        reverseCharge: existing.reverseCharge,
+      });
+
+      updateData.items = toPrismaInvoiceItems(calculation.items);
+      updateData.invoiceType = calculation.invoiceType;
+      updateData.total = calculation.grandTotal;
+      updateData.subtotal = calculation.subtotal;
+      updateData.discountTotal = calculation.discountTotal;
+      updateData.taxTotal = calculation.taxTotal;
+      updateData.grandTotal = calculation.grandTotal;
+      updateData.taxSummary = toPrismaJson(calculation.summary);
+      updateData.sellerTaxSnapshot = toPrismaJson(seller);
+      updateData.buyerTaxSnapshot = toPrismaJson(buyer);
+      updateData.placeOfSupplyStateCode =
+        calculation.summary.placeOfSupply?.stateCode;
+      updateData.placeOfSupplyStateName =
+        calculation.summary.placeOfSupply?.stateName;
+      updateData.reverseCharge = calculation.summary.reverseCharge;
+      updateData.eInvoiceRequired =
+        calculation.summary.eInvoice?.required ?? false;
+    }
+
+    return this.repository.update(id, updateData);
   }
 
   async getClaimReadiness(
@@ -260,6 +459,13 @@ export class InvoicesService {
     const invoice = await this.findOne(id, clinicId);
 
     const items = parseInvoiceItems(invoice.items);
+    const taxSummary = parseInvoiceTaxSummary(invoice.taxSummary);
+    const sellerTaxSnapshot = parseTaxRegistrationSnapshot(
+      invoice.sellerTaxSnapshot,
+    );
+    const buyerTaxSnapshot = parseTaxRegistrationSnapshot(
+      invoice.buyerTaxSnapshot,
+    );
     const patient = invoice.patient;
     const clinic = patient?.clinic;
     if (!clinic?.name) {
@@ -289,7 +495,12 @@ export class InvoicesService {
       );
 
     return this.pdfService.generate({
-      invoiceId: invoice.id.slice(0, 8).toUpperCase(),
+      invoiceId: invoice.invoiceNumber ?? invoice.id.slice(0, 8).toUpperCase(),
+      title:
+        taxSummary?.documentTitle ??
+        (invoice.invoiceType === 'TAX_INVOICE'
+          ? 'Tax Invoice'
+          : 'Bill of Supply'),
       clinic: {
         name: clinic.name,
         address: clinic.address || undefined,
@@ -298,7 +509,7 @@ export class InvoicesService {
         logo: clinic.logo || undefined,
         currency: clinic.currency || undefined,
         branding: extractPdfTheme(clinic.branding),
-        gstin: extractClinicGstin(clinic),
+        gstin: sellerTaxSnapshot?.registrationId ?? extractClinicGstin(clinic),
       },
       patient: {
         name: `${patient?.firstName} ${patient?.lastName}`,
@@ -322,16 +533,25 @@ export class InvoicesService {
           },
       authorizedSignatureUrl: resolvedSignature.url ?? undefined,
       authorizedSignatureLabel: 'Authorized Signature',
+      taxSummary,
+      sellerTaxSnapshot,
+      buyerTaxSnapshot,
       items: items.map((item) => ({
         description: item.description,
         quantity: item.quantity,
-        unitPrice: item.price,
-        amount: item.quantity * item.price,
+        unitPrice: item.unitPrice ?? item.price,
+        amount:
+          item.lineTotal ??
+          item.quantity * (item.unitPrice ?? item.price) -
+            (item.discountAmount ?? 0) +
+            (item.taxAmount ?? 0),
         cptCode: item.cptCode ?? procedureCptMap[item.description],
-        hsnCode: item.hsnCode,
+        hsnCode: item.hsnCode ?? item.sacCode,
+        gstRate: item.taxRate,
       })),
       status: invoice.status.toUpperCase(),
-      date: new Date(invoice.createdAt),
+      date: new Date(invoice.issuedAt ?? invoice.createdAt),
+      dueDate: invoice.dueDate ? new Date(invoice.dueDate) : undefined,
     });
   }
 

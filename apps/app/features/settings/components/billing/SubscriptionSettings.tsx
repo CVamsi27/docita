@@ -45,7 +45,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 
-function BillingHistory() {
+function BillingHistory({ onResolvePayment }: { onResolvePayment: () => void }) {
   const { data: invoices, isLoading } = useBillingHistory();
 
   const handleDownload = (invoiceUrl: string) => {
@@ -110,9 +110,10 @@ function BillingHistory() {
 
   if (!invoices || invoices.length === 0) {
     return (
-      <div className="rounded-md border bg-muted/20 py-8 text-center text-muted-foreground">
+      <div className="rounded-lg border bg-muted/20 py-10 text-center text-muted-foreground">
         <FileText className="mx-auto mb-2 h-10 w-10 opacity-20" />
-        <p>No billing history available</p>
+        <p className="font-medium text-foreground">No billing history yet</p>
+        <p className="mt-1 text-sm">Receipts and invoices will appear after checkout.</p>
       </div>
     );
   }
@@ -132,7 +133,7 @@ function BillingHistory() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -144,47 +145,52 @@ function BillingHistory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {invoices.map((invoice) => (
-              <TableRow key={invoice.id}>
-                <TableCell>{new Date(invoice.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="max-w-[200px] truncate text-muted-foreground">
-                  {invoice.description || "Subscription Payment"}
-                </TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat(undefined, {
-                    style: "currency",
-                    currency: invoice.currency || DEFAULT_CURRENCY,
-                  }).format(invoice.amountCents / 100)}
-                </TableCell>
-                <TableCell>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "capitalize",
-                    invoice.status === "paid"
-                      ? "badge-success"
-                      : "badge-warning",
-                  )}
-                >
-                    {humanizeUiLabel(invoice.status)}
-                </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  {invoice.invoiceUrl ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDownload(invoice.invoiceUrl!)}
-                      className="h-8 w-8 p-0"
+            {invoices.map((invoice) => {
+              const isPaid = invoice.status === "paid";
+              return (
+                <TableRow key={invoice.id}>
+                  <TableCell>{new Date(invoice.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                    {invoice.description || "Subscription Payment"}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {new Intl.NumberFormat(undefined, {
+                      style: "currency",
+                      currency: invoice.currency || DEFAULT_CURRENCY,
+                    }).format(invoice.amountCents / 100)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "capitalize",
+                        isPaid ? "badge-success" : "badge-warning",
+                      )}
                     >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">-</span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+                      {humanizeUiLabel(invoice.status)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {invoice.invoiceUrl ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownload(invoice.invoiceUrl!)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    ) : !isPaid ? (
+                      <Button variant="outline" size="sm" onClick={onResolvePayment}>
+                        Pay now
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -275,7 +281,7 @@ export function SubscriptionSettings() {
   const isExpired = subscriptionStatus === "EXPIRED";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {trialDaysLeft !== null && (
         <Alert className="border-info/40 bg-info/10">
           <Clock className="h-4 w-4 text-info" />
@@ -339,12 +345,11 @@ export function SubscriptionSettings() {
         </Alert>
       )}
 
-      <Card className="overflow-hidden">
-        <div className="h-2 bg-linear-to-r from-info to-primary" />
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-2xl">Current Plan</CardTitle>
+          <CardTitle className="text-xl">Billing &amp; Subscription</CardTitle>
           <CardDescription>
-            Your active plan summary and billing history
+            Your active plan summary, billing cycle, and receipts
           </CardDescription>
         </CardHeader>
 
@@ -359,7 +364,7 @@ export function SubscriptionSettings() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Button variant="outline" onClick={() => router.push("/upgrade")}>
-                View Upgrade Page
+                View plans
               </Button>
               <WhatsAppButton
                 phoneNumber={supportPhone}
@@ -413,15 +418,20 @@ export function SubscriptionSettings() {
       </Card>
 
       <div ref={billingHistoryRef} className="scroll-mt-6">
-        <Card >
+        <Card>
           <CardHeader>
-            <div>
-              <CardTitle>Billing History</CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Billing History</CardTitle>
               <CardDescription>View and download past invoices</CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => router.push("/upgrade")}>
+                Manage payment
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <BillingHistory />
+            <BillingHistory onResolvePayment={() => router.push("/upgrade")} />
           </CardContent>
         </Card>
       </div>

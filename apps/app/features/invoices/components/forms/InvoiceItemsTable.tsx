@@ -11,6 +11,13 @@ import {
 } from "@workspace/ui/components/table";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import { Trash2 } from "lucide-react";
 
 interface InvoiceItem {
@@ -18,6 +25,10 @@ interface InvoiceItem {
   description: string;
   quantity: number;
   unitPrice: number;
+  taxTreatment: string;
+  taxRate: number;
+  hsnCode?: string;
+  sacCode?: string;
   total: number;
 }
 
@@ -39,10 +50,13 @@ export function InvoiceItemsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[40%]">Description</TableHead>
-            <TableHead className="w-[15%]">Qty</TableHead>
-            <TableHead className="w-[20%]">Unit Price</TableHead>
-            <TableHead className="w-[20%]">Total</TableHead>
+            <TableHead className="min-w-[220px]">Description</TableHead>
+            <TableHead className="w-24">Qty</TableHead>
+            <TableHead className="w-32">Unit Price</TableHead>
+            <TableHead className="min-w-[170px]">Tax</TableHead>
+            <TableHead className="w-28">GST %</TableHead>
+            <TableHead className="w-32">HSN/SAC</TableHead>
+            <TableHead className="w-32">Total</TableHead>
             <TableHead className="w-[5%]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -79,6 +93,48 @@ export function InvoiceItemsTable({
                   }
                 />
               </TableCell>
+              <TableCell>
+                <Select
+                  value={item.taxTreatment}
+                  onValueChange={(value) =>
+                    onUpdateItem(index, "taxTreatment", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="EXEMPT_HEALTHCARE">
+                      Healthcare exempt
+                    </SelectItem>
+                    <SelectItem value="TAXABLE">Taxable</SelectItem>
+                    <SelectItem value="EXEMPT">Exempt</SelectItem>
+                    <SelectItem value="NON_GST">Non-GST</SelectItem>
+                  </SelectContent>
+                </Select>
+              </TableCell>
+              <TableCell>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  disabled={item.taxTreatment !== "TAXABLE"}
+                  value={item.taxRate}
+                  onChange={(e) =>
+                    onUpdateItem(index, "taxRate", parseFloat(e.target.value))
+                  }
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  value={item.hsnCode || item.sacCode || ""}
+                  onChange={(e) =>
+                    onUpdateItem(index, "hsnCode", e.target.value)
+                  }
+                  placeholder="9993"
+                />
+              </TableCell>
               <TableCell className="font-medium">
                 {formatCurrency(item.total)}
               </TableCell>
@@ -86,6 +142,7 @@ export function InvoiceItemsTable({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label={`Remove ${item.description || "line item"}`}
                   className="text-destructive hover:text-destructive/90"
                   onClick={() => onRemoveItem(index)}
                 >
@@ -97,7 +154,7 @@ export function InvoiceItemsTable({
           {items.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={8}
                 className="text-center py-8 text-muted-foreground"
               >
                 No items added yet.

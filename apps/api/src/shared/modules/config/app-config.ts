@@ -25,6 +25,22 @@ export const EnvSchema = z.object({
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  DOCITA_TAX_COUNTRY_CODE: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{2}$/)
+    .default('IN'),
+  DOCITA_TAX_REGIME: z
+    .enum(['IN_GST', 'VAT', 'SALES_TAX', 'NONE'])
+    .default('IN_GST'),
+  DOCITA_TAX_REGISTRATION_ID: z.string().optional(),
+  DOCITA_TAX_REGISTRATION_LABEL: z.string().default('GSTIN'),
+  DOCITA_TAX_LEGAL_NAME: z.string().default('Docita'),
+  DOCITA_TAX_ADDRESS: z.string().optional(),
+  DOCITA_TAX_STATE_CODE: z.string().optional(),
+  DOCITA_TAX_STATE_NAME: z.string().optional(),
+  DOCITA_SUBSCRIPTION_TAX_RATE: z.coerce.number().min(0).max(100).default(18),
   META_ACCESS_TOKEN: z.string().optional(),
   META_PHONE_NUMBER_ID: z.string().optional(),
   META_APP_SECRET: z.string().optional(),

@@ -161,10 +161,10 @@ export function SettingsPageUI({
       <Tabs
         defaultValue={defaultTab}
         value={searchQuery && firstMatchingTab ? firstMatchingTab : undefined}
-        className="flex flex-col md:flex-row gap-6 lg:gap-10"
+        className="flex flex-col items-start gap-6 md:flex-row lg:gap-10"
       >
-        <aside className="md:w-56 lg:w-64 shrink-0 flex flex-col">
-          <TabsList className="flex flex-row overflow-x-auto md:flex-col w-full h-auto bg-transparent p-0 gap-0.5 md:items-stretch flex-1 pb-1 md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <aside className="w-full shrink-0 md:sticky md:top-4 md:w-56 lg:w-64">
+          <TabsList className="flex h-auto w-full flex-row gap-0.5 overflow-x-auto bg-transparent p-0 pb-1 md:flex-col md:items-stretch md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {filteredTabs.map((category) => {
               const isDangerCategory = category.category === "Danger Zone";
               return (
@@ -218,7 +218,7 @@ export function SettingsPageUI({
           </TabsList>
         </aside>
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1 self-stretch">
           {visibleTabValues.has("general") && (
             <TabsContent value="general" className="mt-0 space-y-6">
               <RoleGuard requiredPermission="manageClinic">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -29,7 +29,6 @@ import {
   FaqSection,
   InvoiceHistoryDialog,
   PaymentSuccessModal,
-  PricingDialog,
   TierCard,
   TierChangeDialog,
   TrustSection,
@@ -60,7 +59,6 @@ export default function UpgradePage() {
   const router = useRouter();
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
-  const [showPricingDialog, setShowPricingDialog] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TierName | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<"MONTHLY" | "YEARLY">(
@@ -71,6 +69,7 @@ export default function UpgradePage() {
     planName: "",
   });
   const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
+  const plansRef = useRef<HTMLDivElement>(null);
 
   const { checkoutTier } = useSubscriptionCheckout(
     (data) => {
@@ -123,7 +122,6 @@ export default function UpgradePage() {
     (tier: TierName, cycle: "MONTHLY" | "YEARLY") => {
       setSelectedTier(tier);
       setSelectedCycle(cycle);
-      setShowPricingDialog(false);
       setShowTierChangeDialog(true);
     },
     [],
@@ -135,6 +133,9 @@ export default function UpgradePage() {
   }, [selectedTier, selectedCycle, checkoutTier]);
 
   const currentTierInfo = getTierInfo(effectiveCurrentTier);
+  const scrollToPlans = useCallback(() => {
+    plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const featuresByTier = Object.values(Tier)
     .filter((t): t is Tier => typeof t === "number")
@@ -206,7 +207,7 @@ export default function UpgradePage() {
           />
           <PageHeader
             title="Upgrade your plan"
-            description="Choose a plan that fits your facility now and scale when needed."
+            description="Review your current plan, compare options, and complete checkout from one page."
           />
         </div>
       }
@@ -217,15 +218,20 @@ export default function UpgradePage() {
           currentTier={effectiveCurrentTier}
           hasIntelligence={false}
           canChangeTier={canAccessPage}
-          onChangePlan={() => setShowPricingDialog(true)}
+          onChangePlan={scrollToPlans}
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
           statusNotice={currentPlanStatusNotice}
         />
 
-        <div className="space-y-4">
+        <div ref={plansRef} className="scroll-mt-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
-            <div className="inline-flex items-center gap-1 p-1 bg-muted rounded-lg self-start sm:self-auto">
+            <div>
+              <h2 className="text-lg font-semibold">Choose a plan</h2>
+              <p className="text-sm text-muted-foreground">
+                Select a plan below. The confirmation step appears only after you choose one.
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-1 rounded-xl border bg-background p-1 self-start sm:self-auto">
               <Button
                 variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
                 size="sm"
@@ -242,7 +248,7 @@ export default function UpgradePage() {
               </Button>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {featuresByTier
               .filter((t) => t.tier !== Tier.INTELLIGENCE)
               .map(({ tier, info, features }) => {
@@ -379,7 +385,7 @@ export default function UpgradePage() {
 
         <TrustSection />
 
-        <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
+        <Card className="border-border/70 bg-card">
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
             <div>
               <h3 className="text-lg font-semibold">Need help choosing?</h3>
@@ -390,9 +396,9 @@ export default function UpgradePage() {
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => setShowPricingDialog(true)}
+                onClick={scrollToPlans}
               >
-                View Pricing
+                View plans
               </Button>
               <Button onClick={() => setShowContactSalesModal(true)}>
                 Contact Sales
@@ -420,18 +426,12 @@ export default function UpgradePage() {
           onOpenChange={setShowContactSalesModal}
           source="upgrade_page"
         />
-        <PricingDialog
-          open={showPricingDialog}
-          onOpenChange={setShowPricingDialog}
-          currentTier={effectiveCurrentTier}
-          onSelectTier={handleSelectTier}
-          initialCurrency={currency}
-        />
         <TierChangeDialog
           open={showTierChangeDialog}
           onOpenChange={setShowTierChangeDialog}
           currentTier={effectiveCurrentTier}
           selectedTier={selectedTier}
+          billingCycle={selectedCycle}
           onConfirm={handleConfirmTierChange}
         />
         <PaymentSuccessModal
@@ -442,6 +442,10 @@ export default function UpgradePage() {
         <InvoiceHistoryDialog
           open={showInvoiceHistory}
           onOpenChange={setShowInvoiceHistory}
+          onResolvePayment={() => {
+            setShowInvoiceHistory(false);
+            scrollToPlans();
+          }}
         />
       </div>
     </AppPageScaffold>

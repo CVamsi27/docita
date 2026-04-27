@@ -11,6 +11,11 @@ export function StatsSection({ stats }: StatsSectionProps) {
     return null;
   }
 
+  const hasCompleteStats = Object.values(stats).every((value) => value > 0);
+  if (!hasCompleteStats) {
+    return null;
+  }
+
   const statCards = [
     { label: "Active Clinics", icon: Building2, key: "clinics" as const },
     { label: "Doctors", icon: UserCog, key: "doctors" as const },

@@ -28,7 +28,6 @@ const STARTER_FEATURES = [
   "Up to 50 consultations/month",
   "Digital prescriptions with PDF",
   "Patient profiles & visit history",
-  "Paper record scanning & archival",
   "Excel import & CSV export",
   "Single doctor",
 ];
@@ -93,15 +92,16 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
         <SectionHeading
           align="center"
           size="section"
-          title="Pricing that fits Indian clinic operations"
-          description="Start with the workflow your clinic needs today, then add deeper capabilities as doctor count and patient volume grow."
+          title="Pricing built for paid clinic rollouts"
+          description="Start with a simple monthly plan, then add hands-on setup when the clinic needs import, templates, WhatsApp, and staff training."
           className="mb-4"
           descriptionClassName="mx-auto max-w-2xl"
         />
         <p className="mb-12 text-center ui-helper-text">
           India-competitive pricing shown in{" "}
           {FALLBACK_PRICING_CONFIG.currency.symbol} (
-          {FALLBACK_PRICING_CONFIG.currency.code})
+          {FALLBACK_PRICING_CONFIG.currency.code}). Guided setup starts from{" "}
+          ₹4,999 and is scoped separately.
         </p>
 
         <div className="grid gap-6 lg:grid-cols-4">
@@ -176,7 +176,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   >
                     <a href={`${appUrl}/onboarding`}>
                       <MessageSquare className="h-4 w-4" />
-                      Start trial
+                      Start setup
                     </a>
                   </Button>
                 </CardContent>

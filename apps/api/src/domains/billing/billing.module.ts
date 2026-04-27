@@ -5,6 +5,7 @@ import {
   BillingCalculatorService,
   ClaimValidationService,
   InvoiceValidatorService,
+  TaxCalculatorService,
 } from './core/services';
 import { PricingService } from './core/services/pricing.service';
 import { UsageTrackingService } from './core/services/usage-tracking.service';
@@ -58,6 +59,7 @@ import { QueueModule } from '@/shared/modules/queue/queue.module';
   ],
   providers: [
     BillingCalculatorService,
+    TaxCalculatorService,
     ClaimValidationService,
     InvoiceValidatorService,
     PricingService,
@@ -83,6 +85,7 @@ import { QueueModule } from '@/shared/modules/queue/queue.module';
     InvoicesService,
     PaymentsService,
     BillingCalculatorService,
+    TaxCalculatorService,
     ClaimValidationService,
     InvoiceValidatorService,
     PricingService,

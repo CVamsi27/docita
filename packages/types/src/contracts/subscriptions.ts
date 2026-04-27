@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { tierSchema } from "../billing/tier";
+import { invoiceTaxSummarySchema, taxInvoiceTypeSchema } from "../billing/tax";
 
 const billingCycleSchema = z.enum(["MONTHLY", "YEARLY"]);
 const estimateBillingCycleSchema = z.enum(["monthly", "yearly"]);
@@ -74,11 +75,16 @@ export const subscriptionBillingPaymentHistoryItemSchema = z
     id: z.string(),
     amountCents: z.number().int().min(0),
     amount: z.number().min(0).optional(), // legacy read alias
+    subtotalCents: z.number().int().min(0).optional(),
+    taxCents: z.number().int().min(0).optional(),
+    grandTotalCents: z.number().int().min(0).optional(),
     currency: z.string(),
     status: z.string(),
     description: z.string().optional(),
     invoiceUrl: z.string().optional(),
     invoiceNumber: z.string().optional(),
+    invoiceType: taxInvoiceTypeSchema.optional(),
+    taxSummary: invoiceTaxSummarySchema.optional(),
     paidAt: z.string().optional(),
     createdAt: z.string(),
   })

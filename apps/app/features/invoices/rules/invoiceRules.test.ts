@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateTax,
   calculateTotal,
+  calculateInvoiceTotals,
   canEditInvoice,
   isInvoiceOverdue,
   validateInvoiceItems,
@@ -22,17 +23,41 @@ describe("Invoice Business Rules", () => {
 
   describe("calculateTotal", () => {
     it("should calculate total with tax and discount", () => {
-
       expect(calculateTotal(100, 10, 5)).toBe(105);
     });
 
     it("should calculate total without discount", () => {
-
       expect(calculateTotal(100, 10)).toBe(110);
     });
 
     it("should calculate total without tax or discount", () => {
       expect(calculateTotal(100)).toBe(100);
+    });
+  });
+
+  describe("calculateInvoiceTotals", () => {
+    it("keeps healthcare lines exempt by default", () => {
+      const totals = calculateInvoiceTotals([{ quantity: 1, price: 500 }]);
+
+      expect(totals.subtotal).toBe(500);
+      expect(totals.taxTotal).toBe(0);
+      expect(totals.exemptAmount).toBe(500);
+      expect(totals.grandTotal).toBe(500);
+    });
+
+    it("calculates GST for taxable line previews", () => {
+      const totals = calculateInvoiceTotals([
+        {
+          quantity: 1,
+          price: 1000,
+          taxTreatment: "TAXABLE",
+          taxRate: 18,
+        },
+      ]);
+
+      expect(totals.taxableAmount).toBe(1000);
+      expect(totals.taxTotal).toBe(180);
+      expect(totals.grandTotal).toBe(1180);
     });
   });
 

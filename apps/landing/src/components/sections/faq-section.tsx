@@ -20,7 +20,12 @@ const faqs = [
   {
     question: "How does the pricing work?",
     answer:
-      "Each paid plan includes a base quota of consultations, users, WhatsApp messages, and plan-specific limits. Your flat monthly fee covers that quota. If you go beyond it, extra usage is billed at a per-unit rate at the start of the next month. Annual subscribers still get overage billed monthly, not at year-end. No hard limits, no service interruptions. Every plan starts with a 14-day free trial, no credit card required.",
+      "Each paid plan includes a base quota of consultations, users, WhatsApp messages, and plan-specific limits. Guided setup is quoted separately because each clinic has different records, templates, and training needs. If you go beyond plan usage, extra usage is billed at a per-unit rate at the start of the next month.",
+  },
+  {
+    question: "What does guided setup include?",
+    answer:
+      "Guided setup can include Excel import, patient list cleanup, prescription format configuration, clinic letterhead, doctor signature, WhatsApp message templates, billing basics, and staff walkthroughs. Starter setup begins from ₹4,999 after reviewing the current workflow.",
   },
   {
     question: "What happens if I exceed my plan limits?",

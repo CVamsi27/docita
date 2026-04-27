@@ -21,6 +21,7 @@ export function InvoiceHeader({
   clinic,
 }: InvoiceHeaderProps) {
   const facilityLabel = useFacilityLabel();
+  const documentTitle = invoice.taxSummary?.documentTitle ?? "Invoice";
   return (
     <CardHeader className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b pb-6">
       <div className="flex flex-col gap-1">
@@ -72,21 +73,25 @@ export function InvoiceHeader({
         </CardDescription>
       </div>
       <div className="text-right">
-        <h2 className="text-2xl font-bold text-primary mb-1">INVOICE</h2>
+        <h2 className="text-2xl font-bold text-primary mb-1">
+          {documentTitle}
+        </h2>
         <p className="text-sm font-medium text-muted-foreground">
-          #{invoice.id}
+          #{invoice.invoiceNumber ?? invoice.id}
         </p>
         <div className="mt-4 text-sm">
           <div className="flex justify-end gap-4">
             <span className="text-muted-foreground">Date:</span>
             <span className="font-medium">
-              {invoice.createdAt ? formatDate(invoice.createdAt) : "N/A"}
+              {invoice.issuedAt || invoice.createdAt
+                ? formatDate(invoice.issuedAt ?? invoice.createdAt)
+                : "N/A"}
             </span>
           </div>
           <div className="flex justify-end gap-4 mt-1">
             <span className="text-muted-foreground">Due Date:</span>
             <span className="font-medium">
-              {invoice.updatedAt ? formatDate(invoice.updatedAt) : "N/A"}
+              {invoice.dueDate ? formatDate(invoice.dueDate) : "N/A"}
             </span>
           </div>
         </div>

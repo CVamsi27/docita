@@ -3,21 +3,17 @@
 import { Button } from "@workspace/ui/components/button";
 import { ArrowRight } from "lucide-react";
 
-interface CtaBottomSectionProps {
-  appUrl: string;
-}
-
-export function CtaBottomSection({ appUrl }: CtaBottomSectionProps) {
+export function CtaBottomSection() {
   return (
     <section className="px-6 py-24 bg-primary text-primary-foreground relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
       <div className="mx-auto max-w-4xl text-center relative z-10">
         <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
-          Ready to transform your practice?
+          Ready to get one clinic workflow live?
         </h2>
         <p className="mt-6 text-xl opacity-90 max-w-2xl mx-auto">
-          Join thousands of doctors who have switched to Docita for a smarter,
-          more efficient clinic.
+          Book a guided setup for patient records, prescriptions, billing,
+          WhatsApp follow-up, and the first staff workflow.
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <Button
@@ -26,14 +22,14 @@ export function CtaBottomSection({ appUrl }: CtaBottomSectionProps) {
             variant="secondary"
             className="h-12 px-8 text-lg gap-2"
           >
-            <a href={`${appUrl}/onboarding`}>
-              Start trial
+            <a href="/contact">
+              Book clinic setup
               <ArrowRight className="h-5 w-5" />
             </a>
           </Button>
         </div>
         <p className="mt-4 text-sm opacity-90">
-          14-day free trial • No credit card required
+          Setup from ₹4,999 • Software plans from ₹499/month
         </p>
       </div>
     </section>

@@ -27,11 +27,13 @@ import { DEFAULT_CURRENCY } from "@workspace/utils";
 interface InvoiceHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onResolvePayment?: () => void;
 }
 
 export function InvoiceHistoryDialog({
   open,
   onOpenChange,
+  onResolvePayment,
 }: InvoiceHistoryDialogProps) {
   const { data: invoices, isLoading } = useBillingHistory(open);
 
@@ -59,67 +61,81 @@ export function InvoiceHistoryDialog({
               <p className="text-sm">Loading billing history...</p>
             </div>
           ) : !invoices || invoices.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-muted-foreground gap-2">
+            <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground gap-2">
               <FileText className="h-12 w-12 opacity-20" />
-              <p>No billing records found yet</p>
+              <p className="font-medium text-foreground">No billing records yet</p>
+              <p className="max-w-sm text-sm">
+                Payments and receipts will appear here after checkout.
+              </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell>
-                      {new Date(invoice.createdAt).toLocaleDateString("en-IN")}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {invoice.description || "Subscription Payment"}
-                    </TableCell>
-                    <TableCell>
-                      {new Intl.NumberFormat("en-IN", {
-                        style: "currency",
-                        currency: invoice.currency || DEFAULT_CURRENCY,
-                      }).format(invoice.amountCents / 100)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "capitalize",
-                          invoice.status === "paid"
-                            ? "badge-success"
-                            : "badge-warning",
-                        )}
-                      >
-                        {humanizeUiLabel(invoice.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {invoice.invoiceUrl ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownload(invoice.invoiceUrl!)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          PDF
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
+            <div className="rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {invoices.map((invoice) => {
+                    const isPaid = invoice.status === "paid";
+                    return (
+                      <TableRow key={invoice.id}>
+                        <TableCell>
+                          {new Date(invoice.createdAt).toLocaleDateString("en-IN")}
+                        </TableCell>
+                        <TableCell className="max-w-[220px] truncate">
+                          {invoice.description || "Subscription Payment"}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {new Intl.NumberFormat("en-IN", {
+                            style: "currency",
+                            currency: invoice.currency || DEFAULT_CURRENCY,
+                          }).format(invoice.amountCents / 100)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "capitalize",
+                              isPaid ? "badge-success" : "badge-warning",
+                            )}
+                          >
+                            {humanizeUiLabel(invoice.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {invoice.invoiceUrl ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownload(invoice.invoiceUrl!)}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              PDF
+                            </Button>
+                          ) : !isPaid && onResolvePayment ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={onResolvePayment}
+                            >
+                              Pay now
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </div>
 

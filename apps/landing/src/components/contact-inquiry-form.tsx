@@ -97,7 +97,9 @@ export function ContactInquiryForm() {
       await submitContactInquiry(formData);
       setIsSubmitted(true);
     } catch {
-      setSubmitError("We could not send your message right now. Please try again in a few minutes.");
+      setSubmitError(
+        "We could not send your message right now. Please try again in a few minutes.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -106,9 +108,10 @@ export function ContactInquiryForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Send us a message</CardTitle>
+        <CardTitle>Book clinic setup</CardTitle>
         <CardDescription>
-          Share your facility size and goals. We will respond with a practical rollout plan.
+          Share your facility size and current workflow. We will respond with a
+          practical rollout plan and setup estimate.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -190,9 +193,13 @@ export function ContactInquiryForm() {
               </Alert>
             ) : null}
 
-            <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
               <Send className="mr-2 h-4 w-4" />
-              {isSubmitting ? "Sending..." : "Send Message"}
+              {isSubmitting ? "Sending..." : "Request setup"}
             </Button>
           </form>
         )}

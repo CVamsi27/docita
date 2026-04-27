@@ -9,5 +9,5 @@ test("accessibility smoke", async ({ page }) => {
 
   const h1 = page.getByRole("heading", { level: 1 });
   await expect(h1).toHaveCount(1);
-  await expect(h1).toContainText("Modern Healthcare");
+  await expect(h1).toContainText("Clinic software");
 });

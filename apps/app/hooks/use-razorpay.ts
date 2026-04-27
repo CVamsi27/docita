@@ -77,18 +77,25 @@ export function useRazorpay() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const loadRazorpay = useCallback(() => {
-    return new Promise((resolve) => {
-      if (document.getElementById("razorpay-sdk")) {
+    return new Promise<boolean>((resolve) => {
+      if (typeof window.Razorpay === "function") {
         setIsLoaded(true);
         resolve(true);
         return;
       }
+
+      const existingScript = document.getElementById("razorpay-sdk");
+      if (existingScript) {
+        existingScript.remove();
+      }
+
       const script = document.createElement("script");
       script.id = "razorpay-sdk";
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => {
-        setIsLoaded(true);
-        resolve(true);
+        const loaded = typeof window.Razorpay === "function";
+        setIsLoaded(loaded);
+        resolve(loaded);
       };
       script.onerror = () => {
         resolve(false);
@@ -107,6 +114,15 @@ export function useRazorpay() {
       }
 
       await new Promise<void>((resolve, reject) => {
+        if (typeof window.Razorpay !== "function") {
+          reject(
+            new Error(
+              "We could not open payment right now. Please refresh and try again.",
+            ),
+          );
+          return;
+        }
+
         const rzp = new window.Razorpay({
           ...options,
           handler: async (response: RazorpayResponse) => {

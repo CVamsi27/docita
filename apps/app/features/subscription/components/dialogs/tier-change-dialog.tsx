@@ -39,6 +39,7 @@ interface TierChangeDialogProps {
   onOpenChange: (open: boolean) => void;
   currentTier: Tier;
   selectedTier: TierName | null;
+  billingCycle: "MONTHLY" | "YEARLY";
   onConfirm: () => Promise<void>;
 }
 
@@ -55,6 +56,7 @@ export function TierChangeDialog({
   onOpenChange,
   currentTier,
   selectedTier,
+  billingCycle,
   onConfirm,
 }: TierChangeDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -152,25 +154,23 @@ export function TierChangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-linear-to-br from-background via-background to-muted/30">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             {isUpgrade ? (
               <>
-                <ArrowRight className="h-5 w-5 text-success" />
-                Upgrade Your Plan
+                <ArrowRight className="h-5 w-5 text-primary" />
+                Confirm plan change
               </>
             ) : (
               <>
                 <ArrowDown className="h-5 w-5 text-warning" />
-                Downgrade Plan
+                Confirm plan change
               </>
             )}
           </DialogTitle>
           <DialogDescription>
-            {isUpgrade
-              ? "Unlock more features for your facility"
-              : "You'll lose access to some features"}
+            Review the plan, billing cycle, and monthly price before checkout.
           </DialogDescription>
         </DialogHeader>
 
@@ -191,66 +191,46 @@ export function TierChangeDialog({
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-center gap-4 py-6">
-              <div className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/50 min-w-[120px]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                  <CurrentIcon className="h-5 w-5" />
+            <div className="grid gap-3 py-2 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
+              <div className="rounded-xl border bg-muted/30 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
+                    <CurrentIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Current plan</span>
                 </div>
-                <span className="text-sm font-medium">{currentInfo.name}</span>
-                <span className="text-xs text-muted-foreground">
+                <p className="font-semibold">{currentInfo.name}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
                   {!currentHasCustomPricing && typeof currentPrice === "number"
                     ? `${formatPrice(currentPrice)}/mo`
-                    : "Custom"}
-                </span>
+                    : "Custom pricing"}
+                </p>
               </div>
 
-              <div
-                className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-full",
-                  isUpgrade
-                    ? "bg-success/15"
-                    : "bg-warning/15",
-                )}
-              >
+              <div className="hidden items-center justify-center sm:flex">
                 {isUpgrade ? (
-                  <ArrowRight className="h-5 w-5 text-success" />
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <ArrowDown className="h-5 w-5 text-warning" />
+                  <ArrowDown className="h-5 w-5 text-muted-foreground" />
                 )}
               </div>
 
-              <div
-                className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-lg min-w-[120px]",
-                  isUpgrade
-                    ? "bg-success/10 ring-2 ring-success/30"
-                    : "bg-warning/10 ring-2 ring-warning/30",
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-lg",
-                    isUpgrade
-                      ? "bg-success/20"
-                      : "bg-warning/20",
-                  )}
-                >
-                  <SelectedIcon
-                    className={cn(
-                      "h-5 w-5",
-                      isUpgrade
-                        ? "text-success"
-                        : "text-warning",
-                    )}
-                  />
+              <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-primary">
+                    <SelectedIcon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-medium">Selected plan</span>
                 </div>
-                <span className="text-sm font-medium">{selectedInfo.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {!selectedHasCustomPricing &&
-                  typeof selectedPrice === "number"
+                <p className="font-semibold">{selectedInfo.name}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {!selectedHasCustomPricing && typeof selectedPrice === "number"
                     ? `${formatPrice(selectedPrice)}/mo`
-                    : "Custom"}
-                </span>
+                    : "Custom pricing"}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {billingCycle === "YEARLY" ? "Yearly billing" : "Monthly billing"}
+                </p>
               </div>
             </div>
 
@@ -314,7 +294,7 @@ export function TierChangeDialog({
                 onClick={handleConfirm}
                 disabled={isLoading}
                 className={cn(
-                  isUpgrade ? "bg-success hover:bg-success/90" : "btn-warning",
+                  isUpgrade ? "" : "btn-warning",
                 )}
               >
                 {isLoading ? (

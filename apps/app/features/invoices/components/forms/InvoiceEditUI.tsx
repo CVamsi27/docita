@@ -27,13 +27,16 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import { FileText, Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
-import { type InvoiceFormValues, useInvoiceEditLogic } from "@/features/invoices/hooks/use-invoice-edit-logic";
+import {
+  type InvoiceFormValues,
+  useInvoiceEditLogic,
+} from "@/features/invoices/hooks/use-invoice-edit-logic";
 import { BackButton } from "@/components/common/navigation/back-button";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 interface InvoiceEditUIProps {
   invoiceId: string;
@@ -53,13 +56,6 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
     totalAmount,
     router,
   } = useInvoiceEditLogic(invoiceId);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
-    }).format(amount);
-  };
 
   if (isLoading) {
     return <LoadingState message="Loading invoice..." />;
@@ -142,13 +138,34 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                   description: form.watch(`items.${index}.description`),
                   quantity: form.watch(`items.${index}.quantity`) || 0,
                   unitPrice: form.watch(`items.${index}.price`) || 0,
+                  taxTreatment:
+                    form.watch(`items.${index}.taxTreatment`) ||
+                    "EXEMPT_HEALTHCARE",
+                  taxRate: form.watch(`items.${index}.taxRate`) || 0,
+                  hsnCode: form.watch(`items.${index}.hsnCode`) || "",
+                  sacCode: form.watch(`items.${index}.sacCode`) || "",
                   total:
                     (form.watch(`items.${index}.quantity`) || 0) *
-                    (form.watch(`items.${index}.price`) || 0),
+                      (form.watch(`items.${index}.price`) || 0) +
+                    ((form.watch(`items.${index}.taxTreatment`) === "TAXABLE"
+                      ? form.watch(`items.${index}.taxRate`) || 0
+                      : 0) /
+                      100) *
+                      ((form.watch(`items.${index}.quantity`) || 0) *
+                        (form.watch(`items.${index}.price`) || 0)),
                 }))}
                 onUpdateItem={(index, key, value) => {
                   const fieldName = key === "unitPrice" ? "price" : key;
-                  form.setValue(`items.${index}.${fieldName}` as Path<InvoiceFormValues>, value);
+                  form.setValue(
+                    `items.${index}.${fieldName}` as Path<InvoiceFormValues>,
+                    value,
+                  );
+                  if (key === "taxTreatment" && value !== "TAXABLE") {
+                    form.setValue(
+                      `items.${index}.taxRate` as Path<InvoiceFormValues>,
+                      0,
+                    );
+                  }
                 }}
                 onRemoveItem={remove}
                 formatCurrency={formatCurrency}
@@ -158,7 +175,13 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  append({ description: "", quantity: 1, price: 0 })
+                  append({
+                    description: "",
+                    quantity: 1,
+                    price: 0,
+                    taxTreatment: "EXEMPT_HEALTHCARE",
+                    taxRate: 0,
+                  })
                 }
                 className="mt-4"
               >
@@ -202,11 +225,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
           </Card>
 
           <div className="flex justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={goBack}
-            >
+            <Button type="button" variant="outline" onClick={goBack}>
               Cancel
             </Button>
             <Button type="submit">

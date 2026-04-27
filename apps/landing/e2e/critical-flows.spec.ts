@@ -2,20 +2,32 @@ import { expect, test } from "@playwright/test";
 
 test("homepage renders primary CTA", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Modern Healthcare/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Start trial" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Book a Demo" }).first()).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /From paper files/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Start clinic setup" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Book guided demo" }).first(),
+  ).toBeVisible();
 });
 
 test("legal pages are reachable", async ({ page }) => {
   await page.goto("/privacy");
-  await expect(page.getByRole("heading", { name: "Privacy Policy" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Privacy Policy" }),
+  ).toBeVisible();
 
   await page.goto("/terms");
-  await expect(page.getByRole("heading", { name: "Terms of Service" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Terms of Service" }),
+  ).toBeVisible();
 
   await page.goto("/cookies");
-  await expect(page.getByRole("heading", { name: "Cookie Policy" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Cookie Policy" }),
+  ).toBeVisible();
 });
 
 test("contact inquiry form validation and submit path", async ({ page }) => {
@@ -45,21 +57,31 @@ test("contact inquiry form validation and submit path", async ({ page }) => {
     document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
   });
 
-  await page.locator("form").getByRole("button", { name: "Send Message" }).click();
-  await expect(page.getByText("Name is required", { exact: true })).toBeVisible();
-  await expect(page.getByText("Email is required", { exact: true })).toBeVisible();
+  await page
+    .locator("form")
+    .getByRole("button", { name: "Request setup" })
+    .click();
+  await expect(
+    page.getByText("Enter your name", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Enter your email address", { exact: true }),
+  ).toBeVisible();
 
   await page.getByLabel("Full Name *").fill("Dr. Test User");
   await page.getByLabel("Email *").fill("doctor@example.com");
-  await page.getByLabel("Clinic Name *").fill("Demo Clinic");
+  await page.getByLabel("Facility Name *").fill("Demo Clinic");
   await page
     .getByLabel("Message *")
     .fill("We want to evaluate Docita for appointment and billing workflows.");
 
-  await page.locator("form").getByRole("button", { name: "Send Message" }).click();
+  await page
+    .locator("form")
+    .getByRole("button", { name: "Request setup" })
+    .click();
 
-  await expect(
-    page.getByText("Message sent successfully"),
-  ).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Message sent successfully")).toBeVisible({
+    timeout: 15000,
+  });
   expect(csrfHeader).toBe("e2e-csrf-token");
 });

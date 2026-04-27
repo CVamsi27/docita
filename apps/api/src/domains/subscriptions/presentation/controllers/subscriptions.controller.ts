@@ -177,10 +177,15 @@ export class SubscriptionsController {
     )) as Array<{
       id?: string;
       amountCents: number;
+      subtotalCents?: number | null;
+      taxCents?: number | null;
+      grandTotalCents?: number | null;
       currency: string;
       status?: string;
       invoiceUrl?: string | null;
       invoiceNumber?: string | null;
+      invoiceType?: string | null;
+      taxSummary?: unknown;
       description?: string | null;
       paidAt?: Date | null;
       createdAt: Date;
@@ -190,11 +195,16 @@ export class SubscriptionsController {
       id: p.id,
       amountCents: p.amountCents,
       amount: p.amountCents / 100, // legacy alias
+      subtotalCents: p.subtotalCents ?? undefined,
+      taxCents: p.taxCents ?? undefined,
+      grandTotalCents: p.grandTotalCents ?? undefined,
       currency: p.currency,
       status: p.status ?? String(p.getStatus?.() ?? 'pending'),
       description: p.description ?? undefined,
       invoiceUrl: p.invoiceUrl ?? undefined,
       invoiceNumber: p.invoiceNumber ?? undefined,
+      invoiceType: p.invoiceType ?? undefined,
+      taxSummary: p.taxSummary ?? undefined,
       paidAt: p.paidAt ? p.paidAt.toISOString() : undefined,
       createdAt: p.createdAt.toISOString(),
     }));

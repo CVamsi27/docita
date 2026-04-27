@@ -13,6 +13,11 @@ interface InvoiceItem {
   description: string;
   quantity: number;
   price: number;
+  unitPrice?: number;
+  taxRate?: number;
+  hsnCode?: string;
+  sacCode?: string;
+  lineTotal?: number;
 }
 
 interface InvoiceItemsTableReadOnlyProps {
@@ -29,18 +34,12 @@ export function InvoiceItemsTableReadOnly({
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead className="py-3 px-4">
-              Description
-            </TableHead>
-            <TableHead className="py-3 px-4 text-center w-24">
-              Qty
-            </TableHead>
-            <TableHead className="py-3 px-4 text-right w-32">
-              Price
-            </TableHead>
-            <TableHead className="py-3 px-4 text-right w-32">
-              Total
-            </TableHead>
+            <TableHead className="py-3 px-4">Description</TableHead>
+            <TableHead className="py-3 px-4 text-center w-24">Qty</TableHead>
+            <TableHead className="py-3 px-4 text-right w-32">Price</TableHead>
+            <TableHead className="py-3 px-4 text-right w-24">GST</TableHead>
+            <TableHead className="py-3 px-4 text-right w-28">HSN/SAC</TableHead>
+            <TableHead className="py-3 px-4 text-right w-32">Total</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="divide-y">
@@ -51,10 +50,19 @@ export function InvoiceItemsTableReadOnly({
                 {item.quantity}
               </TableCell>
               <TableCell className="py-3 px-4 text-right">
-                {formatCurrency(item.price)}
+                {formatCurrency(item.unitPrice ?? item.price)}
+              </TableCell>
+              <TableCell className="py-3 px-4 text-right">
+                {item.taxRate ?? 0}%
+              </TableCell>
+              <TableCell className="py-3 px-4 text-right">
+                {item.hsnCode || item.sacCode || "-"}
               </TableCell>
               <TableCell className="py-3 px-4 text-right font-medium">
-                {formatCurrency(item.quantity * item.price)}
+                {formatCurrency(
+                  item.lineTotal ??
+                    item.quantity * (item.unitPrice ?? item.price),
+                )}
               </TableCell>
             </TableRow>
           ))}

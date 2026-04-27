@@ -65,21 +65,20 @@ export function CurrentPlanCard({
   const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
 
   return (
-    <Card className="relative overflow-hidden border-2 border-primary/20 bg-linear-to-br from-primary/5 via-background to-background">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+    <Card className="relative overflow-hidden border-border/70 bg-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-xl shadow-lg",
+                "flex h-11 w-11 items-center justify-center rounded-xl",
                 colors.gradient,
               )}
             >
-              <Crown className="h-6 w-6" />
+              <Crown className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-xl">{tierInfo.name} Plan</CardTitle>
+              <CardTitle className="text-lg">{tierInfo.name} Plan</CardTitle>
               <CardDescription>{tierInfo.description}</CardDescription>
             </div>
           </div>
@@ -133,10 +132,10 @@ export function CurrentPlanCard({
           <div className="flex flex-wrap gap-3 pt-2">
             <Button
               onClick={onChangePlan}
-              className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+              className="gap-2"
             >
-              <TrendingUp className="mr-2 h-4 w-4" />
-              View Upgrade Page
+              <TrendingUp className="h-4 w-4" />
+              Change plan
             </Button>
             <Button variant="outline" onClick={onViewBillingHistory}>
               <Receipt className="mr-2 h-4 w-4" />

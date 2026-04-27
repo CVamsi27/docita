@@ -47,6 +47,8 @@ const CONNECT_SOURCES = [
   "https://api.docita.work",
   "wss://api.docita.work",
   "https://*.sentry.io",
+  DEFAULT_PUBLIC_API_URL,
+  DEFAULT_PUBLIC_SOCKET_URL,
   process.env.NEXT_PUBLIC_API_URL,
   process.env.NEXT_PUBLIC_SOCKET_URL,
   process.env.NEXT_PUBLIC_ANALYTICS_URL,

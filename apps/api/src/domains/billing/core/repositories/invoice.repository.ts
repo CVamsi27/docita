@@ -2,9 +2,19 @@ import { InvoiceStatus, Prisma } from '@workspace/db';
 
 export interface InvoiceListItem {
   id: string;
+  clinicId: string | null;
+  invoiceNumber: string | null;
+  invoiceType: string;
+  currency: string;
   total: number;
+  subtotal: number;
+  discountTotal: number;
+  taxTotal: number;
+  grandTotal: number;
   status: InvoiceStatus;
   items: Prisma.JsonValue;
+  issuedAt: Date | null;
+  dueDate: Date | null;
   createdAt: Date;
   patient?: {
     id: string;
@@ -17,7 +27,27 @@ export interface InvoiceListItem {
 export interface InvoiceDetail {
   id: string;
   patientId: string;
+  clinicId: string | null;
+  invoiceNumber: string | null;
+  invoiceType: string;
+  currency: string;
   total: number;
+  subtotal: number;
+  discountTotal: number;
+  taxTotal: number;
+  grandTotal: number;
+  taxSummary: Prisma.JsonValue | null;
+  sellerTaxSnapshot: Prisma.JsonValue | null;
+  buyerTaxSnapshot: Prisma.JsonValue | null;
+  placeOfSupplyStateCode: string | null;
+  placeOfSupplyStateName: string | null;
+  reverseCharge: boolean;
+  issuedAt: Date | null;
+  dueDate: Date | null;
+  eInvoiceRequired: boolean;
+  eInvoiceIrn: string | null;
+  eInvoiceQrCode: string | null;
+  eInvoiceAcknowledgedAt: Date | null;
   status: InvoiceStatus;
   items: Prisma.JsonValue;
   doctorName: string | null;
@@ -71,6 +101,25 @@ export interface InvoiceDetail {
   } | null;
 }
 
+export interface PatientInvoiceContext {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string | null;
+  email: string | null;
+  address: string | null;
+  clinicId: string;
+  clinic: {
+    id: string;
+    name: string;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    currency: string | null;
+    settings: Prisma.JsonValue | null;
+  };
+}
+
 export interface InvoiceSearchParams {
   clinicId: string;
   patientId?: string;
@@ -96,6 +145,15 @@ export interface IInvoiceRepository {
   create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail>;
   update(id: string, data: Prisma.InvoiceUpdateInput): Promise<InvoiceDetail>;
   delete(id: string): Promise<void>;
+  findPatientContext(
+    patientId: string,
+    clinicId?: string,
+  ): Promise<PatientInvoiceContext | null>;
+  nextInvoiceNumber(
+    clinicId: string,
+    issuedAt: Date,
+    prefix?: string,
+  ): Promise<string>;
 }
 
 export const INVOICE_REPOSITORY_TOKEN = Symbol('IInvoiceRepository');

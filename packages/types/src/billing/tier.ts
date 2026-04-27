@@ -18,7 +18,6 @@ export enum Tier {
 }
 
 export enum Feature {
-
   PAPER_SCANNING = "PAPER_SCANNING",
   EXCEL_IMPORT = "EXCEL_IMPORT",
   PATIENT_DEDUPLICATION = "PATIENT_DEDUPLICATION",
@@ -75,7 +74,6 @@ export enum Feature {
 export const featureSchema = z.nativeEnum(Feature);
 
 export const FEATURE_TIER_MAP: Record<Feature, Tier> = {
-
   [Feature.PAPER_SCANNING]: Tier.STARTER,
   [Feature.EXCEL_IMPORT]: Tier.STARTER,
   [Feature.PATIENT_DEDUPLICATION]: Tier.STARTER,
@@ -236,63 +234,63 @@ export const TIER_PRICING_BY_CURRENCY: Record<
   Record<TierName, MultiCurrencyTierPricing>
 > = {
   INR: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(499),
     ESSENTIAL: buildTierPricing(999),
     PROFESSIONAL: buildTierPricing(2499),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   USD: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(9),
     ESSENTIAL: buildTierPricing(19),
     PROFESSIONAL: buildTierPricing(49),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   EUR: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(8),
     ESSENTIAL: buildTierPricing(17),
     PROFESSIONAL: buildTierPricing(45),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   GBP: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(7),
     ESSENTIAL: buildTierPricing(15),
     PROFESSIONAL: buildTierPricing(39),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   AUD: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(14),
     ESSENTIAL: buildTierPricing(29),
     PROFESSIONAL: buildTierPricing(75),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   CAD: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
     PROFESSIONAL: buildTierPricing(65),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   SGD: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(12),
     ESSENTIAL: buildTierPricing(25),
     PROFESSIONAL: buildTierPricing(65),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   AED: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(35),
     ESSENTIAL: buildTierPricing(69),
     PROFESSIONAL: buildTierPricing(179),
     ENTERPRISE: buildTierPricing("custom"),
     INTELLIGENCE: buildTierPricing(0),
   },
   ZAR: {
-    STARTER: buildTierPricing(0),
+    STARTER: buildTierPricing(179),
     ESSENTIAL: buildTierPricing(349),
     PROFESSIONAL: buildTierPricing(899),
     ENTERPRISE: buildTierPricing("custom"),
@@ -301,7 +299,7 @@ export const TIER_PRICING_BY_CURRENCY: Record<
 };
 
 export const TIER_PRICING: Record<TierName, TierPricing> = {
-  STARTER: { monthly: 0, yearly: 0, currency: "₹" },
+  STARTER: { monthly: 499, yearly: deriveAnnualPrice(499), currency: "₹" },
   ESSENTIAL: { monthly: 999, yearly: deriveAnnualPrice(999), currency: "₹" },
   PROFESSIONAL: {
     monthly: 2499,
@@ -782,7 +780,10 @@ export const WHATSAPP_ADDON_PRICING_BY_CURRENCY: Record<
   },
 };
 
-const INTELLIGENCE_ZERO_PRICING: Record<Exclude<TierName, "STARTER" | "INTELLIGENCE">, AddOnPricing> = {
+const INTELLIGENCE_ZERO_PRICING: Record<
+  Exclude<TierName, "STARTER" | "INTELLIGENCE">,
+  AddOnPricing
+> = {
   ESSENTIAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   PROFESSIONAL: { basePrice: 0, includedQuota: 0, overageRate: 0 },
   ENTERPRISE: { basePrice: 0, includedQuota: 0, overageRate: 0 },
@@ -986,10 +987,9 @@ export type TierInfo = z.infer<typeof tierInfoSchema>;
 
 export const TIER_INFO: Record<TierName, TierInfo> = {
   STARTER: {
-    name: "Free",
-    description:
-      "Basic clinical workflow for free — consultations, prescriptions, and patient records",
-    tagline: "Free forever",
+    name: "Starter",
+    description: "Basic clinical workflow for solo doctors moving off paper",
+    tagline: "Start clinic digitization",
     color: "gray",
   },
   ESSENTIAL: {
@@ -1029,7 +1029,6 @@ export const featureDisplaySchema = z.object({
 export type FeatureDisplay = z.infer<typeof featureDisplaySchema>;
 
 export const FEATURE_DISPLAY: Record<Feature, FeatureDisplay> = {
-
   [Feature.PAPER_SCANNING]: {
     name: "Paper Scanning",
     description: "Scan documents with your camera",
@@ -1293,7 +1292,7 @@ export const TIER_FEATURES: Record<TierName, string[]> = {
     "Single doctor",
   ],
   ESSENTIAL: [
-    "All features from Free",
+    "All features from Starter",
     "Unlimited patients included",
     "1 doctor included",
     "500 consultations/mo included",
@@ -1398,7 +1397,6 @@ export function getTierFeaturesList(tier: Tier | TierName): string[] {
   return TIER_FEATURES[tierName];
 }
 
-
 export const usageMetricsSchema = z.object({
   consultations: z.number().int().min(0),
   users: z.number().int().min(0),
@@ -1429,63 +1427,65 @@ const usageWarningSchema = z
   })
   .strict();
 
-export const currentUsageSchema = z.object({
-  period: z.object({
-    start: z.string(),
-    end: z.string(),
-  }),
-  usage: z
-    .object({
-      consultations: z.number().int().min(0),
-      users: z.number().int().min(0),
-      whatsappMessages: z.number().int().min(0),
-    })
-    .strict(),
-  included: z
-    .object({
-      consultations: z.number().int().min(0),
-      users: z.number().int().min(0),
-      whatsappMessages: z.number().int().min(0),
-    })
-    .strict(),
-  overages: z
-    .object({
-      consultations: z.number().int().min(0),
-      users: z.number().int().min(0),
-      whatsappMessages: z.number().int().min(0),
-    })
-    .strict(),
-  rates: z
-    .object({
-      consultations: z.number().min(0),
-      users: z.number().min(0),
-      whatsappMessages: z.number().min(0),
-    })
-    .strict(),
-  breakdown: z
-    .object({
-      consultations: usageChargeSchema,
-      users: usageChargeSchema,
-      whatsappMessages: usageChargeSchema,
-    })
-    .strict(),
-  total: z.number().min(0),
-  meters: z
-    .object({
-      consultations: usageMeterSchema,
-      users: usageMeterSchema,
-      whatsappMessages: usageMeterSchema,
-    })
-    .strict(),
-  warnings: z
-    .object({
-      consultations: usageWarningSchema,
-      users: usageWarningSchema,
-      whatsappMessages: usageWarningSchema,
-    })
-    .strict(),
-  tier: z.string(),
-}).strict();
+export const currentUsageSchema = z
+  .object({
+    period: z.object({
+      start: z.string(),
+      end: z.string(),
+    }),
+    usage: z
+      .object({
+        consultations: z.number().int().min(0),
+        users: z.number().int().min(0),
+        whatsappMessages: z.number().int().min(0),
+      })
+      .strict(),
+    included: z
+      .object({
+        consultations: z.number().int().min(0),
+        users: z.number().int().min(0),
+        whatsappMessages: z.number().int().min(0),
+      })
+      .strict(),
+    overages: z
+      .object({
+        consultations: z.number().int().min(0),
+        users: z.number().int().min(0),
+        whatsappMessages: z.number().int().min(0),
+      })
+      .strict(),
+    rates: z
+      .object({
+        consultations: z.number().min(0),
+        users: z.number().min(0),
+        whatsappMessages: z.number().min(0),
+      })
+      .strict(),
+    breakdown: z
+      .object({
+        consultations: usageChargeSchema,
+        users: usageChargeSchema,
+        whatsappMessages: usageChargeSchema,
+      })
+      .strict(),
+    total: z.number().min(0),
+    meters: z
+      .object({
+        consultations: usageMeterSchema,
+        users: usageMeterSchema,
+        whatsappMessages: usageMeterSchema,
+      })
+      .strict(),
+    warnings: z
+      .object({
+        consultations: usageWarningSchema,
+        users: usageWarningSchema,
+        whatsappMessages: usageWarningSchema,
+      })
+      .strict(),
+    tier: z.string(),
+  })
+  .strict();
 export type CurrentUsage = z.infer<typeof currentUsageSchema>;
 
 export const WHATSAPP_INCLUDED_IN_PRO = 500;
