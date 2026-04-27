@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import VerifyEmailSentPage from "./page";
 
-const RESEND_VERIFICATION_COOLDOWN_MS = 120 * 1000;
+const VERIFICATION_EMAIL_COOLDOWN_MS = 120 * 1000;
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -105,7 +105,7 @@ describe("VerifyEmailSentPage", () => {
     ).toBeInTheDocument();
 
     await act(async () => {
-      vi.advanceTimersByTime(RESEND_VERIFICATION_COOLDOWN_MS);
+      vi.advanceTimersByTime(VERIFICATION_EMAIL_COOLDOWN_MS);
     });
 
     expect(

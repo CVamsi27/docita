@@ -1,6 +1,7 @@
 import { expect, Page, test } from "@playwright/test";
-
-const API_URL = "http://127.0.0.1:3001/api/v1";
+import { API_URL, setupTestUser } from "./utils/patient-helpers";
+import { seedSession } from "./utils/session";
+import { expectPageHeader, expectRoute } from "./utils/ui-contracts";
 
 test.describe("WhatsApp Integration", () => {
   let cachedUser: {
@@ -14,35 +15,13 @@ test.describe("WhatsApp Integration", () => {
   let cachedPrescription: { id: string } | null = null;
 
   test.beforeAll(async ({ request }) => {
-
-    const uniqueEmail = `dr_wa_${Date.now()}@test.com`;
-    const password = "Test@123456";
-
-    const regRes = await request.post(`${API_URL}/auth/register`, {
-      data: {
-        email: uniqueEmail,
-        password: password,
-        firstName: "Dr",
-        lastName: "WhatsApp",
-        role: "DOCTOR",
-        clinicName: "WA Clinic",
-      },
-    });
-
-    let authData = await regRes.json();
-    if (!authData.access_token) {
-      const loginRes = await request.post(`${API_URL}/auth/login`, {
-        data: { email: uniqueEmail, password },
-      });
-      authData = await loginRes.json();
-    }
-
+    const user = await setupTestUser(request);
     cachedUser = {
-      id: authData.user.id,
-      email: authData.user.email,
-      clinicId: authData.user.clinicId,
-      accessToken: authData.access_token,
-      role: authData.user.role,
+      id: user.id,
+      email: user.email,
+      clinicId: user.clinicId,
+      accessToken: user.accessToken,
+      role: "ADMIN_DOCTOR",
     };
 
     const patientRes = await request.post(`${API_URL}/patients`, {
@@ -100,17 +79,35 @@ test.describe("WhatsApp Integration", () => {
 
   async function injectAuth(page: Page) {
     if (!cachedUser) return;
-    const userStore = JSON.stringify(cachedUser);
-    const token = cachedUser.accessToken;
-
-    await page.addInitScript(
-      ({ t, u }) => {
-        localStorage.setItem("docita_token", t);
-        localStorage.setItem("docita_user", u);
+    await seedSession(page, {
+      token: cachedUser.accessToken,
+      user: {
+        id: cachedUser.id,
+        email: cachedUser.email,
+        role: cachedUser.role ?? "ADMIN_DOCTOR",
+        clinicId: cachedUser.clinicId,
       },
-      { t: token, u: userStore },
-    );
+    });
   }
+
+  test("should render WhatsApp page header and primary actions", async ({ page }) => {
+    await injectAuth(page);
+    await page.goto("/whatsapp");
+    await page.waitForLoadState("networkidle");
+
+    if ((page.url() || "").includes("/dashboard")) {
+      test.skip();
+      return;
+    }
+    await expectRoute(page, /\/whatsapp/);
+    await expectPageHeader(page, {
+      title: "WhatsApp Integration",
+      description: /WhatsApp Business API/i,
+    });
+
+    await expect(page.getByRole("button", { name: /Manage Settings/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Create Campaign/i })).toBeVisible();
+  });
 
   test("should trigger WhatsApp API when sending prescription", async ({
     page,

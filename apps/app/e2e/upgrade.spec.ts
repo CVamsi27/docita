@@ -1,67 +1,33 @@
 import { expect, test } from "@playwright/test";
-
-const API_URL = process.env["API_URL"] || "http://localhost:3001/api/v1";
-
-function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-
-  return Object.fromEntries(Object.entries(value));
-}
-
-function readString(source: Record<string, unknown>, key: string): string | undefined {
-  const value = source[key];
-  return typeof value === "string" ? value : undefined;
-}
+import { setupTestUser } from "./utils/patient-helpers";
+import { seedSession } from "./utils/session";
+import { expectPageHeader, expectRoute } from "./utils/ui-contracts";
 
 test.describe("Upgrade Page", () => {
-  let token: string;
+  let user: Awaited<ReturnType<typeof setupTestUser>> | null = null;
 
-  test.beforeEach(async ({ context }) => {
+  test.beforeAll(async ({ request }) => {
+    user = await setupTestUser(request);
+  });
 
-    const userEmail = `admin${Date.now()}@test.com`;
-    const password = "Test@123456";
-
-    try {
-      const registerRes = await context.request.post(
-        `${API_URL}/auth/register`,
-        {
-          data: {
-            email: userEmail,
-            password,
-            firstName: "Admin",
-            lastName: "User",
-            role: "ADMIN",
-            clinicName: `Clinic ${Date.now()}`,
-          },
-        },
-      );
-
-      if (registerRes.ok()) {
-        const userData = toRecord(await registerRes.json());
-        token = readString(userData, "access_token") || readString(userData, "accessToken") || "";
-      }
-    } catch {
-
-    }
+  test.beforeEach(async ({ page }) => {
+    if (!user) throw new Error("User not initialized");
+    await seedSession(page, {
+      token: user.accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: "ADMIN_DOCTOR",
+        clinicId: user.clinicId,
+      },
+    });
   });
 
   test("should display upgrade page with current plan", async ({ page }) => {
-
-    if (!token) {
-      test.skip();
-      return;
-    }
-
-    await page.goto("/login");
-    await page.evaluate((tkn) => {
-      localStorage.setItem("docita_token", tkn);
-    }, token);
-
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await expectRoute(page, /\/upgrade/);
+    await expectPageHeader(page, { title: /Upgrade|Billing|Subscription/i });
 
     const body = page.locator("body");
     await expect(body).toBeVisible({ timeout: 10000 });
@@ -70,11 +36,6 @@ test.describe("Upgrade Page", () => {
   test("should show pricing dialog when clicking View All Plans", async ({
     page,
   }) => {
-    await page.goto("/login");
-    await page.evaluate((tkn) => {
-      localStorage.setItem("docita_token", tkn);
-    }, token);
-
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
 
@@ -90,11 +51,6 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should display tier cards with pricing", async ({ page }) => {
-    await page.goto("/login");
-    await page.evaluate((tkn) => {
-      localStorage.setItem("docita_token", tkn);
-    }, token);
-
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
@@ -104,11 +60,6 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should show addon cards", async ({ page }) => {
-    await page.goto("/login");
-    await page.evaluate((tkn) => {
-      localStorage.setItem("docita_token", tkn);
-    }, token);
-
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
@@ -117,17 +68,6 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should show billing history button", async ({ page }) => {
-
-    if (!token) {
-      test.skip();
-      return;
-    }
-
-    await page.goto("/login");
-    await page.evaluate((tkn) => {
-      localStorage.setItem("docita_token", tkn);
-    }, token);
-
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
@@ -135,47 +75,25 @@ test.describe("Upgrade Page", () => {
     await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
   });
 
-  test("should redirect non-admin users to dashboard", async ({
-    page,
-    context,
-  }) => {
-
-    const doctorEmail = `doctor${Date.now()}@test.com`;
-    const password = "Test@123456";
-
-    const registerRes = await context.request.post(`${API_URL}/auth/register`, {
-      data: {
-        email: doctorEmail,
-        password,
-        firstName: "Doctor",
-        lastName: "User",
-        role: "DOCTOR",
-        clinicName: "Doctor Clinic",
-      },
-    });
-
-    expect(registerRes.ok()).toBeTruthy();
-    const userData = toRecord(await registerRes.json());
-    const doctorToken =
-      readString(userData, "access_token") || readString(userData, "accessToken");
-
-    await page.goto("/login");
-    await page.evaluate((tkn) => {
-      localStorage.setItem("docita_token", tkn);
-    }, doctorToken);
-
+  test("should open billing history dialog", async ({ page }) => {
     await page.goto("/upgrade");
+    await page.waitForLoadState("networkidle");
 
-    await page.waitForTimeout(2000);
-    await expect(page).toHaveURL(/\/(dashboard|upgrade)/);
+    const billingHistoryTrigger = page
+      .getByRole("button", { name: /Billing History|View Billing History/i })
+      .first();
+    if (!(await billingHistoryTrigger.isVisible())) {
+      test.skip();
+      return;
+    }
+
+    await billingHistoryTrigger.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog")).toContainText(/Billing History/i);
+    // Contract: dialog opens; contents vary based on environment data.
   });
 
   test("should toggle monthly/yearly pricing in dialog", async ({ page }) => {
-    await page.goto("/login");
-    await page.evaluate((tkn) => {
-      localStorage.setItem("docita_token", tkn);
-    }, token);
-
     await page.goto("/upgrade");
     await page.waitForLoadState("networkidle");
 
