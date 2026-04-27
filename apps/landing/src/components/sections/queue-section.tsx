@@ -56,19 +56,19 @@ export function QueueSection() {
                   {[
                     {
                       token: "A-013",
-                      name: "Sarah Johnson",
+                      name: "Ananya Rao",
                       status: "Next",
                       time: "10:30 AM",
                     },
                     {
                       token: "A-014",
-                      name: "Michael Chen",
+                      name: "Vikram Iyer",
                       status: "Waiting",
                       time: "10:45 AM",
                     },
                     {
                       token: "A-015",
-                      name: "Emma Davis",
+                      name: "Meera Nair",
                       status: "Waiting",
                       time: "11:00 AM",
                     },
@@ -114,7 +114,7 @@ export function QueueSection() {
                 },
                 {
                   title: "Smart Estimates",
-                  desc: "AI-calculated wait times based on history",
+                  desc: "Estimated waits based on queue position",
                 },
                 {
                   title: "TV Display Mode",

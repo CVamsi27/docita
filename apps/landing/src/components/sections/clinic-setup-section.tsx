@@ -54,7 +54,7 @@ const setupOptions = [
 
 export function ClinicSetupSection() {
   return (
-    <section className="bg-background px-6 py-24" id="clinic-setup">
+    <section className="landing-section bg-background" id="clinic-setup">
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)] lg:items-center">
           <div>
@@ -96,7 +96,7 @@ export function ClinicSetupSection() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {setupDeliverables.map((item) => (
-              <Card key={item.title} className="border-border/70 bg-muted/30">
+              <Card key={item.title} className="landing-card bg-muted/30">
                 <CardHeader>
                   <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
                     <item.icon className="h-5 w-5 text-primary" />

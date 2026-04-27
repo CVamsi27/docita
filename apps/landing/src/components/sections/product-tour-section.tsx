@@ -40,7 +40,7 @@ const liveHighlights = [
 
 export function ProductTourSection({ appUrl }: ProductTourSectionProps) {
   return (
-    <section className="px-6 py-24 bg-muted/30" id="tour">
+    <section className="landing-section landing-section-muted landing-section-soft" id="tour">
       <div className="ui-page-shell grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(320px,1.15fr)] lg:items-start">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/20 bg-info/10 px-4 py-2 text-sm text-info">
@@ -69,7 +69,7 @@ export function ProductTourSection({ appUrl }: ProductTourSectionProps) {
           {liveHighlights.map((item) => (
             <article
               key={item.title}
-              className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm"
+              className="landing-card p-5"
             >
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                 <item.icon className="h-5 w-5 text-primary" />

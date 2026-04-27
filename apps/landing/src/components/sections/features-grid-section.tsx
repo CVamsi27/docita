@@ -24,13 +24,13 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function FeaturesGridSection() {
   return (
-    <section className="px-6 py-24 bg-muted/50" id="features">
+    <section className="bg-muted/50 px-6 py-24" id="features">
       <div className="ui-page-shell">
         <SectionHeading
           align="center"
           size="section"
-          title="Everything you need to run a modern facility"
-          description="A complete operating system for your medical practice, packed with powerful features."
+          title="Everything a small clinic needs—nothing you don’t"
+          description="OPD to billing to follow-ups, with records that stay clean and searchable."
           className="mb-16"
           descriptionClassName="mx-auto max-w-2xl"
         />
@@ -39,85 +39,85 @@ export function FeaturesGridSection() {
           {[
             {
               icon: Calendar,
-              title: "Smart Scheduling",
-              desc: "Drag-and-drop calendar with automated reminders to reduce no-shows",
+              title: "Appointments + Walk-ins",
+              desc: "One view for scheduled visits and walk-ins, so reception can keep the day moving.",
               color: "text-info",
               bg: "badge-info",
             },
             {
               icon: Users,
               title: "Patient Records (EMR)",
-              desc: "Comprehensive history, vitals, allergies, and digital prescriptions in one timeline",
+              desc: "History, vitals, documents, and prescriptions in one timeline—ready for the next visit.",
               color: "text-primary",
               bg: "tier-pro",
             },
             {
               icon: Receipt,
-              title: "Billing & Invoicing",
-              desc: "Generate professional invoices, track payments, and manage insurance claims",
+              title: "Billing + Receipts",
+              desc: "Generate invoices and receipts from the same visit workflow and track collections.",
               color: "text-success",
               bg: "badge-success",
             },
             {
               icon: MessageSquare,
-              title: "Patient Communication",
-              desc: "Integrated WhatsApp messaging for prescriptions, reminders, and follow-ups",
+              title: "WhatsApp Follow-ups",
+              desc: "Share prescriptions and visit instructions, and send reminders without switching tools.",
               color: "text-success",
               bg: "tier-plus",
             },
             {
               icon: Upload,
               title: "Easy Data Migration",
-              desc: "Import your existing patient data from Excel or paper records in minutes",
+              desc: "Import from Excel/CSV and attach scanned documents so you don’t lose old context.",
               color: "text-warning",
               bg: "badge-warning",
             },
             {
               icon: ShieldCheck,
               title: "Enterprise Security",
-              desc: "Role-based access control and encrypted data storage to keep patient info safe",
+              desc: "Role-based access and secure data handling designed for sensitive clinic workflows.",
               color: "text-destructive",
               bg: "badge-danger",
             },
             {
               icon: FlaskConical,
               title: "Lab Management",
-              desc: "Order tests, track samples, and manage results with integrated lab workflows",
+              desc: "Order tests and keep results attached to the patient timeline for quick review.",
               color: "text-info",
               bg: "tier-core",
             },
             {
               icon: Package,
               title: "Pharmacy Inventory",
-              desc: "Track medicine stock, manage suppliers, and get low-inventory alerts",
+              desc: "Track stock and get low-inventory alerts so dispensing stays smooth.",
               color: "text-warning",
               bg: "tier-enterprise",
             },
             {
               icon: Star,
               title: "Patient Feedback",
-              desc: "Collect and analyze patient feedback to improve your facility's service quality",
+              desc: "Collect feedback to improve experience and reduce repeat support calls.",
               color: "text-warning",
               bg: "badge-warning",
             },
             {
               icon: Building2,
-              title: "Multi-Facility Support",
-              desc: "Manage multiple branches and doctors from a single admin dashboard",
+              title: "Multi-doctor Clinics",
+              desc: "Support multiple doctors and staff roles with clear responsibilities and access.",
               color: "text-primary",
               bg: "tier-pro",
             },
             {
               icon: Bell,
-              title: "Smart Reminders",
-              desc: "Automated SMS and email reminders to keep patients on track with their care",
+              title: "Reminders",
+              desc: "Send reminders for follow-ups and next steps so patients come back on time.",
               color: "text-primary",
               bg: "tier-intelligence",
             },
             {
               icon: Keyboard,
               title: "Keyboard Shortcuts",
-              desc: "Power-user shortcuts to navigate and manage your facility at lightning speed",
+              desc: "Fast navigation for doctors and staff who want to move quickly between visits.",
               color: "text-muted-foreground",
               bg: "badge-muted",
             },

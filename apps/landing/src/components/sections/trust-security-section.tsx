@@ -19,7 +19,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function TrustSecuritySection() {
   return (
-    <section className="px-6 py-24 bg-background" id="security">
+    <section className="landing-section bg-background" id="security">
       <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-foreground">
@@ -47,7 +47,7 @@ export function TrustSecuritySection() {
           ].map((badge, i) => (
             <div
               key={i}
-              className="flex flex-col items-center justify-center w-28 h-28 rounded-xl border-2 border-muted bg-muted/30 hover:border-primary/50 hover:bg-primary/5 transition-all"
+              className="landing-card flex h-28 w-28 flex-col items-center justify-center border-2 bg-muted/30 transition-colors hover:border-primary/50 hover:bg-primary/5"
             >
               <ShieldCheck className="h-8 w-8 text-success mb-2" />
               <span className="font-bold text-sm">{badge.label}</span>
@@ -97,7 +97,7 @@ export function TrustSecuritySection() {
                 "Export your data anytime in standard formats. No vendor lock-in, ever.",
             },
           ].map((feature, i) => (
-            <Card key={i} className="bg-muted/30">
+            <Card key={i} className="landing-card bg-muted/30">
               <CardHeader>
                 <div className="mb-2 inline-block rounded-lg bg-success/10 p-2 w-fit">
                   <feature.icon className="h-5 w-5 text-success" />

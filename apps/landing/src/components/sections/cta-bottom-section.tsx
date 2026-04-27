@@ -5,9 +5,10 @@ import { ArrowRight } from "lucide-react";
 
 export function CtaBottomSection() {
   return (
-    <section className="px-6 py-24 bg-primary text-primary-foreground relative overflow-hidden">
+    <section className="landing-section relative overflow-hidden bg-primary text-primary-foreground">
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-      <div className="mx-auto max-w-4xl text-center relative z-10">
+      <div className="ui-page-shell relative z-10">
+        <div className="mx-auto max-w-4xl text-center">
         <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
           Ready to get one clinic workflow live?
         </h2>
@@ -31,6 +32,7 @@ export function CtaBottomSection() {
         <p className="mt-4 text-sm opacity-90">
           Setup from ₹4,999 • Software plans from ₹499/month
         </p>
+        </div>
       </div>
     </section>
   );

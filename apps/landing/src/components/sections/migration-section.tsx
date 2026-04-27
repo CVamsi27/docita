@@ -33,7 +33,7 @@ const rolloutPoints = [
 
 export function MigrationSection() {
   return (
-    <section className="px-6 py-24 bg-background" id="migration">
+    <section className="landing-section bg-background" id="migration">
       <div className="ui-page-shell grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)] lg:items-center">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-primary">
@@ -68,7 +68,7 @@ export function MigrationSection() {
           {rolloutPoints.map((point) => (
             <article
               key={point.title}
-              className="rounded-3xl border border-border/70 bg-muted/30 p-6 shadow-sm"
+              className="landing-card p-6"
             >
               <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
                 <point.icon className="h-5 w-5 text-primary" />

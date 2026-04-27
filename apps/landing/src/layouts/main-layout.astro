@@ -60,7 +60,7 @@ const jsonLd = {
         const stored = localStorage.getItem(storageKey);
         const theme = stored === "dark" || stored === "light"
           ? stored
-          : "light";
+          : "dark";
         document.documentElement.classList.toggle("dark", theme === "dark");
         document.documentElement.style.colorScheme = theme;
       })();
