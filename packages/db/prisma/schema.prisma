@@ -2619,7 +2619,7 @@ model SubscriptionPayment {
   currency    String @default("INR")
   status      String
   razorpayPaymentId String?
-  razorpayOrderId   String?
+  razorpayOrderId   String? @unique
   razorpaySignature String?
   invoiceUrl               String?
   invoiceNumber            String?

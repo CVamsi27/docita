@@ -3,6 +3,7 @@ export { UpgradeSubscriptionUseCase } from './upgrade-subscription.use-case';
 export { CancelSubscriptionUseCase } from './cancel-subscription.use-case';
 export { ActivateSubscriptionUseCase } from './activate-subscription.use-case';
 export { CreateCheckoutUseCase } from './create-checkout.use-case';
+export { ResumeSubscriptionPaymentUseCase } from './resume-subscription-payment.use-case';
 export { ProcessWebhookUseCase } from './process-webhook.use-case';
 export { EnterGracePeriodUseCase } from './enter-grace-period.use-case';
 export { ExpireSubscriptionUseCase } from './expire-subscription.use-case';

@@ -77,6 +77,26 @@ export class CreateCheckoutUseCase {
     );
     const currencyCode = this.configService.getCurrencyCode();
 
+    const description = `${tier.value} ${cycle.value} subscription`;
+    const reusable = await this.subscriptionRepo.findReusablePendingCheckout({
+      clinicId: request.clinicId,
+      amountCents,
+      currency: currencyCode,
+      description,
+      withinMinutes: 30,
+    });
+    if (reusable?.razorpayOrderId) {
+      this.logger.log(
+        `Reusing pending checkout order ${reusable.razorpayOrderId} for clinic ${request.clinicId}`,
+      );
+      return {
+        orderId: reusable.razorpayOrderId,
+        amountCents,
+        currency: currencyCode,
+        razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+      };
+    }
+
     const order = await this.paymentGateway.createOrder({
       amountCents,
       currency: currencyCode,
@@ -99,7 +119,7 @@ export class CreateCheckoutUseCase {
       currency: currencyCode,
       status: 'pending',
       razorpayOrderId: order.razorpayOrderId,
-      description: `${tier.value} ${cycle.value} subscription`,
+      description,
     });
 
     return {

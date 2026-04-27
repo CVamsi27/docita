@@ -7,6 +7,8 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  Param,
+  Res,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
@@ -16,6 +18,7 @@ import {
   CancelSubscriptionUseCase,
   ActivateSubscriptionUseCase,
   CreateCheckoutUseCase,
+  ResumeSubscriptionPaymentUseCase,
   ProcessWebhookUseCase,
 } from '@/domains/subscriptions/application/use-cases';
 import { SubscriptionsQueryService } from '@/domains/subscriptions/application/services/subscriptions-query.service';
@@ -40,6 +43,7 @@ import {
   SubscriptionBillingCheckoutRequestDto,
   SubscriptionBillingPaymentHistoryResponseDto,
   SubscriptionBillingPreviewQueryDto,
+  SubscriptionBillingResumePaymentResponseDto,
 } from '@/domains/subscriptions/application/dto/subscriptions-billing.dto';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
@@ -55,6 +59,8 @@ import {
 } from '@workspace/types';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { ZodSerializerDto } from 'nestjs-zod';
+import { Response } from 'express';
+import { SubscriptionPaymentPdfService } from '@/domains/subscriptions/application/services/subscription-payment-pdf.service';
 
 @Controller(['subscriptions', 'subscription'])
 @SkipSubscriptionCheck()
@@ -65,11 +71,13 @@ export class SubscriptionsController {
     private readonly cancelSubscriptionUseCase: CancelSubscriptionUseCase,
     private readonly activateSubscriptionUseCase: ActivateSubscriptionUseCase,
     private readonly createCheckoutUseCase: CreateCheckoutUseCase,
+    private readonly resumeSubscriptionPaymentUseCase: ResumeSubscriptionPaymentUseCase,
     private readonly processWebhookUseCase: ProcessWebhookUseCase,
     private readonly queryService: SubscriptionsQueryService,
     private readonly proratingService: ProratingService,
     private readonly pricingService: SubscriptionPricingService,
     private readonly usageTrackingService: UsageTrackingService,
+    private readonly subscriptionPaymentPdfService: SubscriptionPaymentPdfService,
   ) {}
 
   @Public()
@@ -191,23 +199,69 @@ export class SubscriptionsController {
       createdAt: Date;
       getStatus?: () => unknown;
     }>;
-    return payments.map((p) => ({
-      id: p.id,
-      amountCents: p.amountCents,
-      amount: p.amountCents / 100, // legacy alias
-      subtotalCents: p.subtotalCents ?? undefined,
-      taxCents: p.taxCents ?? undefined,
-      grandTotalCents: p.grandTotalCents ?? undefined,
-      currency: p.currency,
-      status: p.status ?? String(p.getStatus?.() ?? 'pending'),
-      description: p.description ?? undefined,
-      invoiceUrl: p.invoiceUrl ?? undefined,
-      invoiceNumber: p.invoiceNumber ?? undefined,
-      invoiceType: p.invoiceType ?? undefined,
-      taxSummary: p.taxSummary ?? undefined,
-      paidAt: p.paidAt ? p.paidAt.toISOString() : undefined,
-      createdAt: p.createdAt.toISOString(),
-    }));
+    return payments.map((p) => {
+      const status = (
+        p.status ?? String(p.getStatus?.() ?? 'pending')
+      ).toLowerCase();
+      return {
+        id: p.id,
+        amountCents: p.amountCents,
+        amount: p.amountCents / 100, // legacy alias
+        subtotalCents: p.subtotalCents ?? undefined,
+        taxCents: p.taxCents ?? undefined,
+        grandTotalCents: p.grandTotalCents ?? undefined,
+        currency: p.currency,
+        status,
+        description: p.description ?? undefined,
+        payUrl: status === 'paid' ? undefined : (p.invoiceUrl ?? undefined),
+        receiptUrl:
+          status === 'paid'
+            ? `/subscription/billing/payments/${p.id}/invoice.pdf`
+            : undefined,
+        invoiceUrl: p.invoiceUrl ?? undefined,
+        invoiceNumber: p.invoiceNumber ?? undefined,
+        invoiceType: p.invoiceType ?? undefined,
+        taxSummary: p.taxSummary ?? undefined,
+        paidAt: p.paidAt ? p.paidAt.toISOString() : undefined,
+        createdAt: p.createdAt.toISOString(),
+      };
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
+  @Post('billing/payments/:id/resume')
+  @ZodSerializerDto(SubscriptionBillingResumePaymentResponseDto)
+  async resumePayment(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+  ) {
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
+    return this.resumeSubscriptionPaymentUseCase.execute({
+      clinicId: req.user.clinicId,
+      paymentId: id,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
+  @Get('billing/payments/:id/invoice.pdf')
+  async getPaymentInvoicePdf(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    if (!req.user?.clinicId) throw new Error('Clinic ID not found');
+    const buffer = await this.subscriptionPaymentPdfService.generate(
+      id,
+      req.user.clinicId,
+    );
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="subscription-invoice-${id.slice(0, 8)}.pdf"`,
+    );
+    res.send(buffer);
   }
 
   @UseGuards(JwtAuthGuard)

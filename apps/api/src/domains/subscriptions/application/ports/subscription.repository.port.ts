@@ -27,6 +27,20 @@ export interface ISubscriptionRepository {
     },
   ): Promise<void>;
   findPaymentsByClinicId(clinicId: string, limit: number): Promise<unknown[]>;
+  findPaymentById(clinicId: string, paymentId: string): Promise<unknown | null>;
+  updatePaymentLink(params: {
+    clinicId: string;
+    paymentId: string;
+    payUrl: string;
+  }): Promise<void>;
+
+  findReusablePendingCheckout(params: {
+    clinicId: string;
+    amountCents: number;
+    currency: string;
+    description: string;
+    withinMinutes: number;
+  }): Promise<{ razorpayOrderId: string } | null>;
 }
 
 export const SUBSCRIPTION_REPOSITORY_TOKEN = 'ISubscriptionRepository';

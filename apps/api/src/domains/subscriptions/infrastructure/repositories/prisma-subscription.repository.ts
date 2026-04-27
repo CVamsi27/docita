@@ -304,6 +304,55 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     });
   }
 
+  async findPaymentById(
+    clinicId: string,
+    paymentId: string,
+  ): Promise<Prisma.SubscriptionPaymentGetPayload<Prisma.SubscriptionPaymentDefaultArgs> | null> {
+    return this.getReadClient().subscriptionPayment.findFirst({
+      where: { id: paymentId, clinicId },
+    });
+  }
+
+  async updatePaymentLink(params: {
+    clinicId: string;
+    paymentId: string;
+    payUrl: string;
+  }): Promise<void> {
+    await this.prisma.subscriptionPayment.updateMany({
+      where: { id: params.paymentId, clinicId: params.clinicId },
+      data: {
+        invoiceUrl: params.payUrl,
+      },
+    });
+  }
+
+  async findReusablePendingCheckout(params: {
+    clinicId: string;
+    amountCents: number;
+    currency: string;
+    description: string;
+    withinMinutes: number;
+  }): Promise<{ razorpayOrderId: string } | null> {
+    const threshold = new Date(Date.now() - params.withinMinutes * 60 * 1000);
+    const row = await this.getReadClient().subscriptionPayment.findFirst({
+      where: {
+        clinicId: params.clinicId,
+        status: { in: ['pending', 'PENDING'] },
+        amountCents: params.amountCents,
+        currency: params.currency,
+        description: params.description,
+        razorpayOrderId: { not: null },
+        razorpayPaymentId: null,
+        createdAt: { gte: threshold },
+      },
+      select: { razorpayOrderId: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!row?.razorpayOrderId) return null;
+    return { razorpayOrderId: row.razorpayOrderId };
+  }
+
   private async calculateSubscriptionTaxFields(payment: {
     clinicId: string;
     amountCents: number;

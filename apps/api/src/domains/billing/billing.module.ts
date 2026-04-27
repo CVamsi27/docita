@@ -92,6 +92,7 @@ import { QueueModule } from '@/shared/modules/queue/queue.module';
     UsageTrackingService,
     OverageCalculationService,
     UsageAggregationService,
+    PDFService,
   ],
 })
 export class BillingModule {}

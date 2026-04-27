@@ -82,11 +82,20 @@ export const subscriptionBillingPaymentHistoryItemSchema = z
     status: z.string(),
     description: z.string().optional(),
     invoiceUrl: z.string().optional(),
+    payUrl: z.string().optional(),
+    receiptUrl: z.string().optional(),
     invoiceNumber: z.string().optional(),
     invoiceType: taxInvoiceTypeSchema.optional(),
     taxSummary: invoiceTaxSummarySchema.optional(),
     paidAt: z.string().optional(),
     createdAt: z.string(),
+  })
+  .strict();
+
+export const subscriptionBillingResumePaymentResponseSchema = z
+  .object({
+    id: z.string(),
+    payUrl: z.string(),
   })
   .strict();
 
@@ -334,6 +343,9 @@ export type SubscriptionBillingPaymentHistoryItem = z.infer<
 >;
 export type SubscriptionBillingPaymentHistoryResponse = z.infer<
   typeof subscriptionBillingPaymentHistoryResponseSchema
+>;
+export type SubscriptionBillingResumePaymentResponse = z.infer<
+  typeof subscriptionBillingResumePaymentResponseSchema
 >;
 export type SubscriptionCurrentResponse = z.infer<
   typeof subscriptionCurrentResponseSchema

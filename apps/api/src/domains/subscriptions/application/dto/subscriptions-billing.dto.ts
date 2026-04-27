@@ -5,6 +5,7 @@ import {
   subscriptionBillingCheckoutRequestSchema,
   subscriptionBillingPaymentHistoryResponseSchema,
   subscriptionBillingPreviewQuerySchema,
+  subscriptionBillingResumePaymentResponseSchema,
 } from '@workspace/types';
 
 export class SubscriptionBillingPreviewQueryDto extends createZodDto(
@@ -25,4 +26,8 @@ export class SubscriptionBillingCancelRequestDto extends createZodDto(
 
 export class SubscriptionBillingPaymentHistoryResponseDto extends createZodDto(
   subscriptionBillingPaymentHistoryResponseSchema,
+) {}
+
+export class SubscriptionBillingResumePaymentResponseDto extends createZodDto(
+  subscriptionBillingResumePaymentResponseSchema,
 ) {}

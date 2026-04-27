@@ -33,6 +33,7 @@ import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { AllowNoClinic } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-subscription-check.decorator';
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
+import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
 import { RequestWithUser } from '@/common/types/common.types';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MAX_FILE_SIZE } from '@workspace/utils';
@@ -243,6 +244,7 @@ export class OnboardingController {
   @AllowNoClinic()
   @SkipSubscriptionCheck()
   @SkipPasswordExpiry()
+  @SkipEmailVerification()
   async choosePath(
     @Request() req: RequestWithUser,
     @Body() dto: { path: string },
