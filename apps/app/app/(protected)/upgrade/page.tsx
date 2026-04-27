@@ -45,7 +45,7 @@ import {
 import { usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
-import { APP_ACCESS_TARGETS, type TierName } from "@workspace/types";
+import { APP_ACCESS_TARGETS, type SupportedCurrency, type TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import {
   PRICING_CURRENCY_SYMBOLS,
@@ -55,7 +55,7 @@ import {
 import { BackButton } from "@/components/common/navigation/back-button";
 
 export default function UpgradePage() {
-  const { currentTier, canAccess } = usePermissionStore();
+  const { currentTier, canAccess, canAccessTier } = usePermissionStore();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -83,6 +83,7 @@ export default function UpgradePage() {
     {
       role: user?.role,
       canAccessFeature: canAccess,
+      canAccessTier,
     },
     "read",
   );
@@ -132,8 +133,19 @@ export default function UpgradePage() {
 
   const handleConfirmTierChange = useCallback(async () => {
     if (!selectedTier) return;
+    if (selectedTier === "ENTERPRISE") {
+      setShowTierChangeDialog(false);
+      setShowContactSalesModal(true);
+      return;
+    }
     await checkoutTier({ tier: selectedTier, billingCycle: selectedCycle });
-  }, [selectedTier, selectedCycle, checkoutTier]);
+  }, [
+    selectedTier,
+    selectedCycle,
+    checkoutTier,
+    setShowContactSalesModal,
+    setShowTierChangeDialog,
+  ]);
 
   const currentTierInfo = getTierInfo(effectiveCurrentTier);
   const scrollToPlans = useCallback(() => {
@@ -222,7 +234,21 @@ export default function UpgradePage() {
 
   if (!user || !canAccessPage) {
     return (
-      <AppPageScaffold>
+      <AppPageScaffold
+        header={
+          <div className="space-y-2">
+            <BackButton
+              fallback="/settings?tab=subscription"
+              label="Back"
+              className="-ml-2"
+            />
+            <PageHeader
+              title="Upgrade your plan"
+              description="Review your current plan, compare options, and complete checkout from one page."
+            />
+          </div>
+        }
+      >
         <LoadingState
           message="Loading subscription workspace..."
           className="min-h-[40vh]"
@@ -479,6 +505,7 @@ export default function UpgradePage() {
           currentTier={effectiveCurrentTier}
           selectedTier={selectedTier}
           billingCycle={selectedCycle}
+          currency={currency as SupportedCurrency}
           onConfirm={handleConfirmTierChange}
         />
         <PaymentSuccessModal

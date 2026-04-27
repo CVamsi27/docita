@@ -120,6 +120,17 @@ export function SubscriptionSettings() {
         )
       : null;
 
+  const paidPeriodDaysLeft =
+    subscriptionStatus === "ACTIVE" && subscription?.currentPeriodEnd
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) /
+              (1000 * 60 * 60 * 24),
+          ),
+        )
+      : null;
+
   const isPaymentDue =
     subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
   const isExpired = subscriptionStatus === "EXPIRED";
@@ -180,6 +191,29 @@ export function SubscriptionSettings() {
               className="shrink-0"
             >
               Add Payment
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {paidPeriodDaysLeft !== null && paidPeriodDaysLeft <= 7 && (
+        <Alert className="border-warning/40 bg-warning/10">
+          <Clock className="h-4 w-4 text-warning" />
+          <AlertTitle>Subscription renewal coming up</AlertTitle>
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+            <span>
+              {paidPeriodDaysLeft > 0
+                ? `${paidPeriodDaysLeft} day${paidPeriodDaysLeft !== 1 ? "s" : ""} left in the current billing period.`
+                : "Your billing period ends today."}{" "}
+              Ensure payment is completed to avoid interruption.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => router.push("/upgrade")}
+              className="shrink-0"
+            >
+              Manage billing
             </Button>
           </AlertDescription>
         </Alert>

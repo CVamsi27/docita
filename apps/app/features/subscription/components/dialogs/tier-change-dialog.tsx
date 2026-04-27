@@ -40,6 +40,7 @@ interface TierChangeDialogProps {
   currentTier: Tier;
   selectedTier: TierName | null;
   billingCycle: "MONTHLY" | "YEARLY";
+  currency: SupportedCurrency;
   onConfirm: () => Promise<void>;
 }
 
@@ -57,13 +58,13 @@ export function TierChangeDialog({
   currentTier,
   selectedTier,
   billingCycle,
+  currency,
   onConfirm,
 }: TierChangeDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currency: SupportedCurrency = "INR";
   const currencyConfig = PRICING_CURRENCY_CONFIG[currency];
 
   const { pricingConfig, isLoading: pricingLoading } =
@@ -97,8 +98,14 @@ export function TierChangeDialog({
   const selectedTierData = pricingConfig.tiers.find(
     (t: TierPricing) => t.id === selectedTier,
   );
-  const currentPrice = currentTierData?.pricing?.monthly ?? 0;
-  const selectedPrice = selectedTierData?.pricing?.monthly ?? 0;
+  const currentPrice =
+    billingCycle === "YEARLY"
+      ? (currentTierData?.pricing?.yearly ?? 0)
+      : (currentTierData?.pricing?.monthly ?? 0);
+  const selectedPrice =
+    billingCycle === "YEARLY"
+      ? (selectedTierData?.pricing?.yearly ?? 0)
+      : (selectedTierData?.pricing?.monthly ?? 0);
   const currentHasCustomPricing =
     currentTierName === "ENTERPRISE" || currentPrice === "custom";
   const selectedHasCustomPricing =
@@ -121,6 +128,8 @@ export function TierChangeDialog({
     typeof selectedPrice === "number"
       ? selectedPrice - currentPrice
       : null;
+
+  const cycleSuffix = billingCycle === "YEARLY" ? "/yr" : "/mo";
 
   const CurrentIcon = TIER_ICONS[currentTierName];
   const SelectedIcon = TIER_ICONS[selectedTier];
@@ -202,7 +211,7 @@ export function TierChangeDialog({
                 <p className="font-semibold">{currentInfo.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {!currentHasCustomPricing && typeof currentPrice === "number"
-                    ? `${formatPrice(currentPrice)}/mo`
+                    ? `${formatPrice(currentPrice)}${cycleSuffix}`
                     : "Custom pricing"}
                 </p>
               </div>
@@ -225,7 +234,7 @@ export function TierChangeDialog({
                 <p className="font-semibold">{selectedInfo.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {!selectedHasCustomPricing && typeof selectedPrice === "number"
-                    ? `${formatPrice(selectedPrice)}/mo`
+                    ? `${formatPrice(selectedPrice)}${cycleSuffix}`
                     : "Custom pricing"}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -246,7 +255,8 @@ export function TierChangeDialog({
                 <p className="text-sm">
                   {isUpgrade ? "Additional cost: " : "You'll save: "}
                   <span className="font-semibold">
-                    {formatPrice(Math.abs(priceDiff))}/month
+                    {formatPrice(Math.abs(priceDiff))}
+                    {billingCycle === "YEARLY" ? "/year" : "/month"}
                   </span>
                 </p>
               </div>

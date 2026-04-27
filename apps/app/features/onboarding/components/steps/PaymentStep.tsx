@@ -85,6 +85,14 @@ export function PaymentStep({
         return;
       }
 
+      if (resolvedTier === "ENTERPRISE") {
+        showUserFacingErrorToast(
+          "Enterprise plans require a sales consultation. Please contact support to proceed.",
+        );
+        setIsProcessing(false);
+        return;
+      }
+
       // Use the canonical subscription billing checkout endpoint (creates Razorpay order).
       const checkout = await api.post<{
         orderId: string;

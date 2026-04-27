@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { logger } from "@/lib/logger";
 
 export default function UpgradeError({
   error,
@@ -13,7 +14,7 @@ export default function UpgradeError({
   reset: () => void;
 }) {
   useEffect(() => {
-
+    logger.error("Upgrade page error", { error });
   }, [error]);
 
   return (
