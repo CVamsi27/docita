@@ -317,7 +317,9 @@ export default function UpgradePage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {featuresByTier
-              .filter((t) => t.tier !== Tier.INTELLIGENCE)
+              .filter(
+                (t) => t.tier !== Tier.INTELLIGENCE && t.tier !== Tier.ENTERPRISE,
+              )
               .map(({ tier, info, features }) => {
                 const tierName = Tier[tier] as TierName;
                 const tierPricingData = pricingConfig?.tiers.find(
@@ -332,9 +334,7 @@ export default function UpgradePage() {
                     currency as keyof typeof PRICING_CURRENCY_SYMBOLS
                   ] ?? PRICING_CURRENCY_SYMBOLS.INR;
                 const whatsappRate =
-                  tierName === "ESSENTIAL" ||
-                  tierName === "PROFESSIONAL" ||
-                  tierName === "ENTERPRISE"
+                  tierName === "ESSENTIAL" || tierName === "PROFESSIONAL"
                     ? getWhatsAppAddonPricingByCurrency(
                         tierName,
                         currency as Parameters<
@@ -379,6 +379,64 @@ export default function UpgradePage() {
                 );
               })}
           </div>
+
+          {(() => {
+            const enterprise = featuresByTier.find((t) => t.tier === Tier.ENTERPRISE);
+            if (!enterprise) return null;
+
+            const tierName = "ENTERPRISE" as TierName;
+            const tierPricingData = pricingConfig?.tiers.find((t) => t.id === tierName);
+            const overageRates =
+              TIER_OVERAGE_RATES_BY_CURRENCY[
+                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
+              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+            const currencySymbol =
+              PRICING_CURRENCY_SYMBOLS[
+                currency as keyof typeof PRICING_CURRENCY_SYMBOLS
+              ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+            const whatsappRate = getWhatsAppAddonPricingByCurrency(
+              "ENTERPRISE",
+              currency as Parameters<typeof getWhatsAppAddonPricingByCurrency>[1],
+            ).overageRate;
+            const overageParts = [
+              overageRates?.appointmentRate > 0
+                ? `${currencySymbol}${overageRates.appointmentRate}/consult`
+                : null,
+              overageRates?.userRate > 0
+                ? `${currencySymbol}${overageRates.userRate}/user`
+                : null,
+              whatsappRate > 0 ? `${currencySymbol}${whatsappRate}/WA msg` : null,
+            ].filter(Boolean);
+            const overageHint =
+              overageParts.length > 0
+                ? `Overage meters: ${overageParts.join(" | ")}`
+                : undefined;
+
+            return (
+              <div className="pt-4">
+                <div className="mx-auto w-full max-w-5xl">
+                  <TierCard
+                    tier={Tier.ENTERPRISE}
+                    info={enterprise.info}
+                    features={enterprise.features}
+                    isCurrentTier={Tier.ENTERPRISE === effectiveCurrentTier}
+                    isLocked={false}
+                    currentTierValue={effectiveCurrentTier}
+                    pricing={tierPricingData?.pricing}
+                    billingCycle={selectedCycle}
+                    currencySymbol={currencySymbol}
+                    overageHint={overageHint}
+                    onSelect={
+                      canAccessPage
+                        ? () => handleSelectTier(tierName, selectedCycle)
+                        : undefined
+                    }
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {plannedFeatures.length > 0 && (

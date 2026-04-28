@@ -148,6 +148,13 @@ export function PaymentSuccessModal({
               <ExternalLink className="mr-2 h-4 w-4" />
               Manage Subscription
             </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => onOpenChange(false)}
+            >
+              Close
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
