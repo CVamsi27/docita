@@ -59,9 +59,9 @@ export function TestimonialsSection() {
     <section className="landing-section landing-section-muted" id="testimonials">
       <div className="ui-page-shell">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full bg-warning px-4 py-2 text-sm mb-4">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/10 px-4 py-2 text-sm">
             <Star className="h-4 w-4 text-warning fill-amber-500" />
-            <span className="font-medium text-warning dark:text-warning">
+            <span className="font-medium text-foreground">
               Built for 1-5 doctor clinics
             </span>
           </div>
