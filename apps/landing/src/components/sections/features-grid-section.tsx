@@ -24,7 +24,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function FeaturesGridSection() {
   return (
-    <section className="bg-muted/50 px-6 py-24" id="features">
+    <section className="landing-section bg-muted/50" id="features">
       <div className="ui-page-shell">
         <SectionHeading
           align="center"

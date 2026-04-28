@@ -48,7 +48,7 @@ export function AiAutomationSection() {
   ];
 
   return (
-    <section className="px-6 py-24 bg-background text-foreground relative overflow-hidden">
+    <section className="landing-section bg-background text-foreground relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
 
       <div className="mx-auto max-w-7xl relative z-10">

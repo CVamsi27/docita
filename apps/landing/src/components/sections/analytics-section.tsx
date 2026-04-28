@@ -11,7 +11,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function AnalyticsSection() {
   return (
-    <section className="px-6 py-24 bg-background">
+    <section className="landing-section bg-background">
       <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">

@@ -40,14 +40,14 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
               }
               description="Docita helps 1-5 doctor clinics move daily work out of paper files, Excel sheets, and WhatsApp threads into one practical workflow."
               className="max-w-none"
-              titleClassName="mx-auto max-w-6xl text-4xl leading-tight sm:text-5xl lg:text-6xl"
+              titleClassName="mx-auto max-w-6xl text-3xl leading-tight min-[380px]:text-4xl sm:text-5xl lg:text-6xl"
               descriptionClassName="mx-auto max-w-4xl"
             />
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
               <Button
                 asChild
                 size="lg"
-                className="gap-2 shadow-lg shadow-primary/20 transition-shadow hover:shadow-primary/30"
+                className="w-full gap-2 shadow-lg shadow-primary/20 transition-shadow hover:shadow-primary/30 sm:w-auto"
               >
                 <a href={`${appUrl}/onboarding`}>
                   Start clinic setup
@@ -58,7 +58,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 asChild
                 size="lg"
                 variant="outline"
-                className="gap-2 bg-background/60 backdrop-blur-sm"
+                className="w-full gap-2 bg-background/60 backdrop-blur-sm sm:w-auto"
               >
                 <a href="/contact">
                   <CalendarCheck className="h-5 w-5" />

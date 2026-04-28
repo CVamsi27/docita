@@ -50,32 +50,36 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
   return (
     <div
       ref={ctaRef}
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background/95 px-4 py-3 text-foreground shadow-[0_-18px_50px_rgba(15,23,42,0.14)] backdrop-blur supports-[backdrop-filter]:bg-background/85 animate-in slide-in-from-bottom duration-300"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background/95 px-3 py-2 text-foreground shadow-[0_-18px_50px_rgba(15,23,42,0.14)] backdrop-blur supports-[backdrop-filter]:bg-background/85 animate-in slide-in-from-bottom duration-300 sm:px-4 sm:py-3"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <div className="mx-auto flex max-w-7xl items-center gap-2 sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <div className="text-sm font-semibold sm:text-base">
+            <div className="truncate text-sm font-semibold sm:text-base">
               14-day free trial is back.
             </div>
-            <div className="text-xs leading-5 text-muted-foreground sm:text-sm">
-              Start Essential at ₹0 today, no credit card required.
+            <div className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
+              <span className="sm:hidden">Essential at ₹0, no card.</span>
+              <span className="hidden sm:inline">
+                Start Essential at ₹0 today, no credit card required.
+              </span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 sm:justify-end">
+        <div className="shrink-0">
           <Button
             asChild
             variant="default"
             size="sm"
-            className="h-10 w-full gap-2 whitespace-nowrap px-4 sm:w-auto"
+            className="h-9 gap-1.5 whitespace-nowrap px-3 sm:h-10 sm:gap-2 sm:px-4"
           >
             <a href={`${appUrl}/onboarding`}>
-              Start free trial
-              <ArrowRight className="h-4 w-4" />
+              <span className="sm:hidden">Start</span>
+              <span className="hidden sm:inline">Start free trial</span>
+              <ArrowRight className="h-4 w-4 shrink-0" />
             </a>
           </Button>
         </div>

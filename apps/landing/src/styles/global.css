@@ -10,13 +10,13 @@
 }
 
 .landing-section {
-  padding-inline: 1.5rem; /* px-6 */
-  padding-block: 5rem; /* py-20 */
+  padding-inline: 1rem;
+  padding-block: 3.75rem;
 }
 
 .landing-section-hero {
-  padding-inline: 1.5rem; /* px-6 */
-  padding-block: 3.5rem; /* py-14 */
+  padding-inline: 1rem;
+  padding-block: 2.75rem;
 }
 
 .landing-section-muted {
@@ -64,10 +64,12 @@
 
 @media (min-width: 640px) {
   .landing-section {
+    padding-inline: 1.5rem;
     padding-block: 6rem; /* py-24 */
   }
 
   .landing-section-hero {
+    padding-inline: 1.5rem;
     padding-block: 4rem; /* py-16 */
   }
 }

@@ -5,7 +5,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function QueueSection() {
   return (
-    <section className="px-6 py-24 bg-background relative overflow-hidden">
+    <section className="landing-section bg-background relative overflow-hidden">
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div className="order-2 lg:order-1 relative">

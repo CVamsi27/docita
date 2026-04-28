@@ -29,7 +29,7 @@ const resources = [
 
 export function ResourceLinksSection() {
   return (
-    <section className="px-6 py-24 bg-background">
+    <section className="landing-section bg-background">
       <div className="ui-page-shell">
         <SectionHeading
           align="center"
