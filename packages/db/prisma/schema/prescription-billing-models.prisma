@@ -82,7 +82,27 @@ model Invoice {
   id                       String           @id @default(cuid())
   appointmentId            String?          @unique
   patientId                String
+  clinicId                 String?
+  invoiceNumber            String?
+  invoiceType              String           @default("BILL_OF_SUPPLY")
+  currency                 String           @default("INR")
   total                    Float
+  subtotal                 Float            @default(0)
+  discountTotal            Float            @default(0)
+  taxTotal                 Float            @default(0)
+  grandTotal               Float            @default(0)
+  taxSummary               Json?
+  sellerTaxSnapshot        Json?
+  buyerTaxSnapshot         Json?
+  placeOfSupplyStateCode   String?
+  placeOfSupplyStateName   String?
+  reverseCharge            Boolean          @default(false)
+  issuedAt                 DateTime?
+  dueDate                  DateTime?
+  eInvoiceRequired         Boolean          @default(false)
+  eInvoiceIrn              String?
+  eInvoiceQrCode           String?
+  eInvoiceAcknowledgedAt   DateTime?
   status                   InvoiceStatus    @default(PENDING)
   items                    Json
   createdAt                DateTime         @default(now())
@@ -104,14 +124,33 @@ model Invoice {
   doctorRegistrationNumber String?
   doctorLicenseNumber      String?
   appointment              Appointment?     @relation(fields: [appointmentId], references: [id])
+  clinic                   Clinic?          @relation(fields: [clinicId], references: [id])
   patient                  Patient          @relation(fields: [patientId], references: [id])
   paymentSessions          PaymentSession[]
   paymentRetries           PaymentRetry[]
 
+  @@unique([clinicId, invoiceNumber])
   @@index([createdAt])
+  @@index([clinicId])
+  @@index([clinicId, issuedAt])
   @@index([patientId])
   @@index([status, createdAt])
   @@index([status])
+}
+
+model InvoiceSequence {
+  id             String   @id @default(cuid())
+  clinicId       String
+  financialYear  String
+  prefix         String   @default("DC")
+  currentValue   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, financialYear])
+  @@index([clinicId])
 }
 
 model Document {

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { logger } from "@/lib/logger";
 
 interface RazorpayInstance {
   open(): void;
@@ -76,26 +77,93 @@ export function isPaymentCanceledError(
 export function useRazorpay() {
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const isRazorpayConstructible = useCallback((): boolean => {
+    const RazorpayCtor = window.Razorpay as unknown;
+    if (typeof RazorpayCtor !== "function") return false;
+
+    // Some environments can end up with a non-constructible function assigned to window.Razorpay.
+    // We do a minimal construct attempt without calling open().
+    try {
+      const InstanceCtor = RazorpayCtor as unknown as new (
+        options: RazorpayOptions,
+      ) => RazorpayInstance;
+      const instance = new InstanceCtor({
+        key: "dummy",
+        amount: 0,
+        currency: "INR",
+        name: "Docita",
+        order_id: "dummy",
+        handler: () => {},
+      });
+      return Boolean(instance && typeof instance.open === "function");
+    } catch {
+      return false;
+    }
+  }, []);
+
   const loadRazorpay = useCallback(() => {
-    return new Promise((resolve) => {
-      if (document.getElementById("razorpay-sdk")) {
+    // Reuse existing in-flight load attempt.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existingPromise = (globalThis as any).__docitaRazorpayLoadPromise as
+      | Promise<boolean>
+      | undefined;
+    if (existingPromise) return existingPromise;
+
+    const promise = new Promise<boolean>((resolve) => {
+      if (typeof window === "undefined") {
+        resolve(false);
+        return;
+      }
+
+      if (isRazorpayConstructible()) {
         setIsLoaded(true);
         resolve(true);
         return;
       }
+
+      const existingScript = document.getElementById("razorpay-sdk");
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      // Remove any stale global to force the new script to re-attach it.
+      if ("Razorpay" in window) {
+        try {
+          delete (window as unknown as Record<string, unknown>).Razorpay;
+        } catch {
+          // Ignore if deletion is blocked.
+          (window as unknown as Record<string, unknown>).Razorpay = undefined;
+        }
+      }
+
       const script = document.createElement("script");
       script.id = "razorpay-sdk";
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
       script.onload = () => {
-        setIsLoaded(true);
-        resolve(true);
+        const loaded = isRazorpayConstructible();
+        if (!loaded) {
+          logger.warn("Razorpay SDK loaded but constructor unavailable", {
+            razorpayType: typeof window.Razorpay,
+          });
+        }
+        setIsLoaded(loaded);
+        resolve(loaded);
       };
       script.onerror = () => {
+        logger.warn("Failed to load Razorpay SDK script");
         resolve(false);
       };
       document.body.appendChild(script);
     });
-  }, []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).__docitaRazorpayLoadPromise = promise.finally(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).__docitaRazorpayLoadPromise = undefined;
+    });
+
+    return promise;
+  }, [isRazorpayConstructible]);
 
   const openCheckout = useCallback(
     async (options: RazorpayOptions) => {
@@ -107,6 +175,15 @@ export function useRazorpay() {
       }
 
       await new Promise<void>((resolve, reject) => {
+        if (!isRazorpayConstructible()) {
+          reject(
+            new Error(
+              "We could not open payment right now. Please refresh and try again.",
+            ),
+          );
+          return;
+        }
+
         const rzp = new window.Razorpay({
           ...options,
           handler: async (response: RazorpayResponse) => {
@@ -137,7 +214,7 @@ export function useRazorpay() {
         rzp.open();
       });
     },
-    [loadRazorpay],
+    [isRazorpayConstructible, loadRazorpay],
   );
 
   return { isLoaded, openCheckout };

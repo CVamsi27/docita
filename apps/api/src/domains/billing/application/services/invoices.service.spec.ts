@@ -10,6 +10,7 @@ import {
   InvoiceDetail,
 } from '@/domains/billing/core/repositories/invoice.repository';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
+import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
 import { StorageProvider } from '@/domains/documents/infrastructure/storage.provider';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { PDFService, InvoiceData } from './pdf.service';
@@ -25,18 +26,23 @@ describe('InvoicesService', () => {
     create: jest.fn<IInvoiceRepository['create']>(),
     update: jest.fn<IInvoiceRepository['update']>(),
     delete: jest.fn<IInvoiceRepository['delete']>(),
+    findPatientContext: jest.fn<IInvoiceRepository['findPatientContext']>(),
+    nextInvoiceNumber: jest.fn<IInvoiceRepository['nextInvoiceNumber']>(),
   };
 
   const pdfService = Object.create(PDFService.prototype) as PDFService;
   const generatePdfMock = jest.fn<(data: InvoiceData) => Promise<Buffer>>();
   pdfService.generate = generatePdfMock;
+  const taxCalculator = new TaxCalculatorService();
 
   const eventEmitter = new EventEmitter2();
 
   const usageTracking = Object.create(
     UsageTrackingService.prototype,
   ) as UsageTrackingService;
-  usageTracking.trackInvoice = jest.fn<UsageTrackingService['trackInvoice']>();
+  usageTracking.trackInvoice = jest
+    .fn<UsageTrackingService['trackInvoice']>()
+    .mockResolvedValue(undefined);
 
   class MockStorageProvider extends StorageProvider {
     readonly supportsSignedUrls = false;
@@ -93,7 +99,27 @@ describe('InvoicesService', () => {
   ): InvoiceDetail => ({
     id,
     patientId: `patient-${id}`,
+    clinicId: 'clinic-1',
+    invoiceNumber: null,
+    invoiceType: 'BILL_OF_SUPPLY',
+    currency: 'INR',
     total: 100,
+    subtotal: 100,
+    discountTotal: 0,
+    taxTotal: 0,
+    grandTotal: 100,
+    taxSummary: null,
+    sellerTaxSnapshot: null,
+    buyerTaxSnapshot: null,
+    placeOfSupplyStateCode: null,
+    placeOfSupplyStateName: null,
+    reverseCharge: false,
+    issuedAt: baseDate,
+    dueDate: null,
+    eInvoiceRequired: false,
+    eInvoiceIrn: null,
+    eInvoiceQrCode: null,
+    eInvoiceAcknowledgedAt: null,
     status: InvoiceStatus.PENDING,
     items: [] as Prisma.JsonValue,
     doctorName: null,
@@ -142,6 +168,7 @@ describe('InvoicesService', () => {
     service = new InvoicesService(
       repository,
       pdfService,
+      taxCalculator,
       eventEmitter,
       usageTracking,
       storageProvider,
@@ -185,6 +212,73 @@ describe('InvoicesService', () => {
 
     expect(assertClaimReadyMock).not.toHaveBeenCalled();
     expect(repository.update).toHaveBeenCalled();
+  });
+
+  it('recalculates invoice totals server-side when creating GST invoices', async () => {
+    repository.findPatientContext.mockResolvedValue({
+      id: 'patient-1',
+      firstName: 'Asha',
+      lastName: 'Rao',
+      phoneNumber: '9999999999',
+      email: null,
+      address: 'Bengaluru',
+      clinicId: 'clinic-1',
+      clinic: {
+        id: 'clinic-1',
+        name: 'Docita Clinic',
+        address: 'Main Road',
+        phone: '1234567890',
+        email: 'clinic@test.com',
+        currency: 'INR',
+        settings: {
+          gstin: '29ABCDE1234F1Z5',
+          taxSettings: {
+            countryCode: 'IN',
+            regime: 'IN_GST',
+            stateCode: '29',
+          },
+        } as Prisma.JsonObject,
+      },
+    });
+    repository.nextInvoiceNumber.mockResolvedValue('DC2526-000001');
+    repository.create.mockResolvedValue(
+      buildInvoice('created', {
+        invoiceNumber: 'DC2526-000001',
+        invoiceType: 'TAX_INVOICE',
+        total: 118,
+        subtotal: 100,
+        taxTotal: 18,
+        grandTotal: 118,
+      }),
+    );
+
+    await service.create({
+      patientId: 'patient-1',
+      clinicId: 'clinic-1',
+      total: 1,
+      status: InvoiceStatus.PENDING,
+      items: [
+        {
+          description: 'Taxable device',
+          quantity: 1,
+          price: 100,
+          taxTreatment: 'TAXABLE',
+          taxRate: 18,
+        },
+      ],
+    });
+
+    const createData = repository.create.mock.calls[0][0];
+    expect(createData.total).toBe(118);
+    expect(createData.subtotal).toBe(100);
+    expect(createData.taxTotal).toBe(18);
+    expect(createData.grandTotal).toBe(118);
+    expect(createData.invoiceType).toBe('TAX_INVOICE');
+    expect(repository.nextInvoiceNumber).toHaveBeenCalledWith(
+      'clinic-1',
+      expect.any(Date),
+      'DC',
+    );
   });
 
   it('submitClaim asserts readiness and returns submission payload', async () => {

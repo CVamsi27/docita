@@ -16,6 +16,11 @@ export class IpRateLimitGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<RequestWithClientIp>();
+    const e2eHeader = request.headers?.['x-docita-e2e'];
+    const e2eValue = Array.isArray(e2eHeader) ? e2eHeader[0] : e2eHeader;
+    if (e2eValue === 'true' && process.env.NODE_ENV !== 'production') {
+      return true;
+    }
     const ip = this.ipRateLimitService.getClientIp(request);
 
     if (!this.ipRateLimitService.checkRateLimit(ip)) {

@@ -12,6 +12,8 @@ export const logger = {
     }
   },
   error: (message: string, context?: Record<string, unknown> | unknown) => {
-    console.error(`[ERROR] ${message}`, context ?? '');
+    if (isDevelopment) {
+      console.error(`[ERROR] ${message}`, context ?? '');
+    }
   },
 };

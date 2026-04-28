@@ -11,12 +11,14 @@ import {
   CancelSubscriptionUseCase,
   ActivateSubscriptionUseCase,
   CreateCheckoutUseCase,
+  ResumeSubscriptionPaymentUseCase,
   ExpireSubscriptionUseCase,
   EnterGracePeriodUseCase,
   ProcessWebhookUseCase,
   NotifyExpiringSubscriptionsUseCase,
 } from './application/use-cases';
 import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
+import { SubscriptionPaymentPdfService } from './application/services/subscription-payment-pdf.service';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
   PAYMENT_GATEWAY_TOKEN,
@@ -31,9 +33,16 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { BillingModule } from '@/domains/billing/billing.module';
 import { PaymentsModule } from '@/domains/payments/payments.module';
 import { EmailModule } from '@/shared/modules/messaging/email/email.module';
+import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.module';
 
 @Module({
-  imports: [PrismaModule, BillingModule, PaymentsModule, EmailModule],
+  imports: [
+    PrismaModule,
+    BillingModule,
+    PaymentsModule,
+    EmailModule,
+    AdminAlertsModule,
+  ],
   controllers: [SubscriptionsController, SubscriptionsWebhookController],
   providers: [
     SubscriptionPricingService,
@@ -45,11 +54,13 @@ import { EmailModule } from '@/shared/modules/messaging/email/email.module';
     CancelSubscriptionUseCase,
     ActivateSubscriptionUseCase,
     CreateCheckoutUseCase,
+    ResumeSubscriptionPaymentUseCase,
     ExpireSubscriptionUseCase,
     EnterGracePeriodUseCase,
     ProcessWebhookUseCase,
     NotifyExpiringSubscriptionsUseCase,
     SubscriptionsQueryService,
+    SubscriptionPaymentPdfService,
     {
       provide: SUBSCRIPTION_REPOSITORY_TOKEN,
       useClass: PrismaSubscriptionRepository,

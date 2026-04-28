@@ -133,8 +133,8 @@ export function TierCard({
         </Badge>
       )}
 
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
+      <CardHeader className="pb-3 text-center">
+        <div className="flex flex-col items-center gap-3">
           <div
             className={cn(
               "flex h-10 w-10 items-center justify-center rounded-xl shadow-md",
@@ -143,7 +143,7 @@ export function TierCard({
           >
             <Icon className="h-5 w-5" />
           </div>
-          <div>
+          <div className="flex flex-col items-center">
             <CardTitle className="text-base">{info.name}</CardTitle>
             <CardDescription className="text-xs">
               {info.tagline}
@@ -152,15 +152,15 @@ export function TierCard({
         </div>
         <p className="text-xs text-muted-foreground mt-2">{info.description}</p>
         {pricing && (
-          <div className="mt-2">
-            <p className="text-sm font-semibold text-foreground">
+          <div className="mt-2 flex flex-col items-center">
+            <p className="text-center text-sm font-semibold text-foreground">
               {formatTierPrice(tier, pricing, billingCycle, currencySymbol)}
             </p>
             {pricing.monthly !== 0 && pricing.monthly !== "custom" && (
               <p className="text-xs text-muted-foreground">Incl. 18% GST</p>
             )}
             {overageHint && (
-              <p className="text-xs text-muted-foreground">{overageHint}</p>
+              <p className="text-center text-xs text-muted-foreground">{overageHint}</p>
             )}
             {usageHints && (
               <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
@@ -191,7 +191,7 @@ export function TierCard({
         )}
       </CardHeader>
       <CardContent className="pt-0 flex-1">
-        <PlanFeatures features={features} maxDisplay={maxDisplay} />
+        <PlanFeatures features={features} maxDisplay={maxDisplay} align="center" />
       </CardContent>
       {onSelect && (
         <div className="p-4 pt-0 mt-auto">

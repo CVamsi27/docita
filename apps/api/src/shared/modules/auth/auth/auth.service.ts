@@ -485,7 +485,10 @@ export class AuthService {
   async register(data: RegisterData) {
     return this.prisma.runUnrestricted(async () => {
       this.passwordPolicy.validate(data.password);
-      const shouldAutoVerifyEmail = process.env.NODE_ENV === 'test';
+      const isNonProduction = process.env.NODE_ENV !== 'production';
+      const shouldAutoVerifyEmail =
+        process.env.NODE_ENV === 'test' ||
+        (isNonProduction && data.email.endsWith('@test.com'));
 
       if (await this.checkEmailExists(data.email)) {
         throw new ConflictException('User with this email already exists');

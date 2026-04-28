@@ -9,7 +9,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 const testimonials = [
   {
     quote:
-      "Switching to Docita was the best decision for my practice. Patient documentation is faster, prescriptions are digital, and I can focus more on actual patient care. My practice has grown by 25% since implementing this system.",
+      "We moved our OPD workflow out of paper files and WhatsApp into one place. Prescriptions are legible, billing is faster, and follow-ups actually go out on time. Staff picked it up quickly.",
     name: "Dr. Rajesh Kumar",
     title: "General Physician, MBBS, MD",
     location: "Mumbai, Maharashtra",
@@ -18,7 +18,7 @@ const testimonials = [
   },
   {
     quote:
-      "Managing a pediatric practice with walk-ins was chaotic. Docita's queue management and appointment system brought order to the chaos. Parents love the WhatsApp reminders and the ability to access their child's medical history anytime.",
+      "Our reception stopped juggling registers and calls. The queue + appointment flow is simple, and sharing prescriptions on WhatsApp from the visit screen saves time every day.",
     name: "Dr. Priya Sharma",
     title: "Pediatrician, MBBS, DCH",
     location: "Delhi NCR",
@@ -27,7 +27,7 @@ const testimonials = [
   },
   {
     quote:
-      "I was skeptical about going paperless after 15 years of practice. The team helped migrate all our records seamlessly. Now I wonder how I ever managed without digital records. Insurance claims are processed 3x faster with proper ICD-10 coding.",
+      "I was hesitant to go paperless after years of files. Migration was straightforward, and now every visit starts with the right context—previous prescriptions, reports, and notes are all in one timeline.",
     name: "Dr. Arun Mehta",
     title: "Orthopedic Surgeon, MS Ortho",
     location: "Bangalore, Karnataka",
@@ -36,7 +36,7 @@ const testimonials = [
   },
   {
     quote:
-      "The AI-assisted diagnosis suggestions have been incredibly helpful for complex cases. Combined with comprehensive patient histories and lab integration, it's like having a medical assistant that never sleeps. Highly recommended for any modern practice.",
+      "For a small clinic, the biggest win is fewer handoff mistakes. Consultation notes, prescription, bill, and follow-up instructions stay connected, so the team doesn’t miss steps.",
     name: "Dr. Sunita Patel",
     title: "Internal Medicine, MBBS, MD",
     location: "Ahmedabad, Gujarat",
@@ -56,25 +56,25 @@ export function TestimonialsSection() {
   }, []);
 
   return (
-    <section className="px-6 py-24 bg-muted/30" id="testimonials">
+    <section className="landing-section landing-section-muted" id="testimonials">
       <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 rounded-full bg-warning px-4 py-2 text-sm mb-4">
             <Star className="h-4 w-4 text-warning fill-amber-500" />
             <span className="font-medium text-warning dark:text-warning">
-              Trusted by 500+ Facilities
+              Built for 1-5 doctor clinics
             </span>
           </div>
           <SectionHeading
             align="center"
             size="section"
             title="What Doctors Are Saying"
-            description="Join thousands of healthcare providers who have transformed their practice with Docita."
+            description="Practical workflows for OPD, billing, records, and follow-ups—without the admin overhead."
             descriptionClassName="mx-auto max-w-2xl"
           />
         </div>
 
-        <div className="relative max-w-4xl mx-auto">
+        <div className="relative mx-auto max-w-4xl">
           <Card
             className="relative overflow-hidden shadow-lg"
             density="spacious"

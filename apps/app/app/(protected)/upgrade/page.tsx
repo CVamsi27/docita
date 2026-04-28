@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { canAccessTarget } from "@/lib/access-policy";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -29,9 +29,9 @@ import {
   FaqSection,
   InvoiceHistoryDialog,
   PaymentSuccessModal,
-  PricingDialog,
   TierCard,
   TierChangeDialog,
+  TrialOfferBanner,
   TrustSection,
   UsagePricingCalculator,
 } from "@/features/subscription/components";
@@ -45,7 +45,7 @@ import {
 import { usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
-import { APP_ACCESS_TARGETS, type TierName } from "@workspace/types";
+import { APP_ACCESS_TARGETS, type SupportedCurrency, type TierName } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import {
   PRICING_CURRENCY_SYMBOLS,
@@ -55,12 +55,11 @@ import {
 import { BackButton } from "@/components/common/navigation/back-button";
 
 export default function UpgradePage() {
-  const { currentTier, canAccess } = usePermissionStore();
+  const { currentTier, canAccess, canAccessTier } = usePermissionStore();
   const { user } = useAuth();
   const router = useRouter();
 
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
-  const [showPricingDialog, setShowPricingDialog] = useState(false);
   const [showTierChangeDialog, setShowTierChangeDialog] = useState(false);
   const [selectedTier, setSelectedTier] = useState<TierName | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<"MONTHLY" | "YEARLY">(
@@ -71,20 +70,20 @@ export default function UpgradePage() {
     planName: "",
   });
   const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
+  const plansRef = useRef<HTMLDivElement>(null);
 
-  const { checkoutTier } = useSubscriptionCheckout(
-    (data) => {
-      setSuccessData(data);
-      setShowSuccessModal(true);
-      setShowTierChangeDialog(false);
-    },
-  );
+  const { checkoutTier } = useSubscriptionCheckout((data) => {
+    setSuccessData(data);
+    setShowSuccessModal(true);
+    setShowTierChangeDialog(false);
+  });
 
   const canAccessPage = canAccessTarget(
     APP_ACCESS_TARGETS.PAGE_UPGRADE,
     {
       role: user?.role,
       canAccessFeature: canAccess,
+      canAccessTier,
     },
     "read",
   );
@@ -111,6 +110,10 @@ export default function UpgradePage() {
     isTrialing && subscriptionPeriodEnd !== null
       ? subscriptionPeriodEnd.getTime() <= Date.now()
       : false;
+  const isSubscriptionExpired = subscriptionStatus === "EXPIRED";
+  const isPaymentPastDue =
+    subscriptionStatus === "PAST_DUE" || subscriptionStatus === "PAYMENT_DUE";
+  const isInGracePeriod = subscriptionStatus === "GRACE";
   const effectiveCurrentTier = isTrialExpired ? Tier.STARTER : currentTier;
 
   useEffect(() => {
@@ -123,7 +126,6 @@ export default function UpgradePage() {
     (tier: TierName, cycle: "MONTHLY" | "YEARLY") => {
       setSelectedTier(tier);
       setSelectedCycle(cycle);
-      setShowPricingDialog(false);
       setShowTierChangeDialog(true);
     },
     [],
@@ -131,10 +133,24 @@ export default function UpgradePage() {
 
   const handleConfirmTierChange = useCallback(async () => {
     if (!selectedTier) return;
+    if (selectedTier === "ENTERPRISE") {
+      setShowTierChangeDialog(false);
+      setShowContactSalesModal(true);
+      return;
+    }
     await checkoutTier({ tier: selectedTier, billingCycle: selectedCycle });
-  }, [selectedTier, selectedCycle, checkoutTier]);
+  }, [
+    selectedTier,
+    selectedCycle,
+    checkoutTier,
+    setShowContactSalesModal,
+    setShowTierChangeDialog,
+  ]);
 
   const currentTierInfo = getTierInfo(effectiveCurrentTier);
+  const scrollToPlans = useCallback(() => {
+    plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const featuresByTier = Object.values(Tier)
     .filter((t): t is Tier => typeof t === "number")
@@ -171,22 +187,68 @@ export default function UpgradePage() {
 
   const nextTier =
     effectiveCurrentTier < Tier.ENTERPRISE ? effectiveCurrentTier + 1 : null;
-  const currentPlanStatusNotice =
-    isTrialing || isTrialExpired
-          ? {
-          title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
-          badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
-          description: isTrialExpired
-            ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
-            : daysLeftInPeriod !== null && daysLeftInPeriod > 0
-              ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
-              : "Your trial ends today. Upgrade anytime to keep paid features active.",
+  const currentPlanStatusNotice = isSubscriptionExpired
+    ? {
+        title: "Subscription Expired",
+        badgeLabel: "Workspace Locked",
+        description:
+          "Your facility is locked because the subscription has expired. Choose a plan and complete payment to restore access.",
+        actionLabel: "Choose a Plan",
+        onAction: scrollToPlans,
+        variant: "destructive" as const,
+      }
+    : isInGracePeriod
+      ? {
+          title: "Payment Grace Period",
+          badgeLabel: "Access Restricted",
+          description:
+            "Your subscription is in grace period after a missed payment. Complete payment now to prevent the workspace from being locked.",
+          actionLabel: "Resolve Payment",
+          onAction: scrollToPlans,
+          variant: "warning" as const,
         }
+      : isPaymentPastDue
+        ? {
+            title: "Payment Past Due",
+            badgeLabel: "Action Required",
+            description:
+              "Your payment is overdue. Complete payment to keep Docita access active.",
+            actionLabel: "Resolve Payment",
+            onAction: scrollToPlans,
+            variant: "warning" as const,
+          }
+        : isTrialing || isTrialExpired
+          ? {
+              title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
+              badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
+              description: isTrialExpired
+                ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
+                : daysLeftInPeriod !== null && daysLeftInPeriod > 0
+                  ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
+                  : "Your trial ends today. Upgrade anytime to keep paid features active.",
+              variant: isTrialExpired
+                ? ("warning" as const)
+                : ("default" as const),
+            }
           : undefined;
 
   if (!user || !canAccessPage) {
     return (
-      <AppPageScaffold>
+      <AppPageScaffold
+        header={
+          <div className="space-y-2">
+            <BackButton
+              fallback="/settings?tab=subscription"
+              label="Back"
+              className="-ml-2"
+            />
+            <PageHeader
+              title="Upgrade your plan"
+              description="Review your current plan, compare options, and complete checkout from one page."
+            />
+          </div>
+        }
+      >
         <LoadingState
           message="Loading subscription workspace..."
           className="min-h-[40vh]"
@@ -206,26 +268,37 @@ export default function UpgradePage() {
           />
           <PageHeader
             title="Upgrade your plan"
-            description="Choose a plan that fits your facility now and scale when needed."
+            description="Review your current plan, compare options, and complete checkout from one page."
           />
         </div>
       }
     >
       <div className="space-y-6">
+        <TrialOfferBanner
+          actionLabel="View Essential trial"
+          onAction={scrollToPlans}
+        />
+
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={effectiveCurrentTier}
           hasIntelligence={false}
           canChangeTier={canAccessPage}
-          onChangePlan={() => setShowPricingDialog(true)}
+          onChangePlan={scrollToPlans}
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
           statusNotice={currentPlanStatusNotice}
         />
 
-        <div className="space-y-4">
+        <div ref={plansRef} className="scroll-mt-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">All Plans &amp; Features</h2>
-            <div className="inline-flex items-center gap-1 p-1 bg-muted rounded-lg self-start sm:self-auto">
+            <div>
+              <h2 className="text-lg font-semibold">Choose a plan</h2>
+              <p className="text-sm text-muted-foreground">
+                Select a plan below. The confirmation step appears only after
+                you choose one.
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-1 rounded-xl border bg-background p-1 self-start sm:self-auto">
               <Button
                 variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
                 size="sm"
@@ -242,9 +315,11 @@ export default function UpgradePage() {
               </Button>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {featuresByTier
-              .filter((t) => t.tier !== Tier.INTELLIGENCE)
+              .filter(
+                (t) => t.tier !== Tier.INTELLIGENCE && t.tier !== Tier.ENTERPRISE,
+              )
               .map(({ tier, info, features }) => {
                 const tierName = Tier[tier] as TierName;
                 const tierPricingData = pricingConfig?.tiers.find(
@@ -254,13 +329,12 @@ export default function UpgradePage() {
                   TIER_OVERAGE_RATES_BY_CURRENCY[
                     currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
                   ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
-                const currencySymbol = PRICING_CURRENCY_SYMBOLS[
-                  currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-                ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+                const currencySymbol =
+                  PRICING_CURRENCY_SYMBOLS[
+                    currency as keyof typeof PRICING_CURRENCY_SYMBOLS
+                  ] ?? PRICING_CURRENCY_SYMBOLS.INR;
                 const whatsappRate =
-                  tierName === "ESSENTIAL" ||
-                  tierName === "PROFESSIONAL" ||
-                  tierName === "ENTERPRISE"
+                  tierName === "ESSENTIAL" || tierName === "PROFESSIONAL"
                     ? getWhatsAppAddonPricingByCurrency(
                         tierName,
                         currency as Parameters<
@@ -305,6 +379,64 @@ export default function UpgradePage() {
                 );
               })}
           </div>
+
+          {(() => {
+            const enterprise = featuresByTier.find((t) => t.tier === Tier.ENTERPRISE);
+            if (!enterprise) return null;
+
+            const tierName = "ENTERPRISE" as TierName;
+            const tierPricingData = pricingConfig?.tiers.find((t) => t.id === tierName);
+            const overageRates =
+              TIER_OVERAGE_RATES_BY_CURRENCY[
+                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
+              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+            const currencySymbol =
+              PRICING_CURRENCY_SYMBOLS[
+                currency as keyof typeof PRICING_CURRENCY_SYMBOLS
+              ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+            const whatsappRate = getWhatsAppAddonPricingByCurrency(
+              "ENTERPRISE",
+              currency as Parameters<typeof getWhatsAppAddonPricingByCurrency>[1],
+            ).overageRate;
+            const overageParts = [
+              overageRates?.appointmentRate > 0
+                ? `${currencySymbol}${overageRates.appointmentRate}/consult`
+                : null,
+              overageRates?.userRate > 0
+                ? `${currencySymbol}${overageRates.userRate}/user`
+                : null,
+              whatsappRate > 0 ? `${currencySymbol}${whatsappRate}/WA msg` : null,
+            ].filter(Boolean);
+            const overageHint =
+              overageParts.length > 0
+                ? `Overage meters: ${overageParts.join(" | ")}`
+                : undefined;
+
+            return (
+              <div className="pt-4">
+                <div className="mx-auto w-full max-w-5xl">
+                  <TierCard
+                    tier={Tier.ENTERPRISE}
+                    info={enterprise.info}
+                    features={enterprise.features}
+                    isCurrentTier={Tier.ENTERPRISE === effectiveCurrentTier}
+                    isLocked={false}
+                    currentTierValue={effectiveCurrentTier}
+                    pricing={tierPricingData?.pricing}
+                    billingCycle={selectedCycle}
+                    currencySymbol={currencySymbol}
+                    overageHint={overageHint}
+                    onSelect={
+                      canAccessPage
+                        ? () => handleSelectTier(tierName, selectedCycle)
+                        : undefined
+                    }
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {plannedFeatures.length > 0 && (
@@ -312,7 +444,9 @@ export default function UpgradePage() {
             <CardContent className="py-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold">Planned Roadmap</h2>
-                <Badge variant="outline">Not included in today&apos;s access</Badge>
+                <Badge variant="outline">
+                  Not included in today&apos;s access
+                </Badge>
               </div>
               <div className="flex flex-wrap gap-2">
                 {plannedFeatures.map((entry) => (
@@ -358,7 +492,13 @@ export default function UpgradePage() {
           </TabsContent>
 
           <TabsContent value="calculator" className="pt-4">
-            <UsagePricingCalculator currency={currency as Parameters<typeof UsagePricingCalculator>[0]["currency"]} />
+            <UsagePricingCalculator
+              currency={
+                currency as Parameters<
+                  typeof UsagePricingCalculator
+                >[0]["currency"]
+              }
+            />
           </TabsContent>
 
           <TabsContent value="missing" className="pt-4 space-y-6">
@@ -379,7 +519,7 @@ export default function UpgradePage() {
 
         <TrustSection />
 
-        <Card className="bg-linear-to-r from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-slate-900/50 border-primary/20">
+        <Card className="border-border/70 bg-card">
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
             <div>
               <h3 className="text-lg font-semibold">Need help choosing?</h3>
@@ -388,11 +528,8 @@ export default function UpgradePage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowPricingDialog(true)}
-              >
-                View Pricing
+              <Button variant="outline" onClick={scrollToPlans}>
+                View plans
               </Button>
               <Button onClick={() => setShowContactSalesModal(true)}>
                 Contact Sales
@@ -420,18 +557,13 @@ export default function UpgradePage() {
           onOpenChange={setShowContactSalesModal}
           source="upgrade_page"
         />
-        <PricingDialog
-          open={showPricingDialog}
-          onOpenChange={setShowPricingDialog}
-          currentTier={effectiveCurrentTier}
-          onSelectTier={handleSelectTier}
-          initialCurrency={currency}
-        />
         <TierChangeDialog
           open={showTierChangeDialog}
           onOpenChange={setShowTierChangeDialog}
           currentTier={effectiveCurrentTier}
           selectedTier={selectedTier}
+          billingCycle={selectedCycle}
+          currency={currency as SupportedCurrency}
           onConfirm={handleConfirmTierChange}
         />
         <PaymentSuccessModal
@@ -442,6 +574,10 @@ export default function UpgradePage() {
         <InvoiceHistoryDialog
           open={showInvoiceHistory}
           onOpenChange={setShowInvoiceHistory}
+          onResolvePayment={() => {
+            setShowInvoiceHistory(false);
+            scrollToPlans();
+          }}
         />
       </div>
     </AppPageScaffold>

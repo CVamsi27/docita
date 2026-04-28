@@ -35,10 +35,10 @@ export interface PricingConfig {
 const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "STARTER",
-    name: "Free",
-    description: "Core clinical workflows for new facilities",
-    tagline: "Start at zero cost",
-    pricing: { monthly: 0, yearly: 0, currency: "₹" },
+    name: "Starter",
+    description: "Core clinical workflows for solo doctors moving off paper",
+    tagline: "Start clinic digitization",
+    pricing: { monthly: 499, yearly: 4990, currency: "₹" },
     features: [
       "50 patients",
       "Digital prescriptions",
@@ -49,7 +49,7 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "ESSENTIAL",
     name: "Essential",
-    description: "Built for solo facilities scaling day-to-day operations",
+    description: "Built for solo clinics running OPD, billing, and follow-ups",
     tagline: "Best for solo practices",
     pricing: { monthly: 999, yearly: 9990, currency: "₹" },
     features: [
@@ -62,7 +62,7 @@ const FALLBACK_TIERS: TierConfig[] = [
   {
     id: "PROFESSIONAL",
     name: "Professional",
-    description: "For multi-doctor facilities with advanced workflows",
+    description: "For multi-doctor clinics with reception-led workflows",
     tagline: "Scale with confidence",
     pricing: { monthly: 2499, yearly: 24990, currency: "₹" },
     features: [
@@ -202,7 +202,10 @@ export function formatStatValue(value: number): string {
   return value.toLocaleString("en-IN");
 }
 
-export function formatTierPrice(value: number | "custom", symbol: string): string {
+export function formatTierPrice(
+  value: number | "custom",
+  symbol: string,
+): string {
   if (value === "custom") {
     return "Custom";
   }

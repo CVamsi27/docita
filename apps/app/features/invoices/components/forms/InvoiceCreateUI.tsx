@@ -27,12 +27,15 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Plus, Save } from "lucide-react";
 import type { Path } from "react-hook-form";
-import { type CreateInvoiceFormValues, useInvoiceCreateLogic } from "@/features/invoices/hooks/use-invoice-create-logic";
+import {
+  type CreateInvoiceFormValues,
+  useInvoiceCreateLogic,
+} from "@/features/invoices/hooks/use-invoice-create-logic";
 import { BackButton } from "@/components/common/navigation/back-button";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 export const InvoiceCreateUI: FC = () => {
   const {
@@ -50,13 +53,6 @@ export const InvoiceCreateUI: FC = () => {
     patientComboboxOpen,
     setPatientComboboxOpen,
   } = useInvoiceCreateLogic();
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
-    }).format(amount);
-  };
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
@@ -133,9 +129,21 @@ export const InvoiceCreateUI: FC = () => {
                   description: form.watch(`items.${index}.description`),
                   quantity: form.watch(`items.${index}.quantity`) || 0,
                   unitPrice: form.watch(`items.${index}.price`) || 0,
+                  taxTreatment:
+                    form.watch(`items.${index}.taxTreatment`) ||
+                    "EXEMPT_HEALTHCARE",
+                  taxRate: form.watch(`items.${index}.taxRate`) || 0,
+                  hsnCode: form.watch(`items.${index}.hsnCode`) || "",
+                  sacCode: form.watch(`items.${index}.sacCode`) || "",
                   total:
                     (form.watch(`items.${index}.quantity`) || 0) *
-                    (form.watch(`items.${index}.price`) || 0),
+                      (form.watch(`items.${index}.price`) || 0) +
+                    ((form.watch(`items.${index}.taxTreatment`) === "TAXABLE"
+                      ? form.watch(`items.${index}.taxRate`) || 0
+                      : 0) /
+                      100) *
+                      ((form.watch(`items.${index}.quantity`) || 0) *
+                        (form.watch(`items.${index}.price`) || 0)),
                 }))}
                 onUpdateItem={(index, key, value) => {
                   const fieldName = key === "unitPrice" ? "price" : key;
@@ -143,6 +151,12 @@ export const InvoiceCreateUI: FC = () => {
                     `items.${index}.${fieldName}` as Path<CreateInvoiceFormValues>,
                     value,
                   );
+                  if (key === "taxTreatment" && value !== "TAXABLE") {
+                    form.setValue(
+                      `items.${index}.taxRate` as Path<CreateInvoiceFormValues>,
+                      0,
+                    );
+                  }
                 }}
                 onRemoveItem={remove}
                 formatCurrency={formatCurrency}
@@ -152,7 +166,13 @@ export const InvoiceCreateUI: FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  append({ description: "", quantity: 1, price: 0 })
+                  append({
+                    description: "",
+                    quantity: 1,
+                    price: 0,
+                    taxTreatment: "EXEMPT_HEALTHCARE",
+                    taxRate: 0,
+                  })
                 }
                 className="mt-4"
               >

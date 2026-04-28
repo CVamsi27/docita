@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -10,7 +11,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
-import { CheckCircle2, ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink, X } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
@@ -34,7 +35,6 @@ export function PaymentSuccessModal({
 
   useEffect(() => {
     if (open) {
-
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -71,7 +71,21 @@ export function PaymentSuccessModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-linear-to-br from-background via-background to-success/10 border-success/20">
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-md bg-linear-to-br from-background via-background to-success/10 border-success/20"
+      >
+        <DialogClose asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Close payment success"
+            className="absolute right-3 top-3 z-20 h-9 w-9 rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DialogClose>
         <DialogHeader>
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/15 ring-8 ring-success/10">
             <CheckCircle2 className="h-8 w-8 text-success" />
@@ -81,8 +95,7 @@ export function PaymentSuccessModal({
           </DialogTitle>
           <DialogDescription className="text-center text-base">
             Your payment was processed successfully. You now have access to{" "}
-            <span className="font-semibold text-foreground">{planName}</span>
-            .
+            <span className="font-semibold text-foreground">{planName}</span>.
           </DialogDescription>
         </DialogHeader>
 
@@ -134,6 +147,13 @@ export function PaymentSuccessModal({
             >
               <ExternalLink className="mr-2 h-4 w-4" />
               Manage Subscription
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => onOpenChange(false)}
+            >
+              Close
             </Button>
           </div>
         </DialogFooter>

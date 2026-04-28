@@ -1,7 +1,12 @@
-
 "use client";
 
-import { Crown, Receipt, Sparkles, TrendingUp } from "lucide-react";
+import {
+  Crown,
+  LockKeyhole,
+  Receipt,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -27,6 +32,7 @@ interface CurrentPlanCardProps {
     badgeLabel?: string;
     actionLabel?: string;
     onAction?: () => void;
+    variant?: "default" | "warning" | "destructive";
   };
 }
 
@@ -63,23 +69,34 @@ export function CurrentPlanCard({
   statusNotice,
 }: CurrentPlanCardProps) {
   const colors = TIER_COLOR_MAP[tierInfo.color] ?? TIER_COLOR_MAP["gray"]!;
+  const statusNoticeClassName =
+    statusNotice?.variant === "destructive"
+      ? "border-destructive/50 bg-destructive/10 text-destructive"
+      : statusNotice?.variant === "warning"
+        ? "border-warning/50 bg-warning/10 text-warning"
+        : "border-border bg-background/70";
+  const statusDescriptionClassName =
+    statusNotice?.variant === "destructive"
+      ? "text-destructive/80"
+      : statusNotice?.variant === "warning"
+        ? "text-warning/80"
+        : "text-muted-foreground";
 
   return (
-    <Card className="relative overflow-hidden border-2 border-primary/20 bg-linear-to-br from-primary/5 via-background to-background">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+    <Card className="relative overflow-hidden border-border/70 bg-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex h-12 w-12 items-center justify-center rounded-xl shadow-lg",
+                "flex h-11 w-11 items-center justify-center rounded-xl",
                 colors.gradient,
               )}
             >
-              <Crown className="h-6 w-6" />
+              <Crown className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-xl">{tierInfo.name} Plan</CardTitle>
+              <CardTitle className="text-lg">{tierInfo.name} Plan</CardTitle>
               <CardDescription>{tierInfo.description}</CardDescription>
             </div>
           </div>
@@ -93,10 +110,13 @@ export function CurrentPlanCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {statusNotice && (
-          <div className="rounded-lg border bg-background/70 p-3">
+          <div className={cn("rounded-lg border p-3", statusNoticeClassName)}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
+                  {statusNotice.variant === "destructive" && (
+                    <LockKeyhole className="h-4 w-4" />
+                  )}
                   <p className="text-sm font-semibold">{statusNotice.title}</p>
                   {statusNotice.badgeLabel && (
                     <Badge variant="outline" className="text-[var(--fs-2xs)]">
@@ -104,7 +124,7 @@ export function CurrentPlanCard({
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className={cn("text-sm", statusDescriptionClassName)}>
                   {statusNotice.description}
                 </p>
               </div>
@@ -131,12 +151,9 @@ export function CurrentPlanCard({
 
         {canChangeTier ? (
           <div className="flex flex-wrap gap-3 pt-2">
-            <Button
-              onClick={onChangePlan}
-              className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
-            >
-              <TrendingUp className="mr-2 h-4 w-4" />
-              View Upgrade Page
+            <Button onClick={onChangePlan} className="gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Change plan
             </Button>
             <Button variant="outline" onClick={onViewBillingHistory}>
               <Receipt className="mr-2 h-4 w-4" />

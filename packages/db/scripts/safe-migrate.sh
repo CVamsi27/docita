@@ -302,14 +302,14 @@ run_migration() {
     
     case $mode in
         "dev")
-            npx prisma migrate dev
+            pnpm exec prisma migrate dev
             ;;
         "deploy")
-            npx prisma migrate deploy
+            pnpm exec prisma migrate deploy
             ;;
         "dry-run")
             log "Dry run - showing pending migrations..."
-            npx prisma migrate status
+            pnpm exec prisma migrate status
             ;;
         *)
             error "Unknown migration mode: $mode"
@@ -371,7 +371,7 @@ generate_migration() {
     fi
     
     log "Generating migration: $name"
-    npx prisma migrate dev --name "$name" --create-only
+    pnpm exec prisma migrate dev --name "$name" --create-only
     
     if [ $? -eq 0 ]; then
         success "Migration generated. Please review before applying."
@@ -434,7 +434,7 @@ main() {
             rollback "$@"
             ;;
         "status")
-            npx prisma migrate status
+            pnpm exec prisma migrate status
             ;;
         "help"|*)
             echo ""

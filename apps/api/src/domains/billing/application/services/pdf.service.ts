@@ -10,15 +10,21 @@ import {
   PDFInvoiceItem,
   PDFDoctorInfo,
   PDFHospitalConfig,
+  type InvoiceTaxSummary,
+  type TaxRegistrationSnapshot,
   resolvePdfCodePair,
 } from '@workspace/types';
 import PDFDocument from 'pdfkit';
 
 export interface InvoiceData {
   invoiceId: string;
+  title?: string;
   clinic: PDFClinicInfo;
   patient: PDFPatientInfo;
   doctor?: PDFDoctorInfo;
+  taxSummary?: InvoiceTaxSummary;
+  sellerTaxSnapshot?: TaxRegistrationSnapshot;
+  buyerTaxSnapshot?: TaxRegistrationSnapshot;
   authorizedSignatureUrl?: string;
   authorizedSignatureLabel?: string;
   items: PDFInvoiceItem[];
@@ -37,8 +43,9 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 @Injectable()
 export class PDFService extends BasePdfService {
   async generate(data: InvoiceData): Promise<Buffer> {
+    const title = data.title ?? data.taxSummary?.documentTitle ?? 'Invoice';
     const config: BasePDFConfig = {
-      title: 'TAX INVOICE',
+      title,
       documentId: data.invoiceId,
       clinic: {
         ...data.clinic,
@@ -84,6 +91,10 @@ export class PDFService extends BasePdfService {
       currentY = this.renderStatusBadge(doc, data.status, context, currentY);
     }
 
+    if (data.taxSummary) {
+      currentY = this.renderTaxMetadata(doc, data, context, currentY);
+    }
+
     // Resolve paired hospital overrides first, then fall back to the
     // per-code legacy override maps and finally the source item codes.
     const resolvedItems = data.items.map((item) => ({
@@ -99,7 +110,13 @@ export class PDFService extends BasePdfService {
     }));
 
     currentY = this.renderItemsTable(doc, resolvedItems, context, currentY);
-    currentY = this.renderTotals(doc, resolvedItems, context, currentY);
+    currentY = this.renderTotals(
+      doc,
+      resolvedItems,
+      context,
+      currentY,
+      data.taxSummary,
+    );
     await this.renderAuthorizedSignature(doc, data, context, currentY);
 
     this.renderFooter(doc, config.footerText, context);
@@ -291,18 +308,64 @@ export class PDFService extends BasePdfService {
     return currentY;
   }
 
+  private renderTaxMetadata(
+    doc: typeof PDFDocument.prototype,
+    data: InvoiceData,
+    context: PDFContext,
+    startY: number,
+  ): number {
+    const summary = data.taxSummary;
+    if (!summary) return startY;
+
+    let currentY = this.checkPageBreak(doc, startY, 42, context);
+    const place = summary.placeOfSupply;
+    const details = [
+      place?.stateName || place?.stateCode
+        ? `Place of supply: ${place.stateName ?? place.stateCode}`
+        : undefined,
+      data.sellerTaxSnapshot?.registrationId
+        ? `${data.sellerTaxSnapshot.registrationLabel || 'GSTIN'}: ${
+            data.sellerTaxSnapshot.registrationId
+          }`
+        : undefined,
+      data.buyerTaxSnapshot?.registrationId
+        ? `Buyer ${
+            data.buyerTaxSnapshot.registrationLabel || 'GSTIN'
+          }: ${data.buyerTaxSnapshot.registrationId}`
+        : undefined,
+      summary.reverseCharge ? 'Reverse charge: Yes' : undefined,
+    ].filter((detail): detail is string => Boolean(detail));
+
+    if (details.length === 0) {
+      return currentY;
+    }
+
+    doc.font('Helvetica').fontSize(8).fillColor('#374151');
+    doc.text(details.join(' | '), context.margin, currentY, {
+      width: context.contentWidth,
+    });
+    doc.fillColor('#000000');
+
+    currentY += 18;
+    this.drawDivider(doc, currentY, context);
+    return currentY + 10;
+  }
+
   private renderTotals(
     doc: typeof PDFDocument.prototype,
     items: PDFInvoiceItem[],
     context: PDFContext,
     startY: number,
+    taxSummary?: InvoiceTaxSummary,
   ): number {
-    const subtotal = items.reduce(
-      (sum, item) => sum + item.quantity * item.unitPrice,
-      0,
-    );
-    const total = items.reduce((sum, item) => sum + item.amount, 0);
-    const tax = total - subtotal;
+    const subtotal =
+      taxSummary?.subtotal ??
+      items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+    const discount = taxSummary?.discountTotal ?? 0;
+    const tax = taxSummary?.taxTotal ?? 0;
+    const total =
+      taxSummary?.grandTotal ??
+      items.reduce((sum, item) => sum + item.amount, 0);
 
     let currentY = startY + 10;
     const labelX = context.margin + context.contentWidth - 200;
@@ -320,12 +383,49 @@ export class PDFService extends BasePdfService {
     });
     currentY += 15;
 
-    doc.text('Tax:', labelX, currentY, { width: 90, align: 'right' });
-    doc.text(`${sym}${tax.toFixed(2)}`, valueX, currentY, {
-      width: 105,
-      align: 'right',
-    });
-    currentY += 18;
+    if (discount > 0) {
+      doc.text('Discount:', labelX, currentY, { width: 90, align: 'right' });
+      doc.text(`-${sym}${discount.toFixed(2)}`, valueX, currentY, {
+        width: 105,
+        align: 'right',
+      });
+      currentY += 15;
+    }
+
+    if (taxSummary?.taxableAmount) {
+      doc.text('Taxable:', labelX, currentY, { width: 90, align: 'right' });
+      doc.text(
+        `${sym}${taxSummary.taxableAmount.toFixed(2)}`,
+        valueX,
+        currentY,
+        {
+          width: 105,
+          align: 'right',
+        },
+      );
+      currentY += 15;
+    }
+
+    if (taxSummary?.components.length) {
+      for (const component of taxSummary.components) {
+        const label = `${component.type} ${component.rate}%:`;
+        doc.text(label, labelX, currentY, { width: 90, align: 'right' });
+        doc.text(`${sym}${component.amount.toFixed(2)}`, valueX, currentY, {
+          width: 105,
+          align: 'right',
+        });
+        currentY += 15;
+      }
+    } else {
+      doc.text('Tax:', labelX, currentY, { width: 90, align: 'right' });
+      doc.text(`${sym}${tax.toFixed(2)}`, valueX, currentY, {
+        width: 105,
+        align: 'right',
+      });
+      currentY += 15;
+    }
+
+    currentY += 3;
 
     doc
       .rect(labelX - 10, currentY - 5, rowW, 26)

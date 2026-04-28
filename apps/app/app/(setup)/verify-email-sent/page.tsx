@@ -17,8 +17,8 @@ import { PageTransitionLoader } from "@/components/common/loaders/page-transitio
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";
 
-const RESEND_VERIFICATION_COOLDOWN_MS = 120 * 1000;
-const RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY =
+const VERIFICATION_EMAIL_COOLDOWN_MS = 120 * 1000;
+const VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY =
   "docita_verification_email_resend_available_at";
 
 function getNextPathForVerifiedUser(user: User | null): string {
@@ -81,7 +81,7 @@ export default function VerifyEmailSentPage() {
       VERIFICATION_EMAIL_STATUS_STORAGE_KEY,
     );
     const storedResendAvailableAt = window.sessionStorage.getItem(
-      RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+      VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
     );
     const resendAvailableAtValue = storedResendAvailableAt
       ? Number(storedResendAvailableAt)
@@ -95,7 +95,7 @@ export default function VerifyEmailSentPage() {
       setResendAvailableAt(resendAvailableAtValue);
     } else {
       window.sessionStorage.removeItem(
-        RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+        VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
       );
       setResendAvailableAt(null);
     }
@@ -120,7 +120,7 @@ export default function VerifyEmailSentPage() {
     const timeoutId = window.setTimeout(() => {
       setResendAvailableAt(null);
       window.sessionStorage.removeItem(
-        RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+        VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
       );
       setNow(Date.now());
     }, Math.max(resendAvailableAt - Date.now(), 0));
@@ -188,9 +188,9 @@ export default function VerifyEmailSentPage() {
     try {
       await apiFetch("/auth/resend-verification", { method: "POST" });
       const availableAt =
-        Date.now() + RESEND_VERIFICATION_COOLDOWN_MS;
+        Date.now() + VERIFICATION_EMAIL_COOLDOWN_MS;
       window.sessionStorage.setItem(
-        RESEND_VERIFICATION_COOLDOWN_STORAGE_KEY,
+        VERIFICATION_EMAIL_COOLDOWN_STORAGE_KEY,
         String(availableAt),
       );
       window.sessionStorage.setItem(

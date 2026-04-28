@@ -5,7 +5,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function MedicalCodingSection() {
   return (
-    <section className="px-6 py-24 bg-linear-to-b from-muted/30 to-background relative overflow-hidden">
+    <section className="landing-section landing-section-muted relative overflow-hidden">
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
       <div className="ui-page-shell relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -63,8 +63,8 @@ export function MedicalCodingSection() {
             </p>
           </div>
           <div className="relative">
-            <div className="rounded-2xl bg-linear-to-br from-info/20 to-info/10 p-8 backdrop-blur-sm border border-info/20">
-              <div className="bg-background rounded-xl p-6 shadow-lg">
+            <div className="landing-card border-info/20 bg-linear-to-br from-info/20 to-info/10 p-8">
+              <div className="rounded-xl bg-background p-6 shadow-lg">
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b">
                   <Activity className="h-5 w-5 text-info" />
                   <span className="font-semibold">Medical Coding</span>

@@ -29,7 +29,16 @@ export function getLandingApiBaseUrl(): string {
 }
 
 export function getAppBaseUrl(): string {
-  return import.meta.env["PUBLIC_APP_URL"] || "https://app.docita.work";
+  const configuredUrl =
+    import.meta.env["PUBLIC_APP_URL"] ||
+    import.meta.env["NEXT_PUBLIC_APP_URL"] ||
+    import.meta.env["APP_URL"];
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/+$/, "");
+  }
+
+  return "http://localhost:3000";
 }
 
 function getCsrfTokenFromCookie(): string | null {

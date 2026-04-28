@@ -19,9 +19,14 @@ export interface PlanFeature {
 interface PlanFeaturesProps {
   features: PlanFeature[];
   maxDisplay?: number;
+  align?: "left" | "center";
 }
 
-export function PlanFeatures({ features, maxDisplay }: PlanFeaturesProps) {
+export function PlanFeatures({
+  features,
+  maxDisplay,
+  align = "left",
+}: PlanFeaturesProps) {
   const [showAll, setShowAll] = useState(false);
 
   const displayFeatures =
@@ -36,6 +41,7 @@ export function PlanFeatures({ features, maxDisplay }: PlanFeaturesProps) {
           key={feature}
           className={cn(
             "flex items-center gap-2 text-sm",
+            align === "center" && "justify-center text-center",
             !hasAccess && "text-muted-foreground",
           )}
         >
@@ -44,7 +50,9 @@ export function PlanFeatures({ features, maxDisplay }: PlanFeaturesProps) {
           ) : (
             <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           )}
-          <span className="truncate">{details.name}</span>
+          <span className={cn(align === "center" ? "leading-snug" : "truncate")}>
+            {details.name}
+          </span>
         </div>
       ))}
 

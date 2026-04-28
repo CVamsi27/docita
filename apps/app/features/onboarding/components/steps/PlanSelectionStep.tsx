@@ -20,6 +20,7 @@ import {
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
+import { TrialOfferBanner } from "@/features/subscription/components";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
@@ -52,7 +53,8 @@ const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
 
 const PLAN_AUDIENCE: Record<string, string> = {
   STARTER: "Best for solo doctors wanting to start free",
-  ESSENTIAL: "Best for small facilities needing clear limits and simple billing",
+  ESSENTIAL:
+    "Best for small facilities needing clear limits and simple billing",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
@@ -74,7 +76,8 @@ export function PlanSelectionStep({
   const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const resolvedCurrency = currency ?? detectedCurrency;
-  const { pricingConfig, isLoading, error } = usePricingConfig(resolvedCurrency);
+  const { pricingConfig, isLoading, error } =
+    usePricingConfig(resolvedCurrency);
 
   const featuresByTier = Object.values(Tier)
     .filter((t): t is Tier => typeof t === "number" && t !== Tier.INTELLIGENCE)
@@ -82,7 +85,8 @@ export function PlanSelectionStep({
       tier,
       info: {
         ...getTierInfo(tier),
-        tagline: PLAN_AUDIENCE[Tier[tier] as string] ?? getTierInfo(tier).tagline,
+        tagline:
+          PLAN_AUDIENCE[Tier[tier] as string] ?? getTierInfo(tier).tagline,
       },
       features: getAllFeaturesUpToTier(Tier[tier] as TierName)
         .map((feature) => ({
@@ -165,6 +169,8 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        <TrialOfferBanner />
+
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button
@@ -195,10 +201,15 @@ Please contact me with deployment and commercial details.`;
               const tierPricingData = pricingConfig.tiers.find(
                 (t: TierPricing) => t.id === tierName,
               );
-              const currencyKey = resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
-              const currencySymbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS] ?? "₹";
-              const overageRates =
-                (TIER_OVERAGE_RATES_BY_CURRENCY[currencyKey] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
+              const currencyKey =
+                resolvedCurrency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY;
+              const currencySymbol =
+                PRICING_CURRENCY_SYMBOLS[
+                  resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS
+                ] ?? "₹";
+              const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[
+                currencyKey
+              ] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
               const overageHint =
                 overageRates?.appointmentRate > 0
                   ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
@@ -223,7 +234,11 @@ Please contact me with deployment and commercial details.`;
                     features={features}
                     isCurrentTier={false}
                     isLocked={false}
-                    className={cn("h-full", selectedTier === tierName && "border-primary ring-2 ring-primary/20 shadow-lg")}
+                    className={cn(
+                      "h-full",
+                      selectedTier === tierName &&
+                        "border-primary ring-2 ring-primary/20 shadow-lg",
+                    )}
                     pricing={tierPricingData?.pricing}
                     billingCycle={billingCycle}
                     currencySymbol={currencySymbol}
@@ -238,10 +253,18 @@ Please contact me with deployment and commercial details.`;
                         : "Select Plan"
                     }
                     maxDisplay={8}
-                    usageHints={PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS] ? {
-                      patients: PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS].patients,
-                      users: PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS].users,
-                    } : undefined}
+                    usageHints={
+                      PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
+                        ? {
+                            patients:
+                              PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
+                                .patients,
+                            users:
+                              PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]
+                                .users,
+                          }
+                        : undefined
+                    }
                     onSelect={
                       isSubmitting
                         ? undefined

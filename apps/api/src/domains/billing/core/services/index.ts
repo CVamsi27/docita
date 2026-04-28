@@ -5,3 +5,4 @@ export * from './pricing.service';
 export * from './usage-tracking.service';
 export * from './overage-calculation.service';
 export * from './usage-aggregation.service';
+export * from './tax-calculator.service';

@@ -8,10 +8,41 @@ import { ISubscriptionRepository } from '@/domains/subscriptions/application/por
 import { SubscriptionMapper } from '@/domains/subscriptions/infrastructure/mappers/subscription.mapper';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionStatus, Prisma } from '@workspace/db';
+import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  taxRegistrationSnapshotSchema,
+  taxSettingsSchema,
+  type InvoiceTaxSummary,
+  type TaxRegistrationSnapshot,
+} from '@workspace/types';
+
+const toPrismaJson = <T>(value: T): Prisma.InputJsonValue =>
+  JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+
+const roundCurrency = (value: number): number =>
+  Math.round((value + Number.EPSILON) * 100) / 100;
+
+const isJsonObject = (
+  value: Prisma.JsonValue | null | undefined,
+): value is Prisma.JsonObject =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+const readJsonString = (
+  object: Prisma.JsonObject | undefined,
+  key: string,
+): string | undefined => {
+  const value = object?.[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+};
 
 @Injectable()
 export class PrismaSubscriptionRepository implements ISubscriptionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly taxCalculator: TaxCalculatorService,
+    private readonly configService: AppConfigService,
+  ) {}
 
   private getReadClient() {
     return this.prisma.getReadClient();
@@ -205,6 +236,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     description: string;
   }): Promise<void> {
     try {
+      const taxFields = await this.calculateSubscriptionTaxFields(payment);
       await this.prisma.subscriptionPayment.create({
         data: {
           clinicId: payment.clinicId,
@@ -214,6 +246,15 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
           status: payment.status,
           razorpayOrderId: payment.razorpayOrderId,
           description: payment.description,
+          invoiceType: taxFields.invoiceType,
+          subtotalCents: taxFields.subtotalCents,
+          taxCents: taxFields.taxCents,
+          grandTotalCents: taxFields.grandTotalCents,
+          taxSummary: toPrismaJson(taxFields.taxSummary),
+          sellerTaxSnapshot: toPrismaJson(taxFields.seller),
+          buyerTaxSnapshot: toPrismaJson(taxFields.buyer),
+          placeOfSupplyStateCode: taxFields.taxSummary.placeOfSupply?.stateCode,
+          reverseCharge: taxFields.taxSummary.reverseCharge,
         },
       });
     } catch (error) {
@@ -261,5 +302,158 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
+  }
+
+  async findPaymentById(
+    clinicId: string,
+    paymentId: string,
+  ): Promise<Prisma.SubscriptionPaymentGetPayload<Prisma.SubscriptionPaymentDefaultArgs> | null> {
+    return this.getReadClient().subscriptionPayment.findFirst({
+      where: { id: paymentId, clinicId },
+    });
+  }
+
+  async updatePaymentLink(params: {
+    clinicId: string;
+    paymentId: string;
+    payUrl: string;
+  }): Promise<void> {
+    await this.prisma.subscriptionPayment.updateMany({
+      where: { id: params.paymentId, clinicId: params.clinicId },
+      data: {
+        invoiceUrl: params.payUrl,
+      },
+    });
+  }
+
+  async findReusablePendingCheckout(params: {
+    clinicId: string;
+    amountCents: number;
+    currency: string;
+    description: string;
+    withinMinutes: number;
+  }): Promise<{ razorpayOrderId: string } | null> {
+    const threshold = new Date(Date.now() - params.withinMinutes * 60 * 1000);
+    const row = await this.getReadClient().subscriptionPayment.findFirst({
+      where: {
+        clinicId: params.clinicId,
+        status: { in: ['pending', 'PENDING'] },
+        amountCents: params.amountCents,
+        currency: params.currency,
+        description: params.description,
+        razorpayOrderId: { not: null },
+        razorpayPaymentId: null,
+        createdAt: { gte: threshold },
+      },
+      select: { razorpayOrderId: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!row?.razorpayOrderId) return null;
+    return { razorpayOrderId: row.razorpayOrderId };
+  }
+
+  private async calculateSubscriptionTaxFields(payment: {
+    clinicId: string;
+    amountCents: number;
+    currency: string;
+    description: string;
+  }): Promise<{
+    invoiceType: string;
+    subtotalCents: number;
+    taxCents: number;
+    grandTotalCents: number;
+    taxSummary: InvoiceTaxSummary;
+    seller: TaxRegistrationSnapshot;
+    buyer: TaxRegistrationSnapshot;
+  }> {
+    const clinic = await this.getReadClient().clinic.findUnique({
+      where: { id: payment.clinicId },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        currency: true,
+        settings: true,
+      },
+    });
+    const platformTaxConfig = this.configService.getPlatformTaxConfig();
+    const seller = taxRegistrationSnapshotSchema.parse(
+      platformTaxConfig.seller,
+    );
+    const taxSettings = taxSettingsSchema.parse({
+      countryCode: 'IN',
+      regime: 'IN_GST',
+      ...this.extractClinicTaxSettings(clinic?.settings),
+    });
+    const buyer = taxRegistrationSnapshotSchema.parse({
+      countryCode: taxSettings.countryCode,
+      regime: taxSettings.regime,
+      registrationId: taxSettings.registrationId,
+      registrationLabel: taxSettings.registrationLabel,
+      legalName: clinic?.name,
+      address: clinic?.address ?? undefined,
+      stateCode: taxSettings.stateCode,
+      stateName: taxSettings.stateName,
+    });
+
+    const taxRate =
+      payment.currency === 'INR' && seller.countryCode === 'IN'
+        ? platformTaxConfig.subscriptionTaxRate
+        : 0;
+    const grandTotal = roundCurrency(payment.amountCents / 100);
+    const subtotal =
+      taxRate > 0
+        ? roundCurrency(grandTotal / (1 + taxRate / 100))
+        : grandTotal;
+    const calculation = this.taxCalculator.calculateInvoice({
+      currency: payment.currency || clinic?.currency || 'INR',
+      seller,
+      buyer,
+      items: [
+        {
+          description: payment.description,
+          quantity: 1,
+          price: subtotal,
+          taxTreatment: taxRate > 0 ? 'TAXABLE' : 'EXEMPT',
+          taxRate,
+          sacCode: '998313',
+        },
+      ],
+    });
+
+    return {
+      invoiceType: calculation.invoiceType,
+      subtotalCents: Math.round(calculation.subtotal * 100),
+      taxCents: Math.round(calculation.taxTotal * 100),
+      grandTotalCents: payment.amountCents,
+      taxSummary: {
+        ...calculation.summary,
+        grandTotal,
+      },
+      seller,
+      buyer,
+    };
+  }
+
+  private extractClinicTaxSettings(
+    settings: Prisma.JsonValue | null | undefined,
+  ): Record<string, string | undefined> {
+    const settingsObject = isJsonObject(settings) ? settings : undefined;
+    const taxSettings = settingsObject?.taxSettings;
+    const taxSettingsObject = isJsonObject(taxSettings)
+      ? taxSettings
+      : undefined;
+
+    return {
+      registrationId:
+        readJsonString(settingsObject, 'gstin') ??
+        readJsonString(taxSettingsObject, 'registrationId'),
+      registrationLabel: readJsonString(taxSettingsObject, 'registrationLabel'),
+      countryCode: readJsonString(taxSettingsObject, 'countryCode'),
+      regime: readJsonString(taxSettingsObject, 'regime'),
+      stateCode: readJsonString(taxSettingsObject, 'stateCode'),
+      stateName: readJsonString(taxSettingsObject, 'stateName'),
+    };
   }
 }

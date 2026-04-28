@@ -37,6 +37,49 @@ const makeJob = (
   timestamp: Date.now(),
 });
 
+const buildInvoiceDetail = (
+  overrides: Partial<InvoiceDetail> = {},
+): InvoiceDetail => ({
+  id: 'inv-1',
+  patientId: 'patient-1',
+  clinicId: 'clinic-1',
+  invoiceNumber: null,
+  invoiceType: 'BILL_OF_SUPPLY',
+  currency: 'INR',
+  total: 100,
+  subtotal: 100,
+  discountTotal: 0,
+  taxTotal: 0,
+  grandTotal: 100,
+  taxSummary: null,
+  sellerTaxSnapshot: null,
+  buyerTaxSnapshot: null,
+  placeOfSupplyStateCode: null,
+  placeOfSupplyStateName: null,
+  reverseCharge: false,
+  issuedAt: new Date('2026-01-01T00:00:00.000Z'),
+  dueDate: null,
+  eInvoiceRequired: false,
+  eInvoiceIrn: null,
+  eInvoiceQrCode: null,
+  eInvoiceAcknowledgedAt: null,
+  status: InvoiceStatus.PENDING,
+  items: [],
+  doctorName: 'Dr. Queue',
+  doctorEmail: null,
+  doctorPhone: null,
+  doctorSpecialization: null,
+  doctorRegistrationNumber: null,
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  pdfUrl: null,
+  pdfGeneratedAt: null,
+  pdfTemplateVersion: 1,
+  patient: null,
+  appointment: null,
+  ...overrides,
+});
+
 describe('InvoicePdfProcessor', () => {
   const findOneMock = jest.fn<InvoicesService['findOne']>();
   const generatePDFMock = jest.fn<InvoicesService['generatePDF']>();
@@ -139,25 +182,7 @@ describe('InvoicePdfProcessor', () => {
   });
 
   it('updates PdfJob to PROCESSING then COMPLETED on success', async () => {
-    const fakeInvoice: InvoiceDetail = {
-      id: 'inv-1',
-      patientId: 'patient-1',
-      total: 100,
-      status: InvoiceStatus.PENDING,
-      items: [],
-      doctorName: 'Dr. Queue',
-      doctorEmail: null,
-      doctorPhone: null,
-      doctorSpecialization: null,
-      doctorRegistrationNumber: null,
-      createdAt: new Date('2026-01-01T00:00:00.000Z'),
-      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-      pdfUrl: null,
-      pdfGeneratedAt: null,
-      pdfTemplateVersion: 1,
-      patient: null,
-      appointment: null,
-    };
+    const fakeInvoice = buildInvoiceDetail();
     findOneMock.mockResolvedValue(fakeInvoice);
     generatePDFMock.mockResolvedValue(Buffer.from('pdf'));
     uploadAndPersistMock.mockResolvedValue({
@@ -187,25 +212,7 @@ describe('InvoicePdfProcessor', () => {
   });
 
   it('updates PdfJob to FAILED and rethrows when handler errors', async () => {
-    findOneMock.mockResolvedValue({
-      id: 'inv-1',
-      patientId: 'patient-1',
-      total: 100,
-      status: InvoiceStatus.PENDING,
-      items: [],
-      doctorName: 'Dr. Queue',
-      doctorEmail: null,
-      doctorPhone: null,
-      doctorSpecialization: null,
-      doctorRegistrationNumber: null,
-      createdAt: new Date('2026-01-01T00:00:00.000Z'),
-      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-      pdfUrl: null,
-      pdfGeneratedAt: null,
-      pdfTemplateVersion: 1,
-      patient: null,
-      appointment: null,
-    });
+    findOneMock.mockResolvedValue(buildInvoiceDetail());
     generatePDFMock.mockRejectedValue(new Error('generation failed'));
 
     processor.onModuleInit();
@@ -228,25 +235,7 @@ describe('InvoicePdfProcessor', () => {
   });
 
   it('keeps PdfJob out of FAILED while retries remain', async () => {
-    findOneMock.mockResolvedValue({
-      id: 'inv-1',
-      patientId: 'patient-1',
-      total: 100,
-      status: InvoiceStatus.PENDING,
-      items: [],
-      doctorName: 'Dr. Queue',
-      doctorEmail: null,
-      doctorPhone: null,
-      doctorSpecialization: null,
-      doctorRegistrationNumber: null,
-      createdAt: new Date('2026-01-01T00:00:00.000Z'),
-      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-      pdfUrl: null,
-      pdfGeneratedAt: null,
-      pdfTemplateVersion: 1,
-      patient: null,
-      appointment: null,
-    });
+    findOneMock.mockResolvedValue(buildInvoiceDetail());
     generatePDFMock.mockRejectedValue(new Error('transient failure'));
 
     processor.onModuleInit();
@@ -275,25 +264,7 @@ describe('InvoicePdfProcessor', () => {
   });
 
   it('skips PdfJob updates when pdfJobId is absent', async () => {
-    findOneMock.mockResolvedValue({
-      id: 'inv-1',
-      patientId: 'patient-1',
-      total: 100,
-      status: InvoiceStatus.PENDING,
-      items: [],
-      doctorName: 'Dr. Queue',
-      doctorEmail: null,
-      doctorPhone: null,
-      doctorSpecialization: null,
-      doctorRegistrationNumber: null,
-      createdAt: new Date('2026-01-01T00:00:00.000Z'),
-      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-      pdfUrl: null,
-      pdfGeneratedAt: null,
-      pdfTemplateVersion: 1,
-      patient: null,
-      appointment: null,
-    });
+    findOneMock.mockResolvedValue(buildInvoiceDetail());
     generatePDFMock.mockResolvedValue(Buffer.from('pdf'));
     uploadAndPersistMock.mockResolvedValue({
       storedKey: 'pdfs/invoices/inv-1.pdf',

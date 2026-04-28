@@ -19,6 +19,7 @@ import {
 import { api } from "@/lib/api-client";
 import { getSupportContactText } from "@/lib/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
 import type { TierName } from "@workspace/types";
 
 interface PaymentDetails {
@@ -57,23 +58,10 @@ export function PaymentStep({
 }: PaymentStepProps) {
   const [autoPay, setAutoPay] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { openCheckout } = useRazorpay();
 
   const calculateTotal = () => {
     return selectedPlanPrice;
-  };
-
-  const loadRazorpayScript = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
   };
 
   const handlePayment = async () => {
@@ -88,19 +76,18 @@ export function PaymentStep({
     setIsProcessing(true);
 
     try {
-      const loaded = await loadRazorpayScript();
-      if (!loaded) {
+      const resolvedTier = (tier ?? planId) as TierName | undefined;
+      if (!resolvedTier) {
         showUserFacingErrorToast(
-          "We could not open payments. Please check your connection and try again.",
+          "We could not identify the plan tier. Please go back and reselect the plan.",
         );
         setIsProcessing(false);
         return;
       }
 
-      const resolvedTier = (tier ?? planId) as TierName | undefined;
-      if (!resolvedTier) {
+      if (resolvedTier === "ENTERPRISE") {
         showUserFacingErrorToast(
-          "We could not identify the plan tier. Please go back and reselect the plan.",
+          "Enterprise plans require a sales consultation. Please contact support to proceed.",
         );
         setIsProcessing(false);
         return;
@@ -117,38 +104,27 @@ export function PaymentStep({
         billingCycle,
       });
 
-      const options = {
+      await openCheckout({
         key: checkout.razorpayKeyId,
         amount: checkout.amountCents,
         currency: checkout.currency || currencyCode || "INR",
         name: "Docita",
         description: `Subscription - ${billingCycle === "YEARLY" ? "Yearly" : "Monthly"}`,
         order_id: checkout.orderId,
-        handler: async (response: {
-          razorpay_payment_id: string;
-          razorpay_order_id: string;
-          razorpay_signature: string;
-        }) => {
-          try {
-            await api.post("/subscription/billing/activate", {
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpaySignature: response.razorpay_signature,
-              tier: resolvedTier,
-              billingCycle,
-            });
+        handler: async (response) => {
+          await api.post("/subscription/billing/activate", {
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpaySignature: response.razorpay_signature,
+            tier: resolvedTier,
+            billingCycle,
+          });
 
-            onComplete({
-              autoPay,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-            });
-          } catch {
-            showUserFacingErrorToast(
-              `We could not activate your subscription. Please ${getSupportContactText()}.`,
-            );
-            setIsProcessing(false);
-          }
+          onComplete({
+            autoPay,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+          });
         },
         prefill: {
           email: clinicEmail,
@@ -160,24 +136,15 @@ export function PaymentStep({
             setIsProcessing(false);
           },
         },
-      };
-
-      const RazorpayWidget = window.Razorpay;
-      if (!RazorpayWidget) {
-        showUserFacingErrorToast(
-          "We could not open payments. Please refresh and try again.",
-        );
+      });
+    } catch (error: unknown) {
+      if (isPaymentCanceledError(error)) {
         setIsProcessing(false);
         return;
       }
-      const rzp = new RazorpayWidget(options);
-      rzp.on?.("payment.failed", () => {
-        showUserFacingErrorToast("We could not complete this payment. Please try again.");
-        setIsProcessing(false);
-      });
-      rzp.open();
-    } catch {
-      showUserFacingErrorToast("We could not start payment right now. Please try again.");
+      showUserFacingErrorToast(
+        `We could not start payment right now. Please ${getSupportContactText()}.`,
+      );
       setIsProcessing(false);
     }
   };

@@ -8,6 +8,10 @@ import { usePatients } from "@/hooks/api/use-patients";
 import { useRouter } from "next/navigation";
 import { invoiceItemSchema } from "./use-invoice-edit-logic";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  applyInvoiceDiscountToFirstLine,
+  calculateInvoiceTotals,
+} from "@/features/invoices/rules/invoiceRules";
 
 export const createInvoiceSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),
@@ -39,7 +43,15 @@ export const useInvoiceCreateLogic = () => {
       status: "PENDING",
       discount: 0,
       notes: "",
-      items: [{ description: "", quantity: 1, price: 0 }],
+      items: [
+        {
+          description: "",
+          quantity: 1,
+          price: 0,
+          taxTreatment: "EXEMPT_HEALTHCARE",
+          taxRate: 0,
+        },
+      ],
     },
   });
 
@@ -49,11 +61,8 @@ export const useInvoiceCreateLogic = () => {
   });
 
   const calculateTotal = useCallback((values: CreateInvoiceFormValues) => {
-    const subtotal = values.items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0,
-    );
-    return Math.max(0, subtotal - (values.discount || 0));
+    return calculateInvoiceTotals(values.items, values.discount || 0)
+      .grandTotal;
   }, []);
 
   const totalAmount = calculateTotal(form.watch());
@@ -64,8 +73,9 @@ export const useInvoiceCreateLogic = () => {
 
       const payload = {
         ...data,
+        items: applyInvoiceDiscountToFirstLine(data.items, data.discount || 0),
         notes: data.notes ?? "",
-        total: totalAmount, 
+        total: totalAmount,
       };
 
       const result = await createInvoice.mutateAsync(payload);
@@ -78,7 +88,6 @@ export const useInvoiceCreateLogic = () => {
       showUserFacingErrorToast(
         "We could not create this invoice. Please try again.",
       );
-
     } finally {
       setIsSaving(false);
     }

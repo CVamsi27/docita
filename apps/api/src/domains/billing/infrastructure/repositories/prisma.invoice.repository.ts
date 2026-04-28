@@ -4,6 +4,7 @@ import {
   IInvoiceRepository,
   InvoiceDetail,
   InvoiceListItem,
+  PatientInvoiceContext,
   InvoiceSearchParams,
   PaginatedResult,
 } from '@/domains/billing/core/repositories/invoice.repository';
@@ -17,6 +18,19 @@ import {
 type CursorModel<T> = {
   findMany: (args?: Record<string, unknown>) => Promise<T[]>;
   count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
+};
+
+const getIndianFinancialYear = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const startYear = month >= 4 ? year : year - 1;
+  const endYear = startYear + 1;
+  return `${String(startYear).slice(-2)}${String(endYear).slice(-2)}`;
+};
+
+const normalizeInvoicePrefix = (prefix?: string): string => {
+  const normalized = prefix?.replace(/[^a-z0-9]/gi, '').toUpperCase() || 'DC';
+  return normalized.slice(0, 4);
 };
 
 @Injectable()
@@ -36,16 +50,17 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       return { items: [], nextCursor: undefined, hasMore: false, count: 0 };
     }
 
-    const where: Prisma.InvoiceWhereInput = {
-      patient: { clinicId },
+    const ownershipFilter: Prisma.InvoiceWhereInput = {
+      OR: [{ clinicId }, { clinicId: null, patient: { clinicId } }],
     };
+    const filters: Prisma.InvoiceWhereInput[] = [ownershipFilter];
 
     if (patientId) {
-      where.patientId = patientId;
+      filters.push({ patientId });
     }
 
     if (status && status !== 'all') {
-      where.status = status as InvoiceStatus;
+      filters.push({ status: status as InvoiceStatus });
     }
 
     if (date) {
@@ -54,25 +69,27 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       const endDate = new Date(startDate);
       endDate.setHours(23, 59, 59, 999);
 
-      where.createdAt = {
-        gte: startDate,
-        lte: endDate,
-      };
+      filters.push({
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      });
     }
-
-    const patientFilter = (where.patient as Prisma.PatientWhereInput) || {
-      clinicId,
-    };
 
     if (search) {
-      where.patient = {
-        ...patientFilter,
-        OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-        ],
-      };
+      filters.push({
+        patient: {
+          clinicId,
+          OR: [
+            { firstName: { contains: search, mode: 'insensitive' } },
+            { lastName: { contains: search, mode: 'insensitive' } },
+          ],
+        },
+      });
     }
+
+    const where: Prisma.InvoiceWhereInput = { AND: filters };
 
     const readClient = this.getReadClient();
     const model: CursorModel<InvoiceListItem> = {
@@ -125,5 +142,70 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
 
   async delete(id: string): Promise<void> {
     await this.prisma.invoice.delete({ where: { id } });
+  }
+
+  async findPatientContext(
+    patientId: string,
+    clinicId?: string,
+  ): Promise<PatientInvoiceContext | null> {
+    const patient = await this.getReadClient().patient.findFirst({
+      where: {
+        id: patientId,
+        ...(clinicId ? { clinicId } : {}),
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        email: true,
+        address: true,
+        clinicId: true,
+        clinic: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            phone: true,
+            email: true,
+            currency: true,
+            settings: true,
+          },
+        },
+      },
+    });
+
+    return patient as PatientInvoiceContext | null;
+  }
+
+  async nextInvoiceNumber(
+    clinicId: string,
+    issuedAt: Date,
+    prefix?: string,
+  ): Promise<string> {
+    const financialYear = getIndianFinancialYear(issuedAt);
+    const normalizedPrefix = normalizeInvoicePrefix(prefix);
+    const sequence = await this.prisma.invoiceSequence.upsert({
+      where: {
+        clinicId_financialYear: {
+          clinicId,
+          financialYear,
+        },
+      },
+      update: {
+        currentValue: { increment: 1 },
+        prefix: normalizedPrefix,
+      },
+      create: {
+        clinic: { connect: { id: clinicId } },
+        financialYear,
+        prefix: normalizedPrefix,
+        currentValue: 1,
+      },
+    });
+
+    return `${normalizedPrefix}${financialYear}-${String(
+      sequence.currentValue,
+    ).padStart(6, '0')}`.slice(0, 16);
   }
 }

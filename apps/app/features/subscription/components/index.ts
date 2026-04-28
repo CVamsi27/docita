@@ -1,5 +1,6 @@
 export * from "./cards/current-plan-card";
 export * from "./cards/tier-card";
+export * from "./banners/trial-offer-banner";
 export * from "./sections/faq-section";
 export * from "./sections/trust-section";
 export * from "./sections/plan-features";

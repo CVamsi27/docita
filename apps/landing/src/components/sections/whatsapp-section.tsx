@@ -12,7 +12,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function WhatsappSection() {
   return (
-    <section className="px-6 py-24 bg-success/10 relative overflow-hidden">
+    <section className="landing-section landing-section-soft relative overflow-hidden bg-success/10">
       <div className="ui-page-shell relative z-10">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div className="order-2 lg:order-1">
@@ -59,7 +59,7 @@ export function WhatsappSection() {
             </p>
           </div>
           <div className="order-1 lg:order-2 flex justify-center">
-            <div className="relative w-[280px] h-[560px] bg-card rounded-[3rem] border-8 border-card shadow-2xl overflow-hidden">
+            <div className="relative w-[280px] h-[560px] rounded-[3rem] border-8 border-card bg-card shadow-2xl overflow-hidden">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-card rounded-b-xl z-20" />
               <div className="w-full h-full bg-muted/40 overflow-hidden flex flex-col">
                 <div className="bg-primary p-4 pt-12 text-primary-foreground flex items-center gap-3 shadow-md z-10">
@@ -76,7 +76,7 @@ export function WhatsappSection() {
                 <div className="flex-1 p-4 space-y-4 overflow-hidden">
                   <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-xs">
                     <p>
-                      Hello Sarah, your appointment is confirmed for tomorrow at
+                      Hello Ananya, your appointment is confirmed for tomorrow at
                       10:00 AM.
                     </p>
                     <div className="text-[10px] text-muted-foreground text-right mt-1">

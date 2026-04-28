@@ -48,6 +48,8 @@ model Clinic {
   feedbacks             Feedback[]
   featureFlags          FeatureFlag[]
   importJobs            ImportJob[]
+  invoices              Invoice[]
+  invoiceSequences      InvoiceSequence[]
   patients              Patient[]
   paymentSessions       PaymentSession[]
   queueTokens           QueueToken[]

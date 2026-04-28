@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { NotifyExpiringSubscriptionsUseCase } from './notify-expiring-subscriptions.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ISubscriptionRepository } from '@/domains/subscriptions/application/ports';
+import { EmailService } from '@/shared/modules/messaging/email/email.service';
 
 describe('NotifyExpiringSubscriptionsUseCase', () => {
   const findSubscriptionsMock =
@@ -30,9 +31,17 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     savePayment: jest.fn(async () => undefined),
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
+    findPaymentById: jest.fn(async () => null),
+    updatePaymentLink: jest.fn(async () => undefined),
+    findReusablePendingCheckout: jest.fn(async () => null),
   };
 
   let useCase: NotifyExpiringSubscriptionsUseCase;
+  const emailService = Object.create(EmailService.prototype) as EmailService;
+  emailService.send = jest.fn<EmailService['send']>().mockResolvedValue({
+    success: true,
+    messageId: 'msg_1',
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -51,14 +60,39 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     useCase = new NotifyExpiringSubscriptionsUseCase(
       subscriptionRepository,
       prisma,
+      emailService,
     );
   });
 
   it('creates at most one reminder per clinic after prefetch dedupe', async () => {
     findSubscriptionsMock.mockResolvedValue([
-      { id: 'sub-1', clinicId: 'clinic-1' },
-      { id: 'sub-2', clinicId: 'clinic-1' },
-      { id: 'sub-3', clinicId: 'clinic-2' },
+      {
+        id: 'sub-1',
+        clinicId: 'clinic-1',
+        currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
+        clinic: {
+          name: 'Clinic 1',
+          users: [{ email: 'a@c1.test', name: 'A' }],
+        },
+      },
+      {
+        id: 'sub-2',
+        clinicId: 'clinic-1',
+        currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
+        clinic: {
+          name: 'Clinic 1',
+          users: [{ email: 'a@c1.test', name: 'A' }],
+        },
+      },
+      {
+        id: 'sub-3',
+        clinicId: 'clinic-2',
+        currentPeriodEnd: new Date('2026-04-10T00:00:00.000Z'),
+        clinic: {
+          name: 'Clinic 2',
+          users: [{ email: 'a@c2.test', name: 'A' }],
+        },
+      },
     ]);
     findRemindersMock.mockResolvedValue([{ clinicId: 'clinic-2' }]);
     createManyRemindersMock.mockResolvedValue({ count: 1 });
@@ -72,13 +106,13 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     expect(createManyRemindersMock).toHaveBeenCalledTimes(1);
     expect(createManyRemindersMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        skipDuplicates: true,
         data: [
           expect.objectContaining({
             clinicId: 'clinic-1',
             subscriptionId: 'sub-1',
             type: 'expiry_7d',
             channel: 'EMAIL',
+            status: 'sent',
           }),
         ],
       }),

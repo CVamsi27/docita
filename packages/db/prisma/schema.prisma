@@ -733,7 +733,27 @@ model Invoice {
   id                       String           @id @default(cuid())
   appointmentId            String?          @unique
   patientId                String
+  clinicId                 String?
+  invoiceNumber            String?
+  invoiceType              String           @default("BILL_OF_SUPPLY")
+  currency                 String           @default("INR")
   total                    Float
+  subtotal                 Float            @default(0)
+  discountTotal            Float            @default(0)
+  taxTotal                 Float            @default(0)
+  grandTotal               Float            @default(0)
+  taxSummary               Json?
+  sellerTaxSnapshot        Json?
+  buyerTaxSnapshot         Json?
+  placeOfSupplyStateCode   String?
+  placeOfSupplyStateName   String?
+  reverseCharge            Boolean          @default(false)
+  issuedAt                 DateTime?
+  dueDate                  DateTime?
+  eInvoiceRequired         Boolean          @default(false)
+  eInvoiceIrn              String?
+  eInvoiceQrCode           String?
+  eInvoiceAcknowledgedAt   DateTime?
   status                   InvoiceStatus    @default(PENDING)
   items                    Json
   createdAt                DateTime         @default(now())
@@ -756,14 +776,33 @@ model Invoice {
   pdfGeneratedAt           DateTime?
   pdfTemplateVersion       Int              @default(1)
   appointment              Appointment?     @relation(fields: [appointmentId], references: [id])
+  clinic                   Clinic?          @relation(fields: [clinicId], references: [id])
   patient                  Patient          @relation(fields: [patientId], references: [id])
   paymentSessions          PaymentSession[]
   paymentRetries           PaymentRetry[]
 
+  @@unique([clinicId, invoiceNumber])
   @@index([createdAt])
+  @@index([clinicId])
+  @@index([clinicId, issuedAt])
   @@index([patientId])
   @@index([status, createdAt])
   @@index([status])
+}
+
+model InvoiceSequence {
+  id             String   @id @default(cuid())
+  clinicId       String
+  financialYear  String
+  prefix         String   @default("DC")
+  currentValue   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, financialYear])
+  @@index([clinicId])
 }
 
 model Document {
@@ -903,6 +942,8 @@ model Clinic {
   feedbackFeatures         FeedbackFeature[]
   featureFlags             FeatureFlag[]
   importJobs               ImportJob[]
+  invoices                 Invoice[]
+  invoiceSequences         InvoiceSequence[]
   patients                 Patient[]
   paymentSessions          PaymentSession[]
   queueTokens              QueueToken[]
@@ -2345,6 +2386,26 @@ model SystemMetric {
   @@index([metricType, recordedAt])
 }
 
+model PlatformAlert {
+  id             String   @id @default(cuid())
+  /**
+   * Stable identifier for deduping alerts across restarts.
+   * Example: "db_unreachable", "email_provider_unhealthy", "razorpay_webhook_signature_invalid"
+   */
+  alertKey        String
+  environment     String
+  status          String   @default("OPEN") // OPEN | RECOVERED
+  firstSeenAt     DateTime @default(now())
+  lastSeenAt      DateTime @default(now())
+  lastNotifiedAt  DateTime?
+  recoveredAt     DateTime?
+  metadata        Json?
+
+  @@unique([alertKey, environment])
+  @@index([environment, status, lastSeenAt])
+  @@index([alertKey, environment])
+}
+
 model PerformanceAggregate {
   id            String   @id @default(cuid())
   path          String
@@ -2578,10 +2639,19 @@ model SubscriptionPayment {
   currency    String @default("INR")
   status      String
   razorpayPaymentId String?
-  razorpayOrderId   String?
+  razorpayOrderId   String? @unique
   razorpaySignature String?
-  invoiceUrl    String?
-  invoiceNumber String?
+  invoiceUrl               String?
+  invoiceNumber            String?
+  invoiceType              String?
+  subtotalCents            Int     @default(0)
+  taxCents                 Int     @default(0)
+  grandTotalCents          Int     @default(0)
+  taxSummary               Json?
+  sellerTaxSnapshot        Json?
+  buyerTaxSnapshot         Json?
+  placeOfSupplyStateCode   String?
+  reverseCharge            Boolean @default(false)
   isProrated          Boolean @default(false)
   proratedDays        Int?
   originalAmountCents Int?

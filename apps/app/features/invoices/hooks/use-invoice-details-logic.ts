@@ -5,7 +5,7 @@ import { useInvoice } from "@/hooks/api/use-billing";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { formatCurrency } from "@/lib/formatters";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
 
@@ -83,7 +83,9 @@ export const useInvoiceDetailsLogic = (
     }
 
     const clinicName = clinic?.name?.trim() || "our facility";
-    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.id} for ${formatCurrency(invoice.totalAmount ?? 0)}. Thank you for visiting ${clinicName}.`;
+    const total =
+      invoice.grandTotal || invoice.totalAmount || invoice.total || 0;
+    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.invoiceNumber ?? invoice.id} for ${formatCurrency(total)}. Thank you for visiting ${clinicName}.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;
 
@@ -91,14 +93,10 @@ export const useInvoiceDetailsLogic = (
   };
 
   const calculateSubtotal = (items: InvoiceItem[]) => {
-    return items.reduce((sum, item) => sum + item.quantity * item.price, 0);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
-    }).format(amount);
+    return items.reduce(
+      (sum, item) => sum + item.quantity * (item.unitPrice ?? item.price),
+      0,
+    );
   };
 
   const formatDate = (dateString?: string | Date) => {

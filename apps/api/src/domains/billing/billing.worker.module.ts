@@ -5,6 +5,7 @@ import {
   BillingCalculatorService,
   ClaimValidationService,
   InvoiceValidatorService,
+  TaxCalculatorService,
 } from './core/services';
 import { PricingService } from './core/services/pricing.service';
 import { UsageTrackingService } from './core/services/usage-tracking.service';
@@ -43,6 +44,7 @@ import { BillingUsageAggregationCron } from './application/cron/billing-usage-ag
   ],
   providers: [
     BillingCalculatorService,
+    TaxCalculatorService,
     ClaimValidationService,
     InvoiceValidatorService,
     PricingService,
@@ -71,6 +73,7 @@ import { BillingUsageAggregationCron } from './application/cron/billing-usage-ag
     InvoicesService,
     PaymentsService,
     BillingCalculatorService,
+    TaxCalculatorService,
     ClaimValidationService,
     InvoiceValidatorService,
     PricingService,

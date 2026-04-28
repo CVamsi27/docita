@@ -28,7 +28,17 @@ import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { Button } from "@workspace/ui/components/button";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import {
+  AlertTriangle,
+  LockKeyhole,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert";
 import { canAccessTarget } from "@/lib/access-policy";
 import { getAccessTargetForPath } from "@/lib/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -181,6 +191,56 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   );
 }
 
+function SubscriptionLockNotice() {
+  const { clinic } = useClinic();
+  const router = useRouter();
+  const status = clinic?.subscriptionStatus;
+
+  if (!status || status === "ACTIVE" || status === "TRIALING") {
+    return null;
+  }
+
+  const isExpired = status === "EXPIRED";
+  const isGrace = status === "GRACE";
+  const title = isExpired
+    ? "Subscription Expired: Workspace Locked"
+    : isGrace
+      ? "Payment Grace Period: Access Restricted"
+      : "Payment Required";
+  const description = isExpired
+    ? "This facility is locked until payment is completed. You can still open billing and upgrade pages to restore access."
+    : isGrace
+      ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
+      : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
+
+  return (
+    <div className="border-b bg-background px-4 py-3 md:px-6">
+      <Alert
+        variant={isExpired ? "destructive" : "default"}
+        className={isExpired ? undefined : "border-warning/40 bg-warning/10"}
+      >
+        {isExpired ? (
+          <LockKeyhole className="h-4 w-4" />
+        ) : (
+          <AlertTriangle className="h-4 w-4 text-warning" />
+        )}
+        <AlertTitle>{title}</AlertTitle>
+        <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <span>{description}</span>
+          <Button
+            size="sm"
+            variant={isExpired ? "secondary" : "outline"}
+            onClick={() => router.push("/upgrade")}
+            className="self-start sm:self-auto"
+          >
+            Resolve Payment
+          </Button>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
 export default function ProtectedLayout({
   children,
 }: {
@@ -238,7 +298,8 @@ export default function ProtectedLayout({
 
   useEffect(() => {
     if (isLoading) return;
-    const wasSettingsAutoCollapseRoute = wasSettingsAutoCollapseRouteRef.current;
+    const wasSettingsAutoCollapseRoute =
+      wasSettingsAutoCollapseRouteRef.current;
     wasSettingsAutoCollapseRouteRef.current = isSettingsRoute;
 
     if (isSettingsRoute && !wasSettingsAutoCollapseRoute) {
@@ -295,83 +356,84 @@ export default function ProtectedLayout({
         <DoctorVerificationGuard>
           <SubscriptionGuard>
             <PageAccessGuard>
-                <div className="flex h-screen overflow-hidden bg-background">
-                  <ResizablePanelGroup direction="horizontal">
-                    <ResizablePanel
-                      ref={sidebarPanelRef}
-                      defaultSize={18}
-                      minSize={15}
-                      maxSize={25}
-                      className="hidden md:block"
-                      collapsible={true}
-                      collapsedSize={4}
-                      onCollapse={() => setIsCollapsed(true)}
-                      onExpand={() => setIsCollapsed(false)}
-                      style={{
-                        transition: isDragging ? "none" : "flex 180ms ease-out",
-                      }}
-                    >
-                      <Sidebar
-                        isCollapsed={isCollapsed}
-                        onCollapsedChange={(collapsed) => {
-                          setIsCollapsed(collapsed);
-                          if (collapsed) {
-                            sidebarPanelRef.current?.collapse();
-                          } else {
-                            sidebarPanelRef.current?.expand();
-                          }
-                        }}
-                        mobileOpen={mobileOpen}
-                        onMobileOpenChange={setMobileOpen}
-                      />
-                    </ResizablePanel>
-                    <div className="relative hidden md:flex overflow-visible">
-                      <ResizableHandle onDragging={setIsDragging} />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const next = !isCollapsed;
-                          setIsCollapsed(next);
-                          if (next) {
-                            sidebarPanelRef.current?.collapse();
-                          } else {
-                            sidebarPanelRef.current?.expand();
-                          }
-                        }}
-                        aria-label={
-                          isCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              <div className="flex h-screen overflow-hidden bg-background">
+                <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanel
+                    ref={sidebarPanelRef}
+                    defaultSize={18}
+                    minSize={15}
+                    maxSize={25}
+                    className="hidden md:block"
+                    collapsible={true}
+                    collapsedSize={4}
+                    onCollapse={() => setIsCollapsed(true)}
+                    onExpand={() => setIsCollapsed(false)}
+                    style={{
+                      transition: isDragging ? "none" : "flex 180ms ease-out",
+                    }}
+                  >
+                    <Sidebar
+                      isCollapsed={isCollapsed}
+                      onCollapsedChange={(collapsed) => {
+                        setIsCollapsed(collapsed);
+                        if (collapsed) {
+                          sidebarPanelRef.current?.collapse();
+                        } else {
+                          sidebarPanelRef.current?.expand();
                         }
+                      }}
+                      mobileOpen={mobileOpen}
+                      onMobileOpenChange={setMobileOpen}
+                    />
+                  </ResizablePanel>
+                  <div className="relative hidden md:flex overflow-visible">
+                    <ResizableHandle onDragging={setIsDragging} />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const next = !isCollapsed;
+                        setIsCollapsed(next);
+                        if (next) {
+                          sidebarPanelRef.current?.collapse();
+                        } else {
+                          sidebarPanelRef.current?.expand();
+                        }
+                      }}
+                      aria-label={
+                        isCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                      }
+                    >
+                      {isCollapsed ? (
+                        <PanelLeftOpen className="h-3 w-3 shrink-0" />
+                      ) : (
+                        <PanelLeftClose className="h-3 w-3 shrink-0" />
+                      )}
+                    </Button>
+                  </div>
+                  <ResizablePanel defaultSize={82}>
+                    <div className="flex h-full flex-col overflow-hidden">
+                      <MobileHeader onMenuClick={() => setMobileOpen(true)} />
+                      {!isConsultationDetailRoute ? <DesktopTopBar /> : null}
+                      {!isConsultationDetailRoute ? (
+                        <SubscriptionLockNotice />
+                      ) : null}
+                      <main
+                        className={
+                          isConsultationDetailRoute
+                            ? "flex-1 overflow-hidden"
+                            : "flex-1 overflow-y-auto p-4 md:p-6"
+                        }
+                        aria-label="Main content"
                       >
-                        {isCollapsed ? (
-                          <PanelLeftOpen className="h-3 w-3 shrink-0" />
-                        ) : (
-                          <PanelLeftClose className="h-3 w-3 shrink-0" />
-                        )}
-                      </Button>
+                        <ErrorBoundaryWrapper>{children}</ErrorBoundaryWrapper>
+                      </main>
                     </div>
-                    <ResizablePanel defaultSize={82}>
-                      <div className="flex h-full flex-col overflow-hidden">
-                        <MobileHeader onMenuClick={() => setMobileOpen(true)} />
-                        {!isConsultationDetailRoute ? <DesktopTopBar /> : null}
-                        <main
-                          className={
-                            isConsultationDetailRoute
-                              ? "flex-1 overflow-hidden"
-                              : "flex-1 overflow-y-auto p-4 md:p-6"
-                          }
-                          aria-label="Main content"
-                        >
-                          <ErrorBoundaryWrapper>
-                            {children}
-                          </ErrorBoundaryWrapper>
-                        </main>
-                      </div>
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
-                </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
+              </div>
               <FloatingStartConsultation />
               <CommandPalette />
             </PageAccessGuard>

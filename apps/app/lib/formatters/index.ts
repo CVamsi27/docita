@@ -1,7 +1,5 @@
-
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 export { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-
 
 export function formatDate(
   date: Date | string,
@@ -19,10 +17,14 @@ export function formatDateTime(
   return d.toLocaleString(locale);
 }
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-IN", {
+export function formatCurrency(
+  amount: number,
+  currency: string = DEFAULT_CURRENCY,
+  locale: string = "en-IN",
+): string {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: DEFAULT_CURRENCY,
+    currency,
   }).format(amount);
 }
 

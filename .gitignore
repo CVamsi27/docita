@@ -49,6 +49,10 @@ out
 .astro
 **/.astro
 
+# Cloudflare Wrangler (dev/build artifacts)
+.wrangler
+**/.wrangler
+
 # Local upload artifacts
 /uploads
 

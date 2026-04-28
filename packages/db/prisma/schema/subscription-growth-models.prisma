@@ -277,6 +277,15 @@ model SubscriptionPayment {
   // Invoice details
   invoiceUrl    String?
   invoiceNumber String?
+  invoiceType   String?
+  subtotalCents Int     @default(0)
+  taxCents      Int     @default(0)
+  grandTotalCents Int   @default(0)
+  taxSummary    Json?
+  sellerTaxSnapshot Json?
+  buyerTaxSnapshot  Json?
+  placeOfSupplyStateCode String?
+  reverseCharge Boolean @default(false)
 
   // Proration info
   isProrated          Boolean @default(false)

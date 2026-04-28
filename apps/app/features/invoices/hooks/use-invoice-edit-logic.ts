@@ -7,12 +7,23 @@ import { useInvoice, useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useRouter } from "next/navigation";
 import { Invoice } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  applyInvoiceDiscountToFirstLine,
+  calculateInvoiceTotals,
+} from "@/features/invoices/rules/invoiceRules";
 
 export const invoiceItemSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Enter a description"),
   quantity: z.number().min(1, "Enter a quantity of at least 1"),
   price: z.number().min(0, "Enter a valid price"),
+  discountAmount: z.number().min(0).optional(),
+  taxTreatment: z
+    .enum(["TAXABLE", "EXEMPT_HEALTHCARE", "EXEMPT", "ZERO_RATED", "NON_GST"])
+    .optional(),
+  taxRate: z.number().min(0).max(100).optional(),
+  hsnCode: z.string().optional(),
+  sacCode: z.string().optional(),
 });
 
 export const invoiceSchema = z.object({
@@ -48,7 +59,15 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
       status: "PENDING",
       discount: 0,
       notes: "",
-      items: [{ description: "", quantity: 1, price: 0 }],
+      items: [
+        {
+          description: "",
+          quantity: 1,
+          price: 0,
+          taxTreatment: "EXEMPT_HEALTHCARE",
+          taxRate: 0,
+        },
+      ],
     },
   });
 
@@ -68,17 +87,27 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
           description: item.description,
           quantity: item.quantity,
           price: item.price,
-        })) || [{ description: "", quantity: 1, price: 0 }],
+          discountAmount: item.discountAmount ?? 0,
+          taxTreatment: item.taxTreatment ?? "EXEMPT_HEALTHCARE",
+          taxRate: item.taxRate ?? 0,
+          hsnCode: item.hsnCode,
+          sacCode: item.sacCode,
+        })) || [
+          {
+            description: "",
+            quantity: 1,
+            price: 0,
+            taxTreatment: "EXEMPT_HEALTHCARE",
+            taxRate: 0,
+          },
+        ],
       });
     }
   }, [invoice, form]);
 
   const calculateTotal = useCallback((values: InvoiceFormValues) => {
-    const subtotal = values.items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0,
-    );
-    return Math.max(0, subtotal - (values.discount || 0));
+    return calculateInvoiceTotals(values.items, values.discount || 0)
+      .grandTotal;
   }, []);
 
   const totalAmount = calculateTotal(form.watch());
@@ -86,14 +115,16 @@ export const useInvoiceEditLogic = (invoiceId: string) => {
   const onSubmit = async (data: InvoiceFormValues) => {
     try {
       setIsSaving(true);
-      await updateInvoice.mutateAsync(data);
+      await updateInvoice.mutateAsync({
+        ...data,
+        items: applyInvoiceDiscountToFirstLine(data.items, data.discount || 0),
+      });
       toast.success("Invoice updated successfully");
       router.push(`/invoices/${invoiceId}`);
     } catch {
       showUserFacingErrorToast(
         "We could not save this invoice. Please try again.",
       );
-
     } finally {
       setIsSaving(false);
     }

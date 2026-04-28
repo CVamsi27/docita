@@ -57,7 +57,27 @@ export async function fetchJsonWithSession<T>(
 ): Promise<T> {
   const response = await fetchWithSession(endpoint, init);
   if (!response.ok) {
-    throw new Error("We could not load the requested details. Please try again.");
+    let details: unknown = undefined;
+    try {
+      const contentType = response.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        details = await response.clone().json();
+      } else {
+        details = await response.clone().text();
+      }
+    } catch {
+      details = undefined;
+    }
+
+    const message =
+      typeof details === "object" &&
+      details !== null &&
+      "message" in details &&
+      typeof (details as { message?: unknown }).message === "string"
+        ? (details as { message: string }).message
+        : "We could not load the requested details. Please try again.";
+
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;

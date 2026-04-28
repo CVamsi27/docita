@@ -12,8 +12,8 @@ import {
 
 export function HowItWorksSection() {
   return (
-    <section className="py-24 bg-muted/30 relative overflow-hidden">
-      <div className="ui-page-shell relative z-10 px-6">
+    <section className="relative overflow-hidden bg-muted/30 px-6 py-24">
+      <div className="ui-page-shell relative z-10">
         <SectionHeading
           align="center"
           size="section"

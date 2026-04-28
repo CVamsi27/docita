@@ -3,6 +3,7 @@ import MainLayout from "@/layouts/main-layout.astro";
 import { PricingSection } from "@/components/pricing-section";
 import { AiAutomationSection } from "@/components/sections/ai-automation-section";
 import { AnalyticsSection } from "@/components/sections/analytics-section";
+import { ClinicSetupSection } from "@/components/sections/clinic-setup-section";
 import { CtaBottomSection } from "@/components/sections/cta-bottom-section";
 import { FaqSection } from "@/components/sections/faq-section";
 import { FeaturesGridSection } from "@/components/sections/features-grid-section";
@@ -17,6 +18,7 @@ import { ResourceLinksSection } from "@/components/sections/resource-links-secti
 import { SpecialtiesSection } from "@/components/sections/specialties-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { TrustSecuritySection } from "@/components/sections/trust-security-section";
+import { TestimonialsSection } from "@/components/sections/testimonials-section";
 import { ValuePropsSection } from "@/components/sections/value-props-section";
 import { WhatsappSection } from "@/components/sections/whatsapp-section";
 import { getAppBaseUrl } from "@/lib/public-api";
@@ -28,11 +30,12 @@ const platformStats = await fetchPlatformStats(Astro.url.origin);
 
 <MainLayout
   canonicalPath="/"
-  title="Docita - Clinic Management Software for Indian Clinics | 14-Day Free Trial"
-  description="Docita helps Indian clinics move from paper files and Excel into appointments, prescriptions, billing, records, and WhatsApp communication from one reliable workflow"
+  title="Docita - Clinic Management Software for Indian Clinics | 1-Day Setup"
+  description="Docita helps Indian clinics move from paper files and Excel into appointments, prescriptions, billing, records, and WhatsApp communication with guided clinic setup"
 >
   <HeroSection appUrl={appUrl} />
   <StatsSection stats={platformStats} />
+  <ClinicSetupSection />
   <MigrationSection />
   <HowItWorksSection />
   <ValuePropsSection />
@@ -44,10 +47,11 @@ const platformStats = await fetchPlatformStats(Astro.url.origin);
   <AnalyticsSection />
   <AiAutomationSection />
   <WhatsappSection />
+  <TestimonialsSection />
   <FeaturesGridSection />
   <ResourceLinksSection />
   <TrustSecuritySection />
   <PricingSection appUrl={appUrl} />
   <FaqSection />
-  <CtaBottomSection appUrl={appUrl} />
+  <CtaBottomSection />
 </MainLayout>

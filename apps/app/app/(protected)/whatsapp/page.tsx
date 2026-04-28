@@ -35,6 +35,21 @@ export default function WhatsAppPage() {
           <PageHeader
             title="WhatsApp Integration"
             description="Manage your facility's WhatsApp Business API settings and automation."
+            actions={
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsSettingsDialogOpen(true)}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Manage Settings
+                </Button>
+                <Button onClick={() => setIsBroadcastDialogOpen(true)}>
+                  <Send className="mr-2 h-4 w-4" />
+                  Create Campaign
+                </Button>
+              </div>
+            }
           />
         }
       >
@@ -74,10 +89,7 @@ export default function WhatsAppPage() {
                 Send health tips, facility updates, or holiday notices to your
                 patient list.
               </p>
-              <Button
-                className="w-full"
-                onClick={() => setIsBroadcastDialogOpen(true)}
-              >
+              <Button className="w-full" onClick={() => setIsBroadcastDialogOpen(true)}>
                 Create Campaign
               </Button>
             </CardContent>

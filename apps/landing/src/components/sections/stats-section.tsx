@@ -11,6 +11,11 @@ export function StatsSection({ stats }: StatsSectionProps) {
     return null;
   }
 
+  const hasCompleteStats = Object.values(stats).every((value) => value > 0);
+  if (!hasCompleteStats) {
+    return null;
+  }
+
   const statCards = [
     { label: "Active Clinics", icon: Building2, key: "clinics" as const },
     { label: "Doctors", icon: UserCog, key: "doctors" as const },
@@ -19,8 +24,8 @@ export function StatsSection({ stats }: StatsSectionProps) {
   ];
 
   return (
-    <section className="py-20 bg-primary text-primary-foreground">
-      <div className="ui-page-shell px-6">
+    <section className="landing-section bg-primary text-primary-foreground">
+      <div className="ui-page-shell">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {statCards.map((card) => (
             <article key={card.label} className="space-y-2">

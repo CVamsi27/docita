@@ -347,12 +347,12 @@ export class AppConfigService {
     };
   }
 
-  getResendApiKey(): string {
-    return this.getConfig().RESEND_API_KEY || '';
+  getZeptoMailSendMailToken(): string {
+    return this.getConfig().ZEPTOMAIL_SENDMAIL_TOKEN || '';
   }
 
-  getResendApiUrl(): string {
-    return this.getConfig().RESEND_API_URL;
+  getZeptoMailApiUrl(): string {
+    return this.getConfig().ZEPTOMAIL_API_URL;
   }
 
   getEmailFrom(): string {
@@ -463,5 +463,22 @@ export class AppConfigService {
 
   getCurrencyCode(acceptLanguage?: string): string {
     return resolveCurrencyFromLocale(acceptLanguage);
+  }
+
+  getPlatformTaxConfig() {
+    const config = this.getConfig();
+    return {
+      seller: {
+        countryCode: config.DOCITA_TAX_COUNTRY_CODE,
+        regime: config.DOCITA_TAX_REGIME,
+        registrationId: config.DOCITA_TAX_REGISTRATION_ID,
+        registrationLabel: config.DOCITA_TAX_REGISTRATION_LABEL,
+        legalName: config.DOCITA_TAX_LEGAL_NAME,
+        address: config.DOCITA_TAX_ADDRESS,
+        stateCode: config.DOCITA_TAX_STATE_CODE,
+        stateName: config.DOCITA_TAX_STATE_NAME,
+      },
+      subscriptionTaxRate: config.DOCITA_SUBSCRIPTION_TAX_RATE,
+    };
   }
 }

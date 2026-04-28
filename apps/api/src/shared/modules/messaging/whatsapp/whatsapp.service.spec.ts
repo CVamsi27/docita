@@ -3,7 +3,7 @@ import { WhatsappService } from './whatsapp.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { WhatsappClientService } from './whatsapp-client.service';
 import { TemplatesService } from './templates.service';
-import { ResendService } from './resend.service';
+import { WhatsappResendService } from './resend.service';
 import { SystemEventsService } from './system-events.service';
 import { ApprovalService } from './approval.service';
 import { MessagingService } from './messaging.service';
@@ -125,7 +125,7 @@ describe('WhatsappService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: WhatsappClientService, useValue: mockWhatsappClient },
         { provide: TemplatesService, useValue: mockTemplatesService },
-        { provide: ResendService, useValue: mockResendService },
+        { provide: WhatsappResendService, useValue: mockResendService },
         { provide: SystemEventsService, useValue: mockSystemEventsService },
         { provide: ApprovalService, useValue: mockApprovalService },
         { provide: MessagingService, useValue: mockMessagingService },

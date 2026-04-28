@@ -94,7 +94,7 @@ Secrets required (set via `fly secrets set KEY=value`):
 - `ENCRYPTION_KEY` — 64-character hex key
 - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
 - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
-- `RESEND_API_KEY`
+- `ZEPTOMAIL_SENDMAIL_TOKEN`
 - `SENTRY_DSN`
 
 ## AWS RDS Quick Guide
