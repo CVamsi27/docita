@@ -3,7 +3,11 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
-import { API_URL, TEST_PASSWORD } from "./utils/patient-helpers";
+import {
+  API_URL,
+  createUniqueClientIp,
+  TEST_PASSWORD,
+} from "./utils/patient-helpers";
 
 type JsonRecord = Record<string, unknown>;
 const APP_ORIGIN = new URL(
@@ -164,7 +168,12 @@ async function createDoctorWithSignature(
   const email = `doctor-verify-${uniqueId}@test.com`;
   const clinicName = `Verify Clinic ${uniqueId}`;
   const clinicEmail = `verify-clinic-${uniqueId}@test.com`;
-  const forwardedFor = `127.0.0.${Math.floor(Math.random() * 200) + 1}`;
+  const forwardedFor = createUniqueClientIp();
+  const e2eHeaders = {
+    "X-Forwarded-For": forwardedFor,
+    "X-Real-IP": forwardedFor,
+    "x-docita-e2e": "true",
+  };
   const signatureBuffer = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZxXQAAAAASUVORK5CYII=",
     "base64",
@@ -177,9 +186,7 @@ async function createDoctorWithSignature(
   };
 
   const registerRes = await request.post(`${API_URL}/auth/register`, {
-    headers: {
-      "X-Forwarded-For": forwardedFor,
-    },
+    headers: e2eHeaders,
     data: {
       email,
       password: TEST_PASSWORD,
