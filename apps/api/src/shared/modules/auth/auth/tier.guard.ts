@@ -12,6 +12,7 @@ import {
   Tier,
   Feature,
   FEATURE_TIER_MAP,
+  isFeatureGenerallyAvailable,
 } from './tier.decorator';
 import {
   SubscriptionStatus,
@@ -84,6 +85,12 @@ export class TierGuard implements CanActivate {
     const featureOverrides = (clinic.features as Record<string, boolean>) || {};
 
     if (requiredFeature !== undefined) {
+      if (!isFeatureGenerallyAvailable(requiredFeature)) {
+        throw new ForbiddenException(
+          `The ${requiredFeature} feature is not available yet.`,
+        );
+      }
+
       const featureTier = FEATURE_TIER_MAP[requiredFeature];
 
       if (featureOverrides[requiredFeature] !== undefined) {

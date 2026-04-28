@@ -146,7 +146,7 @@ describe('TierGuard', () => {
   });
 
   it('blocks feature when clinic tier is lower than required feature tier', async () => {
-    setMetadata(undefined, Feature.BROADCAST_CAMPAIGNS);
+    setMetadata(undefined, Feature.QUEUE_MANAGEMENT);
     prisma.clinic.findUnique.mockResolvedValue(activeStarterClinic);
 
     await expect(
@@ -155,6 +155,18 @@ describe('TierGuard', () => {
   });
 
   it('allows feature when clinic tier satisfies required feature tier', async () => {
+    setMetadata(undefined, Feature.QUEUE_MANAGEMENT);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      tier: ClinicTier.ESSENTIAL,
+    });
+
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+  });
+
+  it('blocks planned features even when the clinic tier is high enough', async () => {
     setMetadata(undefined, Feature.BROADCAST_CAMPAIGNS);
     prisma.clinic.findUnique.mockResolvedValue({
       ...activeStarterClinic,
@@ -163,7 +175,22 @@ describe('TierGuard', () => {
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
-    ).resolves.toBe(true);
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('blocks planned features before clinic feature overrides are applied', async () => {
+    setMetadata(undefined, Feature.BROADCAST_CAMPAIGNS);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      tier: ClinicTier.PROFESSIONAL,
+      features: {
+        [Feature.BROADCAST_CAMPAIGNS]: true,
+      },
+    });
+
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).rejects.toThrow(ForbiddenException);
   });
 
   it('blocks INTELLIGENCE tier requirement when addon is not active', async () => {

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PricingService } from './pricing.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
+import { TIER_FEATURES } from '@workspace/types';
 
 describe('PricingService', () => {
   let service: PricingService;
@@ -46,6 +47,14 @@ describe('PricingService', () => {
       semiAnnualPercent: expect.any(Number),
       referralCredits: expect.any(Number),
     });
+  });
+
+  it('uses shared tier feature promises for fallback pricing config', async () => {
+    const config = await service.getPricingConfig('INR');
+
+    for (const tier of config.tiers) {
+      expect(tier.features).toEqual(TIER_FEATURES[tier.id]);
+    }
   });
 
   it('should treat enterprise pricing as custom when DB tier rows are present', async () => {
