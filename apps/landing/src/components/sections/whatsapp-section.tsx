@@ -59,7 +59,7 @@ export function WhatsappSection() {
             </p>
           </div>
           <div className="order-1 lg:order-2 flex justify-center">
-            <div className="relative w-[280px] h-[560px] rounded-[3rem] border-8 border-card bg-card shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-[280px] aspect-[1/2] rounded-[2.5rem] sm:rounded-[3rem] border-8 border-card bg-card shadow-2xl overflow-hidden">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-card rounded-b-xl z-20" />
               <div className="w-full h-full bg-muted/40 overflow-hidden flex flex-col">
                 <div className="bg-primary p-4 pt-12 text-primary-foreground flex items-center gap-3 shadow-md z-10">

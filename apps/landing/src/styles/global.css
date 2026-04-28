@@ -5,6 +5,19 @@
     linear-gradient(180deg, color-mix(in oklch, var(--background) 96%, transparent), var(--background));
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
 .cta-ring {
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--primary) 28%, transparent);
 }
