@@ -3,28 +3,131 @@ import type { UserRole } from "../shared/users";
 
 export type AccessMode = "read" | "write";
 
-export type AppPermission =
-  | "manageStaff"
-  | "manageClinic"
-  | "startConsultation"
-  | "viewPatients"
-  | "createPatient"
-  | "editPatient"
-  | "deletePatient"
-  | "viewAppointments"
-  | "createAppointment"
-  | "manageBilling"
-  | "viewInvoices"
-  | "createInvoice"
-  | "viewPrescriptions"
-  | "createPrescription"
-  | "viewReports"
-  | "manageInventory"
-  | "manageTemplates"
-  | "exportData"
-  | "viewPlatformAnalytics"
-  | "viewSystemLogs"
-  | "manageTenants";
+export const APP_PERMISSIONS = [
+  "manageStaff",
+  "manageClinic",
+  "startConsultation",
+  "viewPatients",
+  "createPatient",
+  "editPatient",
+  "deletePatient",
+  "viewAppointments",
+  "createAppointment",
+  "manageBilling",
+  "viewInvoices",
+  "createInvoice",
+  "viewPrescriptions",
+  "createPrescription",
+  "viewReports",
+  "manageInventory",
+  "manageTemplates",
+  "exportData",
+  "viewPlatformAnalytics",
+  "viewSystemLogs",
+  "manageTenants",
+] as const;
+
+export type AppPermission = (typeof APP_PERMISSIONS)[number];
+
+export const APP_PERMISSIONS_BY_ROLE: Record<UserRole, AppPermission[]> = {
+  INTERNAL: [],
+  ADMIN: [
+    "manageStaff",
+    "manageClinic",
+    "viewPatients",
+    "createPatient",
+    "editPatient",
+    "deletePatient",
+    "viewAppointments",
+    "createAppointment",
+    "manageBilling",
+    "viewInvoices",
+    "createInvoice",
+    "viewPrescriptions",
+    "viewReports",
+    "manageInventory",
+    "manageTemplates",
+    "exportData",
+  ],
+  ADMIN_DOCTOR: [
+    "manageStaff",
+    "manageClinic",
+    "viewPatients",
+    "createPatient",
+    "editPatient",
+    "deletePatient",
+    "viewAppointments",
+    "createAppointment",
+    "manageBilling",
+    "viewInvoices",
+    "createInvoice",
+    "viewReports",
+    "manageInventory",
+    "manageTemplates",
+    "exportData",
+    "startConsultation",
+    "viewPrescriptions",
+    "createPrescription",
+  ],
+  DOCTOR: [
+    "startConsultation",
+    "viewPatients",
+    "createPatient",
+    "editPatient",
+    "viewAppointments",
+    "createAppointment",
+    "viewPrescriptions",
+    "createPrescription",
+  ],
+  NURSE: [
+    "viewPatients",
+    "editPatient",
+    "viewAppointments",
+    "createAppointment",
+  ],
+  RECEPTIONIST: [
+    "viewPatients",
+    "createPatient",
+    "editPatient",
+    "viewAppointments",
+    "createAppointment",
+    "viewInvoices",
+  ],
+  PATIENT: ["viewAppointments"],
+};
+
+export function hasAppPermission(
+  role: UserRole | null | undefined,
+  permission: AppPermission,
+): boolean {
+  if (!role) return false;
+  if (role === "INTERNAL") return true;
+  return APP_PERMISSIONS_BY_ROLE[role].includes(permission);
+}
+
+export function hasAnyAppPermission(
+  role: UserRole | null | undefined,
+  permissions: AppPermission[],
+): boolean {
+  if (!role) return false;
+  return permissions.some((permission) => hasAppPermission(role, permission));
+}
+
+export function hasAllAppPermissions(
+  role: UserRole | null | undefined,
+  permissions: AppPermission[],
+): boolean {
+  if (!role) return false;
+  return permissions.every((permission) =>
+    hasAppPermission(role, permission),
+  );
+}
+
+export const CLINIC_ADMIN_ROLES = new Set<UserRole>([
+  "ADMIN",
+  "ADMIN_DOCTOR",
+]);
+export const BILLING_ROLES = new Set<UserRole>(["ADMIN", "ADMIN_DOCTOR"]);
 
 export interface AccessRequirement {
   roles?: UserRole[];
