@@ -66,10 +66,6 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 </a>
               </Button>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Guided setup from ₹4,999 • Monthly plans from ₹499 • India-first
-              rollout
-            </p>
             <ul className="mt-7 grid w-full gap-3 text-sm text-muted-foreground sm:grid-cols-3">
               {[
                 {
