@@ -32,6 +32,7 @@ import {
   FEATURE_TIER_MAP,
   getAllFeaturesUpToTier,
   getFeaturesForTier,
+  isFeatureGenerallyAvailable,
   Tier,
   TIER_LIMITS,
   TIER_PRICING,
@@ -286,7 +287,9 @@ export function getPlanHighlights(
     included: true,
   });
 
-  const tierFeatures = getFeaturesForTier(tierName);
+  const tierFeatures = getFeaturesForTier(tierName).filter(
+    isFeatureGenerallyAvailable,
+  );
   const highlightFeatures = tierFeatures.slice(0, 3);
 
   highlightFeatures.forEach((feature) => {
@@ -299,7 +302,9 @@ export function getPlanHighlights(
 
   if (tier > Tier.STARTER) {
     const prevTierName = Tier[tier - 1] as keyof typeof PLAN_LIMITS;
-    const previousFeatures = getAllFeaturesUpToTier(prevTierName);
+    const previousFeatures = getAllFeaturesUpToTier(prevTierName).filter(
+      isFeatureGenerallyAvailable,
+    );
     previousFeatures.slice(0, 2).forEach((feature) => {
       features.push({
         name: FEATURE_DISPLAY[feature].name,
@@ -310,7 +315,9 @@ export function getPlanHighlights(
 
   if (tier < Tier.ENTERPRISE) {
     const nextTierName = Tier[tier + 1] as keyof typeof PLAN_LIMITS;
-    const nextTierFeatures = getFeaturesForTier(nextTierName);
+    const nextTierFeatures = getFeaturesForTier(nextTierName).filter(
+      isFeatureGenerallyAvailable,
+    );
     nextTierFeatures.slice(0, 2).forEach((feature) => {
       features.push({
         name: FEATURE_DISPLAY[feature].name,

@@ -4,6 +4,7 @@ import {
   type ClinicType,
   Feature,
   FEATURE_TIER_MAP,
+  isFeatureGenerallyAvailable,
   Tier,
   TIER_INFO,
   TierName,
@@ -113,6 +114,10 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
 
   canAccess: (feature, permission?) => {
     const { currentTier, hasIntelligence, featureOverrides, userRole } = get();
+
+    if (!isFeatureGenerallyAvailable(feature)) {
+      return false;
+    }
 
     if (permission && userRole) {
       if (!hasPermission(userRole as UserRole, permission)) {
