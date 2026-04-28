@@ -26,8 +26,7 @@ const throwNeedle = "throw new Error(`Unexpected loadManifest(${path2}) call!`)"
 const patchNeedle =
   "if(path2.endsWith(\"/server/prefetch-hints.json\")||path2.endsWith(\"/server/subresource-integrity-manifest.json\")||path2.endsWith(\"/dynamic-css-manifest\"))return{};" +
   throwNeedle;
-const nextWildcardSourceNeedles = ['source:"/:path*"', '"source": "/:path*"'];
-const pathToRegexpWildcardSourcePatches = ['source:"/{*path}"', '"source": "/{*path}"'];
+const nextWildcardSourcePattern = /((?:"source"|source)\s*:\s*)(["'])\/:path\*\2/g;
 
 function patchHandler(app) {
   const candidateHandlerPaths = [
@@ -131,16 +130,14 @@ function patchOpenNextConfigHeaders(app) {
 
   let patchedCount = 0;
   for (const filePath of filesToPatch) {
-    let source = fs.readFileSync(filePath, "utf8");
+    const source = fs.readFileSync(filePath, "utf8");
     const originalSource = source;
-    nextWildcardSourceNeedles.forEach((needle, index) => {
-      source = source.replaceAll(
-        needle,
-        pathToRegexpWildcardSourcePatches[index],
-      );
-    });
-    if (source !== originalSource) {
-      fs.writeFileSync(filePath, source, "utf8");
+    const patchedSource = source.replace(
+      nextWildcardSourcePattern,
+      "$1$2/{*path}$2",
+    );
+    if (patchedSource !== originalSource) {
+      fs.writeFileSync(filePath, patchedSource, "utf8");
       patchedCount += 1;
     }
   }
