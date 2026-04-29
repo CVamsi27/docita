@@ -81,6 +81,9 @@ apps/api/src/seed-admin.ts
 .idea
 .vscode
 
+# Cursor / local agent config
+.cursor/mcp.json
+
 # Vercel
 .vercel
 
