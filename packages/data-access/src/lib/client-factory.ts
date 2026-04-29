@@ -49,6 +49,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     const requestTimeout = options.timeout ?? timeout;
     const requestRetries = options.retries ?? retries;
     const method = (requestConfig.method ?? "GET").toUpperCase();
+    const shouldNotifyGlobalError = options.suppressGlobalErrorToast !== true;
 
     const dedupeKey =
       method === "GET"
@@ -92,7 +93,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
             },
           );
 
-          if (onError) {
+          if (onError && shouldNotifyGlobalError) {
             await onError(error);
           }
 
@@ -123,7 +124,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
             isTimeout: true,
             code: ErrorCodes.TIMEOUT,
           });
-          if (onError) await onError(timeoutError);
+          if (onError && shouldNotifyGlobalError) await onError(timeoutError);
           throw timeoutError;
         }
 
@@ -134,7 +135,7 @@ export function createAPIClient(config: APIClientConfig): APIClient {
             code: ErrorCodes.NETWORK_ERROR,
           },
         );
-        if (onError) await onError(networkError);
+        if (onError && shouldNotifyGlobalError) await onError(networkError);
         throw networkError;
       }
     };

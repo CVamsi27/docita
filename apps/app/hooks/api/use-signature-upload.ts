@@ -89,6 +89,7 @@ export const uploadSignature = async (
   return await fetchAPI<UploadResult>(endpoint, {
     method: "POST",
     body: formData,
+    suppressGlobalErrorToast: true,
   });
 };
 
@@ -109,5 +110,7 @@ export const validateToken = async (token: string) => {
       slaSignatureUrl: string | null;
       slaSignatureStoredUrl?: string | null;
     } | null;
-  }>(`/doctors/signature/validate-token/${token}`);
+  }>(`/doctors/signature/validate-token/${token}`, {
+    suppressGlobalErrorToast: true,
+  });
 };

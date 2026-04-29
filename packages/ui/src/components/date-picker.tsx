@@ -13,11 +13,10 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
 
-interface DatePickerProps
-  extends Omit<
-    React.ComponentProps<typeof Button>,
-    "children" | "onClick" | "onChange" | "type" | "value"
-  > {
+interface DatePickerProps extends Omit<
+  React.ComponentProps<typeof Button>,
+  "children" | "onClick" | "onChange" | "type" | "value"
+> {
   value?: Date | string;
   onChange?: (date: Date | undefined) => void;
   placeholder?: string;
@@ -40,20 +39,20 @@ const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
     },
     ref,
   ) => {
-  const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = React.useState(false);
 
-  const dateValue = React.useMemo(() => {
-    if (!value) return undefined;
-    if (value instanceof Date) return value;
+    const dateValue = React.useMemo(() => {
+      if (!value) return undefined;
+      if (value instanceof Date) return value;
 
-    const parsed = new Date(value);
-    return isNaN(parsed.getTime()) ? undefined : parsed;
-  }, [value]);
+      const parsed = new Date(value);
+      return isNaN(parsed.getTime()) ? undefined : parsed;
+    }, [value]);
 
-  const handleSelect = (date: Date | undefined) => {
-    onChange?.(date);
-    setOpen(false);
-  };
+    const handleSelect = (date: Date | undefined) => {
+      onChange?.(date);
+      setOpen(false);
+    };
 
     return (
       <Popover open={open} onOpenChange={setOpen}>
@@ -64,7 +63,7 @@ const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal aria-invalid:border-destructive aria-invalid:bg-destructive/5 aria-invalid:ring-destructive/20",
               !dateValue && "text-muted-foreground",
               className,
             )}

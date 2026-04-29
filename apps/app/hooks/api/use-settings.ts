@@ -52,9 +52,9 @@ export interface PrescriptionDefaults {
 }
 
 export interface SignatureUploadSessionResponse {
-  id: string;
-  expiresAt?: string;
-  status?: string;
+  token: string;
+  uploadUrl: string;
+  expiresAt: string | Date;
 }
 
 export const useClinicSettings = () =>
@@ -76,6 +76,7 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
     "POST",
     {
       invalidateKeys: [["clinic", "members"]],
+      suppressGlobalErrorToast: true,
     },
   );
 
@@ -92,6 +93,7 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
     "POST",
     {
       invalidateKeys: [["clinic", "members"]],
+      suppressGlobalErrorToast: true,
     },
   );
 
@@ -101,13 +103,10 @@ export const useUpdateClinicMember = () =>
     UpdateClinicMemberRequest & {
       memberId: string;
     }
-  >(
-    ({ memberId }) => `/clinic/members/${memberId}`,
-    "PUT",
-    {
-      invalidateKeys: [["clinic", "members"]],
-    },
-  );
+  >(({ memberId }) => `/clinic/members/${memberId}`, "PUT", {
+    invalidateKeys: [["clinic", "members"]],
+    suppressGlobalErrorToast: true,
+  });
 
 export const useDeleteClinicMember = () =>
   useAPIMutation<{ success: boolean }, { memberId: string }>(
@@ -119,9 +118,13 @@ export const useDeleteClinicMember = () =>
   );
 
 export const useUpdateClinicSettings = () =>
-  useAPIMutation<Clinic, UpdateClinicSettingsRequest>("/clinic/settings", "PUT", {
-    invalidateKeys: [["clinic", "settings"]],
-  });
+  useAPIMutation<Clinic, UpdateClinicSettingsRequest>(
+    "/clinic/settings",
+    "PUT",
+    {
+      invalidateKeys: [["clinic", "settings"]],
+    },
+  );
 
 export const usePrescriptionDefaults = () =>
   useAPIQuery<PrescriptionDefaults>(
@@ -130,10 +133,10 @@ export const usePrescriptionDefaults = () =>
   );
 
 export const useUpdatePrescriptionDefaults = () =>
-  useAPIMutation<
-    { success: boolean },
-    Partial<PrescriptionDefaults>
-  >("/clinic/prescription-defaults", "PUT");
+  useAPIMutation<{ success: boolean }, Partial<PrescriptionDefaults>>(
+    "/clinic/prescription-defaults",
+    "PUT",
+  );
 
 export const useDoctors = () => useAPIQuery<User[]>(["doctors"], "/doctors");
 
@@ -141,10 +144,7 @@ export const useDoctor = (id: string) =>
   useAPIQuery<User>(["doctors", id], `/doctors/${id}`);
 
 export const useCreateDoctor = () =>
-  useAPIMutation<User, CreateDoctorRequest>(
-    "/doctors",
-    "POST",
-  );
+  useAPIMutation<User, CreateDoctorRequest>("/doctors", "POST");
 
 export const useUpdateDoctor = (id: string) =>
   useAPIMutation<User, UpdateDoctorRequest>(`/doctors/${id}`, "PUT");
@@ -156,6 +156,10 @@ export const useCreateDoctorSignatureUploadSession = () =>
   useAPIMutation<SignatureUploadSessionResponse, { doctorId: string }>(
     ({ doctorId }) => `/doctors/${doctorId}/signature-upload-session`,
     "POST",
+    {
+      invalidateKeys: [["clinic", "members"], ["doctors"]],
+      suppressGlobalErrorToast: true,
+    },
   );
 
 export const useReverifyDoctorRegistration = () =>
@@ -174,7 +178,10 @@ export const useDoctorSchedules = (doctorId?: string) =>
   );
 
 export const useClinicSchedules = () =>
-  useAPIQuery<DoctorSchedule[]>(["clinic-schedules"], "/doctor-availability/schedules/clinic");
+  useAPIQuery<DoctorSchedule[]>(
+    ["clinic-schedules"],
+    "/doctor-availability/schedules/clinic",
+  );
 
 export const useCreateDoctorSchedule = () =>
   useAPIMutation<
@@ -253,7 +260,10 @@ export const useMedicalCodingSettings = () =>
     provider: string;
     autoSuggest: boolean;
     preferredSystem: string;
-  }>(["clinic", "medical-coding-settings"], "/clinical/medical-coding/settings");
+  }>(
+    ["clinic", "medical-coding-settings"],
+    "/clinical/medical-coding/settings",
+  );
 
 export const useUpdateMedicalCodingSettings = () =>
   useAPIMutation<

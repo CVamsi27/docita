@@ -1,6 +1,7 @@
 "use client";
 
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -36,10 +37,10 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
 import {
   Select,
   SelectContent,
@@ -64,28 +65,52 @@ import { toAbsoluteAppUrl } from "@/lib/url";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useFacilityLabel } from "@/lib/facility-label";
 
-const inviteSchema = z.object({
-  name: z.string().min(1, "Enter the team member's name"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Use at least 8 characters"),
-  role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST"]),
-  phoneNumber: z.string().optional(),
-  specialization: z.string().optional(),
-  qualification: z.string().optional(),
-  registrationNumber: z.string().optional(),
-});
+const inviteSchema = z
+  .object({
+    name: z.string().min(1, "Enter the team member's name"),
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string().min(8, "Use at least 8 characters"),
+    role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST"]),
+    phoneNumber: z.string().optional(),
+    specialization: z.string().optional(),
+    qualification: z.string().optional(),
+    registrationNumber: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === "DOCTOR" && !data.registrationNumber?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["registrationNumber"],
+        message: "Enter the medical registration number",
+      });
+    }
+  });
+
+const memberSchema = z
+  .object({
+    name: z.string().min(1, "Enter the team member's name"),
+    email: z.string().email("Please enter a valid email address"),
+    phoneNumber: z.string().optional(),
+    role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"]),
+    specialization: z.string().optional(),
+    qualification: z.string().optional(),
+    registrationNumber: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      (data.role === "DOCTOR" || data.role === "ADMIN_DOCTOR") &&
+      !data.registrationNumber?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["registrationNumber"],
+        message: "Enter the medical registration number",
+      });
+    }
+  });
 
 type InviteFormValues = z.infer<typeof inviteSchema>;
-
-type MemberDraft = {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-  role?: User["role"];
-  specialization?: string;
-  qualification?: string;
-  registrationNumber?: string;
-};
+type MemberFormValues = z.infer<typeof memberSchema>;
 
 interface MemberManagementUIProps {
   members: User[];
@@ -104,11 +129,17 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 }) => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
-  const [memberDraft, setMemberDraft] = useState<MemberDraft>({});
   const [signatureUploadUrl, setSignatureUploadUrl] = useState<string | null>(
     null,
   );
+  const [signatureUploadDoctorId, setSignatureUploadDoctorId] = useState<
+    string | null
+  >(null);
+  const [signatureUploadInitialAt, setSignatureUploadInitialAt] = useState<
+    string | Date | null
+  >(null);
   const facilityLabel = useFacilityLabel();
+  const queryClient = useQueryClient();
 
   const { mutate: createDoctor, isPending: isCreatingDoctor } =
     useCreateClinicDoctor(clinicId);
@@ -132,6 +163,46 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     isCreatingSignatureUploadSession ||
     isReverifyingDoctor;
 
+  const latestSignatureMember = useMemo(
+    () =>
+      signatureUploadDoctorId
+        ? members.find((member) => member.id === signatureUploadDoctorId)
+        : undefined,
+    [members, signatureUploadDoctorId],
+  );
+
+  useEffect(() => {
+    if (!signatureUploadUrl || !signatureUploadDoctorId) return;
+
+    const interval = window.setInterval(() => {
+      void queryClient.invalidateQueries({ queryKey: ["clinic", "members"] });
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, [queryClient, signatureUploadDoctorId, signatureUploadUrl]);
+
+  useEffect(() => {
+    if (!signatureUploadUrl || !latestSignatureMember?.signatureUploadedAt) {
+      return;
+    }
+
+    const uploadedAt = new Date(
+      latestSignatureMember.signatureUploadedAt,
+    ).toISOString();
+    const initialUploadedAt = signatureUploadInitialAt
+      ? new Date(signatureUploadInitialAt).toISOString()
+      : null;
+
+    if (uploadedAt === initialUploadedAt) {
+      return;
+    }
+
+    toast.success("Signature uploaded successfully");
+    setSignatureUploadUrl(null);
+    setSignatureUploadDoctorId(null);
+    setSignatureUploadInitialAt(null);
+  }, [latestSignatureMember, signatureUploadInitialAt, signatureUploadUrl]);
+
   const getVerificationBadgeVariant = (
     status?: User["verificationStatus"],
   ): "default" | "secondary" | "destructive" | "outline" => {
@@ -152,38 +223,72 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     if (Number.isNaN(date.getTime())) return "-";
     return date.toLocaleDateString();
   };
+
+  const form = useForm<InviteFormValues>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      role: "NURSE",
+      phoneNumber: "",
+      specialization: "",
+      qualification: "",
+      registrationNumber: "",
+    },
+  });
+
+  const memberForm = useForm<MemberFormValues>({
+    resolver: zodResolver(memberSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phoneNumber: "",
+      role: "NURSE",
+      specialization: "",
+      qualification: "",
+      registrationNumber: "",
+    },
+  });
+
+  const selectedRole = form.watch("role");
+  const selectedMemberRole = memberForm.watch("role");
+  const isSelectedMemberDoctor =
+    selectedMemberRole === "DOCTOR" || selectedMemberRole === "ADMIN_DOCTOR";
+  const canInvite = !!clinicId;
+
   const openMemberDialog = (member: User) => {
     setSelectedMember(member);
-    setMemberDraft({
-      name: member.name,
-      email: member.email,
-      phoneNumber: member.phoneNumber,
-      role: member.role,
-      specialization: member.specialization,
-      qualification: member.qualification,
-      registrationNumber: member.registrationNumber,
+    memberForm.reset({
+      name: member.name ?? "",
+      email: member.email ?? "",
+      phoneNumber: member.phoneNumber ?? "",
+      role:
+        member.role === "DOCTOR" ||
+        member.role === "NURSE" ||
+        member.role === "RECEPTIONIST" ||
+        member.role === "ADMIN_DOCTOR"
+          ? member.role
+          : "NURSE",
+      specialization: member.specialization ?? "",
+      qualification: member.qualification ?? "",
+      registrationNumber: member.registrationNumber ?? "",
     });
   };
 
-  const handleSaveMember = () => {
+  const handleSaveMember = (data: MemberFormValues) => {
     if (!selectedMember) return;
 
     updateMember(
       {
         memberId: selectedMember.id,
-        name: memberDraft.name,
-        email: memberDraft.email,
-        phoneNumber: memberDraft.phoneNumber || undefined,
-        role:
-          memberDraft.role === "DOCTOR" ||
-          memberDraft.role === "NURSE" ||
-          memberDraft.role === "RECEPTIONIST" ||
-          memberDraft.role === "ADMIN_DOCTOR"
-            ? memberDraft.role
-            : undefined,
-        specialization: memberDraft.specialization || undefined,
-        qualification: memberDraft.qualification || undefined,
-        registrationNumber: memberDraft.registrationNumber || undefined,
+        name: data.name,
+        email: data.email,
+        phoneNumber: data.phoneNumber || undefined,
+        role: data.role,
+        specialization: data.specialization || undefined,
+        qualification: data.qualification || undefined,
+        registrationNumber: data.registrationNumber || undefined,
       },
       {
         onSuccess: () => {
@@ -227,12 +332,15 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   };
 
   const handleGenerateSignatureQr = (doctorId: string) => {
+    const doctor = members.find((member) => member.id === doctorId);
     createSignatureUploadSession(
       { doctorId },
       {
         onSuccess: (session) => {
-          const uploadUrl = toAbsoluteAppUrl(`/mobile-upload/${session.id}`);
+          const uploadUrl = toAbsoluteAppUrl(session.uploadUrl);
           setSignatureUploadUrl(uploadUrl);
+          setSignatureUploadDoctorId(doctorId);
+          setSignatureUploadInitialAt(doctor?.signatureUploadedAt ?? null);
           toast.success("Signature upload link created");
         },
         onError: (err) => {
@@ -246,7 +354,21 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     );
   };
 
-  const handleReverifyDoctor = (doctorId: string) => {
+  const handleReverifyDoctor = async (doctorId: string) => {
+    const hasRegistrationNumber = await memberForm.trigger(
+      "registrationNumber",
+      { shouldFocus: true },
+    );
+
+    if (!hasRegistrationNumber) {
+      showUserFacingErrorToast(
+        "Please enter the highlighted registration number before reverifying.",
+        "Please check the highlighted fields and try again.",
+        "form",
+      );
+      return;
+    }
+
     reverifyDoctor(
       { doctorId },
       {
@@ -292,23 +414,6 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       );
     }
   };
-
-  const form = useForm<InviteFormValues>({
-    resolver: zodResolver(inviteSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      role: "NURSE",
-      phoneNumber: "",
-      specialization: "",
-      qualification: "",
-      registrationNumber: "",
-    },
-  });
-
-  const selectedRole = form.watch("role");
-  const canInvite = !!clinicId;
 
   const sortedMembers = useMemo(
     () => [...members].sort((a, b) => a.name.localeCompare(b.name)),
@@ -537,7 +642,13 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(onInviteSubmit)}
+              onSubmit={form.handleSubmit(onInviteSubmit, () => {
+                showUserFacingErrorToast(
+                  "Please check the highlighted fields and try again.",
+                  "Please check the highlighted fields and try again.",
+                  "form",
+                );
+              })}
               className="space-y-4"
               noValidate
             >
@@ -547,7 +658,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <Label>Name</Label>
+                      <FormLabel>Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Full name" {...field} />
                       </FormControl>
@@ -560,7 +671,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   name="role"
                   render={({ field }) => (
                     <FormItem>
-                      <Label>Role</Label>
+                      <FormLabel>Role</FormLabel>
                       <Select
                         value={field.value ?? "NURSE"}
                         onValueChange={field.onChange}
@@ -590,7 +701,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <Label>Email</Label>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
@@ -607,7 +718,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                   name="phoneNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <Label>Phone (optional)</Label>
+                      <FormLabel>Phone (optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="+91..." {...field} />
                       </FormControl>
@@ -622,7 +733,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <Label>Temporary Password</Label>
+                    <FormLabel>Temporary Password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
@@ -642,7 +753,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     name="specialization"
                     render={({ field }) => (
                       <FormItem>
-                        <Label>Specialization</Label>
+                        <FormLabel>Specialization</FormLabel>
                         <FormControl>
                           <Input placeholder="Cardiology" {...field} />
                         </FormControl>
@@ -655,7 +766,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     name="qualification"
                     render={({ field }) => (
                       <FormItem>
-                        <Label>Qualification</Label>
+                        <FormLabel>Qualification</FormLabel>
                         <FormControl>
                           <Input placeholder="MBBS, MD" {...field} />
                         </FormControl>
@@ -668,7 +779,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     name="registrationNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <Label>Registration #</Label>
+                        <FormLabel>Registration #</FormLabel>
                         <FormControl>
                           <Input placeholder="Medical council no" {...field} />
                         </FormControl>
@@ -710,240 +821,295 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           if (!open) setSelectedMember(null);
         }}
       >
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent className="sm:max-w-[640px]">
           <DialogHeader>
             <DialogTitle>Member Details</DialogTitle>
             <DialogDescription>
-              View team member profile information.
+              Edit contact details, role, verification, and signature status.
             </DialogDescription>
           </DialogHeader>
           {selectedMember && (
-            <div className="space-y-3 text-sm">
-              <div>
-                <p className="text-muted-foreground">Name</p>
-                <Input
-                  value={memberDraft.name || ""}
-                  onChange={(e) =>
-                    setMemberDraft((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <p className="text-muted-foreground">Email</p>
-                <Input
-                  type="email"
-                  value={memberDraft.email || ""}
-                  onChange={(e) =>
-                    setMemberDraft((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <p className="text-muted-foreground">Role</p>
-                <Select
-                  value={String(memberDraft.role || "NURSE")}
-                  onValueChange={(value) =>
-                    setMemberDraft((prev) => ({
-                      ...prev,
-                      role: value as User["role"],
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NURSE">Nurse</SelectItem>
-                    <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
-                    <SelectItem value="DOCTOR">Doctor</SelectItem>
-                    <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Phone</p>
-                <Input
-                  value={memberDraft.phoneNumber || ""}
-                  onChange={(e) =>
-                    setMemberDraft((prev) => ({
-                      ...prev,
-                      phoneNumber: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              {memberDraft.role === "DOCTOR" && (
-                <>
-                  <div>
-                    <p className="text-muted-foreground">Specialization</p>
-                    <Input
-                      value={memberDraft.specialization || ""}
-                      onChange={(e) =>
-                        setMemberDraft((prev) => ({
-                          ...prev,
-                          specialization: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Qualification</p>
-                    <Input
-                      value={memberDraft.qualification || ""}
-                      onChange={(e) =>
-                        setMemberDraft((prev) => ({
-                          ...prev,
-                          qualification: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Registration #</p>
-                    <Input
-                      value={memberDraft.registrationNumber || ""}
-                      onChange={(e) =>
-                        setMemberDraft((prev) => ({
-                          ...prev,
-                          registrationNumber: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="rounded-lg border p-3 space-y-3 bg-muted/20">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant={getVerificationBadgeVariant(
-                          selectedMember.verificationStatus,
+            <Form {...memberForm}>
+              <form
+                onSubmit={memberForm.handleSubmit(handleSaveMember, () => {
+                  showUserFacingErrorToast(
+                    "Please check the highlighted fields and try again.",
+                    "Please check the highlighted fields and try again.",
+                    "form",
+                  );
+                })}
+                className="flex flex-col gap-4 text-sm"
+                noValidate
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={memberForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Full name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={memberForm.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Role</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="NURSE">Nurse</SelectItem>
+                            <SelectItem value="RECEPTIONIST">
+                              Receptionist
+                            </SelectItem>
+                            <SelectItem value="DOCTOR">Doctor</SelectItem>
+                            <SelectItem value="ADMIN_DOCTOR">
+                              Admin Doctor
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={memberForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="name@facility.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={memberForm.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone (optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="+91..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {isSelectedMemberDoctor && (
+                  <>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                      <FormField
+                        control={memberForm.control}
+                        name="specialization"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Specialization</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Cardiology" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      >
-                        {selectedMember.verificationStatus === "VERIFIED" ? (
-                          <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                        ) : (
-                          <ShieldX className="mr-1 h-3.5 w-3.5" />
+                      />
+                      <FormField
+                        control={memberForm.control}
+                        name="qualification"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Qualification</FormLabel>
+                            <FormControl>
+                              <Input placeholder="MBBS, MD" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                        {getVerificationBadgeLabel(
-                          selectedMember.verificationStatus,
+                      />
+                      <FormField
+                        control={memberForm.control}
+                        name="registrationNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Registration #</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Medical council no"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                         )}
-                      </Badge>
-                      <Badge
-                        variant={
-                          selectedMember.signatureUploadedAt
-                            ? "default"
-                            : "outline"
-                        }
-                      >
-                        Signature{" "}
-                        {selectedMember.signatureUploadedAt
-                          ? "Ready"
-                          : "Missing"}
-                      </Badge>
+                      />
                     </div>
-                    <div className="space-y-1 text-xs text-muted-foreground">
-                      <p>
-                        Last verification:{" "}
-                        {formatDate(selectedMember.verificationCheckedAt)}
-                      </p>
-                      <p>
-                        Signature uploaded:{" "}
-                        {formatDate(selectedMember.signatureUploadedAt)}
-                      </p>
-                      {selectedMember.verificationReason && (
-                        <p>
-                          Verification note: {selectedMember.verificationReason}
-                        </p>
+
+                    <div className="rounded-lg border bg-surface-2 p-3">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant={getVerificationBadgeVariant(
+                              selectedMember.verificationStatus,
+                            )}
+                          >
+                            {selectedMember.verificationStatus ===
+                            "VERIFIED" ? (
+                              <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+                            ) : (
+                              <ShieldX className="mr-1 h-3.5 w-3.5" />
+                            )}
+                            {getVerificationBadgeLabel(
+                              selectedMember.verificationStatus,
+                            )}
+                          </Badge>
+                          <Badge
+                            variant={
+                              selectedMember.signatureUploadedAt
+                                ? "default"
+                                : "outline"
+                            }
+                          >
+                            Signature{" "}
+                            {selectedMember.signatureUploadedAt
+                              ? "Ready"
+                              : "Missing"}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <p>
+                            Last verification:{" "}
+                            {formatDate(selectedMember.verificationCheckedAt)}
+                          </p>
+                          <p>
+                            Signature uploaded:{" "}
+                            {formatDate(selectedMember.signatureUploadedAt)}
+                          </p>
+                          {selectedMember.verificationReason && (
+                            <p>
+                              Verification note:{" "}
+                              {selectedMember.verificationReason}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleGenerateSignatureQr(selectedMember.id)
+                            }
+                            disabled={isManaging}
+                          >
+                            {isCreatingSignatureUploadSession && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            {!isCreatingSignatureUploadSession && (
+                              <QrCode className="mr-2 h-4 w-4" />
+                            )}
+                            Signature Upload Link
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              handleReverifyDoctor(selectedMember.id)
+                            }
+                            disabled={isManaging}
+                          >
+                            {isReverifyingDoctor && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            Reverify Registration
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <p className="text-muted-foreground">Created</p>
+                  <p className="font-medium">
+                    {selectedMember.createdAt
+                      ? new Date(selectedMember.createdAt).toLocaleDateString()
+                      : "-"}
+                  </p>
+                </div>
+
+                <DialogFooter className="sm:justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSelectedMember(null)}
+                    disabled={isManaging}
+                    className="w-full sm:w-auto"
+                  >
+                    Close
+                  </Button>
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+                    <Button
+                      type="submit"
+                      disabled={isManaging}
+                      className="w-full sm:w-auto"
+                    >
+                      {isUpdatingMember && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleGenerateSignatureQr(selectedMember.id)
-                        }
-                        disabled={isManaging}
-                      >
-                        {isCreatingSignatureUploadSession && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        {!isCreatingSignatureUploadSession && (
-                          <QrCode className="mr-2 h-4 w-4" />
-                        )}
-                        Signature Upload Link
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleReverifyDoctor(selectedMember.id)}
-                        disabled={isManaging}
-                      >
-                        {isReverifyingDoctor && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Reverify Registration
-                      </Button>
-                    </div>
+                      Save Changes
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={handleRemoveMember}
+                      disabled={isManaging}
+                      className="w-full sm:w-auto"
+                    >
+                      {isDeletingMember && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Remove
+                    </Button>
                   </div>
-                </>
-              )}
-              <div>
-                <p className="text-muted-foreground">Created</p>
-                <p className="font-medium">
-                  {selectedMember.createdAt
-                    ? new Date(selectedMember.createdAt).toLocaleDateString()
-                    : "-"}
-                </p>
-              </div>
-            </div>
+                </DialogFooter>
+              </form>
+            </Form>
           )}
-          <DialogFooter className="flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setSelectedMember(null)}
-              disabled={isManaging}
-              className="w-full sm:w-auto"
-            >
-              Close
-            </Button>
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
-              <Button
-                onClick={handleSaveMember}
-                disabled={isManaging}
-                className="w-full sm:w-auto"
-              >
-                {isUpdatingMember && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Save Changes
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleRemoveMember}
-                disabled={isManaging}
-                className="w-full sm:w-auto"
-              >
-                {isDeletingMember && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Remove
-              </Button>
-            </div>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog
         open={!!signatureUploadUrl}
         onOpenChange={(open) => {
-          if (!open) setSignatureUploadUrl(null);
+          if (!open) {
+            setSignatureUploadUrl(null);
+            setSignatureUploadDoctorId(null);
+            setSignatureUploadInitialAt(null);
+          }
         }}
       >
         <DialogContent className="sm:max-w-md">

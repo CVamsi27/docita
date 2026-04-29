@@ -2,6 +2,7 @@ import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -34,17 +35,19 @@ export function TimeSlotPicker({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Start time</FormLabel>
-            <DateTimePicker
-              value={
-                field.value instanceof Date
-                  ? field.value.toISOString()
-                  : field.value
-              }
-              onChange={field.onChange}
-              startHour={startHour}
-              endHour={endHour}
-              minDate={todayStart}
-            />
+            <FormControl>
+              <DateTimePicker
+                value={
+                  field.value instanceof Date
+                    ? field.value.toISOString()
+                    : field.value
+                }
+                onChange={field.onChange}
+                startHour={startHour}
+                endHour={endHour}
+                minDate={todayStart}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
@@ -56,16 +59,18 @@ export function TimeSlotPicker({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>End time (optional)</FormLabel>
-            <DateTimePicker
-              value={
-                field.value instanceof Date
-                  ? field.value.toISOString()
-                  : field.value
-              }
-              onChange={field.onChange}
-              startHour={startHour}
-              endHour={endHour}
-            />
+            <FormControl>
+              <DateTimePicker
+                value={
+                  field.value instanceof Date
+                    ? field.value.toISOString()
+                    : field.value
+                }
+                onChange={field.onChange}
+                startHour={startHour}
+                endHour={endHour}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}

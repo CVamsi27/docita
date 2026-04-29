@@ -34,9 +34,7 @@ import {
   createPatientRequestSchema,
   updatePatientRequestSchema,
 } from "@workspace/types";
-import {
-  validatePatientPhoneNumberForCountry,
-} from "@/features/patients/rules/patientRules";
+import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
 
 interface AddPatientDialogProps {
   open?: boolean;
@@ -103,12 +101,16 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const isValid = await form.trigger();
-    if (!isValid) return;
+  const handleInvalidSubmit = () => {
+    showUserFacingErrorToast(
+      "Please check the highlighted fields and try again.",
+      "Please check the highlighted fields and try again.",
+      "form",
+    );
+  };
+
+  const handleSubmit = form.handleSubmit(async (values) => {
     try {
-      const values = form.getValues();
       const phoneError = validatePatientPhoneNumberForCountry(
         values.phoneNumber,
         clinic?.countryCode,
@@ -118,7 +120,11 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
           type: "manual",
           message: phoneError,
         });
-        showUserFacingErrorToast(null, phoneError, "form");
+        showUserFacingErrorToast(
+          "Please check the highlighted fields and try again.",
+          "Please check the highlighted fields and try again.",
+          "form",
+        );
         return;
       }
 
@@ -141,7 +147,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
         "We could not add this patient. Please try again.",
       );
     }
-  };
+  }, handleInvalidSubmit);
 
   const handleClose = (open: boolean) => {
     if (!open) {
@@ -183,8 +189,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Last Name{" "}
-                    <span className="text-destructive ml-0.5">*</span>
+                    Last Name <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Last name" />
@@ -238,12 +243,13 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Gender{" "}
-                    <span className="text-destructive ml-0.5">*</span>
+                    Gender <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <Select
                     value={field.value}
-                    onValueChange={(value) => field.onChange(value as GenderValue)}
+                    onValueChange={(value) =>
+                      field.onChange(value as GenderValue)
+                    }
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -288,7 +294,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
             />
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -340,13 +346,17 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       : undefined,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInvalidSubmit = () => {
+    showUserFacingErrorToast(
+      "Please check the highlighted fields and try again.",
+      "Please check the highlighted fields and try again.",
+      "form",
+    );
+  };
+
+  const handleSubmit = form.handleSubmit(async (values) => {
     if (!patient) return;
-    const isValid = await form.trigger();
-    if (!isValid) return;
     try {
-      const values = form.getValues();
       const phoneError = validatePatientPhoneNumberForCountry(
         values.phoneNumber,
         clinic?.countryCode,
@@ -356,7 +366,11 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           type: "manual",
           message: phoneError,
         });
-        showUserFacingErrorToast(null, phoneError, "form");
+        showUserFacingErrorToast(
+          "Please check the highlighted fields and try again.",
+          "Please check the highlighted fields and try again.",
+          "form",
+        );
         return;
       }
 
@@ -379,7 +393,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
         "We could not save this patient. Please try again.",
       );
     }
-  };
+  }, handleInvalidSubmit);
 
   if (!patient) return null;
 
@@ -399,7 +413,8 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    First Name <span className="text-destructive ml-0.5">*</span>
+                    First Name{" "}
+                    <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="First name" />
@@ -469,7 +484,9 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                   </FormLabel>
                   <Select
                     value={field.value ?? ""}
-                    onValueChange={(value) => field.onChange(value as GenderValue)}
+                    onValueChange={(value) =>
+                      field.onChange(value as GenderValue)
+                    }
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -510,7 +527,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             />
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"

@@ -21,9 +21,7 @@ type UsePatientsOptions = {
   enabled?: boolean;
 } | null;
 
-export const usePatients = (
-  options?: UsePatientsOptions,
-) => {
+export const usePatients = (options?: UsePatientsOptions) => {
   const limit = options?.limit ?? 20;
   const page = options?.page ?? 1;
   const enabled = options !== null && (options?.enabled ?? true);
@@ -108,11 +106,13 @@ export const usePatientMedicalHistoryTimeline = (patientId: string) =>
 export const useCreatePatient = () =>
   useAPIMutation<Patient, CreatePatientRequest>("/patients", "POST", {
     invalidateKeys: [["patients"]],
+    suppressGlobalErrorToast: true,
   });
 
 export const useUpdatePatient = (id: string) =>
   useAPIMutation<Patient, UpdatePatientRequest>(`/patients/${id}`, "PATCH", {
     invalidateKeys: [["patients"], ["patients", id]],
+    suppressGlobalErrorToast: true,
   });
 
 export const useDeletePatient = (id: string) =>

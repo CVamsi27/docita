@@ -11,6 +11,37 @@ const DEFAULT_PUBLIC_SOCKET_URL =
     ? "https://api.docita.work"
     : "http://localhost:3001";
 
+function toOrigin(source: string): string {
+  try {
+    return new URL(source).origin;
+  } catch {
+    return source;
+  }
+}
+
+function toWebSocketOrigin(source: string): string | undefined {
+  try {
+    const url = new URL(source);
+    if (url.protocol === "http:") {
+      url.protocol = "ws:";
+      return url.origin;
+    }
+    if (url.protocol === "https:") {
+      url.protocol = "wss:";
+      return url.origin;
+    }
+  } catch {
+    return undefined;
+  }
+
+  return undefined;
+}
+
+const SOCKET_SOURCES = [
+  DEFAULT_PUBLIC_SOCKET_URL,
+  process.env["NEXT_PUBLIC_SOCKET_URL"],
+].filter((source): source is string => Boolean(source));
+
 const CONNECT_SOURCES = [
   "'self'",
   "https://api.docita.work",
@@ -21,19 +52,13 @@ const CONNECT_SOURCES = [
   "https://*.sentry.io",
   DEFAULT_PUBLIC_API_URL,
   DEFAULT_PUBLIC_SOCKET_URL,
+  ...SOCKET_SOURCES.map(toWebSocketOrigin),
   process.env["NEXT_PUBLIC_API_URL"],
   process.env["NEXT_PUBLIC_SOCKET_URL"],
   process.env["NEXT_PUBLIC_ANALYTICS_URL"],
 ]
   .filter((source): source is string => Boolean(source))
-  .map((source) => {
-    try {
-      const url = new URL(source);
-      return url.origin;
-    } catch {
-      return source;
-    }
-  });
+  .map(toOrigin);
 
 const IMAGE_SOURCES = [
   "'self'",

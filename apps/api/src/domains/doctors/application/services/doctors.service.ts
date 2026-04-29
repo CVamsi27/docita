@@ -1,17 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import {
-  Specialization,
-  HospitalRole,
-  Role,
-  UploadSessionPurpose,
-} from '@workspace/db';
+import { Specialization, HospitalRole, Role } from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
 } from '@/common/select-fragments';
 import { DoctorVerificationService } from './doctor-verification.service';
+import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 
 interface CreateDoctorData {
@@ -85,6 +81,7 @@ export class DoctorsService {
   constructor(
     private prisma: PrismaService,
     private doctorVerificationService: DoctorVerificationService,
+    private readonly signatureUploadService: SignatureUploadService,
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
 
@@ -419,16 +416,7 @@ export class DoctorsService {
   async createSignatureUploadSession(id: string, clinicId?: string) {
     if (clinicId) await this.findOne(id, clinicId);
 
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-
-    return this.prisma.uploadSession.create({
-      data: {
-        expiresAt,
-        purpose: UploadSessionPurpose.DOCTOR_SIGNATURE,
-        doctorId: id,
-      },
-    });
+    return this.signatureUploadService.generateUploadToken(id);
   }
 
   async reverifyDoctor(id: string, clinicId?: string) {

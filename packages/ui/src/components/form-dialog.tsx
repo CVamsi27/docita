@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "./dialog";
@@ -77,7 +78,7 @@ export function FormDialogFooter({
   onCancel,
 }: FormDialogFooterProps) {
   return (
-    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-2">
+    <DialogFooter>
       <Button
         type="button"
         variant="outline"
@@ -96,6 +97,6 @@ export function FormDialogFooter({
           submitLabel || (isEditing ? "Update" : "Create")
         )}
       </Button>
-    </div>
+    </DialogFooter>
   );
 }

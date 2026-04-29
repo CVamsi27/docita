@@ -1,21 +1,20 @@
 import { z } from "zod";
 
 export interface APIClientConfig {
-  
   baseURL: string;
-  
+
   getToken?: () => string | null;
-  
+
   defaultHeaders?: Record<string, string>;
-  
+
   timeout?: number;
-  
+
   retries?: number;
-  
+
   onRequest?: (config: RequestConfig) => RequestConfig | Promise<RequestConfig>;
-  
+
   onResponse?: <T>(response: T) => T | Promise<T>;
-  
+
   onError?: (error: APIError) => void | Promise<void>;
 }
 
@@ -24,6 +23,7 @@ export interface RequestConfig extends RequestInit {
   timeout?: number;
   retries?: number;
   skipAuth?: boolean;
+  suppressGlobalErrorToast?: boolean;
 }
 
 export interface APIError extends Error {
@@ -31,7 +31,7 @@ export interface APIError extends Error {
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
-  
+
   validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
@@ -49,7 +49,7 @@ export class APIRequestError extends Error implements APIError {
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
-  
+
   validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
@@ -60,7 +60,6 @@ export class APIRequestError extends Error implements APIError {
     Object.assign(this, options);
   }
 
-  
   get hasFieldErrors(): boolean {
     return (
       !!this.validationErrors && Object.keys(this.validationErrors).length > 0
@@ -115,7 +114,6 @@ export function createAPIClient(config: APIClientConfig) {
     );
   }
 
-  
   function buildURL(
     endpoint: string,
     params?: Record<string, string | number | boolean | undefined | null>,
@@ -147,7 +145,6 @@ export function createAPIClient(config: APIClientConfig) {
     return url.toString();
   }
 
-  
   async function executeWithRetry<T>(
     fn: () => Promise<T>,
     retriesLeft: number,
@@ -156,7 +153,6 @@ export function createAPIClient(config: APIClientConfig) {
       return await fn();
     } catch (error) {
       if (retriesLeft > 0 && (error as APIError).isNetworkError) {
-
         const delay = Math.pow(2, retries - retriesLeft) * 1000;
         await new Promise((resolve) => setTimeout(resolve, delay));
         return executeWithRetry(fn, retriesLeft - 1);
@@ -165,7 +161,6 @@ export function createAPIClient(config: APIClientConfig) {
     }
   }
 
-  
   async function request<T>(
     endpoint: string,
     options: RequestConfig = {},
@@ -203,6 +198,7 @@ export function createAPIClient(config: APIClientConfig) {
     const url = buildURL(endpoint, options.params);
     const requestTimeout = options.timeout ?? timeout;
     const requestRetries = options.retries ?? retries;
+    const shouldNotifyGlobalError = options.suppressGlobalErrorToast !== true;
 
     const makeRequest = async (): Promise<T> => {
       const controller = new AbortController();
@@ -246,7 +242,7 @@ export function createAPIClient(config: APIClientConfig) {
             },
           );
 
-          if (onError) {
+          if (onError && shouldNotifyGlobalError) {
             await onError(error);
           }
 
@@ -277,7 +273,7 @@ export function createAPIClient(config: APIClientConfig) {
             isTimeout: true,
             code: ErrorCodes.TIMEOUT,
           });
-          if (onError) await onError(timeoutError);
+          if (onError && shouldNotifyGlobalError) await onError(timeoutError);
           throw timeoutError;
         }
 
@@ -288,7 +284,7 @@ export function createAPIClient(config: APIClientConfig) {
             code: ErrorCodes.NETWORK_ERROR,
           },
         );
-        if (onError) await onError(networkError);
+        if (onError && shouldNotifyGlobalError) await onError(networkError);
         throw networkError;
       }
     };
@@ -296,7 +292,6 @@ export function createAPIClient(config: APIClientConfig) {
     return executeWithRetry(makeRequest, requestRetries);
   }
 
-  
   function getErrorCode(status: number): string {
     switch (status) {
       case 401:
@@ -314,12 +309,10 @@ export function createAPIClient(config: APIClientConfig) {
   }
 
   return {
-    
     get<T>(endpoint: string, options?: RequestConfig): Promise<T> {
       return request<T>(endpoint, { ...options, method: "GET" });
     },
 
-    
     post<T>(
       endpoint: string,
       body?: unknown,
@@ -332,7 +325,6 @@ export function createAPIClient(config: APIClientConfig) {
       });
     },
 
-    
     put<T>(
       endpoint: string,
       body?: unknown,
@@ -345,7 +337,6 @@ export function createAPIClient(config: APIClientConfig) {
       });
     },
 
-    
     patch<T>(
       endpoint: string,
       body?: unknown,
@@ -358,15 +349,12 @@ export function createAPIClient(config: APIClientConfig) {
       });
     },
 
-    
     delete<T>(endpoint: string, options?: RequestConfig): Promise<T> {
       return request<T>(endpoint, { ...options, method: "DELETE" });
     },
 
-    
     request,
 
-    
     async validate<T>(
       endpoint: string,
       schema: z.ZodType<T>,
@@ -391,7 +379,6 @@ export function createAPIClient(config: APIClientConfig) {
       return result.data;
     },
 
-    
     safeParse<T>(
       schema: z.ZodType<T>,
       data: Record<string, unknown>,
@@ -400,7 +387,6 @@ export function createAPIClient(config: APIClientConfig) {
       return result.success ? result.data : undefined;
     },
 
-    
     async upload<T>(
       endpoint: string,
       files: File | File[],

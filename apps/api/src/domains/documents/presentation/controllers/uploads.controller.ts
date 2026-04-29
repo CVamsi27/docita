@@ -16,6 +16,7 @@ import { UploadSessionResponseDto } from '@/domains/documents/application/dto/up
 import { ZodSerializerDto } from 'nestjs-zod';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   Feature,
@@ -49,6 +50,7 @@ export class UploadsController {
   }
 
   @Post('session/:id')
+  @Public()
   @UseInterceptors(
     FileInterceptor('file', {
       storage: createTempDiskStorage(),

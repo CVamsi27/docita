@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DoctorsService } from './doctors.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { DoctorVerificationService } from './doctor-verification.service';
+import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 import { NotFoundException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
@@ -86,6 +87,10 @@ describe('DoctorsService', () => {
       jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
 
+  const mockSignatureUploadService = {
+    generateUploadToken: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+  };
+
   const mockStoredFileUrlResolver = {
     resolveWithStoredUrl: jest
       .fn<
@@ -111,6 +116,10 @@ describe('DoctorsService', () => {
         {
           provide: DoctorVerificationService,
           useValue: mockDoctorVerificationService,
+        },
+        {
+          provide: SignatureUploadService,
+          useValue: mockSignatureUploadService,
         },
         {
           provide: StoredFileUrlResolverService,
