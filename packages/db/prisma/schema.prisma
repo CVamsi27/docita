@@ -799,7 +799,7 @@ model Invoice {
   @@index([createdAt])
   @@index([clinicId])
   @@index([clinicId, issuedAt])
-  @@index([clinicId, status, createdAt(sort: Desc)])
+  @@index([clinicId, status, createdAt(sort: Desc)], map: "Invoice_clinicId_status_createdAt_desc_idx")
   @@index([patientId])
   @@index([status, createdAt])
   @@index([status])
