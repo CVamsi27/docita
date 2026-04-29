@@ -28,11 +28,22 @@ export interface ISubscriptionRepository {
   ): Promise<void>;
   findPaymentsByClinicId(clinicId: string, limit: number): Promise<unknown[]>;
   findPaymentById(clinicId: string, paymentId: string): Promise<unknown | null>;
+  findPaymentByOrderId(
+    clinicId: string,
+    orderId: string,
+  ): Promise<unknown | null>;
   updatePaymentLink(params: {
     clinicId: string;
     paymentId: string;
     payUrl: string;
   }): Promise<void>;
+  expireDuplicatePendingCheckouts(params: {
+    clinicId: string;
+    amountCents: number;
+    currency: string;
+    description: string;
+    keepOrderId: string;
+  }): Promise<number>;
 
   findReusablePendingCheckout(params: {
     clinicId: string;

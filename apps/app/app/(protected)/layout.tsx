@@ -196,33 +196,53 @@ function SubscriptionLockNotice() {
   const router = useRouter();
   const status = clinic?.subscriptionStatus;
 
-  if (!status || status === "ACTIVE" || status === "TRIALING") {
+  if (!status || status === "ACTIVE") {
     return null;
   }
 
   const isExpired = status === "EXPIRED";
   const isGrace = status === "GRACE";
+  const isTrialing = status === "TRIALING";
+  const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
+  const trialEndText =
+    trialEnd && Number.isFinite(trialEnd.getTime())
+      ? trialEnd.toLocaleDateString("en-IN")
+      : null;
   const title = isExpired
     ? "Subscription Expired: Workspace Locked"
     : isGrace
       ? "Payment Grace Period: Access Restricted"
-      : "Payment Required";
+      : isTrialing
+        ? "Trial Active: Payment Not Completed"
+        : "Payment Required";
   const description = isExpired
     ? "This facility is locked until payment is completed. You can still open billing and upgrade pages to restore access."
     : isGrace
       ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
-      : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
+      : isTrialing
+        ? `Your Essential trial is active${trialEndText ? ` until ${trialEndText}` : ""}. Add payment to keep paid features after the trial ends.`
+        : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
 
   return (
     <div className="border-b bg-background px-4 py-3 md:px-6">
       <Alert
         variant={isExpired ? "destructive" : "default"}
-        className={isExpired ? undefined : "border-warning/40 bg-warning/10"}
+        className={
+          isExpired
+            ? undefined
+            : isTrialing
+              ? "border-info/40 bg-info/10"
+              : "border-warning/40 bg-warning/10"
+        }
       >
         {isExpired ? (
           <LockKeyhole className="h-4 w-4" />
         ) : (
-          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertTriangle
+            className={
+              isTrialing ? "h-4 w-4 text-info" : "h-4 w-4 text-warning"
+            }
+          />
         )}
         <AlertTitle>{title}</AlertTitle>
         <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -233,7 +253,7 @@ function SubscriptionLockNotice() {
             onClick={() => router.push("/upgrade")}
             className="self-start sm:self-auto"
           >
-            Resolve Payment
+            {isTrialing ? "Add Payment" : "Resolve Payment"}
           </Button>
         </AlertDescription>
       </Alert>

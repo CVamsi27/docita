@@ -32,7 +32,9 @@ describe('NotifyExpiringSubscriptionsUseCase', () => {
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
     findPaymentById: jest.fn(async () => null),
+    findPaymentByOrderId: jest.fn(async () => null),
     updatePaymentLink: jest.fn(async () => undefined),
+    expireDuplicatePendingCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: jest.fn(async () => null),
   };
 

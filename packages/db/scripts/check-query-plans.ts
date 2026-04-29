@@ -150,6 +150,50 @@ async function run(): Promise<void> {
       blockedSeqScanTable: "SubscriptionReminder",
       requiredIndexes: ["SubscriptionReminder_clinicId_type_channel_createdAt_idx"],
     },
+    {
+      name: "patient-clinic-mrn-duplicate-check",
+      sql: `SELECT id
+            FROM "Patient"
+            WHERE "clinicId" = $1
+              AND "mrn" = $2
+            LIMIT 1`,
+      params: ["clinic-plan-check", "MRN-PLAN-CHECK"],
+      blockedSeqScanTable: "Patient",
+      requiredIndexes: ["Patient_clinicId_mrn_key"],
+    },
+    {
+      name: "prescription-clinic-date-feed",
+      sql: `SELECT id
+            FROM "Prescription"
+            WHERE "clinicId" = $1
+            ORDER BY "date" DESC
+            LIMIT 50`,
+      params: ["clinic-plan-check"],
+      blockedSeqScanTable: "Prescription",
+      requiredIndexes: ["Prescription_clinicId_date_idx"],
+    },
+    {
+      name: "bed-clinic-status-board",
+      sql: `SELECT id
+            FROM "Bed"
+            WHERE "clinicId" = $1
+              AND "status" = $2
+            LIMIT 50`,
+      params: ["clinic-plan-check", "AVAILABLE"],
+      blockedSeqScanTable: "Bed",
+      requiredIndexes: ["Bed_clinicId_status_idx"],
+    },
+    {
+      name: "invoice-items-clinic-invoice",
+      sql: `SELECT id
+            FROM "InvoiceItem"
+            WHERE "clinicId" = $1
+              AND "invoiceId" = $2
+            LIMIT 50`,
+      params: ["clinic-plan-check", "invoice-plan-check"],
+      blockedSeqScanTable: "InvoiceItem",
+      requiredIndexes: ["InvoiceItem_clinicId_invoiceId_idx"],
+    },
   ];
 
   let hasFailure = false;

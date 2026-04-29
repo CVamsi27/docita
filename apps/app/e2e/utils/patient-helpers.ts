@@ -3,11 +3,7 @@ import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { APIRequestContext, Page } from "@playwright/test";
-import {
-  clinicSchema,
-  validateSessionResponseSchema,
-  type ClinicType,
-} from "@workspace/types";
+import { type ClinicType } from "@workspace/types";
 
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
@@ -83,7 +79,9 @@ function readDatabaseUrl(): string {
     return value.replace(/^"(.*)"$/, "$1");
   }
 
-  throw new Error("DATABASE_URL was not found in process.env or the repository .env file.");
+  throw new Error(
+    "DATABASE_URL was not found in process.env or the repository .env file.",
+  );
 }
 
 async function fetchVerificationToken(email: string): Promise<string | null> {
@@ -152,7 +150,9 @@ export async function verifyEmailIfNeeded(
   });
 
   if (!verifyEmailRes.ok()) {
-    throw new Error(`Email verification failed: ${await verifyEmailRes.text()}`);
+    throw new Error(
+      `Email verification failed: ${await verifyEmailRes.text()}`,
+    );
   }
 }
 
@@ -195,7 +195,10 @@ async function postWithRetry(
 export async function setupAuthUser(
   request: APIRequestContext,
   requestHeaders: Record<string, string> = {},
-  options: { role?: "DOCTOR" | "ADMIN" | "ADMIN_DOCTOR"; clinicName?: string } = {},
+  options: {
+    role?: "DOCTOR" | "ADMIN" | "ADMIN_DOCTOR";
+    clinicName?: string;
+  } = {},
 ): Promise<BasicAuthUserData> {
   const uniqueId = randomUUID();
   const email = `doctor-${uniqueId}@test.com`;
@@ -249,12 +252,10 @@ export async function fetchPatientByApi(
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok()) {
-
       return null;
     }
     return await res.json();
   } catch {
-
     return null;
   }
 }
@@ -310,16 +311,15 @@ async function setupTestUserImpl(
   let accessToken = registerData.access_token || registerData.accessToken;
   const userId = registerData.user.id;
 
-  await verifyEmailIfNeeded(
-    request,
-    email,
-    registerData.user?.emailVerified,
-  );
+  await verifyEmailIfNeeded(request, email, registerData.user?.emailVerified);
 
-  const choosePathRes = await request.post(`${API_URL}/onboarding/choose-path`, {
-    headers: authHeaders(accessToken),
-    data: { path: "CREATE_CLINIC" },
-  });
+  const choosePathRes = await request.post(
+    `${API_URL}/onboarding/choose-path`,
+    {
+      headers: authHeaders(accessToken),
+      data: { path: "CREATE_CLINIC" },
+    },
+  );
 
   if (!choosePathRes.ok()) {
     throw new Error(`Choose path failed: ${await choosePathRes.text()}`);
@@ -331,7 +331,9 @@ async function setupTestUserImpl(
   });
 
   if (!initRes.ok()) {
-    throw new Error(`Onboarding initialization failed: ${await initRes.text()}`);
+    throw new Error(
+      `Onboarding initialization failed: ${await initRes.text()}`,
+    );
   }
 
   const initData = await initRes.json();
@@ -345,7 +347,9 @@ async function setupTestUserImpl(
   );
 
   if (!signatureSessionRes.ok()) {
-    throw new Error(`SLA signature session creation failed: ${await signatureSessionRes.text()}`);
+    throw new Error(
+      `SLA signature session creation failed: ${await signatureSessionRes.text()}`,
+    );
   }
 
   const signatureSession = await signatureSessionRes.json();
@@ -366,7 +370,9 @@ async function setupTestUserImpl(
   );
 
   if (!uploadSignatureRes.ok()) {
-    throw new Error(`SLA signature upload failed: ${await uploadSignatureRes.text()}`);
+    throw new Error(
+      `SLA signature upload failed: ${await uploadSignatureRes.text()}`,
+    );
   }
 
   const completeRes = await request.post(
@@ -413,19 +419,27 @@ async function setupTestUserImpl(
   );
 
   if (!completeRes.ok()) {
-    throw new Error(`Onboarding completion failed: ${await completeRes.text()}`);
+    throw new Error(
+      `Onboarding completion failed: ${await completeRes.text()}`,
+    );
   }
 
   const completeData = await completeRes.json();
-  accessToken = completeData.access_token || completeData.accessToken || accessToken;
+  accessToken =
+    completeData.access_token || completeData.accessToken || accessToken;
   const userFromComplete = completeData.user ?? registerData.user;
   const clinicId = userFromComplete.clinicId || completeData.clinicId;
 
-  const tokenRes = await request.post(`${API_URL}/doctors/signature/generate-token`, {
-    headers: authHeaders(accessToken),
-  });
+  const tokenRes = await request.post(
+    `${API_URL}/doctors/signature/generate-token`,
+    {
+      headers: authHeaders(accessToken),
+    },
+  );
   if (!tokenRes.ok()) {
-    throw new Error(`Signature token generation failed: ${await tokenRes.text()}`);
+    throw new Error(
+      `Signature token generation failed: ${await tokenRes.text()}`,
+    );
   }
 
   const tokenData = await tokenRes.json();
@@ -449,7 +463,9 @@ async function setupTestUserImpl(
     },
   );
   if (!uploadRes.ok()) {
-    throw new Error(`Doctor signature upload failed: ${await uploadRes.text()}`);
+    throw new Error(
+      `Doctor signature upload failed: ${await uploadRes.text()}`,
+    );
   }
 
   const regNumberRes = await request.put(
@@ -463,8 +479,29 @@ async function setupTestUserImpl(
   );
 
   if (!regNumberRes.ok()) {
-    throw new Error(`Doctor registration number update failed: ${await regNumberRes.text()}`);
+    throw new Error(
+      `Doctor registration number update failed: ${await regNumberRes.text()}`,
+    );
   }
+
+  const loginRes = await request.post(`${API_URL}/auth/login`, {
+    headers: {
+      ...requestHeadersWithClientIp,
+      Cookie: "XSRF-TOKEN=e2e-csrf-token",
+      "X-XSRF-TOKEN": "e2e-csrf-token",
+    },
+    data: {
+      email,
+      password,
+    },
+  });
+
+  if (!loginRes.ok()) {
+    throw new Error(`Post-onboarding login failed: ${await loginRes.text()}`);
+  }
+
+  const loginData = await loginRes.json();
+  accessToken = loginData.access_token || loginData.accessToken || accessToken;
 
   return {
     id: userId,
@@ -500,40 +537,20 @@ export async function setupTestUser(
 }
 
 export async function loginUser(page: Page, user: UserData) {
-  const appOrigin = new URL(process.env.APP_URL ?? "http://127.0.0.1:3000").origin;
-  const validateRes = await page.request.get(`${API_URL}/auth/validate`, {
-    headers: {
-      Authorization: `Bearer ${user.accessToken}`,
-      "x-docita-e2e": "true",
-    },
-  });
-
-  if (!validateRes.ok()) {
-    throw new Error(`Session validation failed: ${await validateRes.text()}`);
-  }
-
-  const session = validateSessionResponseSchema.parse(await validateRes.json());
-  const clinicRes = await page.request.get(`${API_URL}/clinic/settings`, {
-    headers: {
-      Authorization: `Bearer ${user.accessToken}`,
-      "x-docita-e2e": "true",
-    },
-  });
-
-  if (!clinicRes.ok()) {
-    throw new Error(`Clinic session validation failed: ${await clinicRes.text()}`);
-  }
-
-  const clinicData = clinicSchema.parse(await clinicRes.json());
-  const clinicStorage = JSON.stringify(clinicData);
-  const clinicId = clinicData.id;
+  const appOrigin = new URL(process.env.APP_URL ?? "http://127.0.0.1:3000")
+    .origin;
+  const sessionUser = {
+    id: user.id,
+    email: user.email,
+    role: "ADMIN_DOCTOR",
+    clinicId: user.clinicId,
+  };
 
   await page.context().addCookies([
     {
       name: "XSRF-TOKEN",
       value: "e2e-csrf-token",
-      domain: "127.0.0.1",
-      path: "/",
+      url: `${appOrigin}/`,
     },
     {
       name: "access_token",
@@ -542,31 +559,55 @@ export async function loginUser(page: Page, user: UserData) {
     },
   ]);
 
-  await page.addInitScript(
+  await page.goto("about:blank");
+  await page.goto(`${appOrigin}/__e2e_session_seed`, {
+    waitUntil: "domcontentloaded",
+  });
+  await page.evaluate(
     ({
       clinicId,
-      clinicStorage,
       sessionData,
       token,
     }: {
       clinicId: string;
-      clinicStorage: string;
-      sessionData: typeof session;
+      sessionData: typeof sessionUser;
       token: string;
     }) => {
-      localStorage.setItem("docita_user", JSON.stringify(sessionData.user));
+      localStorage.setItem("docita_user", JSON.stringify(sessionData));
       localStorage.setItem("docita_token", token);
       localStorage.setItem("selectedClinicId", clinicId);
-      localStorage.setItem("selectedClinic", clinicStorage);
+      localStorage.removeItem("selectedClinic");
       document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
     },
     {
-      clinicId,
-      clinicStorage,
-      sessionData: session,
+      clinicId: user.clinicId,
+      sessionData: sessionUser,
       token: user.accessToken,
     },
   );
 
-  await page.goto("/dashboard");
+  await page.addInitScript(
+    ({
+      clinicId,
+      sessionData,
+      token,
+    }: {
+      clinicId: string;
+      sessionData: typeof sessionUser;
+      token: string;
+    }) => {
+      localStorage.setItem("docita_user", JSON.stringify(sessionData));
+      localStorage.setItem("docita_token", token);
+      localStorage.setItem("selectedClinicId", clinicId);
+      localStorage.removeItem("selectedClinic");
+      document.cookie = "XSRF-TOKEN=e2e-csrf-token; path=/";
+    },
+    {
+      clinicId: user.clinicId,
+      sessionData: sessionUser,
+      token: user.accessToken,
+    },
+  );
+
+  await page.goto("about:blank");
 }

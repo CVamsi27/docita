@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { setupTestUser } from "./utils/patient-helpers";
-import { seedSession } from "./utils/session";
+import { loginUser, setupTestUser } from "./utils/patient-helpers";
 import { expectPageHeader, expectRoute } from "./utils/ui-contracts";
 
 test.describe("Upgrade Page", () => {
@@ -12,102 +11,82 @@ test.describe("Upgrade Page", () => {
 
   test.beforeEach(async ({ page }) => {
     if (!user) throw new Error("User not initialized");
-    await seedSession(page, {
-      token: user.accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: "ADMIN_DOCTOR",
-        clinicId: user.clinicId,
-      },
-    });
+    await loginUser(page, user);
   });
 
   test("should display upgrade page with current plan", async ({ page }) => {
-    await page.goto("/upgrade");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
+
     await expectRoute(page, /\/upgrade/);
     await expectPageHeader(page, { title: /Upgrade|Billing|Subscription/i });
-
-    const body = page.locator("body");
-    await expect(body).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Current Plan").first()).toBeVisible();
+    await expect(page.getByText("Current usage")).toBeVisible();
+    await expect(page.getByText("Planned Roadmap")).toHaveCount(0);
+    await expect(page.getByText(/14-day|trial offer/i)).toHaveCount(0);
   });
 
-  test("should show pricing dialog when clicking View All Plans", async ({
+  test("should show all four plan options with feature details", async ({
     page,
   }) => {
-    await page.goto("/upgrade");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const viewPlansBtn = page.getByRole("button", { name: /View All Plans/i });
-    if (await viewPlansBtn.isVisible()) {
-      await viewPlansBtn.click();
-
-      await expect(page.getByRole("dialog")).toBeVisible();
-      await expect(page.locator('[role="dialog"]')).toContainText(
-        /Choose Your Plan|Plan/i,
-      );
-    }
+    await expect(page.getByRole("heading", { name: "Starter" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Essential" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Professional" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Enterprise" }),
+    ).toBeVisible();
+    await expect(page.getByText("Everything in Essential, plus")).toBeVisible();
+    await expect(
+      page.getByText("Everything in Professional, plus"),
+    ).toBeVisible();
   });
 
   test("should display tier cards with pricing", async ({ page }) => {
-    await page.goto("/upgrade");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const pageContent = page.locator("body");
-    await expect(pageContent).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole("button", { name: "Monthly" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Yearly" })).toBeVisible();
+    await expect(
+      page.getByText(/Free forever|From|Custom/).first(),
+    ).toBeVisible();
   });
 
-  test("should show addon cards", async ({ page }) => {
-    await page.goto("/upgrade");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+  test("should open contact sales from Enterprise", async ({ page }) => {
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
+    await page
+      .getByRole("button", { name: /Contact Sales/i })
+      .first()
+      .click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog")).toContainText(/Contact|Sales/i);
   });
 
   test("should show billing history button", async ({ page }) => {
-    await page.goto("/upgrade");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByRole("button", { name: /Billing History/i }),
+    ).toBeVisible();
   });
 
   test("should open billing history dialog", async ({ page }) => {
-    await page.goto("/upgrade");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const billingHistoryTrigger = page
-      .getByRole("button", { name: /Billing History|View Billing History/i })
-      .first();
-    if (!(await billingHistoryTrigger.isVisible())) {
-      test.skip();
-      return;
-    }
-
-    await billingHistoryTrigger.click();
+    await page.getByRole("button", { name: /Billing History/i }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect(page.getByRole("dialog")).toContainText(/Billing History/i);
-    // Contract: dialog opens; contents vary based on environment data.
   });
 
-  test("should toggle monthly/yearly pricing in dialog", async ({ page }) => {
-    await page.goto("/upgrade");
-    await page.waitForLoadState("networkidle");
+  test("should toggle monthly/yearly pricing", async ({ page }) => {
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const changePlanBtn = page
-      .getByRole("button", { name: /Change Plan|View All Plans/i })
-      .first();
-    if (await changePlanBtn.isVisible()) {
-      await changePlanBtn.click();
-
-      const yearlyLabel = page.locator('[role="dialog"]').getByText(/Yearly/i);
-      if (await yearlyLabel.isVisible()) {
-
-        await expect(yearlyLabel).toBeVisible();
-      }
-    }
+    await page.getByRole("button", { name: "Yearly" }).click();
+    await expect(page.getByRole("button", { name: "Yearly" })).toBeVisible();
   });
 });

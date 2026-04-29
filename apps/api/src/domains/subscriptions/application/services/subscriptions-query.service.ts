@@ -20,6 +20,15 @@ import { DEFAULT_CURRENCY } from '@workspace/utils';
 import { PricingService as BillingPricingService } from '@/domains/billing/core/services/pricing.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 
+type PaymentHistoryRecord = {
+  amountCents: number;
+  currency: string;
+  status?: string;
+  description?: string | null;
+  createdAt: Date;
+  getStatus?: () => unknown;
+};
+
 @Injectable()
 export class SubscriptionsQueryService {
   constructor(
@@ -111,7 +120,11 @@ export class SubscriptionsQueryService {
   }
 
   async getPaymentHistory(clinicId: string, limit: number = 20) {
-    return this.subscriptionRepo.findPaymentsByClinicId(clinicId, limit);
+    const records = (await this.subscriptionRepo.findPaymentsByClinicId(
+      clinicId,
+      Math.max(limit * 5, limit),
+    )) as PaymentHistoryRecord[];
+    return this.normalizePaymentHistory(records).slice(0, limit);
   }
 
   async getBillingStatus(clinicId: string) {
@@ -177,5 +190,40 @@ export class SubscriptionsQueryService {
       currency: DEFAULT_CURRENCY,
       plan: subscription.getPlan().value,
     };
+  }
+
+  private normalizePaymentHistory<T extends PaymentHistoryRecord>(
+    records: T[],
+  ): T[] {
+    const seenPendingKeys = new Set<string>();
+    const normalized: T[] = [];
+
+    for (const record of records) {
+      const status = (
+        record.status ?? String(record.getStatus?.() ?? '')
+      ).toLowerCase();
+
+      if (status === 'expired') {
+        continue;
+      }
+
+      if (status === 'pending') {
+        const key = [
+          record.description ?? '',
+          record.amountCents,
+          record.currency,
+        ].join('|');
+
+        if (seenPendingKeys.has(key)) {
+          continue;
+        }
+
+        seenPendingKeys.add(key);
+      }
+
+      normalized.push(record);
+    }
+
+    return normalized;
   }
 }

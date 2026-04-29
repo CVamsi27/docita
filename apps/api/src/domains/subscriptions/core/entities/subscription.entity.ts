@@ -169,13 +169,30 @@ export class Subscription {
 
   applyPayment() {
     const now = new Date();
-    this.currentPeriodStart = now;
-    const nextEnd = new Date(now);
-    if (this.billingCycle.isYearly()) {
+    this.activatePaidPlan(
+      this.plan,
+      this.billingCycle,
+      this.basePriceCents,
+      now,
+    );
+  }
+
+  activatePaidPlan(
+    plan: ClinicTier,
+    billingCycle: BillingCycle,
+    basePriceCents: number,
+    start: Date = new Date(),
+  ) {
+    this.plan = plan;
+    this.billingCycle = billingCycle;
+    this.basePriceCents = basePriceCents;
+    this.currentPeriodStart = start;
+    const nextEnd = new Date(start);
+    if (billingCycle.isYearly()) {
       nextEnd.setFullYear(nextEnd.getFullYear() + 1);
-    } else if (this.billingCycle.isSemiAnnual()) {
+    } else if (billingCycle.isSemiAnnual()) {
       nextEnd.setMonth(nextEnd.getMonth() + 6);
-    } else if (this.billingCycle.isQuarterly()) {
+    } else if (billingCycle.isQuarterly()) {
       nextEnd.setMonth(nextEnd.getMonth() + 3);
     } else {
       nextEnd.setMonth(nextEnd.getMonth() + 1);

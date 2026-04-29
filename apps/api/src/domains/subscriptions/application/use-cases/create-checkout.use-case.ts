@@ -121,6 +121,13 @@ export class CreateCheckoutUseCase {
       razorpayOrderId: order.razorpayOrderId,
       description,
     });
+    await this.subscriptionRepo.expireDuplicatePendingCheckouts({
+      clinicId: request.clinicId,
+      amountCents,
+      currency: currencyCode,
+      description,
+      keepOrderId: order.razorpayOrderId,
+    });
 
     return {
       orderId: order.razorpayOrderId,

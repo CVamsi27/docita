@@ -1,8 +1,8 @@
 import {
   Injectable,
   Logger,
-  NotFoundException as _NotFoundException,
   Inject,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ISubscriptionRepository,
@@ -21,6 +21,10 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import {
+  IPaymentGateway,
+  PAYMENT_GATEWAY_TOKEN,
+} from '@/domains/subscriptions/application/ports/payment-gateway.port';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -29,7 +33,19 @@ export interface ActivateSubscriptionRequest {
   razorpaySignature: string;
   tier: string;
   cycle: string;
+  skipPaymentVerification?: boolean;
+  verifiedAmountCents?: number;
 }
+
+type SubscriptionPaymentRecord = {
+  id: string;
+  clinicId: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  razorpayOrderId?: string | null;
+  razorpayPaymentId?: string | null;
+};
 
 @Injectable()
 export class ActivateSubscriptionUseCase {
@@ -40,6 +56,8 @@ export class ActivateSubscriptionUseCase {
     private readonly subscriptionRepo: ISubscriptionRepository,
     @Inject(CLINIC_OPERATIONS_TOKEN)
     private readonly clinicOps: IClinicOperations,
+    @Inject(PAYMENT_GATEWAY_TOKEN)
+    private readonly paymentGateway: IPaymentGateway,
     private readonly pricingService: SubscriptionPricingService,
     private readonly featureFlagService: FeatureFlagService,
   ) {}
@@ -60,6 +78,51 @@ export class ActivateSubscriptionUseCase {
       cycle,
       offerPercent,
     );
+    const payment = (await this.subscriptionRepo.findPaymentByOrderId(
+      request.clinicId,
+      request.razorpayOrderId,
+    )) as SubscriptionPaymentRecord | null;
+
+    if (!payment) {
+      throw new BadRequestException('Payment order not found for this clinic');
+    }
+
+    if (payment.amountCents !== priceCents) {
+      throw new BadRequestException(
+        'Payment amount does not match selected plan',
+      );
+    }
+
+    let verifiedAmountCents = request.verifiedAmountCents;
+    if (!request.skipPaymentVerification) {
+      const verification = await this.paymentGateway.verifyPayment({
+        razorpayOrderId: request.razorpayOrderId,
+        razorpayPaymentId: request.razorpayPaymentId,
+        razorpaySignature: request.razorpaySignature,
+      });
+
+      if (!verification.verified) {
+        throw new BadRequestException('Unable to verify payment');
+      }
+
+      if (
+        verification.orderId &&
+        verification.orderId !== request.razorpayOrderId
+      ) {
+        throw new BadRequestException('Payment order verification failed');
+      }
+
+      verifiedAmountCents = verification.amountCents;
+    }
+
+    if (
+      verifiedAmountCents !== undefined &&
+      verifiedAmountCents !== payment.amountCents
+    ) {
+      throw new BadRequestException(
+        'Payment amount does not match selected plan',
+      );
+    }
 
     if (!subscription) {
       subscription = new Subscription({
@@ -77,7 +140,7 @@ export class ActivateSubscriptionUseCase {
         version: 1,
       });
     } else {
-      subscription.applyPayment();
+      subscription.activatePaidPlan(tier, cycle, priceCents);
     }
 
     await this.subscriptionRepo.save(subscription);

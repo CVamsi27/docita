@@ -21,7 +21,9 @@ describe('ResumeSubscriptionPaymentUseCase', () => {
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
     findPaymentById: findPaymentByIdMock,
+    findPaymentByOrderId: jest.fn(async () => null),
     updatePaymentLink: jest.fn(async () => undefined),
+    expireDuplicatePendingCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: jest.fn(async () => null),
   };
 

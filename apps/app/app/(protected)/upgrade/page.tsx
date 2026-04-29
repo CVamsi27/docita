@@ -11,7 +11,6 @@ import {
   Tier,
 } from "@/lib/tier-config";
 import { Card, CardContent } from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
@@ -31,21 +30,20 @@ import {
   PaymentSuccessModal,
   TierCard,
   TierChangeDialog,
-  TrialOfferBanner,
-  TrustSection,
-  UsagePricingCalculator,
 } from "@/features/subscription/components";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
-import { LockedFeatures } from "@/features/subscription/components/cards/LockedFeatures";
-import { NextTierPromotion } from "@/features/subscription/components/cards/NextTierPromotion";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
 } from "@/hooks/use-subscription-checkout";
-import { usePricingConfig } from "@/hooks/api/use-pricing";
+import { useCurrentUsage, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
-import { APP_ACCESS_TARGETS, type SupportedCurrency, type TierName } from "@workspace/types";
+import {
+  APP_ACCESS_TARGETS,
+  type SupportedCurrency,
+  type TierName,
+} from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import {
   PRICING_CURRENCY_SYMBOLS,
@@ -53,6 +51,56 @@ import {
   getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
 import { BackButton } from "@/components/common/navigation/back-button";
+
+const PLAN_ORDER = [
+  Tier.STARTER,
+  Tier.ESSENTIAL,
+  Tier.PROFESSIONAL,
+  Tier.ENTERPRISE,
+] as const;
+
+const PLAN_BEST_FOR: Record<TierName, string> = {
+  STARTER: "Best for testing Docita or very small practices.",
+  ESSENTIAL: "Best for solo clinics ready for billing and messaging.",
+  PROFESSIONAL: "Best for multi-doctor clinics with higher throughput.",
+  ENTERPRISE: "Best for hospitals and multi-location organizations.",
+  INTELLIGENCE: "Best for AI-assisted workflows.",
+};
+
+const PLAN_INCLUDED_LABEL: Partial<Record<TierName, string>> = {
+  STARTER: "Included foundation",
+  ESSENTIAL: "Everything in Starter, plus",
+  PROFESSIONAL: "Everything in Essential, plus",
+  ENTERPRISE: "Everything in Professional, plus",
+};
+
+function formatPlanDate(value?: string | null) {
+  if (!value) return "Not scheduled";
+  return new Date(value).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatLimitValue(value?: number) {
+  if (value === undefined) return undefined;
+  if (value >= 999999 || value === 999) return "Unlimited";
+  return value.toLocaleString("en-IN");
+}
+
+function formatStatusLabel(status?: string) {
+  if (!status) return "Free";
+  return status
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatBillingCycle(cycle?: "MONTHLY" | "YEARLY") {
+  if (!cycle) return "Free";
+  return cycle === "YEARLY" ? "Yearly" : "Monthly";
+}
 
 export default function UpgradePage() {
   const { currentTier, canAccess, canAccessTier } = usePermissionStore();
@@ -90,6 +138,11 @@ export default function UpgradePage() {
   const { currency } = useLocaleCurrency();
   const { pricingConfig } = usePricingConfig(currency);
   const { data: subscription } = useSubscription({ enabled: canAccessPage });
+  const {
+    usage,
+    isLoading: isUsageLoading,
+    error: usageError,
+  } = useCurrentUsage();
 
   const subscriptionStatus = subscription?.subscriptionStatus;
   const subscriptionPeriodEnd = subscription?.currentPeriodEnd
@@ -152,41 +205,19 @@ export default function UpgradePage() {
     plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const featuresByTier = Object.values(Tier)
-    .filter((t): t is Tier => typeof t === "number")
-    .map((tier) => ({
-      tier,
-      info: getTierInfo(tier),
-      features: Object.entries(FEATURE_TIER_MAP)
-        .filter(([, requiredTier]) => requiredTier === tier)
-        .map(([feature, requiredTier]) => ({
-          feature: feature as Feature,
-          details: getFeatureDetails(feature as Feature),
-          hasAccess: effectiveCurrentTier >= requiredTier,
-        }))
-        .filter((entry) => entry.details.isGenerallyAvailable),
-    }));
+  const featuresByTier = PLAN_ORDER.map((tier) => ({
+    tier,
+    info: getTierInfo(tier),
+    features: Object.entries(FEATURE_TIER_MAP)
+      .filter(([, requiredTier]) => requiredTier === tier)
+      .map(([feature, requiredTier]) => ({
+        feature: feature as Feature,
+        details: getFeatureDetails(feature as Feature),
+        hasAccess: effectiveCurrentTier >= requiredTier,
+      }))
+      .filter((entry) => entry.details.isGenerallyAvailable),
+  }));
 
-  const lockedFeatures = Object.entries(FEATURE_TIER_MAP)
-    .filter(([, requiredTier]) => requiredTier > effectiveCurrentTier)
-    .map(([feature, requiredTier]) => ({
-      feature: feature as Feature,
-      requiredTier,
-      details: getFeatureDetails(feature as Feature),
-    }))
-    .filter((entry) => entry.details.isGenerallyAvailable);
-
-  const plannedFeatures = Object.entries(FEATURE_TIER_MAP)
-    .map(([feature, requiredTier]) => ({
-      feature: feature as Feature,
-      requiredTier,
-      details: getFeatureDetails(feature as Feature),
-    }))
-    .filter((entry) => !entry.details.isGenerallyAvailable)
-    .sort((a, b) => a.requiredTier - b.requiredTier);
-
-  const nextTier =
-    effectiveCurrentTier < Tier.ENTERPRISE ? effectiveCurrentTier + 1 : null;
   const currentPlanStatusNotice = isSubscriptionExpired
     ? {
         title: "Subscription Expired",
@@ -230,7 +261,48 @@ export default function UpgradePage() {
                 ? ("warning" as const)
                 : ("default" as const),
             }
-          : undefined;
+          : subscriptionStatus === "ACTIVE"
+            ? {
+                title: "Subscription Active",
+                badgeLabel: "Active",
+                description:
+                  daysLeftInPeriod !== null
+                    ? `${daysLeftInPeriod} day${daysLeftInPeriod === 1 ? "" : "s"} remaining in this billing period.`
+                    : "Your paid subscription is active.",
+                variant: "default" as const,
+              }
+            : {
+                title: "Starter Plan Active",
+                badgeLabel: "Free",
+                description:
+                  "Your clinic is on the Starter plan. Choose a paid plan when you need higher limits or advanced workflows.",
+                variant: "default" as const,
+              };
+
+  const planDetails = [
+    { label: "Plan", value: currentTierInfo.name },
+    { label: "Status", value: formatStatusLabel(subscriptionStatus) },
+    {
+      label: "Billing",
+      value: formatBillingCycle(subscription?.billingCycle),
+    },
+    {
+      label:
+        isTrialing && !isTrialExpired
+          ? "Trial Ends"
+          : subscription?.cancelAtPeriodEnd
+            ? "Ends On"
+            : "Renews On",
+      value:
+        subscriptionPeriodEnd !== null
+          ? `${formatPlanDate(subscription?.currentPeriodEnd)}${
+              daysLeftInPeriod !== null
+                ? ` (${daysLeftInPeriod} day${daysLeftInPeriod === 1 ? "" : "s"} left)`
+                : ""
+            }`
+          : "Not scheduled",
+    },
+  ];
 
   if (!user || !canAccessPage) {
     return (
@@ -274,11 +346,6 @@ export default function UpgradePage() {
       }
     >
       <div className="space-y-6">
-        <TrialOfferBanner
-          actionLabel="View Essential trial"
-          onAction={scrollToPlans}
-        />
-
         <CurrentPlanCard
           tierInfo={currentTierInfo}
           currentTier={effectiveCurrentTier}
@@ -286,6 +353,10 @@ export default function UpgradePage() {
           canChangeTier={canAccessPage}
           onChangePlan={scrollToPlans}
           onViewBillingHistory={() => setShowInvoiceHistory(true)}
+          planDetails={planDetails}
+          usage={usage}
+          isUsageLoading={isUsageLoading}
+          hasUsageError={!!usageError}
           statusNotice={currentPlanStatusNotice}
         />
 
@@ -315,149 +386,93 @@ export default function UpgradePage() {
               </Button>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {featuresByTier
-              .filter(
-                (t) => t.tier !== Tier.INTELLIGENCE && t.tier !== Tier.ENTERPRISE,
-              )
-              .map(({ tier, info, features }) => {
-                const tierName = Tier[tier] as TierName;
-                const tierPricingData = pricingConfig?.tiers.find(
-                  (t) => t.id === tierName,
-                );
-                const overageRates =
-                  TIER_OVERAGE_RATES_BY_CURRENCY[
-                    currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
-                  ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
-                const currencySymbol =
-                  PRICING_CURRENCY_SYMBOLS[
-                    currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-                  ] ?? PRICING_CURRENCY_SYMBOLS.INR;
-                const whatsappRate =
-                  tierName === "ESSENTIAL" || tierName === "PROFESSIONAL"
-                    ? getWhatsAppAddonPricingByCurrency(
-                        tierName,
-                        currency as Parameters<
-                          typeof getWhatsAppAddonPricingByCurrency
-                        >[1],
-                      ).overageRate
-                    : 0;
-                const overageParts = [
-                  overageRates?.appointmentRate > 0
-                    ? `${currencySymbol}${overageRates.appointmentRate}/consult`
-                    : null,
-                  overageRates?.userRate > 0
-                    ? `${currencySymbol}${overageRates.userRate}/user`
-                    : null,
-                  whatsappRate > 0
-                    ? `${currencySymbol}${whatsappRate}/WA msg`
-                    : null,
-                ].filter(Boolean);
-                const overageHint =
-                  overageParts.length > 0
-                    ? `Overage meters: ${overageParts.join(" | ")}`
-                    : undefined;
-                return (
-                  <TierCard
-                    key={tier}
-                    tier={tier}
-                    info={info}
-                    features={features}
-                    isCurrentTier={tier === effectiveCurrentTier}
-                    isLocked={false}
-                    currentTierValue={effectiveCurrentTier}
-                    pricing={tierPricingData?.pricing}
-                    billingCycle={selectedCycle}
-                    currencySymbol={currencySymbol}
-                    overageHint={overageHint}
-                    onSelect={
-                      canAccessPage
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+            {featuresByTier.map(({ tier, info, features }) => {
+              const tierName = Tier[tier] as TierName;
+              const tierPricingData = pricingConfig?.tiers.find(
+                (t) => t.id === tierName,
+              );
+              const limits = tierPricingData?.limits;
+              const overageRates =
+                TIER_OVERAGE_RATES_BY_CURRENCY[
+                  currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
+                ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
+              const currencySymbol =
+                PRICING_CURRENCY_SYMBOLS[
+                  currency as keyof typeof PRICING_CURRENCY_SYMBOLS
+                ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+              const whatsappRate =
+                tierName === "ESSENTIAL" || tierName === "PROFESSIONAL"
+                  ? getWhatsAppAddonPricingByCurrency(
+                      tierName,
+                      currency as Parameters<
+                        typeof getWhatsAppAddonPricingByCurrency
+                      >[1],
+                    ).overageRate
+                  : 0;
+              const overageParts = [
+                overageRates?.appointmentRate > 0
+                  ? `${currencySymbol}${overageRates.appointmentRate}/consult`
+                  : null,
+                overageRates?.userRate > 0
+                  ? `${currencySymbol}${overageRates.userRate}/user`
+                  : null,
+                whatsappRate > 0
+                  ? `${currencySymbol}${whatsappRate}/WA msg`
+                  : null,
+              ].filter(Boolean);
+              const overageHint =
+                overageParts.length > 0
+                  ? `Overage meters: ${overageParts.join(" | ")}`
+                  : undefined;
+              const limitHighlights = [
+                limits?.patients !== undefined
+                  ? `${formatLimitValue(limits.patients)} patients`
+                  : undefined,
+                limits?.doctors !== undefined
+                  ? `${formatLimitValue(limits.doctors)} doctors`
+                  : undefined,
+                limits?.appointments !== undefined
+                  ? `${formatLimitValue(limits.appointments)} consults/mo`
+                  : undefined,
+                limits?.storage !== undefined
+                  ? `${formatLimitValue(limits.storage)} GB storage`
+                  : undefined,
+              ].filter((item): item is string => !!item);
+
+              return (
+                <TierCard
+                  key={tier}
+                  tier={tier}
+                  info={info}
+                  features={features}
+                  isCurrentTier={tier === effectiveCurrentTier}
+                  isLocked={false}
+                  currentTierValue={effectiveCurrentTier}
+                  pricing={tierPricingData?.pricing}
+                  billingCycle={selectedCycle}
+                  currencySymbol={currencySymbol}
+                  overageHint={overageHint}
+                  bestFor={PLAN_BEST_FOR[tierName]}
+                  includedLabel={PLAN_INCLUDED_LABEL[tierName]}
+                  limitHighlights={limitHighlights}
+                  featureDisplay="detailed"
+                  maxDisplay={tier === Tier.STARTER ? 4 : 5}
+                  buttonLabel={
+                    tier === Tier.ENTERPRISE ? "Contact Sales" : undefined
+                  }
+                  onSelect={
+                    canAccessPage && tier === Tier.ENTERPRISE
+                      ? () => setShowContactSalesModal(true)
+                      : canAccessPage
                         ? () => handleSelectTier(tierName, selectedCycle)
                         : undefined
-                    }
-                  />
-                );
-              })}
+                  }
+                />
+              );
+            })}
           </div>
-
-          {(() => {
-            const enterprise = featuresByTier.find((t) => t.tier === Tier.ENTERPRISE);
-            if (!enterprise) return null;
-
-            const tierName = "ENTERPRISE" as TierName;
-            const tierPricingData = pricingConfig?.tiers.find((t) => t.id === tierName);
-            const overageRates =
-              TIER_OVERAGE_RATES_BY_CURRENCY[
-                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
-              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
-            const currencySymbol =
-              PRICING_CURRENCY_SYMBOLS[
-                currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-              ] ?? PRICING_CURRENCY_SYMBOLS.INR;
-            const whatsappRate = getWhatsAppAddonPricingByCurrency(
-              "ENTERPRISE",
-              currency as Parameters<typeof getWhatsAppAddonPricingByCurrency>[1],
-            ).overageRate;
-            const overageParts = [
-              overageRates?.appointmentRate > 0
-                ? `${currencySymbol}${overageRates.appointmentRate}/consult`
-                : null,
-              overageRates?.userRate > 0
-                ? `${currencySymbol}${overageRates.userRate}/user`
-                : null,
-              whatsappRate > 0 ? `${currencySymbol}${whatsappRate}/WA msg` : null,
-            ].filter(Boolean);
-            const overageHint =
-              overageParts.length > 0
-                ? `Overage meters: ${overageParts.join(" | ")}`
-                : undefined;
-
-            return (
-              <div className="pt-4">
-                <div className="mx-auto w-full max-w-5xl">
-                  <TierCard
-                    tier={Tier.ENTERPRISE}
-                    info={enterprise.info}
-                    features={enterprise.features}
-                    isCurrentTier={Tier.ENTERPRISE === effectiveCurrentTier}
-                    isLocked={false}
-                    currentTierValue={effectiveCurrentTier}
-                    pricing={tierPricingData?.pricing}
-                    billingCycle={selectedCycle}
-                    currencySymbol={currencySymbol}
-                    overageHint={overageHint}
-                    onSelect={
-                      canAccessPage
-                        ? () => handleSelectTier(tierName, selectedCycle)
-                        : undefined
-                    }
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            );
-          })()}
         </div>
-
-        {plannedFeatures.length > 0 && (
-          <Card className="border-dashed">
-            <CardContent className="py-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold">Planned Roadmap</h2>
-                <Badge variant="outline">
-                  Not included in today&apos;s access
-                </Badge>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {plannedFeatures.map((entry) => (
-                  <Badge key={entry.feature} variant="secondary">
-                    {entry.details.name}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         <Tabs defaultValue="compare" className="w-full">
           <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -466,18 +481,6 @@ export default function UpgradePage() {
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
             >
               Compare Plans
-            </TabsTrigger>
-            <TabsTrigger
-              value="calculator"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-            >
-              Pricing Calculator
-            </TabsTrigger>
-            <TabsTrigger
-              value="missing"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
-            >
-              What You&apos;re Missing
             </TabsTrigger>
             <TabsTrigger
               value="faq"
@@ -491,33 +494,10 @@ export default function UpgradePage() {
             <ComparisonTable currentTier={effectiveCurrentTier} />
           </TabsContent>
 
-          <TabsContent value="calculator" className="pt-4">
-            <UsagePricingCalculator
-              currency={
-                currency as Parameters<
-                  typeof UsagePricingCalculator
-                >[0]["currency"]
-              }
-            />
-          </TabsContent>
-
-          <TabsContent value="missing" className="pt-4 space-y-6">
-            <LockedFeatures lockedFeatures={lockedFeatures} />
-            {nextTier !== null && (
-              <NextTierPromotion
-                nextTier={nextTier}
-                featuresByTier={featuresByTier}
-                onContactSales={() => setShowContactSalesModal(true)}
-              />
-            )}
-          </TabsContent>
-
           <TabsContent value="faq" className="pt-4">
             <FaqSection />
           </TabsContent>
         </Tabs>
-
-        <TrustSection />
 
         <Card className="border-border/70 bg-card">
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">

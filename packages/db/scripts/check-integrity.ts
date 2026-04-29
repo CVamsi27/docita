@@ -134,13 +134,17 @@ export async function runIntegrityChecks(
 
   const duplicateMrns = await prisma.$queryRaw<{ count: bigint }[]>`
     SELECT COUNT(*) as count FROM (
-      SELECT mrn FROM "Patient" WHERE mrn IS NOT NULL GROUP BY mrn HAVING COUNT(*) > 1
+      SELECT "clinicId", mrn
+      FROM "Patient"
+      WHERE mrn IS NOT NULL
+      GROUP BY "clinicId", mrn
+      HAVING COUNT(*) > 1
     ) as duplicates
   `;
   const duplicateMrnCount = Number(duplicateMrns[0]?.count || 0);
   checks.push({
-    name: "No Duplicate MRN",
-    description: "All Medical Record Numbers are unique",
+    name: "No Duplicate MRN Per Clinic",
+    description: "Medical Record Numbers are unique inside each clinic",
     passed: duplicateMrnCount === 0,
     count: duplicateMrnCount,
     details:

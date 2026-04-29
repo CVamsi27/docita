@@ -10,6 +10,7 @@ export * from "./documents";
 export * from "./doctors";
 export * from "./lab-tests";
 export * from "./onboarding";
+export * from "./operations";
 export * from "./patients";
 export * from "./prescriptions";
 export * from "./subscriptions";
