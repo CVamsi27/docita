@@ -2,8 +2,12 @@
 
 import { FC } from "react";
 import { usePatientHistoryReadOnly } from "@/hooks/api/use-patient-history";
-import { usePatientTimeline, usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
+import {
+  usePatientTimeline,
+  usePatientSnapshot,
+} from "@/hooks/api/use-patient-timeline";
 import { Appointment } from "@workspace/types";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import { ConsultationSidebarUI } from "./ConsultationSidebarUI";
 
 interface ConsultationSidebarContainerProps {
@@ -48,11 +52,7 @@ export const ConsultationSidebarContainer: FC<
     : undefined;
 
   if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center text-muted-foreground">
-        Loading patient data...
-      </div>
-    );
+    return <LoadingState message="Loading patient data..." className="h-full" />;
   }
 
   return (
