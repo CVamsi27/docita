@@ -10,6 +10,7 @@ import {
   ClinicUpdateData as WsClinicUpdateData,
 } from '@/gateways/payment.websocket.gateway';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
+import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 
 function toClinicTier(value?: string): ClinicTier | undefined {
   if (!value) {
@@ -33,6 +34,8 @@ export class ClinicOperationsAdapter implements IClinicOperations {
     private readonly prisma: PrismaService,
     @Optional()
     private readonly paymentGateway?: PaymentWebSocketGateway,
+    @Optional()
+    private readonly clinicAuthCache?: ClinicAuthCacheService,
   ) {}
 
   async getClinicDetails(clinicId: string): Promise<ClinicDetails> {
@@ -88,6 +91,7 @@ export class ClinicOperationsAdapter implements IClinicOperations {
         },
       },
     });
+    this.clinicAuthCache?.invalidate(clinicId);
   }
 
   emitUpdate(clinicId: string, data: ClinicUpdateData): Promise<void> {

@@ -23,7 +23,9 @@ describe('CreateCheckoutUseCase', () => {
     updatePaymentStatus: jest.fn(async () => undefined),
     findPaymentsByClinicId: jest.fn(async () => []),
     findPaymentById: jest.fn(async () => null),
+    findPaymentByOrderId: jest.fn(async () => null),
     updatePaymentLink: jest.fn(async () => undefined),
+    expireDuplicatePendingCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: findReusablePendingCheckoutMock,
   };
 
@@ -100,5 +102,35 @@ describe('CreateCheckoutUseCase', () => {
     expect(result.orderId).toBe('order_existing');
     expect(paymentGateway.createOrder).not.toHaveBeenCalled();
     expect(subscriptionRepo.savePayment).not.toHaveBeenCalled();
+  });
+
+  it('expires older duplicate pending checkouts after creating a new order', async () => {
+    findReusablePendingCheckoutMock.mockResolvedValue(null);
+
+    const result = await useCase.execute({
+      clinicId: 'clinic-1',
+      tier: 'ESSENTIAL',
+      cycle: 'MONTHLY',
+    });
+
+    expect(result.orderId).toBe('order_new');
+    expect(subscriptionRepo.savePayment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clinicId: 'clinic-1',
+        amountCents: 99900,
+        status: 'pending',
+        razorpayOrderId: 'order_new',
+        description: 'ESSENTIAL MONTHLY subscription',
+      }),
+    );
+    expect(
+      subscriptionRepo.expireDuplicatePendingCheckouts,
+    ).toHaveBeenCalledWith({
+      clinicId: 'clinic-1',
+      amountCents: 99900,
+      currency: 'INR',
+      description: 'ESSENTIAL MONTHLY subscription',
+      keepOrderId: 'order_new',
+    });
   });
 });

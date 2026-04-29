@@ -21,7 +21,20 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api";
+import {
+  healthAPI,
+  monitoringAPI,
+  operationsAPI,
+  performanceAPI,
+} from "@/lib/api";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table";
 import { useAuth } from "@/lib/auth";
 import { internalQueryKeys } from "@/lib/query-keys";
 import {
@@ -34,6 +47,7 @@ import {
   RefreshCw,
   Server,
   ShieldAlert,
+  ShieldCheck,
   Wifi,
   XCircle,
 } from "lucide-react";
@@ -82,18 +96,27 @@ export default function SystemMonitoringPage() {
     refetchInterval: autoRefresh && token ? 30000 : false,
   });
 
+  const tenantScopeQuery = useQuery({
+    queryKey: internalQueryKeys.internal.tenantScopeDiagnostics(),
+    queryFn: () => operationsAPI.getTenantScopeDiagnostics(),
+    enabled: Boolean(token),
+    refetchInterval: autoRefresh && token ? 30000 : false,
+  });
+
   const loading =
     dashboardQuery.isLoading ||
     monitoringHealthQuery.isLoading ||
     appHealthQuery.isLoading ||
     performanceQuery.isLoading ||
-    databaseQuery.isLoading;
+    databaseQuery.isLoading ||
+    tenantScopeQuery.isLoading;
 
   const dashboard = dashboardQuery.data;
   const monitoringHealth = monitoringHealthQuery.data;
   const appHealth = appHealthQuery.data;
   const performance = performanceQuery.data;
   const database = databaseQuery.data;
+  const tenantScope = tenantScopeQuery.data;
   const detailedChecks = appHealth?.checks as
     | Record<string, { status: string; latency?: number; error?: string }>
     | undefined;
@@ -116,6 +139,16 @@ export default function SystemMonitoringPage() {
     dashboard?.last7Days.performance.responseTimeDistribution ?? [];
   const slowestEndpoints =
     dashboard?.last7Days.performance.slowestEndpoints ?? [];
+  const tenantScopeIssueCount =
+    (tenantScope?.uncoveredClinicIdModels.length ?? 0) +
+    (tenantScope?.staleRelationRules.length ?? 0);
+  const tenantScopeStatus = tenantScopeQuery.isError
+    ? "critical"
+    : tenantScope
+      ? tenantScopeIssueCount === 0
+        ? "healthy"
+        : "critical"
+      : "warning";
   const throughputByMinute = useMemo(
     () => dashboard?.last7Days.performance.throughputByMinute ?? [],
     [dashboard],
@@ -137,6 +170,7 @@ export default function SystemMonitoringPage() {
       appHealthQuery.refetch(),
       performanceQuery.refetch(),
       databaseQuery.refetch(),
+      tenantScopeQuery.refetch(),
     ]).finally(() => {
       setRefreshing(false);
     });
@@ -261,6 +295,7 @@ export default function SystemMonitoringPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="tenant-scope">Tenant Scope</TabsTrigger>
           <TabsTrigger value="health">Health Checks</TabsTrigger>
         </TabsList>
 
@@ -332,7 +367,7 @@ export default function SystemMonitoringPage() {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -382,6 +417,25 @@ export default function SystemMonitoringPage() {
                 <p className="text-xs text-muted-foreground">
                   {database?.status ?? "Waiting for database metrics"}
                 </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Tenant Coverage
+                </CardTitle>
+                <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2">
+                <div className="text-2xl font-bold">
+                  {tenantScope ? tenantScope.scopedModels : "N/A"}
+                </div>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(tenantScopeStatus)}
+                  <span className="text-xs text-muted-foreground">
+                    {tenantScopeIssueCount} open issues
+                  </span>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -622,6 +676,194 @@ export default function SystemMonitoringPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="tenant-scope" className="flex flex-col gap-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Scoped</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {tenantScope?.scopedModels ?? "N/A"}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {tenantScope?.clinicIdModels ?? 0} models carry clinicId
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Direct</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {tenantScope?.directScopedModels ?? "N/A"}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Scalar clinicId filters
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Relation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {tenantScope?.relationScopedModels ?? "N/A"}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Nested tenant filters
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Issues</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {tenantScopeIssueCount}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Uncovered models or stale rules
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {tenantScopeQuery.isError ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <ShieldAlert className="h-4 w-4" />
+                  {sanitizeUserFacingMessage(
+                    tenantScopeQuery.error instanceof Error
+                      ? tenantScopeQuery.error.message
+                      : "Tenant diagnostics did not load",
+                    "Tenant diagnostics did not load",
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle>Tenant Scope Rules</CardTitle>
+                      <CardDescription>
+                        Schema-backed coverage from the API Prisma extension
+                      </CardDescription>
+                    </div>
+                    {getStatusBadge(tenantScopeStatus)}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-[520px] overflow-auto rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Model</TableHead>
+                          <TableHead>Scope</TableHead>
+                          <TableHead>Path</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {(tenantScope?.rules ?? []).map((rule) => (
+                          <TableRow key={rule.model}>
+                            <TableCell className="font-medium">
+                              {rule.model}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  rule.kind === "direct"
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                              >
+                                {rule.kind}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {rule.path?.join(" -> ") ?? "clinicId"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex flex-col gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Coverage Status</CardTitle>
+                    <CardDescription>
+                      Open tenant-scope findings from the generated datamodel
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+                      <span className="text-sm font-medium">Uncovered</span>
+                      <Badge
+                        variant={
+                          tenantScope?.uncoveredClinicIdModels.length
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {tenantScope?.uncoveredClinicIdModels.length ?? 0}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+                      <span className="text-sm font-medium">Stale rules</span>
+                      <Badge
+                        variant={
+                          tenantScope?.staleRelationRules.length
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {tenantScope?.staleRelationRules.length ?? 0}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+                      <span className="text-sm font-medium">Excluded</span>
+                      <Badge variant="outline">
+                        {tenantScope?.excludedClinicIdModels.length ?? 0}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Exceptions</CardTitle>
+                    <CardDescription>
+                      ClinicId models intentionally outside auto-scoping
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {(tenantScope?.excludedClinicIdModels ?? []).map(
+                        (model) => (
+                          <Badge key={model} variant="outline">
+                            {model}
+                          </Badge>
+                        ),
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="health" className="space-y-6">

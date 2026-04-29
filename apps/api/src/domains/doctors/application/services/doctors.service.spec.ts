@@ -48,10 +48,10 @@ describe('DoctorsService', () => {
   const mockPrismaService = {
     user: {
       findMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
       create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      delete: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      deleteMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     doctorClinic: {
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -148,19 +148,19 @@ describe('DoctorsService', () => {
 
   describe('findOne', () => {
     it('should return a doctor by id', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(mockDoctor);
+      mockPrismaService.user.findFirst.mockResolvedValue(mockDoctor);
 
       const result = await service.findOne('doctor-123');
 
       expect(result).toEqual(mockDoctor);
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.findFirst).toHaveBeenCalledWith({
         where: { id: 'doctor-123' },
         select: expect.any(Object),
       });
     });
 
     it('should throw NotFoundException if doctor not found', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.user.findFirst.mockResolvedValue(null);
 
       await expect(service.findOne('invalid-id')).rejects.toThrow(
         NotFoundException,
@@ -195,11 +195,8 @@ describe('DoctorsService', () => {
   describe('update', () => {
     it('should update doctor information', async () => {
       const updateData = { name: 'Dr. Updated Name' };
-      mockPrismaService.user.update.mockResolvedValue({
-        ...mockDoctor,
-        ...updateData,
-      });
-      mockPrismaService.user.findUnique.mockResolvedValue({
+      mockPrismaService.user.updateMany.mockResolvedValue({ count: 1 });
+      mockPrismaService.user.findFirst.mockResolvedValue({
         ...mockDoctor,
         ...updateData,
       });
@@ -222,12 +219,12 @@ describe('DoctorsService', () => {
         count: 0,
       });
       mockPrismaService.doctorClinic.deleteMany.mockResolvedValue({ count: 1 });
-      mockPrismaService.user.delete.mockResolvedValue(mockDoctor);
+      mockPrismaService.user.deleteMany.mockResolvedValue({ count: 1 });
 
       await service.remove('doctor-123');
 
       expect(mockPrismaService.doctorEducation.deleteMany).toHaveBeenCalled();
-      expect(mockPrismaService.user.delete).toHaveBeenCalledWith({
+      expect(mockPrismaService.user.deleteMany).toHaveBeenCalledWith({
         where: { id: 'doctor-123' },
       });
     });

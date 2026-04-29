@@ -273,7 +273,25 @@ describe('InvoicesService', () => {
     expect(createData.subtotal).toBe(100);
     expect(createData.taxTotal).toBe(18);
     expect(createData.grandTotal).toBe(118);
+    expect(createData.totalCents).toBe(11800);
+    expect(createData.subtotalCents).toBe(10000);
+    expect(createData.taxTotalCents).toBe(1800);
+    expect(createData.grandTotalCents).toBe(11800);
     expect(createData.invoiceType).toBe('TAX_INVOICE');
+    expect(createData.lineItems).toEqual({
+      create: [
+        expect.objectContaining({
+          description: 'Taxable device',
+          quantity: 1,
+          unitPriceCents: 10000,
+          subtotalCents: 10000,
+          taxRateBps: 1800,
+          taxCents: 1800,
+          totalCents: 11800,
+          clinic: { connect: { id: 'clinic-1' } },
+        }),
+      ],
+    });
     expect(repository.nextInvoiceNumber).toHaveBeenCalledWith(
       'clinic-1',
       expect.any(Date),

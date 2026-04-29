@@ -62,10 +62,9 @@ export function BillingHistoryTable({
     const rows = csvRows.map((invoice) => {
       const withActions = invoice as BillingHistoryItemWithActions;
       const formattedDate = new Date(invoice.createdAt).toISOString();
-      const description = (invoice.description || "Subscription Payment").replaceAll(
-        '"',
-        '""',
-      );
+      const description = (
+        invoice.description || "Subscription Payment"
+      ).replaceAll('"', '""');
       const amount = (invoice.amountCents / 100).toFixed(2);
       const currency = invoice.currency || DEFAULT_CURRENCY;
       const status = invoice.status;
@@ -149,9 +148,12 @@ export function BillingHistoryTable({
               const withActions = invoice as BillingHistoryItemWithActions;
               const status = invoice.status?.toLowerCase?.() ?? "";
               const isPaid = status === "paid";
-              const receiptUrl = withActions.receiptUrl ?? invoice.invoiceUrl;
+              const receiptUrl = isPaid
+                ? (withActions.receiptUrl ?? invoice.invoiceUrl)
+                : undefined;
               const payUrl =
-                withActions.payUrl ?? (!isPaid ? invoice.invoiceUrl : undefined);
+                withActions.payUrl ??
+                (!isPaid ? invoice.invoiceUrl : undefined);
 
               return (
                 <TableRow key={invoice.id}>
@@ -218,4 +220,3 @@ export function BillingHistoryTable({
     </div>
   );
 }
-

@@ -41,7 +41,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
   async findDoctorForVerification(
     doctorId: string,
   ): Promise<DoctorForVerification | null> {
-    return this.getReadClient().user.findUnique({
+    return this.getReadClient().user.findFirst({
       where: { id: doctorId },
       select: {
         id: true,
@@ -56,14 +56,14 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
   async findDoctorVerificationRecord(
     doctorId: string,
   ): Promise<DoctorVerificationRecord | null> {
-    return this.getReadClient().user.findUnique({
+    return this.getReadClient().user.findFirst({
       where: { id: doctorId },
       select: VERIFICATION_SELECT,
     });
   }
 
   async findDoctorLicenseExpiry(doctorId: string) {
-    return this.getReadClient().user.findUnique({
+    return this.getReadClient().user.findFirst({
       where: { id: doctorId },
       select: { licenseExpiry: true },
     });
@@ -91,7 +91,7 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
       verificationCheckedAt: Date;
     },
   ): Promise<void> {
-    await this.prisma.user.update({
+    const result = await this.prisma.user.updateMany({
       where: { id: doctorId },
       data: {
         verificationStatus: data.verificationStatus,
@@ -110,5 +110,9 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
         verificationCheckedAt: data.verificationCheckedAt,
       },
     });
+
+    if (result.count === 0) {
+      throw new Error(`Doctor ${doctorId} not found`);
+    }
   }
 }

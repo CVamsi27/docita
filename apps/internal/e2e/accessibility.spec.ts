@@ -6,6 +6,7 @@ import * as path from "path";
 const AUDIT_PAGES = [
   { path: "/", name: "Home" },
   { path: "/dashboard", name: "Dashboard" },
+  { path: "/system-monitoring", name: "System Monitoring" },
   { path: "/users", name: "Users" },
   { path: "/clinics", name: "Clinics" },
 ];

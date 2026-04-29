@@ -11,6 +11,8 @@ import {
   SupportWhatsAppMessage,
   SupportWhatsAppReplyRequest,
   SupportWhatsAppThreadSummary,
+  type TenantScopeDiagnostics,
+  tenantScopeDiagnosticsSchema,
 } from "@workspace/types";
 type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
@@ -165,6 +167,13 @@ export const performanceAPI = {
     client.get("/performance/db-stats"),
   getHealth: (): Promise<PerformanceHealthCheck> =>
     client.get("/performance/health"),
+};
+
+export const operationsAPI = {
+  getTenantScopeDiagnostics: async (): Promise<TenantScopeDiagnostics> =>
+    tenantScopeDiagnosticsSchema.parse(
+      await client.get("/operations/database/tenant-scope"),
+    ),
 };
 
 export const patientsAPI = {

@@ -85,16 +85,15 @@ export function SubscriptionSettings() {
   const periodEnd = subscription?.currentPeriodEnd
     ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
     : "-";
-  const periodDaysLeft =
-    subscription?.currentPeriodEnd
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) /
-              (1000 * 60 * 60 * 24),
-          ),
-        )
-      : null;
+  const periodDaysLeft = subscription?.currentPeriodEnd
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) /
+            (1000 * 60 * 60 * 24),
+        ),
+      )
+    : null;
   const currentTierInfo = getTierInfo(currentTier);
 
   if (!isAdmin) {
@@ -175,7 +174,19 @@ export function SubscriptionSettings() {
             onAction: () => router.push("/upgrade"),
             variant: "warning" as const,
           }
-        : undefined;
+        : trialDaysLeft !== null
+          ? {
+              title: "Trial Active",
+              badgeLabel: "Payment Not Completed",
+              description:
+                trialDaysLeft > 0
+                  ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your Essential trial. Add payment to keep paid features after trial expiry.`
+                  : "Your Essential trial ends today. Add payment to keep paid features active.",
+              actionLabel: "Add Payment",
+              onAction: () => router.push("/upgrade"),
+              variant: "default" as const,
+            }
+          : undefined;
 
   return (
     <div className="space-y-6">
@@ -191,9 +202,9 @@ export function SubscriptionSettings() {
           <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
             <span>
               {trialDaysLeft > 0
-                ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your free CORE trial.`
-                : "Your free trial ends today"}{" "}
-              Add payment details to keep your CORE features.
+                ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your Essential trial.`
+                : "Your Essential trial ends today"}{" "}
+              Add payment details to keep your paid features.
             </span>
             <Button
               size="sm"
@@ -361,7 +372,9 @@ export function SubscriptionSettings() {
               </div>
               {periodDaysLeft !== null && (
                 <div className="sm:col-span-2">
-                  <p className="text-sm text-muted-foreground">Days remaining</p>
+                  <p className="text-sm text-muted-foreground">
+                    Days remaining
+                  </p>
                   <p className="font-medium">
                     {periodDaysLeft} day{periodDaysLeft === 1 ? "" : "s"}
                   </p>

@@ -24,7 +24,7 @@ export class PrismaSignatureUploadRepository implements ISignatureUploadReposito
   }
 
   async findUserById(userId: string) {
-    return this.getReadClient().user.findUnique({
+    return this.getReadClient().user.findFirst({
       where: { id: userId },
       select: { id: true, role: true, name: true, email: true },
     });

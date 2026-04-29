@@ -3,12 +3,14 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { Tier, TierInfo } from "@/lib/tier-config";
-import { PlanFeature, PlanFeatures } from "@/features/subscription/components/sections/plan-features";
+import {
+  PlanFeature,
+  PlanFeatures,
+} from "@/features/subscription/components/sections/plan-features";
 import { Building2, Crown, Rocket, Sparkles, Zap } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 
@@ -26,6 +28,10 @@ interface TierCardProps {
   buttonLabel?: string;
   maxDisplay?: number;
   usageHints?: { patients?: number; users?: number; whatsappMsgs?: number };
+  bestFor?: string;
+  includedLabel?: string;
+  limitHighlights?: string[];
+  featureDisplay?: "compact" | "detailed";
 }
 
 const TIER_ICONS: Record<string, React.ElementType> = {
@@ -108,6 +114,10 @@ export function TierCard({
   buttonLabel,
   maxDisplay = 5,
   usageHints,
+  bestFor,
+  includedLabel,
+  limitHighlights,
+  featureDisplay = "compact",
 }: TierCardProps & { currentTierValue?: Tier; onSelect?: () => void }) {
   const tierName = Tier[tier] as string;
   const Icon = TIER_ICONS[tierName] || Zap;
@@ -133,8 +143,8 @@ export function TierCard({
         </Badge>
       )}
 
-      <CardHeader className="pb-3 text-center">
-        <div className="flex flex-col items-center gap-3">
+      <CardHeader className="pb-4 text-left">
+        <div className="flex items-start gap-3 pr-16">
           <div
             className={cn(
               "flex h-10 w-10 items-center justify-center rounded-xl shadow-md",
@@ -143,55 +153,85 @@ export function TierCard({
           >
             <Icon className="h-5 w-5" />
           </div>
-          <div className="flex flex-col items-center">
-            <CardTitle className="text-base">{info.name}</CardTitle>
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold leading-tight text-foreground">
+              {info.name}
+            </h3>
             <CardDescription className="text-xs">
               {info.tagline}
             </CardDescription>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">{info.description}</p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          {info.description}
+        </p>
+        {bestFor && (
+          <p className="mt-2 text-xs font-medium text-foreground">{bestFor}</p>
+        )}
         {pricing && (
-          <div className="mt-2 flex flex-col items-center">
-            <p className="text-center text-sm font-semibold text-foreground">
+          <div className="mt-4 flex flex-col gap-2">
+            <p className="text-2xl font-semibold tracking-tight text-foreground">
               {formatTierPrice(tier, pricing, billingCycle, currencySymbol)}
             </p>
-            {pricing.monthly !== 0 && pricing.monthly !== "custom" && (
-              <p className="text-xs text-muted-foreground">Incl. 18% GST</p>
-            )}
-            {overageHint && (
-              <p className="text-center text-xs text-muted-foreground">{overageHint}</p>
-            )}
-            {usageHints && (
-              <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5">
-                {usageHints.patients !== undefined && (
-                  <span className="text-xs text-muted-foreground">
+            <div className="space-y-1">
+              {pricing.monthly !== 0 && pricing.monthly !== "custom" && (
+                <p className="text-xs text-muted-foreground">Incl. 18% GST</p>
+              )}
+              {overageHint && (
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {overageHint}
+                </p>
+              )}
+            </div>
+            {(usageHints || limitHighlights?.length) && (
+              <div className="flex flex-wrap gap-1.5">
+                {usageHints?.patients !== undefined && (
+                  <Badge variant="secondary" className="text-[var(--fs-2xs)]">
                     {usageHints.patients >= 999999
                       ? "Unlimited patients"
                       : `${usageHints.patients.toLocaleString()} patients`}
-                  </span>
+                  </Badge>
                 )}
-                {usageHints.users !== undefined && (
-                  <span className="text-xs text-muted-foreground">
+                {usageHints?.users !== undefined && (
+                  <Badge variant="secondary" className="text-[var(--fs-2xs)]">
                     {usageHints.users >= 999
                       ? "Unlimited users"
                       : `Up to ${usageHints.users} users`}
-                  </span>
+                  </Badge>
                 )}
-                {usageHints.whatsappMsgs !== undefined && (
-                  <span className="text-xs text-muted-foreground">
+                {usageHints?.whatsappMsgs !== undefined && (
+                  <Badge variant="secondary" className="text-[var(--fs-2xs)]">
                     {usageHints.whatsappMsgs >= 999999
                       ? "Unlimited WA msgs"
                       : `${usageHints.whatsappMsgs.toLocaleString()} WA msgs/mo`}
-                  </span>
+                  </Badge>
                 )}
+                {limitHighlights?.map((item) => (
+                  <Badge
+                    key={item}
+                    variant="secondary"
+                    className="text-[var(--fs-2xs)]"
+                  >
+                    {item}
+                  </Badge>
+                ))}
               </div>
             )}
           </div>
         )}
       </CardHeader>
-      <CardContent className="pt-0 flex-1">
-        <PlanFeatures features={features} maxDisplay={maxDisplay} align="center" />
+      <CardContent className="pt-0 flex-1 space-y-3">
+        {includedLabel && (
+          <p className="text-xs font-semibold uppercase text-muted-foreground">
+            {includedLabel}
+          </p>
+        )}
+        <PlanFeatures
+          features={features}
+          maxDisplay={maxDisplay}
+          align={featureDisplay === "compact" ? "center" : "left"}
+          display={featureDisplay}
+        />
       </CardContent>
       {onSelect && (
         <div className="p-4 pt-0 mt-auto">
@@ -201,7 +241,8 @@ export function TierCard({
               isCurrentTier && "bg-muted text-muted-foreground",
               isUpgrade &&
                 "bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold shadow-md shadow-primary/25",
-              isDowngrade && "bg-muted/50 text-muted-foreground border-muted hover:bg-muted/70",
+              isDowngrade &&
+                "bg-muted/50 text-muted-foreground border-muted hover:bg-muted/70",
             )}
             variant={isDowngrade ? "outline" : "default"}
             disabled={isCurrentTier || isLocked}
@@ -211,13 +252,13 @@ export function TierCard({
               ? buttonLabel
               : isLocked
                 ? "Locked"
-              : isCurrentTier
-                ? "Current Plan"
-                : isUpgrade
-                  ? "Upgrade"
-                  : isDowngrade
-                    ? "Downgrade"
-                    : "Select Plan"}
+                : isCurrentTier
+                  ? "Current Plan"
+                  : isUpgrade
+                    ? "Upgrade"
+                    : isDowngrade
+                      ? "Downgrade"
+                      : "Select Plan"}
           </Button>
         </div>
       )}

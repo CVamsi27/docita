@@ -15,6 +15,21 @@ export interface PatientProps {
   version: number;
 }
 
+type PatientProfileUpdate = Partial<
+  Pick<
+    PatientProps,
+    | 'mrn'
+    | 'firstName'
+    | 'lastName'
+    | 'email'
+    | 'phoneNumber'
+    | 'gender'
+    | 'dateOfBirth'
+    | 'address'
+    | 'metadata'
+  >
+>;
+
 export class Patient {
   readonly id: string;
   readonly clinicId: string;
@@ -68,6 +83,21 @@ export class Patient {
     this.email = email;
     this.phoneNumber = phone;
     this.updatedAt = new Date();
+  }
+
+  updateProfile(data: PatientProfileUpdate): void {
+    if (data.mrn !== undefined) this.mrn = data.mrn;
+    if (data.firstName !== undefined) this.firstName = data.firstName;
+    if (data.lastName !== undefined) this.lastName = data.lastName;
+    if (data.email !== undefined) this.email = data.email;
+    if (data.phoneNumber !== undefined) this.phoneNumber = data.phoneNumber;
+    if (data.gender !== undefined) this.gender = data.gender;
+    if (data.dateOfBirth !== undefined) this.dateOfBirth = data.dateOfBirth;
+    if (data.address !== undefined) this.address = data.address;
+    if (data.metadata !== undefined) this.metadata = data.metadata;
+
+    this.updatedAt = new Date();
+    this.validate();
   }
 
   toPlain() {

@@ -313,6 +313,15 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     });
   }
 
+  async findPaymentByOrderId(
+    clinicId: string,
+    orderId: string,
+  ): Promise<Prisma.SubscriptionPaymentGetPayload<Prisma.SubscriptionPaymentDefaultArgs> | null> {
+    return this.getReadClient().subscriptionPayment.findFirst({
+      where: { clinicId, razorpayOrderId: orderId },
+    });
+  }
+
   async updatePaymentLink(params: {
     clinicId: string;
     paymentId: string;
@@ -324,6 +333,28 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
         invoiceUrl: params.payUrl,
       },
     });
+  }
+
+  async expireDuplicatePendingCheckouts(params: {
+    clinicId: string;
+    amountCents: number;
+    currency: string;
+    description: string;
+    keepOrderId: string;
+  }): Promise<number> {
+    const result = await this.prisma.subscriptionPayment.updateMany({
+      where: {
+        clinicId: params.clinicId,
+        status: { in: ['pending', 'PENDING'] },
+        amountCents: params.amountCents,
+        currency: params.currency,
+        description: params.description,
+        razorpayOrderId: { not: params.keepOrderId },
+      },
+      data: { status: 'expired' },
+    });
+
+    return result.count;
   }
 
   async findReusablePendingCheckout(params: {

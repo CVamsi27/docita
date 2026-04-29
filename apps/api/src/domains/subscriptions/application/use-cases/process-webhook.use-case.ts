@@ -315,6 +315,8 @@ export class ProcessWebhookUseCase {
         razorpaySignature: '',
         tier: tier,
         cycle: cycle,
+        skipPaymentVerification: true,
+        verifiedAmountCents: payment.amount,
       });
     } else {
       await this.subscriptionRepo.updatePaymentStatus(

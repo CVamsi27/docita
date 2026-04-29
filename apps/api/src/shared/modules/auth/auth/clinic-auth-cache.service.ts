@@ -23,14 +23,17 @@ export class ClinicAuthCacheService {
 
   constructor(private prisma: PrismaService) {}
 
-  async getClinicAuth(clinicId: string): Promise<{
+  async getClinicAuth(
+    clinicId: string,
+    options: { bypassCache?: boolean } = {},
+  ): Promise<{
     tier: ClinicTier;
     subscriptionStatus: SubscriptionStatus;
     hasIntelligence: boolean;
     features: Record<string, boolean>;
   }> {
     const cached = this.cache.get(clinicId);
-    if (cached && this.isCacheFresh(cached)) {
+    if (!options.bypassCache && cached && this.isCacheFresh(cached)) {
       return {
         tier: cached.tier,
         subscriptionStatus: cached.subscriptionStatus,

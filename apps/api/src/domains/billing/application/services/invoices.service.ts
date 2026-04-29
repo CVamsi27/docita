@@ -40,13 +40,16 @@ import {
 import { TaxCalculatorService } from '@/domains/billing/core/services/tax-calculator.service';
 import { PdfJobService } from '@/shared/modules/queue/pdf-job.service';
 import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
+import {
+  toInvoiceCentCreateFields,
+  toInvoiceCentUpdateFields,
+  toInvoiceLineItemCreates,
+  toPrismaJson,
+} from '@/domains/billing/core/utils/invoice-normalization';
 
 const CURRENT_PDF_TEMPLATE_VERSION = 1;
 const PDF_SIGNED_URL_TTL_SECONDS = 3600;
 const DEFAULT_INVOICE_DUE_DAYS = 30;
-
-const toPrismaJson = <T>(value: T): Prisma.InputJsonValue =>
-  JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 
 const toPrismaInvoiceItems = (items: InvoiceItem[]): Prisma.InputJsonValue => {
   const parsedItems = invoiceItemSchema.array().parse(items);
@@ -331,6 +334,13 @@ export class InvoicesService {
       discountTotal: calculation.discountTotal,
       taxTotal: calculation.taxTotal,
       grandTotal: calculation.grandTotal,
+      ...toInvoiceCentCreateFields({
+        total: calculation.grandTotal,
+        subtotal: calculation.subtotal,
+        discountTotal: calculation.discountTotal,
+        taxTotal: calculation.taxTotal,
+        grandTotal: calculation.grandTotal,
+      }),
       taxSummary: toPrismaJson(calculation.summary),
       sellerTaxSnapshot: toPrismaJson(seller),
       buyerTaxSnapshot: toPrismaJson(buyer),
@@ -342,6 +352,9 @@ export class InvoicesService {
       eInvoiceRequired: calculation.summary.eInvoice?.required ?? false,
       status: data.status,
       items: toPrismaInvoiceItems(calculation.items),
+      lineItems: {
+        create: toInvoiceLineItemCreates(calculation.items, patient.clinic.id),
+      },
       doctorName: data.doctorName,
       doctorEmail: data.doctorEmail,
       doctorPhone: data.doctorPhone,
@@ -409,6 +422,16 @@ export class InvoicesService {
       updateData.discountTotal = calculation.discountTotal;
       updateData.taxTotal = calculation.taxTotal;
       updateData.grandTotal = calculation.grandTotal;
+      Object.assign(
+        updateData,
+        toInvoiceCentUpdateFields({
+          total: calculation.grandTotal,
+          subtotal: calculation.subtotal,
+          discountTotal: calculation.discountTotal,
+          taxTotal: calculation.taxTotal,
+          grandTotal: calculation.grandTotal,
+        }),
+      );
       updateData.taxSummary = toPrismaJson(calculation.summary);
       updateData.sellerTaxSnapshot = toPrismaJson(seller);
       updateData.buyerTaxSnapshot = toPrismaJson(buyer);
@@ -419,6 +442,13 @@ export class InvoicesService {
       updateData.reverseCharge = calculation.summary.reverseCharge;
       updateData.eInvoiceRequired =
         calculation.summary.eInvoice?.required ?? false;
+      updateData.lineItems = {
+        deleteMany: {},
+        create: toInvoiceLineItemCreates(
+          calculation.items,
+          clinicId ?? existing.clinicId ?? existing.patient?.clinic?.id,
+        ),
+      };
     }
 
     return this.repository.update(id, updateData);

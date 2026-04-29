@@ -106,6 +106,7 @@ describe('PrescriptionsService', () => {
       appointmentId: 'appt-1',
       patientId: 'pat-1',
       doctorId: 'doc-1',
+      clinicId: 'clinic-1',
       instructions: 'Take after food',
       date: now,
       createdAt: now,

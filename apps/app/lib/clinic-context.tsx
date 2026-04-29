@@ -35,9 +35,7 @@ function getStoredClinicId(): string | null {
     const savedClinicId = localStorage.getItem("selectedClinicId");
     localStorage.removeItem("selectedClinic");
     return savedClinicId && savedClinicId.length > 0 ? savedClinicId : null;
-  } catch {
-
-  }
+  } catch {}
   return null;
 }
 
@@ -86,7 +84,6 @@ function getFacilityLabelFromSettings(
 }
 
 export function ClinicProvider({ children }: { children: React.ReactNode }) {
-
   const [clinicId, setClinicId] = useState<string | null>(null);
   const [clinic, setClinicState] = useState<Clinic | null>(null);
   const [userClinics, setUserClinics] = useState<Clinic[]>([]);
@@ -136,7 +133,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   );
 
   const fetchClinicFromAPI = useCallback(async () => {
-
     const now = Date.now();
     if (isFetchingRef.current || now - lastFetchTimeRef.current < 1000) {
       return;
@@ -163,7 +159,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch {
-
     } finally {
       isFetchingRef.current = false;
     }
@@ -180,7 +175,6 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
   useSyncExternalStore(
     useCallback(
       (notify) => {
-
         if (!mounted) return () => {};
 
         if (!hasFetchedRef.current) {
@@ -210,6 +204,17 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
       }
       if (data.intelligenceAddon) {
         setIntelligence(data.intelligenceAddon === "ACTIVE");
+      }
+      if (data.subscriptionStatus) {
+        const subscriptionStatus = data.subscriptionStatus;
+        setClinicState((prev) =>
+          prev
+            ? {
+                ...prev,
+                subscriptionStatus,
+              }
+            : prev,
+        );
       }
     }
   });

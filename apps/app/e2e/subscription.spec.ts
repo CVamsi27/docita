@@ -1,150 +1,89 @@
-import { expect, Page, test } from "@playwright/test";
-
-const API_URL = process.env["API_URL"] || "http://localhost:3001/api/v1";
-
-function toRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-
-  return Object.fromEntries(Object.entries(value));
-}
-
-function readString(source: Record<string, unknown>, key: string): string | undefined {
-  const value = source[key];
-  return typeof value === "string" ? value : undefined;
-}
-
-let authToken: string;
-let clinicId: string;
+import { expect, test } from "@playwright/test";
+import { loginUser, setupTestUser } from "./utils/patient-helpers";
 
 test.describe("Subscription & Billing", () => {
-  test.beforeAll(async ({ browser }) => {
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  let user: Awaited<ReturnType<typeof setupTestUser>> | null = null;
 
-    const userEmail = `admin${Date.now()}@test.com`;
-    const userPassword = "Test@123456";
+  test.beforeAll(async ({ request }) => {
+    user = await setupTestUser(request);
+  });
 
-    const registerRes = await page.request.post(`${API_URL}/auth/register`, {
-      data: {
-        email: userEmail,
-        password: userPassword,
-        firstName: "Admin",
-        lastName: "User",
-        role: "ADMIN",
-        clinicName: "Billing Test Clinic",
-      },
-    });
-
-    if (registerRes.ok()) {
-      const userData = toRecord(await registerRes.json());
-      authToken =
-        readString(userData, "access_token") || readString(userData, "accessToken") || "";
-
-      const nestedUser = toRecord(userData?.user);
-      const user = Object.keys(nestedUser).length > 0 ? nestedUser : userData;
-      clinicId = readString(user, "clinicId") || "";
-    }
-
-    await context.close();
+  test.beforeEach(async ({ page }) => {
+    if (!user) throw new Error("User not initialized");
+    await loginUser(page, user);
   });
 
   test("should display subscription status on upgrade page", async ({
     page,
   }) => {
-    await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
     await expect(page.locator("h1")).toContainText(/Upgrade|Plan/i);
-
-    await expect(page.getByText(/Current Plan|Plan/i).first()).toBeVisible();
+    await expect(page.getByText("Current Plan").first()).toBeVisible();
+    await expect(page.getByText("Current usage")).toBeVisible();
   });
 
   test("should display all tier options", async ({ page }) => {
-    await loginAsAdmin(page);
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
-    await page.waitForTimeout(2000);
-
-    await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
-  });
-
-  test("should show add-on cards", async ({ page }) => {
-    await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
+    await expect(page.getByRole("heading", { name: "Starter" })).toBeVisible();
     await expect(
-      page.getByText(/Add-ons|Intelligence|WhatsApp/i).first(),
+      page.getByRole("heading", { name: "Essential" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Professional" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Enterprise" }),
     ).toBeVisible();
   });
 
-  test("should show billing history", async ({ page }) => {
-    await loginAsAdmin(page);
+  test("should show professional and enterprise feature details", async ({
+    page,
+  }) => {
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const billingBtn = page.getByRole("button", { name: /Billing History/i });
-    if (await billingBtn.isVisible()) {
-      await billingBtn.click();
-
-      await page.waitForTimeout(500);
-      const dialogVisible = await page.locator('[role="dialog"]').isVisible();
-      expect(dialogVisible).toBeTruthy();
-    }
+    await expect(page.getByText("Everything in Essential, plus")).toBeVisible();
+    await expect(
+      page.getByText("Everything in Professional, plus"),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/Best for multi-doctor clinics/i),
+    ).toBeVisible();
+    await expect(page.getByText(/Best for hospitals/i)).toBeVisible();
   });
 
-  test("should open pricing dialog", async ({ page }) => {
-    await loginAsAdmin(page);
+  test("should show billing history", async ({ page }) => {
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const changePlanBtn = page
-      .getByRole("button", { name: /Change Plan|View All Plans/i })
-      .first();
-    if (await changePlanBtn.isVisible()) {
-      await changePlanBtn.click();
+    await page.getByRole("button", { name: /Billing History/i }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog")).toContainText(/Billing History/i);
+  });
 
-      await page.waitForTimeout(500);
-      const dialogVisible = await page.locator('[role="dialog"]').isVisible();
-      expect(dialogVisible).toBeTruthy();
-    }
+  test("should open plan confirmation from a paid plan", async ({ page }) => {
+    await page.goto("/upgrade", { waitUntil: "networkidle" });
+
+    await page
+      .getByRole("button", { name: /Upgrade|Select Plan|Downgrade/i })
+      .first()
+      .click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog")).toContainText(/plan/i);
   });
 
   test("should display FAQ section", async ({ page }) => {
-    await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const faqSection = page.getByText(/FAQ|Frequently Asked/i);
-    if (await faqSection.isVisible()) {
-      await expect(faqSection).toBeVisible();
-    }
+    await page.getByRole("tab", { name: "FAQ" }).click();
+    await expect(page.getByText(/FAQ|Frequently Asked/i).first()).toBeVisible();
   });
 
   test("should display contact sales button", async ({ page }) => {
-    await loginAsAdmin(page);
     await page.goto("/upgrade", { waitUntil: "networkidle" });
 
-    const contactBtn = page.getByRole("button", { name: /Contact Sales/i });
-    await expect(contactBtn).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Contact Sales/i }).first(),
+    ).toBeVisible();
   });
 });
-
-async function loginAsAdmin(page: Page) {
-  if (authToken) {
-    await page.addInitScript(
-      (args: { t: string; cid: string }) => {
-        try {
-          localStorage.setItem("docita_token", args.t);
-          localStorage.setItem(
-            "docita_user",
-            JSON.stringify({
-              role: "ADMIN",
-              clinicId: args.cid,
-            }),
-          );
-        } catch {
-
-        }
-      },
-      { t: authToken, cid: clinicId },
-    );
-  }
-}

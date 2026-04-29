@@ -242,7 +242,7 @@ model DoctorTimeOff {
 
 model Patient {
   id             String   @id @default(cuid())
-  mrn            String?  @unique
+  mrn            String?
   firstName      String
   lastName       String
   preferredName  String?
@@ -318,6 +318,7 @@ model Patient {
   @@index([userId])
   @@index([phoneNumber, deletedAt], map: "Patient_phoneNumber_deletedAt_idx")
   @@index([userId, deletedAt], map: "Patient_userId_deletedAt_idx")
+  @@unique([clinicId, mrn], map: "Patient_clinicId_mrn_key")
 }
 model PatientMedicalCondition {
   id                  String               @id @default(cuid())
@@ -558,6 +559,7 @@ model Appointment {
   doctor                  User                  @relation(fields: [doctorId], references: [id])
   patient                 Patient               @relation(fields: [patientId], references: [id])
   diagnoses               Diagnosis[]
+  reminders               AppointmentReminder[]
   invoice                 Invoice?
   prescription            Prescription?
   procedures              Procedure[]
@@ -585,6 +587,7 @@ model Appointment {
 model VitalSign {
   id            String @id @default(cuid())
   appointmentId String @unique
+  clinicId      String?
   height        Float?
   weight        Float?
   bloodPressure String?
@@ -610,8 +613,10 @@ model VitalSign {
   waistCircumference Float?
 
   appointment Appointment @relation(fields: [appointmentId], references: [id])
+  clinic      Clinic?     @relation(fields: [clinicId], references: [id], onDelete: SetNull)
 
   @@index([bpMigrationStatus])
+  @@index([clinicId])
 }
 
 model Prescription {
@@ -619,6 +624,7 @@ model Prescription {
   appointmentId            String           @unique
   patientId                String
   doctorId                 String
+  clinicId                 String?
   instructions             String?
   date                     DateTime         @default(now())
   createdAt                DateTime         @default(now())
@@ -642,9 +648,11 @@ model Prescription {
   medications              Medication[]
   medicationDoses          MedicationDose[]
   appointment              Appointment      @relation(fields: [appointmentId], references: [id])
+  clinic                   Clinic?          @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   doctor                   User             @relation(fields: [doctorId], references: [id])
   patient                  Patient          @relation(fields: [patientId], references: [id])
 
+  @@index([clinicId, date])
   @@index([patientId])
   @@index([createdAt])
   @@index([doctorId, createdAt])
@@ -742,6 +750,11 @@ model Invoice {
   discountTotal            Float            @default(0)
   taxTotal                 Float            @default(0)
   grandTotal               Float            @default(0)
+  totalCents               Int?
+  subtotalCents            Int?
+  discountTotalCents       Int?
+  taxTotalCents            Int?
+  grandTotalCents          Int?
   taxSummary               Json?
   sellerTaxSnapshot        Json?
   buyerTaxSnapshot         Json?
@@ -780,6 +793,7 @@ model Invoice {
   patient                  Patient          @relation(fields: [patientId], references: [id])
   paymentSessions          PaymentSession[]
   paymentRetries           PaymentRetry[]
+  lineItems                InvoiceItem[]
 
   @@unique([clinicId, invoiceNumber])
   @@index([createdAt])
@@ -788,6 +802,34 @@ model Invoice {
   @@index([patientId])
   @@index([status, createdAt])
   @@index([status])
+}
+
+model InvoiceItem {
+  id             String   @id @default(cuid())
+  invoiceId      String
+  clinicId       String?
+  description    String
+  code           String?
+  sourceType     String?
+  sourceId       String?
+  quantity       Float    @default(1)
+  unitPriceCents Int      @default(0)
+  subtotalCents  Int      @default(0)
+  discountCents  Int      @default(0)
+  taxRateBps     Int      @default(0)
+  taxCents       Int      @default(0)
+  totalCents     Int      @default(0)
+  hsnSac         String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  clinic  Clinic? @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([clinicId])
+  @@index([clinicId, invoiceId])
 }
 
 model InvoiceSequence {
@@ -808,6 +850,7 @@ model InvoiceSequence {
 model Document {
   id          String   @id @default(cuid())
   patientId   String
+  clinicId    String?
   name        String
   type        String
   url         String
@@ -816,8 +859,10 @@ model Document {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  clinic      Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   patient     Patient  @relation(fields: [patientId], references: [id])
 
+  @@index([clinicId])
   @@index([patientId])
   @@index([createdAt])
 }
@@ -826,11 +871,16 @@ model PrescriptionTemplate {
   id           String   @id @default(cuid())
   name         String
   userId       String
+  clinicId     String?
   medications  Json
   instructions String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  clinic       Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   user         User     @relation(fields: [userId], references: [id])
+
+  @@index([clinicId])
+  @@index([userId])
 }
 
 model ClinicalTemplate {
@@ -884,16 +934,20 @@ model ReminderSettings {
 model AppointmentReminder {
   id            String    @id @default(cuid())
   appointmentId String
+  clinicId      String?
   type          String
   status        String    @default("pending")
   sentAt        DateTime?
   error         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  clinic        Clinic?     @relation(fields: [clinicId], references: [id], onDelete: SetNull)
 
   @@index([appointmentId])
   @@index([status])
   @@index([appointmentId, status])
+  @@index([clinicId, status, createdAt])
 }
 
 model Clinic {
@@ -929,12 +983,14 @@ model Clinic {
   domain                   String?
   referralCreditsMonths    Int                      @default(0)
   appointments             Appointment[]
+  appointmentReminders     AppointmentReminder[]
   auditLogs                AuditLog[]
   analyticsSnapshots       AnalyticsSnapshot[]
   paymentRetries           PaymentRetry[]
   bulkImportJobs           BulkImportJob[]
   clinicalTemplates        ClinicalTemplate[]
   customFields             CustomField[]
+  documents                Document[]
   doctorClinics            DoctorClinic[]
   doctorSchedules          DoctorSchedule[]
   doctorTimeOffs           DoctorTimeOff[]
@@ -944,11 +1000,13 @@ model Clinic {
   importJobs               ImportJob[]
   invoices                 Invoice[]
   invoiceSequences         InvoiceSequence[]
+  invoiceItems             InvoiceItem[]
   patients                 Patient[]
   paymentSessions          PaymentSession[]
   queueTokens              QueueToken[]
   reminderSettings         ReminderSettings?
   users                    User[]
+  vitalSigns               VitalSign[]
   whatsappLogs             WhatsappLog[]
   subscription             Subscription?
   subscriptionPayments     SubscriptionPayment[]
@@ -963,6 +1021,9 @@ model Clinic {
   usageRecords             UsageRecord[]
   usageEvents              UsageEvent[]
   wards                    Ward[]
+  rooms                    Room[]
+  beds                     Bed[]
+  admissionsDirect         Admission[]
   facilityType             FacilityType             @default(CLINIC)
   metricCategories         MetricCategory[]
   metricDefinitions        MetricDefinition[]
@@ -980,6 +1041,9 @@ model Clinic {
   patientDoctors           PatientDoctor[]
   pdfJobs                  PdfJob[]
   dataSubjectRequests      DataSubjectRequest[]
+  prescriptions            Prescription[]
+  prescriptionTemplates    PrescriptionTemplate[]
+  inventoryMovements       InventoryMovement[]
 }
 
 model MetricCategory {
@@ -1706,6 +1770,7 @@ model InventoryItem {
 model InventoryMovement {
   id              String        @id @default(cuid())
   inventoryItemId String
+  clinicId        String?
   type            String
   quantity        Int
   referenceType   String?
@@ -1713,9 +1778,11 @@ model InventoryMovement {
   notes           String?
   createdBy       String
   createdAt       DateTime      @default(now())
+  clinic          Clinic?       @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
 
   @@index([inventoryItemId])
+  @@index([clinicId, createdAt])
   @@index([type])
   @@index([createdAt])
 }
@@ -2973,15 +3040,18 @@ model Ward {
 model Room {
   id         String   @id @default(cuid())
   wardId     String
+  clinicId   String?
   roomNumber String
   type       String?
   charges    Float    @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  clinic     Clinic?  @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   ward       Ward     @relation(fields: [wardId], references: [id], onDelete: Cascade)
   beds       Bed[]
 
   @@index([wardId])
+  @@index([clinicId])
 }
 
 enum BedStatus {
@@ -2995,14 +3065,17 @@ enum BedStatus {
 model Bed {
   id         String      @id @default(cuid())
   roomId     String
+  clinicId   String?
   bedNumber  String
   status     BedStatus   @default(AVAILABLE)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  clinic     Clinic?     @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   room       Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
   admissions Admission[]
 
   @@index([roomId])
+  @@index([clinicId, status])
   @@index([status])
 }
 
@@ -3038,6 +3111,7 @@ model Admission {
   id                String          @id @default(cuid())
   patientId         String
   bedId             String
+  clinicId          String?
   admittedAt        DateTime        @default(now())
   dischargedAt      DateTime?
   status            AdmissionStatus @default(ADMITTED)
@@ -3049,10 +3123,12 @@ model Admission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  clinic          Clinic? @relation(fields: [clinicId], references: [id], onDelete: SetNull)
   patient         Patient @relation(fields: [patientId], references: [id])
   bed             Bed     @relation(fields: [bedId], references: [id])
   admittingDoctor User?   @relation(fields: [admittingDoctorId], references: [id])
 
+  @@index([clinicId, status])
   @@index([patientId])
   @@index([bedId])
   @@index([status])

@@ -13,6 +13,8 @@ import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { VerifyBackupRequestDto } from '@/common/dto/database-operations.dto';
+import { getTenantScopeDiagnostics } from '@/common/extensions/tenant.extension';
+import { tenantScopeDiagnosticsSchema } from '@workspace/types';
 
 @ApiTags('Database Operations')
 @ApiBearerAuth()
@@ -125,6 +127,16 @@ export class DatabaseOperationsController {
     return {
       config,
     };
+  }
+
+  @Get('tenant-scope')
+  @ApiOperation({ summary: 'Get tenant isolation scope coverage diagnostics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tenant scope coverage diagnostics',
+  })
+  getTenantScopeCoverage() {
+    return tenantScopeDiagnosticsSchema.parse(getTenantScopeDiagnostics());
   }
 
   @Get('status')

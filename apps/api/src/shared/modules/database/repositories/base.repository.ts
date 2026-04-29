@@ -20,10 +20,10 @@ export interface WhereClauseOptions {
 
 type RepositoryModelDelegate = {
   findMany: (args: Record<string, unknown>) => Promise<unknown[]>;
-  findUnique: (args: Record<string, unknown>) => Promise<unknown | null>;
+  findFirst: (args: Record<string, unknown>) => Promise<unknown | null>;
   create: (args: Record<string, unknown>) => Promise<unknown>;
-  update: (args: Record<string, unknown>) => Promise<unknown>;
-  delete: (args: Record<string, unknown>) => Promise<unknown>;
+  updateMany: (args: Record<string, unknown>) => Promise<{ count: number }>;
+  deleteMany: (args: Record<string, unknown>) => Promise<{ count: number }>;
   count: (args: Record<string, unknown>) => Promise<number>;
 };
 
@@ -61,10 +61,10 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
 
     return (
       typeof candidate.findMany === 'function' &&
-      typeof candidate.findUnique === 'function' &&
+      typeof candidate.findFirst === 'function' &&
       typeof candidate.create === 'function' &&
-      typeof candidate.update === 'function' &&
-      typeof candidate.delete === 'function' &&
+      typeof candidate.updateMany === 'function' &&
+      typeof candidate.deleteMany === 'function' &&
       typeof candidate.count === 'function'
     );
   }
@@ -141,7 +141,7 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
   }
 
   async findOne(id: string): Promise<T | null> {
-    const result = await this.model.findUnique({
+    const result = await this.model.findFirst({
       where: { id },
       select: this.getDetailSelect(),
     });
@@ -166,16 +166,19 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
   }
 
   async update(id: string, data: Partial<T>): Promise<T> {
-    const result = await this.model.update({
+    const result = await this.model.updateMany({
       where: { id },
       data,
-      select: this.getDetailSelect(),
     });
-    return result as T;
+    if (result.count === 0) {
+      throw new Error(`${this.modelName} with ID ${id} not found`);
+    }
+
+    return await this.findOneOrFail(id);
   }
 
   async delete(id: string): Promise<void> {
-    await this.model.delete({
+    await this.model.deleteMany({
       where: { id },
     });
   }

@@ -54,6 +54,7 @@ export class SubscriptionStatusGuard implements CanActivate {
     try {
       const clinicAuth = await this.clinicAuthCache.getClinicAuth(
         user.clinicId,
+        { bypassCache: true },
       );
 
       const allowedStatuses: SubscriptionStatus[] = [

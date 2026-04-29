@@ -20,6 +20,7 @@ describe('PrescriptionTemplatesService', () => {
     ],
     instructions: 'Rest and fluids',
     userId: 'user-123',
+    clinicId: 'clinic-1',
     createdAt: new Date(),
     updatedAt: new Date(),
   };

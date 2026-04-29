@@ -198,7 +198,7 @@ export class DoctorsService {
   }
 
   async findOne(id: string, clinicId?: string) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { id },
       select: {
         id: true,
@@ -367,9 +367,17 @@ export class DoctorsService {
     if (consultationFee !== undefined)
       updateData.consultationFee = consultationFee;
 
-    const user = await this.prisma.user.update({
+    const result = await this.prisma.user.updateMany({
       where: { id },
       data: updateData,
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundException(`Doctor with ID ${id} not found`);
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: { id },
       select: {
         id: true,
         email: true,
@@ -394,6 +402,10 @@ export class DoctorsService {
         consultationFee: true,
       },
     });
+
+    if (!user) {
+      throw new NotFoundException(`Doctor with ID ${id} not found`);
+    }
 
     if (
       registrationNumber !== undefined ||
@@ -454,9 +466,13 @@ export class DoctorsService {
       where: { doctorId: id },
     });
 
-    await this.prisma.user.delete({
+    const result = await this.prisma.user.deleteMany({
       where: { id },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundException(`Doctor with ID ${id} not found`);
+    }
 
     return { success: true };
   }
