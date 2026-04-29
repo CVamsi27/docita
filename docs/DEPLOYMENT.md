@@ -32,7 +32,7 @@ All backend infrastructure is co-located in Mumbai for Indian data residency (DP
 - Deploy order: run DB migrations first, then deploy API and worker, then deploy frontends.
 - Keep `open-next.config.ts` and `wrangler.toml` in sync for Next.js frontend apps.
 - Keep `astro.config.mjs` and `wrangler.toml` in sync for `apps/landing`.
-- Keep at least one API machine running while request traffic is live.
+- Keep API autostop enabled for the initial low-traffic phase so Fly can scale request-serving machines to zero when idle.
 - Keep the API at 2 GB until the worker has been healthy in parallel and we have live RSS measurements that support a safe reduction to 1.5 GB.
 - Treat bulk import and non-immediate audit logging as best-effort background work on the worker, not the API.
 - Use the PostgreSQL-backed worker for PDF generation, retries, and other background execution that must survive API restarts.
@@ -75,7 +75,8 @@ Fly-specific notes:
 - GitHub Actions API deploys must resolve the Fly app name from [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml) and deploy with that config, rather than relying on a separate hardcoded app value in workflow logic.
 - For GitHub Actions API deploys, add `FLY_API_TOKEN` as a repository secret.
 - The worker app uses [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/apps/worker/fly.toml), builds from `apps/worker/Dockerfile`, and should use `--ha=false` so Fly does not create a standby machine for the no-service worker process.
-- Keep `min_machines_running = 1` for the API while request traffic is live.
+- Keep `auto_stop_machines = "stop"` and `min_machines_running = 0` for the API during the initial low-traffic phase. The Fly proxy will restart it on incoming HTTP traffic.
+- Do not scale the no-service worker to zero unless scheduler and queue wake-up behavior has a separate trigger; it does not receive HTTP traffic that Fly can use for autostart.
 - Verify the API image locally before infra changes with:
 
 ```bash

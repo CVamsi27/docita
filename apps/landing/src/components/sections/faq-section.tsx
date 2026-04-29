@@ -41,7 +41,7 @@ const faqs = [
 
 export function FaqSection() {
   return (
-    <section className="px-6 py-24 bg-muted/30" id="faq">
+    <section className="landing-section bg-muted/30" id="faq">
       <div className="mx-auto max-w-3xl">
         <SectionHeading
           align="center"

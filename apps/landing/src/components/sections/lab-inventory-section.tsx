@@ -11,7 +11,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function LabInventorySection() {
   return (
-    <section className="px-6 py-24 bg-muted/30">
+    <section className="landing-section bg-muted/30">
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div>

@@ -6,7 +6,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function SpecialtiesSection() {
   return (
-    <section className="px-6 py-24 bg-muted/30">
+    <section className="landing-section bg-muted/30">
       <div className="ui-page-shell">
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 rounded-full badge-info px-4 py-2 text-sm mb-4">

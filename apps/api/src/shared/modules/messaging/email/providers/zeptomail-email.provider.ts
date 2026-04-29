@@ -59,6 +59,14 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
     return recipients.map((address) => ({ email_address: { address } }));
   }
 
+  private getAuthorizationHeader(): string {
+    const trimmedToken = this.sendMailToken.trim();
+    if (/^Zoho-enczapikey\s+/i.test(trimmedToken)) {
+      return trimmedToken;
+    }
+    return `Zoho-enczapikey ${trimmedToken}`;
+  }
+
   async send(options: EmailOptions): Promise<EmailSendResult> {
     if (!this.sendMailToken) {
       return {
@@ -91,7 +99,7 @@ export class ZeptoMailEmailProvider implements IEmailProvider {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Zoho-enczapikey ${this.sendMailToken}`,
+          Authorization: this.getAuthorizationHeader(),
         },
         body: JSON.stringify(payload),
       });

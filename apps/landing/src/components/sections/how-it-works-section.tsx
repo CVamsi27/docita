@@ -12,7 +12,7 @@ import {
 
 export function HowItWorksSection() {
   return (
-    <section className="relative overflow-hidden bg-muted/30 px-6 py-24">
+    <section className="landing-section relative overflow-hidden bg-muted/30">
       <div className="ui-page-shell relative z-10">
         <SectionHeading
           align="center"

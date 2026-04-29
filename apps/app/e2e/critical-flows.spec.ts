@@ -346,15 +346,16 @@ test.describe("Critical Business Flows", () => {
 
   test(" FLOW 6: Data Isolation - Verify No Cross-Clinic Access", async () => {
     const otherClientIp = createUniqueClientIp();
+    const otherRequestHeaders = {
+      "X-Forwarded-For": otherClientIp,
+      "X-Real-IP": otherClientIp,
+    };
     const otherRequest = await requestFactory.newContext({
-      extraHTTPHeaders: {
-        "X-Forwarded-For": otherClientIp,
-        "X-Real-IP": otherClientIp,
-      },
+      extraHTTPHeaders: otherRequestHeaders,
     });
 
     try {
-      const otherDoctor = await setupTestUser(otherRequest);
+      const otherDoctor = await setupTestUser(otherRequest, otherRequestHeaders);
       const otherToken = otherDoctor.accessToken;
 
       const otherPatientRes = await otherRequest.post(`${API_URL}/patients`, {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@workspace/ui/components/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface StickyCtaProps {
@@ -14,7 +14,6 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-
       if (window.scrollY > 700) {
         setShowStickyCTA(true);
       } else {
@@ -51,28 +50,36 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
   return (
     <div
       ref={ctaRef}
-      className="fixed bottom-0 left-0 right-0 z-50 bg-primary text-primary-foreground py-3 px-4 shadow-lg animate-in slide-in-from-bottom duration-300"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-background/95 px-3 py-2 text-foreground shadow-[0_-18px_50px_rgba(15,23,42,0.14)] backdrop-blur supports-[backdrop-filter]:bg-background/85 animate-in slide-in-from-bottom duration-300 sm:px-4 sm:py-3"
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div>
-          <div className="font-bold text-lg hidden sm:block">
-            Start trial today
-          </div>
-          <div className="text-sm opacity-90 hidden sm:block">
-            14-day free trial • No credit card required
+      <div className="mx-auto flex max-w-7xl items-center gap-2 sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold sm:text-base">
+              14-day free trial is back.
+            </div>
+            <div className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
+              <span className="sm:hidden">Essential at ₹0, no card.</span>
+              <span className="hidden sm:inline">
+                Start Essential at ₹0 today, no credit card required.
+              </span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-          <span className="font-bold sm:hidden">Docita</span>
+        <div className="shrink-0">
           <Button
             asChild
-            variant="secondary"
+            variant="default"
             size="sm"
-            className="gap-2 whitespace-nowrap"
+            className="h-9 gap-1.5 whitespace-nowrap px-3 sm:h-10 sm:gap-2 sm:px-4"
           >
             <a href={`${appUrl}/onboarding`}>
-              Start trial
-              <ArrowRight className="h-4 w-4" />
+              <span className="sm:hidden">Start</span>
+              <span className="hidden sm:inline">Start free trial</span>
+              <ArrowRight className="h-4 w-4 shrink-0" />
             </a>
           </Button>
         </div>

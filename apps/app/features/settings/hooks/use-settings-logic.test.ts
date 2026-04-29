@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { Tier } from "@workspace/types";
+import { Feature, Tier } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { getVisibleSettingsTabs } from "./use-settings-logic";
 
@@ -81,5 +81,13 @@ describe("getVisibleSettingsTabs", () => {
     );
 
     expect(visibleTabValues).toContain("leave");
+  });
+
+  it("does not grant planned features through tier or clinic override checks", () => {
+    const store = usePermissionStore.getState();
+    store.setTier(Tier.PROFESSIONAL);
+    store.setFeatureOverrides({ [Feature.BROADCAST_CAMPAIGNS]: true });
+
+    expect(store.canAccess(Feature.BROADCAST_CAMPAIGNS)).toBe(false);
   });
 });

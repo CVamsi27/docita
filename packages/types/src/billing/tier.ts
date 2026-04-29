@@ -1339,6 +1339,10 @@ export function hasFeatureAccess(
   feature: Feature,
   hasIntelligence = false,
 ): boolean {
+  if (!isFeatureGenerallyAvailable(feature)) {
+    return false;
+  }
+
   const requiredTier = FEATURE_TIER_MAP[feature];
 
   if (requiredTier === Tier.INTELLIGENCE) {

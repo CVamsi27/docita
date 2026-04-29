@@ -4,6 +4,8 @@ import "@/styles/global.css";
 
 import SiteFooter from "@/components/site-footer.astro";
 import SiteHeader from "@/components/site-header.astro";
+import { StickyCta } from "@/components/sections/sticky-cta";
+import { getAppBaseUrl } from "@/lib/public-api";
 
 interface Props {
   title?: string;
@@ -21,6 +23,7 @@ const {
 
 const siteUrl = "https://docita.work";
 const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
+const appUrl = getAppBaseUrl();
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -98,5 +101,6 @@ const jsonLd = {
       <slot />
     </main>
     <SiteFooter />
+    <StickyCta appUrl={appUrl} client:load />
   </body>
 </html>

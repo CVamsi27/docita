@@ -43,7 +43,7 @@ function buildConfig(overrides: Partial<EnvConfig> = {}): EnvConfig {
     META_VERIFY_TOKEN: undefined,
     WHATSAPP_PRODUCTION_MODE: false,
     ZEPTOMAIL_SENDMAIL_TOKEN: undefined,
-    ZEPTOMAIL_API_URL: 'https://api.zeptomail.com/v1.1/email',
+    ZEPTOMAIL_API_URL: 'https://api.zeptomail.in/v1.1/email',
     EMAIL_FROM: 'Docita <notifications@docita.work>',
     SENTRY_DSN: undefined,
     SENTRY_TRACES_SAMPLE_RATE: 0.1,

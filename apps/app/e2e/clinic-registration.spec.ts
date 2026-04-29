@@ -63,7 +63,12 @@ test.describe("Clinic Registration Flow", () => {
         const originalFetch = window.fetch.bind(window);
 
         window.fetch = async (input, init) => {
-          const url = typeof input === "string" ? input : input.url;
+          const url =
+            typeof input === "string"
+              ? input
+              : input instanceof URL
+                ? input.toString()
+                : input.url;
 
           if (url.includes("/auth/validate")) {
             return new Response(JSON.stringify({ user }), {

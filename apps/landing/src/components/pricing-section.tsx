@@ -87,7 +87,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
   ).filter(Boolean);
 
   return (
-    <section className="px-6 py-24 relative overflow-hidden" id="pricing">
+    <section className="landing-section relative overflow-hidden" id="pricing">
       <div className="ui-page-shell">
         <SectionHeading
           align="center"

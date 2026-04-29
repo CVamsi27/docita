@@ -63,49 +63,49 @@ export function MedicalCodingSection() {
             </p>
           </div>
           <div className="relative">
-            <div className="landing-card border-info/20 bg-linear-to-br from-info/20 to-info/10 p-8">
-              <div className="rounded-xl bg-background p-6 shadow-lg">
+            <div className="landing-card border-info/20 bg-linear-to-br from-info/20 to-info/10 p-4 sm:p-8">
+              <div className="rounded-xl bg-background p-4 shadow-lg sm:p-6">
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b">
                   <Activity className="h-5 w-5 text-info" />
                   <span className="font-semibold">Medical Coding</span>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex flex-col gap-2 rounded-lg bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-xs text-muted-foreground">
                         Diagnosis
                       </div>
                       <div className="font-mono text-sm font-medium">J06.9</div>
                     </div>
-                    <div className="text-sm text-right">
+                    <div className="text-sm sm:text-right">
                       <div className="font-medium">
                         Upper respiratory infection
                       </div>
                       <div className="text-xs text-muted-foreground">Acute</div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex flex-col gap-2 rounded-lg bg-muted/50 p-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-xs text-muted-foreground">
                         Diagnosis
                       </div>
                       <div className="font-mono text-sm font-medium">R50.9</div>
                     </div>
-                    <div className="text-sm text-right">
+                    <div className="text-sm sm:text-right">
                       <div className="font-medium">Fever, unspecified</div>
                       <div className="text-xs text-muted-foreground">
                         Primary
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between rounded-lg border border-info/30 bg-info/10 p-3 text-foreground">
+                  <div className="flex flex-col gap-2 rounded-lg border border-info/30 bg-info/10 p-3 text-foreground sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <div className="text-xs text-foreground/80">
                         Procedure
                       </div>
                       <div className="font-mono text-sm font-medium">99213</div>
                     </div>
-                    <div className="text-sm text-right">
+                    <div className="text-sm sm:text-right">
                       <div className="font-medium">
                         Office visit - Established
                       </div>
@@ -115,7 +115,7 @@ export function MedicalCodingSection() {
                 </div>
               </div>
             </div>
-            <div className="absolute -top-4 -right-4 rounded-full border border-info/30 bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-lg">
+            <div className="absolute right-3 top-3 rounded-full border border-info/30 bg-background px-3 py-1.5 text-xs font-semibold text-foreground shadow-lg sm:-right-4 sm:-top-4 sm:px-4 sm:py-2 sm:text-sm">
               ICD-10 & CPT
             </div>
           </div>
