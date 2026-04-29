@@ -21,6 +21,11 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import {
+  CreateInventoryItemDto,
+  InventoryMovementDto,
+  UpdateInventoryItemDto,
+} from './inventory.dto';
 
 @ApiTags('Inventory')
 @Controller('inventory')
@@ -61,12 +66,12 @@ export class InventoryController {
   @ApiOperation({ summary: 'Create inventory item' })
   createItem(
     @Request() req: RequestWithUser,
-    @Body() body: Record<string, unknown>,
+    @Body() body: CreateInventoryItemDto,
   ) {
     return this.inventoryService.createItem(
       req.user!.clinicId!,
       req.user!.id,
-      body as Parameters<InventoryService['createItem']>[2],
+      body,
     );
   }
 
@@ -75,7 +80,7 @@ export class InventoryController {
   updateItem(
     @Request() req: RequestWithUser,
     @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdateInventoryItemDto,
   ) {
     return this.inventoryService.updateItem(req.user!.clinicId!, id, body);
   }
@@ -91,14 +96,7 @@ export class InventoryController {
   addMovement(
     @Request() req: RequestWithUser,
     @Param('id') id: string,
-    @Body()
-    body: {
-      type: string;
-      quantity: number;
-      referenceType?: string;
-      referenceId?: string;
-      notes?: string;
-    },
+    @Body() body: InventoryMovementDto,
   ) {
     return this.inventoryService.addMovement(
       req.user!.clinicId!,
