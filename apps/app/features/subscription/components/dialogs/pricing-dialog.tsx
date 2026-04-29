@@ -35,6 +35,7 @@ import {
   PRICING_DIALOG_TIER_ICONS,
   PRICING_DIALOG_TIERS,
 } from "@/features/subscription/config/pricing-config";
+import { formatCurrency } from "@/lib/formatters";
 
 interface PricingDialogProps {
   open: boolean;
@@ -76,12 +77,10 @@ export function PricingDialog({
 
   const formatPrice = (price: number | "custom") => {
     if (price === "custom") return "Custom";
-    return new Intl.NumberFormat(currencyConfig.locale, {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: currencyConfig.decimalPlaces,
-      maximumFractionDigits: currencyConfig.decimalPlaces,
-    }).format(price);
+    return formatCurrency(price, currency, {
+      locale: currencyConfig.locale,
+      fractionDigits: currencyConfig.decimalPlaces,
+    });
   };
 
   const getTierNumeric = (tierName: TierName): Tier => {

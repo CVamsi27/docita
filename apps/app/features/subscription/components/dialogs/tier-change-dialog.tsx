@@ -33,6 +33,7 @@ import {
   getUserFacingErrorMessage,
 } from "@workspace/types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
+import { formatCurrency } from "@/lib/formatters";
 
 interface TierChangeDialogProps {
   open: boolean;
@@ -113,12 +114,10 @@ export function TierChangeDialog({
 
   const formatPrice = (price: number | "custom") => {
     if (price === "custom") return "Custom";
-    return new Intl.NumberFormat(currencyConfig.locale, {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: currencyConfig.decimalPlaces,
-      maximumFractionDigits: currencyConfig.decimalPlaces,
-    }).format(price);
+    return formatCurrency(price, currency, {
+      locale: currencyConfig.locale,
+      fractionDigits: currencyConfig.decimalPlaces,
+    });
   };
 
   const priceDiff =

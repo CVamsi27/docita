@@ -17,14 +17,27 @@ export function formatDateTime(
   return d.toLocaleString(locale);
 }
 
+export interface FormatCurrencyOptions {
+  locale?: string;
+  fractionDigits?: number;
+}
+
 export function formatCurrency(
   amount: number,
   currency: string = DEFAULT_CURRENCY,
-  locale: string = "en-IN",
+  options: string | FormatCurrencyOptions = {},
 ): string {
+  const resolved: FormatCurrencyOptions =
+    typeof options === "string" ? { locale: options } : options;
+  const { locale = "en-IN", fractionDigits } = resolved;
+
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
+    ...(fractionDigits !== undefined && {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }),
   }).format(amount);
 }
 
