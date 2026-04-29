@@ -20,9 +20,12 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
     return this.prisma.paymentSession.create({ data });
   }
 
-  async findById(id: string): Promise<PaymentSessionDetail | null> {
-    const session = await this.getReadClient().paymentSession.findUnique({
-      where: { id },
+  async findById(
+    id: string,
+    clinicId: string,
+  ): Promise<PaymentSessionDetail | null> {
+    const session = await this.getReadClient().paymentSession.findFirst({
+      where: { id, clinicId },
       include: {
         patient: {
           select: {
@@ -79,15 +82,29 @@ export class PrismaPaymentSessionRepository implements IPaymentSessionRepository
   async update(
     id: string,
     data: Prisma.PaymentSessionUpdateInput,
+    clinicId: string,
   ): Promise<PaymentSession> {
-    return this.prisma.paymentSession.update({
-      where: { id },
-      data,
+    const result = await this.prisma.paymentSession.updateMany({
+      where: { id, clinicId },
+      data: data as Prisma.PaymentSessionUpdateManyMutationInput,
     });
+    if (result.count === 0) {
+      throw new Error(`Payment session ${id} not found`);
+    }
+
+    const refreshed = await this.prisma.paymentSession.findFirst({
+      where: { id, clinicId },
+    });
+    if (!refreshed) {
+      throw new Error(`Payment session ${id} not found`);
+    }
+    return refreshed;
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.paymentSession.delete({ where: { id } });
+  async delete(id: string, clinicId: string): Promise<void> {
+    await this.prisma.paymentSession.deleteMany({
+      where: { id, clinicId },
+    });
   }
 
   async findPendingReminders(): Promise<PaymentSessionDetail[]> {

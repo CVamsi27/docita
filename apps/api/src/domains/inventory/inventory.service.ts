@@ -139,17 +139,21 @@ export class InventoryService {
     const item = await this.inventoryRepository.findItemByClinic(id, clinicId);
     if (!item) throw new NotFoundException('Inventory item not found');
 
-    return this.inventoryRepository.updateItem(id, {
-      ...data,
-      expiryDate:
-        data.expiryDate !== undefined ? new Date(data.expiryDate) : undefined,
-    });
+    return this.inventoryRepository.updateItem(
+      id,
+      {
+        ...data,
+        expiryDate:
+          data.expiryDate !== undefined ? new Date(data.expiryDate) : undefined,
+      },
+      clinicId,
+    );
   }
 
   async deleteItem(clinicId: string, id: string) {
     const item = await this.inventoryRepository.findItemByClinic(id, clinicId);
     if (!item) throw new NotFoundException('Inventory item not found');
-    await this.inventoryRepository.updateItem(id, { active: false });
+    await this.inventoryRepository.updateItem(id, { active: false }, clinicId);
     return { success: true };
   }
 
@@ -178,6 +182,7 @@ export class InventoryService {
 
     return this.inventoryRepository.addMovementAndUpdateQuantity(
       itemId,
+      clinicId,
       {
         inventoryItem: { connect: { id: itemId } },
         type: data.type,

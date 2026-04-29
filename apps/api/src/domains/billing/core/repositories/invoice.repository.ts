@@ -141,10 +141,14 @@ export interface IInvoiceRepository {
   findAll(
     params: InvoiceSearchParams,
   ): Promise<PaginatedResult<InvoiceListItem>>;
-  findById(id: string): Promise<InvoiceDetail | null>;
+  findById(id: string, clinicId: string): Promise<InvoiceDetail | null>;
   create(data: Prisma.InvoiceCreateInput): Promise<InvoiceDetail>;
-  update(id: string, data: Prisma.InvoiceUpdateInput): Promise<InvoiceDetail>;
-  delete(id: string): Promise<void>;
+  update(
+    id: string,
+    data: Prisma.InvoiceUpdateInput,
+    clinicId: string,
+  ): Promise<InvoiceDetail>;
+  delete(id: string, clinicId: string): Promise<void>;
   findPatientContext(
     patientId: string,
     clinicId?: string,

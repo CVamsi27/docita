@@ -74,14 +74,10 @@ export class PrescriptionsService {
     });
   }
 
-  async findOne(id: string, clinicId?: string): Promise<PrescriptionDetail> {
-    const prescription = await this.repository.findById(id);
+  async findOne(id: string, clinicId: string): Promise<PrescriptionDetail> {
+    const prescription = await this.repository.findById(id, clinicId);
 
     if (!prescription) {
-      throw new NotFoundException(`Prescription with ID ${id} not found`);
-    }
-
-    if (clinicId && prescription.patient?.clinic?.id !== clinicId) {
       throw new NotFoundException(`Prescription with ID ${id} not found`);
     }
 
@@ -153,8 +149,15 @@ export class PrescriptionsService {
       });
     }
 
+    if (!data.clinicId) {
+      throw new BadRequestException(
+        'Cannot create prescription without a clinic context',
+      );
+    }
+
     const patient = await this.repository.findPatientWithAllergies(
       data.patientId,
+      data.clinicId,
     );
 
     if (!patient) {
@@ -179,10 +182,10 @@ export class PrescriptionsService {
       }
 
       if (allergyCheck.allWarnings.length > 0) {
-        this.logger.warn(
-          `Prescription created with allergy warnings for patient ${data.patientId}:`,
-          allergyCheck.allWarnings,
-        );
+        this.logger.warn('Prescription created with allergy warnings', {
+          warningCount: allergyCheck.allWarnings.length,
+          medicationsChecked: data.medications.length,
+        });
       }
     }
 
@@ -197,9 +200,10 @@ export class PrescriptionsService {
           validation: dosageValidation,
         });
       } else if (dosageValidation.severity === 'warning') {
-        this.logger.warn(
-          `Dosage warning for ${med.name}: ${dosageValidation.message}`,
-        );
+        this.logger.warn('Dosage warning detected', {
+          severity: dosageValidation.severity,
+          isValid: dosageValidation.isValid,
+        });
       }
     }
 
@@ -263,11 +267,16 @@ export class PrescriptionsService {
 
   async generatePDF(
     id: string,
-    clinicIdOrTimezone?: string,
+    clinicIdOrTimezone: string,
     _locale: string = DEFAULT_LOCALE,
   ): Promise<Buffer> {
-    const isClinicId = clinicIdOrTimezone && !clinicIdOrTimezone.includes('/');
-    const clinicId = isClinicId ? clinicIdOrTimezone : undefined;
+    const isClinicId = !clinicIdOrTimezone.includes('/');
+    if (!isClinicId) {
+      throw new BadRequestException(
+        'Prescription PDF generation requires a clinic context',
+      );
+    }
+    const clinicId = clinicIdOrTimezone;
     const prescription = await this.findOne(id, clinicId);
 
     const patientAge = calculateAge(prescription.patient.dateOfBirth);
@@ -342,7 +351,7 @@ export class PrescriptionsService {
 
   async getPdf(
     id: string,
-    clinicId?: string,
+    clinicId: string,
   ): Promise<
     { type: 'url'; url: string } | { type: 'buffer'; buffer: Buffer }
   > {
@@ -360,6 +369,7 @@ export class PrescriptionsService {
       const buffer = await this.generatePDF(id, clinicId);
       const { storedKey } = await this.uploadAndPersist(
         id,
+        clinicId,
         buffer,
         prescription,
       );
@@ -384,6 +394,7 @@ export class PrescriptionsService {
 
   async uploadAndPersist(
     id: string,
+    clinicId: string,
     buffer: Buffer,
     prescription: PrescriptionDetail,
   ): Promise<{ storedKey: string; generatedAt: Date }> {
@@ -407,11 +418,15 @@ export class PrescriptionsService {
       },
     );
 
-    await this.repository.update(id, {
-      pdfUrl: storedKey,
-      pdfGeneratedAt: generatedAt,
-      pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
-    });
+    await this.repository.update(
+      id,
+      {
+        pdfUrl: storedKey,
+        pdfGeneratedAt: generatedAt,
+        pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
+      },
+      clinicId,
+    );
 
     return { storedKey, generatedAt };
   }

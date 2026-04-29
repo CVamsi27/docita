@@ -19,10 +19,12 @@ export interface IInventoryRepository {
   updateItem(
     id: string,
     data: Prisma.InventoryItemUpdateInput,
+    clinicId: string,
   ): Promise<InventoryItem>;
 
   addMovementAndUpdateQuantity(
     itemId: string,
+    clinicId: string,
     movementData: Prisma.InventoryMovementCreateInput,
     quantityDelta: number,
   ): Promise<InventoryMovement>;

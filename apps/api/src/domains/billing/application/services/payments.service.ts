@@ -73,7 +73,10 @@ export class PaymentsService {
       return session;
     }
 
-    const invoice = await this.invoiceRepository.findById(dto.invoiceId);
+    const invoice = await this.invoiceRepository.findById(
+      dto.invoiceId,
+      dto.clinicId,
+    );
     const patient = invoice?.patient;
     const customerName = `${patient?.firstName || ''} ${
       patient?.lastName || ''
@@ -128,8 +131,8 @@ export class PaymentsService {
     return session;
   }
 
-  async sendPaymentLinkWhatsApp(sessionId: string) {
-    const session = await this.repository.findById(sessionId);
+  async sendPaymentLinkWhatsApp(sessionId: string, clinicId: string) {
+    const session = await this.repository.findById(sessionId, clinicId);
     if (!session || !session.patient || !session.clinic) {
       return;
     }
@@ -173,7 +176,7 @@ export class PaymentsService {
     const session = await this.createPaymentSession(dto);
 
     if (dto.paymentMode !== 'CASH' && dto.sendWhatsApp !== false) {
-      await this.sendPaymentLinkWhatsApp(session.id);
+      await this.sendPaymentLinkWhatsApp(session.id, dto.clinicId);
     }
 
     return {
@@ -186,8 +189,8 @@ export class PaymentsService {
   }
 
   async verifySessionOwnership(sessionId: string, clinicId: string) {
-    const session = await this.repository.findById(sessionId);
-    if (!session || session.clinicId !== clinicId) {
+    const session = await this.repository.findById(sessionId, clinicId);
+    if (!session) {
       throw new BadRequestException(
         'Payment session not found or access denied',
       );
@@ -195,8 +198,8 @@ export class PaymentsService {
     return session;
   }
 
-  async getPaymentSession(sessionId: string) {
-    const session = await this.repository.findById(sessionId);
+  async getPaymentSession(sessionId: string, clinicId: string) {
+    const session = await this.repository.findById(sessionId, clinicId);
     if (!session) {
       throw new BadRequestException('Payment session not found');
     }
@@ -211,14 +214,19 @@ export class PaymentsService {
     amount?: number;
     notes?: string;
   }) {
-    const invoice = await this.invoiceRepository.findById(data.invoiceId);
-    if (!invoice || invoice.patient?.clinic?.id !== data.clinicId) {
+    const invoice = await this.invoiceRepository.findById(
+      data.invoiceId,
+      data.clinicId,
+    );
+    if (!invoice) {
       throw new NotFoundException('Invoice not found');
     }
 
-    await this.invoiceRepository.update(invoice.id, {
-      status: InvoiceStatus.PAID,
-    });
+    await this.invoiceRepository.update(
+      invoice.id,
+      { status: InvoiceStatus.PAID },
+      data.clinicId,
+    );
 
     if (!invoice.patientId) {
       throw new BadRequestException(
@@ -255,8 +263,11 @@ export class PaymentsService {
     return { success: true };
   }
 
-  handleRazorpayWebhook(_payload: PaymentWebhookPayload, signature: string) {
-    this.logger.log(`Received Razorpay webhook with signature: ${signature}`);
+  handleRazorpayWebhook(payload: PaymentWebhookPayload, signature: string) {
+    this.logger.log('Received Razorpay webhook', {
+      event: payload?.event,
+      signaturePresent: typeof signature === 'string' && signature.length > 0,
+    });
 
     return { status: 'ok' };
   }
