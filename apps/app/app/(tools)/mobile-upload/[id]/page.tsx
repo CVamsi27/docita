@@ -30,6 +30,7 @@ export default function MobileUploadPage() {
         {
           method: "POST",
           body: formData,
+          suppressGlobalErrorToast: true,
         },
       );
     },

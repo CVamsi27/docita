@@ -16,6 +16,7 @@ export interface RequestConfig extends RequestInit {
   timeout?: number;
   retries?: number;
   skipAuth?: boolean;
+  suppressGlobalErrorToast?: boolean;
 }
 
 export interface APIError extends Error {

@@ -74,9 +74,7 @@ const normalizeAppointmentQueryOptions = (
   return Object.fromEntries(normalizedEntries) as AppointmentQueryOptions;
 };
 
-export const useAppointments = (
-  options?: AppointmentQueryOptions | null,
-) => {
+export const useAppointments = (options?: AppointmentQueryOptions | null) => {
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   const url = withQueryString("/appointments", normalizedOptions);
 
@@ -118,6 +116,7 @@ export const useCreateAppointment = () =>
     "POST",
     {
       invalidateKeys: [queryKeys.appointments.all()],
+      suppressGlobalErrorToast: true,
     },
   );
 
@@ -130,6 +129,7 @@ export const useUpdateAppointment = (id: string) =>
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
       ],
+      suppressGlobalErrorToast: true,
     },
   );
 

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   StorageProvider,
@@ -56,6 +60,14 @@ export class UploadsService {
 
     if (!session) {
       throw new NotFoundException('Session not found');
+    }
+
+    if (session.expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException('This upload link has expired');
+    }
+
+    if (session.status === 'uploaded' || session.fileUrl) {
+      throw new BadRequestException('This upload link has already been used');
     }
 
     const modifiedAt = new Date().toISOString();

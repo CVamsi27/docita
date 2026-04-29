@@ -13,6 +13,7 @@ import { AppointmentFormFields } from "@/features/appointments/components/sectio
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
 import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
 import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface AddAppointmentDialogUIProps {
   open: boolean;
@@ -70,9 +71,18 @@ export function AddAppointmentDialogUI({
   startHour,
   endHour,
 }: AddAppointmentDialogUIProps) {
-  const handleSubmit = form.handleSubmit((data) => {
-    onSubmit(data, () => onOpenChange(false));
-  });
+  const handleSubmit = form.handleSubmit(
+    (data) => {
+      onSubmit(data, () => onOpenChange(false));
+    },
+    () => {
+      showUserFacingErrorToast(
+        "Please check the highlighted fields and try again.",
+        "Please check the highlighted fields and try again.",
+        "form",
+      );
+    },
+  );
 
   return (
     <FormDialog
