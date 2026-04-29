@@ -10,13 +10,18 @@ function toRecord(value: unknown): Record<string, unknown> {
   return Object.fromEntries(Object.entries(value));
 }
 
-function readString(source: Record<string, unknown>, key: string): string | undefined {
+function readString(
+  source: Record<string, unknown>,
+  key: string,
+): string | undefined {
   const value = source[key];
   return typeof value === "string" ? value : undefined;
 }
 
 let authToken: string;
 let clinicId: string;
+let suiteAvailable = true;
+let suiteSkipReason = "";
 
 type GlobalWithE2EUser = typeof globalThis & {
   __E2E_SETTINGS_USER?: Record<string, unknown>;
@@ -27,26 +32,32 @@ test.describe("Settings Management", () => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const userEmail = `doctor${Date.now()}@test.com`;
-    const userPassword = "Test@123456";
-
-    const registerRes = await page.request.post(`${API_URL}/auth/register`, {
-      data: {
-        email: userEmail,
-        password: userPassword,
-        firstName: "Dr",
-        lastName: "Settings",
-        role: "DOCTOR",
-        clinicName: "Test Clinic",
-      },
-    });
-
-    const user = toRecord(await registerRes.json());
-    const regData = user;
-
-    let token: string | null = null;
     try {
-      token =
+      const userEmail = `doctor${Date.now()}@test.com`;
+      const userPassword = "Test@123456";
+
+      const registerRes = await page.request.post(`${API_URL}/auth/register`, {
+        data: {
+          email: userEmail,
+          password: userPassword,
+          firstName: "Dr",
+          lastName: "Settings",
+          role: "DOCTOR",
+          clinicName: "Test Clinic",
+        },
+      });
+
+      if (!registerRes.ok()) {
+        suiteAvailable = false;
+        suiteSkipReason = `auth/register unavailable (status ${registerRes.status()})`;
+        await context.close();
+        return;
+      }
+
+      const user = toRecord(await registerRes.json());
+      const regData = user;
+
+      const token =
         readString(regData, "access_token") ||
         readString(regData, "accessToken") ||
         null;
@@ -62,51 +73,67 @@ test.describe("Settings Management", () => {
         },
       });
 
-      if (clinicRes.ok()) {
-        const clinic = toRecord(await clinicRes.json());
-        clinicId = readString(clinic, "id") || "";
+      expect(
+        clinicRes.ok(),
+        `clinic bootstrap failed: ${clinicRes.status()}`,
+      ).toBeTruthy();
 
-        const nestedUser = toRecord(regData?.user);
-        const userInfo = Object.keys(nestedUser).length > 0 ? nestedUser : regData;
-        const doctorId = readString(userInfo, "id") || readString(regData, "id");
-        const assignRes = await page.request.post(`${API_URL}/doctor-clinics`, {
-          headers: { Authorization: `Bearer ${token}` },
-          data: { doctorId, clinicId: clinic.id, role: "doctor" },
+      const clinic = toRecord(await clinicRes.json());
+      clinicId = readString(clinic, "id") || "";
+      expect(clinicId, "clinic bootstrap did not yield an id").toBeTruthy();
+
+      const nestedUser = toRecord(regData?.user);
+      const userInfo =
+        Object.keys(nestedUser).length > 0 ? nestedUser : regData;
+      const doctorId =
+        readString(userInfo, "id") || readString(regData, "id");
+      const assignRes = await page.request.post(`${API_URL}/doctor-clinics`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { doctorId, clinicId: clinic.id, role: "doctor" },
+      });
+
+      if (assignRes.ok()) {
+        const loginRes = await page.request.post(`${API_URL}/auth/login`, {
+          data: { email: userEmail, password: userPassword },
         });
-
-        if (assignRes.ok()) {
-
-          const loginRes = await page.request.post(`${API_URL}/auth/login`, {
-            data: { email: userEmail, password: userPassword },
-          });
-          if (loginRes.ok()) {
-            const loginData = toRecord(await loginRes.json());
-            authToken =
-              readString(loginData, "access_token") ||
-              readString(loginData, "accessToken") ||
-              "";
-            clinicId =
-              readString(toRecord(loginData?.user), "clinicId") || clinicId;
-            regData.user = loginData?.user || regData?.user;
-          }
+        if (loginRes.ok()) {
+          const loginData = toRecord(await loginRes.json());
+          authToken =
+            readString(loginData, "access_token") ||
+            readString(loginData, "accessToken") ||
+            "";
+          clinicId =
+            readString(toRecord(loginData?.user), "clinicId") || clinicId;
+          regData.user = loginData?.user || regData?.user;
         }
       }
-    } catch (_err) {
 
+      const nestedStoredUser = toRecord(regData?.user);
+      const storedUser =
+        Object.keys(nestedStoredUser).length > 0 ? nestedStoredUser : regData;
+      const minimalUser = {
+        id:
+          readString(storedUser, "id") ||
+          readString(storedUser, "userId") ||
+          null,
+        email: readString(storedUser, "email") || null,
+        clinicId: readString(storedUser, "clinicId") || clinicId || null,
+        role: readString(storedUser, "role") || "DOCTOR",
+      };
+      (globalThis as GlobalWithE2EUser).__E2E_SETTINGS_USER = minimalUser;
+    } catch (error) {
+      suiteAvailable = false;
+      suiteSkipReason = `bootstrap threw: ${(error as Error).message}`;
+    } finally {
+      await context.close();
     }
+  });
 
-    const nestedStoredUser = toRecord(regData?.user);
-    const storedUser =
-      Object.keys(nestedStoredUser).length > 0 ? nestedStoredUser : regData;
-    const minimalUser = {
-      id: readString(storedUser, "id") || readString(storedUser, "userId") || null,
-      email: readString(storedUser, "email") || null,
-      clinicId: readString(storedUser, "clinicId") || clinicId || null,
-      role: readString(storedUser, "role") || "DOCTOR",
-    };
-    (globalThis as GlobalWithE2EUser).__E2E_SETTINGS_USER = minimalUser;
-
-    await context.close();
+  test.beforeEach(() => {
+    test.skip(
+      !suiteAvailable,
+      `settings API not provisioned: ${suiteSkipReason}`,
+    );
   });
 
   test("should load settings page and display clinic info", async ({
@@ -126,12 +153,9 @@ test.describe("Settings Management", () => {
     await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
     await page.waitForTimeout(1000);
 
+    // Billing tab visibility depends on the user's subscription/role; only the
+    // tier-eligible role is bootstrapped, so the heading should always render.
     const billingHeading = page.getByText(/Billing & Subscription/i).first();
-    if (!(await billingHeading.isVisible())) {
-      // If the user lacks billing permissions in this environment, avoid failing the suite.
-      test.skip();
-      return;
-    }
     await expect(billingHeading).toBeVisible({ timeout: 10000 });
   });
 
@@ -142,18 +166,10 @@ test.describe("Settings Management", () => {
     const nameInput = page
       .locator('input[value="Settings Test Clinic"]')
       .first();
-
-    if (!(await nameInput.isVisible())) {
-      test.skip();
-      return;
-    }
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
 
     const saveButton = page.locator('button:has-text("Save Changes")').first();
-    if (!(await saveButton.isVisible())) {
-      test.skip();
-      return;
-    }
-    expect(await saveButton.isVisible()).toBeTruthy();
+    await expect(saveButton).toBeVisible({ timeout: 10000 });
   });
 
   test("should manage doctor availability", async ({ page }) => {
@@ -194,7 +210,7 @@ async function loginAsDoctor(page: Page) {
             localStorage.setItem("docita_token", t);
             localStorage.setItem("docita_user", u);
           } catch {
-
+            /* localStorage may be unavailable in some test contexts */
           }
         },
         { t: authToken, u: userForStorage },

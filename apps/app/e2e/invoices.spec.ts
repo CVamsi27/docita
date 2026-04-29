@@ -6,11 +6,11 @@ test.describe("Invoices", () => {
   let authToken: string;
   let _clinicId: string;
   let patientId: string = "";
-  let invoiceEndpointAvailable = true;
+  let suiteAvailable = true;
+  let suiteSkipReason = "";
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-
       const email = `doctor${Date.now()}@test.com`;
       const password = "Test@123456";
       const registerRes = await request.post(`${API_URL}/auth/register`, {
@@ -25,8 +25,8 @@ test.describe("Invoices", () => {
       });
 
       if (!registerRes.ok()) {
-
-        invoiceEndpointAvailable = false;
+        suiteAvailable = false;
+        suiteSkipReason = `auth/register unavailable (status ${registerRes.status()})`;
         return;
       }
 
@@ -44,11 +44,10 @@ test.describe("Invoices", () => {
         },
       });
 
-      if (!clinicRes.ok()) {
-
-        invoiceEndpointAvailable = false;
-        return;
-      }
+      expect(
+        clinicRes.ok(),
+        `clinic bootstrap failed: ${clinicRes.status()}`,
+      ).toBeTruthy();
 
       const clinic = await clinicRes.json();
       _clinicId = clinic.id;
@@ -63,18 +62,13 @@ test.describe("Invoices", () => {
           },
         });
 
-        if (!assignRes.ok()) {
-
-        } else {
-
+        if (assignRes.ok()) {
           const loginRes = await request.post(`${API_URL}/auth/login`, {
             data: { email, password },
           });
           if (loginRes.ok()) {
             const loginData = await loginRes.json();
             authToken = loginData.access_token;
-          } else {
-            
           }
         }
       }
@@ -93,25 +87,32 @@ test.describe("Invoices", () => {
           phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, "0"),
         },
       });
-      if (patientRes.ok()) {
-        const patient = await patientRes.json();
-        patientId = patient.id;
-      }
+      expect(
+        patientRes.ok(),
+        `patient bootstrap failed: ${patientRes.status()}`,
+      ).toBeTruthy();
+      const patient = await patientRes.json();
+      patientId = patient.id;
 
-      invoiceEndpointAvailable = testRes.ok();
-      if (!invoiceEndpointAvailable) {
-        
+      if (!testRes.ok()) {
+        suiteAvailable = false;
+        suiteSkipReason = `GET /invoices unavailable (status ${testRes.status()})`;
       }
-    } catch {
-
-      invoiceEndpointAvailable = false;
+    } catch (error) {
+      suiteAvailable = false;
+      suiteSkipReason = `bootstrap threw: ${(error as Error).message}`;
     }
   });
 
+  test.beforeEach(() => {
+    test.skip(
+      !suiteAvailable,
+      `invoices API not provisioned: ${suiteSkipReason}`,
+    );
+  });
+
   test("should create invoice successfully", async ({ request }) => {
-    if (!invoiceEndpointAvailable || !patientId) {
-      test.skip();
-    }
+    expect(patientId, "patient bootstrap did not yield an id").toBeTruthy();
 
     const invoiceRes = await request.post(`${API_URL}/invoices`, {
       headers: { Authorization: `Bearer ${authToken}` },
@@ -128,32 +129,26 @@ test.describe("Invoices", () => {
         ],
       },
     });
-
-    if (!invoiceRes.ok()) {
-      
-      test.skip();
-    }
+    expect(
+      invoiceRes.ok(),
+      `POST /invoices failed: ${invoiceRes.status()}`,
+    ).toBeTruthy();
 
     const invoice = await invoiceRes.json();
     expect(invoice.id).toBeDefined();
-    if (invoice.total) {
+    if (invoice.total !== undefined) {
       expect(invoice.total).toBe(5000);
     }
   });
 
   test("should fetch invoice list", async ({ request }) => {
-    if (!invoiceEndpointAvailable) {
-      test.skip();
-    }
-
     const invoiceList = await request.get(`${API_URL}/invoices`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (!invoiceList.ok()) {
-
-      test.skip();
-    }
+    expect(
+      invoiceList.ok(),
+      `GET /invoices failed: ${invoiceList.status()}`,
+    ).toBeTruthy();
 
     const invoices = await invoiceList.json();
 
@@ -163,9 +158,7 @@ test.describe("Invoices", () => {
   });
 
   test("should fetch specific invoice", async ({ request }) => {
-    if (!invoiceEndpointAvailable || !patientId) {
-      test.skip();
-    }
+    expect(patientId, "patient bootstrap did not yield an id").toBeTruthy();
 
     const createRes = await request.post(`${API_URL}/invoices`, {
       headers: { Authorization: `Bearer ${authToken}` },
@@ -182,31 +175,27 @@ test.describe("Invoices", () => {
         ],
       },
     });
-
-    if (!createRes.ok()) {
-      
-      test.skip();
-    }
+    expect(
+      createRes.ok(),
+      `POST /invoices failed: ${createRes.status()}`,
+    ).toBeTruthy();
 
     const invoice = await createRes.json();
 
     const fetchRes = await request.get(`${API_URL}/invoices/${invoice.id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (!fetchRes.ok()) {
-
-      test.skip();
-    }
+    expect(
+      fetchRes.ok(),
+      `GET /invoices/:id failed: ${fetchRes.status()}`,
+    ).toBeTruthy();
 
     const fetched = await fetchRes.json();
     expect(fetched.id).toBe(invoice.id);
   });
 
   test("should update invoice status", async ({ request }) => {
-    if (!invoiceEndpointAvailable || !patientId) {
-      test.skip();
-    }
+    expect(patientId, "patient bootstrap did not yield an id").toBeTruthy();
 
     const createRes = await request.post(`${API_URL}/invoices`, {
       headers: { Authorization: `Bearer ${authToken}` },
@@ -223,6 +212,10 @@ test.describe("Invoices", () => {
         ],
       },
     });
+    expect(
+      createRes.ok(),
+      `POST /invoices failed: ${createRes.status()}`,
+    ).toBeTruthy();
 
     const invoice = await createRes.json();
 
@@ -232,10 +225,12 @@ test.describe("Invoices", () => {
         status: "PAID",
       },
     });
+    expect(
+      updateRes.ok(),
+      `PATCH /invoices/:id failed: ${updateRes.status()}`,
+    ).toBeTruthy();
 
-    if (updateRes.ok()) {
-      const updated = await updateRes.json();
-      expect(updated.id).toBe(invoice.id);
-    }
+    const updated = await updateRes.json();
+    expect(updated.id).toBe(invoice.id);
   });
 });
