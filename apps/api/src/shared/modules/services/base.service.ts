@@ -16,9 +16,9 @@ export interface OperationContext {
 
 type ServiceModelDelegate<TItem> = {
   findMany: (args?: Record<string, unknown>) => Promise<TItem[]>;
-  findUnique: (args?: Record<string, unknown>) => Promise<TItem | null>;
+  findFirst: (args?: Record<string, unknown>) => Promise<TItem | null>;
   count: (args?: { where?: Record<string, unknown> }) => Promise<number>;
-  delete: (args?: Record<string, unknown>) => Promise<TItem>;
+  deleteMany: (args?: Record<string, unknown>) => Promise<{ count: number }>;
 };
 
 export abstract class BaseService<T> {
@@ -42,9 +42,9 @@ export abstract class BaseService<T> {
     const candidate = value as Partial<ServiceModelDelegate<T>>;
     return (
       typeof candidate.findMany === 'function' &&
-      typeof candidate.findUnique === 'function' &&
+      typeof candidate.findFirst === 'function' &&
       typeof candidate.count === 'function' &&
-      typeof candidate.delete === 'function'
+      typeof candidate.deleteMany === 'function'
     );
   }
 
@@ -114,7 +114,7 @@ export abstract class BaseService<T> {
   }
 
   async findOne(id: string): Promise<T> {
-    const entity = await this.model.findUnique({
+    const entity = await this.model.findFirst({
       where: { id },
       select: this.getDetailSelect(),
     });
@@ -127,7 +127,7 @@ export abstract class BaseService<T> {
   }
 
   async findOneOrNull(id: string): Promise<T | null> {
-    return this.model.findUnique({
+    return this.model.findFirst({
       where: { id },
       select: this.getDetailSelect(),
     });
@@ -139,7 +139,11 @@ export abstract class BaseService<T> {
   }
 
   async delete(id: string): Promise<T> {
-    await this.findOne(id);
-    return this.model.delete({ where: { id } });
+    const entity = await this.findOne(id);
+    const result = await this.model.deleteMany({ where: { id } });
+    if (result.count === 0) {
+      this.throwNotFound(id);
+    }
+    return entity;
   }
 }

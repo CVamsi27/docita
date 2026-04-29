@@ -31,11 +31,13 @@ describe('AppointmentService metric persistence', () => {
 
   const mockPrisma = {
     appointment: {
-      findUnique: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
-      update: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     vitalSign: {
-      upsert: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      updateMany: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+      create: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
     },
     metricCategory: {
       findFirst: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
@@ -92,13 +94,14 @@ describe('AppointmentService metric persistence', () => {
   });
 
   it('batches vitals metric writes in a single transaction', async () => {
-    mockPrisma.appointment.findUnique.mockResolvedValue({
+    mockPrisma.appointment.findFirst.mockResolvedValue({
       id: 'apt-1',
       clinicId: 'clinic-1',
       patientId: 'patient-1',
       doctorId: 'doctor-1',
     });
-    mockPrisma.vitalSign.upsert.mockResolvedValue({ id: 'vital-1' });
+    mockPrisma.vitalSign.updateMany.mockResolvedValue({ count: 0 });
+    mockPrisma.vitalSign.create.mockResolvedValue({ id: 'vital-1' });
     mockPrisma.metricDefinition.findMany
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
@@ -127,13 +130,13 @@ describe('AppointmentService metric persistence', () => {
   });
 
   it('batches observation metrics for appointment detail updates', async () => {
-    mockPrisma.appointment.findUnique.mockResolvedValue({
+    mockPrisma.appointment.findFirst.mockResolvedValue({
       id: 'apt-2',
       clinicId: 'clinic-1',
       patientId: 'patient-1',
       doctorId: 'doctor-1',
     });
-    mockPrisma.appointment.update.mockResolvedValue({});
+    mockPrisma.appointment.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.metricDefinition.findMany
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([

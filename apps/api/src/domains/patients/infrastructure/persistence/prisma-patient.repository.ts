@@ -18,7 +18,7 @@ export class PrismaPatientRepository implements IPatientRepository {
 
   async findById(id: string): Promise<Patient | null> {
     const readClient = this.getReadClient();
-    const item = await readClient.patient.findUnique({
+    const item = await readClient.patient.findFirst({
       where: { id },
     });
     if (!item) return null;
@@ -89,16 +89,19 @@ export class PrismaPatientRepository implements IPatientRepository {
     if (!id || typeof id !== 'string') {
       throw new Error('Patient id is required for update');
     }
-    await this.prisma.patient.update({
+    const result = await this.prisma.patient.updateMany({
       where: { id },
       data: {
         ...(updateData as Prisma.PatientUncheckedUpdateInput),
         version: { increment: 1 },
       },
     });
+    if (result.count === 0) {
+      throw new Error(`Patient ${id} not found`);
+    }
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.patient.delete({ where: { id } });
+    await this.prisma.patient.deleteMany({ where: { id } });
   }
 }

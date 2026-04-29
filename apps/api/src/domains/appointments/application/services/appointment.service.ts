@@ -113,7 +113,7 @@ export class AppointmentService {
     clinicId: string,
     accessContext?: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.prisma.appointment.findFirst({
       where: { id },
       select: {
         id: true,
@@ -163,13 +163,16 @@ export class AppointmentService {
 
     await this.prisma.$transaction(async (tx) => {
       if (appointment.status !== 'IN_PROGRESS') {
-        await tx.appointment.update({
-          where: { id },
+        const result = await tx.appointment.updateMany({
+          where: { id, clinicId },
           data: {
             status: 'IN_PROGRESS',
             version: { increment: 1 },
           },
         });
+        if (result.count === 0) {
+          throw new NotFoundException(`Appointment with ID ${id} not found`);
+        }
       }
 
       if (appointment.queueToken) {
@@ -263,7 +266,7 @@ export class AppointmentService {
     data: Partial<UpdateAppointmentRequest>,
     accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.prisma.appointment.findFirst({
       where: { id },
       select: { id: true, clinicId: true, patientId: true, doctorId: true },
     });
@@ -288,13 +291,16 @@ export class AppointmentService {
 
     const prismaPatch = this.toPrismaAppointmentUpdate(data);
 
-    await this.prisma.appointment.update({
-      where: { id },
+    const result = await this.prisma.appointment.updateMany({
+      where: { id, clinicId },
       data: {
         ...prismaPatch,
         version: { increment: 1 },
       },
     });
+    if (result.count === 0) {
+      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
 
     const observations =
       typeof data.observations === 'string' ? data.observations.trim() : '';
@@ -358,7 +364,7 @@ export class AppointmentService {
     diagnoses: DiagnosisSyncItem[],
     requestHash?: string,
   ): Promise<{ contentHash: string; skipped: boolean; count: number }> {
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.prisma.appointment.findFirst({
       where: { id: appointmentId },
       select: { id: true, clinicId: true },
     });
@@ -436,7 +442,7 @@ export class AppointmentService {
     data: Partial<VitalSign>,
     accessContext?: AppointmentAccessContext,
   ): Promise<VitalSign> {
-    const appointment = await this.prisma.appointment.findUnique({
+    const appointment = await this.prisma.appointment.findFirst({
       where: { id: appointmentId },
       select: {
         id: true,
@@ -468,14 +474,27 @@ export class AppointmentService {
 
     const payload = this.cleanVitalsPayload(data);
 
-    const vital = await this.prisma.vitalSign.upsert({
-      where: { appointmentId },
-      update: payload,
-      create: {
-        appointmentId,
-        ...payload,
-      },
+    const updated = await this.prisma.vitalSign.updateMany({
+      where: { appointmentId, clinicId },
+      data: payload,
     });
+
+    const vital =
+      updated.count > 0
+        ? await this.prisma.vitalSign.findFirst({ where: { appointmentId } })
+        : await this.prisma.vitalSign.create({
+            data: {
+              appointmentId,
+              clinicId,
+              ...payload,
+            },
+          });
+
+    if (!vital) {
+      throw new NotFoundException(
+        `Vitals for appointment ${appointmentId} not found`,
+      );
+    }
 
     await this.recordVitalsMetrics({
       clinicId,

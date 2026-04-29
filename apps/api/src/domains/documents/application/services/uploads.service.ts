@@ -34,7 +34,7 @@ export class UploadsService {
   }
 
   async getSession(id: string) {
-    const session = await this.prisma.uploadSession.findUnique({
+    const session = await this.prisma.uploadSession.findFirst({
       where: { id },
     });
 
@@ -50,7 +50,7 @@ export class UploadsService {
     file: StorageFile,
     context?: UploadSessionContext,
   ) {
-    const session = await this.prisma.uploadSession.findUnique({
+    const session = await this.prisma.uploadSession.findFirst({
       where: { id },
     });
 
@@ -75,19 +75,29 @@ export class UploadsService {
       },
     });
 
-    const updated = await this.prisma.uploadSession.update({
+    const updateResult = await this.prisma.uploadSession.updateMany({
       where: { id },
       data: {
         status: 'uploaded',
         fileUrl,
       },
     });
+    if (updateResult.count === 0) {
+      throw new NotFoundException('Session not found');
+    }
+
+    const updated = await this.prisma.uploadSession.findFirst({
+      where: { id },
+    });
+    if (!updated) {
+      throw new NotFoundException('Session not found');
+    }
 
     if (
       session.purpose === UploadSessionPurpose.DOCTOR_SIGNATURE &&
       session.doctorId
     ) {
-      await this.prisma.user.update({
+      await this.prisma.user.updateMany({
         where: { id: session.doctorId },
         data: {
           signatureUrl: fileUrl,

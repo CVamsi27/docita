@@ -13,7 +13,7 @@ describe('AppointmentService.syncDiagnoses', () => {
     prependListener: jest.fn(),
   } as unknown as EventEmitter2;
 
-  const findUniqueMock =
+  const findFirstMock =
     jest.fn<
       (...args: unknown[]) => Promise<{ id: string; clinicId: string } | null>
     >();
@@ -40,7 +40,7 @@ describe('AppointmentService.syncDiagnoses', () => {
 
   const prisma = {
     appointment: {
-      findUnique: findUniqueMock,
+      findFirst: findFirstMock,
     },
     diagnosis: {
       findMany: findManyMock,
@@ -59,7 +59,7 @@ describe('AppointmentService.syncDiagnoses', () => {
   );
 
   it('marks the first coded diagnosis as primary after uncoded rows are filtered out', async () => {
-    findUniqueMock.mockResolvedValue({
+    findFirstMock.mockResolvedValue({
       id: 'appt-1',
       clinicId: 'clinic-1',
     });
@@ -105,7 +105,7 @@ describe('AppointmentService.syncDiagnoses', () => {
   });
 
   it('skips the write when the stored diagnoses already match the requested set', async () => {
-    findUniqueMock.mockResolvedValue({
+    findFirstMock.mockResolvedValue({
       id: 'appt-2',
       clinicId: 'clinic-1',
     });
