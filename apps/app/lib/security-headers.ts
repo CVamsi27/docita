@@ -50,6 +50,7 @@ const CONNECT_SOURCES = [
   "https://checkout.razorpay.com",
   "https://lumberjack.razorpay.com",
   "https://*.sentry.io",
+  "https://ipapi.co",
   DEFAULT_PUBLIC_API_URL,
   DEFAULT_PUBLIC_SOCKET_URL,
   ...SOCKET_SOURCES.map(toWebSocketOrigin),
