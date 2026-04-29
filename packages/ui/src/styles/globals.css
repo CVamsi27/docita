@@ -72,6 +72,18 @@
   --surface-2: oklch(0.975 0.004 247);
   --surface-3: oklch(0.955 0.006 248);
 
+  /* Tag color ramp — perceptually balanced, design-system controlled.
+     Keep this list small and expressive instead of an open-ended hex palette. */
+  --tag-rose: oklch(0.65 0.21 22);
+  --tag-amber: oklch(0.78 0.16 70);
+  --tag-emerald: oklch(0.66 0.16 155);
+  --tag-teal: oklch(0.68 0.13 185);
+  --tag-sky: oklch(0.7 0.13 230);
+  --tag-indigo: oklch(0.55 0.17 270);
+  --tag-violet: oklch(0.6 0.18 300);
+  --tag-pink: oklch(0.7 0.19 350);
+  --tag-slate: oklch(0.55 0.04 260);
+
   /* Typography scale */
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -143,6 +155,17 @@
   --surface-1: var(--card);
   --surface-2: oklch(0.155 0.025 261);
   --surface-3: oklch(0.185 0.028 261);
+
+  /* Tag color ramp — slightly lifted for dark mode contrast. */
+  --tag-rose: oklch(0.7 0.2 22);
+  --tag-amber: oklch(0.82 0.16 70);
+  --tag-emerald: oklch(0.72 0.15 155);
+  --tag-teal: oklch(0.74 0.12 185);
+  --tag-sky: oklch(0.76 0.12 230);
+  --tag-indigo: oklch(0.65 0.16 270);
+  --tag-violet: oklch(0.68 0.17 300);
+  --tag-pink: oklch(0.76 0.18 350);
+  --tag-slate: oklch(0.7 0.04 260);
 }
 
 .dark {

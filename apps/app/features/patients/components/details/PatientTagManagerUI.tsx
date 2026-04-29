@@ -34,6 +34,11 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import {
+  TAG_COLOR_PALETTE,
+  getTagColorName,
+  resolveTagColor,
+} from "./tag-colors";
 
 export interface PatientTag {
   id: string;
@@ -63,26 +68,10 @@ interface PatientTagManagerUIProps {
   hasTag: (tagName: string) => boolean;
 }
 
-const COLOR_PALETTE = [
-  { name: "Red", value: "#ef4444" },
-  { name: "Orange", value: "#f97316" },
-  { name: "Amber", value: "#f59e0b" },
-  { name: "Yellow", value: "#eab308" },
-  { name: "Lime", value: "#84cc16" },
-  { name: "Green", value: "#22c55e" },
-  { name: "Emerald", value: "#10b981" },
-  { name: "Teal", value: "#14b8a6" },
-  { name: "Cyan", value: "#06b6d4" },
-  { name: "Sky", value: "#0ea5e9" },
-  { name: "Blue", value: "#3b82f6" },
-  { name: "Indigo", value: "#6366f1" },
-  { name: "Violet", value: "#8b5cf6" },
-  { name: "Purple", value: "#a855f7" },
-  { name: "Fuchsia", value: "#d946ef" },
-  { name: "Pink", value: "#ec4899" },
-  { name: "Rose", value: "#f43f5e" },
-  { name: "Slate", value: "#64748b" },
-];
+const COLOR_PALETTE = TAG_COLOR_PALETTE.map((entry) => ({
+  name: entry.name,
+  value: entry.cssVar,
+}));
 
 function groupPresetTags(presetTags: PresetTag[]): Record<string, PresetTag[]> {
   const groups: Record<string, PresetTag[]> = {};
@@ -196,8 +185,10 @@ export function PatientTagManagerUI({
           />
           {searchQuery && (
             <button
+              type="button"
+              aria-label="Clear search"
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
             >
               <X className="h-4 w-4" />
             </button>
@@ -239,11 +230,14 @@ export function PatientTagManagerUI({
                           <div className="relative">
                             <button
                               type="button"
+                              aria-label={`Choose color (currently ${getTagColorName(editTagColor)})`}
                               onClick={() =>
                                 setEditShowColorPicker(!editShowColorPicker)
                               }
                               className="h-8 w-8 rounded-md border-2 border-border"
-                              style={{ backgroundColor: editTagColor }}
+                              style={{
+                                backgroundColor: resolveTagColor(editTagColor),
+                              }}
                             />
                             {editShowColorPicker && (
                               <div className="absolute top-10 right-0 z-50 p-2 bg-popover border rounded-lg shadow-lg">
@@ -251,21 +245,22 @@ export function PatientTagManagerUI({
                                   {COLOR_PALETTE.map((color) => (
                                     <Tooltip key={color.value}>
                                       <TooltipTrigger asChild>
-                                          <button
-                                            type="button"
-                                            className={`h-6 w-6 rounded-md transition-colors duration-150 ${
-                                              editTagColor === color.value
-                                                ? "ring-2 ring-primary ring-offset-2"
-                                                : "hover:opacity-80"
-                                            }`}
-                                            style={{
-                                              backgroundColor: color.value,
-                                            }}
-                                            onClick={() => {
-                                              setEditTagColor(color.value);
-                                              setEditShowColorPicker(false);
-                                            }}
-                                          />
+                                        <button
+                                          type="button"
+                                          aria-label={`Use ${color.name}`}
+                                          className={`h-6 w-6 rounded-md transition-colors duration-150 ${
+                                            editTagColor === color.value
+                                              ? "ring-2 ring-primary ring-offset-2"
+                                              : "hover:opacity-80"
+                                          }`}
+                                          style={{
+                                            backgroundColor: color.value,
+                                          }}
+                                          onClick={() => {
+                                            setEditTagColor(color.value);
+                                            setEditShowColorPicker(false);
+                                          }}
+                                        />
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         {color.name}
@@ -280,6 +275,7 @@ export function PatientTagManagerUI({
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0"
+                            aria-label="Save tag"
                             onClick={saveEdit}
                           >
                             <Check className="h-4 w-4 text-success" />
@@ -288,6 +284,7 @@ export function PatientTagManagerUI({
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0"
+                            aria-label="Cancel edit"
                             onClick={cancelEditing}
                           >
                             <X className="h-4 w-4 text-destructive" />
@@ -298,7 +295,9 @@ export function PatientTagManagerUI({
                           <div className="flex items-center gap-3">
                             <div
                               className="h-4 w-4 rounded-full border"
-                              style={{ backgroundColor: tag.color }}
+                              style={{
+                                backgroundColor: resolveTagColor(tag.color),
+                              }}
                             />
                             <span className="font-medium">{tag.tag}</span>
                           </div>
@@ -308,6 +307,7 @@ export function PatientTagManagerUI({
                                 size="sm"
                                 variant="ghost"
                                 className="h-8 w-8 p-0"
+                                aria-label={`Edit tag ${tag.tag}`}
                                 onClick={() => startEditing(tag)}
                               >
                                 <Pencil className="h-4 w-4" />
@@ -317,6 +317,7 @@ export function PatientTagManagerUI({
                               size="sm"
                               variant="ghost"
                               className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              aria-label={`Delete tag ${tag.tag}`}
                               onClick={() => onRemoveTag(tag.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -359,13 +360,16 @@ export function PatientTagManagerUI({
                           <div className="flex flex-wrap gap-2 mt-2">
                             {visibleTags.map((preset) => {
                               const isAdded = hasTag(preset.tag);
+                              const presetColor = resolveTagColor(preset.color);
                               return (
                                 <Badge
                                   key={preset.tag}
                                   variant="outline"
                                   style={{
-                                    borderColor: preset.color,
-                                    color: isAdded ? "#888" : preset.color,
+                                    borderColor: presetColor,
+                                    color: isAdded
+                                      ? "var(--muted-foreground)"
+                                      : presetColor,
                                     opacity: isAdded ? 0.5 : 1,
                                   }}
                                   className={`cursor-pointer transition-colors duration-150 ${
@@ -420,13 +424,13 @@ export function PatientTagManagerUI({
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
+                    aria-label={`Choose color (currently ${getTagColorName(newColor)})`}
                     onClick={() => setShowColorPicker(!showColorPicker)}
                     className="h-10 w-10 rounded-lg border-2 border-border shadow-sm"
-                    style={{ backgroundColor: newColor }}
+                    style={{ backgroundColor: resolveTagColor(newColor) }}
                   />
                   <span className="text-sm text-muted-foreground">
-                    {COLOR_PALETTE.find((c) => c.value === newColor)?.name ||
-                      "Custom"}
+                    {getTagColorName(newColor)}
                   </span>
                 </div>
 
@@ -438,6 +442,7 @@ export function PatientTagManagerUI({
                           <TooltipTrigger asChild>
                             <button
                               type="button"
+                              aria-label={`Use ${color.name}`}
                               className={`h-8 w-8 rounded-md transition-colors duration-150 ${
                                 newColor === color.value
                                   ? "ring-2 ring-primary ring-offset-2"
@@ -454,15 +459,6 @@ export function PatientTagManagerUI({
                         </Tooltip>
                       ))}
                     </div>
-                    <div className="mt-3 flex items-center gap-2">
-                      <Label className="text-xs">Custom:</Label>
-                      <Input
-                        type="color"
-                        value={newColor}
-                        onChange={(e) => onNewColorChange(e.target.value)}
-                        className="h-8 w-16 p-0 border-none"
-                      />
-                    </div>
                   </div>
                 )}
               </div>
@@ -471,8 +467,10 @@ export function PatientTagManagerUI({
                 <div className="space-y-2">
                   <Label>Preview</Label>
                   <Badge
-                    style={{ backgroundColor: newColor }}
-                    className="text-white"
+                    style={{
+                      backgroundColor: resolveTagColor(newColor),
+                      color: "var(--primary-foreground)",
+                    }}
                   >
                     {newTag}
                   </Badge>

@@ -7,6 +7,7 @@ import {
   useRazorpay,
 } from "@/hooks/use-razorpay";
 import { useAuth } from "@/lib/auth-context";
+import { BRAND_FOREGROUND_HEX } from "@/lib/branding";
 import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -104,7 +105,7 @@ export function useSubscriptionCheckout(
             name: user?.name || "Clinic Admin",
             email: user?.email || "",
           },
-          theme: { color: "#0F172A" },
+          theme: { color: BRAND_FOREGROUND_HEX },
         });
       } catch (error: unknown) {
         if (isPaymentCanceledError(error)) {

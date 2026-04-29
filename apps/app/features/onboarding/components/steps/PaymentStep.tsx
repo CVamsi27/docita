@@ -20,6 +20,7 @@ import { api } from "@/lib/api-client";
 import { getSupportContactText } from "@/lib/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
+import { BRAND_PRIMARY_HEX } from "@/lib/branding";
 import type { TierName } from "@workspace/types";
 
 interface PaymentDetails {
@@ -130,7 +131,7 @@ export function PaymentStep({
           email: clinicEmail,
           contact: clinicPhone,
         },
-        theme: { color: "#3b82f6" },
+        theme: { color: BRAND_PRIMARY_HEX },
         modal: {
           ondismiss: () => {
             setIsProcessing(false);
