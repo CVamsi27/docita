@@ -122,7 +122,7 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
   }
 
   async findById(id: string): Promise<Appointment | null> {
-    const item = await this.getReadClient().appointment.findUnique({
+    const item = await this.getReadClient().appointment.findFirst({
       where: { id },
     });
 
@@ -142,17 +142,20 @@ export class PrismaAppointmentRepository implements IAppointmentRepository {
     const data = AppointmentMapper.toPersistence(appointment);
     const { id, ...updateData } = data;
 
-    await this.prisma.appointment.update({
+    const result = await this.prisma.appointment.updateMany({
       where: { id },
       data: {
         ...updateData,
         version: { increment: 1 },
       },
     });
+    if (result.count === 0) {
+      throw new BadRequestException(`Appointment ${id} not found`);
+    }
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.appointment.delete({
+    await this.prisma.appointment.deleteMany({
       where: { id },
     });
   }

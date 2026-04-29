@@ -113,7 +113,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
   }
 
   async findById(id: string): Promise<InvoiceDetail | null> {
-    const invoice = await this.getReadClient().invoice.findUnique({
+    const invoice = await this.getReadClient().invoice.findFirst({
       where: { id },
       select: INVOICE_DETAIL_SELECT,
     });
@@ -132,16 +132,26 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     id: string,
     data: Prisma.InvoiceUpdateInput,
   ): Promise<InvoiceDetail> {
-    const invoice = await this.prisma.invoice.update({
+    const result = await this.prisma.invoice.updateMany({
       where: { id },
       data,
+    });
+    if (result.count === 0) {
+      throw new Error(`Invoice ${id} not found`);
+    }
+
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id },
       select: INVOICE_DETAIL_SELECT,
     });
+    if (!invoice) {
+      throw new Error(`Invoice ${id} not found`);
+    }
     return invoice as InvoiceDetail;
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.invoice.delete({ where: { id } });
+    await this.prisma.invoice.deleteMany({ where: { id } });
   }
 
   async findPatientContext(
