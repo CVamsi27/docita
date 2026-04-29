@@ -74,9 +74,14 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div className="flex items-center gap-4">
           {onBack && (
-            <Button variant="ghost" size="icon" onClick={onBack}
-              className="h-9 w-9 shrink-0 -ml-2 text-muted-foreground hover:text-foreground">
-              <ChevronLeft className="h-5 w-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onBack}
+              aria-label="Back"
+              className="h-9 w-9 shrink-0 -ml-2 text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
           )}
           <div className="h-10 w-10 sm:h-14 sm:w-14 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-base sm:text-lg font-bold text-primary border border-primary/10">

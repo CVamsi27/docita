@@ -3,8 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Calendar, FileText, Loader2, Search, User, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Calendar,
+  FileText,
+  Loader2,
+  Search,
+  User,
+  X,
+} from "lucide-react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
+import { sanitizeUserFacingMessage } from "@workspace/types";
 import { appQueryKeys } from "@/lib/query-keys";
 import {
   searchGlobal,
@@ -37,7 +46,13 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
 
   const debouncedQuery = useDebounce(query, 300);
   const searchEnabled = debouncedQuery.length >= 2;
-  const { data, isFetching: isLoading } = useQuery({
+  const {
+    data,
+    isFetching: isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: appQueryKeys.search.global(debouncedQuery),
     queryFn: () => searchGlobal(debouncedQuery),
     enabled: searchEnabled,
@@ -165,7 +180,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
       </div>
 
       {}
-      {isOpen && (query.length >= 2 || results.length > 0) && (
+      {isOpen && (query.length >= 2 || results.length > 0 || isError) && (
         <div
           id="search-results"
           role="listbox"
@@ -173,9 +188,37 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                      rounded-lg shadow-lg max-h-80 overflow-y-auto z-50"
         >
           {isLoading ? (
-            <div className="flex items-center justify-center p-4 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            <div
+              className="flex items-center justify-center p-4 text-muted-foreground"
+              role="status"
+              aria-live="polite"
+            >
+              <Loader2 className="h-5 w-5 animate-spin mr-2" aria-hidden="true" />
               Searching...
+            </div>
+          ) : isError ? (
+            <div
+              className="flex flex-col items-center gap-2 p-4 text-center text-destructive"
+              role="alert"
+              aria-live="assertive"
+              data-testid="global-search-error"
+            >
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              <p className="text-sm">
+                {sanitizeUserFacingMessage(
+                  error instanceof Error ? error.message : "",
+                  "We could not run this search. Please try again.",
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  void refetch();
+                }}
+                className="text-xs underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+              >
+                Try again
+              </button>
             </div>
           ) : results.length > 0 ? (
             <ul className="py-2">
