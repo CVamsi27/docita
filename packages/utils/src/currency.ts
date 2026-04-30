@@ -1,10 +1,10 @@
 import {
-  DEFAULT_CURRENCY,
   CURRENCY_OPTIONS,
+  DEFAULT_CURRENCY,
 } from "./config/config-options.js";
 import {
-  DEFAULT_LOCALE,
   CURRENCY_SYMBOLS,
+  DEFAULT_LOCALE,
   LOCALE_OPTIONS,
 } from "./date/date-config.js";
 import { resolveCountryCode } from "./country.js";
