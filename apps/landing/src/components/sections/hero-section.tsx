@@ -104,7 +104,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                       key={label}
                       className="ui-panel-muted p-3"
                     >
-                      <p className="text-xl font-semibold text-foreground">
+                      <p className="ui-section-title text-[var(--fs-2xl)] text-foreground">
                         {value}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">

@@ -72,7 +72,7 @@ export function DashboardPageContainer() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.clinics}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.clinics}</div>
             {renderTrend(trends.clinicsThisMonth)}
           </CardContent>
         </Card>
@@ -82,7 +82,7 @@ export function DashboardPageContainer() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.doctors}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.doctors}</div>
             {renderTrend(trends.doctorsThisMonth)}
           </CardContent>
         </Card>
@@ -94,7 +94,7 @@ export function DashboardPageContainer() {
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.patients}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.patients}</div>
             {renderTrend(trends.patientsThisMonth)}
           </CardContent>
         </Card>
@@ -106,7 +106,7 @@ export function DashboardPageContainer() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.invoices}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.invoices}</div>
             {renderTrend(trends.invoicesPercentChange, true)}
           </CardContent>
         </Card>
@@ -116,7 +116,7 @@ export function DashboardPageContainer() {
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.prescriptions}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.prescriptions}</div>
             {renderTrend(trends.prescriptionsPercentChange, true)}
           </CardContent>
         </Card>

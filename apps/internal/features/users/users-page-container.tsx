@@ -102,7 +102,7 @@ export function UsersPageContainer() {
                   <p className="text-sm font-medium text-muted-foreground">
                     {config.label}
                   </p>
-                  <p className="text-2xl font-bold mt-1">
+                  <p className="mt-1 text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                     {roleStats[role as keyof typeof roleStats]}
                   </p>
                 </div>

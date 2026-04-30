@@ -4,35 +4,33 @@ import Link from "next/link";
 import { FileQuestion, Home } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { BackButton } from "@/components/common/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { Card, CardContent } from "@workspace/ui/components/card";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center p-4">
-      <div className="mx-auto max-w-md text-center">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-          <FileQuestion className="h-10 w-10 text-muted-foreground" />
-        </div>
-        <h1 className="mb-2 text-4xl font-bold tracking-normal">404</h1>
-        <h2 className="mb-2 text-xl font-semibold">Page not found</h2>
-        <p className="mb-6 text-muted-foreground">
-          Sorry, we couldn&apos;t find the page you&apos;re looking for. The
-          page may have been moved or deleted.
-        </p>
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <Button asChild>
-            <Link href="/">
-              <Home className="mr-2 h-4 w-4" />
-              Go to dashboard
-            </Link>
-          </Button>
-          <BackButton
-            fallback="/"
-            label="Go back"
-            variant="outline"
-            size="default"
-          />
-        </div>
-      </div>
-    </div>
+    <AppPageScaffold className="max-w-md">
+      <Card className="ui-card-surface">
+        <CardContent className="p-8 text-center">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+            <FileQuestion className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <h1 className="ui-page-title">404</h1>
+          <p className="ui-page-subtitle mt-2">
+            Sorry, we couldn&apos;t find the page you&apos;re looking for. The
+            page may have been moved or deleted.
+          </p>
+          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Button asChild>
+              <Link href="/">
+                <Home className="mr-2 h-4 w-4" />
+                Go to dashboard
+              </Link>
+            </Button>
+            <BackButton fallback="/" label="Go back" variant="outline" size="default" />
+          </div>
+        </CardContent>
+      </Card>
+    </AppPageScaffold>
   );
 }

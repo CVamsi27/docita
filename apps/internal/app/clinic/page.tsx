@@ -108,7 +108,7 @@ export default function ClinicDashboard() {
                 <Stethoscope className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{clinic.doctors}</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{clinic.doctors}</div>
               </CardContent>
             </Card>
 
@@ -120,7 +120,7 @@ export default function ClinicDashboard() {
                 <User className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{clinic.receptionists}</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{clinic.receptionists}</div>
               </CardContent>
             </Card>
 
@@ -132,7 +132,7 @@ export default function ClinicDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {clinic.doctors + clinic.receptionists}
                 </div>
               </CardContent>

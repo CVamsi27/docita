@@ -137,12 +137,14 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                       Best fit for growing clinics
                     </div>
                   )}
-                  <CardTitle className="text-2xl">{tier.name}</CardTitle>
+                  <CardTitle className="ui-section-title text-[var(--fs-2xl)]">
+                    {tier.name}
+                  </CardTitle>
                   <CardDescription className="min-h-[3rem] text-sm leading-6">
                     {tier.description}
                   </CardDescription>
                   <div className="mt-4 flex items-end gap-2">
-                    <span className="text-4xl font-bold tracking-normal">
+                    <span className="text-[var(--fs-5xl)] font-bold tracking-normal leading-none">
                       {formatTierPrice(
                         tier.pricing.monthly,
                         FALLBACK_PRICING_CONFIG.currency.symbol,

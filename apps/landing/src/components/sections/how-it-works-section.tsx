@@ -69,7 +69,7 @@ export function HowItWorksSection() {
                     <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70 transition-transform duration-300 group-hover:scale-110">
                       <item.icon className="h-6 w-6 text-primary" />
                     </div>
-                    <div className="absolute top-4 right-4 text-3xl font-bold text-muted/20 select-none md:text-4xl">
+                    <div className="absolute top-4 right-4 select-none text-[var(--fs-3xl)] font-semibold text-muted/20 md:text-[var(--fs-4xl)]">
                       {item.step}
                     </div>
                     <div className="ui-copy-stack">

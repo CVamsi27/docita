@@ -307,7 +307,7 @@ export default function SystemMonitoringPage() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {performance ? performance.uptime.formatted : "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -325,7 +325,7 @@ export default function SystemMonitoringPage() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {liveResponseTime.toFixed(2)}ms
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -341,7 +341,7 @@ export default function SystemMonitoringPage() {
                 <Wifi className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {requestsLastHour.toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -357,7 +357,7 @@ export default function SystemMonitoringPage() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {errorRate}%
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -376,7 +376,7 @@ export default function SystemMonitoringPage() {
                 <Server className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="text-2xl font-bold">{heapUsagePercent}%</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{heapUsagePercent}%</div>
                 <Progress value={heapUsagePercent} className="h-2" />
                 <p className="text-xs text-muted-foreground">
                   {performance
@@ -391,7 +391,7 @@ export default function SystemMonitoringPage() {
                 <Cpu className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {monitoringHealth
                     ? `${(monitoringHealth.cpuUsage.user + monitoringHealth.cpuUsage.system).toFixed(2)}s`
                     : "N/A"}
@@ -411,7 +411,7 @@ export default function SystemMonitoringPage() {
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {database ? `${database.queryResponseTimeMs}ms` : "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -427,7 +427,7 @@ export default function SystemMonitoringPage() {
                 <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope ? tenantScope.scopedModels : "N/A"}
                 </div>
                 <div className="flex items-center gap-2">
@@ -482,7 +482,7 @@ export default function SystemMonitoringPage() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {performance?.uptime.formatted ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -498,7 +498,7 @@ export default function SystemMonitoringPage() {
                 <Server className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {performance?.node.version ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -516,7 +516,7 @@ export default function SystemMonitoringPage() {
                 <Wifi className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {monitoringHealth
                     ? (monitoringHealth.requestsLastHour / 60).toFixed(2)
                     : "0.00"}
@@ -534,7 +534,7 @@ export default function SystemMonitoringPage() {
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {database?.status ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -670,7 +670,7 @@ export default function SystemMonitoringPage() {
                     <p className="text-xs text-muted-foreground">
                       {bucket.range}
                     </p>
-                    <p className="mt-2 text-xl font-semibold">{bucket.count}</p>
+                    <p className="mt-2 text-[var(--fs-xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{bucket.count}</p>
                   </div>
                 ))}
               </div>
@@ -685,7 +685,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Scoped</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope?.scopedModels ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -698,7 +698,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Direct</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope?.directScopedModels ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -711,7 +711,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Relation</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope?.relationScopedModels ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -724,7 +724,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Issues</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScopeIssueCount}
                 </div>
                 <p className="text-xs text-muted-foreground">

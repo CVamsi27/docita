@@ -109,7 +109,7 @@ export function ClinicList({
   }
 
   return (
-    <div className="ui-card-surface overflow-x-auto">
+    <div className="ui-card-surface overflow-x-hidden">
       <Table>
         <TableHeader>
           <TableRow>

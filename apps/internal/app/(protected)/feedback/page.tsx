@@ -225,7 +225,7 @@ export default function FeedbackPage() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.total}</div>
               <p className="text-xs text-muted-foreground">
                 {stats.recentFeedback} in last 7 days
               </p>
@@ -239,7 +239,7 @@ export default function FeedbackPage() {
               <Star className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {stats.averageRating.toFixed(1)}
               </div>
               {renderStars(Math.round(stats.averageRating))}
@@ -251,7 +251,7 @@ export default function FeedbackPage() {
               <AlertCircle className="h-4 w-4 text-info" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-info">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-info">
                 {stats.byStatus.NEW || 0}
               </div>
               <p className="text-xs text-muted-foreground">Awaiting review</p>
@@ -263,7 +263,7 @@ export default function FeedbackPage() {
               <Clock className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-primary">
                 {stats.byStatus.IN_PROGRESS || 0}
               </div>
               <p className="text-xs text-muted-foreground">Being addressed</p>
@@ -275,7 +275,7 @@ export default function FeedbackPage() {
               <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                 {stats.byStatus.RESOLVED || 0}
               </div>
               <p className="text-xs text-muted-foreground">Completed</p>

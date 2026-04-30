@@ -63,7 +63,7 @@ export function StatsStrip() {
                 className="mx-auto mb-3 h-7 w-7 opacity-90"
                 aria-hidden="true"
               />
-              <div className="text-3xl font-bold md:text-4xl">
+              <div className="text-[var(--fs-4xl)] font-bold leading-none md:text-[var(--fs-5xl)]">
                 {isLoading
                   ? "..."
                   : stats

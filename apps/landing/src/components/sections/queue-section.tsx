@@ -28,7 +28,7 @@ export function QueueSection() {
                     <div className="mb-1 text-xs uppercase tracking-wider text-foreground/80">
                       Current Token
                     </div>
-                    <div className="text-2xl font-bold text-foreground sm:text-3xl">
+                    <div className="ui-section-title text-[var(--fs-2xl)] text-foreground sm:text-[var(--fs-3xl)]">
                       A-012
                     </div>
                     <div className="mt-1 text-xs text-foreground/80">
@@ -39,7 +39,7 @@ export function QueueSection() {
                     <div className="mb-1 text-xs uppercase tracking-wider text-foreground/80">
                       Next Token
                     </div>
-                    <div className="text-2xl font-bold text-foreground sm:text-3xl">
+                    <div className="ui-section-title text-[var(--fs-2xl)] text-foreground sm:text-[var(--fs-3xl)]">
                       A-013
                     </div>
                     <div className="mt-1 text-xs text-foreground/80">

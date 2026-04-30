@@ -241,7 +241,6 @@ export default function BillingDashboard() {
         </CardContent>
       </Card>
 
-      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -251,14 +250,14 @@ export default function BillingDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {formatCurrency(metrics?.mrr || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-success">
                 <ArrowUpRight className="inline h-3 w-3" /> MRR
-              </span>{" "}
-              from active subscriptions
+              </span>
+              <span className="ml-1">from active subscriptions</span>
             </p>
           </CardContent>
         </Card>
@@ -271,7 +270,7 @@ export default function BillingDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {formatCurrency(metrics?.arr || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -288,7 +287,7 @@ export default function BillingDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {metrics?.activeSubscriptions || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -305,7 +304,7 @@ export default function BillingDashboard() {
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {((metrics?.churnRate || 0) * 100).toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground">
@@ -331,7 +330,6 @@ export default function BillingDashboard() {
         </Card>
       </div>
 
-      {}
       {((metrics?.expiringSubscriptions?.length || 0) > 0 ||
         (metrics?.gracePeriodSubscriptions?.length || 0) > 0) && (
         <div className="grid gap-4 md:grid-cols-2">
@@ -358,13 +356,15 @@ export default function BillingDashboard() {
                         <div>
                           <p className="font-medium">{sub.clinic.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            Expires{" "}
+                            Expires
+                            <span className="ml-1">
                             {formatDistanceToNow(
                               new Date(sub.currentPeriodEnd),
                               {
                                 addSuffix: true,
                               },
                             )}
+                            </span>
                           </p>
                         </div>
                         <Button
@@ -408,8 +408,8 @@ export default function BillingDashboard() {
                             {differenceInDays(
                               new Date(sub.currentPeriodEnd),
                               new Date(),
-                            )}{" "}
-                            days remaining
+                            )}
+                            <span className="ml-1">days remaining</span>
                           </p>
                         </div>
                         <Button
@@ -434,7 +434,6 @@ export default function BillingDashboard() {
         </div>
       )}
 
-      {}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -510,7 +509,6 @@ export default function BillingDashboard() {
         </Card>
       </div>
 
-      {}
       <Tabs defaultValue="subscriptions" className="space-y-4">
         <TabsList>
           <TabsTrigger value="subscriptions">
@@ -528,7 +526,6 @@ export default function BillingDashboard() {
         </TabsList>
 
         <TabsContent value="subscriptions" className="space-y-4">
-          {}
           <div className="flex flex-wrap gap-4">
             <div className="w-40">
               <Select value={tierFilter} onValueChange={setTierFilter}>
@@ -578,7 +575,6 @@ export default function BillingDashboard() {
             </div>
           </div>
 
-          {}
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -836,7 +832,6 @@ export default function BillingDashboard() {
         </TabsContent>
       </Tabs>
 
-      {}
       <Dialog
         open={extendGraceDialog.open}
         onOpenChange={(open) => setExtendGraceDialog({ open })}
@@ -845,8 +840,10 @@ export default function BillingDashboard() {
           <DialogHeader>
             <DialogTitle>Extend Grace Period</DialogTitle>
             <DialogDescription>
-              Extend the grace period for{" "}
-              {extendGraceDialog.subscription?.clinic.name}
+              Extend the grace period for
+              <span className="ml-1">
+                {extendGraceDialog.subscription?.clinic.name}
+              </span>
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

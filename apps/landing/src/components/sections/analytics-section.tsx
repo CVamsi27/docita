@@ -35,7 +35,7 @@ export function AnalyticsSection() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Monthly Revenue
               </CardTitle>
-              <div className="text-2xl font-bold flex items-baseline gap-2">
+              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)] flex items-baseline gap-2">
                 $45,231
                 <span className="text-xs text-success flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" /> +12%
@@ -60,7 +60,7 @@ export function AnalyticsSection() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Patient Growth
               </CardTitle>
-              <div className="text-2xl font-bold flex items-baseline gap-2">
+              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)] flex items-baseline gap-2">
                 1,204
                 <span className="text-xs text-success flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" /> +8%
@@ -85,7 +85,7 @@ export function AnalyticsSection() {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Top Diagnoses
               </CardTitle>
-              <div className="text-2xl font-bold">Disease Trends</div>
+              <div className="ui-section-title text-[var(--fs-2xl)] leading-[var(--lh-tight)]">Disease Trends</div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 pt-2">

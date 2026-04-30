@@ -119,10 +119,10 @@ export default function InternalLogin() {
             description="Internal Console - Product Owners & System Admins"
           />
         </div>
-        <Card className="ui-card-surface shadow-xl">
+        <Card className="ui-card-surface">
           <CardHeader className="px-6 pt-8 pb-6">
-            <CardTitle className="text-2xl">Login</CardTitle>
-            <CardDescription>
+            <CardTitle className="ui-section-title">Login</CardTitle>
+            <CardDescription className="ui-page-subtitle">
               Enter your credentials to continue
             </CardDescription>
           </CardHeader>

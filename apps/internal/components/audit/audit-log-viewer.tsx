@@ -167,7 +167,7 @@ export function AuditLogViewer() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Audit Logs</h2>
+          <h2 className="ui-page-title">Audit Logs</h2>
           <p className="text-muted-foreground">
             System-wide audit trail (Real-time, updates every 30s)
           </p>
@@ -293,7 +293,7 @@ export function AuditLogViewer() {
             No audit logs found
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-hidden">
             <Table>
               <TableHeader className="bg-muted/40 border-b border-border">
                 <TableRow>
@@ -400,7 +400,7 @@ export function AuditLogViewer() {
                                   <p className="text-sm font-semibold text-foreground mb-2">
                                     Changes
                                   </p>
-                                  <pre className="text-xs bg-background rounded p-2 overflow-x-auto border border-border">
+                                  <pre className="text-xs bg-background rounded p-2 overflow-x-hidden whitespace-pre-wrap break-words border border-border">
                                     {JSON.stringify(log.changes, null, 2)}
                                   </pre>
                                 </div>
@@ -423,7 +423,7 @@ export function AuditLogViewer() {
                                   <p className="text-sm font-semibold text-foreground mb-2">
                                     Metadata
                                   </p>
-                                  <pre className="text-xs bg-background rounded p-2 overflow-x-auto border border-border">
+                                  <pre className="text-xs bg-background rounded p-2 overflow-x-hidden whitespace-pre-wrap break-words border border-border">
                                     {JSON.stringify(log.metadata, null, 2)}
                                   </pre>
                                 </div>

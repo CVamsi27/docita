@@ -156,7 +156,7 @@ export default function PerformancePage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
               {runtime.uptime.formatted}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -172,7 +172,7 @@ export default function PerformancePage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageResponseTime}ms</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{averageResponseTime}ms</div>
             <p className="text-xs text-muted-foreground">
               Monitoring average from the last hour
             </p>
@@ -184,7 +184,7 @@ export default function PerformancePage() {
             <Wifi className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{requestsPerMinute}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{requestsPerMinute}</div>
             <p className="text-xs text-muted-foreground">
               Derived from live request counts
             </p>
@@ -196,7 +196,7 @@ export default function PerformancePage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
               {health.requestsLastHour > 0
                 ? (
                     (health.errorsLastHour / health.requestsLastHour) *
@@ -219,7 +219,7 @@ export default function PerformancePage() {
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{totalCpuSeconds}s</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{totalCpuSeconds}s</div>
             <p className="text-xs text-muted-foreground">
               User {appHealth?.checks.cpu.user.toFixed(2) ?? "0.00"}s, system{" "}
               {appHealth?.checks.cpu.system.toFixed(2) ?? "0.00"}s
@@ -232,7 +232,7 @@ export default function PerformancePage() {
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{heapUsagePercent}%</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{heapUsagePercent}%</div>
             <Progress value={heapUsagePercent} className="h-2" />
             <p className="text-xs text-muted-foreground">
               RSS {runtime.memory.rss} MB, heap {runtime.memory.heapUsed} of{" "}
@@ -248,7 +248,7 @@ export default function PerformancePage() {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {database.queryResponseTimeMs}ms
             </div>
             <div className="flex items-center gap-2">

@@ -325,7 +325,7 @@ export default function PaymentProcessingPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <p className="text-2xl font-bold">
+                      <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                         {tier.price === 0 ? "Free" : formatCurrency(tier.price)}
                       </p>
                       <p className="text-xs text-muted-foreground">

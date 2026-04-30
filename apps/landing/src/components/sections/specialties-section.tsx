@@ -33,7 +33,7 @@ export function SpecialtiesSection() {
                   <Baby className="h-6 w-6 text-info" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold">Pediatrics</h3>
+                  <h3 className="ui-section-title text-[var(--fs-2xl)]">Pediatrics</h3>
                   <p className="text-muted-foreground">
                     Comprehensive child care tools
                   </p>
@@ -78,7 +78,7 @@ export function SpecialtiesSection() {
                   <Smile className="h-6 w-6 text-success" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold">Dental Care</h3>
+                  <h3 className="ui-section-title text-[var(--fs-2xl)]">Dental Care</h3>
                   <p className="text-muted-foreground">
                     Advanced dental practice management
                   </p>

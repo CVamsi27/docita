@@ -19,6 +19,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { DatePicker } from "@workspace/ui/components/date-picker";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Tabs,
   TabsContent,
@@ -297,16 +298,13 @@ export default function PricingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Pricing Management</h1>
-        <p className="text-muted-foreground text-sm">
-          Manage tier pricing centrally and create facility-specific offers for
-          requested hospitals.
-        </p>
-      </div>
+      <PageHeader
+        title="Pricing Management"
+        description="Manage tier pricing centrally and create facility-specific offers for requested hospitals."
+      />
 
       {saveError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+        <div className="surface-danger rounded-md px-4 py-2 text-sm">
           {saveError}
         </div>
       )}
@@ -337,7 +335,7 @@ export default function PricingPage() {
                   No tier pricing rows found. Run the seed script first.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>

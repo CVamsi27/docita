@@ -251,10 +251,10 @@ export function SupportInboxPage() {
             WhatsApp Inbox
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-normal sm:text-3xl">
+            <h1 className="ui-page-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)]">
               Incoming Messages
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="ui-page-subtitle">
               Live WhatsApp conversations received on the onboarding support
               line, with replies sent directly from the internal portal.
             </p>
@@ -267,7 +267,7 @@ export function SupportInboxPage() {
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Threads
               </p>
-              <p className="text-2xl font-bold">{totalThreads}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{totalThreads}</p>
             </CardContent>
           </Card>
           <Card>
@@ -275,7 +275,7 @@ export function SupportInboxPage() {
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Unread
               </p>
-              <p className="text-2xl font-bold">{unreadMessages}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{unreadMessages}</p>
             </CardContent>
           </Card>
         </div>

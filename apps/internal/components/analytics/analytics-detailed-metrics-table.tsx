@@ -28,7 +28,7 @@ function AnalyticsDetailedMetricsTableComponent({
   rows,
 }: AnalyticsDetailedMetricsTableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-hidden">
       <Table>
         <TableHeader className="border-b border-border">
           <TableRow>
