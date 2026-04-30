@@ -17,8 +17,10 @@ describe('OperationalAnalyticsFactory', () => {
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
   const mockPatientGroupBy =
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const mockQueryRaw = jest.fn<(...args: unknown[]) => Promise<unknown>>();
 
   const mockReadClientValue = {
+    $queryRaw: mockQueryRaw,
     appointment: {
       count: mockAppointmentCount,
       groupBy: mockAppointmentGroupBy,
@@ -138,6 +140,23 @@ describe('OperationalAnalyticsFactory', () => {
         by: ['gender'],
       }),
     );
+    expect(mockPatientFindMany).not.toHaveBeenCalled();
+  });
+
+  it('computes patient growth from grouped SQL rows', async () => {
+    mockCacheManager.get.mockResolvedValue(null);
+    mockQueryRaw.mockResolvedValue([
+      { date: '2026-04-27', count: 2 },
+      { date: '2026-04-28', count: 3 },
+    ]);
+
+    const result = await factory.getPatientGrowth('clinic-1', 7);
+
+    expect(result).toEqual([
+      { date: '2026-04-27', count: 2 },
+      { date: '2026-04-28', count: 5 },
+    ]);
+    expect(mockQueryRaw).toHaveBeenCalled();
     expect(mockPatientFindMany).not.toHaveBeenCalled();
   });
 });

@@ -11,8 +11,8 @@ import {
   CptRevenueMetric,
 } from '@workspace/types';
 import {
-  toAnalyticsPeriodKey,
-  toTimeSeriesBucketKey,
+  AnalyticsPeriod,
+  TimeSeriesGroupBy,
 } from '@/domains/analytics/factories/period-bucket.util';
 
 @Injectable()
@@ -27,6 +27,46 @@ export class FinancialAnalyticsFactory {
 
   private getReadClient() {
     return this.prisma.getReadClient();
+  }
+
+  private analyticsPeriodSql(
+    timestampSql: Prisma.Sql,
+    period: AnalyticsPeriod,
+    timezone: string,
+  ): Prisma.Sql {
+    if (period === 'daily') {
+      return Prisma.sql`TO_CHAR(${timestampSql} AT TIME ZONE ${timezone}, 'YYYY-MM-DD')`;
+    }
+
+    if (period === 'weekly') {
+      return Prisma.sql`CONCAT(
+        EXTRACT(YEAR FROM (${timestampSql} AT TIME ZONE ${timezone})
+          - EXTRACT(DOW FROM (${timestampSql} AT TIME ZONE ${timezone}))::int * INTERVAL '1 day')::int,
+        '-W',
+        CEIL(EXTRACT(DAY FROM (${timestampSql} AT TIME ZONE ${timezone}))::numeric / 7)::int
+      )`;
+    }
+
+    return Prisma.sql`TO_CHAR(${timestampSql} AT TIME ZONE ${timezone}, 'YYYY-MM')`;
+  }
+
+  private timeSeriesPeriodSql(
+    timestampSql: Prisma.Sql,
+    groupBy: TimeSeriesGroupBy,
+  ): Prisma.Sql {
+    if (groupBy === 'day') {
+      return Prisma.sql`TO_CHAR(${timestampSql}, 'YYYY-MM-DD')`;
+    }
+
+    if (groupBy === 'week') {
+      return Prisma.sql`TO_CHAR(
+        DATE_TRUNC('day', ${timestampSql})
+          - EXTRACT(DOW FROM ${timestampSql})::int * INTERVAL '1 day',
+        'YYYY-MM-DD'
+      )`;
+    }
+
+    return Prisma.sql`TO_CHAR(${timestampSql}, 'YYYY-MM')`;
   }
 
   async getRevenueTrends(
@@ -44,32 +84,21 @@ export class FinancialAnalyticsFactory {
     const dateRange = getLastNDaysRange(days, { timezone });
     const readClient = this.getReadClient();
 
-    const invoices = await readClient.invoice.findMany({
-      where: {
-        patient: { clinicId },
-        createdAt: { gte: dateRange.start },
-      },
-      select: {
-        createdAt: true,
-        total: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    const revenueByPeriod = new Map<string, number>();
-
-    invoices.forEach((invoice) => {
-      const periodKey = toAnalyticsPeriodKey(invoice.createdAt, period);
-      const current = revenueByPeriod.get(periodKey) || 0;
-      revenueByPeriod.set(periodKey, current + (invoice.total || 0));
-    });
-
-    const data = Array.from(revenueByPeriod.entries())
-      .map(([date, revenue]) => ({
-        date,
-        revenue,
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    const periodSql = this.analyticsPeriodSql(
+      Prisma.sql`i."createdAt"`,
+      period,
+      timezone,
+    );
+    const data = await readClient.$queryRaw<RevenueTrendPoint[]>`
+      SELECT
+        ${periodSql} AS date,
+        COALESCE(SUM(i.total), 0)::float AS revenue
+      FROM "Invoice" i
+      WHERE i."clinicId" = ${clinicId}
+        AND i."createdAt" >= ${dateRange.start}
+      GROUP BY date
+      ORDER BY date ASC
+    `;
 
     await this.cacheManager.set(cacheKey, data, 3600 * 1000);
 
@@ -195,39 +224,24 @@ export class FinancialAnalyticsFactory {
     groupBy: 'day' | 'week' | 'month' = 'month',
   ) {
     const readClient = this.getReadClient();
-    const procedures = await readClient.procedure.findMany({
-      where: {
-        appointment: { clinicId },
-        createdAt: { gte: startDate, lte: endDate },
-      },
-      select: {
-        createdAt: true,
-        cptCode: {
-          select: {
-            price: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+    const periodSql = this.timeSeriesPeriodSql(
+      Prisma.sql`pr."createdAt"`,
+      groupBy,
+    );
 
-    const timeSeriesData = new Map<string, number>();
-
-    procedures.forEach((procedure) => {
-      if (!procedure.cptCode) return;
-
-      const periodKey = toTimeSeriesBucketKey(procedure.createdAt, groupBy);
-
-      const revenue = Number(procedure.cptCode.price);
-      timeSeriesData.set(
-        periodKey,
-        (timeSeriesData.get(periodKey) || 0) + revenue,
-      );
-    });
-
-    return Array.from(timeSeriesData.entries())
-      .map(([period, revenue]) => ({ period, revenue }))
-      .sort((a, b) => a.period.localeCompare(b.period));
+    return readClient.$queryRaw<Array<{ period: string; revenue: number }>>`
+      SELECT
+        ${periodSql} AS period,
+        COALESCE(SUM(c.price), 0)::float AS revenue
+      FROM "Procedure" pr
+      JOIN "Appointment" a ON a.id = pr."appointmentId"
+      JOIN "CptCode" c ON c.id = pr."cptCodeId"
+      WHERE a."clinicId" = ${clinicId}
+        AND pr."createdAt" >= ${startDate}
+        AND pr."createdAt" <= ${endDate}
+      GROUP BY period
+      ORDER BY period ASC
+    `;
   }
 
   async getRevenueMetrics(
@@ -240,40 +254,34 @@ export class FinancialAnalyticsFactory {
     const cached = await this.cacheManager.get<RevenueMetric[]>(cacheKey);
     if (cached) return cached;
 
-    const where: Prisma.InvoiceWhereInput = { patient: { clinicId } };
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
-
     const readClient = this.getReadClient();
 
-    const invoices = await readClient.invoice.findMany({
-      where,
-      select: { total: true, createdAt: true },
-    });
+    const dateFilter =
+      startDate && endDate
+        ? Prisma.sql`AND i."createdAt" >= ${startDate} AND i."createdAt" <= ${endDate}`
+        : startDate
+          ? Prisma.sql`AND i."createdAt" >= ${startDate}`
+          : endDate
+            ? Prisma.sql`AND i."createdAt" <= ${endDate}`
+            : Prisma.sql``;
+    const periodSql = this.analyticsPeriodSql(
+      Prisma.sql`i."createdAt"`,
+      period,
+      DEFAULT_TIMEZONE,
+    );
 
-    const grouped: Record<string, RevenueMetric> = {};
-    invoices.forEach((inv) => {
-      const key = toAnalyticsPeriodKey(inv.createdAt, period);
-      if (!grouped[key]) {
-        grouped[key] = {
-          totalRevenue: 0,
-          invoiceCount: 0,
-          avgInvoiceAmount: 0,
-          date: key,
-        };
-      }
-      grouped[key].totalRevenue += inv.total || 0;
-      grouped[key].invoiceCount += 1;
-    });
-
-    const result = Object.values(grouped).map((g) => ({
-      ...g,
-      avgInvoiceAmount:
-        g.invoiceCount > 0 ? g.totalRevenue / g.invoiceCount : 0,
-    }));
+    const result = await readClient.$queryRaw<RevenueMetric[]>`
+      SELECT
+        ${periodSql} AS date,
+        COALESCE(SUM(i.total), 0)::float AS "totalRevenue",
+        COUNT(i.id)::int AS "invoiceCount",
+        COALESCE(AVG(i.total), 0)::float AS "avgInvoiceAmount"
+      FROM "Invoice" i
+      WHERE i."clinicId" = ${clinicId}
+        ${dateFilter}
+      GROUP BY date
+      ORDER BY date ASC
+    `;
 
     await this.cacheManager.set(
       cacheKey,

@@ -7,10 +7,8 @@ import { Prisma, AppointmentStatus } from '@workspace/db';
 import {
   getMonthRange,
   getLastNDaysRange,
-  toISODateString,
   DEFAULT_TIMEZONE,
 } from '@workspace/utils';
-import { PATIENT_ANALYTICS_SELECT } from '@/common/select-fragments';
 import {
   OverviewMetrics,
   PatientGrowthPoint,
@@ -129,25 +127,21 @@ export class OperationalAnalyticsFactory {
     const dateRange = getLastNDaysRange(days, { timezone });
     const readClient = this.getReadClient();
 
-    const patients = await readClient.patient.findMany({
-      where: {
-        clinicId,
-        createdAt: { gte: dateRange.start },
-      },
-      select: PATIENT_ANALYTICS_SELECT,
-      orderBy: { createdAt: 'asc' },
-    });
-
-    const patientsByDate = new Map<string, number>();
-
-    patients.forEach((patient) => {
-      const dateKey = toISODateString(patient.createdAt, { timezone });
-      const current = patientsByDate.get(dateKey) || 0;
-      patientsByDate.set(dateKey, current + 1);
-    });
+    const patientsByDate = await readClient.$queryRaw<
+      Array<{ date: string; count: number }>
+    >`
+      SELECT
+        TO_CHAR("createdAt" AT TIME ZONE ${timezone}, 'YYYY-MM-DD') AS date,
+        COUNT(id)::int AS count
+      FROM "Patient"
+      WHERE "clinicId" = ${clinicId}
+        AND "createdAt" >= ${dateRange.start}
+      GROUP BY date
+      ORDER BY date ASC
+    `;
 
     let cumulative = 0;
-    const data = Array.from(patientsByDate.entries()).map(([date, count]) => {
+    const data = patientsByDate.map(({ date, count }) => {
       cumulative += count;
       return { date, count: cumulative };
     });

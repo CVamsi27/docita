@@ -14,9 +14,11 @@ describe('FinancialAnalyticsFactory', () => {
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
   const mockProcedureGroupBy =
     jest.fn<(...args: unknown[]) => Promise<unknown>>();
+  const mockQueryRaw = jest.fn<(...args: unknown[]) => Promise<unknown>>();
   const mockReadClientValue = {
     invoice: { findMany: mockInvoiceFindMany },
     procedure: { groupBy: mockProcedureGroupBy },
+    $queryRaw: mockQueryRaw,
   };
   const mockPrismaService = {
     getReadClient: jest.fn().mockReturnValue(mockReadClientValue),
@@ -68,26 +70,21 @@ describe('FinancialAnalyticsFactory', () => {
     it('should query db if cache miss', async () => {
       mockCacheManager.get.mockResolvedValue(null);
 
-      const mockInvoices = [
-        { createdAt: new Date('2023-01-01'), total: 100 },
-        { createdAt: new Date('2023-01-01'), total: 50 },
-      ];
-
-      mockInvoiceFindMany.mockResolvedValue(mockInvoices);
+      mockQueryRaw.mockResolvedValue([{ date: '2023-01-01', revenue: 150 }]);
 
       const result = await factory.getRevenueTrends('clinic-1');
 
       expect(result).toHaveLength(1);
       expect(result[0].revenue).toBe(150);
       expect(mockCacheManager.set).toHaveBeenCalled();
+      expect(mockInvoiceFindMany).not.toHaveBeenCalled();
     });
 
     it('groups revenue by period for monthly aggregation', async () => {
       mockCacheManager.get.mockResolvedValue(null);
-      mockInvoiceFindMany.mockResolvedValue([
-        { createdAt: new Date('2023-01-05'), total: 100 },
-        { createdAt: new Date('2023-01-15'), total: 150 },
-        { createdAt: new Date('2023-02-01'), total: 200 },
+      mockQueryRaw.mockResolvedValue([
+        { date: '2023-01', revenue: 250 },
+        { date: '2023-02', revenue: 200 },
       ]);
 
       const result = await factory.getRevenueTrends('clinic-1', 'monthly', 60);
