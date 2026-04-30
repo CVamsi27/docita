@@ -696,7 +696,7 @@ export function ClinicAddressPickerDialog({
       <DialogContent
         showCloseButton={false}
         aria-describedby="clinic-location-dialog-description"
-        className="h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,1080px)] max-w-none overflow-hidden rounded-lg border border-border/70 bg-background p-0 shadow-2xl data-[state=open]:animate-none data-[state=closed]:animate-none sm:w-[min(100vw-2rem,1080px)]"
+        className="h-[92dvh] max-h-[92dvh] w-[min(100vw-1rem,1080px)] max-w-none overflow-hidden rounded-lg border border-border/70 bg-background p-0 shadow-md data-[state=open]:animate-none data-[state=closed]:animate-none sm:w-[min(100vw-2rem,1080px)]"
       >
         <div className="flex h-full min-h-0 flex-col">
           <DialogHeader className="border-b bg-background px-4 py-4 sm:px-6 sm:py-5">

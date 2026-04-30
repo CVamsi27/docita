@@ -30,11 +30,11 @@ export const OCRMobileDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-6 space-y-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border">
+          <div className="rounded-lg border bg-background p-4 shadow-sm">
             {qrUrl && <QRCodeSVG value={qrUrl} size={200} />}
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            Waiting for upload...{" "}
+            Waiting for upload...
             <Loader2 className="inline h-3 w-3 animate-spin" />
           </p>
         </div>

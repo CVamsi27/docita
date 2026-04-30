@@ -3,6 +3,12 @@ import { Button } from "@workspace/ui/components/button";
 import { format } from "date-fns";
 import { useState } from "react";
 import { useFacilityLabel } from "@/lib/facility-label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 
 export interface DashboardHeaderUIProps {
   userName: string;
@@ -63,7 +69,8 @@ export function DashboardHeaderUI({
   };
 
   return (
-    <header className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+    <TooltipProvider>
+      <header className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="relative">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm sm:h-12 sm:w-12">
@@ -71,10 +78,10 @@ export function DashboardHeaderUI({
           </div>
         </div>
         <div>
-          <p className="text-xs sm:text-sm text-muted-foreground">
+          <p className="ui-helper-text">
             {format(new Date(), "EEEE, MMMM d")}
           </p>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-normal">
+          <h1 className="ui-section-title text-[var(--fs-2xl)] md:text-[var(--fs-3xl)]">
             {greeting}, {userName}!
           </h1>
         </div>
@@ -82,50 +89,58 @@ export function DashboardHeaderUI({
 
       <div className="flex items-center gap-2">
         {canQuickShareClinicCode && (
-          <Button
-            type="button"
-            onClick={handleQuickShare}
-            disabled={!clinicCode}
-            variant="outline"
-            size="sm"
-            className="h-9 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground touch-manipulation"
-            title={
-              clinicCode
-                ? `Quick share ${facilityLabel.toLowerCase()} join code`
-                : `${facilityLabel} code is not ready yet`
-            }
-          >
-            {shared ? (
-              <Check className="h-3.5 w-3.5 text-success shrink-0" />
-            ) : (
-              <Share2 className="h-3.5 w-3.5 shrink-0" />
-            )}
-            <span>{shared ? "Shared" : "Quick Share"}</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                onClick={handleQuickShare}
+                disabled={!clinicCode}
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground touch-manipulation"
+              >
+                {shared ? (
+                  <Check className="h-3.5 w-3.5 text-success shrink-0" />
+                ) : (
+                  <Share2 className="h-3.5 w-3.5 shrink-0" />
+                )}
+                <span>{shared ? "Shared" : "Quick Share"}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Quick Share
+            </TooltipContent>
+          </Tooltip>
         )}
         {clinicCode && (
-          <Button
-            type="button"
-            onClick={handleCopyCode}
-            variant="outline"
-            size="sm"
-            className="h-9 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground touch-manipulation"
-            title={`Copy ${facilityLabel.toLowerCase()} code to share with staff`}
-          >
-            <span className="font-mono font-medium tracking-wider">
-              {clinicCode}
-            </span>
-            {copied ? (
-              <Check className="h-3.5 w-3.5 text-success shrink-0" />
-            ) : (
-              <Copy className="h-3.5 w-3.5 shrink-0" />
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                onClick={handleCopyCode}
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground touch-manipulation"
+              >
+                <span className="font-mono font-medium tracking-wider">
+                  {clinicCode}
+                </span>
+                {copied ? (
+                  <Check className="h-3.5 w-3.5 text-success shrink-0" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5 shrink-0" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Copy code
+            </TooltipContent>
+          </Tooltip>
         )}
         <Button
           variant="outline"
           size="sm"
-          className="h-10 sm:h-9 w-full md:w-56 justify-start text-muted-foreground bg-background touch-manipulation"
+          className="h-10 sm:h-9 w-full md:hidden justify-start text-muted-foreground bg-background touch-manipulation"
           onClick={onSearchClick}
         >
           <Search className="mr-2 h-4 w-4" />
@@ -136,6 +151,7 @@ export function DashboardHeaderUI({
           </kbd>
         </Button>
       </div>
-    </header>
+      </header>
+    </TooltipProvider>
   );
 }

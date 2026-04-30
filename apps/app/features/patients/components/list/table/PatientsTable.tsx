@@ -60,7 +60,7 @@ export function PatientsTable({
   };
 
   return (
-    <div className="ui-card-surface overflow-x-auto">
+    <div className="ui-card-surface overflow-x-hidden">
       <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">
@@ -154,7 +154,7 @@ export function PatientsTable({
                             <FileText className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Quick Note (Stub)</TooltipContent>
+                        <TooltipContent>Quick Note</TooltipContent>
                       </Tooltip>
 
                       <Tooltip>

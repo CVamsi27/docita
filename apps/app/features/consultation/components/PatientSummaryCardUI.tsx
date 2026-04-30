@@ -137,7 +137,7 @@ export function PatientSummaryCardUI({
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Patient has severe allergies!</p>
+                <p>Allergies</p>
               </TooltipContent>
             </Tooltip>
           )}
@@ -167,13 +167,7 @@ export function PatientSummaryCardUI({
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="font-medium">{allergy.allergen}</p>
-                    <p className="text-xs capitalize">
-                      Severity: {allergy.severity}
-                    </p>
-                    {allergy.reaction && (
-                      <p className="text-xs">Reaction: {allergy.reaction}</p>
-                    )}
+                    <p>{allergy.allergen}</p>
                   </TooltipContent>
                 </Tooltip>
               ))}

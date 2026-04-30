@@ -44,7 +44,7 @@ export function PatientProfileHeaderUI({
           <div className="space-y-3 md:space-y-4 text-center md:text-left">
             <div>
               <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-normal text-foreground">
+                <h1 className="ui-page-title text-[var(--fs-2xl)] md:text-[var(--fs-4xl)]">
                   {firstName} {lastName}
                 </h1>
                 <div className="flex items-center gap-2">
@@ -66,10 +66,12 @@ export function PatientProfileHeaderUI({
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 opacity-70" />
                   <span>
-                    DOB:{" "}
+                    DOB:
+                    <span className="ml-1">
                     {dateOfBirth
                       ? format(new Date(dateOfBirth), "MMM d, yyyy")
                       : "N/A"}
+                    </span>
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">

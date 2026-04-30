@@ -128,7 +128,7 @@ export function DocumentsPageUI({
             A list of all documents uploaded for patients
           </CardDescription>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent className="overflow-x-hidden">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-muted/50">

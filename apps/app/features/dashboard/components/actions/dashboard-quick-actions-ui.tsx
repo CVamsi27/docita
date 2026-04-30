@@ -18,7 +18,7 @@ export function DashboardQuickActionsUI({
   quickActions,
 }: DashboardQuickActionsUIProps) {
   return (
-    <div className="flex items-center gap-3 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none snap-x snap-mandatory">
+    <div className="flex flex-wrap items-center gap-3 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-hidden">
       {quickActions.map((action, idx) => (
         <Link
           key={action.href}

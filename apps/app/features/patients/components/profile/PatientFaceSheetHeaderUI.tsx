@@ -144,7 +144,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
                     : allergiesLabel}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent>{allergiesLabel}</TooltipContent>
+              <TooltipContent>Allergies</TooltipContent>
             </Tooltip>
           </div>
 

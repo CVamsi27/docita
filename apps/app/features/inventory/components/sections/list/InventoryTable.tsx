@@ -56,7 +56,7 @@ export function InventoryTable({
         {isLoading ? (
           <LoadingState message="Loading inventory..." />
         ) : (
-          <div className="rounded-md border overflow-x-auto">
+          <div className="rounded-md border overflow-x-hidden">
             <Table>
               <TableHeader>
                 <TableRow>

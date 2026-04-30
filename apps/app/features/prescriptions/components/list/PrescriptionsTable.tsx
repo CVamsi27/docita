@@ -91,7 +91,7 @@ export function PrescriptionsTable({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto rounded-md border border-border">
+        <div className="overflow-x-hidden rounded-md border border-border">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-muted/50">

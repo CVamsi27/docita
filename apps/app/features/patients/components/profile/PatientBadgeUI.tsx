@@ -112,12 +112,7 @@ export function PatientBadgeUI({
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-1">
-                    <p className="font-medium">Known Allergies:</p>
-                    <ul className="list-disc pl-4">
-                      {allergiesArray.map((allergy, i) => (
-                        <li key={i}>{allergy}</li>
-                      ))}
-                    </ul>
+                    <p>Allergies</p>
                   </div>
                 </TooltipContent>
               </Tooltip>

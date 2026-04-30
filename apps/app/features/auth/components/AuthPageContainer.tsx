@@ -282,17 +282,17 @@ export function AuthPageContainer() {
     >
       <div
         className={[
-          "animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1",
+          "animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack",
           step === "signup" ? "text-center lg:text-left" : "text-center",
         ].join(" ")}
       >
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">{STEP_TITLES[step]}</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="ui-page-title">{STEP_TITLES[step]}</h1>
+        <p className="ui-page-subtitle">
           {STEP_DESCRIPTIONS[step]}
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
+      <div className="ui-card-surface p-6 sm:p-8">
         <div
           key={step}
           className="animate-in fade-in slide-in-from-right-4 duration-500"

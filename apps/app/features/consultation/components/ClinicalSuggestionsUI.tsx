@@ -74,7 +74,7 @@ export function ClinicalSuggestionsUI({
         {suggestions.map((suggestion, index) => (
           <div
             key={index}
-            className="flex items-start gap-3 p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow"
+            className="flex items-start gap-3 p-3 bg-background border rounded-lg hover:shadow-sm transition-shadow"
           >
             <div className="text-lg mt-0.5">{typeIcons[suggestion.type]}</div>
             <div className="flex-1 space-y-1">

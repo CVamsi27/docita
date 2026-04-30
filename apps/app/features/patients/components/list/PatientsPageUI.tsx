@@ -126,7 +126,7 @@ export function PatientsPageUI({
             </div>
           )}
 
-          <div className="ui-card-surface overflow-x-auto">
+          <div className="ui-card-surface overflow-x-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-muted/50">

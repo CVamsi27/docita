@@ -66,15 +66,13 @@ export function MobileFileUploader({
           }`}
         >
           {previewUrl ? (
-            
             <div className="relative aspect-4/3">
               <Image
                 src={previewUrl}
                 alt="Preview"
                 fill
-                className="object-contain bg-black/5 dark:bg-white/5"
+                className="object-contain bg-black/5 dark:bg-black/10"
               />
-              {}
               <button
                 onClick={clearFile}
                 className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors shadow-lg"
@@ -82,7 +80,6 @@ export function MobileFileUploader({
               >
                 <X className="h-4 w-4" />
               </button>
-              {}
               <div className="absolute bottom-3 left-3 right-3">
                 <div className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg flex items-center justify-center gap-2">
                   <RotateCcw className="h-3 w-3" />

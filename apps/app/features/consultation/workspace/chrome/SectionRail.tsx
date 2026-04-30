@@ -243,7 +243,7 @@ export function SectionTabs({
   const completion = useSectionCompletion();
   return (
     <div
-      className="md:hidden sticky top-[57px] z-10 flex overflow-x-auto border-b bg-background/95 backdrop-blur"
+      className="md:hidden sticky top-[57px] z-10 flex flex-wrap overflow-x-hidden border-b bg-background/95 backdrop-blur"
       role="tablist"
       aria-label="Consultation sections"
     >

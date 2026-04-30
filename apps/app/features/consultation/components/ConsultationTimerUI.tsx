@@ -72,7 +72,7 @@ export function ConsultationTimerUI({
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Consultation duration</p>
+            <p>Consultation timer</p>
           </TooltipContent>
         </Tooltip>
 
@@ -119,7 +119,7 @@ export function ConsultationTimerUI({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {isRunning ? "Pause timer" : "Resume timer"}
+                  {isRunning ? "Pause" : "Resume"}
                 </TooltipContent>
               </Tooltip>
 

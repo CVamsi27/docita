@@ -74,7 +74,7 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
           {isLoading ? (
             <LoadingState message="Loading lab tests..." />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>

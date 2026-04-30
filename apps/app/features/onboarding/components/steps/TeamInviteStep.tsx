@@ -394,23 +394,9 @@ export function TeamInviteStep({
                         <TooltipContent
                           side="top"
                           align="end"
-                          className="max-w-[320px] p-3"
+                          className="p-2"
                         >
-                          <p className="text-sm font-medium text-foreground">
-                            Team roles and significance
-                          </p>
-                          <div className="mt-2 space-y-2">
-                            {ROLE_OPTIONS.map((role) => (
-                              <div key={role.value} className="space-y-0.5">
-                                <p className="text-xs font-medium text-foreground">
-                                  {role.label}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {role.description}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
+                          <p>Role</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

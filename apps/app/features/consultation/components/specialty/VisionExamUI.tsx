@@ -82,7 +82,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
         <CardTitle className="text-base">Refraction & Visual Acuity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-hidden">
           <Table>
             <TableHeader>
               <TableRow>

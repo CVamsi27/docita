@@ -41,7 +41,7 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
         {isLoading ? (
           <LoadingState message="Loading catalog..." />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-hidden">
             <Table>
               <TableHeader>
                 <TableRow>

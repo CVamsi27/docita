@@ -180,7 +180,7 @@ export const InvoicesPageUI: FC = () => {
           {loading ? (
             <LoadingState message="Loading invoices..." />
           ) : (
-            <div className="ui-card-surface overflow-x-auto">
+            <div className="ui-card-surface overflow-x-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>

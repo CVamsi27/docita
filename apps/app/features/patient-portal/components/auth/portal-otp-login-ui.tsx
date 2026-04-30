@@ -42,7 +42,7 @@ export function PortalOtpLoginUI() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="ui-card-surface w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70">
             {step === "phone" ? (
@@ -51,10 +51,10 @@ export function PortalOtpLoginUI() {
               <ShieldCheck className="h-6 w-6 text-primary" />
             )}
           </div>
-          <CardTitle className="text-2xl">
+          <CardTitle className="ui-page-title text-[var(--fs-3xl)]">
             {step === "phone" ? "Patient Portal" : "Enter Verification Code"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="ui-page-subtitle">
             {step === "phone"
               ? "Enter your registered mobile number to receive a verification code"
               : `We sent a 6-digit verification code to ${phoneNumber}`}

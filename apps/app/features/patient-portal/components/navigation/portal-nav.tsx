@@ -98,7 +98,7 @@ export function PortalNav() {
         </div>
 
         <div className="md:hidden pb-3">
-          <div className="flex items-center gap-2 overflow-x-auto">
+          <div className="flex flex-wrap items-center gap-2 overflow-x-hidden">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = isItemActive(item.href);

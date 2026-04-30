@@ -631,7 +631,7 @@ export function ComplianceStep({
                     Loading signature preview...
                   </p>
                 ) : signatureFileUrl && !signaturePreviewFailed ? (
-                  <div className="rounded-md border bg-white p-3">
+                  <div className="rounded-md border bg-background p-3">
                     <Image
                       src={signatureFileUrl}
                       alt="SLA signature preview"
