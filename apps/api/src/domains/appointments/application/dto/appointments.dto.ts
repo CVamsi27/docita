@@ -4,10 +4,19 @@ import {
   appointmentCancelRequestSchema,
   appointmentRescheduleRequestSchema,
   appointmentResponseSchema,
+  appointmentRequestListResponseSchema,
   createAppointmentRequestSchema,
+  approveAppointmentRequestSchema,
+  bookFollowUpRequestSchema,
+  createFollowUpRequestSchema,
   diagnosesSyncRequestSchema,
   diagnosesSyncResponseSchema,
+  followUpResponseSchema,
+  listAppointmentRequestsQuerySchema,
   listAppointmentsQuerySchema,
+  listFollowUpsQuerySchema,
+  patientAppointmentRequestCreateSchema,
+  rejectAppointmentRequestSchema,
   updateAppointmentRequestSchema,
   vitalSignSchema,
 } from '@workspace/types';
@@ -41,6 +50,38 @@ export class VitalsDto extends createZodDto(vitalSignSchema) {}
 
 export class AppointmentResponseDto extends createZodDto(
   appointmentResponseSchema,
+) {}
+
+export class CreateFollowUpDto extends createZodDto(
+  createFollowUpRequestSchema,
+) {}
+
+export class ListFollowUpsQueryDto extends createZodDto(
+  listFollowUpsQuerySchema,
+) {}
+
+export class BookFollowUpDto extends createZodDto(bookFollowUpRequestSchema) {}
+
+export class FollowUpResponseDto extends createZodDto(followUpResponseSchema) {}
+
+export class PatientAppointmentRequestCreateDto extends createZodDto(
+  patientAppointmentRequestCreateSchema,
+) {}
+
+export class ListAppointmentRequestsQueryDto extends createZodDto(
+  listAppointmentRequestsQuerySchema,
+) {}
+
+export class ApproveAppointmentRequestDto extends createZodDto(
+  approveAppointmentRequestSchema,
+) {}
+
+export class RejectAppointmentRequestDto extends createZodDto(
+  rejectAppointmentRequestSchema,
+) {}
+
+export class AppointmentRequestListResponseDto extends createZodDto(
+  appointmentRequestListResponseSchema,
 ) {}
 
 const PaginatedAppointmentResponseSchema = z.object({

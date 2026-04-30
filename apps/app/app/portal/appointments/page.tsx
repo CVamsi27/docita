@@ -1,12 +1,26 @@
 "use client";
 
+import { useState, type FormEvent } from "react";
 import { PatientPortalAppointmentsUI } from "@/features/patient-portal/components";
 import type { PatientAppointmentStatus } from "@/features/patient-portal/types/patient-portal-types";
-import { usePatientPortalAppointments } from "@/hooks/api/use-patient-portal";
+import {
+  usePatientPortalAppointments,
+  useRequestAppointment,
+} from "@/hooks/api/use-patient-portal";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { DataState } from "@workspace/ui/components/data-state";
+import { Input } from "@workspace/ui/components/input";
 import { PageHeader } from "@workspace/ui/components/page-header";
+import { Textarea } from "@workspace/ui/components/textarea";
 import { Calendar } from "lucide-react";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 function mapAppointmentStatus(status: unknown): PatientAppointmentStatus {
   if (typeof status !== "string") {
@@ -30,12 +44,17 @@ function mapAppointmentStatus(status: unknown): PatientAppointmentStatus {
 }
 
 export default function PortalAppointmentsPage() {
+  const [preferredDate, setPreferredDate] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
+  const [reason, setReason] = useState("");
+  const [notes, setNotes] = useState("");
   const {
     data,
     isLoading,
     isError,
     refetch,
   } = usePatientPortalAppointments();
+  const requestAppointment = useRequestAppointment();
 
   const appointments = (data?.appointments ?? []).map((item, index) => {
     const row = item as Record<string, unknown>;
@@ -80,6 +99,29 @@ export default function PortalAppointmentsPage() {
       ? "empty"
       : "success";
 
+  const handleRequestSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      await requestAppointment.mutateAsync({
+        preferredDate,
+        preferredTime: preferredTime || undefined,
+        reason,
+        ...(notes.trim() ? { notes } : {}),
+      });
+      setPreferredDate("");
+      setPreferredTime("");
+      setReason("");
+      setNotes("");
+      void refetch();
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not send this appointment request. Please try again.",
+        "form",
+      );
+    }
+  };
+
   return (
     <AppPageScaffold
       header={
@@ -89,6 +131,55 @@ export default function PortalAppointmentsPage() {
         />
       }
     >
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Request an Appointment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px] lg:grid-cols-[minmax(0,1fr)_160px_140px]"
+            onSubmit={handleRequestSubmit}
+          >
+            <Input
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="Reason for visit"
+              required
+              maxLength={500}
+              aria-label="Reason for visit"
+            />
+            <Input
+              type="date"
+              value={preferredDate}
+              onChange={(event) => setPreferredDate(event.target.value)}
+              required
+              aria-label="Preferred date"
+            />
+            <Input
+              type="time"
+              value={preferredTime}
+              onChange={(event) => setPreferredTime(event.target.value)}
+              aria-label="Preferred time"
+            />
+            <Textarea
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="Additional notes"
+              maxLength={1000}
+              aria-label="Additional notes"
+              className="md:col-span-2 lg:col-span-2"
+            />
+            <Button
+              type="submit"
+              disabled={requestAppointment.isPending}
+              className="lg:self-start"
+            >
+              Send Request
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
       <DataState
         status={state}
         loadingMessage="Loading appointments..."

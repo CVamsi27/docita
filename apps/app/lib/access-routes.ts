@@ -11,6 +11,7 @@ const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/profile", target: APP_ACCESS_TARGETS.PAGE_PROFILE },
   { pathPrefix: "/patients", target: APP_ACCESS_TARGETS.PAGE_PATIENTS },
   { pathPrefix: "/appointments", target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS },
+  { pathPrefix: "/follow-ups", target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS },
   { pathPrefix: "/consultation", target: APP_ACCESS_TARGETS.PAGE_CONSULTATION },
   { pathPrefix: "/prescriptions", target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS },
   { pathPrefix: "/lab-tests", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },

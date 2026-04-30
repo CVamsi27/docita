@@ -9,6 +9,7 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/patients/[id]": { label: "Patient", parentPath: "/patients" },
   "/patients/[id]/history": { label: "History", parentPath: "/patients/[id]" },
   "/appointments": { label: "Appointments" },
+  "/follow-ups": { label: "Follow-ups" },
   "/consultation": { label: "Consultation" },
   "/consultation/[id]": { label: "Consultation", parentPath: "/appointments" },
   "/prescriptions": { label: "Prescriptions" },

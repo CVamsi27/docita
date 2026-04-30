@@ -1,4 +1,4 @@
-import { FollowUp, Prisma } from '@workspace/db';
+import { FollowUp, FollowUpStatus, Prisma } from '@workspace/db';
 
 export type FollowUpWithRelations = FollowUp & {
   patient?: {
@@ -12,6 +12,14 @@ export type FollowUpWithRelations = FollowUp & {
 
 export interface IFollowUpRepository {
   create(data: Prisma.FollowUpUncheckedCreateInput): Promise<FollowUp>;
+
+  findForClinic(params: {
+    clinicId: string;
+    statuses?: FollowUpStatus[];
+    from?: Date;
+    to?: Date;
+    take: number;
+  }): Promise<FollowUpWithRelations[]>;
 
   findUpcoming(
     clinicId: string,
