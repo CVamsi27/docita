@@ -13,7 +13,6 @@
     "apps/api": {
       "entry": [
         "src/main.ts",
-        "src/worker.ts",
         "scripts/*.ts",
         "test/setup.ts",
         "test/**/*.e2e-spec.ts"

@@ -195,7 +195,6 @@ function isWorkerSpecificChange(file) {
     file === "apps/api/Dockerfile" ||
     file === "packages/typescript-config/nestjs.json" ||
     file.startsWith("apps/worker/") ||
-    file === "apps/api/src/worker.ts" ||
     file === "apps/api/src/worker.module.ts"
   );
 }
