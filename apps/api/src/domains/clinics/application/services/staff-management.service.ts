@@ -8,6 +8,18 @@ import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
 
+type ClinicMemberRole =
+  | 'DOCTOR'
+  | 'NURSE'
+  | 'RECEPTIONIST'
+  | 'ADMIN'
+  | 'ADMIN_DOCTOR';
+
+const isAdminSwitchRole = (
+  role: Role | ClinicMemberRole | undefined,
+): role is 'ADMIN' | 'ADMIN_DOCTOR' =>
+  role === Role.ADMIN || role === Role.ADMIN_DOCTOR;
+
 interface CreateDoctorData {
   name: string;
   email: string;
@@ -30,7 +42,7 @@ interface UpdateMemberData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
+  role?: ClinicMemberRole;
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
@@ -164,6 +176,10 @@ export class StaffManagementService {
         hospitalRole: true,
         qualification: true,
         registrationNumber: true,
+        signatureUploadedAt: true,
+        verificationStatus: true,
+        verificationReason: true,
+        verificationCheckedAt: true,
         profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,
@@ -179,6 +195,7 @@ export class StaffManagementService {
     memberId: string,
     data: UpdateMemberData,
     actorUserId: string,
+    actorRole: Role,
   ) {
     const member = await this.prisma.user.findFirst({
       where: {
@@ -199,17 +216,29 @@ export class StaffManagementService {
       throw new BadRequestException('You cannot change your own role');
     }
 
-    if (member.role === Role.ADMIN && data.role) {
-      throw new ForbiddenException('Admin role cannot be changed here');
-    }
-
     if (
       data.role &&
-      ![Role.DOCTOR, Role.NURSE, Role.RECEPTIONIST, Role.ADMIN_DOCTOR].includes(
-        data.role,
-      )
+      ![
+        Role.DOCTOR,
+        Role.NURSE,
+        Role.RECEPTIONIST,
+        Role.ADMIN,
+        Role.ADMIN_DOCTOR,
+      ].includes(data.role)
     ) {
       throw new BadRequestException('Invalid role for clinic member update');
+    }
+
+    if (data.role && data.role !== member.role) {
+      if (!isAdminSwitchRole(actorRole)) {
+        throw new ForbiddenException('Only admins can change member roles');
+      }
+
+      if (!isAdminSwitchRole(member.role) || !isAdminSwitchRole(data.role)) {
+        throw new BadRequestException(
+          'Only Admin and Admin Doctor role changes are supported here',
+        );
+      }
     }
 
     const updated = await this.prisma.user.update({
@@ -240,6 +269,10 @@ export class StaffManagementService {
         specialization: true,
         qualification: true,
         registrationNumber: true,
+        signatureUploadedAt: true,
+        verificationStatus: true,
+        verificationReason: true,
+        verificationCheckedAt: true,
         profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,

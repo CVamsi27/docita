@@ -300,7 +300,8 @@ export class ClinicSettingsController {
   ) {
     const clinicId = req.user?.clinicId;
     const actorUserId = req.user?.id;
-    if (!clinicId || !actorUserId) {
+    const actorRole = req.user?.role;
+    if (!clinicId || !actorUserId || !actorRole) {
       throw new ForbiddenException('No clinic assigned to this user');
     }
     return this.clinicsService.updateMember(
@@ -308,6 +309,7 @@ export class ClinicSettingsController {
       memberId,
       dto,
       actorUserId,
+      actorRole,
     );
   }
 

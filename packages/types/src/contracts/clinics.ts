@@ -127,7 +127,9 @@ export const updateClinicMemberRequestSchema = z.object({
   name: z.string().min(1).optional(),
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
-  role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"]).optional(),
+  role: z
+    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"])
+    .optional(),
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),

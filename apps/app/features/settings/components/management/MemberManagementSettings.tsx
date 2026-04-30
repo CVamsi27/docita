@@ -1,7 +1,7 @@
 "use client";
 
-import { FC, useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { FC, useMemo, useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,7 +9,6 @@ import {
   useClinicSettings,
   useCreateClinicDoctor,
   useCreateClinicReceptionist,
-  useCreateDoctorSignatureUploadSession,
   useDeleteClinicMember,
   useReverifyDoctorRegistration,
   useUpdateClinicMember,
@@ -48,22 +47,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import {
-  Copy,
-  Loader2,
-  QrCode,
-  ShieldCheck,
-  ShieldX,
-  UserPlus,
-} from "lucide-react";
+import { Copy, Loader2, ShieldCheck, ShieldX, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
 import { useMemberManagementLogic } from "@/features/settings/hooks/use-member-management-logic";
 import { toast } from "sonner";
-import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
-import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
-import { toAbsoluteAppUrl } from "@/lib/url";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useFacilityLabel } from "@/lib/facility-label";
+import { useAuth } from "@/lib/auth-context";
 
 const inviteSchema = z
   .object({
@@ -91,7 +81,7 @@ const memberSchema = z
     name: z.string().min(1, "Enter the team member's name"),
     email: z.string().email("Please enter a valid email address"),
     phoneNumber: z.string().optional(),
-    role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"]),
+    role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"]),
     specialization: z.string().optional(),
     qualification: z.string().optional(),
     registrationNumber: z.string().optional(),
@@ -111,6 +101,17 @@ const memberSchema = z
 
 type InviteFormValues = z.infer<typeof inviteSchema>;
 type MemberFormValues = z.infer<typeof memberSchema>;
+type MemberRole = MemberFormValues["role"];
+
+const DOCTOR_ROLES = new Set<MemberRole>(["DOCTOR", "ADMIN_DOCTOR"]);
+const ADMIN_SWITCH_ROLES = new Set<MemberRole>(["ADMIN", "ADMIN_DOCTOR"]);
+const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
+  DOCTOR: "Doctor",
+  NURSE: "Nurse",
+  RECEPTIONIST: "Receptionist",
+  ADMIN: "Admin",
+  ADMIN_DOCTOR: "Admin Doctor",
+};
 
 interface MemberManagementUIProps {
   members: User[];
@@ -129,17 +130,8 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 }) => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
-  const [signatureUploadUrl, setSignatureUploadUrl] = useState<string | null>(
-    null,
-  );
-  const [signatureUploadDoctorId, setSignatureUploadDoctorId] = useState<
-    string | null
-  >(null);
-  const [signatureUploadInitialAt, setSignatureUploadInitialAt] = useState<
-    string | Date | null
-  >(null);
   const facilityLabel = useFacilityLabel();
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { mutate: createDoctor, isPending: isCreatingDoctor } =
     useCreateClinicDoctor(clinicId);
@@ -149,59 +141,12 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     useUpdateClinicMember();
   const { mutate: deleteMember, isPending: isDeletingMember } =
     useDeleteClinicMember();
-  const {
-    mutate: createSignatureUploadSession,
-    isPending: isCreatingSignatureUploadSession,
-  } = useCreateDoctorSignatureUploadSession();
   const { mutate: reverifyDoctor, isPending: isReverifyingDoctor } =
     useReverifyDoctorRegistration();
 
   const isSaving = isCreatingDoctor || isCreatingReceptionist;
   const isManaging =
-    isUpdatingMember ||
-    isDeletingMember ||
-    isCreatingSignatureUploadSession ||
-    isReverifyingDoctor;
-
-  const latestSignatureMember = useMemo(
-    () =>
-      signatureUploadDoctorId
-        ? members.find((member) => member.id === signatureUploadDoctorId)
-        : undefined,
-    [members, signatureUploadDoctorId],
-  );
-
-  useEffect(() => {
-    if (!signatureUploadUrl || !signatureUploadDoctorId) return;
-
-    const interval = window.setInterval(() => {
-      void queryClient.invalidateQueries({ queryKey: ["clinic", "members"] });
-    }, 3000);
-
-    return () => window.clearInterval(interval);
-  }, [queryClient, signatureUploadDoctorId, signatureUploadUrl]);
-
-  useEffect(() => {
-    if (!signatureUploadUrl || !latestSignatureMember?.signatureUploadedAt) {
-      return;
-    }
-
-    const uploadedAt = new Date(
-      latestSignatureMember.signatureUploadedAt,
-    ).toISOString();
-    const initialUploadedAt = signatureUploadInitialAt
-      ? new Date(signatureUploadInitialAt).toISOString()
-      : null;
-
-    if (uploadedAt === initialUploadedAt) {
-      return;
-    }
-
-    toast.success("Signature uploaded successfully");
-    setSignatureUploadUrl(null);
-    setSignatureUploadDoctorId(null);
-    setSignatureUploadInitialAt(null);
-  }, [latestSignatureMember, signatureUploadInitialAt, signatureUploadUrl]);
+    isUpdatingMember || isDeletingMember || isReverifyingDoctor;
 
   const getVerificationBadgeVariant = (
     status?: User["verificationStatus"],
@@ -253,8 +198,17 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   const selectedRole = form.watch("role");
   const selectedMemberRole = memberForm.watch("role");
-  const isSelectedMemberDoctor =
-    selectedMemberRole === "DOCTOR" || selectedMemberRole === "ADMIN_DOCTOR";
+  const isSelectedMemberDoctor = DOCTOR_ROLES.has(selectedMemberRole);
+  const userCanChangeRoles =
+    user?.role === "ADMIN" || user?.role === "ADMIN_DOCTOR";
+  const canChangeSelectedMemberRole =
+    !!selectedMember &&
+    userCanChangeRoles &&
+    selectedMember.id !== user?.id &&
+    ADMIN_SWITCH_ROLES.has(selectedMember.role as MemberRole);
+  const memberDialogDescription = isSelectedMemberDoctor
+    ? "Edit contact details, role eligibility, verification, and signature status."
+    : "Edit contact details and review this member's role.";
   const canInvite = !!clinicId;
 
   const openMemberDialog = (member: User) => {
@@ -267,6 +221,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         member.role === "DOCTOR" ||
         member.role === "NURSE" ||
         member.role === "RECEPTIONIST" ||
+        member.role === "ADMIN" ||
         member.role === "ADMIN_DOCTOR"
           ? member.role
           : "NURSE",
@@ -285,10 +240,14 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         name: data.name,
         email: data.email,
         phoneNumber: data.phoneNumber || undefined,
-        role: data.role,
-        specialization: data.specialization || undefined,
-        qualification: data.qualification || undefined,
-        registrationNumber: data.registrationNumber || undefined,
+        ...(canChangeSelectedMemberRole ? { role: data.role } : {}),
+        ...(isSelectedMemberDoctor
+          ? {
+              specialization: data.specialization || undefined,
+              qualification: data.qualification || undefined,
+              registrationNumber: data.registrationNumber || undefined,
+            }
+          : {}),
       },
       {
         onSuccess: () => {
@@ -331,29 +290,6 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     );
   };
 
-  const handleGenerateSignatureQr = (doctorId: string) => {
-    const doctor = members.find((member) => member.id === doctorId);
-    createSignatureUploadSession(
-      { doctorId },
-      {
-        onSuccess: (session) => {
-          const uploadUrl = toAbsoluteAppUrl(session.uploadUrl);
-          setSignatureUploadUrl(uploadUrl);
-          setSignatureUploadDoctorId(doctorId);
-          setSignatureUploadInitialAt(doctor?.signatureUploadedAt ?? null);
-          toast.success("Signature upload link created");
-        },
-        onError: (err) => {
-          showUserFacingErrorToast(
-            err,
-            "We could not create this upload link right now. Please try again.",
-            "save",
-          );
-        },
-      },
-    );
-  };
-
   const handleReverifyDoctor = async (doctorId: string) => {
     const hasRegistrationNumber = await memberForm.trigger(
       "registrationNumber",
@@ -384,17 +320,6 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         },
       },
     );
-  };
-
-  const handleCopySignatureLink = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Upload link copied");
-    } catch {
-      showUserFacingErrorToast(
-        "We could not copy this upload link. Please try again.",
-      );
-    }
   };
 
   const handleCopyClinicCode = async () => {
@@ -592,7 +517,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     <p className="font-medium">{member.name || "Unknown"}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       <span>{member.email}</span>
-                      <Badge variant="outline">{member.role || "Staff"}</Badge>
+                      <Badge variant="outline">
+                        {MEMBER_ROLE_LABELS[member.role as MemberRole] ||
+                          member.role ||
+                          "Staff"}
+                      </Badge>
                       {(member.role === "DOCTOR" ||
                         member.role === "ADMIN_DOCTOR") && (
                         <>
@@ -824,9 +753,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         <DialogContent className="sm:max-w-[640px]">
           <DialogHeader>
             <DialogTitle>Member Details</DialogTitle>
-            <DialogDescription>
-              Edit contact details, role, verification, and signature status.
-            </DialogDescription>
+            <DialogDescription>{memberDialogDescription}</DialogDescription>
           </DialogHeader>
           {selectedMember && (
             <Form {...memberForm}>
@@ -842,6 +769,14 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                 noValidate
               >
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="rounded-lg border bg-muted/20 p-3 md:col-span-2">
+                    <p className="text-base font-semibold text-foreground">
+                      {selectedMember.name || "Unknown member"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {MEMBER_ROLE_LABELS[selectedMemberRole]}
+                    </p>
+                  </div>
                   <FormField
                     control={memberForm.control}
                     name="name"
@@ -861,26 +796,30 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Role</FormLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="NURSE">Nurse</SelectItem>
-                            <SelectItem value="RECEPTIONIST">
-                              Receptionist
-                            </SelectItem>
-                            <SelectItem value="DOCTOR">Doctor</SelectItem>
-                            <SelectItem value="ADMIN_DOCTOR">
-                              Admin Doctor
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        {canChangeSelectedMemberRole ? (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="ADMIN">Admin</SelectItem>
+                              <SelectItem value="ADMIN_DOCTOR">
+                                Admin Doctor
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="flex h-10 items-center rounded-md border bg-muted/20 px-3">
+                            <Badge variant="outline">
+                              {MEMBER_ROLE_LABELS[field.value]}
+                            </Badge>
+                          </div>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1015,23 +954,18 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleGenerateSignatureQr(selectedMember.id)
-                            }
-                            disabled={isManaging}
-                          >
-                            {isCreatingSignatureUploadSession && (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            )}
-                            {!isCreatingSignatureUploadSession && (
-                              <QrCode className="mr-2 h-4 w-4" />
-                            )}
-                            Signature Upload Link
-                          </Button>
+                          {!selectedMember.signatureUploadedAt && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              asChild
+                            >
+                              <Link href="/verify-doctor">
+                                Complete Doctor Verification
+                              </Link>
+                            </Button>
+                          )}
                           <Button
                             type="button"
                             variant="outline"
@@ -1099,38 +1033,6 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
               </form>
             </Form>
           )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={!!signatureUploadUrl}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSignatureUploadUrl(null);
-            setSignatureUploadDoctorId(null);
-            setSignatureUploadInitialAt(null);
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Doctor Signature Upload</DialogTitle>
-            <DialogDescription>
-              Scan this QR code or share the link to upload a doctor signature.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-2">
-            {signatureUploadUrl ? (
-              <>
-                <QrCodeCard value={signatureUploadUrl} size={192} />
-                <CopyableLinkField
-                  value={signatureUploadUrl}
-                  actionLabel="Copy Upload Link"
-                  onCopy={handleCopySignatureLink}
-                />
-              </>
-            ) : null}
-          </div>
         </DialogContent>
       </Dialog>
     </Card>
