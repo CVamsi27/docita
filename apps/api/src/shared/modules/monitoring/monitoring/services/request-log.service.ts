@@ -80,23 +80,25 @@ export class RequestLogService implements OnModuleDestroy {
 
     try {
       this.flushInProgress = true;
-      await this.prisma.apiRequest.createMany({
-        data: requestsToFlush.map((req) => ({
-          clinicId: req.clinicId,
-          userId: req.userId,
-          method: req.method,
-          path: req.path,
-          statusCode: req.statusCode,
-          duration: req.duration,
-          requestSize: req.requestSize,
-          responseSize: req.responseSize,
-          userAgent: req.userAgent,
-          ip: req.ip,
-          error: req.error,
-          errorStack: req.errorStack,
-          metadata: req.metadata as Prisma.InputJsonValue,
-        })),
-        skipDuplicates: true,
+      await this.prisma.runUnrestricted(async () => {
+        await this.prisma.apiRequest.createMany({
+          data: requestsToFlush.map((req) => ({
+            clinicId: req.clinicId,
+            userId: req.userId,
+            method: req.method,
+            path: req.path,
+            statusCode: req.statusCode,
+            duration: req.duration,
+            requestSize: req.requestSize,
+            responseSize: req.responseSize,
+            userAgent: req.userAgent,
+            ip: req.ip,
+            error: req.error,
+            errorStack: req.errorStack,
+            metadata: req.metadata as Prisma.InputJsonValue,
+          })),
+          skipDuplicates: true,
+        });
       });
 
       this.requestBuffer.splice(0, requestsToFlush.length);

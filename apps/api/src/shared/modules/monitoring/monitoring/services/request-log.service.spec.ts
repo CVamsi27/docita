@@ -15,6 +15,7 @@ import {
 describe('RequestLogService', () => {
   let service: RequestLogService;
   let prismaService: {
+    runUnrestricted: ReturnType<typeof jest.fn>;
     $queryRaw: ReturnType<typeof jest.fn>;
     apiRequest: {
       createMany: ReturnType<typeof jest.fn>;
@@ -27,6 +28,9 @@ describe('RequestLogService', () => {
   };
 
   const mockPrismaService = {
+    runUnrestricted: jest.fn(async <T>(callback: () => Promise<T>) =>
+      callback(),
+    ),
     $queryRaw: jest.fn(async () => []),
     apiRequest: {
       createMany: jest.fn(),
@@ -115,6 +119,7 @@ describe('RequestLogService', () => {
 
       await service.flushBuffer();
       expect(prismaService.apiRequest.createMany).toHaveBeenCalled();
+      expect(prismaService.runUnrestricted).toHaveBeenCalled();
       expect(service['requestBuffer']).toHaveLength(0);
     });
 
