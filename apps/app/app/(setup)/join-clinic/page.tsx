@@ -156,7 +156,7 @@ export default function JoinClinicPage() {
           label="Back to Choose Path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">
           Join a Facility
         </h1>
         <p className="text-muted-foreground text-sm">

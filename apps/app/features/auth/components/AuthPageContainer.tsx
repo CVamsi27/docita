@@ -286,7 +286,7 @@ export function AuthPageContainer() {
           step === "signup" ? "text-center lg:text-left" : "text-center",
         ].join(" ")}
       >
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{STEP_TITLES[step]}</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">{STEP_TITLES[step]}</h1>
         <p className="text-muted-foreground text-sm">
           {STEP_DESCRIPTIONS[step]}
         </p>

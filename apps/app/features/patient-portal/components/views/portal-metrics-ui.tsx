@@ -115,7 +115,7 @@ export function PortalMetricsUI({
     <div className="space-y-6">
       {showHeader ? (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Metrics</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">My Metrics</h1>
           <p className="text-sm text-muted-foreground">
             Track and monitor your personal health metrics
           </p>

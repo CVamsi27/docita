@@ -93,23 +93,11 @@ export function PreDashboardShell({
 
       {/* Right panel keeps its own scroll so the branding rail stays fixed */}
       <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden">
-        {/* Radial ambient glow */}
-        <div
-          className="pointer-events-none absolute inset-0 z-0"
-          style={{
-            background:
-              "radial-gradient(ellipse at 65% 35%, oklch(var(--primary) / 0.05) 0%, transparent 65%)",
-          }}
-          aria-hidden="true"
-        />
-
         {/* Sticky top bar — stays visible while scrolling */}
         <div className="sticky top-0 z-20 flex items-center justify-between px-4 pt-4 pb-2 bg-background/80 backdrop-blur-sm">
-          {/* Mobile logo */}
-          <div className="lg:hidden">
+          <div className={cn(showBrandingPanel ? "lg:hidden" : "")}>
             <DocitaLogo />
           </div>
-          <div className="hidden lg:block" />
 
           <div className="flex items-center gap-2">
             {showSignOut && (

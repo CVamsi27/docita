@@ -71,8 +71,7 @@ export function LockedFeatureCard({
   const tierInfo = tierName ? TIER_INFO[tierName] : undefined;
 
   return (
-    <Card className="surface-warning relative overflow-hidden border-2">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-warning/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
+    <Card className="surface-warning border">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-warning">
           <Lock className="h-5 w-5" />
@@ -86,7 +85,7 @@ export function LockedFeatureCard({
       <CardContent>
         <Button
           asChild
-          className="gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          className="gap-2"
         >
           <Link href="/upgrade">
             <Sparkles className="h-4 w-4" />

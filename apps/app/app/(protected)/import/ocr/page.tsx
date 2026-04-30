@@ -42,7 +42,7 @@ export default function OCRPage() {
         <div className="flex items-center gap-2 mb-2">
           <BackButton fallback="/import" label="Back to Import" />
         </div>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-normal">
           Smart OCR Digitization
         </h1>
         <p className="text-muted-foreground">

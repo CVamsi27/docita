@@ -16,6 +16,13 @@ import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
+import { ScrollArea } from "@workspace/ui/components/scroll-area";
+import {
   Tabs,
   TabsContent,
   TabsList,
@@ -51,6 +58,7 @@ import {
   getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
 import { BackButton } from "@/components/common/navigation/back-button";
+import { PrivacyPolicyContent, SLAContent } from "@/features/legal";
 
 const PLAN_ORDER = [
   Tier.STARTER,
@@ -89,6 +97,17 @@ function formatLimitValue(value?: number) {
   return value.toLocaleString("en-IN");
 }
 
+function formatLimitLabel(
+  value: number | undefined,
+  singular: string,
+  plural = `${singular}s`,
+) {
+  const formattedValue = formatLimitValue(value);
+  if (!formattedValue) return undefined;
+  const unit = value === 1 ? singular : plural;
+  return `${formattedValue} ${unit}`;
+}
+
 function formatStatusLabel(status?: string) {
   if (!status) return "Free";
   return status
@@ -118,6 +137,9 @@ export default function UpgradePage() {
     planName: "",
   });
   const [showInvoiceHistory, setShowInvoiceHistory] = useState(false);
+  const [legalDialog, setLegalDialog] = useState<null | "terms" | "privacy">(
+    null,
+  );
   const plansRef = useRef<HTMLDivElement>(null);
 
   const { checkoutTier } = useSubscriptionCheckout((data) => {
@@ -363,13 +385,15 @@ export default function UpgradePage() {
         <div ref={plansRef} className="scroll-mt-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold">Choose a plan</h2>
+              <h2 className="text-xl font-semibold tracking-normal">
+                Choose a plan
+              </h2>
               <p className="text-sm text-muted-foreground">
                 Select a plan below. The confirmation step appears only after
                 you choose one.
               </p>
             </div>
-            <div className="inline-flex items-center gap-1 rounded-xl border bg-background p-1 self-start sm:self-auto">
+            <div className="inline-flex items-center gap-1 rounded-lg border bg-background p-1 self-start sm:self-auto">
               <Button
                 variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
                 size="sm"
@@ -420,18 +444,14 @@ export default function UpgradePage() {
                 whatsappRate > 0
                   ? `${currencySymbol}${whatsappRate}/WA msg`
                   : null,
-              ].filter(Boolean);
+              ].filter((item): item is string => !!item);
               const overageHint =
                 overageParts.length > 0
-                  ? `Overage meters: ${overageParts.join(" | ")}`
+                  ? `Overage meters: ${overageParts.join(", ")}`
                   : undefined;
               const limitHighlights = [
-                limits?.patients !== undefined
-                  ? `${formatLimitValue(limits.patients)} patients`
-                  : undefined,
-                limits?.doctors !== undefined
-                  ? `${formatLimitValue(limits.doctors)} doctors`
-                  : undefined,
+                formatLimitLabel(limits?.patients, "patient"),
+                formatLimitLabel(limits?.doctors, "doctor"),
                 limits?.appointments !== undefined
                   ? `${formatLimitValue(limits.appointments)} consults/mo`
                   : undefined,
@@ -453,6 +473,7 @@ export default function UpgradePage() {
                   billingCycle={selectedCycle}
                   currencySymbol={currencySymbol}
                   overageHint={overageHint}
+                  overageItems={overageParts}
                   bestFor={PLAN_BEST_FOR[tierName]}
                   includedLabel={PLAN_INCLUDED_LABEL[tierName]}
                   limitHighlights={limitHighlights}
@@ -521,16 +542,45 @@ export default function UpgradePage() {
         <div className="text-center text-xs text-muted-foreground pt-2 pb-10">
           <p>
             By upgrading, you agree to our{" "}
-            <a href="#" className="underline hover:text-foreground">
+            <button
+              type="button"
+              className="underline underline-offset-2 hover:text-foreground"
+              onClick={() => setLegalDialog("terms")}
+            >
               Terms of Service
-            </a>{" "}
+            </button>{" "}
             and{" "}
-            <a href="#" className="underline hover:text-foreground">
+            <button
+              type="button"
+              className="underline underline-offset-2 hover:text-foreground"
+              onClick={() => setLegalDialog("privacy")}
+            >
               Privacy Policy
-            </a>
+            </button>
             . All prices are inclusive of GST and applicable taxes.
           </p>
         </div>
+
+        <Dialog
+          open={legalDialog !== null}
+          onOpenChange={(open) => {
+            if (!open) setLegalDialog(null);
+          }}
+        >
+          <DialogContent className="max-w-3xl max-h-[85vh] p-0">
+            <DialogHeader className="px-6 pt-6">
+              <DialogTitle className="text-xl">
+                {legalDialog === "privacy" ? "Privacy Policy" : "Terms"}
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[calc(85vh-84px)] px-6 pb-6">
+              <div className="pt-2">
+                {legalDialog === "privacy" ? <PrivacyPolicyContent /> : null}
+                {legalDialog === "terms" ? <SLAContent /> : null}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
 
         <ContactSalesModal
           open={showContactSalesModal}

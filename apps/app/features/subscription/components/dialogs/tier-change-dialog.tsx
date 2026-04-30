@@ -200,7 +200,7 @@ export function TierChangeDialog({
         ) : (
           <>
             <div className="grid gap-3 py-2 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
-              <div className="rounded-xl border bg-muted/30 p-4">
+              <div className="rounded-lg border bg-muted/30 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
                     <CurrentIcon className="h-4 w-4" />
@@ -223,7 +223,7 @@ export function TierChangeDialog({
                 )}
               </div>
 
-              <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
+              <div className="rounded-lg border border-primary/40 bg-primary/5 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-primary">
                     <SelectedIcon className="h-4 w-4" />

@@ -29,7 +29,7 @@ export function DentalChartUI({
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
 
   if (isLoading || !constants) {
-    return <Skeleton className="h-[400px] w-full rounded-xl" />;
+    return <Skeleton className="h-[400px] w-full rounded-lg" />;
   }
 
   const { teethQuadrants: TEETH_QUADRANTS, toothConditions: TOOTH_CONDITIONS } =
@@ -117,7 +117,7 @@ export function DentalChartUI({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 items-center p-6 bg-muted/50 rounded-xl border border-muted">
+      <div className="flex flex-col gap-4 items-center p-6 bg-muted/50 rounded-lg border border-muted">
         <div className="flex gap-8">
           <div className="flex gap-1">
             {TEETH_QUADRANTS.UR.map(renderTooth)}

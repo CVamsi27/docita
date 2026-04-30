@@ -106,7 +106,7 @@ export default function UiContractVisualTestPage() {
       </section>
 
       <section data-testid="error-inline">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
           <p className="flex items-center gap-2 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
             Inline alert style reference

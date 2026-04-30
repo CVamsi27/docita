@@ -110,7 +110,7 @@ export function SubjectiveSection({
         />
       </div>
 
-      <details className="rounded-xl border bg-muted/10 p-3">
+      <details className="rounded-lg border bg-muted/10 p-3">
         <summary className="cursor-pointer text-sm font-semibold">
           Past medical history
         </summary>

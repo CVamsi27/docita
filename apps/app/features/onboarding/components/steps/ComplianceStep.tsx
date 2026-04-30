@@ -112,7 +112,7 @@ function LegalCard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 md:p-5 transition-all",
+        "rounded-lg border p-4 md:p-5 transition-all",
         accepted
           ? "border-primary/40 bg-primary/5 shadow-sm"
           : "border-border bg-card hover:border-primary/30 hover:bg-muted/20",
@@ -660,7 +660,7 @@ export function ComplianceStep({
           </div>
 
           {/* Legal Agreements */}
-          <div className="space-y-4 rounded-xl border p-4 md:p-5 bg-card">
+          <div className="space-y-4 rounded-lg border p-4 md:p-5 bg-card">
             <div className="space-y-2.5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">

@@ -80,7 +80,7 @@ export const HelpCenter: FC = () => {
           >
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                   <cat.icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">

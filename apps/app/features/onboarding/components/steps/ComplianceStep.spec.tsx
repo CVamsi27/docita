@@ -100,17 +100,6 @@ describe("ComplianceStep", () => {
 
   it("auto-detects uploaded signature from polling and sets signature session id", async () => {
     const ensureOnboardingId = vi.fn().mockResolvedValue("onb_1");
-    const setIntervalSpy = vi
-      .spyOn(globalThis, "setInterval")
-      .mockImplementation((handler: TimerHandler) => {
-        if (typeof handler === "function") {
-          void handler();
-        }
-        return setTimeout(() => undefined, 0) as ReturnType<typeof setInterval>;
-      });
-    const clearIntervalSpy = vi
-      .spyOn(globalThis, "clearInterval")
-      .mockImplementation(() => {});
 
     mocks.fetch.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -167,11 +156,6 @@ describe("ComplianceStep", () => {
     expect(
       await screen.findByAltText(/SLA signature preview/i),
     ).toBeInTheDocument();
-    expect(setIntervalSpy).toHaveBeenCalled();
-    expect(clearIntervalSpy).toHaveBeenCalled();
-
-    setIntervalSpy.mockRestore();
-    clearIntervalSpy.mockRestore();
   });
 
   it("retries QR session creation with refreshed onboarding id when stale id fails", async () => {

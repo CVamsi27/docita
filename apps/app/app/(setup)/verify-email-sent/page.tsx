@@ -157,7 +157,7 @@ export default function VerifyEmailSentPage() {
           </div>
 
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Email verified</h1>
+            <h1 className="text-2xl font-semibold tracking-normal">Email verified</h1>
             <p className="text-muted-foreground text-sm">
               You can continue setup when you are ready.
             </p>
@@ -228,7 +228,7 @@ export default function VerifyEmailSentPage() {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">Check your email</h1>
           <p className="text-muted-foreground text-sm">We need to verify</p>
           <p className="font-medium text-sm">{email}</p>
           <p className="text-muted-foreground text-sm pt-1">

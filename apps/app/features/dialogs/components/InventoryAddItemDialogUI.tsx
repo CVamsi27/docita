@@ -100,11 +100,7 @@ export function InventoryAddItemDialogUI({
       submitLabel="Add Item"
     >
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          noValidate
-          className="space-y-4"
-        >
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="name"
@@ -202,7 +198,7 @@ export function InventoryAddItemDialogUI({
               </FormFieldGroup>
             )}
           />
-        </form>
+        </div>
       </Form>
     </CRUDDialog>
   );

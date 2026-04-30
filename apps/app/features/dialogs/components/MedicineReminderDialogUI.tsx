@@ -94,11 +94,7 @@ export function MedicineReminderDialogUI({
       submitLabel={isLoading ? "Creating..." : "Create Reminder"}
     >
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          noValidate
-          className="space-y-4"
-        >
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="medicineName"
@@ -194,7 +190,7 @@ export function MedicineReminderDialogUI({
               </FormFieldGroup>
             )}
           />
-        </form>
+        </div>
       </Form>
     </CRUDDialog>
   );

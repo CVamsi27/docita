@@ -311,7 +311,7 @@ export function SubscriptionSettings() {
         </CardHeader>
 
         <CardContent className="space-y-6 pt-6">
-          <div className="flex flex-col gap-4 rounded-xl border bg-muted/30 p-4 md:flex-row md:items-center md:justify-between md:p-5">
+          <div className="flex flex-col gap-4 rounded-lg border bg-muted/30 p-4 md:flex-row md:items-center md:justify-between md:p-5">
             <div className="space-y-1">
               <p className="font-semibold">Billing guidance</p>
               <p className="text-sm text-muted-foreground">
@@ -347,7 +347,7 @@ export function SubscriptionSettings() {
             statusNotice={currentPlanStatusNotice}
           />
 
-          <div className="rounded-xl border bg-background/60 p-4 md:p-5">
+          <div className="rounded-lg border bg-background/60 p-4 md:p-5">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-sm text-muted-foreground">Billing cycle</p>

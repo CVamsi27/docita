@@ -88,7 +88,7 @@ export default function DentalChartsPage() {
     return (
       <div className="mx-auto w-full max-w-2xl py-8 text-center space-y-4">
         <Smile className="h-12 w-12 text-muted-foreground mx-auto" />
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Dental Charts</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold tracking-normal">Dental Charts</h1>
         <p className="text-muted-foreground">
           Dental charting is only available for dental facilities. Your facility is
           configured as <strong>{clinic.type}</strong>
@@ -106,7 +106,7 @@ export default function DentalChartsPage() {
               <Smile className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-normal leading-tight">
                 Dental Charts
               </h1>
               <p className="text-sm md:text-base text-muted-foreground">

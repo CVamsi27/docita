@@ -156,7 +156,7 @@ export default function JoinRequestStatusPage() {
           fallback="/choose-path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Join Request Status</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">Join Request Status</h1>
         <p className="text-muted-foreground text-sm">
           Your request is being reviewed by the facility administrator
         </p>

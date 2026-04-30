@@ -31,7 +31,6 @@ import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DEFAULT_PRICING_USAGE_INPUTS,
   PRICING_DIALOG_TIER_BORDERS,
-  PRICING_DIALOG_TIER_GRADIENTS,
   PRICING_DIALOG_TIER_ICONS,
   PRICING_DIALOG_TIERS,
 } from "@/features/subscription/config/pricing-config";
@@ -103,16 +102,15 @@ export function PricingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-linear-to-br from-background via-background to-muted/30">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-3">
-          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
+          <DialogTitle className="text-2xl font-bold">
             Choose Your Plan
           </DialogTitle>
           <DialogDescription>
             Select the plan that best fits your facility&apos;s needs
           </DialogDescription>
         </DialogHeader>
-        {}
         <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-b border-border/50">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Auto currency:</span>
@@ -157,7 +155,6 @@ export function PricingDialog({
           </div>
         </div>
 
-        {}
         <div className="flex flex-wrap justify-center gap-4 py-4">
           {tiers.map((tierName, index) => {
             const info = TIER_INFO[tierName];
@@ -180,11 +177,10 @@ export function PricingDialog({
                 key={tierName}
                 style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
-                  "relative flex w-full max-w-[280px] flex-col rounded-xl border-2 p-4",
-                  "bg-linear-to-br backdrop-blur-sm",
+                  "relative flex w-full max-w-[280px] flex-col rounded-lg border-2 p-4",
+                  "bg-card",
                   "transition-all duration-300 ease-out",
                   "hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4",
-                  PRICING_DIALOG_TIER_GRADIENTS[tierName],
                   PRICING_DIALOG_TIER_BORDERS[tierName],
                   isCurrentTier &&
                     "ring-2 ring-primary ring-offset-2 ring-offset-background",
@@ -196,7 +192,6 @@ export function PricingDialog({
                   </Badge>
                 )}
 
-                {}
                 <div className="flex items-center gap-2 mb-3">
                   <div
                     className={cn(
@@ -214,7 +209,6 @@ export function PricingDialog({
                   </div>
                 </div>
 
-                {}
                 <div
                   key={isYearly ? "yearly" : "monthly"}
                   className="mb-4 animate-in fade-in slide-in-from-left-2 duration-200"
@@ -271,7 +265,6 @@ export function PricingDialog({
                   );
                 })()}
 
-                {}
                 <div className="space-y-2 mb-4 flex-1">
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-success" />
@@ -322,13 +315,11 @@ export function PricingDialog({
                   )}
                 </div>
 
-                {}
                 <Button
                   className={cn(
                     "w-full mt-auto",
                     isCurrentTier && "bg-muted text-muted-foreground",
-                    isUpgrade &&
-                      "bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+                    isUpgrade && "shadow-sm",
                     isDowngrade && "bg-muted/50 hover:bg-muted",
                   )}
                   variant={isDowngrade ? "outline" : "default"}

@@ -69,7 +69,7 @@ export function DoctorDashboardCardsUI({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center text-primary">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Stethoscope className="h-5 w-5" />
               </div>
               <div>
@@ -94,7 +94,7 @@ export function DoctorDashboardCardsUI({
           {currentPatient ? (
             <div className="flex items-center gap-3 sm:gap-4">
               <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
-                <AvatarFallback className="bg-linear-to-br from-primary/30 to-primary/10 text-primary text-base sm:text-lg font-medium">
+                <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg font-medium">
                   {currentPatient.patient?.firstName?.[0]}
                   {currentPatient.patient?.lastName?.[0]}
                 </AvatarFallback>
@@ -146,7 +146,7 @@ export function DoctorDashboardCardsUI({
       <Card className="border border-border shadow-sm bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info/10 text-info">
               <Users className="h-5 w-5" />
             </div>
             <div>
@@ -163,7 +163,7 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-xl bg-warning/10">
+            <div className="p-3 rounded-lg bg-warning/10">
               <p className="text-2xl font-bold text-warning">
                 {queueStats.waiting}
               </p>
@@ -171,7 +171,7 @@ export function DoctorDashboardCardsUI({
                 Waiting
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-info/10">
+            <div className="p-3 rounded-lg bg-info/10">
               <p className="text-2xl font-bold text-info">
                 {queueStats.inProgress}
               </p>
@@ -179,7 +179,7 @@ export function DoctorDashboardCardsUI({
                 Active
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-success/10">
+            <div className="p-3 rounded-lg bg-success/10">
               <p className="text-2xl font-bold text-success">
                 {queueStats.completed}
               </p>

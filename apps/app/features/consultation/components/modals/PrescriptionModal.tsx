@@ -215,7 +215,7 @@ export function PrescriptionModal({
           {medications.map((med, index) => (
             <div
               key={index}
-              className="flex flex-col gap-3 p-4 bg-muted/40 rounded-xl border border-border/60"
+              className="flex flex-col gap-3 p-4 bg-muted/40 rounded-lg border border-border/60"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

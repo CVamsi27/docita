@@ -112,7 +112,7 @@ export function CurrentPlanCard({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-xl",
+                "flex h-11 w-11 items-center justify-center rounded-lg",
                 colors.gradient,
               )}
             >

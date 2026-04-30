@@ -380,7 +380,7 @@ function SidebarContent({
                   "shrink-0 gap-1.5",
                   isCollapsed && !isMobile
                     ? "h-8 w-8 rounded-lg border border-primary/30 bg-primary/10 p-0 text-primary hover:bg-primary/20"
-                    : "h-8 px-3 text-xs bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70",
+                    : "h-8 px-3 text-xs",
                 )}
                 size="sm"
                 asChild

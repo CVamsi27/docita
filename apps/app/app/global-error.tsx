@@ -21,7 +21,7 @@ export default function GlobalError({
             >
               !
             </div>
-            <h1 className="m-0 mb-2 text-2xl font-bold tracking-tight">
+            <h1 className="m-0 mb-2 text-2xl font-bold tracking-normal">
               We could not load this page
             </h1>
             <p className="m-0 mb-6 text-base leading-relaxed text-muted-foreground">

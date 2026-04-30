@@ -30,8 +30,8 @@ export default function VerifyEmailVerifiedPage() {
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border bg-card p-8 text-center shadow-sm">
-        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-success/10">
+      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-lg border bg-card p-8 text-center shadow-sm">
+        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
           <CheckCircle2 className="h-8 w-8 text-success" aria-hidden="true" />
         </div>
         <p

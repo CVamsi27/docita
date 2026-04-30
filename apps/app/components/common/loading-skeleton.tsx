@@ -42,7 +42,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 
 export function CardSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-6 shadow-sm">
       <LoadingSkeleton className="h-6 w-1/3" />
       <LoadingSkeleton className="h-20 w-full" />
       <div className="flex justify-between">

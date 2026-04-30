@@ -24,13 +24,13 @@ export function DashboardQuickActionsUI({
           key={action.href}
           href={action.href}
           className={cn(
-            "group flex min-w-[72px] snap-start flex-col items-center justify-center gap-2 rounded-2xl border border-transparent p-3 transition-colors duration-150 sm:min-w-24",
+            "group flex min-w-[72px] snap-start flex-col items-center justify-center gap-2 rounded-lg border border-transparent p-3 transition-colors duration-150 sm:min-w-24",
             "bg-card hover:bg-muted/40 hover:border-primary/20",
           )}
         >
           <div
             className={cn(
-              "relative h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shadow-sm",
+              "relative h-10 w-10 sm:h-12 sm:w-12 rounded-lg flex items-center justify-center shadow-sm",
               idx === 0
                 ? "bg-primary text-primary-foreground"
                 : "bg-background/80 text-primary hover:bg-primary/10",
@@ -58,9 +58,9 @@ export function DashboardQuickActionsUI({
 
       <Link
         href="/patients"
-        className="group hidden min-w-20 flex-col items-center justify-center gap-2 rounded-2xl p-3 transition-colors duration-150 hover:bg-muted/40 sm:flex"
+        className="group hidden min-w-20 flex-col items-center justify-center gap-2 rounded-lg p-3 transition-colors duration-150 hover:bg-muted/40 sm:flex"
       >
-        <div className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors">
+        <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors">
           <Users className="h-5 w-5" />
         </div>
         <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">

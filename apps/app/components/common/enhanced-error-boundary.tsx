@@ -183,7 +183,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
               <div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-4">
                 <AlertCircle className="h-8 w-8 text-destructive" />
               </div>
-              <CardTitle className="text-2xl font-bold tracking-tight">
+              <CardTitle className="text-2xl font-bold tracking-normal">
                 {userError.title}
               </CardTitle>
             </CardHeader>

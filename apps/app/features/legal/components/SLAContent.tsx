@@ -11,8 +11,8 @@ import {
 
 export function SLAContent() {
   return (
-    <div className="rounded-xl border bg-background p-4 md:p-5">
-      <div className="prose prose-sm dark:prose-invert max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:leading-7 [&_p]:text-sm [&_p]:leading-6 [&_ol]:my-4 [&_ol]:space-y-6 [&_ol]:pl-6 [&_ul]:my-3 [&_ul]:space-y-2 [&_ul]:pl-5 [&_li]:pl-1 [&_li]:text-sm [&_li]:leading-6 [&_table]:my-3 [&_th]:text-xs [&_td]:text-sm">
+    <div className="rounded-lg border bg-background p-4 md:p-5">
+      <div className="prose prose-sm dark:prose-invert max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:tracking-normal [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:leading-7 [&_p]:text-sm [&_p]:leading-6 [&_ol]:my-4 [&_ol]:space-y-6 [&_ol]:pl-6 [&_ul]:my-3 [&_ul]:space-y-2 [&_ul]:pl-5 [&_li]:pl-1 [&_li]:text-sm [&_li]:leading-6 [&_table]:my-3 [&_th]:text-xs [&_td]:text-sm">
         <h2>Service Level Agreement</h2>
         <p className="text-muted-foreground">Effective Date: January 1, 2025</p>
 

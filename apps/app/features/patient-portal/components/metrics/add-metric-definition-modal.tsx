@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -98,6 +99,9 @@ export function AddMetricDefinitionModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Custom Metric</DialogTitle>
+          <DialogDescription>
+            Define a patient portal metric that can be tracked over time.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

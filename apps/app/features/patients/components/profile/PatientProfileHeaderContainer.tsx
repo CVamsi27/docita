@@ -17,7 +17,7 @@ export function PatientProfileHeaderContainer({
 
   if (isLoading || !patient) {
     return (
-      <div className="rounded-2xl border bg-card p-8">
+      <div className="rounded-lg border bg-card p-8">
         <div className="flex gap-6">
           <Skeleton className="h-32 w-32 rounded-full" />
           <div className="space-y-4 flex-1">

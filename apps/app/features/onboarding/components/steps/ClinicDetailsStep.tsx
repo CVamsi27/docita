@@ -186,7 +186,7 @@ export function ClinicDetailsStep({
           noValidate
           className="space-y-6"
         >
-          <div className="grid grid-cols-1 gap-4 rounded-2xl border bg-muted/20 p-4 shadow-sm lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm lg:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="name">
                 {facilityLabel} Name<span className="text-destructive ml-0.5">*</span>
@@ -234,7 +234,7 @@ export function ClinicDetailsStep({
                     key={option.value}
                     htmlFor={`facility-label-${option.value}`}
                     className={cn(
-                      "flex cursor-pointer items-center gap-3 rounded-xl border bg-background px-3 py-2.5 text-sm font-medium transition-colors",
+                      "flex cursor-pointer items-center gap-3 rounded-lg border bg-background px-3 py-2.5 text-sm font-medium transition-colors",
                       clinicForm.watch("facilityLabel") === option.value &&
                         "border-primary bg-primary/5 text-primary",
                     )}
@@ -282,7 +282,7 @@ export function ClinicDetailsStep({
                       key={option.value}
                       htmlFor={`clinic-type-${option.value}`}
                       className={cn(
-                        "flex cursor-pointer items-center gap-3 rounded-xl border bg-background px-3 py-2.5 text-sm transition-colors",
+                        "flex cursor-pointer items-center gap-3 rounded-lg border bg-background px-3 py-2.5 text-sm transition-colors",
                         clinicForm.watch("type") === option.value &&
                           "border-primary bg-primary/5 text-primary",
                       )}
@@ -337,7 +337,7 @@ export function ClinicDetailsStep({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 rounded-2xl border bg-muted/20 p-4 shadow-sm lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
             <div className="space-y-2">
               <Label htmlFor="phone">
                 Phone Number<span className="text-destructive ml-0.5">*</span>
@@ -368,7 +368,7 @@ export function ClinicDetailsStep({
                   void clinicForm.trigger("phone");
                 }}
                 className={cn(
-                  "flex min-h-[5.25rem] min-w-0 flex-col gap-2 rounded-2xl border border-input bg-background/60 p-3 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-11",
+                  "flex min-h-[5.25rem] min-w-0 flex-col gap-2 rounded-lg border border-input bg-background/60 p-3 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-11",
                   "[&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[11rem]",
                   "[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-lg [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full",
                   "[&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none",
@@ -417,7 +417,7 @@ export function ClinicDetailsStep({
             </div>
           </div>
 
-          <div className="rounded-2xl border bg-muted/20 p-4 shadow-sm">
+          <div className="rounded-lg border bg-muted/20 p-4 shadow-sm">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
                 <Label className="text-base font-semibold" htmlFor="addressLine1">
@@ -431,7 +431,7 @@ export function ClinicDetailsStep({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-9 rounded-xl sm:self-start"
+                className="h-9 rounded-lg sm:self-start"
                 onClick={() => setMapPickerOpen(true)}
               >
                 Open map picker
@@ -573,7 +573,7 @@ export function ClinicDetailsStep({
                 </div>
               </div>
 
-              <div className="rounded-2xl border bg-background/70 px-4 py-3">
+              <div className="rounded-lg border bg-background/70 px-4 py-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Address preview
                 </p>
@@ -584,7 +584,7 @@ export function ClinicDetailsStep({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 rounded-2xl border bg-muted/20 p-4 shadow-sm md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 rounded-lg border bg-muted/20 p-4 shadow-sm md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="website">Website</Label>
               <Input

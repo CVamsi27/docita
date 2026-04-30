@@ -29,7 +29,7 @@ export function PatientPortalAppointmentsUI({
     <div className="space-y-4">
       {showHeader ? (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Appointments</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">Appointments</h1>
           <p className="text-sm text-muted-foreground">
             Manage your upcoming and historical appointments.
           </p>

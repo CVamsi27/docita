@@ -34,7 +34,7 @@ export function SettingsProfileHeader() {
   const roleLabel = user.role ? (ROLE_LABELS[user.role] ?? user.role) : null;
 
   return (
-    <div className="flex items-center gap-4 rounded-xl border bg-card px-5 py-4">
+    <div className="flex items-center gap-4 rounded-lg border bg-card px-5 py-4">
       <Avatar className="h-12 w-12">
         <AvatarFallback className="text-sm font-semibold bg-primary/10 text-primary">
           {initials}

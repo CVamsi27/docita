@@ -69,7 +69,7 @@ function ForgotPasswordPageContent() {
   return (
     <PreDashboardShell currentStep="forgot-password" showProgress={false}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Reset Password</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">Reset Password</h1>
         <p className="text-muted-foreground text-sm">
           Enter your email address to receive a password reset link
         </p>

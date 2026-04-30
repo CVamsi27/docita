@@ -125,7 +125,7 @@ function VerifyEmailInner() {
               </div>
             </div>
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight">Verification failed</h1>
+              <h1 className="text-2xl font-semibold tracking-normal">Verification failed</h1>
               <p className="text-muted-foreground text-sm">
                 {state === "missing"
                   ? "No verification link was found. Please use the link from your email."

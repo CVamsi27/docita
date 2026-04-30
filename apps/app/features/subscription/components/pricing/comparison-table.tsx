@@ -159,7 +159,7 @@ export function ComparisonTable({
     : FEATURE_CATEGORIES;
 
   return (
-    <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
       <div className="p-6 border-b">
         <h2 className="text-2xl font-bold text-center">Compare Plans</h2>
         <p className="text-center text-muted-foreground mt-2">

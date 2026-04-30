@@ -66,7 +66,7 @@ export function DashboardHeaderUI({
     <header className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="relative">
-          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-primary-foreground shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm sm:h-12 sm:w-12">
             <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
         </div>
@@ -74,7 +74,7 @@ export function DashboardHeaderUI({
           <p className="text-xs sm:text-sm text-muted-foreground">
             {format(new Date(), "EEEE, MMMM d")}
           </p>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-normal">
             {greeting}, {userName}!
           </h1>
         </div>

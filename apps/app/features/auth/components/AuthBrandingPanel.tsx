@@ -111,11 +111,6 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
         }}
         aria-hidden="true"
       />
-      <div
-        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-success/10 to-transparent"
-        aria-hidden="true"
-      />
-
       <div className="relative z-10 flex items-center justify-between p-8 xl:p-10">
         <div className="flex items-center gap-3">
           <DocitaIcon className="h-10 w-10" />
@@ -137,7 +132,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
           </p>
         </div>
 
-        <div className="mt-8 max-w-lg rounded-2xl border bg-background/85 p-4 shadow-sm backdrop-blur">
+        <div className="mt-8 max-w-lg rounded-lg border bg-background/85 p-4 shadow-sm backdrop-blur">
           {isLogin ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-3">

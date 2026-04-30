@@ -126,7 +126,7 @@ export function AppointmentsListUI({
               icon={CalendarDays}
               title="No appointments scheduled"
               description={emptyStateDescription}
-              className="min-h-[220px] rounded-xl border border-dashed border-border bg-muted/20"
+              className="min-h-[220px] rounded-lg border border-dashed border-border bg-muted/20"
             />
           ) : (
             <div className="space-y-2.5">

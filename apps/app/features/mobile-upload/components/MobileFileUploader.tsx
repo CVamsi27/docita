@@ -95,7 +95,7 @@ export function MobileFileUploader({
             <label className="block cursor-pointer">
               <div className="aspect-4/3 flex flex-col items-center justify-center p-6 space-y-4">
                 <div
-                  className={`p-4 rounded-2xl transition-colors ${
+                  className={`p-4 rounded-lg transition-colors ${
                     dragActive
                       ? "surface-info"
                       : "bg-muted"

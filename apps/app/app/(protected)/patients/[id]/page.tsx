@@ -16,7 +16,7 @@ const PatientMedicalHistory = dynamic(
     import("@/features/patients/components").then(
       (m) => m.PatientMedicalHistoryContainer,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
+  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
 );
 
 const MedicalDocumentList = dynamic(
@@ -24,7 +24,7 @@ const MedicalDocumentList = dynamic(
     import("@/features/medical-documents/components/MedicalDocumentList").then(
       (m) => m.MedicalDocumentList,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
+  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
 );
 
 const UnifiedTimelineContainer = dynamic(
@@ -32,7 +32,7 @@ const UnifiedTimelineContainer = dynamic(
     import("@/features/patients/components/timeline/UnifiedTimelineContainer").then(
       (m) => m.UnifiedTimelineContainer,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-xl" />, ssr: false },
+  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
 );
 import { Button } from "@workspace/ui/components/button";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";

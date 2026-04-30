@@ -42,7 +42,7 @@ export default function PatientHistoryPage({
                 label="Back to Patient"
               />
             </div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Medical History</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-normal">Medical History</h1>
             <p className="text-muted-foreground">{patientName}</p>
           </div>
         </div>

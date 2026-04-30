@@ -129,7 +129,7 @@ export default function MobileUploadPage() {
 
         {}
         <Button
-          className={`w-full h-14 text-base font-medium rounded-xl shadow-lg transition-all ${
+          className={`w-full h-14 text-base font-medium rounded-lg shadow-lg transition-all ${
             file && !uploadMutation.isPending
               ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25"
               : ""

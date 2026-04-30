@@ -283,7 +283,7 @@ export default function VerifyDoctorPage() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">
             Profile Verification
           </h1>
         </div>
@@ -297,7 +297,7 @@ export default function VerifyDoctorPage() {
         className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
         style={{ animationDelay: "100ms" }}
       >
-        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-4 shadow-md">
+        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-md">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">Setup Progress</span>
             <span className="text-xs text-muted-foreground">
@@ -333,7 +333,7 @@ export default function VerifyDoctorPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
+        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
           <div className="flex items-center gap-2">
             {hasSignature ? (
               <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -480,7 +480,7 @@ export default function VerifyDoctorPage() {
           )}
         </div>
 
-        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
+        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
           <div className="flex items-center gap-2">
             {hasRegistrationProgress ? (
               <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />

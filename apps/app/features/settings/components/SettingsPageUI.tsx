@@ -135,7 +135,7 @@ export function SettingsPageUI({
               <Settings className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-normal leading-tight">
                 Settings
               </h1>
               <p className="text-sm md:text-base text-muted-foreground">

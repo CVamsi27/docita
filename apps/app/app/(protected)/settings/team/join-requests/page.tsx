@@ -167,7 +167,7 @@ export default function JoinRequestsPage() {
   return (
     <div className="container max-w-6xl py-8">
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal mb-2">
           Team Join Requests
         </h1>
         <p className="text-muted-foreground">

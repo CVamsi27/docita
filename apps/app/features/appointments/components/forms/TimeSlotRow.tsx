@@ -71,7 +71,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
         : "Start consultation";
 
     return (
-      <div className="group relative @container/apt overflow-hidden rounded-xl border border-border/60 bg-card/95 pl-3 pr-3 py-3 transition-colors duration-150 hover:border-border hover:bg-card">
+      <div className="group relative @container/apt overflow-hidden rounded-lg border border-border/60 bg-card/95 pl-3 pr-3 py-3 transition-colors duration-150 hover:border-border hover:bg-card">
         <div
           className={`absolute inset-y-0 left-0 w-1 ${
             apt.status === "checked-in"

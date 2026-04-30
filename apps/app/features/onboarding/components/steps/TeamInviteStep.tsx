@@ -267,7 +267,7 @@ export function TeamInviteStep({
                       updateMember(index, "email", e.target.value)
                     }
                     className={cn(
-                      "h-11 sm:h-11 rounded-xl",
+                      "h-11 sm:h-11 rounded-lg",
                       emailErrors[index] && "border-destructive",
                     )}
                     aria-invalid={!!emailErrors[index]}
@@ -329,7 +329,7 @@ export function TeamInviteStep({
                   >
                     <SelectTrigger
                       id={`role-${index}`}
-                      className="w-full rounded-xl px-4 h-11 sm:h-11 data-[size=default]:h-11 data-[size=default]:sm:h-11"
+                      className="w-full rounded-lg px-4 h-11 sm:h-11 data-[size=default]:h-11 data-[size=default]:sm:h-11"
                     >
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>

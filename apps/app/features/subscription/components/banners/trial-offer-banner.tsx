@@ -18,7 +18,7 @@ export function TrialOfferBanner({
   return (
     <section
       className={cn(
-        "rounded-xl border border-primary/25 bg-primary/5 p-4 text-sm",
+        "rounded-lg border border-primary/25 bg-primary/5 p-4 text-sm",
         className,
       )}
       aria-label="14-day free trial"

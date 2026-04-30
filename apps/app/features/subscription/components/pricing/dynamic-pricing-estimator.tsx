@@ -271,7 +271,7 @@ export function DynamicPricingEstimator({
           consultations, team users, and WhatsApp messages.
         </div>
 
-        <div className="rounded-xl border overflow-hidden">
+        <div className="rounded-lg border overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 bg-card border-b">
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

@@ -69,7 +69,7 @@ function ResetPasswordInner() {
       <PreDashboardShell currentStep="reset-password" showProgress={false}>
         <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Reset Link Expired</h1>
+            <h1 className="text-2xl font-semibold tracking-normal">Reset Link Expired</h1>
             <p className="text-sm text-destructive">
               This reset link is invalid or has expired. Please request a new one.
             </p>
@@ -85,7 +85,7 @@ function ResetPasswordInner() {
   return (
     <PreDashboardShell currentStep="reset-password" showProgress={false}>
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Set New Password</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">Set New Password</h1>
         <p className="text-muted-foreground text-sm">
           Choose a new password below
         </p>
@@ -210,7 +210,7 @@ export default function ResetPasswordPage() {
         <PreDashboardShell currentStep="reset-password">
           <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6">
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight">Reset Password</h1>
+              <h1 className="text-2xl font-semibold tracking-normal">Reset Password</h1>
               <p className="text-sm text-muted-foreground">Loading…</p>
             </div>
           </div>

@@ -124,7 +124,7 @@ export function FloatingStartConsultation({
           <Stethoscope className="h-6 w-6" />
         </Button>
       ) : (
-        <div className="bg-primary text-primary-foreground rounded-2xl shadow-xl p-4 w-[calc(100vw-2rem)] max-w-xs">
+        <div className="bg-primary text-primary-foreground rounded-lg shadow-xl p-4 w-[calc(100vw-2rem)] max-w-xs">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-5 w-5" />

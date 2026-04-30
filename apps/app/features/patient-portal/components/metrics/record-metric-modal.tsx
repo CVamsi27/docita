@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -94,6 +95,9 @@ export function RecordMetricModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Record {definition.label}</DialogTitle>
+          <DialogDescription>
+            Save a new reading for this patient-visible health metric.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

@@ -30,7 +30,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-info/10 text-info">
               <Users className="h-4 w-4" />
             </div>
             <div>
@@ -67,7 +67,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
                 className="group flex items-center gap-4 rounded-lg border border-transparent p-3.5 transition-colors duration-150 hover:border-border/50 hover:bg-muted/60"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/5 text-primary text-xs font-medium">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                     {patient.firstName?.[0]}
                     {patient.lastName?.[0]}
                   </AvatarFallback>

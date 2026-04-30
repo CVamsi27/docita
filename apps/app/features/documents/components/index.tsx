@@ -127,7 +127,7 @@ export const DocumentUpload: FC<{
       </CardHeader>
       <CardContent>
         <div
-          className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             dragOver
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/20"
