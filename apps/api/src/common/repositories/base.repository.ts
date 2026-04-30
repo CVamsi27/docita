@@ -1,4 +1,5 @@
 import { PrismaService } from '@/prisma/prisma.service';
+import { paginateWithCursor } from '@/common/pagination.helper';
 
 export interface PaginationOptions {
   limit?: number;
@@ -19,22 +20,13 @@ export interface WhereClauseOptions {
 }
 
 type RepositoryModelDelegate = {
-  findMany: (args: Record<string, unknown>) => Promise<unknown[]>;
-  findFirst: (args: Record<string, unknown>) => Promise<unknown | null>;
+  findMany: (args?: Record<string, unknown>) => Promise<unknown[]>;
+  findFirst: (args?: Record<string, unknown>) => Promise<unknown | null>;
   create: (args: Record<string, unknown>) => Promise<unknown>;
   updateMany: (args: Record<string, unknown>) => Promise<{ count: number }>;
   deleteMany: (args: Record<string, unknown>) => Promise<{ count: number }>;
-  count: (args: Record<string, unknown>) => Promise<number>;
+  count: (args?: Record<string, unknown>) => Promise<number>;
 };
-
-function extractId(item: unknown): string | undefined {
-  if (!item || typeof item !== 'object') {
-    return undefined;
-  }
-
-  const id = (item as { id?: unknown }).id;
-  return typeof id === 'string' ? id : undefined;
-}
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object') {
@@ -108,36 +100,20 @@ export abstract class BaseRepository<T, TCreate = Record<string, unknown>> {
       return { items: [], hasMore: false, count: 0 };
     }
 
-    const limit = options?.limit ?? 50;
     const where: Record<string, unknown> = { clinicId };
 
     if (options?.search) {
       where.OR = this.buildSearchConditions(options.search);
     }
 
-    const cursor = options?.cursor ? { id: options.cursor } : undefined;
-
-    const items = await this.model.findMany({
+    return paginateWithCursor({
+      model: this.model,
+      cursor: options?.cursor,
+      limit: options?.limit ?? 50,
       where,
-      take: limit + 1,
-      cursor,
-      skip: cursor ? 1 : 0,
       orderBy: { updatedAt: 'desc' },
       select: this.getDefaultSelect(),
-    });
-
-    const hasMore = items.length > limit;
-    const resultItems = hasMore ? items.slice(0, -1) : items;
-    const nextCursor = hasMore
-      ? extractId(resultItems[resultItems.length - 1])
-      : undefined;
-
-    return {
-      items: resultItems as T[],
-      hasMore,
-      nextCursor,
-      count: resultItems.length,
-    };
+    }) as Promise<PaginatedResult<T>>;
   }
 
   async findOne(id: string): Promise<T | null> {

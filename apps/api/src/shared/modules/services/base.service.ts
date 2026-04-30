@@ -95,12 +95,12 @@ export abstract class BaseService<T> {
       return this.getEmptyResult();
     }
 
+    const searchConditions = options?.search
+      ? this.buildSearchConditions(options.search)
+      : [];
     const where = {
       ...this.buildClinicWhereClause(clinicId),
-      ...(options?.search &&
-      this.buildSearchConditions(options.search).length > 0
-        ? { OR: this.buildSearchConditions(options.search) }
-        : {}),
+      ...(searchConditions.length > 0 ? { OR: searchConditions } : {}),
     };
 
     return paginateWithCursor({
