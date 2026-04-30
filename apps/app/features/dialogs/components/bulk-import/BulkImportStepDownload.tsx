@@ -16,7 +16,7 @@ export function BulkImportStepDownload({
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
           <Download className="h-6 w-6" />
         </div>
         <h3 className="font-semibold">Download Template</h3>
@@ -42,7 +42,7 @@ export function BulkImportStepDownload({
           </>
         )}
       </Button>
-      <div className="surface-info rounded-lg p-4">
+      <div className="surface-info rounded-[var(--radius)] p-4">
         <p className="text-sm">
           <span className="font-semibold">Note:</span> Fill the CSV template
           with your data. Make sure not to change the header columns.

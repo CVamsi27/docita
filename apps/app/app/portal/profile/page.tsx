@@ -125,10 +125,12 @@ export default function PatientProfilePage() {
               </p>
               {consentSettings?.whatsappConsentAt && (
                 <p className="text-xs text-muted-foreground">
-                  Consent given on{" "}
-                  {new Date(
-                    consentSettings.whatsappConsentAt,
-                  ).toLocaleDateString()}
+                  Consent given on
+                  <span className="ml-1">
+                    {new Date(
+                      consentSettings.whatsappConsentAt,
+                    ).toLocaleDateString()}
+                  </span>
                 </p>
               )}
             </div>

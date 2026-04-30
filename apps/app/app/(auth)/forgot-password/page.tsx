@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     <Suspense
       fallback={
         <PreDashboardShell currentStep="forgot-password" showProgress={false}>
-          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
+          <div className="ui-card-surface p-6 sm:p-8 shadow-xl">
             <div className="text-sm text-muted-foreground">Loading...</div>
           </div>
         </PreDashboardShell>
@@ -68,24 +68,24 @@ function ForgotPasswordPageContent() {
 
   return (
     <PreDashboardShell currentStep="forgot-password" showProgress={false}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">Reset Password</h1>
-        <p className="text-muted-foreground text-sm">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
+        <h1 className="ui-page-title">Reset Password</h1>
+        <p className="ui-page-subtitle">
           Enter your email address to receive a password reset link
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {submitted ? (
           <div className="space-y-6 text-center">
             <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
+              <div className="surface-success flex h-16 w-16 items-center justify-center rounded-full">
                 <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Check your email</h2>
-              <p className="text-sm text-muted-foreground">
+            <div className="ui-copy-stack">
+              <h2 className="ui-section-title">Check your email</h2>
+              <p className="ui-helper-text">
                 If an account with that email exists, a password reset link has been sent
               </p>
             </div>

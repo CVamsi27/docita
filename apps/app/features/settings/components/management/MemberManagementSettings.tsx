@@ -506,7 +506,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-foreground font-medium">
                     {member.name
                       ?.split(" ")
                       .map((n: string) => n[0])

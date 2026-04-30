@@ -128,7 +128,7 @@ export function DataTable<T>({
           {paginated.map((row, idx) => (
             <div
               key={rowKey(row, idx)}
-              className="rounded-[var(--radius-md)] border border-border/60 bg-card p-3"
+              className="ui-card-surface p-3"
               onClick={onRowClick ? () => onRowClick(row) : undefined}
             >
               {mobileRenderer(row)}

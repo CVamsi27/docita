@@ -353,7 +353,7 @@ export default function BillingDashboard() {
                     metrics.expiringSubscriptions.slice(0, 3).map((sub) => (
                       <div
                         key={sub.id}
-                        className="flex items-center justify-between rounded-lg border p-3"
+                        className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
                       >
                         <div>
                           <p className="font-medium">{sub.clinic.name}</p>
@@ -400,7 +400,7 @@ export default function BillingDashboard() {
                     metrics.gracePeriodSubscriptions.slice(0, 3).map((sub) => (
                       <div
                         key={sub.id}
-                        className="flex items-center justify-between rounded-lg border p-3"
+                        className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
                       >
                         <div>
                           <p className="font-medium">{sub.clinic.name}</p>

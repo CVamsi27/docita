@@ -29,7 +29,7 @@ export function SpecialtiesSection() {
           <Card className="overflow-hidden border-border bg-card">
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="h-12 w-12 rounded-lg bg-info/10 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-full border border-border/70 bg-background/70 flex items-center justify-center">
                   <Baby className="h-6 w-6 text-info" />
                 </div>
                 <div>
@@ -52,7 +52,7 @@ export function SpecialtiesSection() {
                   </li>
                 ))}
               </ul>
-              <div className="h-48 rounded-lg bg-background border border-border p-4 flex items-end gap-2 relative overflow-hidden">
+              <div className="h-48 rounded-[var(--radius)] bg-background border border-border p-4 flex items-end gap-2 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10 bg-[url('/grid.svg')]" />
                 <div className="w-full flex items-end justify-between gap-1 h-full pt-8">
                   {[30, 45, 52, 60, 68, 75, 82].map((h, i) => (
@@ -74,7 +74,7 @@ export function SpecialtiesSection() {
           <Card className="overflow-hidden border-border bg-card">
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="h-12 w-12 rounded-lg bg-success/10 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-full border border-border/70 bg-background/70 flex items-center justify-center">
                   <Smile className="h-6 w-6 text-success" />
                 </div>
                 <div>
@@ -97,12 +97,12 @@ export function SpecialtiesSection() {
                   </li>
                 ))}
               </ul>
-              <div className="h-48 rounded-lg bg-background border border-border p-4 flex items-center justify-center relative overflow-hidden">
+              <div className="h-48 rounded-[var(--radius)] bg-background border border-border p-4 flex items-center justify-center relative overflow-hidden">
                 <div className="grid grid-cols-8 gap-2 w-full max-w-sm">
                   {[...Array(16)].map((_, i) => (
                     <div
                       key={i}
-                      className={`h-8 rounded-md flex items-center justify-center border text-xs font-mono ${
+                      className={`h-8 rounded-[var(--radius)] flex items-center justify-center border text-xs font-mono ${
                         i % 3 === 0
                           ? "border-success/30 bg-success/10 text-foreground"
                           : "bg-muted/50 border-muted"

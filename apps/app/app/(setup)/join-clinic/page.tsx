@@ -150,16 +150,14 @@ export default function JoinClinicPage() {
       contentAlignment="start"
       showSignOut
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
         <BackButton
           fallback="/choose-path"
           label="Back to Choose Path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">
-          Join a Facility
-        </h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="ui-page-title">Join a Facility</h1>
+        <p className="ui-page-subtitle">
           Search for your facility by name, email, or referral code
         </p>
       </div>
@@ -189,8 +187,8 @@ export default function JoinClinicPage() {
         </div>
 
         {clinics.length === 0 && searchQuery && !isSearching && (
-          <Card className="p-8 text-center bg-card/80 backdrop-blur-sm">
-            <p className="text-muted-foreground text-sm">
+          <Card className="ui-card-surface p-8 text-center">
+            <p className="ui-helper-text">
               No facilities found, try a different search term
             </p>
           </Card>
@@ -200,12 +198,12 @@ export default function JoinClinicPage() {
           {clinics.map((clinic) => (
             <Card
               key={clinic.id}
-              className="p-5 bg-card/80 backdrop-blur-sm shadow-md"
+              className="ui-card-surface p-5"
             >
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                    <div className="shrink-0 rounded-full border border-border/70 bg-background/70 p-2">
                       <Building2 className="h-4 w-4 text-primary" />
                     </div>
                     <div>
@@ -218,7 +216,7 @@ export default function JoinClinicPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 text-sm text-muted-foreground ml-11">
+                  <div className="ml-11 space-y-1.5 ui-helper-text">
                     <div className="flex items-center gap-2">
                       <Mail className="h-3.5 w-3.5" />
                       <span>{clinic.email}</span>
@@ -271,15 +269,14 @@ export default function JoinClinicPage() {
                   <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
+              <p className="ui-helper-text">
                 Select the role you will have in this facility
               </p>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Message to Admin{" "}
-                <span className="text-muted-foreground">(Optional)</span>
+                Message to Admin <span className="text-muted-foreground">(optional)</span>
               </label>
               <Textarea
                 placeholder="Tell us why you want to join"
@@ -288,7 +285,7 @@ export default function JoinClinicPage() {
                 maxLength={500}
                 rows={4}
               />
-              <p className="text-xs text-muted-foreground text-right">
+              <p className="ui-helper-text text-right">
                 {message.length}/500
               </p>
             </div>

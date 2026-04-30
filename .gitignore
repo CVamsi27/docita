@@ -55,6 +55,7 @@ out
 
 # Local upload artifacts
 /uploads
+/artifacts
 
 # Turbo cache
 .turbo

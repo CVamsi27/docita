@@ -112,7 +112,7 @@ function LegalCard({
   return (
     <div
       className={cn(
-        "rounded-lg border p-4 md:p-5 transition-all",
+        "rounded-[var(--radius)] border p-4 md:p-5 transition-all",
         accepted
           ? "border-primary/40 bg-primary/5 shadow-sm"
           : "border-border bg-card hover:border-primary/30 hover:bg-muted/20",
@@ -123,8 +123,8 @@ function LegalCard({
           className={cn(
             "mt-0.5 shrink-0 rounded-full border p-1.5",
             accepted
-              ? "border-primary/40 bg-primary/10"
-              : "border-muted-foreground/20 bg-background",
+              ? "border-primary/40 bg-background/70"
+              : "border-muted-foreground/20 bg-background/70",
           )}
         >
           {accepted ? (

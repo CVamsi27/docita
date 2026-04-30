@@ -131,8 +131,7 @@ export default function UploadSignaturePage() {
             <Alert className="border-success/50 bg-success/10">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription>
-                Signature uploaded for{" "}
-                <strong>{uploadResult.doctor?.name}</strong>
+                Signature uploaded for <strong>{uploadResult.doctor?.name}</strong>
               </AlertDescription>
             </Alert>
 

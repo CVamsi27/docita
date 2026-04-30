@@ -93,11 +93,11 @@ export default function ChoosePathPage() {
       contentMaxWidth="max-w-xl"
       showSignOut
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1 text-center lg:text-left">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack text-center lg:text-left">
+        <h1 className="ui-page-title">
           {firstName ? `Welcome, ${firstName}!` : "Welcome to Docita!"}
         </h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="ui-page-subtitle">
           How would you like to get started?
         </p>
       </div>
@@ -108,7 +108,7 @@ export default function ChoosePathPage() {
       >
         <PathCard
           icon={<Building2 className="h-7 w-7 text-primary" />}
-          iconBg="bg-primary/10"
+          iconBg="border border-border/70 bg-background/70"
           title="Create New Facility"
           description="Set up your own facility and choose a plan"
           bullets={CREATE_BULLETS}
@@ -122,7 +122,7 @@ export default function ChoosePathPage() {
 
         <PathCard
           icon={<Users className="h-7 w-7 text-info" />}
-          iconBg="bg-info/10"
+          iconBg="border border-border/70 bg-background/70"
           title="Join Existing Facility"
           description="Request access to a facility in your organization"
           bullets={JOIN_BULLETS}
@@ -169,34 +169,34 @@ function PathCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-lg border bg-card/80 backdrop-blur-sm p-6 shadow-md transition-all duration-200",
-        "hover:shadow-xl hover:-translate-y-0.5",
+        "ui-card-surface group relative flex flex-col p-6 transition-all duration-200",
+        "hover:-translate-y-0.5 hover:shadow-md",
         highlight
           ? "border-primary/30 hover:border-primary"
-          : "border-border hover:border-muted-foreground/30",
+          : "border-border/70 hover:border-border",
         disabled && "pointer-events-none opacity-70",
       )}
     >
       <div className="space-y-4 flex-1">
         <div
           className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-lg",
+            "flex h-12 w-12 items-center justify-center rounded-full",
             iconBg,
           )}
         >
           {icon}
         </div>
 
-        <div>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
+        <div className="ui-copy-stack">
+          <h2 className="ui-section-title text-[var(--fs-lg)]">{title}</h2>
+          <p className="ui-helper-text">{description}</p>
         </div>
 
         <ul className="space-y-1.5">
           {bullets.map((item) => (
             <li
               key={item}
-              className="flex items-center gap-2 text-sm text-muted-foreground"
+              className="flex items-center gap-2 ui-helper-text"
             >
               <Check className="h-3.5 w-3.5 text-success shrink-0" />
               {item}

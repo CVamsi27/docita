@@ -102,7 +102,7 @@ export default function DentalChartsPage() {
       <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <Smile className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">

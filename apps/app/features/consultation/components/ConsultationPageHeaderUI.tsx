@@ -29,11 +29,11 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 const STATUS_STYLES: Record<string, string> = {
-  scheduled: "bg-info/10 text-info border-info/20",
-  in_progress: "bg-success/10 text-success border-success/20",
-  completed: "bg-muted/50 text-muted-foreground border-muted",
-  cancelled: "bg-destructive/10 text-destructive border-destructive/20",
-  no_show: "bg-warning/10 text-warning border-warning/20",
+  scheduled: "badge-info",
+  in_progress: "badge-success",
+  completed: "badge-muted",
+  cancelled: "badge-danger",
+  no_show: "badge-warning",
 };
 
 interface ConsultationPageHeaderUIProps {
@@ -124,7 +124,7 @@ export function ConsultationPageHeaderUI({
           )}
 
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-9 w-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center border border-primary/10">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <User className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
@@ -136,7 +136,7 @@ export function ConsultationPageHeaderUI({
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-xs h-5 px-1.5 font-medium hidden sm:inline-flex",
+                      "text-xs h-5 px-1.5 font-medium hidden sm:inline-flex border",
                       statusStyle,
                     )}
                   >

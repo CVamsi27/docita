@@ -49,10 +49,10 @@ import {
 
 function getIconClasses(isActive: boolean) {
   return cn(
-    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-transparent",
+    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-transparent transition-colors",
     isActive
-      ? "bg-primary/10 text-primary ring-primary/20"
-      : "bg-muted/60 text-muted-foreground",
+      ? "bg-foreground text-background ring-border/40"
+      : "bg-background/60 text-muted-foreground ring-border/40",
   );
 }
 
@@ -252,10 +252,10 @@ function SidebarContent({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-all",
+                  "group flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-primary/8 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   isCollapsed && !isMobile && "justify-center px-0",
                 )}
                 title={isCollapsed && !isMobile ? item.label : undefined}
@@ -289,7 +289,7 @@ function SidebarContent({
       </div>
 
       {/* Footer */}
-      <div className="shrink-0 border-t border-border/60">
+      <div className="shrink-0 border-t border-border/70">
         {/* Quick-access icons row */}
         <div
           className={cn(
@@ -379,8 +379,8 @@ function SidebarContent({
                 className={cn(
                   "shrink-0 gap-1.5",
                   isCollapsed && !isMobile
-                    ? "h-8 w-8 rounded-lg border border-primary/30 bg-primary/10 p-0 text-primary hover:bg-primary/20"
-                    : "h-8 px-3 text-xs",
+                    ? "h-8 w-8 rounded-full border border-border/70 bg-background/70 p-0 text-primary hover:bg-background/85"
+                    : "h-9 px-4 text-xs rounded-full",
                 )}
                 size="sm"
                 asChild
@@ -462,7 +462,7 @@ export function Sidebar({
     <>
       {/* Desktop sidebar */}
       <aside
-        className="relative hidden md:flex flex-col h-full w-full bg-background border-r border-border/60"
+        className="relative hidden md:flex flex-col h-full w-full bg-background/70 backdrop-blur border-r border-border/70"
       >
         <SidebarContent
           isCollapsed={isCollapsed}

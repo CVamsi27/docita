@@ -22,7 +22,7 @@ export function TrustSecuritySection() {
     <section className="landing-section bg-background" id="security">
       <div className="ui-page-shell">
         <div className="text-center mb-16">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-foreground">
+          <div className="badge-success mb-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
             <Shield className="h-4 w-4 text-success" />
             <span className="font-medium text-foreground">
               Practical trust controls
@@ -47,7 +47,7 @@ export function TrustSecuritySection() {
           ].map((badge, i) => (
             <div
               key={i}
-              className="landing-card flex h-28 w-28 flex-col items-center justify-center border-2 bg-muted/30 transition-colors hover:border-primary/50 hover:bg-primary/5"
+              className="landing-card flex h-28 w-28 flex-col items-center justify-center border-2 bg-muted/30 transition-colors hover:border-border/80 hover:bg-background/70"
             >
               <ShieldCheck className="h-8 w-8 text-success mb-2" />
               <span className="font-bold text-sm">{badge.label}</span>
@@ -99,7 +99,7 @@ export function TrustSecuritySection() {
           ].map((feature, i) => (
             <Card key={i} className="landing-card bg-muted/30">
               <CardHeader>
-                <div className="mb-2 inline-block rounded-lg bg-success/10 p-2 w-fit">
+                <div className="mb-2 inline-block rounded-full border border-border/70 bg-background/70 p-2 w-fit">
                   <feature.icon className="h-5 w-5 text-success" />
                 </div>
                 <CardTitle className="text-lg">{feature.title}</CardTitle>

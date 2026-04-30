@@ -36,7 +36,7 @@ export function MigrationSection() {
     <section className="landing-section bg-background" id="migration">
       <div className="ui-page-shell grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)] lg:items-center">
         <div>
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm text-primary">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm text-primary">
             <Clock3 className="h-4 w-4" />
             <span className="font-medium">Rollout target: first value in 48 hours</span>
           </div>
@@ -70,7 +70,7 @@ export function MigrationSection() {
               key={point.title}
               className="landing-card p-6"
             >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/70">
                 <point.icon className="h-5 w-5 text-primary" />
               </div>
               <h3 className="text-lg font-semibold text-foreground">

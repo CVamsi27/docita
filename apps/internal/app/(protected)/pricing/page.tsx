@@ -658,7 +658,7 @@ export default function PricingPage() {
                   {offers.map((offer) => (
                     <div
                       key={offer.id}
-                      className="rounded-lg border bg-background p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                      className="rounded-[var(--radius)] border border-border/70 bg-background p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">

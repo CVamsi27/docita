@@ -79,7 +79,7 @@ export function PatientContextCardUI({
   return (
     <div
       className={cn(
-        "border rounded-lg bg-card shadow-sm overflow-hidden",
+        "border border-border/70 rounded-[var(--radius)] bg-card shadow-sm overflow-hidden",
         hasAllergies && "border-l-4 border-l-red-500",
         className,
       )}
@@ -88,7 +88,7 @@ export function PatientContextCardUI({
       <div className="p-3 border-b bg-muted/30">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>

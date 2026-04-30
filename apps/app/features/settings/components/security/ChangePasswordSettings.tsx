@@ -53,12 +53,12 @@ export function ChangePasswordSettings() {
       toast.success("Password updated successfully");
       form.reset();
     } catch {
-
+      toast.error("We could not update your password. Please try again.");
     }
   };
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>Change Password</CardTitle>
         <CardDescription>Update your account password</CardDescription>

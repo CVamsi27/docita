@@ -8,29 +8,28 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.988 0.003 247.839);
-  /* Soft White */
-  --foreground: oklch(0.13 0.028 261.692);
-  /* Deep Slate */
-  --card: oklch(0.998 0.001 247.839);
+  /* Origin-inspired: warmer paper-like surfaces with subtle depth */
+  --background: oklch(0.987 0.008 95);
+  --foreground: oklch(0.14 0.028 261.692);
+  --card: oklch(0.994 0.006 95);
   --card-foreground: oklch(0.13 0.028 261.692);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.13 0.028 261.692);
   --primary: oklch(0.49 0.14 250);
   /* Clinical Blue */
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0.006 250);
-  /* Very pale blue */
+  --secondary: oklch(0.965 0.01 95);
   --secondary-foreground: oklch(0.49 0.14 250);
-  --muted: oklch(0.96 0.004 250);
-  --muted-foreground: oklch(0.55 0.03 261.692);
-  --accent: oklch(0.955 0.008 240);
+  --muted: oklch(0.968 0.01 95);
+  --muted-foreground: oklch(0.56 0.028 261.692);
+  --accent: oklch(0.962 0.012 95);
   --accent-foreground: oklch(0.44 0.12 248);
   --destructive: oklch(0.65 0.23 27.325);
   /* Modern Red */
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.01 261.692);
-  --input: oklch(0.92 0.01 261.692);
+  /* Hairline separators */
+  --border: oklch(0.93 0.008 95);
+  --input: oklch(0.93 0.008 95);
   --ring: oklch(0.49 0.14 250);
   --chart-1: oklch(0.49 0.14 250);
   --chart-2: oklch(0.6 0.15 200);
@@ -56,9 +55,10 @@
   --cancelled: oklch(0.65 0.23 27.325);
   /* red for cancelled */
   --cancelled-foreground: oklch(1 0 0);
-  --radius: 0.625rem;
-  /* Crisp, clinical feel */
-  --sidebar: oklch(0.985 0.002 247.839);
+  /* Softer rounding like Origin */
+  --radius: 0.875rem;
+  --radius-pill: 9999px;
+  --sidebar: oklch(0.988 0.008 95);
   --sidebar-foreground: oklch(0.13 0.028 261.692);
   --sidebar-primary: oklch(0.49 0.14 250);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -69,9 +69,9 @@
 
   /* Elevation ramp (surfaces) */
   --surface-1: var(--card);
-  --surface-2: oklch(0.974 0.004 247);
-  --surface-3: oklch(0.952 0.006 248);
-  --surface-warm: oklch(0.974 0.012 82);
+  --surface-2: oklch(0.976 0.008 95);
+  --surface-3: oklch(0.958 0.012 95);
+  --surface-warm: oklch(0.975 0.014 82);
   --surface-tint: oklch(0.972 0.008 218);
 
   /* Tag color ramp — perceptually balanced, design-system controlled.
@@ -90,6 +90,9 @@
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-heading:
+    var(--font-display), ui-serif, Georgia, Cambria, "Times New Roman", Times,
+    serif;
   --font-mono:
     var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
     Monaco, "Roboto Mono", monospace;
@@ -171,7 +174,7 @@
 }
 
 .dark {
-  --background: oklch(0.1 0.02 261.692);
+  --background: oklch(0.105 0.02 261.692);
   /* Deep dark background, not fully black */
   --foreground: oklch(0.98 0.01 261.692);
   --card: oklch(0.13 0.025 261.692);
@@ -266,6 +269,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-pill: var(--radius-pill);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -280,6 +284,7 @@
 
   --font-family-sans: var(--font-sans);
   --font-family-mono: var(--font-mono);
+  --font-family-heading: var(--font-heading);
   --font-sans-family: var(--font-sans);
   --font-mono-family: var(--font-mono);
 
@@ -301,8 +306,9 @@
   .app-shell-bg {
     background-image: linear-gradient(
       180deg,
-      color-mix(in oklch, var(--surface-tint) 42%, var(--background)) 0%,
-      var(--background) 24rem
+      color-mix(in oklch, var(--surface-tint) 52%, var(--background)) 0%,
+      color-mix(in oklch, var(--background) 92%, var(--primary) 8%) 18rem,
+      var(--background) 42rem
     );
     background-attachment: fixed;
   }
@@ -344,6 +350,7 @@
   }
 
   .ui-page-title {
+    font-family: var(--font-heading);
     font-size: var(--fs-3xl);
     line-height: var(--lh-tight);
     letter-spacing: var(--tracking-normal);
@@ -357,6 +364,7 @@
   }
 
   .ui-section-title {
+    font-family: var(--font-heading);
     font-size: var(--fs-xl);
     line-height: var(--lh-snug);
     letter-spacing: var(--tracking-normal);
@@ -370,6 +378,7 @@
   }
 
   .ui-hero-title {
+    font-family: var(--font-heading);
     font-size: clamp(var(--fs-4xl), 5vw, var(--fs-6xl));
     line-height: 1.05;
     letter-spacing: var(--tracking-normal);
@@ -403,15 +412,18 @@
   }
 
   .ui-card-surface {
-    @apply rounded-lg border border-border/70 bg-card text-card-foreground shadow-sm;
+    border-radius: var(--radius);
+    @apply border border-border/70 bg-card text-card-foreground shadow-sm;
   }
 
   .ui-panel {
-    @apply rounded-lg border border-border/70 bg-card text-card-foreground shadow-sm;
+    border-radius: var(--radius);
+    @apply border border-border/70 bg-card text-card-foreground shadow-sm;
   }
 
   .ui-panel-muted {
-    @apply rounded-lg border border-border/70 bg-muted/25 text-foreground shadow-sm;
+    border-radius: var(--radius);
+    @apply border border-border/70 bg-muted/25 text-foreground shadow-sm;
   }
 
   .icon-warning {

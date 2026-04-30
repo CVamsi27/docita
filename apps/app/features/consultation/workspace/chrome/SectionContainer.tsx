@@ -27,14 +27,14 @@ export const SectionContainer = forwardRef<
       data-section-id={id}
       aria-labelledby={`${id}-title`}
       className={cn(
-        "scroll-mt-24 rounded-lg border bg-background shadow-sm",
+        "scroll-mt-24 rounded-[var(--radius)] border border-border/70 bg-background shadow-sm",
         className,
       )}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 md:px-5 md:py-4">
         <div className="flex items-center gap-3 min-w-0">
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-sm font-bold text-primary"
             aria-hidden="true"
           >
             {letter}

@@ -37,7 +37,7 @@ export function PatientDocumentsTabUI({
           className="group border-none bg-muted/30"
         >
           <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-            <div className="rounded-full bg-primary/10 p-4 text-primary">
+            <div className="rounded-full border border-border/70 bg-background/70 p-4 text-primary">
               <FileText className="h-8 w-8" />
             </div>
             <div>

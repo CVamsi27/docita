@@ -88,19 +88,19 @@ export default function ProtectedLayout({
   const { logout } = useAuth();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-muted/30">
+    <div className="flex h-screen overflow-hidden bg-background">
       {}
-      <aside className="hidden w-64 flex-col border-r bg-background md:flex">
-        <div className="flex h-14 items-center border-b px-6">
+      <aside className="hidden w-64 flex-col border-r border-border/70 bg-background/70 backdrop-blur md:flex">
+        <div className="flex h-14 items-center border-b border-border/70 px-6">
           <Link
             href="/dashboard"
-            className="flex h-10 items-center gap-2 font-bold text-lg"
+            className="flex h-10 items-center gap-2 text-lg font-semibold tracking-tight"
           >
             <DocitaIcon />
             <span>Docita Internal</span>
           </Link>
         </div>
-        <div className="flex-1 overflow-y-auto py-4">
+        <div className="flex-1 overflow-y-auto py-3">
           <nav className="grid gap-1 px-2">
             {sidebarItems.map((item, index) => {
               const isActive = pathname === item.href;
@@ -109,9 +109,9 @@ export default function ProtectedLayout({
                   key={index}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                    "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/60 hover:text-foreground",
                     isActive
-                      ? "bg-accent text-accent-foreground"
+                      ? "bg-foreground text-background shadow-sm"
                       : "text-muted-foreground",
                   )}
                 >
@@ -122,7 +122,7 @@ export default function ProtectedLayout({
             })}
           </nav>
         </div>
-        <div className="border-t p-4 space-y-2">
+        <div className="border-t border-border/70 p-4 space-y-2">
           <ThemeToggle />
           <Button
             variant="outline"
@@ -138,9 +138,11 @@ export default function ProtectedLayout({
       {}
       <div className="flex-1 flex flex-col overflow-hidden">
         {}
-        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 md:hidden">
+        <header className="flex h-14 items-center gap-4 border-b border-border/70 bg-background/80 backdrop-blur px-4 md:hidden">
           <MobileNav />
-          <span className="font-bold text-lg">Docita Internal</span>
+          <span className="text-lg font-semibold tracking-tight">
+            Docita Internal
+          </span>
         </header>
 
         <main className="flex-1 overflow-y-auto" aria-label="Main content">

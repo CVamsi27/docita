@@ -58,8 +58,8 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
 
   if (!patient) {
     return (
-      <Card className="border-none shadow-lg h-full">
-        <CardContent className="flex items-center justify-center h-full py-8 text-muted-foreground">
+      <Card className="ui-card-surface h-full">
+        <CardContent className="flex h-full items-center justify-center py-8 text-muted-foreground">
           <User className="h-6 w-6 mr-2 opacity-30" />
           <span>No patient data</span>
         </CardContent>
@@ -78,8 +78,8 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
 
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 bg-background">
-      <div className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 relative group">
-        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0">
+      <div className="ui-card-surface relative flex items-center gap-4 p-4 group">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-lg font-bold text-primary">
           {initials}
         </div>
         <div className="min-w-0 flex-1">

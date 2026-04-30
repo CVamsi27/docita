@@ -104,9 +104,7 @@ export function PricingDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-3">
-          <DialogTitle className="text-2xl font-bold">
-            Choose Your Plan
-          </DialogTitle>
+          <DialogTitle className="ui-page-title">Choose Your Plan</DialogTitle>
           <DialogDescription>
             Select the plan that best fits your facility&apos;s needs
           </DialogDescription>
@@ -177,7 +175,7 @@ export function PricingDialog({
                 key={tierName}
                 style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
-                  "relative flex w-full max-w-[280px] flex-col rounded-lg border-2 p-4",
+                  "relative flex w-full max-w-[280px] flex-col rounded-[var(--radius)] border-2 p-4",
                   "bg-card",
                   "transition-all duration-300 ease-out",
                   "hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4",
@@ -195,7 +193,7 @@ export function PricingDialog({
                 <div className="flex items-center gap-2 mb-3">
                   <div
                     className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-lg",
+                      "flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70",
                       TIER_ICON_CLASSES[tierName],
                     )}
                   >

@@ -10,7 +10,7 @@ const cardVariants = cva(
       interaction: {
         static: "transition-colors duration-150",
         interactive:
-          "cursor-pointer transition-colors duration-150 hover:bg-muted/20 hover:border-primary/20 hover:shadow-md",
+          "cursor-pointer transition-[background-color,border-color,box-shadow] duration-150 hover:bg-surface-2 hover:border-border/80 hover:shadow-md",
       },
       density: {
         compact: "gap-3 py-3 sm:py-4",

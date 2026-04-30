@@ -66,10 +66,10 @@ export function HowItWorksSection() {
                   density="spacious"
                 >
                   <CardContent className="relative flex h-full flex-col items-center ui-section-stack px-8">
-                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-transform duration-300 group-hover:scale-110">
+                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70 transition-transform duration-300 group-hover:scale-110">
                       <item.icon className="h-6 w-6 text-primary" />
                     </div>
-                    <div className="absolute top-4 right-4 text-4xl font-bold text-muted/20 select-none">
+                    <div className="absolute top-4 right-4 text-3xl font-bold text-muted/20 select-none md:text-4xl">
                       {item.step}
                     </div>
                     <div className="ui-copy-stack">

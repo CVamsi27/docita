@@ -97,9 +97,9 @@ export function ChiefComplaintInput({
   return (
     <div className="space-y-3">
       {!readOnly && (
-        <div className="rounded-lg border border-border bg-muted/20 px-3 py-2">
+        <div className="rounded-[var(--radius)] border border-border/70 bg-muted/20 px-3 py-2">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-primary/10 p-1.5 text-primary">
+            <div className="rounded-full border border-border/70 bg-background/70 p-1.5 text-primary">
               <Activity className="h-4 w-4" />
             </div>
             <div className="space-y-0.5">
@@ -128,10 +128,10 @@ export function ChiefComplaintInput({
           return (
             <div
               key={item.id || index}
-              className={`space-y-3 rounded-lg border p-3 transition-colors ${
+              className={`space-y-3 rounded-[var(--radius)] border p-3 transition-colors ${
                 isPrimary
                   ? "border-primary/30 bg-primary/5"
-                  : "border-border bg-card hover:bg-muted/20"
+                  : "border-border/70 bg-card hover:bg-muted/20"
               }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">

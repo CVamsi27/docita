@@ -217,7 +217,7 @@ export function TeamInviteStep({
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
             <UserPlus className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -230,7 +230,7 @@ export function TeamInviteStep({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
+        <div className="ui-panel-muted p-4 space-y-2">
           <p className="text-sm font-medium">Team guidance</p>
           <p className="text-xs text-muted-foreground">
             Your logged-in account is the clinic owner during onboarding. You
@@ -243,7 +243,7 @@ export function TeamInviteStep({
             Settings
           </p>
           {(ownerName || ownerEmail) && (
-            <div className="rounded-md border bg-background px-3 py-2">
+            <div className="rounded-[var(--radius)] border border-border/70 bg-background/70 px-3 py-2">
               <p className="text-xs text-muted-foreground">
                 Clinic Owner (already added)
               </p>
@@ -266,7 +266,7 @@ export function TeamInviteStep({
 
         <div className="space-y-4">
           {members.map((member, index) => (
-            <div key={index} className={cn("grid gap-4 rounded-lg border p-4")}>
+            <div key={index} className={cn("grid gap-4 rounded-[var(--radius)] border border-border/70 p-4")}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -306,7 +306,7 @@ export function TeamInviteStep({
                     onChange={(e) =>
                       updateMember(index, "name", e.target.value)
                     }
-                    className="h-11 rounded-lg sm:h-11"
+                    className="h-11 sm:h-11"
                   />
                   <div className="min-h-4" />
                 </div>

@@ -123,8 +123,8 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                 key={tier.id}
                 className={`relative overflow-hidden ${
                   isFeatured
-                    ? "border-primary shadow-lg shadow-primary/10"
-                    : "border-border"
+                    ? "border-primary/30 shadow-md"
+                    : "border-border/70"
                 }`}
               >
                 {isFeatured && (
@@ -132,7 +132,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                 )}
                 <CardHeader className="pb-4">
                   {isFeatured && (
-                    <div className="mb-3 inline-flex w-fit items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    <div className="mb-3 inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-primary">
                       <Sparkles className="h-3.5 w-3.5" />
                       Best fit for growing clinics
                     </div>

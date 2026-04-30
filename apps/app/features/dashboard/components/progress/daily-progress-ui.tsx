@@ -17,7 +17,7 @@ export function DailyProgressUI({
     <Card className="border border-border shadow-sm bg-card">
       <CardContent className="p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
             <Sparkles className="h-4 w-4" />
           </div>
           <p className="font-medium text-sm">Today&apos;s Progress</p>

@@ -24,6 +24,14 @@ import {
 import { toast } from "sonner";
 import { client } from "@/lib/api-client";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { Input } from "@workspace/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 
 interface AuditLog {
   id: string;
@@ -200,7 +208,7 @@ export function AuditLogViewer() {
       </div>
 
       {showFilters && (
-        <div className="bg-muted/30 border border-border rounded-lg p-4 space-y-4">
+        <div className="bg-muted/30 border border-border/70 rounded-[var(--radius)] p-4 space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
@@ -223,32 +231,36 @@ export function AuditLogViewer() {
               <label className="block text-sm font-medium text-foreground mb-1">
                 Action Type
               </label>
-              <select
+              <Select
                 value={selectedActionType}
-                onChange={(e) => setSelectedActionType(e.target.value)}
-                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                onValueChange={setSelectedActionType}
               >
-                <option value="">All Actions</option>
-                {actionTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Actions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Actions</SelectItem>
+                  {actionTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
                 User ID
               </label>
-              <div className="flex items-center gap-2">
-                <UserIcon className="h-4 w-4 text-muted-foreground" />
-                <input
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
                   type="text"
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
                   placeholder="Filter by user ID"
-                  className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                  className="pl-9"
                 />
               </div>
             </div>
@@ -262,7 +274,7 @@ export function AuditLogViewer() {
         </div>
       )}
 
-      <div className="border border-border rounded-lg overflow-hidden">
+      <div className="border border-border/70 rounded-[var(--radius)] overflow-hidden">
         {errorMessage && (
           <div
             role="alert"
@@ -428,7 +440,7 @@ export function AuditLogViewer() {
         )}
       </div>
 
-      <div className="bg-accent/40 border border-border rounded-lg p-3 text-sm text-foreground">
+      <div className="bg-accent/40 border border-border/70 rounded-[var(--radius)] p-3 text-sm text-foreground">
         Showing {logs.length} audit log entries. Page auto-refreshes every 30
         seconds. All sensitive actions (user updates, payments, admin
         operations) are logged for compliance.

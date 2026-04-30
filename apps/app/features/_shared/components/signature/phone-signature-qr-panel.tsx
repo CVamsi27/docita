@@ -76,7 +76,7 @@ export function PhoneSignatureQrPanel({
         <div className="space-y-2.5">
           {steps.map((step, index) => (
             <div key={step} className="flex items-start gap-3">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-xs font-bold text-primary">
                 {index + 1}
               </span>
               <p className="text-sm text-muted-foreground pt-0.5">{step}</p>
@@ -115,20 +115,24 @@ export function PhoneSignatureQrPanel({
               <span>Scan the QR code with your phone camera</span>
             )}
           </div>
-          <button
+          <Button
             type="button"
-            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
             onClick={onRefreshStatus}
           >
             Refresh status (optional)
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
             onClick={onCopyLink}
           >
             Copy link instead
-          </button>
+          </Button>
         </div>
       ) : null}
     </>

@@ -69,7 +69,7 @@ export function DoctorDashboardCardsUI({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
                 <Stethoscope className="h-5 w-5" />
               </div>
               <div>
@@ -84,7 +84,7 @@ export function DoctorDashboardCardsUI({
               </div>
             </div>
             {currentPatient && (
-              <Badge variant="default" className="bg-primary">
+              <Badge className="badge-info border px-2.5 py-0.5 font-medium">
                 In Progress
               </Badge>
             )}
@@ -94,7 +94,7 @@ export function DoctorDashboardCardsUI({
           {currentPatient ? (
             <div className="flex items-center gap-3 sm:gap-4">
               <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
-                <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg font-medium">
+                <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-base sm:text-lg font-medium">
                   {currentPatient.patient?.firstName?.[0]}
                   {currentPatient.patient?.lastName?.[0]}
                 </AvatarFallback>
@@ -111,7 +111,7 @@ export function DoctorDashboardCardsUI({
               </div>
               <Button
                 size="default"
-                className="gap-2 shadow-sm shadow-primary/20 shrink-0"
+                className="gap-2 shrink-0"
                 onClick={() => router.push(`/consultation/${currentPatient.id}`)}
               >
                 <Play className="h-4 w-4" />
@@ -146,7 +146,7 @@ export function DoctorDashboardCardsUI({
       <Card className="border border-border shadow-sm bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info/10 text-info">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-info">
               <Users className="h-5 w-5" />
             </div>
             <div>
@@ -163,7 +163,7 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-lg bg-warning/10">
+            <div className="p-3 rounded-[var(--radius)] bg-warning/10">
               <p className="text-2xl font-bold text-warning">
                 {queueStats.waiting}
               </p>
@@ -171,7 +171,7 @@ export function DoctorDashboardCardsUI({
                 Waiting
               </p>
             </div>
-            <div className="p-3 rounded-lg bg-info/10">
+            <div className="p-3 rounded-[var(--radius)] bg-info/10">
               <p className="text-2xl font-bold text-info">
                 {queueStats.inProgress}
               </p>
@@ -179,7 +179,7 @@ export function DoctorDashboardCardsUI({
                 Active
               </p>
             </div>
-            <div className="p-3 rounded-lg bg-success/10">
+            <div className="p-3 rounded-[var(--radius)] bg-success/10">
               <p className="text-2xl font-bold text-success">
                 {queueStats.completed}
               </p>

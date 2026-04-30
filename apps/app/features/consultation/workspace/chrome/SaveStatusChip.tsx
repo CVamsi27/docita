@@ -42,12 +42,12 @@ export function SaveStatusChip({ className }: SaveStatusChipProps) {
 
   const tone =
     saveState === "error"
-      ? "text-destructive border-destructive/30 bg-destructive/5"
+      ? "badge-danger"
       : saveState === "saving"
-        ? "text-muted-foreground border-border bg-muted/40"
+        ? "badge-muted"
         : saveState === "dirty"
-          ? "text-warning border-warning/30 bg-warning/10"
-          : "text-success border-success/30 bg-success/10";
+          ? "badge-warning"
+          : "badge-success";
 
   return (
     <div

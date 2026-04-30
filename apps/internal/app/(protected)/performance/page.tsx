@@ -268,7 +268,7 @@ export default function PerformancePage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border p-4">
+            <div className="rounded-[var(--radius)] border border-border/70 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(appHealth?.status ?? "unknown")}
@@ -282,7 +282,7 @@ export default function PerformancePage() {
                 {getStatusBadge(appHealth?.status ?? "unknown")}
               </div>
             </div>
-            <div className="rounded-lg border p-4">
+            <div className="rounded-[var(--radius)] border border-border/70 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(

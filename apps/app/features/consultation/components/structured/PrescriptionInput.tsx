@@ -89,11 +89,11 @@ export function PrescriptionInput({
         {medications.map((med, index) => (
           <div
             key={index}
-            className="p-3 bg-muted/20 border rounded-lg space-y-2 transition-colors hover:bg-muted/30"
+            className="p-3 bg-muted/20 border border-border/70 rounded-[var(--radius)] space-y-2 transition-colors hover:bg-muted/30"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-full">
+                <div className="rounded-full border border-border/70 bg-background/70 p-1.5">
                   <Pill className="h-4 w-4 text-primary" />
                 </div>
                 <span className="text-sm font-medium">
@@ -223,7 +223,7 @@ export function PrescriptionInput({
       )}
 
       {medications.length === 0 && readOnly && (
-        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-[var(--radius)]">
           No medications prescribed.
         </div>
       )}

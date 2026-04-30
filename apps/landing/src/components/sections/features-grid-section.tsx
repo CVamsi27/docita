@@ -128,7 +128,7 @@ export function FeaturesGridSection() {
             >
               <CardHeader>
                 <div
-                  className={`mb-4 inline-block rounded-lg p-3 w-fit ${feature.bg}`}
+                  className={`mb-4 inline-block rounded-full border border-border/70 bg-background/70 p-3 w-fit`}
                 >
                   <feature.icon className={`h-6 w-6 ${feature.color}`} />
                 </div>

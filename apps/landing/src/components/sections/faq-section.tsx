@@ -55,7 +55,7 @@ export function FaqSection() {
           {faqs.map((faq) => (
             <details
               key={faq.question}
-              className="group rounded-lg border bg-background px-6 py-4 shadow-sm transition-shadow open:shadow-md"
+              className="group rounded-[var(--radius)] border bg-background px-6 py-4 shadow-sm transition-shadow open:shadow-md"
             >
               <summary className="cursor-pointer list-none text-left font-medium outline-none">
                 <span className="flex items-center justify-between gap-4">

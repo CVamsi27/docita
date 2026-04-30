@@ -76,11 +76,11 @@ export const HelpCenter: FC = () => {
         {filteredCategories.map((cat) => (
           <Card
             key={cat.id}
-            className="border-none shadow-lg hover:shadow-xl transition-all cursor-pointer group"
+            className="ui-card-surface hover:shadow-md transition-all cursor-pointer group"
           >
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary transition-colors group-hover:bg-foreground group-hover:text-background">
                   <cat.icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
@@ -97,7 +97,7 @@ export const HelpCenter: FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-none shadow-lg">
+        <Card className="ui-card-surface">
           <CardHeader>
             <div className="flex items-center gap-3">
               <Video className="h-5 w-5 text-primary" />
@@ -115,7 +115,7 @@ export const HelpCenter: FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg">
+        <Card className="ui-card-surface">
           <CardHeader>
             <div className="flex items-center gap-3">
               <MessageCircle className="h-5 w-5 text-primary" />
@@ -132,7 +132,7 @@ export const HelpCenter: FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg">
+        <Card className="ui-card-surface">
           <CardHeader>
             <div className="flex items-center gap-3">
               <Mail className="h-5 w-5 text-primary" />
@@ -174,14 +174,14 @@ export const FAQSection: FC<{
   const displayFaqs = faqs.length > 0 ? faqs : defaultFaqs;
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card className="ui-card-surface">
       <CardHeader>
         <CardTitle>Frequently Asked Questions</CardTitle>
         <CardDescription>Quick answers to common questions</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {displayFaqs.map((faq, i) => (
-          <div key={i} className="p-4 rounded-lg bg-muted/50 space-y-2">
+          <div key={i} className="ui-panel-muted p-4 space-y-2">
             <h4 className="font-medium">{faq.question}</h4>
             <p className="text-sm text-muted-foreground">{faq.answer}</p>
           </div>

@@ -82,10 +82,13 @@ export function DashboardHeaderUI({
 
       <div className="flex items-center gap-2">
         {canQuickShareClinicCode && (
-          <button
+          <Button
+            type="button"
             onClick={handleQuickShare}
             disabled={!clinicCode}
-            className="flex h-9 items-center gap-1.5 rounded-md border bg-background px-3 text-xs text-muted-foreground transition-colors duration-150 hover:bg-muted/40 hover:text-foreground touch-manipulation disabled:cursor-not-allowed disabled:opacity-60"
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground touch-manipulation"
             title={
               clinicCode
                 ? `Quick share ${facilityLabel.toLowerCase()} join code`
@@ -98,12 +101,15 @@ export function DashboardHeaderUI({
               <Share2 className="h-3.5 w-3.5 shrink-0" />
             )}
             <span>{shared ? "Shared" : "Quick Share"}</span>
-          </button>
+          </Button>
         )}
         {clinicCode && (
-          <button
+          <Button
+            type="button"
             onClick={handleCopyCode}
-            className="flex h-9 items-center gap-1.5 rounded-md border bg-background px-3 text-xs text-muted-foreground transition-colors duration-150 hover:bg-muted/40 hover:text-foreground touch-manipulation"
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5 px-3 text-xs text-muted-foreground hover:text-foreground touch-manipulation"
             title={`Copy ${facilityLabel.toLowerCase()} code to share with staff`}
           >
             <span className="font-mono font-medium tracking-wider">
@@ -114,7 +120,7 @@ export function DashboardHeaderUI({
             ) : (
               <Copy className="h-3.5 w-3.5 shrink-0" />
             )}
-          </button>
+          </Button>
         )}
         <Button
           variant="outline"

@@ -13,6 +13,9 @@ import {
 import { Card } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 import {
   Select,
   SelectContent,
@@ -155,31 +158,27 @@ export default function JoinRequestsPage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-6xl py-8">
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading join requests...</p>
-        </div>
-      </div>
+      <AppPageScaffold>
+        <LoadingState message="Loading join requests..." className="py-16" />
+      </AppPageScaffold>
     );
   }
 
   return (
-    <div className="container max-w-6xl py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal mb-2">
-          Team Join Requests
-        </h1>
-        <p className="text-muted-foreground">
-          Review and approve requests from users who want to join your facility
-        </p>
-      </div>
+    <AppPageScaffold
+      header={
+        <PageHeader
+          title="Team Join Requests"
+          description="Review and approve requests from users who want to join your facility."
+        />
+      }
+    >
 
       {requests.length === 0 && (
-        <Card className="p-12 text-center">
+        <Card className="ui-card-surface p-12 text-center">
           <UserPlus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Pending Requests</h3>
-          <p className="text-muted-foreground">
+          <h3 className="ui-section-title mb-2">No Pending Requests</h3>
+          <p className="ui-page-subtitle">
             There are no join requests waiting for your review at this time
           </p>
         </Card>
@@ -187,53 +186,51 @@ export default function JoinRequestsPage() {
 
       <div className="space-y-4">
         {requests.map((request) => (
-          <Card key={request.id} className="p-6">
+          <Card key={request.id} className="ui-card-surface p-6">
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
               <div className="flex-1">
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="p-2 bg-primary/10 rounded-full">
+                  <div className="rounded-full border border-border/70 bg-background/70 p-2">
                     <UserPlus className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg">
-                      {request.user.name}
-                    </h3>
+                    <h3 className="ui-section-title text-[var(--fs-lg)]">{request.user.name}</h3>
                     <Badge variant="secondary" className="mt-1">
                       Requested: {request.requestedRole}
                     </Badge>
                   </div>
                 </div>
 
-                <div className="space-y-2 text-sm ml-11">
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="ml-11 space-y-2 ui-helper-text">
+                  <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
                     <span>{request.user.email}</span>
                   </div>
                   {request.user.phoneNumber && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
                       <span>{request.user.phoneNumber}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     <span>
-                      Submitted{" "}
-                      {formatDistanceToNow(new Date(request.requestedAt), {
-                        addSuffix: true,
-                      })}
+                      Submitted
+                      <span className="ml-1">
+                        {formatDistanceToNow(new Date(request.requestedAt), {
+                          addSuffix: true,
+                        })}
+                      </span>
                     </span>
                   </div>
                 </div>
 
                 {request.message && (
-                  <Card className="p-4 bg-muted/50 mt-4 ml-11">
+                  <Card className="ui-card-surface mt-4 ml-11 p-4 bg-muted/25">
                     <p className="text-sm font-medium mb-1">
                       Message from applicant:
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {request.message}
-                    </p>
+                    <p className="ui-helper-text">{request.message}</p>
                   </Card>
                 )}
               </div>
@@ -290,7 +287,7 @@ export default function JoinRequestsPage() {
                   <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
+                <p className="ui-helper-text">
                 {assignedRole !== selectedRequest?.requestedRole &&
                   `This differs from the requested role (${selectedRequest?.requestedRole})`}
               </p>
@@ -298,8 +295,7 @@ export default function JoinRequestsPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Welcome Message{" "}
-                <span className="text-muted-foreground">(Optional)</span>
+                  Welcome Message <span className="text-muted-foreground">(optional)</span>
               </label>
               <Textarea
                 placeholder="Welcome to the team! Feel free to reach out if you have any questions..."
@@ -308,7 +304,7 @@ export default function JoinRequestsPage() {
                 maxLength={500}
                 rows={4}
               />
-              <p className="text-xs text-muted-foreground text-right">
+                <p className="ui-helper-text text-right">
                 {welcomeMessage.length}/500
               </p>
             </div>
@@ -353,10 +349,10 @@ export default function JoinRequestsPage() {
               rows={4}
               className="resize-none"
             />
-            <p className="text-xs text-muted-foreground text-right">
+            <p className="ui-helper-text text-right">
               {rejectionReason.length}/500
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="ui-helper-text">
               This reason will be sent to the applicant
             </p>
           </div>
@@ -379,6 +375,6 @@ export default function JoinRequestsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppPageScaffold>
   );
 }

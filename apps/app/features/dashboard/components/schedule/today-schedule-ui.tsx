@@ -28,7 +28,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
               <Clock className="h-4 w-4" />
             </div>
             <div>
@@ -107,7 +107,7 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
 
                   {}
                   <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-medium">
                       {apt.patient?.firstName?.[0]}
                       {apt.patient?.lastName?.[0]}
                     </AvatarFallback>

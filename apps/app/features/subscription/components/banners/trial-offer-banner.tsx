@@ -18,14 +18,14 @@ export function TrialOfferBanner({
   return (
     <section
       className={cn(
-        "rounded-lg border border-primary/25 bg-primary/5 p-4 text-sm",
+        "rounded-[var(--radius)] border border-primary/25 bg-primary/5 p-4 text-sm",
         className,
       )}
       aria-label="14-day free trial"
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
             <Clock className="h-5 w-5" />
           </div>
           <div className="space-y-1">

@@ -29,7 +29,7 @@ export function LabInventorySection() {
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="shrink-0">
-                  <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
                     <FlaskConical className="h-5 w-5 text-info" />
                   </div>
                 </div>
@@ -44,7 +44,7 @@ export function LabInventorySection() {
 
               <div className="flex gap-4">
                 <div className="shrink-0">
-                  <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
                     <Package className="h-5 w-5 text-warning" />
                   </div>
                 </div>

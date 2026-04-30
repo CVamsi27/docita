@@ -88,7 +88,7 @@ export function PatientBadgeUI({
       >
         <Avatar className={sizes.avatar}>
           {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+          <AvatarFallback className="border border-border/70 bg-background/70 text-foreground font-medium">
             {initials}
           </AvatarFallback>
         </Avatar>

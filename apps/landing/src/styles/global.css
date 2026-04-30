@@ -57,7 +57,7 @@ canvas {
 }
 
 .landing-card {
-  border-radius: 0.5rem;
+  border-radius: var(--radius);
   border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
   background-color: color-mix(in oklch, var(--background) 86%, transparent);
   box-shadow:
@@ -71,7 +71,7 @@ canvas {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: calc(var(--radius) + 2px);
   border: 1px solid color-mix(in oklch, var(--border) 70%, transparent);
   background-color: color-mix(in oklch, var(--background) 70%, transparent);
   padding: 0.5rem 1rem; /* px-4 py-2 */
@@ -86,7 +86,7 @@ canvas {
   align-items: center;
   gap: 0.75rem;
   border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
-  border-radius: 0.75rem;
+  border-radius: calc(var(--radius) + 4px);
   background-color: color-mix(in oklch, var(--background) 78%, transparent);
   padding: 0.625rem;
   box-shadow:
@@ -98,7 +98,7 @@ canvas {
 
 .landing-product-stage {
   border: 1px solid color-mix(in oklch, var(--border) 76%, transparent);
-  border-radius: 0.75rem;
+  border-radius: calc(var(--radius) + 4px);
   background:
     linear-gradient(
       180deg,
@@ -131,4 +131,5 @@ canvas {
 :root {
   --font-inter: "Inter";
   --font-jetbrains-mono: "JetBrains Mono";
+  --font-display: "Fraunces";
 }

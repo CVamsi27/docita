@@ -17,7 +17,7 @@ export function ValuePropsSection() {
           {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2 lg:order-1">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-foreground">
+              <div className="badge-success mb-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
                 <CheckCircle2 className="h-4 w-4 text-success" />
                 <span className="font-medium text-foreground">
                   Paper-to-cloud rollout
@@ -45,8 +45,8 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1 lg:order-2">
-              <div className="relative rounded-lg border border-success/20 bg-success/5 p-5 sm:p-8">
-                <div className="aspect-square rounded-lg bg-success p-12 flex items-center justify-center">
+              <div className="relative rounded-[var(--radius)] border border-success/20 bg-success/5 p-5 sm:p-8">
+                <div className="aspect-square rounded-[var(--radius)] bg-success p-12 flex items-center justify-center">
                   <FileText className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute right-3 top-3 rounded-full border border-success/30 bg-background px-3 py-1.5 text-xs font-semibold text-foreground shadow-lg sm:-right-4 sm:-top-4 sm:px-4 sm:py-2 sm:text-sm">
@@ -59,7 +59,7 @@ export function ValuePropsSection() {
           {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-info/30 bg-info/10 px-4 py-2 text-sm text-foreground">
+              <div className="badge-info mb-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
                 <Users className="h-4 w-4 text-info" />
                 <span className="font-medium text-foreground">
                   One patient timeline
@@ -87,8 +87,8 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1">
-              <div className="relative rounded-lg border border-info/20 bg-info/5 p-5 sm:p-8">
-                <div className="aspect-square rounded-lg bg-info p-12 flex items-center justify-center">
+              <div className="relative rounded-[var(--radius)] border border-info/20 bg-info/5 p-5 sm:p-8">
+                <div className="aspect-square rounded-[var(--radius)] bg-info p-12 flex items-center justify-center">
                   <Calendar className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute right-3 top-3 rounded-full border border-info/30 bg-background px-3 py-1.5 text-xs font-semibold text-foreground shadow-lg sm:-right-4 sm:-top-4 sm:px-4 sm:py-2 sm:text-sm">
@@ -127,8 +127,8 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1 lg:order-2">
-              <div className="relative rounded-lg border border-primary/20 bg-primary/5 p-5 sm:p-8">
-                <div className="aspect-square rounded-lg bg-primary p-12 flex items-center justify-center">
+              <div className="relative rounded-[var(--radius)] border border-primary/20 bg-primary/5 p-5 sm:p-8">
+                <div className="aspect-square rounded-[var(--radius)] bg-primary p-12 flex items-center justify-center">
                   <ShieldCheck className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute right-3 top-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg sm:-right-4 sm:-top-4 sm:px-4 sm:py-2 sm:text-sm">

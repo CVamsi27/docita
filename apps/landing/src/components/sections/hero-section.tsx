@@ -28,7 +28,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </div>
 
-          <h1 className="max-w-5xl text-balance text-4xl font-semibold leading-[1.02] tracking-normal text-foreground min-[420px]:text-5xl sm:text-6xl lg:text-7xl">
+          <h1 className="ui-hero-title max-w-5xl text-balance text-foreground">
             Run your clinic with clarity.
           </h1>
 
@@ -41,8 +41,8 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
           <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:justify-center">
             <Button
               asChild
-              size="lg"
-              className="h-12 w-full gap-2 px-6 shadow-lg shadow-primary/20 transition-shadow hover:shadow-primary/30 sm:w-auto"
+              size="pill"
+              className="w-full gap-2 sm:w-auto"
             >
               <a href={`${appUrl}/onboarding`}>
                 Start clinic setup
@@ -51,9 +51,9 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
             </Button>
             <Button
               asChild
-              size="lg"
+              size="pill"
               variant="outline"
-              className="h-12 w-full gap-2 border-border/80 bg-background/70 px-6 backdrop-blur-sm sm:w-auto"
+              className="w-full gap-2 sm:w-auto"
             >
               <a href="/contact">
                 <CalendarCheck className="h-5 w-5" />
@@ -70,14 +70,14 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
             <span className="hidden text-sm text-muted-foreground sm:inline">
               Ask Docita
             </span>
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
               <ArrowRight className="h-4 w-4" />
             </span>
           </div>
 
           <div className="landing-product-stage mt-10 w-full text-left">
             <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-              <div className="rounded-lg border border-border/70 bg-background/95 p-4 shadow-xl shadow-slate-950/10">
+              <div className="ui-card-surface p-4 shadow-md">
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-foreground">
@@ -87,7 +87,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                       OPD flow, payments, and follow-ups in one view
                     </p>
                   </div>
-                  <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success">
+                  <div className="badge-success inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Live queue healthy
                   </div>
@@ -102,7 +102,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                   ].map(([value, label]) => (
                     <div
                       key={label}
-                      className="rounded-lg border border-border/70 bg-muted/30 p-3"
+                      className="ui-panel-muted p-3"
                     >
                       <p className="text-xl font-semibold text-foreground">
                         {value}
@@ -114,7 +114,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                   ))}
                 </div>
 
-                <div className="mt-4 overflow-hidden rounded-lg border border-border/70">
+                <div className="mt-4 overflow-hidden rounded-xl border border-border/70">
                   {[
                     ["09:30 AM", "Rohit Sharma", "Follow-up", "Checked in"],
                     ["10:00 AM", "Meera Iyer", "Consultation", "Confirmed"],
@@ -135,7 +135,7 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                           {visit}
                         </span>
                       </span>
-                      <span className="rounded-lg bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                      <span className="badge-muted rounded-full px-2.5 py-1 text-xs font-semibold">
                         {status}
                       </span>
                     </div>
@@ -143,9 +143,9 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border/70 bg-background/95 p-4 shadow-xl shadow-slate-950/10">
+              <div className="ui-card-surface p-4 shadow-md">
                 <div className="mb-4 flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
                     <Stethoscope className="h-4 w-4" />
                   </span>
                   <div>
@@ -158,13 +158,13 @@ export function HeroSection({ appUrl }: HeroSectionProps) {
                   </div>
                 </div>
                 <div className="flex flex-col gap-3 text-sm">
-                  <div className="rounded-lg bg-muted/60 p-3 text-muted-foreground">
+                  <div className="rounded-xl bg-muted/60 p-3 text-muted-foreground">
                     Hi Ritu, your follow-up is tomorrow at 10:00 AM.
                   </div>
-                  <div className="ml-auto rounded-lg bg-success/15 p-3 font-medium text-foreground">
+                  <div className="ml-auto rounded-xl bg-success/15 p-3 font-medium text-foreground">
                     Yes, confirmed
                   </div>
-                  <div className="rounded-lg border border-border/70 bg-background p-3 text-muted-foreground">
+                  <div className="rounded-xl border border-border/70 bg-background p-3 text-muted-foreground">
                     Prescription PDF attached after consultation.
                   </div>
                 </div>

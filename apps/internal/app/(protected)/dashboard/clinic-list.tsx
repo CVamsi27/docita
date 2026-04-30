@@ -98,7 +98,7 @@ export function ClinicList({
 
   if (clinics.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center border rounded-md bg-muted/10">
+      <div className="ui-panel-muted flex flex-col items-center justify-center h-64 text-center">
         <Building2 className="h-10 w-10 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium">No clinics found</h3>
         <p className="text-sm text-muted-foreground mt-1">
@@ -109,7 +109,7 @@ export function ClinicList({
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="ui-card-surface overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -129,7 +129,7 @@ export function ClinicList({
               <TableRow key={clinic.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background/70 text-xs font-bold text-primary">
                       {clinic.name.substring(0, 2).toUpperCase()}
                     </div>
                     {clinic.name}

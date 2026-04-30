@@ -84,7 +84,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </Button>
           )}
-          <div className="h-10 w-10 sm:h-14 sm:w-14 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-base sm:text-lg font-bold text-primary border border-primary/10">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-base font-bold text-primary sm:h-14 sm:w-14 sm:text-lg">
             {initials}
           </div>
           <div className="min-w-0">

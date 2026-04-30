@@ -90,7 +90,7 @@ export function WhatsAppAutomationSettings() {
 
   return (
     <div className="space-y-6">
-      <Card >
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <MessageSquare className="h-5 w-5 text-success" />

@@ -155,7 +155,7 @@ export function BedManagementUI({
             <CardHeader className="bg-muted/50 pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle>{ward.name}</CardTitle>
-                <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase">
+                <span className="badge-info border px-2.5 py-0.5 text-xs font-medium uppercase">
                   {ward.type}
                 </span>
               </div>

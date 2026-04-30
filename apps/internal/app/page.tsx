@@ -109,7 +109,7 @@ export default function InternalLogin() {
     <div className="flex items-center justify-center min-h-screen bg-muted/30 px-4 py-8">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center space-y-3 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70">
             <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
           <SectionHeading
@@ -119,7 +119,7 @@ export default function InternalLogin() {
             description="Internal Console - Product Owners & System Admins"
           />
         </div>
-        <Card className="border-2 border-border shadow-xl rounded-lg">
+        <Card className="ui-card-surface shadow-xl">
           <CardHeader className="px-6 pt-8 pb-6">
             <CardTitle className="text-2xl">Login</CardTitle>
             <CardDescription>

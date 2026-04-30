@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
@@ -24,6 +27,27 @@ import {
 } from "@/hooks/api/use-settings";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@workspace/ui/components/form";
+
+const securitySettingsSchema = z.object({
+  twoFactorAuth: z.boolean(),
+  sessionTimeout: z
+    .string()
+    .min(1, "Enter a session timeout")
+    .refine((value) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed >= 5 && parsed <= 240;
+    }, "Use a value between 5 and 240 minutes"),
+  auditLogs: z.boolean(),
+});
+
+type SecuritySettingsFormValues = z.infer<typeof securitySettingsSchema>;
 
 export function SecuritySettings() {
   const { data: clinic, isLoading } = useClinicSettings();
@@ -31,29 +55,32 @@ export function SecuritySettings() {
     useUpdateClinicSettings();
   const { canAccess } = usePermissionStore();
 
-  const [settings, setSettings] = useState<ClinicAppSettings>({
-    twoFactorAuth: false,
-    sessionTimeout: "30",
-    auditLogs: true,
+  const form = useForm<SecuritySettingsFormValues>({
+    resolver: zodResolver(securitySettingsSchema),
+    defaultValues: {
+      twoFactorAuth: false,
+      sessionTimeout: "30",
+      auditLogs: true,
+    },
   });
 
   useEffect(() => {
     if (clinic) {
       const s = (clinic.settings as ClinicAppSettings) || {};
-      setSettings({
+      form.reset({
         twoFactorAuth: s.twoFactorAuth ?? false,
         sessionTimeout: String(s.sessionTimeout || "30"),
         auditLogs: s.auditLogs ?? true,
       });
     }
-  }, [clinic]);
+  }, [clinic, form]);
 
-  const handleSave = () => {
+  const handleSave = (values: SecuritySettingsFormValues) => {
     updateSettings(
       {
-        twoFactorAuth: settings.twoFactorAuth,
-        sessionTimeout: settings.sessionTimeout,
-        auditLogs: settings.auditLogs,
+        twoFactorAuth: values.twoFactorAuth,
+        sessionTimeout: values.sessionTimeout,
+        auditLogs: values.auditLogs,
       },
       {
         onSuccess: () => {
@@ -79,79 +106,116 @@ export function SecuritySettings() {
   }
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
         <CardDescription>Manage security and access controls</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label>Two-Factor Authentication</Label>
-            <p className="text-sm text-muted-foreground">
-              Add an extra layer of security
-            </p>
-          </div>
-          <Switch
-            checked={settings.twoFactorAuth}
-            onCheckedChange={(checked) =>
-              setSettings((s) => ({ ...s, twoFactorAuth: checked }))
-            }
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label>Session Timeout (minutes)</Label>
-            <p className="text-sm text-muted-foreground">
-              Auto logout after inactivity
-            </p>
-          </div>
-          <Input
-            type="number"
-            value={settings.sessionTimeout}
-            onChange={(e) =>
-              setSettings((s) => ({ ...s, sessionTimeout: e.target.value }))
-            }
-            className="w-20"
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Label>Enable Audit Logs</Label>
-              {!canAccess(Feature.AUDIT_LOGS) && (
-                <FeatureTierBadge
-                  feature={Feature.AUDIT_LOGS}
-                  className="h-5"
-                />
+      <CardContent>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSave)}
+            className="space-y-6"
+            noValidate
+          >
+            <FormField
+              control={form.control}
+              name="twoFactorAuth"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between space-y-0">
+                  <div className="space-y-1">
+                    <Label>Two-Factor Authentication</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Add an extra layer of security
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Track all user actions
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {!canAccess(Feature.AUDIT_LOGS) ? (
-              <Button asChild variant="outline" size="sm" className="h-8">
-                <Link href="/upgrade">
-                  <Lock className="mr-2 h-3 w-3" />
-                  Upgrade
-                </Link>
-              </Button>
-            ) : (
-              <Switch
-                checked={settings.auditLogs}
-                onCheckedChange={(checked) =>
-                  setSettings((s) => ({ ...s, auditLogs: checked }))
-                }
-              />
-            )}
-          </div>
-        </div>
-        <Button className="w-full" onClick={handleSave} disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Security Settings
-        </Button>
+            />
+
+            <FormField
+              control={form.control}
+              name="sessionTimeout"
+              render={({ field }) => (
+                <FormItem className="space-y-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <Label>Session Timeout (minutes)</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Auto logout after inactivity
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <FormControl>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min={5}
+                          max={240}
+                          step={5}
+                          {...field}
+                          className="w-24 text-right"
+                        />
+                      </FormControl>
+                      <FormMessage className="mt-1 text-right" />
+                    </div>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="auditLogs"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between space-y-0">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Label>Enable Audit Logs</Label>
+                      {!canAccess(Feature.AUDIT_LOGS) ? (
+                        <FeatureTierBadge
+                          feature={Feature.AUDIT_LOGS}
+                          className="h-5"
+                        />
+                      ) : null}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Track all user actions
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!canAccess(Feature.AUDIT_LOGS) ? (
+                      <Button asChild variant="outline" size="sm" className="h-8">
+                        <Link href="/upgrade">
+                          <Lock className="mr-2 h-3 w-3" />
+                          Upgrade
+                        </Link>
+                      </Button>
+                    ) : (
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    )}
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <Button className="w-full" type="submit" disabled={isSaving}>
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Save Security Settings
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

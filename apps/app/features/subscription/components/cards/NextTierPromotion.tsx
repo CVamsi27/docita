@@ -74,7 +74,7 @@ export function NextTierPromotion({
                   key={feature}
                   className="flex items-center gap-3 p-3 rounded-lg bg-background/50 dark:bg-muted/50 border border-border/50"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background/70 dark:bg-background/70">
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
                   <span className="text-sm font-medium">{details.name}</span>

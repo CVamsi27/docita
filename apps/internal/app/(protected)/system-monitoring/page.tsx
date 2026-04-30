@@ -452,7 +452,7 @@ export default function SystemMonitoringPage() {
                 {healthSummary?.map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-lg border p-4 flex items-start justify-between gap-4"
+                    className="rounded-[var(--radius)] border border-border/70 p-4 flex items-start justify-between gap-4"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -602,7 +602,7 @@ export default function SystemMonitoringPage() {
                   {slowestEndpoints.slice(0, 5).map((endpoint) => (
                     <div
                       key={`${endpoint.method}-${endpoint.path}`}
-                      className="rounded-lg border p-3"
+                      className="rounded-[var(--radius)] border border-border/70 p-3"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="font-medium">
@@ -665,7 +665,7 @@ export default function SystemMonitoringPage() {
                 {responseBuckets.map((bucket) => (
                   <div
                     key={bucket.range}
-                    className="rounded-lg border p-3 text-center"
+                    className="rounded-[var(--radius)] border border-border/70 p-3 text-center"
                   >
                     <p className="text-xs text-muted-foreground">
                       {bucket.range}
@@ -904,7 +904,7 @@ export default function SystemMonitoringPage() {
                         ([serviceName, checkData]) => (
                           <div
                             key={serviceName}
-                            className="flex items-center justify-between rounded-lg border p-3"
+                            className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
                           >
                             <div className="flex items-center gap-3">
                               {getStatusIcon(checkData.status as string)}

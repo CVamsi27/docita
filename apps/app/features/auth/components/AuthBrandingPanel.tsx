@@ -116,7 +116,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
           <DocitaIcon className="h-10 w-10" />
           <span className="text-2xl font-bold text-foreground">docita</span>
         </div>
-        <span className="rounded-full border bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+        <span className="badge-muted rounded-full border px-3 py-1 text-xs font-medium shadow-sm">
           Facility workspace
         </span>
       </div>
@@ -132,7 +132,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
           </p>
         </div>
 
-        <div className="mt-8 max-w-lg rounded-lg border bg-background/85 p-4 shadow-sm backdrop-blur">
+        <div className="mt-8 max-w-lg rounded-[var(--radius)] border border-border/70 bg-background/85 p-4 shadow-sm backdrop-blur">
           {isLogin ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-3">
@@ -144,7 +144,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                     Use your email and password to continue
                   </p>
                 </div>
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-medium">
                   Existing account
                 </span>
               </div>
@@ -174,7 +174,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                       : "Ready to begin"}
                   </p>
                 </div>
-                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                <span className="badge-info rounded-full border px-2.5 py-1 text-xs font-medium">
                   {activeStepIndex >= 0
                     ? `${Math.round((activeStepIndex / (setupSteps.length - 1)) * 100)}% there`
                     : "Start"}
@@ -239,7 +239,7 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
                           )}
                         </div>
                         {isActive && (
-                          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[var(--fs-2xs)] font-semibold text-primary shrink-0">
+                          <span className="badge-info rounded-full border px-2 py-0.5 text-[var(--fs-2xs)] font-semibold shrink-0">
                             Now
                           </span>
                         )}

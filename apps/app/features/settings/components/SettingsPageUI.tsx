@@ -131,7 +131,7 @@ export function SettingsPageUI({
         <div className="min-w-0 space-y-3">
           <BackButton fallback="/dashboard" label="Back to Dashboard" />
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <Settings className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
@@ -189,8 +189,8 @@ export function SettingsPageUI({
                         value={item.value}
                         className={cn(
                           "shrink-0 md:shrink md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
-                          "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                          "rounded-lg whitespace-nowrap",
+                          "data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm",
+                          "rounded-[var(--radius)] whitespace-nowrap",
                           isDangerItem
                             ? "hover:bg-destructive/5 hover:text-destructive transition-colors"
                             : "hover:bg-muted/50 transition-colors",

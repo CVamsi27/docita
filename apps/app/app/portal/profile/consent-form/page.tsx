@@ -3,7 +3,12 @@
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@workspace/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
 import { Printer } from "lucide-react";
 import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
 import { BackButton } from "@/components/common/navigation/back-button";
@@ -57,8 +62,8 @@ export default function ConsentFormPage() {
       <Card className="consent-print-root">
         <CardHeader className="space-y-3 border-b">
           <div className="text-center space-y-1">
-            <CardTitle className="text-xl">Patient Consent Form</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="ui-section-title">Patient Consent Form</CardTitle>
+            <p className="ui-page-subtitle">
               Health Data Storage and WhatsApp Notification Consent
             </p>
           </div>
@@ -76,8 +81,10 @@ export default function ConsentFormPage() {
               <span className="font-medium">Date:</span> {today}
             </p>
             <p>
-              <span className="font-medium">Consent Record Time:</span>{" "}
-              {formatDateTime(consentSettings?.whatsappConsentAt)}
+              <span className="font-medium">Consent Record Time:</span>
+              <span className="ml-1">
+                {formatDateTime(consentSettings?.whatsappConsentAt)}
+              </span>
             </p>
           </section>
 

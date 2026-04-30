@@ -331,7 +331,7 @@ export function SupportInboxPage() {
 
             <CardContent className="space-y-3 p-4 sm:p-5">
               {filteredThreads.length === 0 ? (
-                <div className="rounded-lg border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-[var(--radius)] border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                   {search.trim()
                     ? "No WhatsApp conversations matched your search"
                     : "No incoming WhatsApp messages yet"}
@@ -349,11 +349,11 @@ export function SupportInboxPage() {
                         setSelectedThreadPhoneNumber(thread.threadPhoneNumber)
                       }
                       className={[
-                        "w-full rounded-lg border p-4 text-left transition-colors",
-                        "hover:border-primary/40 hover:bg-muted/30",
+                        "w-full rounded-[var(--radius)] border border-border/70 p-4 text-left transition-colors",
+                        "hover:bg-muted/30",
                         isSelected
-                          ? "border-primary bg-primary/5 shadow-sm"
-                          : "border-border bg-background",
+                          ? "bg-muted/50 shadow-sm"
+                          : "bg-background",
                       ].join(" ")}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -464,7 +464,7 @@ export function SupportInboxPage() {
                     {!threadMessagesQuery.isLoading && !threadMessagesErrorMessage && (
                       <div className="space-y-3">
                         {threadMessages.length === 0 ? (
-                          <div className="rounded-lg border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                          <div className="rounded-[var(--radius)] border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                             This conversation has no stored messages yet.
                           </div>
                         ) : (
@@ -480,7 +480,7 @@ export function SupportInboxPage() {
                               >
                                 <div
                                   className={[
-                                    "max-w-[90%] rounded-lg border p-4 shadow-sm",
+                                    "max-w-[90%] rounded-[var(--radius)] border p-4 shadow-sm",
                                     isOutbound
                                       ? "border-primary/20 bg-primary/5"
                                       : "border-border bg-muted/30",

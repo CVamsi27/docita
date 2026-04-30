@@ -10,8 +10,10 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
+import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group";
 import { useAppearanceStore } from "@/lib/stores/appearance-store";
 import { toast } from "sonner";
+import { cn } from "@workspace/ui/lib/utils";
 
 export function AppearanceSettings() {
   const { theme, primaryColor, compactMode, setTheme, setPrimaryColor, setCompactMode } =
@@ -22,7 +24,7 @@ export function AppearanceSettings() {
   };
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>Appearance</CardTitle>
         <CardDescription>Customize the look and feel</CardDescription>
@@ -46,22 +48,40 @@ export function AppearanceSettings() {
         </div>
         <div className="space-y-3">
           <Label>Accent Color</Label>
-          <div className="flex gap-2">
+          <ToggleGroup
+            type="single"
+            value={primaryColor}
+            onValueChange={(value) => {
+              if (typeof value === "string") setPrimaryColor(value);
+            }}
+            className="flex gap-2"
+          >
             {[
               { value: "blue", className: "bg-info" },
               { value: "green", className: "bg-success" },
               { value: "purple", className: "bg-primary" },
               { value: "orange", className: "bg-warning" },
             ].map((color) => (
-              <button
+              <ToggleGroupItem
                 key={color.value}
-                type="button"
+                value={color.value}
                 aria-label={`Select ${color.value} accent color`}
-                className={`h-8 w-8 rounded-full ring-2 ring-offset-2 ring-transparent hover:ring-primary ${color.className} ${primaryColor === color.value ? "ring-primary" : ""}`}
-                onClick={() => setPrimaryColor(color.value)}
-              />
+                className={cn(
+                  "h-10 w-10 rounded-full border-border/70 bg-background/70 p-0 shadow-sm",
+                  "hover:bg-background/80 focus-visible:ring-[3px] focus-visible:ring-ring/30",
+                  primaryColor === color.value && "ring-2 ring-ring/40 ring-offset-2 ring-offset-background",
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "h-6 w-6 rounded-full",
+                    color.className,
+                  )}
+                />
+              </ToggleGroupItem>
             ))}
-          </div>
+          </ToggleGroup>
         </div>
         <div className="flex items-center justify-between">
           <div>

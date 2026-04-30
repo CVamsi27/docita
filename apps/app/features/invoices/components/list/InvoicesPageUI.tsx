@@ -109,9 +109,7 @@ export const InvoicesPageUI: FC = () => {
     >
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-[var(--fs-md)] font-medium">
-            Filter &amp; Sort
-          </CardTitle>
+          <CardTitle className="text-[var(--fs-md)] font-medium">Filter &amp; Sort</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row">
@@ -176,13 +174,13 @@ export const InvoicesPageUI: FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Invoice History</CardTitle>
+          <CardTitle className="ui-section-title">Invoice History</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <LoadingState message="Loading invoices..." />
           ) : (
-            <div className="overflow-x-auto rounded-md border">
+            <div className="ui-card-surface overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>

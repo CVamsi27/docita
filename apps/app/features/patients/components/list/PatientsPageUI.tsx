@@ -121,12 +121,12 @@ export function PatientsPageUI({
           </div>
 
           {error && (
-            <div className="mb-6 rounded-md border border-destructive/20 bg-destructive/10 p-4">
+            <div className="surface-danger mb-6 rounded-[var(--radius)] p-4">
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-md border border-border">
+          <div className="ui-card-surface overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-muted/50">
@@ -204,8 +204,8 @@ export function PatientsPageUI({
                         }}
                       >
                         <TableCell>
-                          <Avatar className="h-8 w-8 bg-primary/10 text-primary">
-                            <AvatarFallback className="bg-primary/10 text-primary">
+                          <Avatar className="h-8 w-8 border border-border/70 bg-background/70 text-foreground">
+                            <AvatarFallback className="border border-border/70 bg-background/70 text-foreground">
                               {patient.firstName.charAt(0)}
                               {patient.lastName.charAt(0)}
                             </AvatarFallback>

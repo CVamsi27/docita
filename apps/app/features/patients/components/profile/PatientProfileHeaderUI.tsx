@@ -32,11 +32,11 @@ export function PatientProfileHeaderUI({
   onEdit,
 }: PatientProfileHeaderUIProps) {
   return (
-    <div className="rounded-lg border bg-card p-4 shadow-sm sm:p-6 md:rounded-lg md:p-8">
+    <div className="ui-card-surface p-4 sm:p-6 md:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
         <div className="flex flex-col items-center md:items-start gap-4 md:gap-6 md:flex-row">
           <Avatar className="h-20 w-20 border-4 border-background md:h-32 md:w-32">
-            <AvatarFallback className="text-2xl md:text-4xl bg-primary/10 text-primary font-light">
+            <AvatarFallback className="border border-border/70 bg-background/70 text-2xl font-light text-foreground md:text-4xl">
               {initials}
             </AvatarFallback>
           </Avatar>

@@ -41,7 +41,8 @@ export function AuthEmailStepUI({
 
       <Button
         type="submit"
-        className="w-full h-11 text-base shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow"
+        size="pill"
+        className="w-full"
         disabled={loading}
       >
         {loading ? (

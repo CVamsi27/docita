@@ -15,6 +15,9 @@ import {
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { sanitizeUserFacingMessage } from "@workspace/types";
 import { appQueryKeys } from "@/lib/query-keys";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   searchGlobal,
   type SearchResult,
@@ -142,7 +145,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
           aria-hidden="true"
         />
-        <input
+        <Input
           ref={inputRef}
           type="text"
           value={query}
@@ -154,9 +157,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search patients, appointments... (⌘K)"
-          className="w-full pl-10 pr-10 py-2 border border-border rounded-lg
-                     focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
-                     bg-muted/40 hover:bg-background transition-colors"
+          className="h-10 pl-10 pr-10 bg-muted/40 hover:bg-background"
           aria-label="Global search"
           aria-expanded={isOpen}
           aria-controls="search-results"
@@ -166,16 +167,19 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           role="combobox"
         />
         {query && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => {
               setQuery("");
               inputRef.current?.focus();
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
+            className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2"
             aria-label="Clear search"
           >
             <X className="h-4 w-4 text-muted-foreground" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -184,8 +188,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
         <div
           id="search-results"
           role="listbox"
-          className="absolute top-full mt-2 w-full bg-background border border-border
-                     rounded-lg shadow-lg max-h-80 overflow-y-auto z-50"
+          className="absolute top-full z-50 mt-2 w-full max-h-80 overflow-y-auto ui-card-surface shadow-lg"
         >
           {isLoading ? (
             <div
@@ -210,15 +213,15 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                   "We could not run this search. Please try again.",
                 )}
               </p>
-              <button
-                type="button"
+              <Button
+                variant="link"
+                size="sm"
                 onClick={() => {
                   void refetch();
                 }}
-                className="text-xs underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
               >
                 Try again
-              </button>
+              </Button>
             </div>
           ) : results.length > 0 ? (
             <ul className="py-2">
@@ -231,11 +234,18 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => handleResultClick(result)}
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer
-                               ${index === selectedIndex ? "bg-info/10" : "hover:bg-muted/60"}`}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-3 px-4 py-3",
+                      index === selectedIndex
+                        ? "bg-muted/60"
+                        : "hover:bg-muted/60",
+                    )}
                   >
                     <div
-                      className={`p-2 rounded-full ${typeColors[result.type]}`}
+                      className={cn(
+                        "rounded-full border px-2 py-2",
+                        typeColors[result.type],
+                      )}
                     >
                       <Icon className="h-4 w-4" />
                     </div>

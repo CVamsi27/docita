@@ -514,7 +514,7 @@ export default function FeedbackPage() {
               {feedbacks.map((feedback) => (
                 <div
                   key={feedback.id}
-                  className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start justify-between p-4 border border-border/70 rounded-[var(--radius)] hover:bg-muted/50 transition-colors"
                 >
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
@@ -646,7 +646,7 @@ export default function FeedbackPage() {
                       ))}
                     </div>
                     {selectedFeedback.goodFeaturesReason && (
-                      <p className="text-sm surface-success p-3 rounded-lg">
+                      <p className="text-sm surface-success p-3 rounded-[var(--radius)]">
                         {selectedFeedback.goodFeaturesReason}
                       </p>
                     )}
@@ -668,7 +668,7 @@ export default function FeedbackPage() {
                       ))}
                     </div>
                     {selectedFeedback.badFeaturesReason && (
-                      <p className="text-sm surface-danger p-3 rounded-lg">
+                      <p className="text-sm surface-danger p-3 rounded-[var(--radius)]">
                         {selectedFeedback.badFeaturesReason}
                       </p>
                     )}
@@ -690,7 +690,7 @@ export default function FeedbackPage() {
                       ))}
                     </div>
                     {selectedFeedback.improvementReason && (
-                      <p className="text-sm surface-warning p-3 rounded-lg">
+                      <p className="text-sm surface-warning p-3 rounded-[var(--radius)]">
                         {selectedFeedback.improvementReason}
                       </p>
                     )}
@@ -701,7 +701,7 @@ export default function FeedbackPage() {
                 {selectedFeedback.featureRequests && (
                   <div className="space-y-2">
                     <Label>Feature Requests</Label>
-                    <p className="text-sm bg-muted p-3 rounded-lg">
+                    <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                       {selectedFeedback.featureRequests}
                     </p>
                   </div>
@@ -711,7 +711,7 @@ export default function FeedbackPage() {
                 {selectedFeedback.generalComments && (
                   <div className="space-y-2">
                     <Label>General Comments</Label>
-                    <p className="text-sm bg-muted p-3 rounded-lg">
+                    <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                       {selectedFeedback.generalComments}
                     </p>
                   </div>

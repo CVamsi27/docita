@@ -32,8 +32,10 @@ export function StatsSection({ stats }: StatsSectionProps) {
               <div className="flex justify-center mb-4 opacity-80">
                 <card.icon className="h-8 w-8" />
               </div>
-              <p className="text-4xl font-bold">{formatStatValue(stats[card.key])}</p>
-              <p className="text-primary-foreground font-medium">
+              <p className="text-3xl font-bold md:text-4xl">
+                {formatStatValue(stats[card.key])}
+              </p>
+              <p className="text-primary-foreground/80 font-medium text-sm md:text-base">
                 {card.label}
               </p>
             </article>

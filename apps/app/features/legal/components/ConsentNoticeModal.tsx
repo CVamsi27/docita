@@ -182,7 +182,7 @@ export function ConsentNoticeModal({
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-primary/10 p-2">
+            <div className="rounded-full border border-border/70 bg-background/70 p-2">
               <Shield className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1">
@@ -217,7 +217,7 @@ export function ConsentNoticeModal({
               {content.purposes.map((purpose) => (
                 <div
                   key={purpose.key}
-                  className="flex items-start space-x-3 p-3 border rounded-lg"
+                  className="flex items-start space-x-3 p-3 border border-border/70 rounded-[var(--radius)]"
                 >
                   <Checkbox
                     id={purpose.key}

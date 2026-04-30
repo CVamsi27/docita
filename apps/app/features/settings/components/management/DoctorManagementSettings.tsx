@@ -17,7 +17,7 @@ export function DoctorManagementSettings() {
   ];
 
   return (
-    <Card >
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Doctor Management</CardTitle>
