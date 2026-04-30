@@ -1,4 +1,7 @@
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import {
+  DEFAULT_CURRENCY,
+  formatCurrency as formatCurrencyWithContext,
+} from "@workspace/utils";
 export { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 export function formatDate(
@@ -29,16 +32,13 @@ export function formatCurrency(
 ): string {
   const resolved: FormatCurrencyOptions =
     typeof options === "string" ? { locale: options } : options;
-  const { locale = "en-IN", fractionDigits } = resolved;
+  const { locale, fractionDigits } = resolved;
 
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
+  return formatCurrencyWithContext(amount, {
     currency,
-    ...(fractionDigits !== undefined && {
-      minimumFractionDigits: fractionDigits,
-      maximumFractionDigits: fractionDigits,
-    }),
-  }).format(amount);
+    locale,
+    fractionDigits,
+  });
 }
 
 export function formatPhoneNumber(phone: string): string {

@@ -81,6 +81,11 @@ function getFeaturesForTier(id: string, fallback: string[]): string[] {
   return fallback;
 }
 
+const setupStartPrice = formatTierPrice(
+  4999,
+  FALLBACK_PRICING_CONFIG.currency.symbol,
+);
+
 export function PricingSection({ appUrl }: PricingSectionProps) {
   const orderedTiers = TIER_ORDER.map((id) =>
     FALLBACK_PRICING_CONFIG.tiers.find((tier) => tier.id === id),
@@ -101,7 +106,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           India-competitive pricing shown in{" "}
           {FALLBACK_PRICING_CONFIG.currency.symbol} (
           {FALLBACK_PRICING_CONFIG.currency.code}). Guided setup starts from{" "}
-          ₹4,999 and is scoped separately.
+          {setupStartPrice} and is scoped separately.
         </p>
 
         <div className="grid gap-6 lg:grid-cols-4">
@@ -137,7 +142,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                     {tier.description}
                   </CardDescription>
                   <div className="mt-4 flex items-end gap-2">
-                    <span className="text-4xl font-bold tracking-tight">
+                    <span className="text-4xl font-bold tracking-normal">
                       {formatTierPrice(
                         tier.pricing.monthly,
                         FALLBACK_PRICING_CONFIG.currency.symbol,

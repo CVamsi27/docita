@@ -23,6 +23,7 @@ export interface PatientPortalPrescription {
 export interface PatientPortalInvoice {
   id: string;
   amount: number;
+  currency?: string;
   dueAt: string;
   status: PatientInvoiceStatus;
 }
@@ -33,6 +34,7 @@ export interface PatientPortalSnapshot {
   outstandingInvoices: {
     id: string;
     amount: number;
+    currency?: string;
     dueAt: string;
     status: PatientInvoiceStatus;
   }[];

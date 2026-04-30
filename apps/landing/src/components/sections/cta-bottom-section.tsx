@@ -9,7 +9,7 @@ export function CtaBottomSection() {
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
       <div className="ui-page-shell relative z-10">
         <div className="mx-auto max-w-4xl text-center">
-        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
+        <h2 className="text-4xl font-bold tracking-normal sm:text-5xl">
           Ready to get one clinic workflow live?
         </h2>
         <p className="mt-6 text-xl opacity-90 max-w-2xl mx-auto">
@@ -30,7 +30,7 @@ export function CtaBottomSection() {
           </Button>
         </div>
         <p className="mt-4 text-sm opacity-90">
-          Setup from ₹4,999 • Software plans from ₹499/month
+          Setup from INR 4,999 • Software plans from INR 499/month
         </p>
         </div>
       </div>

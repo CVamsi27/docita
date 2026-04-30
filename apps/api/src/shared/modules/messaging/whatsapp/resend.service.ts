@@ -12,6 +12,7 @@ import {
   ApprovalStatus,
   PaymentSessionStatus,
 } from '@workspace/db';
+import { formatCurrency } from '@workspace/utils';
 
 @Injectable()
 export class WhatsappResendService {
@@ -42,7 +43,9 @@ export class WhatsappResendService {
         },
         doctor: { select: { name: true } },
         medications: true,
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
       },
     });
 
@@ -138,7 +141,9 @@ export class WhatsappResendService {
             phoneNumber: true,
           },
         },
-        appointment: { include: { clinic: { select: { name: true } } } },
+        appointment: {
+          include: { clinic: { select: { name: true, currency: true } } },
+        },
         paymentSessions: {
           where: { status: PaymentSessionStatus.CREATED },
           orderBy: { createdAt: 'desc' },
@@ -167,7 +172,9 @@ export class WhatsappResendService {
     const variables = {
       patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
       clinicName: invoice.appointment?.clinic?.name ?? '',
-      amount: `${invoice.total.toLocaleString('en-IN')}`,
+      amount: formatCurrency(invoice.total, {
+        currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
+      }),
       invoiceNumber: id.slice(-8).toUpperCase(),
       date: new Date(invoice.createdAt).toLocaleDateString('en-IN'),
       paymentLink: paymentLink || '',

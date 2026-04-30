@@ -153,6 +153,7 @@ export function usePatientPortalData(patientId?: string | null) {
       invoiceMap.set(item.invoice.id, {
         id: item.invoice.id,
         amount: item.invoice.total || 0,
+        currency: item.invoice.currency,
         dueAt: item.invoice.createdAt || item.startTime,
         status: mappedStatus,
       });

@@ -2,7 +2,7 @@
 
 import { useCurrentUsage } from "@/hooks/api/use-pricing";
 import { PRICING_CURRENCY_SYMBOLS } from "@workspace/types";
-import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { Loader2, AlertTriangle, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
 import { Progress } from "@workspace/ui/components/progress";
@@ -26,7 +26,7 @@ function UsageMeter({
   overage,
   unit,
   overageRate,
-  currencySymbol = "₹",
+  currencySymbol = "",
 }: UsageMeterProps) {
   const pct = included > 0 ? Math.min(100, (current / included) * 100) : 0;
   const isOver = overage > 0;
@@ -69,11 +69,11 @@ function UsageMeter({
 
 export function UsageDashboard() {
   const { usage, isLoading } = useCurrentUsage();
-  const { currency } = useLocaleCurrency();
+  const { currency } = useClinicCurrency();
   const symbol =
     PRICING_CURRENCY_SYMBOLS[
       currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-    ] ?? "₹";
+    ] ?? currency;
 
   if (isLoading) {
     return (

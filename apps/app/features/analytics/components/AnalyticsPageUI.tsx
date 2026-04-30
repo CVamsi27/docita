@@ -1,4 +1,3 @@
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import React, { FC } from "react";
 import dynamic from "next/dynamic";
 import {
@@ -24,6 +23,7 @@ import type {
 } from "@/features/analytics/hooks/use-analytics-logic";
 import { OverviewCard } from "./charts/OverviewCard";
 import { AnalyticsUpgradeState } from "./charts/AnalyticsUpgradeState";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 const TrendsBarChart = dynamic(
   () => import("./charts/TrendsCharts").then((module) => module.TrendsBarChart),
@@ -80,16 +80,14 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   activeTab,
   onTabChange,
 }) => {
+  const clinicCurrency = useClinicCurrency();
+
   if (isLoading) {
     return <LoadingState message="Loading analytics..." className="min-h-[60vh]" />;
   }
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    clinicCurrency.formatCurrency(amount, { fractionDigits: 0 });
 
   return (
     <FeatureGate

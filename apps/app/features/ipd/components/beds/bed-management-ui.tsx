@@ -1,4 +1,3 @@
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { Bed, CheckCircle2, Users } from "lucide-react";
 import {
   Card,
@@ -14,6 +13,7 @@ import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 import type { AdmitPatientRequest, Admission } from "@workspace/types";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 interface BedInfo {
   id: string;
@@ -65,6 +65,8 @@ export function BedManagementUI({
   searchQuery,
   setSearchQuery,
 }: BedManagementUIProps) {
+  const { formatCurrency } = useClinicCurrency();
+
   if (isLoading) {
     return <LoadingState message="Loading bed status..." className="min-h-[40vh]" />;
   }
@@ -170,11 +172,9 @@ export function BedManagementUI({
                         Room {room.roomNumber}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                          {new Intl.NumberFormat("en-IN", {
-                            style: "currency",
-                            currency: DEFAULT_CURRENCY,
-                            maximumFractionDigits: 0,
-                          }).format(room.charges)}
+                          {formatCurrency(room.charges, {
+                            fractionDigits: 0,
+                          })}
                           /day
                       </span>
                     </div>

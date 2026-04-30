@@ -28,6 +28,7 @@ import {
 } from "@/features/onboarding/components/types";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Button } from "@workspace/ui/components/button";
+import { getCurrencySymbol } from "@workspace/utils";
 import {
   Dialog,
   DialogContent,
@@ -449,7 +450,7 @@ export function ClinicRegistrationForm({
         {stepError ? `Error: ${stepError}` : ""}
       </div>
 
-      <div className="rounded-xl border bg-card p-4 md:p-5">
+      <div className="rounded-lg border bg-card p-4 md:p-5">
         <div className="flex items-center justify-between text-sm mb-3">
           <p className="font-medium text-foreground">
             Step {step} of {TOTAL_STEPS}: {currentStep.label}
@@ -510,13 +511,7 @@ export function ClinicRegistrationForm({
                 : 0
           }
           billingCycle={pendingPaymentPlan.billingCycle}
-          currencySymbol={
-            currency === "USD" ? "$"
-            : currency === "EUR" ? "€"
-            : currency === "GBP" ? "£"
-            : currency === "AUD" ? "A$"
-            : "₹"
-          }
+          currencySymbol={getCurrencySymbol(currency)}
           currencyCode={currency}
           clinicEmail={user?.email}
           clinicPhone={formData.clinicDetails.phone}
@@ -556,7 +551,7 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      <div className="rounded-xl border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="rounded-lg border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <p className="font-semibold">Need help with setup?</p>
           <p className="text-sm text-muted-foreground">

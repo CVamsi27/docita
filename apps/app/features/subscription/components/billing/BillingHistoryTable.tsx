@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/table";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
 import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
 
@@ -24,10 +24,9 @@ type BillingHistoryItemWithActions = BillingHistoryItem & {
 };
 
 function formatMoney(amountCents: number, currency: string | undefined) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
+  return formatCurrency(amountCents / 100, {
     currency: currency || DEFAULT_CURRENCY,
-  }).format(amountCents / 100);
+  });
 }
 
 export function BillingHistoryTable({
@@ -133,14 +132,16 @@ export function BillingHistoryTable({
       </div>
 
       <div className="rounded-lg border">
-        <Table>
+        <Table className="min-w-0 table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
+              <TableHead className="w-[96px] sm:w-[120px]">Date</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Receipt</TableHead>
+              <TableHead className="w-[110px] sm:w-[140px]">Amount</TableHead>
+              <TableHead className="w-[90px] sm:w-[110px]">Status</TableHead>
+              <TableHead className="w-[88px] sm:w-[120px] text-right">
+                Receipt
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -160,7 +161,7 @@ export function BillingHistoryTable({
                   <TableCell>
                     {new Date(invoice.createdAt).toLocaleDateString("en-IN")}
                   </TableCell>
-                  <TableCell className="max-w-[220px] truncate text-muted-foreground">
+                  <TableCell className="min-w-0 break-words text-muted-foreground">
                     {invoice.description || "Subscription Payment"}
                   </TableCell>
                   <TableCell className="font-medium">

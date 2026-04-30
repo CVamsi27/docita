@@ -62,9 +62,9 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
               14-day free trial is back.
             </div>
             <div className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
-              <span className="sm:hidden">Essential at ₹0, no card.</span>
+              <span className="sm:hidden">Essential at INR 0, no card.</span>
               <span className="hidden sm:inline">
-                Start Essential at ₹0 today, no credit card required.
+                Start Essential at INR 0 today, no credit card required.
               </span>
             </div>
           </div>

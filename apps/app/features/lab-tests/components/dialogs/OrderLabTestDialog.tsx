@@ -29,11 +29,11 @@ import {
 } from "@workspace/ui/components/command";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 
 import { LabTest, Patient } from "@workspace/types";
 import { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 interface OrderLabTestDialogProps {
   open: boolean;
@@ -78,6 +78,8 @@ export function OrderLabTestDialog({
   selectedPatient,
   selectedTest,
 }: OrderLabTestDialogProps) {
+  const { formatCurrency } = useClinicCurrency();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -269,11 +271,9 @@ export function OrderLabTestDialog({
                                       <span className="text-xs text-muted-foreground">
                                         {test.category}
                                         {test.price &&
-                                          ` • ${new Intl.NumberFormat("en-IN", {
-                                            style: "currency",
-                                            currency: DEFAULT_CURRENCY,
-                                            maximumFractionDigits: 0,
-                                          }).format(test.price)}`}
+                                          ` • ${formatCurrency(test.price, {
+                                            fractionDigits: 0,
+                                          })}`}
                                       </span>
                                     </div>
                                   </div>

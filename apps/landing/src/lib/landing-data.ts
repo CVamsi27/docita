@@ -199,7 +199,7 @@ export async function fetchPricingConfig(
 }
 
 export function formatStatValue(value: number): string {
-  return value.toLocaleString("en-IN");
+  return value.toLocaleString();
 }
 
 export function formatTierPrice(
@@ -210,5 +210,5 @@ export function formatTierPrice(
     return "Custom";
   }
 
-  return `${symbol}${value.toLocaleString("en-IN")}`;
+  return `${symbol}${value.toLocaleString()}`;
 }

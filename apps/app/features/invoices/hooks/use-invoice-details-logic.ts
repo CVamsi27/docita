@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { InvoiceItem } from "@workspace/types";
 import { formatCurrency } from "@/lib/formatters";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { invoicesApi } from "@/features/invoices/api/invoices.api";
 
@@ -18,6 +19,7 @@ export const useInvoiceDetailsLogic = (
 ) => {
   const router = useRouter();
   const { clinic } = useClinic();
+  const clinicCurrency = useClinicCurrency();
   const printRef = useRef<HTMLDivElement>(null);
   const hasAutoPrintedRef = useRef(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -85,7 +87,7 @@ export const useInvoiceDetailsLogic = (
     const clinicName = clinic?.name?.trim() || "our facility";
     const total =
       invoice.grandTotal || invoice.totalAmount || invoice.total || 0;
-    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.invoiceNumber ?? invoice.id} for ${formatCurrency(total)}. Thank you for visiting ${clinicName}.`;
+    const message = `Hello ${invoice.patient.firstName}, here is your invoice ${invoice.invoiceNumber ?? invoice.id} for ${clinicCurrency.formatCurrency(total, { currency: invoice.currency })}. Thank you for visiting ${clinicName}.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${invoice.patient.phoneNumber}?text=${encodedMessage}`;
 
@@ -109,7 +111,7 @@ export const useInvoiceDetailsLogic = (
   };
 
   const numberToWords = (amount: number) => {
-    return `${amount} Rupees Only`;
+    return `${amount} ${invoice?.currency ?? clinicCurrency.currency} Only`;
   };
 
   return {
@@ -122,7 +124,10 @@ export const useInvoiceDetailsLogic = (
     isDownloading,
     handleShareWhatsApp,
     calculateSubtotal,
-    formatCurrency,
+    formatCurrency: (amount: number) =>
+      formatCurrency(amount, invoice?.currency ?? clinicCurrency.currency, {
+        locale: clinicCurrency.locale,
+      }),
     formatDate,
     numberToWords,
     router,

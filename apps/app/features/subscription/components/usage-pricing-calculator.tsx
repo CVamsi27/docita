@@ -95,7 +95,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
   const router = useRouter();
   const { currency: detectedCurrency } = useLocaleCurrency();
   const resolvedCurrency = currency ?? detectedCurrency;
-  const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? "₹";
+  const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? resolvedCurrency;
   const proBill = calculateBill(usage, "ESSENTIAL", resolvedCurrency);
   const clinicBill = calculateBill(usage, "PROFESSIONAL", resolvedCurrency);
   const showClinicSuggestion = exceedsProLimits(usage, resolvedCurrency);
@@ -104,7 +104,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
     setUsage((prev) => ({ ...prev, [key]: value }));
 
   const renderBreakdown = (bill: BillResult, tierLabel: string, highlight: boolean) => (
-    <div className={`flex flex-col gap-3 rounded-xl p-4 border ${highlight ? "bg-primary/5 border-primary/30" : "bg-muted/30"}`}>
+    <div className={`flex flex-col gap-3 rounded-lg p-4 border ${highlight ? "bg-primary/5 border-primary/30" : "bg-muted/30"}`}>
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{tierLabel}</span>
         {highlight && <Badge variant="default" className="text-xs">Recommended</Badge>}

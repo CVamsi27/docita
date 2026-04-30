@@ -11,7 +11,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { formatCurrency } from "@workspace/utils";
 import type { PatientPortalInvoice } from "@/features/patient-portal/types/patient-portal-types";
 import { getInvoiceStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
 
@@ -30,7 +30,7 @@ export function PatientPortalBillingUI({
     <div className="space-y-4">
       {showHeader ? (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">Billing</h1>
           <p className="text-sm text-muted-foreground">
             Review invoice status and pending dues.
           </p>
@@ -53,10 +53,9 @@ export function PatientPortalBillingUI({
                 <div key={invoice.id} className="rounded-md border p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <div className="font-medium">
-                      {new Intl.NumberFormat("en-IN", {
-                        style: "currency",
-                        currency: DEFAULT_CURRENCY,
-                      }).format(invoice.amount)}
+                      {formatCurrency(invoice.amount, {
+                        currency: invoice.currency,
+                      })}
                     </div>
                     <Badge variant="secondary">
                       {getInvoiceStatusLabel(invoice.status)}

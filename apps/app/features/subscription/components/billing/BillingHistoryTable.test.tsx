@@ -73,4 +73,24 @@ describe("BillingHistoryTable", () => {
       screen.queryByRole("button", { name: /pay now/i }),
     ).not.toBeInTheDocument();
   });
+
+  it("formats each row using the stored billing currency", () => {
+    render(
+      <BillingHistoryTable
+        invoices={[
+          {
+            id: "usd-1",
+            amountCents: 2500,
+            amount: 25,
+            currency: "USD",
+            status: "paid",
+            description: "ESSENTIAL MONTHLY subscription",
+            createdAt: "2026-04-28T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("$25.00")).toBeInTheDocument();
+  });
 });

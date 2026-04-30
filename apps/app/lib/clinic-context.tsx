@@ -261,3 +261,7 @@ export function useClinic() {
   }
   return context;
 }
+
+export function useOptionalClinic() {
+  return useContext(ClinicContext);
+}

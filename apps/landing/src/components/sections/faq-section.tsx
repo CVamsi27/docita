@@ -25,7 +25,7 @@ const faqs = [
   {
     question: "What does guided setup include?",
     answer:
-      "Guided setup can include Excel import, patient list cleanup, prescription format configuration, clinic letterhead, doctor signature, WhatsApp message templates, billing basics, and staff walkthroughs. Starter setup begins from ₹4,999 after reviewing the current workflow.",
+      "Guided setup can include Excel import, patient list cleanup, prescription format configuration, clinic letterhead, doctor signature, WhatsApp message templates, billing basics, and staff walkthroughs. Starter setup begins from INR 4,999 after reviewing the current workflow.",
   },
   {
     question: "What happens if I exceed my plan limits?",

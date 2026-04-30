@@ -14,7 +14,7 @@ import { Button } from "@workspace/ui/components/button";
 import { CheckCircle2, ExternalLink, X } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 interface PaymentSuccessModalProps {
   open: boolean;
@@ -32,6 +32,7 @@ export function PaymentSuccessModal({
   transactionId,
 }: PaymentSuccessModalProps) {
   const router = useRouter();
+  const { formatCurrency } = useClinicCurrency();
 
   useEffect(() => {
     if (open) {
@@ -73,7 +74,7 @@ export function PaymentSuccessModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-md bg-linear-to-br from-background via-background to-success/10 border-success/20"
+        className="sm:max-w-md border-success/20"
       >
         <DialogClose asChild>
           <Button
@@ -81,7 +82,7 @@ export function PaymentSuccessModal({
             variant="ghost"
             size="icon"
             aria-label="Close payment success"
-            className="absolute right-3 top-3 z-20 h-9 w-9 rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+            className="absolute right-3 top-3 z-20 h-9 w-9 bg-background/90 text-foreground shadow-sm ring-1 ring-border hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -90,7 +91,7 @@ export function PaymentSuccessModal({
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/15 ring-8 ring-success/10">
             <CheckCircle2 className="h-8 w-8 text-success" />
           </div>
-          <DialogTitle className="text-center text-2xl font-bold bg-linear-to-r from-success to-success/80 bg-clip-text text-transparent">
+          <DialogTitle className="text-center text-2xl font-bold text-foreground">
             Payment Successful!
           </DialogTitle>
           <DialogDescription className="text-center text-base">
@@ -104,11 +105,7 @@ export function PaymentSuccessModal({
             <span className="text-muted-foreground">Amount Paid</span>
             <span className="font-semibold text-lg">
               {amount
-                ? new Intl.NumberFormat("en-IN", {
-                    style: "currency",
-                    currency: DEFAULT_CURRENCY,
-                    maximumFractionDigits: 0,
-                  }).format(amount)
+                ? formatCurrency(amount, { fractionDigits: 0 })
                 : "Paid"}
             </span>
           </div>
@@ -130,7 +127,7 @@ export function PaymentSuccessModal({
 
         <DialogFooter className="flex-col gap-2 sm:flex-col mt-4">
           <Button
-            className="w-full bg-success text-success-foreground hover:bg-success/90 shadow-lg shadow-success/20"
+            className="w-full bg-success text-success-foreground hover:bg-success/90"
             onClick={() => {
               onOpenChange(false);
               router.push("/dashboard");

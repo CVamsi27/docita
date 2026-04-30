@@ -51,6 +51,7 @@ export default function PortalBillingPage() {
     return {
       id: typeof row.id === "string" ? row.id : `invoice-${index}`,
       amount,
+      currency: typeof row.currency === "string" ? row.currency : undefined,
       dueAt,
       status: mapInvoiceStatus(row.status),
     };

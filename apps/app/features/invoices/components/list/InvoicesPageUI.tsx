@@ -48,7 +48,7 @@ import Link from "next/link";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { Invoice, Patient } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 type InvoiceWithPatient = Invoice & {
   patient?: Pick<Patient, "firstName" | "lastName">;
@@ -56,6 +56,7 @@ type InvoiceWithPatient = Invoice & {
 };
 
 export const InvoicesPageUI: FC = () => {
+  const clinicCurrency = useClinicCurrency();
   const {
     filteredInvoices,
     loading,
@@ -78,10 +79,7 @@ export const InvoicesPageUI: FC = () => {
   };
 
   const formatCurrency = (amount: number | undefined) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
-    }).format(amount || 0);
+    return clinicCurrency.formatCurrency(amount || 0);
   };
 
   return (

@@ -17,8 +17,8 @@ import {
 } from "@workspace/ui/components/select";
 import { Plus, X } from "lucide-react";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };
 
@@ -35,6 +35,7 @@ export function EditInvoiceDialog({
   onOpenChange,
   onInvoiceUpdated,
 }: EditInvoiceDialogProps) {
+  const { formatCurrency } = useClinicCurrency();
   const lastInvoiceIdRef = useRef<string | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>(() => invoice?.items || []);
   const [status, setStatus] = useState<Invoice["status"]>(
@@ -221,10 +222,7 @@ export function EditInvoiceDialog({
         <div className="flex items-center justify-end gap-4 p-4 bg-muted/30 rounded-lg">
           <span className="text-lg font-medium">Total:</span>
           <span className="text-2xl font-bold text-primary">
-            {new Intl.NumberFormat("en-IN", {
-              style: "currency",
-              currency: DEFAULT_CURRENCY,
-            }).format(calculateTotal())}
+            {formatCurrency(calculateTotal(), { currency: invoice?.currency })}
           </span>
         </div>
       </div>

@@ -156,7 +156,7 @@ Billing preference: ${billingCycle}
 Please contact me with deployment and commercial details.`;
 
   return (
-    <Card className="border-primary/20 bg-linear-to-br from-background via-background to-primary/5">
+    <Card className="border-primary/20 bg-primary/5">
       <CardHeader>
         <CardTitle>Step 2: Choose Your Plan</CardTitle>
         <CardDescription>
@@ -206,7 +206,7 @@ Please contact me with deployment and commercial details.`;
               const currencySymbol =
                 PRICING_CURRENCY_SYMBOLS[
                   resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS
-                ] ?? "₹";
+                ] ?? resolvedCurrency;
               const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[
                 currencyKey
               ] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
@@ -244,7 +244,7 @@ Please contact me with deployment and commercial details.`;
                     currencySymbol={currencySymbol}
                     overageHint={
                       tierName === "ESSENTIAL"
-                        ? "₹0 for first 14 days, then regular billing"
+                        ? `${currencySymbol}0 for first 14 days, then regular billing`
                         : overageHint
                     }
                     buttonLabel={

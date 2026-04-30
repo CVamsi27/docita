@@ -47,8 +47,8 @@ const setupDeliverables = [
 ];
 
 const setupOptions = [
-  "Starter setup from ₹4,999 for one doctor and one core workflow",
-  "Clinic setup from ₹9,999 for import, templates, billing, and WhatsApp",
+  "Starter setup from INR 4,999 for one doctor and one core workflow",
+  "Clinic setup from INR 9,999 for import, templates, billing, and WhatsApp",
   "Custom rollout for multi-doctor clinics, branches, or legacy data cleanup",
 ];
 
@@ -98,7 +98,7 @@ export function ClinicSetupSection() {
             {setupDeliverables.map((item) => (
               <Card key={item.title} className="landing-card bg-muted/30">
                 <CardHeader>
-                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
                     <item.icon className="h-5 w-5 text-primary" />
                   </div>
                   <CardTitle className="text-lg">{item.title}</CardTitle>

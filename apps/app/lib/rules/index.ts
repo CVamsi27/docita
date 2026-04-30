@@ -1,6 +1,5 @@
-
-
 import { isAfter, isBefore, isToday, parseISO } from "date-fns";
+import { formatCurrency } from "@workspace/utils";
 
 export const dateRules = {
   isValidFutureDate: (date: Date | string): boolean => {
@@ -119,10 +118,9 @@ export const medicalRules = {
 
 export const formattingRules = {
   formatCurrency: (amount: number, currency: string = "INR"): string => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
+    return formatCurrency(amount, {
       currency,
-    }).format(amount);
+    });
   },
 
   formatPercentage: (value: number, decimals: number = 1): string => {

@@ -1,4 +1,4 @@
-
+import { formatCurrency as formatCurrencyWithContext } from "@workspace/utils";
 
 export const formatPhoneNumber = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, "");
@@ -45,10 +45,8 @@ export const formatCurrency = (
   amount: number,
   currency: string = "INR",
 ): string => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
+  return formatCurrencyWithContext(amount, {
     currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(amount);
+    fractionDigits: Number.isInteger(amount) ? 0 : 2,
+  });
 };
