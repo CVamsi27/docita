@@ -3573,6 +3573,7 @@ model QueueJob {
   updatedAt    DateTime       @default(now()) @updatedAt
 
   @@index([name, status])
+  @@index([name, status, priority(sort: Desc), createdAt], map: "QueueJob_name_status_priority_createdAt_idx")
   @@index([status, delayedUntil])
   @@index([createdAt])
 }

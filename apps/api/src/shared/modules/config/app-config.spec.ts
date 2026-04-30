@@ -37,6 +37,7 @@ describe('app-config validateEnv', () => {
   it('allows worker entrypoints to validate without JWT_SECRET', async () => {
     process.env = createBaseEnv({
       WORKER_ENTRYPOINT: 'worker',
+      QUEUE_BACKEND: 'postgres',
       JWT_SECRET: undefined,
     });
 
@@ -73,6 +74,32 @@ describe('app-config validateEnv', () => {
       'Please fix the following environment variables:\n',
     );
     expect(stderrSpy).toHaveBeenCalledWith('  - JWT_SECRET: Required\n\n');
+    expect(exitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it('exits when worker uses non-postgres queue in production', async () => {
+    process.env = createBaseEnv({
+      WORKER_ENTRYPOINT: 'worker',
+      JWT_SECRET: undefined,
+      QUEUE_BACKEND: 'memory',
+      NODE_ENV: 'production',
+    });
+
+    const stderrSpy = jest
+      .spyOn(process.stderr, 'write')
+      .mockImplementation(() => true);
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(((
+      code?: number,
+    ) => {
+      throw new Error(`process.exit:${code ?? 0}`);
+    }) as never);
+
+    const { validateEnv } = await import('./app-config');
+
+    expect(() => validateEnv()).toThrow('process.exit:1');
+    expect(stderrSpy).toHaveBeenCalledWith(
+      '  - QUEUE_BACKEND: Must be postgres for worker in staging/production\n\n',
+    );
     expect(exitSpy).toHaveBeenCalledWith(1);
   });
 });
