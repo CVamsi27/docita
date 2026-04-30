@@ -6,6 +6,9 @@ import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { usePatient } from "@/hooks/api/use-patients";
 import { UnifiedTimelineContainer } from "@/features/patients/components/timeline/UnifiedTimelineContainer";
 import { BackButton } from "@/components/common/navigation/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
+import { LoadingState } from "@workspace/ui/components/empty-state";
 
 interface PatientHistoryPageProps {
   params: Promise<{ id: string }>;
@@ -22,33 +25,27 @@ export default function PatientHistoryPage({
 
   if (isLoading) {
     return (
-      <div className="flex-1 space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-64 bg-muted rounded" />
-          <div className="h-64 bg-muted rounded" />
-        </div>
-      </div>
+      <AppPageScaffold>
+        <LoadingState message="Loading medical history..." className="py-16" />
+      </AppPageScaffold>
     );
   }
 
   return (
     <FeatureGate feature={Feature.BASIC_PATIENT_MANAGEMENT} showLockedCard>
-      <div className="flex-1 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <BackButton
-                fallback={`/patients/${patientId}`}
-                label="Back to Patient"
-              />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-normal">Medical History</h1>
-            <p className="text-muted-foreground">{patientName}</p>
-          </div>
-        </div>
-
+      <AppPageScaffold
+        header={
+          <PageHeader
+            breadcrumbs={
+              <BackButton fallback={`/patients/${patientId}`} label="Back to Patient" />
+            }
+            title="Medical History"
+            description={patientName || undefined}
+          />
+        }
+      >
         <UnifiedTimelineContainer patientId={patientId} />
-      </div>
+      </AppPageScaffold>
     </FeatureGate>
   );
 }

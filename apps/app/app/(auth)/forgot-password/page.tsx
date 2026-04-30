@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
     <Suspense
       fallback={
         <PreDashboardShell currentStep="forgot-password" showProgress={false}>
-          <div className="ui-card-surface p-6 sm:p-8 shadow-xl">
+          <div className="ui-card-surface p-6 sm:p-8">
             <div className="text-sm text-muted-foreground">Loading...</div>
           </div>
         </PreDashboardShell>

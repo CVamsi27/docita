@@ -112,8 +112,8 @@ export default function CodingQueuePage() {
               <div className="rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">
                   {pendingCount}
-                </span>{" "}
-                pending review
+                </span>
+                <span className="ml-1">pending review</span>
               </div>
             </CardContent>
           </Card>

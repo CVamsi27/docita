@@ -67,9 +67,9 @@ function ResetPasswordInner() {
   if (!token) {
     return (
       <PreDashboardShell currentStep="reset-password" showProgress={false}>
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold tracking-normal">Reset Link Expired</h1>
+        <div className="ui-card-surface space-y-6 p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="text-center ui-copy-stack">
+            <h1 className="ui-page-title">Reset Link Expired</h1>
             <p className="text-sm text-destructive">
               This reset link is invalid or has expired. Please request a new one.
             </p>
@@ -84,14 +84,14 @@ function ResetPasswordInner() {
 
   return (
     <PreDashboardShell currentStep="reset-password" showProgress={false}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">Set New Password</h1>
-        <p className="text-muted-foreground text-sm">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
+        <h1 className="ui-page-title">Set New Password</h1>
+        <p className="ui-page-subtitle">
           Choose a new password below
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {submitted ? (
           <div className="space-y-6 text-center">
             <div className="flex justify-center">
@@ -99,9 +99,9 @@ function ResetPasswordInner() {
                 <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold">Password reset successful</h2>
-              <p className="text-sm text-muted-foreground">
+            <div className="ui-copy-stack">
+              <h2 className="ui-section-title">Password reset successful</h2>
+              <p className="ui-helper-text">
                 You can now sign in with your new password.
               </p>
             </div>
@@ -208,10 +208,10 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <PreDashboardShell currentStep="reset-password">
-          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl space-y-6">
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold tracking-normal">Reset Password</h1>
-              <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="ui-card-surface space-y-6 p-6 sm:p-8">
+            <div className="text-center ui-copy-stack">
+              <h1 className="ui-page-title">Reset Password</h1>
+              <p className="ui-page-subtitle">Loading…</p>
             </div>
           </div>
         </PreDashboardShell>

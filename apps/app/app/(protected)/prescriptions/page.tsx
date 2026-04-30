@@ -120,8 +120,7 @@ export default function PrescriptionsPage() {
 
         <div className="flex items-center justify-between">
           <p className="text-[var(--fs-xs)] text-muted-foreground">
-            Showing {filteredAndSortedPrescriptions.length} of{" "}
-            {prescriptions.length} prescriptions
+            Showing {filteredAndSortedPrescriptions.length} of {prescriptions.length} prescriptions
           </p>
         </div>
       </AppPageScaffold>

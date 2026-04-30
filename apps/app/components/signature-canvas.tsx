@@ -110,7 +110,7 @@ export function SignaturePad({ onSave, onCancel, className }: SignatureCanvasPro
             </label>
             <div
               ref={containerRef}
-              className="border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden bg-white"
+              className="border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden bg-background"
               style={{ touchAction: 'none' }}
             >
               <SignatureCanvas
@@ -193,7 +193,7 @@ export function SignaturePreview({ dataUrl, onEdit, onRemove }: SignaturePreview
       <div className="space-y-4">
         <div>
           <label className="text-sm font-medium mb-2 block">Signature Preview</label>
-          <div className="border rounded-lg p-4 bg-white">
+          <div className="border rounded-lg p-4 bg-background">
             <Image
               src={dataUrl}
               alt="Signature preview"

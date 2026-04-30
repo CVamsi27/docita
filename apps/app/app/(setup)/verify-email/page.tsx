@@ -100,13 +100,11 @@ function VerifyEmailInner() {
 
   return (
     <PreDashboardShell currentStep="verify-email">
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {state === "loading" && (
           <div className="flex flex-col items-center gap-4 py-4">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="text-muted-foreground text-sm">
-              Verifying your email...
-            </p>
+            <p className="ui-page-subtitle">Verifying your email...</p>
           </div>
         )}
 
@@ -124,9 +122,9 @@ function VerifyEmailInner() {
                 <XCircle className="h-8 w-8 text-destructive" />
               </div>
             </div>
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold tracking-normal">Verification failed</h1>
-              <p className="text-muted-foreground text-sm">
+            <div className="text-center ui-copy-stack">
+              <h1 className="ui-page-title">Verification failed</h1>
+              <p className="ui-page-subtitle">
                 {state === "missing"
                   ? "No verification link was found. Please use the link from your email."
                   : errorMessage}
@@ -162,10 +160,10 @@ export default function VerifyEmailPage() {
     <Suspense
       fallback={
         <PreDashboardShell currentStep="verify-email">
-          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6">
+          <div className="ui-card-surface space-y-6 p-8">
             <div className="flex flex-col items-center gap-4 py-4">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="text-muted-foreground text-sm">Loading…</p>
+              <p className="ui-page-subtitle">Loading…</p>
             </div>
           </div>
         </PreDashboardShell>

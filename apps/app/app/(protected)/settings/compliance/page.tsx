@@ -238,8 +238,10 @@ export default function ComplianceSettingsPage() {
         <Alert>
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
-            SLA accepted and signed on{" "}
-            {format(new Date(compliance.slaSignatureAcceptedAt), "PPP")}
+            SLA accepted and signed on
+            <span className="ml-1">
+              {format(new Date(compliance.slaSignatureAcceptedAt), "PPP")}
+            </span>
           </AlertDescription>
         </Alert>
       )}
@@ -325,10 +327,12 @@ export default function ComplianceSettingsPage() {
                       {toDisplayText(request.requestType)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Due{" "}
-                      {request.dueAt
-                        ? format(new Date(request.dueAt), "PPP")
-                        : "not set"}
+                      Due
+                      <span className="ml-1">
+                        {request.dueAt
+                          ? format(new Date(request.dueAt), "PPP")
+                          : "not set"}
+                      </span>
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">

@@ -97,12 +97,12 @@ export default function PortalDashboardPage() {
             </p>
             <div className="grid gap-2 text-sm md:grid-cols-2">
               <p>
-                <span className="font-medium">WhatsApp Consent:</span>{" "}
-                {whatsappConsentStatus}
+                <span className="font-medium">WhatsApp Consent:</span>
+                <span className="ml-1">{whatsappConsentStatus}</span>
               </p>
               <p>
-                <span className="font-medium">Data Storage Consent:</span>{" "}
-                Granted
+                <span className="font-medium">Data Storage Consent:</span>
+                <span className="ml-1">Granted</span>
               </p>
             </div>
             <div className="flex gap-2">

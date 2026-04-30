@@ -39,6 +39,12 @@ import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
 import { NotificationPanel } from "./notification-panel";
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import {
   navItems,
   SPECIALTY_ICONS,
   SPECIALTY_URLS,
@@ -291,58 +297,80 @@ function SidebarContent({
       {/* Footer */}
       <div className="shrink-0 border-t border-border/70">
         {/* Quick-access icons row */}
-        <div
-          className={cn(
-            "flex items-center gap-1 py-2",
-            isCollapsed && !isMobile ? "flex-col items-center px-1 py-3" : "px-2",
-          )}
-        >
-          <ThemeToggle />
-          {canAccessNotifications && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
-              title="Notifications"
-              onClick={() => setNotificationPanelOpen(true)}
-            >
-              <Bell className="h-4 w-4" />
-              {notificationCount > 0 && (
-                <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
-              )}
-            </Button>
-          )}
-          {canAccessSettings && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted",
-                pathname.startsWith("/settings") && "bg-primary/8 text-primary",
-              )}
-              title="Settings"
-              asChild
-            >
-              <Link href="/settings">
-                <Settings2 className="h-4 w-4" />
-                {isAdmin && pendingJoinRequestCount > 0 && (
-                  <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </Link>
-            </Button>
-          )}
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
-              title="Customize sidebar"
-              onClick={() => setCustomizeOpen(true)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        <TooltipProvider>
+          <div
+            className={cn(
+              "flex items-center gap-1 py-2",
+              isCollapsed && !isMobile
+                ? "flex-col items-center px-1 py-3"
+                : "px-2",
+            )}
+          >
+            <ThemeToggle />
+
+            {canAccessNotifications && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    onClick={() => setNotificationPanelOpen(true)}
+                    aria-label="Notifications"
+                  >
+                    <Bell className="h-4 w-4" />
+                    {notificationCount > 0 && (
+                      <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Notifications</TooltipContent>
+              </Tooltip>
+            )}
+
+            {canAccessSettings && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "relative h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted",
+                      pathname.startsWith("/settings") &&
+                        "bg-primary/8 text-primary",
+                    )}
+                    asChild
+                  >
+                    <Link href="/settings" aria-label="Settings">
+                      <Settings2 className="h-4 w-4" />
+                      {isAdmin && pendingJoinRequestCount > 0 && (
+                        <span className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
+                      )}
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Settings</TooltipContent>
+              </Tooltip>
+            )}
+
+            {isAdmin && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
+                    onClick={() => setCustomizeOpen(true)}
+                    aria-label="Customize sidebar"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Customize sidebar</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </TooltipProvider>
 
         {/* Plan + Upgrade row */}
         {isAdmin && (

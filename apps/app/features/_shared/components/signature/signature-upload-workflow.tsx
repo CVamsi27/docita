@@ -191,7 +191,7 @@ export function SignatureUploadWorkflow({
 
           {previewUrl && (
             <div className="space-y-3">
-              <div className="rounded-lg border bg-white p-4">
+              <div className="rounded-lg border bg-background p-4">
                 <Image
                   src={previewUrl}
                   alt="Signature preview"

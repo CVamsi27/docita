@@ -11,7 +11,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
-import { BellIcon, CheckIcon, TrashIcon } from "lucide-react";
+import { BellIcon, CheckIcon, TrashIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PriorityBadge } from "@workspace/ui/components/status-badge";
 import {
@@ -179,15 +179,7 @@ export function NotificationPanel({
     await markRead.mutateAsync({ id });
   };
 
-  const handleOpenChange = async (newOpen: boolean) => {
-    if (!newOpen && notifications.length > 0 && !isDeleting) {
-      setIsDeleting(true);
-      try {
-        await deleteAll.mutateAsync();
-      } finally {
-        setIsDeleting(false);
-      }
-    }
+  const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
   };
 
@@ -216,8 +208,8 @@ export function NotificationPanel({
                 onClick={() => handleOpenChange(false)}
                 disabled={isDeleting}
               >
-                <TrashIcon className="mr-2 h-4 w-4" />
-                Clear All
+                <XIcon className="mr-2 h-4 w-4" />
+                Close
               </Button>
             )}
           </SheetTitle>
@@ -233,6 +225,26 @@ export function NotificationPanel({
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="px-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={async () => {
+                    if (isDeleting) return;
+                    setIsDeleting(true);
+                    try {
+                      await deleteAll.mutateAsync();
+                    } finally {
+                      setIsDeleting(false);
+                    }
+                  }}
+                  disabled={isDeleting}
+                >
+                  <TrashIcon className="mr-2 h-4 w-4" />
+                  Clear all
+                </Button>
+              </div>
               {categorized.today.length > 0 && (
                 <div>
                   <h3 className="mb-2 px-4 text-xs font-semibold uppercase text-muted-foreground">

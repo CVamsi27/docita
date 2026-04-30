@@ -11,7 +11,7 @@ interface QrCodeCardProps {
 
 export function QrCodeCard({ value, size = 180, className }: QrCodeCardProps) {
   return (
-    <div className={cn("rounded-lg border bg-white p-4 shadow-sm", className)}>
+    <div className={cn("ui-card-surface p-4 shadow-sm", className)}>
       <QRCodeSVG value={value} size={size} />
     </div>
   );

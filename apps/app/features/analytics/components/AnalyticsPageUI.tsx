@@ -134,7 +134,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
           onValueChange={(nextTab) => onTabChange(nextTab as AnalyticsTab)}
           className="space-y-4"
         >
-          <TabsList className="w-full sm:w-auto overflow-x-auto">
+          <TabsList className="w-full sm:w-auto overflow-x-hidden flex flex-wrap">
             <TabsTrigger value="disease-trends">Disease Trends</TabsTrigger>
             <TabsTrigger value="cpt-revenue">CPT Revenue</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>

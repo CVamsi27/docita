@@ -301,8 +301,8 @@ export default function VerifyDoctorPage() {
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">Setup Progress</span>
             <span className="text-xs text-muted-foreground">
-              {completedCount} of {steps.filter((s) => s.required).length}{" "}
-              required
+              {completedCount} of {steps.filter((s) => s.required).length}
+              <span className="ml-1">required</span>
             </span>
           </div>
           <div className="space-y-2">
@@ -351,7 +351,7 @@ export default function VerifyDoctorPage() {
                 Signature uploaded successfully.
               </div>
               {resolvedProfileSignatureUrl && (
-                <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
+                <div className="rounded-lg border bg-background p-4 flex items-center justify-center min-h-[100px]">
                   <img
                     src={resolvedProfileSignatureUrl}
                     alt="Your uploaded signature"
@@ -361,10 +361,10 @@ export default function VerifyDoctorPage() {
               )}
               <p className="text-xs text-muted-foreground">
                 This signature will appear on prescriptions and medical
-                documents.{" "}
+                documents.
                 <a
                   href="/settings?tab=doctor-profile"
-                  className="text-primary underline-offset-2 hover:underline"
+                  className="ml-1 text-primary underline-offset-2 hover:underline"
                 >
                   Re-upload in Settings
                 </a>
@@ -386,7 +386,7 @@ export default function VerifyDoctorPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center rounded-lg border bg-white p-4 min-h-[100px]">
+                  <div className="flex items-center justify-center rounded-lg border bg-background p-4 min-h-[100px]">
                     <img
                       src={resolvedOnboardingSignatureUrl}
                       alt="Onboarding signature preview"
@@ -493,8 +493,8 @@ export default function VerifyDoctorPage() {
           </div>
           {hasSavedRegistration ? (
             <p className="text-sm text-muted-foreground">
-              Saved:{" "}
-              <span className="font-medium text-foreground">
+              Saved:
+              <span className="ml-1 font-medium text-foreground">
                 {profile?.registrationNumber}
               </span>
             </p>

@@ -131,8 +131,7 @@ export function PatientSnapshotStrip({
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  Pulled from active conditions, allergy history, current
-                  medications, and the latest recorded vitals.
+                  Clinical Snapshot
                 </TooltipContent>
               </Tooltip>
             </div>

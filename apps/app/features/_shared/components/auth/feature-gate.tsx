@@ -201,7 +201,7 @@ export function LockedFeatureIndicator({
 }) {
   const requiredTier = FEATURE_TIER_MAP[feature];
   const tierName = Tier[requiredTier] as TierName;
-  const tierInfo = TIER_INFO[tierName];
+  void TIER_INFO[tierName];
 
   return (
     <Tooltip>
@@ -211,7 +211,7 @@ export function LockedFeatureIndicator({
         />
       </TooltipTrigger>
       <TooltipContent>
-        <p>Requires {tierInfo?.name || tierName} plan</p>
+        <p>Locked</p>
       </TooltipContent>
     </Tooltip>
   );

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Smile, Search, Save, Loader2 } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Card,
   CardContent,
@@ -86,53 +88,61 @@ export default function DentalChartsPage() {
 
   if (clinic?.type && clinic.type !== "DENTAL") {
     return (
-      <div className="mx-auto w-full max-w-2xl py-8 text-center space-y-4">
-        <Smile className="h-12 w-12 text-muted-foreground mx-auto" />
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-normal">Dental Charts</h1>
-        <p className="text-muted-foreground">
-          Dental charting is only available for dental facilities. Your facility is
-          configured as <strong>{clinic.type}</strong>
-        </p>
-      </div>
+      <AppPageScaffold
+        className="max-w-2xl"
+        header={
+          <PageHeader
+            title="Dental Charts"
+            description={
+              <>
+                Dental charting is only available for dental facilities. Your
+                facility is configured as <strong>{clinic.type}</strong>.
+              </>
+            }
+          />
+        }
+      >
+        <Card className="ui-card-surface p-10 text-center">
+          <Smile className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="ui-page-subtitle">
+            Switch your facility type to Dental to unlock interactive charting.
+          </p>
+        </Card>
+      </AppPageScaffold>
     );
   }
 
   return (
     <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
-      <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70">
-              <Smile className="h-5 w-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-normal leading-tight">
-                Dental Charts
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                Interactive tooth charting and documentation
-              </p>
-            </div>
-          </div>
-          {selectedAppointmentId && (
-            <Button
-              data-testid="dental-chart-save-button"
-              onClick={handleSave}
-              disabled={!isDirty || isSaving}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save Chart
-            </Button>
-          )}
-        </div>
+      <AppPageScaffold
+        className="max-w-5xl"
+        header={
+          <PageHeader
+            title="Dental Charts"
+            description="Interactive tooth charting and documentation."
+            actions={
+              selectedAppointmentId ? (
+                <Button
+                  data-testid="dental-chart-save-button"
+                  onClick={handleSave}
+                  disabled={!isDirty || isSaving}
+                >
+                  {isSaving ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save Chart
+                </Button>
+              ) : null
+            }
+          />
+        }
+      >
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-4">
-            <Card>
+            <Card className="ui-card-surface">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Select Patient</CardTitle>
               </CardHeader>
@@ -188,7 +198,7 @@ export default function DentalChartsPage() {
             </Card>
 
             {selectedPatient && (
-              <Card>
+              <Card className="ui-card-surface">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">Appointments</CardTitle>
                   <CardDescription className="text-xs">
@@ -248,7 +258,7 @@ export default function DentalChartsPage() {
             {selectedAppointmentId ? (
               <DentalChartUI value={chartData} onChange={handleChartChange} />
             ) : (
-              <Card className="h-full min-h-[400px] flex items-center justify-center">
+              <Card className="ui-card-surface h-full min-h-[400px] flex items-center justify-center">
                 <CardContent className="text-center space-y-2 py-12">
                   <Smile className="h-12 w-12 text-muted-foreground/40 mx-auto" />
                   <p className="text-sm text-muted-foreground">
@@ -261,7 +271,7 @@ export default function DentalChartsPage() {
             )}
           </div>
         </div>
-      </div>
+      </AppPageScaffold>
     </FeatureGate>
   );
 }

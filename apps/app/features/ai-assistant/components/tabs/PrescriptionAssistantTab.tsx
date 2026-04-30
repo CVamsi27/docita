@@ -135,7 +135,7 @@ const DrugInteractionsList = ({
         {interactions.map((interaction, idx) => (
           <div
             key={idx}
-            className="p-3 rounded-lg bg-white dark:bg-background border"
+            className="p-3 rounded-lg bg-background border"
           >
             <div className="flex items-center gap-2 mb-1">
               <Badge

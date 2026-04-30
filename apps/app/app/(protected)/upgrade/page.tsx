@@ -496,7 +496,7 @@ export default function UpgradePage() {
         </div>
 
         <Tabs defaultValue="compare" className="w-full">
-          <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0 gap-1 flex flex-wrap overflow-x-hidden">
             <TabsTrigger
               value="compare"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-2"
@@ -541,15 +541,15 @@ export default function UpgradePage() {
 
         <div className="text-center text-xs text-muted-foreground pt-2 pb-10">
           <p>
-            By upgrading, you agree to our{" "}
+            By upgrading, you agree to our
             <button
               type="button"
-              className="underline underline-offset-2 hover:text-foreground"
+              className="ml-1 underline underline-offset-2 hover:text-foreground"
               onClick={() => setLegalDialog("terms")}
             >
               Terms of Service
-            </button>{" "}
-            and{" "}
+            </button>
+            <span className="mx-1">and</span>
             <button
               type="button"
               className="underline underline-offset-2 hover:text-foreground"

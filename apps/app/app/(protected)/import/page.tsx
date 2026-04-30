@@ -185,7 +185,7 @@ export default function ImportPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
-            <strong>Excel Import:</strong> Make sure your file has headers in
+            <strong>Excel Import: </strong> Make sure your file has headers in
             the first row. Common column names like &quot;First Name&quot;,
             &quot;Phone Number&quot;, etc. will be automatically detected.
           </p>
