@@ -97,6 +97,17 @@ interface CreateReceptionistData {
   role?: 'RECEPTIONIST' | 'NURSE';
 }
 
+interface CreateClinicMemberData {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+  role: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN' | 'ADMIN_DOCTOR';
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+}
+
 interface UpdateMemberData {
   name?: string;
   email?: string;
@@ -217,6 +228,10 @@ export class ClinicsService {
 
   async createReceptionist(clinicId: string, data: CreateReceptionistData) {
     return this.staffManagementService.createReceptionist(clinicId, data);
+  }
+
+  async createMember(clinicId: string, data: CreateClinicMemberData) {
+    return this.staffManagementService.createMember(clinicId, data);
   }
 
   async getReceptionists(clinicId: string) {

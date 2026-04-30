@@ -24,7 +24,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
 import type { User } from "@workspace/types";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { Button } from "@workspace/ui/components/button";
@@ -185,7 +185,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         </div>
       )}
       <div className="ml-auto flex items-center gap-1">
-        <ThemeToggle />
+        <ThemeToggleWithAppearanceSync />
       </div>
     </header>
   );
@@ -202,6 +202,8 @@ function SubscriptionLockNotice() {
 
   const isExpired = status === "EXPIRED";
   const isGrace = status === "GRACE";
+  const isPastDue = status === "PAST_DUE";
+  const isPaused = status === "PAUSED";
   const isTrialing = status === "TRIALING";
   const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
   const trialEndText =
@@ -210,7 +212,7 @@ function SubscriptionLockNotice() {
       : null;
   const title = isExpired
     ? "Subscription Expired: Workspace Locked"
-    : isGrace
+    : isGrace || isPastDue || isPaused
       ? "Payment Grace Period: Access Restricted"
       : isTrialing
         ? "Trial Active: Payment Not Completed"
@@ -219,6 +221,10 @@ function SubscriptionLockNotice() {
     ? "This facility is locked until payment is completed. You can still open billing and upgrade pages to restore access."
     : isGrace
       ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
+      : isPastDue
+        ? "Your payment is overdue. Resolve payment now to keep Docita access active."
+        : isPaused
+          ? "This subscription is paused. Resolve billing to restore full access."
       : isTrialing
         ? `Your Essential trial is active${trialEndText ? ` until ${trialEndText}` : ""}. Add payment to keep paid features after the trial ends.`
         : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";

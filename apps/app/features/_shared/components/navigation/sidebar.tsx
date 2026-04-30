@@ -37,7 +37,7 @@ import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 import { useClinic } from "@/lib/clinic-context";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
 import { NotificationPanel } from "./notification-panel";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import {
   Tooltip,
   TooltipContent,
@@ -306,7 +306,7 @@ function SidebarContent({
                 : "px-2",
             )}
           >
-            <ThemeToggle />
+            <ThemeToggleWithAppearanceSync />
 
             {canAccessNotifications && (
               <Tooltip>

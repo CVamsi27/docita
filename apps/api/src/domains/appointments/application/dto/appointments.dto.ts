@@ -1,5 +1,4 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
 import {
   appointmentCancelRequestSchema,
   appointmentRescheduleRequestSchema,
@@ -14,6 +13,7 @@ import {
   followUpResponseSchema,
   listAppointmentRequestsQuerySchema,
   listAppointmentsQuerySchema,
+  listAppointmentsResponseSchema,
   listFollowUpsQuerySchema,
   patientAppointmentRequestCreateSchema,
   rejectAppointmentRequestSchema,
@@ -84,14 +84,8 @@ export class AppointmentRequestListResponseDto extends createZodDto(
   appointmentRequestListResponseSchema,
 ) {}
 
-const PaginatedAppointmentResponseSchema = z.object({
-  items: z.array(appointmentResponseSchema),
-  nextCursor: z.string().optional(),
-  hasMore: z.boolean(),
-  count: z.number().optional(),
-});
 export class PaginatedAppointmentResponseDto extends createZodDto(
-  PaginatedAppointmentResponseSchema,
+  listAppointmentsResponseSchema,
 ) {}
 
 export class VitalSignResponseDto extends createZodDto(vitalSignSchema) {}

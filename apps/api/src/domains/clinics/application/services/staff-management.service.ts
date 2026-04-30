@@ -38,6 +38,17 @@ interface CreateReceptionistData {
   role?: 'RECEPTIONIST' | 'NURSE';
 }
 
+interface CreateClinicMemberData {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+  role: ClinicMemberRole;
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+}
+
 interface UpdateMemberData {
   name?: string;
   email?: string;
@@ -88,6 +99,64 @@ export class StaffManagementService {
         clinicId,
       },
     });
+
+    return user;
+  }
+
+  async createMember(clinicId: string, data: CreateClinicMemberData) {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const prismaRole: Role =
+      data.role === 'DOCTOR'
+        ? Role.DOCTOR
+        : data.role === 'NURSE'
+          ? Role.NURSE
+          : data.role === 'RECEPTIONIST'
+            ? Role.RECEPTIONIST
+            : data.role === 'ADMIN'
+              ? Role.ADMIN
+              : Role.ADMIN_DOCTOR;
+
+    const needsDoctorClinic =
+      data.role === 'DOCTOR' || data.role === 'ADMIN_DOCTOR';
+
+    const user = await this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        role: prismaRole,
+        clinicId,
+        phoneNumber: data.phoneNumber,
+        ...(needsDoctorClinic
+          ? {
+              qualification: data.qualification,
+              registrationNumber: data.registrationNumber,
+              specialization: data.specialization as Specialization,
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        specialization: true,
+        qualification: true,
+        registrationNumber: true,
+        createdAt: true,
+      },
+    });
+
+    if (needsDoctorClinic) {
+      await this.prisma.doctorClinic.create({
+        data: {
+          doctorId: user.id,
+          clinicId,
+        },
+      });
+    }
 
     return user;
   }

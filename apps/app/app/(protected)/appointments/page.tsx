@@ -5,6 +5,9 @@ import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { cn } from "@workspace/ui/lib/utils";
+import { getStatusColor } from "@workspace/ui/components/status-badge";
+import type { StatusType } from "@workspace/ui/components/status-badge";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
 import { LoadingState } from "@workspace/ui/components/empty-state";
@@ -83,12 +86,12 @@ function AppointmentsContent() {
     );
 
     return [
-      { label: "Total", value: counts.total, tone: "border-border/60 bg-background/70" },
-      { label: "Scheduled", value: counts.scheduled, tone: "border-primary/20 bg-primary/5 text-primary" },
-      { label: "Confirmed", value: counts.confirmed, tone: "border-info/20 bg-info/5 text-info" },
-      { label: "Checked in", value: counts["checked-in"], tone: "border-success/20 bg-success/5 text-success" },
-      { label: "In progress", value: counts["in-progress"], tone: "border-warning/20 bg-warning/5 text-warning" },
-      { label: "Completed", value: counts.completed, tone: "border-muted/60 bg-muted/40 text-muted-foreground" },
+      { label: "Total", value: counts.total, status: "info" as StatusType },
+      { label: "Scheduled", value: counts.scheduled, status: "scheduled" },
+      { label: "Confirmed", value: counts.confirmed, status: "confirmed" },
+      { label: "Checked in", value: counts["checked-in"], status: "success" },
+      { label: "In progress", value: counts["in-progress"], status: "in-progress" },
+      { label: "Completed", value: counts.completed, status: "completed" },
     ];
   }, [filteredAppointments]);
 
@@ -128,12 +131,18 @@ function AppointmentsContent() {
           {appointmentSummary.map((item) => (
             <div
               key={item.label}
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${item.tone}`}
+              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-sm"
             >
-              <span className="text-xs font-medium uppercase tracking-wide opacity-70">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {item.label}
               </span>
-              <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs">
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "rounded-full border-0 px-2 py-0 text-xs font-medium",
+                  getStatusColor(item.status),
+                )}
+              >
                 {item.value}
               </Badge>
             </div>

@@ -157,7 +157,11 @@ export default function PatientProfilePage() {
                 purposes
               </p>
             </div>
-            <Checkbox id="storage-consent" checked={true} disabled />
+            <Checkbox
+              id="storage-consent"
+              checked={consentSettings?.dataStorageConsent ?? false}
+              disabled
+            />
           </div>
         </CardContent>
       </Card>

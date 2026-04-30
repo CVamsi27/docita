@@ -78,10 +78,15 @@ export class TierGuard implements CanActivate {
       throw new ForbiddenException('Clinic not found');
     }
 
-    if (
-      clinic.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
-      clinic.subscriptionStatus !== SubscriptionStatus.TRIALING
-    ) {
+    const allowedSubscriptionStatuses = new Set<SubscriptionStatus>([
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.TRIALING,
+      SubscriptionStatus.PAST_DUE,
+      SubscriptionStatus.GRACE,
+      SubscriptionStatus.PAUSED,
+    ]);
+
+    if (!allowedSubscriptionStatuses.has(clinic.subscriptionStatus)) {
       throw new ForbiddenException(
         'Subscription is not active. Please renew your subscription.',
       );

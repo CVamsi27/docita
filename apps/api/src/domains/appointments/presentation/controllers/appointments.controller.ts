@@ -16,7 +16,7 @@ import { AppointmentService } from '@/domains/appointments/application/services/
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
-import { APP_ACCESS_TARGETS } from '@workspace/types';
+import { APP_ACCESS_TARGETS, listAppointmentsResponseSchema } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
@@ -29,6 +29,7 @@ import {
   CreateAppointmentDto,
   CancelAppointmentDto,
   ListAppointmentsQueryDto,
+  PaginatedAppointmentResponseDto,
   RescheduleAppointmentDto,
   UpdateAppointmentDto,
   VitalsDto,
@@ -107,6 +108,7 @@ export class AppointmentsController {
   @ApiQuery({ name: 'doctorId', required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'status', required: false })
+  @ZodSerializerDto(PaginatedAppointmentResponseDto)
   async findAll(
     @Request() req: RequestWithUser,
     @Query() query: ListAppointmentsQueryDto,
@@ -143,7 +145,7 @@ export class AppointmentsController {
       );
     }
 
-    return this.appointmentService.listAppointments({
+    const result = await this.appointmentService.listAppointments({
       clinicId: req.user!.clinicId!,
       startDate: effectiveStartDate ? new Date(effectiveStartDate) : undefined,
       endDate: effectiveEndDate ? new Date(effectiveEndDate) : undefined,
@@ -154,6 +156,8 @@ export class AppointmentsController {
       cursor,
       limit,
     });
+
+    return listAppointmentsResponseSchema.parse(result);
   }
 
   @Get(':id')

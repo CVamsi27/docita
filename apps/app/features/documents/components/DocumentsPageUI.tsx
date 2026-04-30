@@ -28,6 +28,10 @@ import {
   FileText,
   Search,
 } from "lucide-react";
+import {
+  EmptyState,
+  LoadingState,
+} from "@workspace/ui/components/empty-state";
 import type { Document } from "@workspace/types";
 import { format } from "date-fns";
 import { SortConfig, SortKey } from "@/features/documents/hooks/use-documents-logic";
@@ -90,11 +94,10 @@ export function DocumentsPageUI({
         return "secondary";
       case "xray":
       case "x-ray":
-        return "outline";
       case "scan":
       case "mri":
       case "ct":
-        return "destructive";
+        return "outline";
       default:
         return "secondary";
     }
@@ -129,6 +132,15 @@ export function DocumentsPageUI({
           </CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-hidden">
+          {loading ? (
+            <LoadingState message="Loading documents..." />
+          ) : documents.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title="No documents found"
+              description="Upload documents from a patient record or import flow to see them listed here."
+            />
+          ) : (
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-muted/50">
@@ -149,26 +161,7 @@ export function DocumentsPageUI({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    Loading documents...
-                  </TableCell>
-                </TableRow>
-              ) : documents.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    No documents found.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                documents.map((document) => (
+              {documents.map((document) => (
                   <TableRow key={document.id} className="hover:bg-muted/50">
                     <TableCell className="font-mono text-sm hidden md:table-cell">
                       {(document.id || "").slice(0, 8).toUpperCase()}
@@ -233,10 +226,10 @@ export function DocumentsPageUI({
                       )}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
+                ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 

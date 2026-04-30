@@ -66,11 +66,11 @@ export function PatientProfileHeaderUI({
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 opacity-70" />
                   <span>
-                    DOB:
-                    <span className="ml-1">
-                    {dateOfBirth
-                      ? format(new Date(dateOfBirth), "MMM d, yyyy")
-                      : "N/A"}
+                    DOB:{" "}
+                    <span className="text-foreground">
+                      {dateOfBirth
+                        ? format(new Date(dateOfBirth), "MMM d, yyyy")
+                        : "N/A"}
                     </span>
                   </span>
                 </div>

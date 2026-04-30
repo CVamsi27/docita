@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
@@ -111,7 +111,7 @@ export function PreDashboardShell({
                 Sign out
               </Button>
             )}
-            <ThemeToggle />
+            <ThemeToggleWithAppearanceSync />
           </div>
         </div>
 

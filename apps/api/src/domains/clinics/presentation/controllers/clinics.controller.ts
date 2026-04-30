@@ -22,6 +22,7 @@ import {
   CreateClinicDto,
   UpdateClinicDto,
   ClinicCreateDoctorDto,
+  ClinicCreateMemberDto,
   ClinicCreateReceptionistDto,
   ClinicUpdateMemberDto,
   ClinicSettingsDto,
@@ -212,6 +213,22 @@ export class ClinicsController {
     return this.clinicsService.createReceptionist(clinicId, dto);
   }
 
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
+  @Post(':clinicId/members')
+  @ZodSerializerDto(UserResponseDto)
+  async createMember(
+    @Param('clinicId') clinicId: string,
+    @Body() dto: ClinicCreateMemberDto,
+    @Request() req: RequestWithUser,
+  ) {
+    if (req.user?.clinicId !== clinicId) {
+      throw new ForbiddenException(
+        'You can only create members in your own clinic',
+      );
+    }
+    return this.clinicsService.createMember(clinicId, dto);
+  }
+
   @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
   @Get(':clinicId/receptionists')
   async getReceptionists(
@@ -270,6 +287,7 @@ export class ClinicSettingsController {
     return clinic;
   }
 
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   @Put('settings')
   @ZodSerializerDto(ClinicResponseDto)
   async updateSettings(
@@ -282,6 +300,7 @@ export class ClinicSettingsController {
     }
     return this.clinicsService.updateSettings(clinicId, dto);
   }
+
   @Get('members')
   async getMembers(@Request() req: RequestWithUser) {
     const clinicId = req.user?.clinicId;
@@ -328,6 +347,7 @@ export class ClinicSettingsController {
   }
 
   @Get('prescription-defaults')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
   async getPrescriptionDefaults(@Request() req: RequestWithUser) {
     const clinicId = req.user?.clinicId;
     if (!clinicId) {
@@ -337,6 +357,7 @@ export class ClinicSettingsController {
   }
 
   @Put('prescription-defaults')
+  @Roles(Role.ADMIN, Role.ADMIN_DOCTOR, Role.DOCTOR)
   async updatePrescriptionDefaults(
     @Request() req: RequestWithUser,
     @Body() dto: Record<string, unknown>,

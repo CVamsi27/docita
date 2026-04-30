@@ -26,7 +26,11 @@ export default function PortalDashboardPage() {
 
   const whatsappConsentStatus = consentSettings?.whatsappConsent
     ? "Granted"
-    : "Not Granted";
+    : "Not granted";
+
+  const dataStorageConsentStatus = consentSettings?.dataStorageConsent
+    ? "Granted"
+    : "Not granted";
 
   return (
     <AppPageScaffold
@@ -102,7 +106,7 @@ export default function PortalDashboardPage() {
               </p>
               <p>
                 <span className="font-medium">Data Storage Consent:</span>
-                <span className="ml-1">Granted</span>
+                <span className="ml-1">{dataStorageConsentStatus}</span>
               </p>
             </div>
             <div className="flex gap-2">

@@ -88,7 +88,7 @@ export default function ConsultationPage() {
   );
 
   return (
-    <div className="flex h-full flex-col bg-muted/20">
+    <div className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
         <ConsultationPageHeaderUI
           patientName={patientName}

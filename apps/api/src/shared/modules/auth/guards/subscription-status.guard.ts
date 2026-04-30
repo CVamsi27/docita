@@ -60,6 +60,10 @@ export class SubscriptionStatusGuard implements CanActivate {
       const allowedStatuses: SubscriptionStatus[] = [
         SubscriptionStatus.ACTIVE,
         SubscriptionStatus.TRIALING,
+        // Billing-issue states should still allow limited access (upgrade UX handles messaging).
+        SubscriptionStatus.PAST_DUE,
+        SubscriptionStatus.GRACE,
+        SubscriptionStatus.PAUSED,
       ];
 
       if (!allowedStatuses.includes(clinicAuth.subscriptionStatus)) {
