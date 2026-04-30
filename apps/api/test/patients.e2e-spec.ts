@@ -152,7 +152,10 @@ describe('Patients (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      const body = expectMatchesSchema(listPatientsResponseSchema, response.body);
+      const body = expectMatchesSchema(
+        listPatientsResponseSchema,
+        response.body,
+      );
       expect(body.items).toBeDefined();
       expect(Array.isArray(body.items)).toBe(true);
       expect(body.items.length).toBe(2);

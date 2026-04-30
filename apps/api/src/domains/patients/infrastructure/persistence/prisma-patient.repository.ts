@@ -8,6 +8,23 @@ import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { PatientMapper } from '@/domains/patients/infrastructure/mappers/patient.mapper';
 import { Prisma, Gender } from '@workspace/db';
 
+const PATIENT_PERSISTENCE_SELECT = {
+  id: true,
+  clinicId: true,
+  mrn: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phoneNumber: true,
+  gender: true,
+  dateOfBirth: true,
+  address: true,
+  customData: true,
+  createdAt: true,
+  updatedAt: true,
+  version: true,
+} as const;
+
 @Injectable()
 export class PrismaPatientRepository implements IPatientRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -20,6 +37,7 @@ export class PrismaPatientRepository implements IPatientRepository {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
       where: { id, clinicId },
+      select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
     return PatientMapper.toDomain(item);
@@ -29,6 +47,7 @@ export class PrismaPatientRepository implements IPatientRepository {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
       where: { mrn, clinicId },
+      select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
     return PatientMapper.toDomain(item);
@@ -65,6 +84,7 @@ export class PrismaPatientRepository implements IPatientRepository {
         take: limit,
         skip: (page - 1) * limit,
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: PATIENT_PERSISTENCE_SELECT,
       }),
     ]);
 

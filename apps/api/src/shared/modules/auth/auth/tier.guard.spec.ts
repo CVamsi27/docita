@@ -117,6 +117,18 @@ describe('TierGuard', () => {
     ).rejects.toThrow(ForbiddenException);
   });
 
+  it('allows tier checks when subscription is in restricted-but-allowed state', async () => {
+    setMetadata(Tier.STARTER, undefined);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      subscriptionStatus: SubscriptionStatus.PAST_DUE,
+    });
+
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+  });
+
   it('blocks feature when explicit clinic override disables it', async () => {
     setMetadata(undefined, Feature.QUEUE_MANAGEMENT);
     prisma.clinic.findUnique.mockResolvedValue({

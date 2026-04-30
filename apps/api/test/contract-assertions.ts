@@ -19,4 +19,3 @@ export function expectMatchesSchema<TSchema extends z.ZodTypeAny>(
 
   throw new Error(`Contract validation failed:\n${formatted}`);
 }
-

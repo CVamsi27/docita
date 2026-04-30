@@ -19,9 +19,17 @@ export class ZodValidationPipe implements PipeTransform {
       return parsedValue;
     } catch (error) {
       const zodError = error as ZodError;
-      this.logger.error('[ZodValidationPipe] Validation error', {
+      const fieldPaths =
+        zodError?.issues
+          ?.map((issue) => issue.path.join('.'))
+          .filter(Boolean) ?? [];
+      const uniqueFields = [...new Set(fieldPaths)].slice(0, 10);
+
+      // Never log validation issue details; they may contain PHI.
+      this.logger.warn('[ZodValidationPipe] Validation error', {
         path: metadata.type,
-        errors: zodError?.errors,
+        issueCount: zodError?.issues?.length ?? 0,
+        fields: uniqueFields,
       });
 
       throw createZodValidationException(zodError);

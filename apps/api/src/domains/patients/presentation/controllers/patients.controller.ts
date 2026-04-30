@@ -109,7 +109,10 @@ export class PatientsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get patient by ID' })
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    const patient = await this.patientService.getPatient(id, req.user!.clinicId!);
+    const patient = await this.patientService.getPatient(
+      id,
+      req.user!.clinicId!,
+    );
     return this.toPatientResponse(patient);
   }
 

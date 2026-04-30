@@ -11,6 +11,7 @@ const command =
   "--glob '!**/test/**' " +
   "--glob '!**/e2e/**' " +
   "--glob '!apps/app/lib/logger.ts' " +
+  "--glob '!**/.wrangler/**' " +
   "--glob '!**/node_modules/**'";
 
 const matcher = /console\.(log|error|warn|info|debug)/;
@@ -22,6 +23,7 @@ const EXCLUDED_PATH_SEGMENTS = [
   '/node_modules/',
   '/.next/',
   '/.open-next/',
+  '/.wrangler/',
   '/dist/',
   '/build/',
   '/out/',

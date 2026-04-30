@@ -28,10 +28,7 @@ export const RateLimit = (options: RateLimitOptions) =>
 
 @Injectable()
 export class RateLimitInterceptor implements NestInterceptor {
-  private requests = new Map<
-    string,
-    { count: number; resetTime: number; requests: number[] }
-  >();
+  private requests = new Map<string, { count: number; resetTime: number }>();
   private nextCleanupAt = 0;
 
   constructor(private reflector: Reflector) {}
@@ -50,26 +47,20 @@ export class RateLimitInterceptor implements NestInterceptor {
     const key = this.generateKey(request, rateLimitOptions);
 
     const now = Date.now();
-    const windowStart = now - rateLimitOptions.window;
 
     let rateLimitData = this.requests.get(key);
-    if (!rateLimitData) {
+    if (!rateLimitData || rateLimitData.resetTime <= now) {
       rateLimitData = {
         count: 0,
         resetTime: now + rateLimitOptions.window,
-        requests: [],
       };
       this.requests.set(key, rateLimitData);
     }
 
-    rateLimitData.requests = rateLimitData.requests.filter(
-      (timestamp) => timestamp > windowStart,
-    );
-
-    if (rateLimitData.requests.length >= rateLimitOptions.limit) {
-      const oldestRequest = rateLimitData.requests[0];
-      const retryAfter = Math.ceil(
-        (oldestRequest + rateLimitOptions.window - now) / 1000,
+    if (rateLimitData.count >= rateLimitOptions.limit) {
+      const retryAfter = Math.max(
+        0,
+        Math.ceil((rateLimitData.resetTime - now) / 1000),
       );
 
       throw new HttpException(
@@ -85,17 +76,17 @@ export class RateLimitInterceptor implements NestInterceptor {
       );
     }
 
-    rateLimitData.requests.push(now);
+    rateLimitData.count += 1;
 
     const response = context.switchToHttp().getResponse();
     response.setHeader('X-RateLimit-Limit', rateLimitOptions.limit);
     response.setHeader(
       'X-RateLimit-Remaining',
-      rateLimitOptions.limit - rateLimitData.requests.length,
+      Math.max(0, rateLimitOptions.limit - rateLimitData.count),
     );
     response.setHeader(
       'X-RateLimit-Reset',
-      Math.ceil((windowStart + rateLimitOptions.window) / 1000),
+      Math.ceil(rateLimitData.resetTime / 1000),
     );
 
     this.cleanupOldEntries(now);
@@ -127,11 +118,7 @@ export class RateLimitInterceptor implements NestInterceptor {
 
     this.nextCleanupAt = now + 60_000;
     for (const [key, data] of this.requests.entries()) {
-      if (
-        data.requests.length === 0 ||
-        data.resetTime <= now ||
-        data.requests[data.requests.length - 1] < now - 60000
-      ) {
+      if (data.resetTime <= now) {
         this.requests.delete(key);
       }
     }

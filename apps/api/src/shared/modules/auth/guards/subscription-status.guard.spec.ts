@@ -78,7 +78,7 @@ describe('SubscriptionStatusGuard', () => {
     expect(clinicAuthCache.getClinicAuth).not.toHaveBeenCalled();
   });
 
-  it('allows ACTIVE and TRIALING subscription statuses', async () => {
+  it('allows ACTIVE/TRIALING and restricted-but-allowed billing states', async () => {
     clinicAuthCache.getClinicAuth
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
@@ -91,8 +91,35 @@ describe('SubscriptionStatusGuard', () => {
         subscriptionStatus: SubscriptionStatus.TRIALING,
         hasIntelligence: false,
         features: {},
+      })
+      .mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        subscriptionStatus: SubscriptionStatus.PAST_DUE,
+        hasIntelligence: false,
+        features: {},
+      })
+      .mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        subscriptionStatus: SubscriptionStatus.GRACE,
+        hasIntelligence: false,
+        features: {},
+      })
+      .mockResolvedValueOnce({
+        tier: ClinicTier.STARTER,
+        subscriptionStatus: SubscriptionStatus.PAUSED,
+        hasIntelligence: false,
+        features: {},
       });
 
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
     ).resolves.toBe(true);

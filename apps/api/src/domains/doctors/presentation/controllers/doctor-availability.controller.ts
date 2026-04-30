@@ -127,19 +127,20 @@ export class DoctorAvailabilityController {
     @Request() req: RequestWithUser,
     @Body() dto: UpdateScheduleDto,
   ) {
-    return this.doctorAvailabilityService.updateSchedule(
-      id,
-      dto,
-      req.user?.clinicId || undefined,
-    );
+    return this.doctorAvailabilityService.updateSchedule(id, dto, {
+      clinicId: req.user?.clinicId || undefined,
+      actorUserId: req.user?.id,
+      actorRole: req.user?.role,
+    });
   }
 
   @Delete('schedules/:id')
   deleteSchedule(@Param('id') id: string, @Request() req: RequestWithUser) {
-    return this.doctorAvailabilityService.deleteSchedule(
-      id,
-      req.user?.clinicId || undefined,
-    );
+    return this.doctorAvailabilityService.deleteSchedule(id, {
+      clinicId: req.user?.clinicId || undefined,
+      actorUserId: req.user?.id,
+      actorRole: req.user?.role,
+    });
   }
 
   @Get('time-off')
@@ -149,7 +150,11 @@ export class DoctorAvailabilityController {
   ) {
     const { doctorId, upcoming } = query;
     const targetDoctorId =
-      req.user?.role === Role.ADMIN && doctorId ? doctorId : req.user!.id;
+      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(
+        req.user?.role ?? '',
+      ) && doctorId
+        ? doctorId
+        : req.user!.id;
     return this.doctorAvailabilityService.getTimeOffs(targetDoctorId, {
       clinicId: req.user?.clinicId || undefined,
       upcoming: upcoming === true,
@@ -163,7 +168,9 @@ export class DoctorAvailabilityController {
     @Body() dto: CreateTimeOffDto,
   ) {
     const doctorId =
-      req.user?.role === Role.ADMIN && dto.doctorId
+      ([Role.ADMIN, Role.ADMIN_DOCTOR] as string[]).includes(
+        req.user?.role ?? '',
+      ) && dto.doctorId
         ? dto.doctorId
         : req.user!.id;
     return this.doctorAvailabilityService.createTimeOff({
@@ -180,10 +187,11 @@ export class DoctorAvailabilityController {
 
   @Delete('time-off/:id')
   deleteTimeOff(@Param('id') id: string, @Request() req: RequestWithUser) {
-    return this.doctorAvailabilityService.deleteTimeOff(
-      id,
-      req.user?.clinicId || undefined,
-    );
+    return this.doctorAvailabilityService.deleteTimeOff(id, {
+      clinicId: req.user?.clinicId || undefined,
+      actorUserId: req.user?.id,
+      actorRole: req.user?.role,
+    });
   }
 
   @Get('slots')

@@ -16,7 +16,10 @@ import { AppointmentService } from '@/domains/appointments/application/services/
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Role } from '@workspace/db';
-import { APP_ACCESS_TARGETS, listAppointmentsResponseSchema } from '@workspace/types';
+import {
+  APP_ACCESS_TARGETS,
+  listAppointmentsResponseSchema,
+} from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {

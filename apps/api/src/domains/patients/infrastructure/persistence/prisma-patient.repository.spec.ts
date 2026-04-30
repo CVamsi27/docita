@@ -86,9 +86,11 @@ describe('PrismaPatientRepository', () => {
     const result = await repository.findById('patient-1', 'other-clinic');
 
     expect(result).toBeNull();
-    expect(findFirstSpy).toHaveBeenCalledWith({
-      where: { id: 'patient-1', clinicId: 'other-clinic' },
-    });
+    expect(findFirstSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'patient-1', clinicId: 'other-clinic' },
+      }),
+    );
   });
 
   it('throws when update affects zero rows (cross-tenant id) and never bypasses clinicId', async () => {

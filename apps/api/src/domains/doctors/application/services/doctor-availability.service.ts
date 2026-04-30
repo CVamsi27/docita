@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Role } from '@workspace/db';
 import { AvailabilityScheduleService } from './availability-schedule.service';
 import { SlotGenerationService } from './slot-generation.service';
 
@@ -10,6 +11,11 @@ type DayOfWeek =
   | 'THURSDAY'
   | 'FRIDAY'
   | 'SATURDAY';
+
+type ActorContext = {
+  actorUserId?: string;
+  actorRole?: Role;
+};
 
 @Injectable()
 export class DoctorAvailabilityService {
@@ -46,13 +52,16 @@ export class DoctorAvailabilityService {
       slotDuration?: number;
       isActive?: boolean;
     },
-    clinicId?: string,
+    options?: { clinicId?: string } & ActorContext,
   ) {
-    return this.scheduleService.updateSchedule(id, data, clinicId);
+    return this.scheduleService.updateSchedule(id, data, options);
   }
 
-  async deleteSchedule(id: string, clinicId?: string) {
-    return this.scheduleService.deleteSchedule(id, clinicId);
+  async deleteSchedule(
+    id: string,
+    options?: { clinicId?: string } & ActorContext,
+  ) {
+    return this.scheduleService.deleteSchedule(id, options);
   }
 
   async bulkUpsertSchedules(
@@ -93,8 +102,11 @@ export class DoctorAvailabilityService {
     return this.scheduleService.createTimeOff(data);
   }
 
-  async deleteTimeOff(id: string, clinicId?: string) {
-    return this.scheduleService.deleteTimeOff(id, clinicId);
+  async deleteTimeOff(
+    id: string,
+    options?: { clinicId?: string } & ActorContext,
+  ) {
+    return this.scheduleService.deleteTimeOff(id, options);
   }
 
   async getAvailableSlots(

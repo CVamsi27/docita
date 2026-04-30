@@ -42,13 +42,21 @@ export const staffLeaveSchema = z.object({
 });
 export type StaffLeave = z.infer<typeof staffLeaveSchema>;
 
-export const createLeaveRequestSchema = z.object({
-  leaveType: leaveTypeSchema,
-  startDate: z.string().min(1, "Choose a start date."),
-  endDate: z.string().min(1, "Choose an end date."),
-  reason: z.string().max(500).optional(),
-  staffId: z.string().optional(),
-});
+export const createLeaveRequestSchema = z
+  .object({
+    leaveType: leaveTypeSchema,
+    startDate: z.string().min(1, "Choose a start date."),
+    endDate: z.string().min(1, "Choose an end date."),
+    reason: z.string().max(500).optional(),
+    staffId: z.string().optional(),
+  })
+  .refine(
+    (data) => new Date(data.endDate) >= new Date(data.startDate),
+    {
+      path: ["endDate"],
+      message: "End date must be on or after the start date.",
+    },
+  );
 export type CreateLeaveRequest = z.infer<typeof createLeaveRequestSchema>;
 
 export const leaveBalanceSchema = z.object({

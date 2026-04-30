@@ -6,6 +6,7 @@ import {
 } from "../operations/appointments";
 import { stripHtmlTags } from "../api/sanitization";
 import { appointmentStatusSchema } from "../shared/users";
+import { jsonObjectSchema } from "../shared/json-schema";
 import {
   cardiologyExamDataSchema,
   clinicalInvestigationSchema,
@@ -18,8 +19,88 @@ import {
   psychiatryExamDataSchema,
   systemicExaminationSchema,
 } from "../clinical/clinical";
+import { vitalSignSchema } from "../clinical/vitals";
+import { prescriptionSchema } from "../clinical/medications";
+import { invoiceSchema } from "../billing/invoices";
 
 export const appointmentResponseSchema = appointmentSchema;
+
+/**
+ * Strict, bandwidth-conscious response shape for appointment list endpoints.
+ * Keep this schema in sync with the API's list output.
+ */
+export const appointmentListItemResponseSchema = z
+  .object({
+    id: z.string().min(1),
+    clinicId: z.string().min(1),
+    patientId: z.string().min(1),
+    doctorId: z.string().min(1),
+    startTime: z.string().or(z.date()),
+    endTime: z.string().or(z.date()),
+    status: appointmentStatusSchema,
+    type: z.string().optional(),
+    priority: z.enum(["ROUTINE", "URGENT", "EMERGENCY"]).optional(),
+    reason: z.string().optional(),
+    notes: z.string().optional(),
+    consultationNotes: z.string().optional(),
+    observations: z.string().optional(),
+    chiefComplaint: z.string().optional(),
+    treatmentHistory: z.string().optional(),
+    clinicalImpression: z.string().optional(),
+    differentialDiagnosis: z.string().optional(),
+    finalDiagnosis: z.string().optional(),
+    followUpPlan: z.string().optional(),
+    dentalChart: dentalChartSchema.optional(),
+    serviceId: z.string().optional(),
+    cancellationReason: z.string().optional(),
+    cancelledAt: z.string().or(z.date()).optional(),
+    metadata: jsonObjectSchema.optional(),
+    createdAt: z.string().or(z.date()),
+    updatedAt: z.string().or(z.date()),
+    version: z.number().int().nonnegative(),
+    patient: z
+      .object({
+        id: z.string(),
+        firstName: z.string(),
+        lastName: z.string(),
+        phoneNumber: z.string().nullable().optional(),
+      })
+      .optional(),
+    doctor: z
+      .object({
+        id: z.string(),
+        name: z.string().nullable().optional(),
+      })
+      .optional(),
+    clinicName: z.string().optional(),
+    clinic: z
+      .object({
+        id: z.string().optional(),
+        name: z.string().nullable().optional(),
+      })
+      .nullable()
+      .optional(),
+    prescription: prescriptionSchema.nullable().optional(),
+    invoice: invoiceSchema.nullable().optional(),
+    vitalSign: vitalSignSchema.optional(),
+  })
+  .strict();
+
+export const listAppointmentsResponseSchema = z
+  .object({
+    items: z.array(appointmentListItemResponseSchema),
+    nextCursor: z.string().optional(),
+    hasMore: z.boolean(),
+    count: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+
+export type AppointmentListItemContractResponse = z.infer<
+  typeof appointmentListItemResponseSchema
+>;
+export type ListAppointmentsContractResponse = z.infer<
+  typeof listAppointmentsResponseSchema
+>;
 
 export const startConsultationResponseSchema = z.object({
   appointmentId: z.string().min(1),
