@@ -1,14 +1,14 @@
 "use client";
 
 import { Button } from "@workspace/ui/components/button";
-import { SectionHeading } from "@workspace/ui/components/section-heading";
 import {
   ArrowRight,
   CalendarCheck,
-  FileSpreadsheet,
+  CheckCircle2,
   MessageSquare,
-  ReceiptText,
   Shield,
+  Sparkles,
+  Stethoscope,
 } from "lucide-react";
 
 interface HeroSectionProps {
@@ -17,85 +17,165 @@ interface HeroSectionProps {
 
 export function HeroSection({ appUrl }: HeroSectionProps) {
   return (
-    <section className="hero-grid landing-section-hero relative overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(60rem_45rem_at_0%_0%,theme(colors.primary.100),transparent_55%),radial-gradient(40rem_28rem_at_100%_0%,theme(colors.info.100),transparent_45%)] dark:bg-[radial-gradient(60rem_45rem_at_0%_0%,theme(colors.primary.900),transparent_55%),radial-gradient(40rem_28rem_at_100%_0%,theme(colors.info.900),transparent_45%)]" />
-      <div className="ui-page-shell">
-        <div className="flex w-full flex-col items-center text-center">
-          <div className="w-full">
-            <div className="landing-chip mb-5">
-              <Shield className="h-4 w-4 text-primary" />
-              <span className="font-medium text-muted-foreground">
-                Built for Indian private clinics
-              </span>
+    <section className="landing-hero-origin landing-section-hero relative overflow-hidden">
+      <div className="ui-page-shell relative z-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center text-center">
+          <div className="landing-chip mb-5">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="font-medium text-muted-foreground">
+              Built for Indian private clinics
+            </span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </div>
+
+          <h1 className="max-w-5xl text-balance text-4xl font-semibold leading-[1.02] tracking-normal text-foreground min-[420px]:text-5xl sm:text-6xl lg:text-7xl">
+            Run your clinic with clarity.
+          </h1>
+
+          <p className="mt-5 max-w-2xl text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
+            Docita brings OPD queues, appointments, prescriptions, billing,
+            documents, and WhatsApp follow-ups into one calm workspace for
+            growing clinics.
+          </p>
+
+          <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:justify-center">
+            <Button
+              asChild
+              size="lg"
+              className="h-12 w-full gap-2 px-6 shadow-lg shadow-primary/20 transition-shadow hover:shadow-primary/30 sm:w-auto"
+            >
+              <a href={`${appUrl}/onboarding`}>
+                Start clinic setup
+                <ArrowRight className="h-5 w-5" />
+              </a>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 w-full gap-2 border-border/80 bg-background/70 px-6 backdrop-blur-sm sm:w-auto"
+            >
+              <a href="/contact">
+                <CalendarCheck className="h-5 w-5" />
+                Book guided demo
+              </a>
+            </Button>
+          </div>
+
+          <div className="landing-command-bar mt-9 w-full max-w-2xl">
+            <Sparkles className="h-5 w-5 shrink-0 text-primary" />
+            <span className="min-w-0 flex-1 text-left text-sm font-medium text-foreground sm:text-base">
+              What needs attention in clinic today?
+            </span>
+            <span className="hidden text-sm text-muted-foreground sm:inline">
+              Ask Docita
+            </span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </div>
+
+          <div className="landing-product-stage mt-10 w-full text-left">
+            <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+              <div className="rounded-lg border border-border/70 bg-background/95 p-4 shadow-xl shadow-slate-950/10">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Today at Sunrise Clinic
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      OPD flow, payments, and follow-ups in one view
+                    </p>
+                  </div>
+                  <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Live queue healthy
+                  </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-4">
+                  {[
+                    ["18", "Appointments"],
+                    ["9", "Checked in"],
+                    ["6", "Prescriptions"],
+                    ["₹24,350", "Outstanding"],
+                  ].map(([value, label]) => (
+                    <div
+                      key={label}
+                      className="rounded-lg border border-border/70 bg-muted/30 p-3"
+                    >
+                      <p className="text-xl font-semibold text-foreground">
+                        {value}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 overflow-hidden rounded-lg border border-border/70">
+                  {[
+                    ["09:30 AM", "Rohit Sharma", "Follow-up", "Checked in"],
+                    ["10:00 AM", "Meera Iyer", "Consultation", "Confirmed"],
+                    ["10:30 AM", "Arun Patel", "Vaccination", "Waiting"],
+                  ].map(([time, patient, visit, status]) => (
+                    <div
+                      key={`${time}-${patient}`}
+                      className="grid grid-cols-[72px_1fr_auto] items-center gap-3 border-b border-border/60 bg-background px-3 py-3 text-sm last:border-b-0"
+                    >
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {time}
+                      </span>
+                      <span>
+                        <span className="block font-medium text-foreground">
+                          {patient}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {visit}
+                        </span>
+                      </span>
+                      <span className="rounded-lg bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                        {status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border/70 bg-background/95 p-4 shadow-xl shadow-slate-950/10">
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Stethoscope className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      Patient follow-up
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      WhatsApp-ready after visit
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3 text-sm">
+                  <div className="rounded-lg bg-muted/60 p-3 text-muted-foreground">
+                    Hi Ritu, your follow-up is tomorrow at 10:00 AM.
+                  </div>
+                  <div className="ml-auto rounded-lg bg-success/15 p-3 font-medium text-foreground">
+                    Yes, confirmed
+                  </div>
+                  <div className="rounded-lg border border-border/70 bg-background p-3 text-muted-foreground">
+                    Prescription PDF attached after consultation.
+                  </div>
+                </div>
+                <Button asChild className="mt-4 w-full gap-2">
+                  <a href="/whatsapp-workflows">
+                    <MessageSquare className="h-4 w-4" />
+                    See workflows
+                  </a>
+                </Button>
+              </div>
             </div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-primary">
-              Docita
-            </p>
-            <SectionHeading
-              size="hero"
-              title={
-                <span className="bg-linear-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                  Clinic software for OPD, billing, records, and follow-ups.
-                </span>
-              }
-              description="Docita helps 1-5 doctor clinics move daily work out of paper files, Excel sheets, and WhatsApp threads into one practical workflow."
-              className="max-w-none"
-              titleClassName="mx-auto max-w-6xl text-3xl leading-tight min-[380px]:text-4xl sm:text-5xl lg:text-6xl"
-              descriptionClassName="mx-auto max-w-4xl"
-            />
-            <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
-              <Button
-                asChild
-                size="lg"
-                className="w-full gap-2 shadow-lg shadow-primary/20 transition-shadow hover:shadow-primary/30 sm:w-auto"
-              >
-                <a href={`${appUrl}/onboarding`}>
-                  Start clinic setup
-                  <ArrowRight className="h-5 w-5" />
-                </a>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="w-full gap-2 bg-background/60 backdrop-blur-sm sm:w-auto"
-              >
-                <a href="/contact">
-                  <CalendarCheck className="h-5 w-5" />
-                  Book guided demo
-                </a>
-              </Button>
-            </div>
-            <ul className="mt-7 grid w-full gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-              {[
-                {
-                  icon: FileSpreadsheet,
-                  title: "Import records",
-                  text: "Move Excel and paper lists into patient workflows.",
-                },
-                {
-                  icon: ReceiptText,
-                  title: "Run OPD",
-                  text: "Queue, prescriptions, billing, and history stay together.",
-                },
-                {
-                  icon: MessageSquare,
-                  title: "Follow up",
-                  text: "Send reminders and prescriptions through WhatsApp.",
-                },
-              ].map((item) => (
-                <li
-                  key={item.title}
-                  className="landing-card flex flex-col items-center p-3 text-center sm:p-4"
-                >
-                  <item.icon className="h-5 w-5 text-primary" />
-                  <p className="mt-2 font-semibold text-foreground sm:mt-3">
-                    {item.title}
-                  </p>
-                  <p className="mt-1 leading-6">{item.text}</p>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </div>

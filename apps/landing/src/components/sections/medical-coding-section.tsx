@@ -63,8 +63,8 @@ export function MedicalCodingSection() {
             </p>
           </div>
           <div className="relative">
-            <div className="landing-card border-info/20 bg-linear-to-br from-info/20 to-info/10 p-4 sm:p-8">
-              <div className="rounded-xl bg-background p-4 shadow-lg sm:p-6">
+            <div className="landing-card border-info/20 bg-info/5 p-4 sm:p-8">
+              <div className="rounded-lg bg-background p-4 shadow-lg sm:p-6">
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b">
                   <Activity className="h-5 w-5 text-info" />
                   <span className="font-semibold">Medical Coding</span>

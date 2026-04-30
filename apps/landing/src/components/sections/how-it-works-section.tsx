@@ -24,7 +24,7 @@ export function HowItWorksSection() {
         />
 
         <div className="relative">
-          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-primary/30 to-transparent -translate-y-1/2 hidden lg:block" />
+          <div className="absolute top-1/2 left-0 hidden h-px w-full -translate-y-1/2 bg-border lg:block" />
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5 relative z-10">
             {[

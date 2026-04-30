@@ -11,7 +11,7 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function ValuePropsSection() {
   return (
-    <section className="landing-section bg-linear-to-b from-background to-muted/30">
+    <section className="landing-section bg-background">
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:gap-16">
           {}
@@ -45,8 +45,8 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1 lg:order-2">
-              <div className="relative rounded-2xl bg-linear-to-br from-success/20 to-success/10 p-5 backdrop-blur-sm border border-success/20 sm:p-8">
-                <div className="aspect-square rounded-xl bg-success p-12 flex items-center justify-center">
+              <div className="relative rounded-lg border border-success/20 bg-success/5 p-5 sm:p-8">
+                <div className="aspect-square rounded-lg bg-success p-12 flex items-center justify-center">
                   <FileText className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute right-3 top-3 rounded-full border border-success/30 bg-background px-3 py-1.5 text-xs font-semibold text-foreground shadow-lg sm:-right-4 sm:-top-4 sm:px-4 sm:py-2 sm:text-sm">
@@ -87,8 +87,8 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1">
-              <div className="relative rounded-2xl bg-linear-to-br from-info/20 to-info/10 p-5 backdrop-blur-sm border border-info/20 sm:p-8">
-                <div className="aspect-square rounded-xl bg-info p-12 flex items-center justify-center">
+              <div className="relative rounded-lg border border-info/20 bg-info/5 p-5 sm:p-8">
+                <div className="aspect-square rounded-lg bg-info p-12 flex items-center justify-center">
                   <Calendar className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute right-3 top-3 rounded-full border border-info/30 bg-background px-3 py-1.5 text-xs font-semibold text-foreground shadow-lg sm:-right-4 sm:-top-4 sm:px-4 sm:py-2 sm:text-sm">
@@ -127,8 +127,8 @@ export function ValuePropsSection() {
               </ul>
             </div>
             <div className="order-1 lg:order-2">
-              <div className="relative rounded-2xl bg-linear-to-br from-primary/20 to-primary/10 p-5 backdrop-blur-sm border border-primary/20 sm:p-8">
-                <div className="aspect-square rounded-xl bg-primary p-12 flex items-center justify-center">
+              <div className="relative rounded-lg border border-primary/20 bg-primary/5 p-5 sm:p-8">
+                <div className="aspect-square rounded-lg bg-primary p-12 flex items-center justify-center">
                   <ShieldCheck className="h-32 w-32 text-white" />
                 </div>
                 <div className="absolute right-3 top-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg sm:-right-4 sm:-top-4 sm:px-4 sm:py-2 sm:text-sm">

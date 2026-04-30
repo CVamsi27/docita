@@ -9,8 +9,8 @@ export function QueueSection() {
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <div className="order-2 lg:order-1 relative">
-            <div className="rounded-2xl bg-linear-to-br from-warning/20 to-warning/10 p-8 backdrop-blur-sm border border-warning/30">
-              <div className="bg-background rounded-xl p-6 shadow-lg space-y-4">
+            <div className="rounded-lg border border-warning/30 bg-warning/5 p-8">
+              <div className="bg-background rounded-lg p-6 shadow-lg space-y-4">
                 <div className="flex items-center justify-between border-b pb-4">
                   <div className="flex items-center gap-3">
                     <Clock className="h-5 w-5 text-warning" />

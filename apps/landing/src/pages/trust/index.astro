@@ -27,7 +27,7 @@ const nonClaims = [
         <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-primary">
           Trust and hosting
         </p>
-        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 class="text-4xl font-bold tracking-normal sm:text-5xl">
           The trust details we can actually stand behind today
         </h1>
         <p class="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
@@ -38,7 +38,7 @@ const nonClaims = [
       </div>
 
       <div class="mt-10 grid gap-8 lg:grid-cols-[1fr_0.95fr]">
-        <article class="rounded-3xl border border-border/70 bg-background p-8">
+        <article class="rounded-lg border border-border/70 bg-background p-8">
           <h2 class="text-2xl font-semibold">Current hosting posture</h2>
           <ul class="mt-4 list-disc space-y-2 pl-6 text-sm text-muted-foreground">
             <li>Backend API and worker infrastructure run in the Mumbai region.</li>
@@ -55,7 +55,7 @@ const nonClaims = [
           </ul>
         </article>
 
-        <article class="rounded-3xl border border-primary/20 bg-primary/5 p-8">
+        <article class="rounded-lg border border-primary/20 bg-primary/5 p-8">
           <h2 class="text-2xl font-semibold">Important non-claims</h2>
           <ul class="mt-4 list-disc space-y-2 pl-6 text-sm text-muted-foreground">
             {nonClaims.map((item) => (
@@ -73,13 +73,13 @@ const nonClaims = [
           <div class="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
               href="/contact"
-              class="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Ask about rollout
             </a>
             <a
               href="/privacy"
-              class="inline-flex items-center justify-center rounded-xl border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+              class="inline-flex items-center justify-center rounded-lg border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
             >
               Review privacy policy
             </a>

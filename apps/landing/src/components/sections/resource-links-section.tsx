@@ -45,9 +45,9 @@ export function ResourceLinksSection() {
             <a
               key={resource.title}
               href={resource.href}
-              className="group rounded-3xl border border-border/70 bg-muted/30 p-6 transition-transform duration-200 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/5"
+              className="group rounded-lg border border-border/70 bg-muted/30 p-6 transition-transform duration-200 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/5"
             >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
                 <resource.icon className="h-5 w-5 text-primary" />
               </div>
               <h3 className="text-lg font-semibold text-foreground">

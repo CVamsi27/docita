@@ -70,7 +70,7 @@ export function MigrationSection() {
               key={point.title}
               className="landing-card p-6"
             >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
                 <point.icon className="h-5 w-5 text-primary" />
               </div>
               <h3 className="text-lg font-semibold text-foreground">

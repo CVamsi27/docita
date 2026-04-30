@@ -30,7 +30,7 @@ export function AnalyticsSection() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <Card className="bg-linear-to-br from-info/10 to-background border-info/20">
+          <Card className="border-info/20 bg-info/5">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Monthly Revenue
@@ -55,7 +55,7 @@ export function AnalyticsSection() {
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-primary/10 to-background border-primary/20">
+          <Card className="border-primary/20 bg-primary/5">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Patient Growth
@@ -80,7 +80,7 @@ export function AnalyticsSection() {
             </CardContent>
           </Card>
 
-          <Card className="bg-linear-to-br from-accent to-background border-border">
+          <Card className="border-border bg-card">
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Top Diagnoses

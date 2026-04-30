@@ -49,7 +49,7 @@ export function AiAutomationSection() {
 
   return (
     <section className="landing-section bg-background text-foreground relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
+      <div className="absolute inset-0 bg-muted/20" />
 
       <div className="mx-auto max-w-7xl relative z-10">
         <div className="grid gap-16 lg:grid-cols-2 items-center">
@@ -60,7 +60,7 @@ export function AiAutomationSection() {
                 AI, rolled out carefully
               </span>
             </div>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-5xl mb-6 bg-linear-to-r from-foreground to-primary bg-clip-text text-transparent">
+            <h2 className="mb-6 text-3xl font-bold tracking-normal text-foreground sm:text-5xl">
               Keep AI narrow, reviewable, and useful
             </h2>
             <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
@@ -103,7 +103,7 @@ export function AiAutomationSection() {
           </div>
 
           <div className="relative">
-            <div className="absolute -inset-4 bg-linear-to-r from-primary to-info rounded-2xl opacity-20 blur-xl" />
+            <div className="absolute -inset-4 rounded-lg border border-primary/10 bg-primary/5" />
             <Card className="relative bg-card border-border shadow-2xl overflow-hidden">
               <CardHeader className="border-b border-border bg-card/70">
                 <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export function AiAutomationSection() {
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                <div className="rounded-2xl border border-success/20 bg-success/5 p-4">
+                <div className="rounded-lg border border-success/20 bg-success/5 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">
@@ -133,7 +133,7 @@ export function AiAutomationSection() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-warning/20 bg-warning/5 p-4">
+                <div className="rounded-lg border border-warning/20 bg-warning/5 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">
@@ -150,7 +150,7 @@ export function AiAutomationSection() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-info/20 bg-info/5 p-4">
+                <div className="rounded-lg border border-info/20 bg-info/5 p-4">
                   <p className="text-sm font-semibold text-foreground">
                     Not the headline promise
                   </p>

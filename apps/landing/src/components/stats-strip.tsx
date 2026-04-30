@@ -57,7 +57,7 @@ export function StatsStrip() {
           {statCards.map((card) => (
             <article
               key={card.label}
-              className="rounded-xl border border-primary-foreground/20 bg-primary-foreground/5 p-5"
+              className="rounded-lg border border-primary-foreground/20 bg-primary-foreground/5 p-5"
             >
               <card.icon
                 className="mx-auto mb-3 h-7 w-7 opacity-90"
