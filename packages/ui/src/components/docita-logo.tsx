@@ -27,7 +27,7 @@ const brandAsset = (fileName: string) =>
   `/branding/${fileName}.png?${DOCITA_ICON_CACHE_BUST}`;
 
 const ORIGINAL_WORDMARK_ASSET = brandAsset("Dark-background");
-const ICON_FRAME_CLASS = "rounded-[var(--radius-xl)]";
+const ICON_FRAME_CLASS = "overflow-hidden rounded-full";
 const WORDMARK_FRAME_CLASS = "rounded-[var(--radius-xl)]";
 
 function BrandImage({
@@ -83,7 +83,7 @@ export function DocitaIcon({
       frameClassName={ICON_FRAME_CLASS}
       loading="eager"
       className={cn(
-        "block h-9 w-9 shrink-0 rounded-[var(--radius-xl)] object-contain align-middle ring-1 ring-border/55",
+        "block h-9 w-9 shrink-0 rounded-full object-cover align-middle ring-1 ring-border/55",
         className,
       )}
     />

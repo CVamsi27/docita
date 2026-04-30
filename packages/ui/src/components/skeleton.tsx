@@ -36,7 +36,7 @@ export function Skeleton({
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border/50 p-6 space-y-3">
+    <div className="rounded-lg border border-border/50 p-6 space-y-3">
       <Skeleton className="h-4 w-24" />
       <div className="flex items-baseline gap-2">
         <Skeleton className="h-8 w-20" />

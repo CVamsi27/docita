@@ -71,7 +71,7 @@ function DialogContent({
         className={cn(
           "bg-surface-1 supports-[backdrop-filter]:bg-surface-1/95 supports-[backdrop-filter]:backdrop-blur-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "fixed z-50 flex flex-col gap-5 rounded-t-2xl sm:rounded-2xl border border-border shadow-2xl duration-200",
+          "fixed z-50 flex flex-col gap-5 rounded-t-lg sm:rounded-lg border border-border shadow-2xl duration-200",
           densityClass,
           "max-h-[92dvh] overflow-y-auto overscroll-contain",
           "bottom-0 left-0 right-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2",
@@ -93,7 +93,7 @@ function DialogContent({
             aria-label="Close"
             className={cn(
               "absolute top-3 right-3 sm:top-4 sm:right-4",
-              "inline-flex items-center justify-center rounded-full",
+              "inline-flex items-center justify-center rounded-lg",
               "size-9 sm:size-8",
               "text-muted-foreground hover:text-foreground",
               "bg-transparent hover:bg-accent/60 active:bg-accent",

@@ -34,7 +34,7 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
+      <div className="mx-auto flex size-16 items-center justify-center rounded-lg border border-border/70 bg-muted/40">
         <Icon className="h-8 w-8 text-muted-foreground/50" />
       </div>
       <div className="ui-copy-stack">
@@ -83,12 +83,12 @@ export function SectionHeader({
   return (
     <div
       className={cn(
-        "flex flex-row items-center justify-between space-y-0 pb-4",
+        "flex flex-row items-center justify-between gap-3 pb-4",
         className,
       )}
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
         </div>
         <div className="ui-copy-stack">

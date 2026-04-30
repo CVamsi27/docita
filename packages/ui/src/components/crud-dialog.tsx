@@ -74,7 +74,7 @@ export function CRUDDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
           <div className="flex flex-col gap-4 min-w-0">{children}</div>
 
           <DialogFooter>
