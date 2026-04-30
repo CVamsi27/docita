@@ -5,10 +5,8 @@ import { useRecentPatients } from "@/hooks/api/use-patients";
 import { usePendingJoinRequestCount } from "@/hooks/api/use-notifications";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
-import {
-  DashboardAppointment,
-  DashboardPatient,
-} from "@workspace/types";
+import { type AppointmentListItem } from "@/hooks/api/use-appointments";
+import { DashboardPatient } from "@workspace/types";
 
 export const useDashboardLogic = () => {
   const { isAdmin } = useAuth();
@@ -53,7 +51,7 @@ export const useDashboardLogic = () => {
   } = useMemo(() => {
     const appointmentsData = rawAppointmentsResponse?.items || [];
     const validAppointments = appointmentsData.filter(
-      (appointment): appointment is DashboardAppointment =>
+      (appointment): appointment is AppointmentListItem =>
         Boolean(appointment.id && appointment.startTime),
     );
 

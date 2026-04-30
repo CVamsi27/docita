@@ -62,7 +62,7 @@ export function PrescriptionDocument({
               </div>
             ) : null}
             <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-bold text-primary leading-tight">
+              <h1 className="ui-page-title text-primary leading-[var(--lh-tight)]">
                 {clinicInfo?.name ?? ""}
               </h1>
               {clinicInfo?.address && (

@@ -105,7 +105,7 @@ export function SubscriptionSettings() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <p className="text-lg font-bold">{tierName}</p>
+            <p className="ui-section-title text-[var(--fs-lg)]">{tierName}</p>
             <Badge variant="secondary" className="capitalize">
               {subscriptionStatus}
             </Badge>
@@ -304,32 +304,35 @@ export function SubscriptionSettings() {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-xl">Billing &amp; Subscription</CardTitle>
+          <CardTitle className="ui-section-title text-[var(--fs-xl)]">
+            Billing &amp; Subscription
+          </CardTitle>
           <CardDescription>
             Your active plan summary, billing cycle, and receipts
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6 pt-6">
-          <div className="flex flex-col gap-4 rounded-lg border bg-muted/30 p-4 md:flex-row md:items-center md:justify-between md:p-5">
-            <div className="space-y-1">
-              <p className="font-semibold">Billing guidance</p>
-              <p className="text-sm text-muted-foreground">
-                For the complete feature comparison and every other plan detail,
-                open the Upgrade page.
+          <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                {tierName} · {humanizeUiLabel(billingCycle)} billing
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Current period ends {periodEnd}
+                {periodDaysLeft !== null
+                  ? ` (${periodDaysLeft} day${periodDaysLeft === 1 ? "" : "s"} left)`
+                  : ""}
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" onClick={() => router.push("/upgrade")}>
-                View plans
-              </Button>
-              <WhatsAppButton
-                phoneNumber={supportPhone}
-                message="Hi Docita team, I need help with billing and onboarding"
-                label="Message support"
-                variant="default"
-              />
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={() => router.push("/upgrade")}
+            >
+              View plans
+            </Button>
           </div>
 
           <CurrentPlanCard
@@ -381,6 +384,20 @@ export function SubscriptionSettings() {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Need help with billing or onboarding?
+            </p>
+            <WhatsAppButton
+              phoneNumber={supportPhone}
+              message="Hi Docita team, I need help with billing and onboarding"
+              label="Message support"
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+            />
           </div>
         </CardContent>
       </Card>

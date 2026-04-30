@@ -38,7 +38,7 @@ export function PrescriptionHeader({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Prescription</h1>
+          <h1 className="ui-page-title">Prescription</h1>
           <p className="text-sm text-muted-foreground">
             {format(new Date(createdAt), "MMMM d, yyyy")}
           </p>
@@ -65,7 +65,7 @@ export function PrescriptionHeader({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Upgrade to access WhatsApp sharing</p>
+              <p>WhatsApp</p>
             </TooltipContent>
           </Tooltip>
         )}

@@ -611,9 +611,11 @@ export function ComplianceStep({
               successDescription="Your signature has been saved successfully"
             />
             {qrFlow.isUploaded ? (
-              <div className="rounded-lg border bg-card p-4 space-y-3">
+              <div className="ui-card-surface space-y-3 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium">Signature preview</p>
+                  <p className="ui-section-title text-[var(--fs-sm)]">
+                    Signature preview
+                  </p>
                   <Button
                     type="button"
                     variant="outline"

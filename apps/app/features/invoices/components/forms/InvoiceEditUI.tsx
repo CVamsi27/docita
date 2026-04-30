@@ -80,7 +80,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
       <div className="flex items-center gap-4">
         <BackButton fallback={invoiceFallback} label="Cancel" />
         <div>
-          <h1 className="text-2xl font-bold tracking-normal">Edit Invoice</h1>
+          <h1 className="ui-page-title">Edit Invoice</h1>
           <p className="text-muted-foreground">
             Make changes to invoice #{invoice.id}
           </p>

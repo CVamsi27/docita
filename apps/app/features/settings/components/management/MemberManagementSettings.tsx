@@ -1,14 +1,11 @@
 "use client";
 
 import { FC, useMemo, useState } from "react";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   useClinicSettings,
-  useCreateClinicDoctor,
-  useCreateClinicReceptionist,
+  useCreateClinicMember,
   useDeleteClinicMember,
   useReverifyDoctorRegistration,
   useUpdateClinicMember,
@@ -23,95 +20,27 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@workspace/ui/components/form";
-import { Input } from "@workspace/ui/components/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select";
-import { Copy, Loader2, ShieldCheck, ShieldX, UserPlus } from "lucide-react";
+import { Copy, UserPlus } from "lucide-react";
 import { User } from "@workspace/types";
 import { useMemberManagementLogic } from "@/features/settings/hooks/use-member-management-logic";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useFacilityLabel } from "@/lib/facility-label";
 import { useAuth } from "@/lib/auth-context";
-
-const inviteSchema = z
-  .object({
-    name: z.string().min(1, "Enter the team member's name"),
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(8, "Use at least 8 characters"),
-    role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST"]),
-    phoneNumber: z.string().optional(),
-    specialization: z.string().optional(),
-    qualification: z.string().optional(),
-    registrationNumber: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.role === "DOCTOR" && !data.registrationNumber?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["registrationNumber"],
-        message: "Enter the medical registration number",
-      });
-    }
-  });
-
-const memberSchema = z
-  .object({
-    name: z.string().min(1, "Enter the team member's name"),
-    email: z.string().email("Please enter a valid email address"),
-    phoneNumber: z.string().optional(),
-    role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"]),
-    specialization: z.string().optional(),
-    qualification: z.string().optional(),
-    registrationNumber: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (
-      (data.role === "DOCTOR" || data.role === "ADMIN_DOCTOR") &&
-      !data.registrationNumber?.trim()
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["registrationNumber"],
-        message: "Enter the medical registration number",
-      });
-    }
-  });
-
-type InviteFormValues = z.infer<typeof inviteSchema>;
-type MemberFormValues = z.infer<typeof memberSchema>;
-type MemberRole = MemberFormValues["role"];
-
-const DOCTOR_ROLES = new Set<MemberRole>(["DOCTOR", "ADMIN_DOCTOR"]);
-const ADMIN_SWITCH_ROLES = new Set<MemberRole>(["ADMIN", "ADMIN_DOCTOR"]);
-const MEMBER_ROLE_LABELS: Record<MemberRole, string> = {
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  RECEPTIONIST: "Receptionist",
-  ADMIN: "Admin",
-  ADMIN_DOCTOR: "Admin Doctor",
-};
+import { useConfirm } from "@/hooks/use-confirm";
+import {
+  ADMIN_SWITCH_ROLES,
+  DOCTOR_ROLES,
+  INVITE_SUCCESS_LABELS,
+  MEMBER_ROLE_LABELS,
+  inviteSchema,
+  memberSchema,
+  type InviteFormValues,
+  type MemberFormValues,
+  type MemberRole,
+} from "@/features/settings/components/management/member-management-schemas";
+import { InviteTeamMemberDialog } from "@/features/settings/components/management/invite-team-member-dialog";
+import { ManageTeamMemberDialog } from "@/features/settings/components/management/manage-team-member-dialog";
 
 interface MemberManagementUIProps {
   members: User[];
@@ -128,15 +57,14 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   clinicId,
   clinicReferralCode,
 }) => {
+  const { confirm } = useConfirm();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<User | null>(null);
   const facilityLabel = useFacilityLabel();
   const { user } = useAuth();
 
-  const { mutate: createDoctor, isPending: isCreatingDoctor } =
-    useCreateClinicDoctor(clinicId);
-  const { mutate: createReceptionist, isPending: isCreatingReceptionist } =
-    useCreateClinicReceptionist(clinicId);
+  const { mutate: createMember, isPending: isCreatingMember } =
+    useCreateClinicMember(clinicId);
   const { mutate: updateMember, isPending: isUpdatingMember } =
     useUpdateClinicMember();
   const { mutate: deleteMember, isPending: isDeletingMember } =
@@ -144,7 +72,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   const { mutate: reverifyDoctor, isPending: isReverifyingDoctor } =
     useReverifyDoctorRegistration();
 
-  const isSaving = isCreatingDoctor || isCreatingReceptionist;
+  const isSaving = isCreatingMember;
   const isManaging =
     isUpdatingMember || isDeletingMember || isReverifyingDoctor;
 
@@ -265,11 +193,15 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
     );
   };
 
-  const handleRemoveMember = () => {
+  const handleRemoveMember = async () => {
     if (!selectedMember) return;
-    const confirmed = window.confirm(
-      `Remove ${selectedMember.name || "this member"} from ${facilityLabel.toLowerCase()}?`,
-    );
+    const confirmed = await confirm({
+      title: "Remove team member",
+      description: `Remove ${selectedMember.name || "this member"} from ${facilityLabel.toLowerCase()}? This cannot be undone.`,
+      variant: "destructive",
+      confirmText: "Remove",
+      cancelText: "Cancel",
+    });
     if (!confirmed) return;
 
     deleteMember(
@@ -353,50 +285,33 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
       return;
     }
 
-    if (data.role === "DOCTOR") {
-      createDoctor(
-        {
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          phoneNumber: data.phoneNumber || undefined,
-          specialization: data.specialization || undefined,
-          qualification: data.qualification || undefined,
-          registrationNumber: data.registrationNumber || undefined,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Doctor invited successfully");
-            setIsInviteOpen(false);
-            form.reset();
-          },
-          onError: (err) => {
-            showUserFacingErrorToast(
-              err,
-              "We could not send this doctor invitation. Please try again.",
-              "save",
-            );
-          },
-        },
+    if (
+      (data.role === "ADMIN" || data.role === "ADMIN_DOCTOR") &&
+      !userCanChangeRoles
+    ) {
+      showUserFacingErrorToast(
+        null,
+        "Only facility administrators can invite Admin or Admin Doctor accounts.",
+        "form",
       );
       return;
     }
 
-    createReceptionist(
+    createMember(
       {
         name: data.name,
         email: data.email,
         password: data.password,
+        role: data.role,
         phoneNumber: data.phoneNumber || undefined,
-        role:
-          data.role === "NURSE" || data.role === "RECEPTIONIST"
-            ? data.role
-            : undefined,
+        specialization: data.specialization || undefined,
+        qualification: data.qualification || undefined,
+        registrationNumber: data.registrationNumber || undefined,
       },
       {
         onSuccess: () => {
           toast.success(
-            `${data.role === "NURSE" ? "Nurse" : "Receptionist"} invited successfully`,
+            `${INVITE_SUCCESS_LABELS[data.role]} invited successfully`,
           );
           setIsInviteOpen(false);
           form.reset();
@@ -404,7 +319,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         onError: (err) => {
           showUserFacingErrorToast(
             err,
-            `We could not send this ${data.role === "NURSE" ? "nurse" : "receptionist"} invitation. Please try again.`,
+            "We could not send this invitation. Please try again.",
             "save",
           );
         },
@@ -474,7 +389,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
               onClick={handleCopyClinicCode}
               disabled={!clinicReferralCode}
             >
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="mr-2 h-4 w-4" />
               Copy
             </Button>
           </div>
@@ -488,14 +403,14 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             disabled={!canInvite}
             className="w-full md:w-auto"
           >
-            <UserPlus className="h-4 w-4 mr-2" />
+            <UserPlus className="mr-2 h-4 w-4" />
             Invite Member
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         {sortedMembers.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
+          <div className="py-8 text-center text-muted-foreground">
             No team members found. Invite your first team member.
           </div>
         ) : (
@@ -503,10 +418,10 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
             {sortedMembers.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50"
+                className="flex items-center justify-between rounded-lg p-3 hover:bg-muted/50"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-foreground font-medium">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 font-medium text-foreground">
                     {member.name
                       ?.split(" ")
                       .map((n: string) => n[0])
@@ -560,481 +475,38 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         )}
       </CardContent>
 
-      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent className="sm:max-w-[560px]">
-          <DialogHeader>
-            <DialogTitle>Invite Team Member</DialogTitle>
-            <DialogDescription>
-              Add a doctor, nurse, or receptionist to your facility team.
-            </DialogDescription>
-          </DialogHeader>
+      <InviteTeamMemberDialog
+        open={isInviteOpen}
+        onOpenChange={setIsInviteOpen}
+        form={form}
+        selectedRole={selectedRole}
+        userCanChangeRoles={userCanChangeRoles}
+        canInvite={canInvite}
+        isSaving={isSaving}
+        onSubmit={onInviteSubmit}
+      />
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onInviteSubmit, () => {
-                showUserFacingErrorToast(
-                  "Please check the highlighted fields and try again.",
-                  "Please check the highlighted fields and try again.",
-                  "form",
-                );
-              })}
-              className="space-y-4"
-              noValidate
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Full name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select
-                        value={field.value ?? "NURSE"}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="NURSE">Nurse</SelectItem>
-                          <SelectItem value="RECEPTIONIST">
-                            Receptionist
-                          </SelectItem>
-                          <SelectItem value="DOCTOR">Doctor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="name@facility.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone (optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="+91..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Temporary Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="At least 8 characters"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {selectedRole === "DOCTOR" && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="specialization"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Specialization</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Cardiology" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="qualification"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Qualification</FormLabel>
-                        <FormControl>
-                          <Input placeholder="MBBS, MD" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="registrationNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Registration #</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Medical council no" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
-
-              <DialogFooter className="flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsInviteOpen(false)}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={!canInvite || isSaving}
-                  className="w-full sm:w-auto"
-                >
-                  {isSaving && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Invite Member
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={!!selectedMember}
+      <ManageTeamMemberDialog
+        member={selectedMember}
         onOpenChange={(open) => {
           if (!open) setSelectedMember(null);
         }}
-      >
-        <DialogContent className="sm:max-w-[640px]">
-          <DialogHeader>
-            <DialogTitle>Member Details</DialogTitle>
-            <DialogDescription>{memberDialogDescription}</DialogDescription>
-          </DialogHeader>
-          {selectedMember && (
-            <Form {...memberForm}>
-              <form
-                onSubmit={memberForm.handleSubmit(handleSaveMember, () => {
-                  showUserFacingErrorToast(
-                    "Please check the highlighted fields and try again.",
-                    "Please check the highlighted fields and try again.",
-                    "form",
-                  );
-                })}
-                className="flex flex-col gap-4 text-sm"
-                noValidate
-              >
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="rounded-lg border bg-muted/20 p-3 md:col-span-2">
-                    <p className="text-base font-semibold text-foreground">
-                      {selectedMember.name || "Unknown member"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {MEMBER_ROLE_LABELS[selectedMemberRole]}
-                    </p>
-                  </div>
-                  <FormField
-                    control={memberForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Full name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={memberForm.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        {canChangeSelectedMemberRole ? (
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="ADMIN">Admin</SelectItem>
-                              <SelectItem value="ADMIN_DOCTOR">
-                                Admin Doctor
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="flex h-10 items-center rounded-md border bg-muted/20 px-3">
-                            <Badge variant="outline">
-                              {MEMBER_ROLE_LABELS[field.value]}
-                            </Badge>
-                          </div>
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField
-                    control={memberForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="name@facility.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={memberForm.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone (optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+91..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {isSelectedMemberDoctor && (
-                  <>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                      <FormField
-                        control={memberForm.control}
-                        name="specialization"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Specialization</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Cardiology" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={memberForm.control}
-                        name="qualification"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Qualification</FormLabel>
-                            <FormControl>
-                              <Input placeholder="MBBS, MD" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={memberForm.control}
-                        name="registrationNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Registration #</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Medical council no"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="rounded-lg border bg-surface-2 p-3">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge
-                            variant={getVerificationBadgeVariant(
-                              selectedMember.verificationStatus,
-                            )}
-                          >
-                            {selectedMember.verificationStatus ===
-                            "VERIFIED" ? (
-                              <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                            ) : (
-                              <ShieldX className="mr-1 h-3.5 w-3.5" />
-                            )}
-                            {getVerificationBadgeLabel(
-                              selectedMember.verificationStatus,
-                            )}
-                          </Badge>
-                          <Badge
-                            variant={
-                              selectedMember.signatureUploadedAt
-                                ? "default"
-                                : "outline"
-                            }
-                          >
-                            Signature{" "}
-                            {selectedMember.signatureUploadedAt
-                              ? "Ready"
-                              : "Missing"}
-                          </Badge>
-                        </div>
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <p>
-                            Last verification:{" "}
-                            {formatDate(selectedMember.verificationCheckedAt)}
-                          </p>
-                          <p>
-                            Signature uploaded:{" "}
-                            {formatDate(selectedMember.signatureUploadedAt)}
-                          </p>
-                          {selectedMember.verificationReason && (
-                            <p>
-                              Verification note:{" "}
-                              {selectedMember.verificationReason}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {!selectedMember.signatureUploadedAt && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              asChild
-                            >
-                              <Link href="/verify-doctor">
-                                Complete Doctor Verification
-                              </Link>
-                            </Button>
-                          )}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleReverifyDoctor(selectedMember.id)
-                            }
-                            disabled={isManaging}
-                          >
-                            {isReverifyingDoctor && (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            )}
-                            Reverify Registration
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <p className="text-muted-foreground">Created</p>
-                  <p className="font-medium">
-                    {selectedMember.createdAt
-                      ? new Date(selectedMember.createdAt).toLocaleDateString()
-                      : "-"}
-                  </p>
-                </div>
-
-                <DialogFooter className="sm:justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setSelectedMember(null)}
-                    disabled={isManaging}
-                    className="w-full sm:w-auto"
-                  >
-                    Close
-                  </Button>
-                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
-                    <Button
-                      type="submit"
-                      disabled={isManaging}
-                      className="w-full sm:w-auto"
-                    >
-                      {isUpdatingMember && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Save Changes
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={handleRemoveMember}
-                      disabled={isManaging}
-                      className="w-full sm:w-auto"
-                    >
-                      {isDeletingMember && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Remove
-                    </Button>
-                  </div>
-                </DialogFooter>
-              </form>
-            </Form>
-          )}
-        </DialogContent>
-      </Dialog>
+        memberForm={memberForm}
+        selectedMemberRole={selectedMemberRole}
+        memberDialogDescription={memberDialogDescription}
+        canChangeSelectedMemberRole={canChangeSelectedMemberRole}
+        isSelectedMemberDoctor={isSelectedMemberDoctor}
+        isManaging={isManaging}
+        isUpdatingMember={isUpdatingMember}
+        isDeletingMember={isDeletingMember}
+        isReverifyingDoctor={isReverifyingDoctor}
+        onSave={handleSaveMember}
+        onRemoveClick={handleRemoveMember}
+        onReverifyDoctor={handleReverifyDoctor}
+        getVerificationBadgeVariant={getVerificationBadgeVariant}
+        getVerificationBadgeLabel={getVerificationBadgeLabel}
+        formatDate={formatDate}
+      />
     </Card>
   );
 };

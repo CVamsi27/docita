@@ -61,7 +61,7 @@ export default function ProfilePage() {
         />
       }
     >
-      <Card className="border-border shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
           <CardDescription>Update your personal details here</CardDescription>

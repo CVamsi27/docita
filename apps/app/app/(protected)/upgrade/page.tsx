@@ -385,10 +385,10 @@ export default function UpgradePage() {
         <div ref={plansRef} className="scroll-mt-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold tracking-normal">
+              <h2 className="ui-section-title text-[var(--fs-xl)]">
                 Choose a plan
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="ui-page-subtitle">
                 Select a plan below. The confirmation step appears only after
                 you choose one.
               </p>
@@ -523,8 +523,10 @@ export default function UpgradePage() {
         <Card className="border-border/70 bg-card">
           <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
             <div>
-              <h3 className="text-lg font-semibold">Need help choosing?</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="ui-section-title text-[var(--fs-lg)]">
+                Need help choosing?
+              </h3>
+              <p className="ui-page-subtitle">
                 Our team can help you find the perfect plan for your practice
               </p>
             </div>

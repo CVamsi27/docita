@@ -1,6 +1,7 @@
 import {
   Clinic,
   CreateClinicDoctorRequest,
+  CreateClinicMemberRequest,
   CreateClinicReceptionistRequest,
   CreateDoctorRequest,
   type SubscriptionCurrentResponse,
@@ -57,8 +58,10 @@ export interface SignatureUploadSessionResponse {
   expiresAt: string | Date;
 }
 
-export const useClinicSettings = () =>
-  useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings");
+export const useClinicSettings = (queryOptions?: { enabled?: boolean }) =>
+  useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings", {
+    enabled: queryOptions?.enabled,
+  });
 
 export const useClinicMembers = () =>
   useAPIQuery<User[]>(["clinic", "members"], "/clinic/members");
@@ -89,6 +92,23 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
         );
       }
       return `/clinics/${clinicId}/receptionists`;
+    },
+    "POST",
+    {
+      invalidateKeys: [["clinic", "members"]],
+      suppressGlobalErrorToast: true,
+    },
+  );
+
+export const useCreateClinicMember = (clinicId?: string) =>
+  useAPIMutation<User, CreateClinicMemberRequest>(
+    () => {
+      if (!clinicId) {
+        throw new Error(
+          "We could not identify this facility. Please refresh and try again.",
+        );
+      }
+      return `/clinics/${clinicId}/members`;
     },
     "POST",
     {

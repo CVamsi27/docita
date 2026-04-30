@@ -33,7 +33,9 @@ function MedicationsContent({
 
       {scheduledMedications.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Scheduled Medications</h2>
+          <h2 className="ui-section-title text-[var(--fs-xl)]">
+            Scheduled Medications
+          </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {scheduledMedications.map((med) => (
               <DoseTracker
@@ -49,8 +51,10 @@ function MedicationsContent({
 
       {prnMedications.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">As-Needed Medications</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="ui-section-title text-[var(--fs-xl)]">
+            As-Needed Medications
+          </h2>
+          <p className="ui-page-subtitle">
             Log doses when you take these medications.
           </p>
           <div className="grid gap-4 sm:grid-cols-2">

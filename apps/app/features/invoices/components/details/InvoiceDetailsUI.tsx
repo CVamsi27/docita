@@ -81,7 +81,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <BackButton fallback="/invoices" className="shrink-0" />
-          <h1 className="text-xl sm:text-2xl font-bold tracking-normal">
+          <h1 className="ui-page-title text-[var(--fs-xl)] sm:text-[var(--fs-2xl)]">
             Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
           </h1>
           <StatusBadge status={invoice.status} />

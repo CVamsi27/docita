@@ -73,7 +73,7 @@ export function InvoiceHeader({
         </CardDescription>
       </div>
       <div className="text-right">
-        <h2 className="text-2xl font-bold text-primary mb-1">
+        <h2 className="ui-section-title mb-1 text-[var(--fs-2xl)] text-primary">
           {documentTitle}
         </h2>
         <p className="text-sm font-medium text-muted-foreground">

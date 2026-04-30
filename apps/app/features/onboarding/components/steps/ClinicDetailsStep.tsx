@@ -167,10 +167,10 @@ export function ClinicDetailsStep({
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-xl sm:text-2xl">
+        <CardTitle className="ui-section-title text-[var(--fs-lg)] sm:text-[var(--fs-2xl)]">
           Step 1: {facilityLabel} Details
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="ui-page-subtitle">
           Start with the basics, then confirm your exact {facilityLabel.toLowerCase()} location
         </p>
       </CardHeader>

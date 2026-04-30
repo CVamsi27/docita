@@ -27,6 +27,7 @@ export * from "./filter-bar";
 export * from "./form-page";
 export * from "./print-sheet";
 export * from "./stat-grid";
+export * from "./stat-tile";
 export * from "./timeline";
 export * from "./toolbar";
 export * from "./confirmation-dialog";

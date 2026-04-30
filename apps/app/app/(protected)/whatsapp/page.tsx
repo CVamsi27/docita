@@ -16,6 +16,7 @@ import { useWhatsappStats } from "@/hooks/api/use-whatsapp";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
+import { StatTile } from "@workspace/ui";
 
 export default function WhatsAppPage() {
   const { data: stats } = useWhatsappStats();
@@ -69,7 +70,7 @@ export default function WhatsAppPage() {
                 <div className="h-2.5 w-2.5 rounded-full bg-success animate-pulse" />
                 Active
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="ui-helper-text">
                 Your bot is currently handling patient queries, appointment
                 confirmations, and reminders.
               </p>
@@ -85,13 +86,14 @@ export default function WhatsAppPage() {
               <CardDescription>Send announcements to patients</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="ui-helper-text">
                 Send health tips, facility updates, or holiday notices to your
-                patient list.
+                patient list. Use the
+                <span className="mx-1 font-medium text-foreground">
+                  Create Campaign
+                </span>
+                control above when you are ready.
               </p>
-              <Button className="w-full" onClick={() => setIsBroadcastDialogOpen(true)}>
-                Create Campaign
-              </Button>
             </CardContent>
           </Card>
 
@@ -116,42 +118,35 @@ export default function WhatsAppPage() {
                 <span>Birthday Wishes</span>
                 <span className="text-muted-foreground">Off</span>
               </div>
-              <Button
-                variant="outline"
-                className="w-full mt-2"
-                onClick={() => setIsSettingsDialogOpen(true)}
-              >
-                Manage Settings
-              </Button>
+              <p className="ui-helper-text pt-1">
+                Open
+                <span className="mx-1 font-medium text-foreground">
+                  Manage Settings
+                </span>
+                above to change templates and triggers.
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Subscribers
-              </CardTitle>
-              <CardDescription>Patient opt-in status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {subscriberCount.toLocaleString()}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Patients with phone numbers
-              </p>
-              <div className="mt-4 h-2 w-full bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-success"
-                  style={{ width: `${optInRate}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {optInRate}% have phone numbers
-              </p>
-            </CardContent>
-          </Card>
+          <StatTile
+            label="Subscribers"
+            value={subscriberCount.toLocaleString()}
+            description="Patients with phone numbers on file"
+            icon={<Users className="h-4 w-4" aria-hidden />}
+            footer={
+              <>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-success"
+                    style={{ width: `${optInRate}%` }}
+                  />
+                </div>
+                <p className="ui-helper-text mt-1 text-[var(--fs-xs)]">
+                  {optInRate}% have phone numbers
+                </p>
+              </>
+            }
+          />
         </div>
 
         <WhatsAppBroadcastDialog

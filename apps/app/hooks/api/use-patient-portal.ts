@@ -120,6 +120,7 @@ export const usePatientConsentSettings = () =>
     whatsappConsent: boolean;
     whatsappConsentAt: string | null;
     isFirstLogin: boolean;
+    dataStorageConsent: boolean;
   }>(["patient-portal", "consent"], "/patient-portal/consent");
 
 export const useUpdatePatientConsent = () =>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Check, Info, Minus } from "lucide-react";
 import {
   FEATURE_TIER_MAP,
@@ -30,6 +31,15 @@ interface ComparisonTableProps {
   currentTier: number;
   keyFeaturesOnly?: boolean;
 }
+
+type AvailableFeatureItem =
+  | { kind: "header"; label: string }
+  | {
+      kind: "feature";
+      feature: Feature;
+      label: string;
+      requiredTier: Tier;
+    };
 
 const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
   {
@@ -151,12 +161,43 @@ export function ComparisonTable({
     .filter((t): t is number => typeof t === "number" && t !== Tier.INTELLIGENCE)
     .sort((a, b) => a - b);
 
-  const limitRows = getFeatureComparisonData().filter(
-    (r: FeatureComparisonRow) => r.category === "limit",
+  const limitRows = useMemo(
+    () =>
+      getFeatureComparisonData().filter(
+        (r: FeatureComparisonRow) => r.category === "limit",
+      ),
+    [],
   );
   const categories = keyFeaturesOnly
     ? KEY_FEATURE_CATEGORIES
     : FEATURE_CATEGORIES;
+
+  const [mobileTier, setMobileTier] = useState<number>(() => {
+    return tiers.includes(currentTier) ? currentTier : (tiers[0] ?? Tier.STARTER);
+  });
+
+  const availableFeatures = useMemo(() => {
+    return categories.flatMap<AvailableFeatureItem>((category) => {
+      const validFeatures = category.features.filter(
+        (f) => f in FEATURE_TIER_MAP && getFeatureDetails(f).isGenerallyAvailable,
+      );
+      if (validFeatures.length === 0) return [];
+
+      const header: AvailableFeatureItem = {
+        kind: "header",
+        label: category.label,
+      };
+
+      const features: AvailableFeatureItem[] = validFeatures.map((feature) => ({
+        kind: "feature",
+        feature,
+        label: getFeatureDetails(feature).name,
+        requiredTier: FEATURE_TIER_MAP[feature],
+      }));
+
+      return [header, ...features];
+    });
+  }, [categories]);
 
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
@@ -166,8 +207,89 @@ export function ComparisonTable({
           Find the perfect fit for your facility&apos;s needs
         </p>
       </div>
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="block md:hidden p-4 space-y-4">
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {tiers.map((tier) => {
+            const info = getTierInfo(tier);
+            const isActive = mobileTier === tier;
+            return (
+              <button
+                key={tier}
+                type="button"
+                onClick={() => setMobileTier(tier)}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-background text-foreground border-border hover:bg-muted/50",
+                )}
+              >
+                {info.name}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="rounded-lg border bg-background/50">
+          <div className="p-4 border-b">
+            <p className="text-sm font-semibold text-foreground">Plan Limits</p>
+          </div>
+          <div className="p-4 space-y-3">
+            {limitRows.map((row) => (
+              <div key={row.name} className="flex items-start justify-between gap-4">
+                <p className="text-sm text-muted-foreground min-w-0 break-words">
+                  {row.name}
+                </p>
+                <p className="text-sm font-medium text-foreground text-right">
+                  {String(row.values[mobileTier as Tier])}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-background/50">
+          <div className="p-4 border-b">
+            <p className="text-sm font-semibold text-foreground">Features</p>
+          </div>
+          <div className="p-4 space-y-2">
+            {availableFeatures.map((item, index) => {
+              if (item.kind === "header") {
+                return (
+                  <p
+                    key={`${item.label}-${index}`}
+                    className="pt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                  >
+                    {item.label}
+                  </p>
+                );
+              }
+
+              const hasAccess = mobileTier >= item.requiredTier;
+              return (
+                <div
+                  key={item.feature}
+                  className="flex items-start justify-between gap-3 rounded-md border border-border/60 bg-background/70 px-3 py-2"
+                >
+                  <p className="text-sm text-foreground min-w-0 break-words">
+                    {item.label}
+                  </p>
+                  <div className="shrink-0 pt-0.5">
+                    {hasAccess ? (
+                      <Check className="h-4 w-4 text-success" />
+                    ) : (
+                      <Minus className="h-4 w-4 text-muted-foreground/40" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden md:block">
+        <Table className="text-sm">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[260px] min-w-[200px] sticky left-0 z-10 bg-card border-r">
@@ -212,9 +334,7 @@ export function ComparisonTable({
                             <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[280px]" side="right">
-                            <p className="text-xs">
-                              {LIMIT_ROW_DESCRIPTIONS[row.name]}
-                            </p>
+                            <p className="text-xs">Info</p>
                           </TooltipContent>
                         </Tooltip>
                       )}
@@ -315,7 +435,7 @@ function FeatureCategoryRows({
                       <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[280px]" side="right">
-                      <p className="text-xs">{details.description}</p>
+                      <p className="text-xs">Info</p>
                     </TooltipContent>
                   </Tooltip>
                 )}

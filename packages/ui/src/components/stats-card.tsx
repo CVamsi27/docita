@@ -70,7 +70,9 @@ export function GradientStatCard({
           <div className="flex-1 min-w-0">
             <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-2xl sm:text-3xl font-bold">{value}</h3>
+              <h3 className="text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)] font-semibold leading-[var(--lh-tight)] tabular-nums">
+                {value}
+              </h3>
               {subtitle && (
                 <span className="text-xs text-muted-foreground">
                   {subtitle}

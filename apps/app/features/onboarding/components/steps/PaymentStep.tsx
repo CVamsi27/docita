@@ -198,7 +198,7 @@ export function PaymentStep({
           {/* Total */}
           <div className="bg-muted/50 p-4 rounded-lg flex items-center justify-between">
             <span className="font-semibold">Total Due Today:</span>
-            <span className="text-xl font-bold">
+            <span className="ui-section-title text-[var(--fs-2xl)] leading-none tabular-nums">
               {isFree ? "Free" : `${currencySymbol}${total.toLocaleString()}`}
             </span>
           </div>

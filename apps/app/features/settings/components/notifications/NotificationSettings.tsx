@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
@@ -74,9 +75,6 @@ export function NotificationSettings() {
       {
         pushNotifications: data.inAppNotifications,
         whatsappAppointmentReminders: data.whatsappNotifications,
-        whatsappFollowUpMessages: data.whatsappNotifications,
-        whatsappBirthdayWishes: data.whatsappNotifications,
-        whatsappMedicineReminders: data.whatsappNotifications,
       },
       {
         onSuccess: () => {
@@ -95,9 +93,17 @@ export function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="mt-2 h-4 w-full max-w-md" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-10 w-32" />
+        </CardContent>
+      </Card>
     );
   }
 

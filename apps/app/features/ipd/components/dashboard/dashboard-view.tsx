@@ -38,53 +38,61 @@ export const IpdDashboard: FC<IpdDashboardProps> = ({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-none shadow-lg">
+        <Card className="border-none shadow-md">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="h-10 w-10 rounded-lg bg-info flex items-center justify-center text-info">
               <BedDouble className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{beds.length}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                {beds.length}
+              </p>
               <p className="text-xs text-muted-foreground">Total Beds</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-lg">
+        <Card className="border-none shadow-md">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="h-10 w-10 rounded-lg bg-success flex items-center justify-center text-success">
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{occupiedCount}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                {occupiedCount}
+              </p>
               <p className="text-xs text-muted-foreground">Admitted</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-lg">
+        <Card className="border-none shadow-md">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="h-10 w-10 rounded-lg bg-warning flex items-center justify-center text-warning">
               <Activity className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{dischargesCount}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                {dischargesCount}
+              </p>
               <p className="text-xs text-muted-foreground">Discharges Today</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-lg">
+        <Card className="border-none shadow-md">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center text-primary">
               <Calendar className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{wards.length}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                {wards.length}
+              </p>
               <p className="text-xs text-muted-foreground">Wards</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-none shadow-lg">
+      <Card className="border-none shadow-md">
         <CardHeader>
           <CardTitle>Ward Overview</CardTitle>
           <CardDescription>Current bed occupancy by ward</CardDescription>

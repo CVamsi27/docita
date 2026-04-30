@@ -91,6 +91,6 @@ describe("BillingHistoryTable", () => {
       />,
     );
 
-    expect(screen.getByText("$25.00")).toBeInTheDocument();
+    expect(screen.getAllByText("$25.00").length).toBeGreaterThan(0);
   });
 });

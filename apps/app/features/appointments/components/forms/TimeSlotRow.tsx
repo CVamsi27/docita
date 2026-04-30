@@ -11,7 +11,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import Link from "next/link";
-import { Appointment, Patient } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -24,7 +24,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
 interface TimeSlotRowProps {
-  appointment: Appointment & { patient?: Patient };
+  appointment: AppointmentListItem;
   checkingIn: string | null;
   startingConsultationId: string | null;
   onCheckIn: (id: string) => void;

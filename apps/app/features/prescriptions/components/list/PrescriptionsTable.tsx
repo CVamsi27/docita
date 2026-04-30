@@ -196,9 +196,7 @@ export function PrescriptionsTable({
                       <WhatsAppButton
                         phoneNumber={prescription.patient.phoneNumber}
                         message={`Hello ${prescription.patient.firstName}, here is your prescription from ${
-                          clinic?.name ||
-                          process.env["NEXT_PUBLIC_CLINIC_NAME"] ||
-                          "Clinic"
+                          clinic?.name || "your clinic"
                         }.`}
                         variant="ghost"
                         label=""

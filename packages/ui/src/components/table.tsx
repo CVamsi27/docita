@@ -8,12 +8,12 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-thin"
+      className="relative w-full overflow-x-hidden"
     >
       <table
         data-slot="table"
         className={cn(
-          "w-full caption-bottom text-sm min-w-[600px] sm:min-w-0",
+          "w-full caption-bottom text-sm table-fixed",
           className,
         )}
         {...props}
@@ -73,7 +73,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "text-foreground/90 h-11 px-2 sm:px-3 text-left align-middle font-medium text-xs sm:text-sm whitespace-nowrap [&:has([role=checkbox])]:pr-0 *:[[role=checkbox]]:translate-y-0.5",
+        "text-foreground/90 h-11 px-2 sm:px-3 text-left align-middle font-medium text-xs sm:text-sm whitespace-normal break-words [&:has([role=checkbox])]:pr-0 *:[[role=checkbox]]:translate-y-0.5",
         className,
       )}
       {...props}
@@ -86,7 +86,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 sm:p-3 align-middle text-xs sm:text-sm text-foreground/90 [&:has([role=checkbox])]:pr-0 *:[[role=checkbox]]:translate-y-0.5",
+        "p-2 sm:p-3 align-middle text-xs sm:text-sm text-foreground/90 whitespace-normal break-words [&:has([role=checkbox])]:pr-0 *:[[role=checkbox]]:translate-y-0.5",
         className,
       )}
       {...props}

@@ -59,7 +59,7 @@ export const InvoiceCreateUI: FC = () => {
       <div className="flex items-center gap-4">
         <BackButton fallback="/invoices" label="Cancel" />
         <div>
-          <h1 className="text-2xl font-bold tracking-normal">New Invoice</h1>
+          <h1 className="ui-page-title">New Invoice</h1>
           <p className="text-muted-foreground">
             Create a new invoice for a patient
           </p>

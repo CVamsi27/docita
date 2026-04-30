@@ -10,6 +10,7 @@ import { getUserFacingErrorMessage } from "@workspace/types";
 import { API_URL } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "./errors";
+import type { z } from "zod";
 
 export { API_URL };
 
@@ -188,6 +189,28 @@ export function useAPIQuery<T>(
   return useQuery<T, ApiError>({
     queryKey: key,
     queryFn: () => fetchAPI<T>(endpoint),
+    ...(inferredStaleTime !== undefined
+      ? { staleTime: inferredStaleTime }
+      : {}),
+    ...options,
+  });
+}
+
+export function useAPIQueryValidated<TSchema extends z.ZodTypeAny>(
+  key: readonly (string | number | Record<string, unknown>)[],
+  endpoint: string,
+  schema: TSchema,
+  options?: Omit<
+    UseQueryOptions<z.infer<TSchema>, ApiError>,
+    "queryKey" | "queryFn"
+  >,
+) {
+  const inferredStaleTime =
+    options?.staleTime === undefined ? inferStaleTime(key) : undefined;
+
+  return useQuery<z.infer<TSchema>, ApiError>({
+    queryKey: key,
+    queryFn: async () => schema.parse(await fetchAPI(endpoint)),
     ...(inferredStaleTime !== undefined
       ? { staleTime: inferredStaleTime }
       : {}),

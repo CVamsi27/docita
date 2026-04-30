@@ -68,8 +68,8 @@ export default function OnboardingPage() {
       showSignOut
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-normal">Set up your facility</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="ui-page-title">Set up your facility</h1>
+        <p className="ui-page-subtitle">
           Complete your facility registration to get started.
         </p>
       </div>

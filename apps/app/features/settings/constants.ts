@@ -139,7 +139,7 @@ export const settingsTabs = [
         value: "danger-zone",
         label: "Danger Zone",
         icon: AlertTriangle,
-        description: "Sign out & leave clinic",
+        description: "Sign out on this device",
       },
     ],
   },

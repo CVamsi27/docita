@@ -17,7 +17,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
 
-import { DashboardAppointment } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { useStartConsultation } from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -29,8 +29,8 @@ interface QueueStats {
 }
 
 interface DoctorDashboardCardsProps {
-  currentPatient?: DashboardAppointment | null;
-  nextPatients: DashboardAppointment[];
+  currentPatient?: AppointmentListItem | null;
+  nextPatients: AppointmentListItem[];
   queueStats: QueueStats;
   estimatedWaitTime: number;
 }
@@ -164,7 +164,7 @@ export function DoctorDashboardCardsUI({
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="p-3 rounded-[var(--radius)] bg-warning/10">
-              <p className="text-2xl font-bold text-warning">
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-warning">
                 {queueStats.waiting}
               </p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -172,7 +172,7 @@ export function DoctorDashboardCardsUI({
               </p>
             </div>
             <div className="p-3 rounded-[var(--radius)] bg-info/10">
-              <p className="text-2xl font-bold text-info">
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-info">
                 {queueStats.inProgress}
               </p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -180,7 +180,7 @@ export function DoctorDashboardCardsUI({
               </p>
             </div>
             <div className="p-3 rounded-[var(--radius)] bg-success/10">
-              <p className="text-2xl font-bold text-success">
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-success">
                 {queueStats.completed}
               </p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">

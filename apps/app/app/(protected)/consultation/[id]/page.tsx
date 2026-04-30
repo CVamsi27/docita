@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { DataState } from "@workspace/ui/components/data-state";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { ConsultationShell } from "@/features/consultation/workspace/ConsultationShell";
 import { useConsultationLogic } from "@/features/consultation/hooks/use-consultation-logic";
 import { ConsultationPageHeaderUI } from "@/features/consultation/components/ConsultationPageHeaderUI";
@@ -28,41 +29,48 @@ export default function ConsultationPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center p-4 sm:p-6 md:p-8">
-        <DataState status="loading" loadingMessage="Loading consultation..." />
-      </div>
+      <AppPageScaffold>
+        <DataState
+          status="loading"
+          className="min-h-[50vh]"
+          loadingMessage="Loading consultation..."
+        />
+      </AppPageScaffold>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex h-full items-center justify-center p-4 sm:p-6 md:p-8">
+      <AppPageScaffold>
         <DataState
           status="error"
+          className="min-h-[50vh]"
           errorMessage="We could not open this consultation. Please try again."
           onRetry={() => window.location.reload()}
         />
-      </div>
+      </AppPageScaffold>
     );
   }
 
   if (isAccessDenied) {
     return (
-      <div className="flex h-full items-center justify-center p-4 sm:p-6 md:p-8">
+      <AppPageScaffold>
         <DataState
           status="error"
+          className="min-h-[50vh]"
           errorMessage="Only the assigned doctor can open this consultation"
           onRetry={handleBack}
         />
-      </div>
+      </AppPageScaffold>
     );
   }
 
   if (!appointmentData) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 p-4 sm:p-6 md:p-8">
+      <AppPageScaffold>
         <DataState
           status="empty"
+          className="min-h-[50vh]"
           emptyIcon={Stethoscope}
           emptyTitle="Appointment not found"
           emptyDescription="This consultation is unavailable or has been removed"
@@ -71,7 +79,7 @@ export default function ConsultationPage() {
             onClick: handleBack,
           }}
         />
-      </div>
+      </AppPageScaffold>
     );
   }
 

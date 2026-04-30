@@ -143,7 +143,7 @@ export function DataTable<T>({
           stackOnMobile && mobileRenderer ? "hidden md:block" : undefined,
         )}
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-hidden">
           <Table>
             {caption ? <caption className="sr-only">{caption}</caption> : null}
             <TableHeader

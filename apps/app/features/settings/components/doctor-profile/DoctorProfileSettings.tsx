@@ -57,7 +57,7 @@ export function DoctorProfileSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           {hasSignature && resolvedSignatureUrl && (
-            <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
+            <div className="rounded-lg border bg-background p-4 flex items-center justify-center min-h-[100px]">
               <img
                 src={resolvedSignatureUrl}
                 alt="Your current signature"

@@ -10,7 +10,8 @@ import {
   RecentPatientsUI,
   TodayScheduleUI,
 } from "@/features/dashboard/components";
-import { DashboardAppointment, DashboardPatient } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
+import { DashboardPatient } from "@workspace/types";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-state";
 import { LayoutDashboard } from "lucide-react";
@@ -25,11 +26,11 @@ interface DashboardUIProps {
     newPatientsThisMonth: number;
   };
   recentPatients: DashboardPatient[];
-  todayAppointments: DashboardAppointment[];
+  todayAppointments: AppointmentListItem[];
   completedToday: number;
   inProgressToday: number;
-  currentPatient: DashboardAppointment | null | undefined;
-  nextPatients: DashboardAppointment[];
+  currentPatient: AppointmentListItem | null | undefined;
+  nextPatients: AppointmentListItem[];
   waitingCount: number;
   pendingJoinRequests: number;
   slotDurationMinutes?: number;

@@ -150,7 +150,7 @@ export function TierCard({
   return (
     <Card
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl",
+        "group relative flex flex-col overflow-hidden rounded-lg border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
         gradient.card,
         isCurrentTier && "border-primary ring-2 ring-primary/20 shadow-lg",
         !isCurrentTier && "border-border/80 hover:border-primary/40",

@@ -184,8 +184,8 @@ export function ClinicGeneralSettings() {
               name="facilityLabel"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Display as"
-                  hint="Controls whether the app shows Clinic or Hospital in key headings"
+                  label="Display label"
+                  hint="How your facility is referred to across the app (navigation, settings, team, and join flows). Defaults to Clinic."
                 >
                   <FormControl>
                     <Select
@@ -195,7 +195,7 @@ export function ClinicGeneralSettings() {
                       }
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select display label" />
+                        <SelectValue placeholder="Clinic or Hospital" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="CLINIC">Clinic</SelectItem>

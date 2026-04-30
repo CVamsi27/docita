@@ -14,6 +14,7 @@ import {
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
 import { Loader2, MessageSquare } from "lucide-react";
 import {
   ClinicAppSettings,
@@ -27,6 +28,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormMessage,
 } from "@workspace/ui/components/form";
 
 const whatsappSettingsSchema = z.object({
@@ -34,6 +36,12 @@ const whatsappSettingsSchema = z.object({
   whatsappFollowUpMessages: z.boolean(),
   whatsappBirthdayWishes: z.boolean(),
   whatsappMedicineReminders: z.boolean(),
+  whatsappPreAppointmentEnabled: z.boolean(),
+  whatsappPreAppointmentMinutes: z
+    .number()
+    .int()
+    .min(5, "Use at least 5 minutes")
+    .max(180, "Use 180 minutes or less"),
 });
 
 type WhatsAppSettingsFormValues = z.infer<typeof whatsappSettingsSchema>;
@@ -50,6 +58,8 @@ export function WhatsAppAutomationSettings() {
       whatsappFollowUpMessages: true,
       whatsappBirthdayWishes: false,
       whatsappMedicineReminders: true,
+      whatsappPreAppointmentEnabled: false,
+      whatsappPreAppointmentMinutes: 30,
     },
   });
 
@@ -61,6 +71,8 @@ export function WhatsAppAutomationSettings() {
         whatsappFollowUpMessages: s.whatsappFollowUpMessages ?? true,
         whatsappBirthdayWishes: s.whatsappBirthdayWishes ?? false,
         whatsappMedicineReminders: s.whatsappMedicineReminders ?? true,
+        whatsappPreAppointmentEnabled: s.whatsappPreAppointmentEnabled ?? false,
+        whatsappPreAppointmentMinutes: s.whatsappPreAppointmentMinutes ?? 30,
       });
     }
   }, [clinic, form]);
@@ -90,25 +102,25 @@ export function WhatsAppAutomationSettings() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <MessageSquare className="h-5 w-5 text-success" />
-            <div>
-              <CardTitle>WhatsApp Automation</CardTitle>
-              <CardDescription>
-                Configure automated patient messaging
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              noValidate
-              className="space-y-6"
-            >
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          noValidate
+          className="space-y-6"
+        >
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-5 w-5 text-success" />
+                <div>
+                  <CardTitle>WhatsApp Automation</CardTitle>
+                  <CardDescription>
+                    Configure automated patient messaging
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <FormField
                 control={form.control}
                 name="whatsappAppointmentReminders"
@@ -192,15 +204,91 @@ export function WhatsAppAutomationSettings() {
                   </FormItem>
                 )}
               />
+            </CardContent>
+          </Card>
 
-              <Button className="w-full" type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Changes
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                <div>
+                  <CardTitle>Pre-appointment WhatsApp</CardTitle>
+                  <CardDescription>
+                    Send a WhatsApp message before the appointment with status
+                    options for the patient
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">
+                    Enable pre-appointment message
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Patient receives a WhatsApp message before their appointment
+                    and can reply with: On Time, Delayed, or Cancelled. Their
+                    reply updates the appointment status and notifies the
+                    doctor.
+                  </p>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="whatsappPreAppointmentEnabled"
+                  render={({ field }) => (
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  )}
+                />
+              </div>
+
+              {form.watch("whatsappPreAppointmentEnabled") ? (
+                <div className="flex items-start gap-2">
+                  <Label className="whitespace-nowrap pt-2 text-xs text-muted-foreground">
+                    Send
+                  </Label>
+                  <FormField
+                    control={form.control}
+                    name="whatsappPreAppointmentMinutes"
+                    render={({ field }) => (
+                      <FormItem className="space-y-0">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={5}
+                            max={180}
+                            step={5}
+                            inputMode="numeric"
+                            className="h-9 w-24 text-right text-sm"
+                            value={field.value}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage className="mt-1" />
+                      </FormItem>
+                    )}
+                  />
+                  <span className="pt-2 text-xs text-muted-foreground">
+                    minutes before appointment
+                  </span>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          <Button className="w-full" type="submit" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Changes
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }

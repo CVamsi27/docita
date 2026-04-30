@@ -56,7 +56,7 @@ export default function PortalDashboardPage() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dashboard?.summary.upcomingAppointmentsCount || 0}
               </div>
             </CardContent>
@@ -70,7 +70,7 @@ export default function PortalDashboardPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dashboard?.summary.activePrescriptionsCount || 0}
               </div>
             </CardContent>
@@ -84,7 +84,7 @@ export default function PortalDashboardPage() {
               <Receipt className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dashboard?.summary.outstandingInvoicesCount || 0}
               </div>
             </CardContent>
@@ -96,7 +96,7 @@ export default function PortalDashboardPage() {
             <CardTitle className="text-base">Consent & Data Privacy</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
+            <p className="ui-page-subtitle">
               Review your consent form and privacy preferences.
             </p>
             <div className="grid gap-2 text-sm md:grid-cols-2">

@@ -7,22 +7,26 @@ import {
   ApproveAppointmentRequest,
   BookFollowUpRequest,
   AppointmentCancelRequest,
+  AppointmentListItemContractResponse,
   CreateAppointmentRequest,
   FollowUpResponse,
   ListAppointmentRequestsQuery,
   ListFollowUpsQuery,
   Patient,
+  listAppointmentsResponseSchema,
   RejectAppointmentRequest,
   StartConsultationResponse,
   UpdateAppointmentRequest,
 } from "@workspace/types";
 import {
   fetchAPI,
-  PaginatedResponse,
   useAPIMutation,
   useAPIQuery,
+  useAPIQueryValidated,
 } from "@/lib/api-core";
 import { withQueryString, type QueryParams } from "@/lib/http/query-string";
+
+export type AppointmentListItem = AppointmentListItemContractResponse;
 
 export type AppointmentWithRelations = Appointment & {
   patient?: Patient;
@@ -92,9 +96,10 @@ export const useAppointments = (options?: AppointmentQueryOptions | null) => {
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   const url = withQueryString("/appointments", normalizedOptions);
 
-  return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
+  return useAPIQueryValidated(
     queryKeys.appointments.list(normalizedOptions),
     url,
+    listAppointmentsResponseSchema,
     { enabled: options !== null, placeholderData: keepPreviousData },
   );
 };
@@ -104,9 +109,10 @@ export const useTodayAppointments = (enabled: boolean = true) => {
   const offsetMs = now.getTimezoneOffset() * 60 * 1000;
   const localDate = new Date(now.getTime() - offsetMs);
   const today = localDate.toISOString().split("T")[0] ?? "";
-  return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
+  return useAPIQueryValidated(
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
+    listAppointmentsResponseSchema,
     { enabled },
   );
 };
@@ -118,9 +124,10 @@ export const useAppointment = (id: string) =>
   );
 
 export const usePatientAppointments = (patientId: string) =>
-  useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
+  useAPIQueryValidated(
     queryKeys.appointments.byPatient(patientId),
     `/appointments?patientId=${patientId}`,
+    listAppointmentsResponseSchema,
     { enabled: !!patientId },
   );
 
@@ -210,13 +217,13 @@ export const useInfiniteAppointments = (options?: {
   return useInfiniteQuery({
     queryKey: queryKeys.appointments.infinite(normalizedOptions),
     queryFn: ({ pageParam }) => {
-      return fetchAPI<PaginatedResponse<Appointment & { patient?: Patient }>>(
+      return fetchAPI(
         withQueryString("/appointments", {
           ...normalizedOptions,
           limit: options?.limit ?? 50,
           cursor: pageParam as string | undefined,
         }),
-      );
+      ).then((data) => listAppointmentsResponseSchema.parse(data));
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,

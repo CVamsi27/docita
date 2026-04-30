@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { Lock, LogOut, Shield } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
@@ -153,6 +153,16 @@ export function PreDashboardShell({
             ) : null}
 
             {children}
+          </div>
+          <div className="flex justify-center gap-6 px-4 pb-6 text-xs text-muted-foreground lg:hidden">
+            <span className="flex items-center gap-1">
+              <Shield className="h-3 w-3 shrink-0" aria-hidden />
+              Data Encrypted
+            </span>
+            <span className="flex items-center gap-1">
+              <Lock className="h-3 w-3 shrink-0" aria-hidden />
+              Privacy Controls
+            </span>
           </div>
         </div>
       </div>

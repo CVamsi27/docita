@@ -16,10 +16,10 @@ import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
-import { DashboardAppointment } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 
 export interface TodayScheduleUIProps {
-  appointments: DashboardAppointment[];
+  appointments: AppointmentListItem[];
 }
 
 export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {

@@ -160,7 +160,7 @@ export function EditInvoiceDialogUI({
 
         <div className="flex items-center justify-end gap-4 p-4 bg-muted/30 rounded-lg">
           <span className="text-lg font-medium">Total:</span>
-          <span className="text-2xl font-bold text-primary">
+          <span className="ui-section-title text-[var(--fs-2xl)] text-primary tabular-nums">
                 {formatCurrency(calculateTotal())}
           </span>
         </div>

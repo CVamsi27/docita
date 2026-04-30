@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   Card,
   CardContent,
@@ -52,8 +53,12 @@ export function ChangePasswordSettings() {
       });
       toast.success("Password updated successfully");
       form.reset();
-    } catch {
-      toast.error("We could not update your password. Please try again.");
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not update your password. Please try again.",
+        "save",
+      );
     }
   };
 

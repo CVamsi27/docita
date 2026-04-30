@@ -450,7 +450,7 @@ export function ClinicRegistrationForm({
         {stepError ? `Error: ${stepError}` : ""}
       </div>
 
-      <div className="rounded-lg border bg-card p-4 md:p-5">
+      <div className="ui-card-surface p-4 md:p-5">
         <div className="flex items-center justify-between text-sm mb-3">
           <p className="font-medium text-foreground">
             Step {step} of {TOTAL_STEPS}: {currentStep.label}

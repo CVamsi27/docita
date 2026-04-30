@@ -169,11 +169,13 @@ export const useOCR = () => {
           new Date().getFullYear() - (parseInt(formData.age) || 0),
         ).toISOString(),
         address: formData.address || "",
-        allergies:
-          formData.allergies.length > 0 ? formData.allergies.join(", ") : "",
-        medicalHistory: [formData.diagnosis],
-        isolationStatus: "NONE",
-        fallRisk: false,
+        metadata: {
+          ocr: {
+            diagnosis: formData.diagnosis,
+            allergies:
+              formData.allergies.length > 0 ? formData.allergies : undefined,
+          },
+        },
       });
 
       const appointment = await createAppointmentMutation.mutateAsync({

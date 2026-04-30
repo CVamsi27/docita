@@ -1,8 +1,10 @@
-import { Search, Settings } from "lucide-react";
+import { Search } from "lucide-react";
 import dynamic from "next/dynamic";
 import { cn } from "@workspace/ui/lib/utils";
 import { Input } from "@workspace/ui/components/input";
 import { BackButton } from "@/components/common/navigation/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Tabs,
   TabsContent,
@@ -126,35 +128,27 @@ export function SettingsPageUI({
   );
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 pb-24">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0 space-y-3">
-          <BackButton fallback="/dashboard" label="Back to Dashboard" />
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70">
-              <Settings className="h-5 w-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-normal leading-tight">
-                Settings
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                Manage your facility preferences and configurations
-              </p>
-            </div>
+    <AppPageScaffold
+      className="pb-24"
+      header={
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <PageHeader
+            breadcrumbs={<BackButton fallback="/dashboard" label="Back to Dashboard" />}
+            title="Settings"
+            description="Manage your facility preferences and configurations."
+          />
+          <div className="relative w-full md:w-72 md:shrink-0">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search settings..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
         </div>
-
-        <div className="relative w-full md:w-72 md:shrink-0">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search settings..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
+      }
+    >
 
       <SettingsProfileHeader />
 
@@ -164,7 +158,7 @@ export function SettingsPageUI({
         className="flex flex-col items-start gap-6 md:flex-row lg:gap-10"
       >
         <aside className="w-full shrink-0 md:sticky md:top-4 md:w-56 lg:w-64">
-          <TabsList className="flex h-auto w-full flex-row gap-0.5 overflow-x-auto bg-transparent p-0 pb-1 md:flex-col md:items-stretch md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <TabsList className="flex h-auto w-full flex-row flex-wrap gap-0.5 overflow-x-hidden bg-transparent p-0 pb-1 md:flex-col md:flex-nowrap md:items-stretch md:overflow-visible md:pb-0">
             {filteredTabs.map((category, categoryIndex) => {
               const isDangerCategory = category.category === "Danger Zone";
               return (
@@ -190,7 +184,7 @@ export function SettingsPageUI({
                         className={cn(
                           "shrink-0 md:shrink md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
                           "data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm",
-                          "rounded-[var(--radius)] whitespace-nowrap",
+                          "rounded-[var(--radius)] whitespace-normal",
                           isDangerItem
                             ? "hover:bg-destructive/5 hover:text-destructive transition-colors"
                             : "hover:bg-muted/50 transition-colors",
@@ -329,6 +323,6 @@ export function SettingsPageUI({
           )}
         </div>
       </Tabs>
-    </div>
+    </AppPageScaffold>
   );
 }

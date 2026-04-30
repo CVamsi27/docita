@@ -11,11 +11,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
-import { Bell, Loader2, MessageSquare } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import {
   ClinicAppSettings,
   useClinicSettings,
@@ -58,15 +59,9 @@ const reminderSettingsSchema = z
     invoice: reminderBlockSchema,
     prescription: reminderBlockSchema,
     schedule: reminderBlockSchema,
-    whatsappPreAppointmentEnabled: z.boolean(),
-    whatsappPreAppointmentMinutes: z
-      .number()
-      .int()
-      .min(5, "Use at least 5 minutes")
-      .max(180, "Use 180 minutes or less"),
   })
   .superRefine((data, ctx) => {
-    const blocks: Array<[keyof Omit<typeof data, "whatsappPreAppointmentEnabled" | "whatsappPreAppointmentMinutes">, string]> = [
+    const blocks: Array<[keyof typeof data, string]> = [
       ["appointment", "Appointment reminder"],
       ["followUp", "Follow-up reminder"],
       ["invoice", "Invoice reminder"],
@@ -222,8 +217,6 @@ export const ReminderSettingsUI: FC = () => {
       invoice: { enabled: false, before: "3", unit: "day" },
       prescription: { enabled: false, before: "1", unit: "day" },
       schedule: { enabled: false, before: "1", unit: "hour" },
-      whatsappPreAppointmentEnabled: false,
-      whatsappPreAppointmentMinutes: 30,
     },
   });
 
@@ -256,8 +249,6 @@ export const ReminderSettingsUI: FC = () => {
         before: String(s.scheduleNotificationBefore ?? "1"),
         unit: (s.scheduleNotificationUnit as z.infer<typeof unitSchema>) ?? "hour",
       },
-      whatsappPreAppointmentEnabled: s.whatsappPreAppointmentEnabled ?? false,
-      whatsappPreAppointmentMinutes: s.whatsappPreAppointmentMinutes ?? 30,
     });
   }, [clinic, form]);
 
@@ -278,8 +269,6 @@ export const ReminderSettingsUI: FC = () => {
         scheduleNotificationEnabled: values.schedule.enabled,
         scheduleNotificationBefore: values.schedule.before,
         scheduleNotificationUnit: values.schedule.unit,
-        whatsappPreAppointmentEnabled: values.whatsappPreAppointmentEnabled,
-        whatsappPreAppointmentMinutes: values.whatsappPreAppointmentMinutes,
       },
       {
         onSuccess: () => {
@@ -298,9 +287,17 @@ export const ReminderSettingsUI: FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="mt-2 h-4 w-full max-w-lg" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+          ))}
+        </CardContent>
+      </Card>
     );
   }
 
@@ -368,79 +365,6 @@ export const ReminderSettingsUI: FC = () => {
               unitName="schedule.unit"
               form={form}
             />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <div>
-                <CardTitle>WhatsApp Pre-Appointment Message</CardTitle>
-                <CardDescription>
-                  Send a WhatsApp message before the appointment with status
-                  options for the patient
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium">
-                  Enable pre-appointment message
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Patient receives a WhatsApp message before their appointment
-                  and can reply with: On Time, Delayed, or Cancelled. Their reply
-                  updates the appointment status and notifies the doctor.
-                </p>
-              </div>
-              <FormField
-                control={form.control}
-                name="whatsappPreAppointmentEnabled"
-                render={({ field }) => (
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                )}
-              />
-            </div>
-
-            {form.watch("whatsappPreAppointmentEnabled") ? (
-              <div className="flex items-start gap-2">
-                <Label className="pt-2 text-xs text-muted-foreground whitespace-nowrap">
-                  Send
-                </Label>
-                <FormField
-                  control={form.control}
-                  name="whatsappPreAppointmentMinutes"
-                  render={({ field }) => (
-                    <FormItem className="space-y-0">
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={5}
-                          max={180}
-                          step={5}
-                          inputMode="numeric"
-                          className="w-24 h-9 text-sm text-right"
-                          value={field.value}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage className="mt-1" />
-                    </FormItem>
-                  )}
-                />
-                <span className="pt-2 text-xs text-muted-foreground">
-                  minutes before appointment
-                </span>
-              </div>
-            ) : null}
           </CardContent>
         </Card>
 

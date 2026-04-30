@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Shield } from "lucide-react";
 import { useAuth, type User } from "@/lib/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
 import { ApiValidationError } from "@/lib/api-error";
@@ -349,17 +348,6 @@ export function AuthPageContainer() {
             />
           )}
         </div>
-      </div>
-
-      <div className="lg:hidden flex justify-center gap-6 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          Data Encrypted
-        </span>
-        <span className="flex items-center gap-1">
-          <Lock className="h-3 w-3" />
-          Privacy Controls
-        </span>
       </div>
     </PreDashboardShell>
   );

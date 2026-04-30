@@ -9,7 +9,7 @@ import {
 } from "@workspace/ui/components/card";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import { ErrorState } from "@workspace/ui/components/error-state";
-import { Appointment, Patient } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 
 interface AppointmentsListUIProps {
@@ -19,7 +19,7 @@ interface AppointmentsListUIProps {
   onRetry?: () => void;
   doctorsList: { id: string; name: string }[];
   selectedDoctorId: string | undefined;
-  filteredAppointments: (Appointment & { patient?: Patient })[];
+  filteredAppointments: AppointmentListItem[];
   hasMoreAppointments?: boolean;
   isToday?: boolean;
   currentTimeSlot?: string;

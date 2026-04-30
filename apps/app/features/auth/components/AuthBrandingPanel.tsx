@@ -114,7 +114,9 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
       <div className="relative z-10 flex items-center justify-between p-8 xl:p-10">
         <div className="flex items-center gap-3">
           <DocitaIcon className="h-10 w-10" />
-          <span className="text-2xl font-bold text-foreground">docita</span>
+          <span className="ui-section-title text-[var(--fs-2xl)] text-foreground">
+            docita
+          </span>
         </div>
         <span className="badge-muted rounded-full border px-3 py-1 text-xs font-medium shadow-sm">
           Facility workspace
@@ -124,12 +126,10 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
       <div className="relative z-10 px-8 xl:px-10">
         <div className="max-w-xl space-y-4">
           <p className="text-sm font-medium text-primary">{heroKicker}</p>
-          <h2 className="text-3xl font-bold leading-[1.1] text-foreground xl:text-4xl">
+          <h2 className="ui-page-title text-[var(--fs-3xl)] xl:text-[var(--fs-4xl)] leading-[var(--lh-tight)]">
             {heroTitle}
           </h2>
-          <p className="max-w-md text-sm leading-6 text-muted-foreground">
-            {heroDescription}
-          </p>
+          <p className="ui-page-subtitle max-w-md">{heroDescription}</p>
         </div>
 
         <div className="mt-8 max-w-lg rounded-[var(--radius)] border border-border/70 bg-background/85 p-4 shadow-sm backdrop-blur">
