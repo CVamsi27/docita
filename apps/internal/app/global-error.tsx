@@ -18,7 +18,7 @@ export default function GlobalError({
             <div className="surface-danger mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full">
               <AlertCircle className="h-8 w-8" />
             </div>
-            <h1 className="mb-2 text-2xl font-bold tracking-tight">
+            <h1 className="mb-2 text-2xl font-bold tracking-normal">
               We could not load this page
             </h1>
             <p className="mb-6 text-muted-foreground">

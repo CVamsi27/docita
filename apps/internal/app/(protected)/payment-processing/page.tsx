@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import {
+  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -148,7 +149,14 @@ export default function PaymentProcessingPage() {
       maximumFractionDigits: 0,
     }).format(amount);
   const { token, isInternal, isLoading } = useAuth();
-  const form = useForm<PaymentFormData>();
+  const form = useForm<PaymentFormData>({
+    defaultValues: {
+      paymentMethod: "razorpay",
+      amount: "",
+      newTier: "",
+      paymentNotes: "",
+    },
+  });
   const clinicsQuery = useQuery({
     queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
@@ -219,6 +227,7 @@ export default function PaymentProcessingPage() {
         amount:
           nextPricing.find((t) => t.tier === clinic.tier)?.price?.toString() ??
           data.pricing.toString(),
+        paymentNotes: "",
       });
       setShowPaymentDialog(true);
     } catch {
@@ -242,7 +251,12 @@ export default function PaymentProcessingPage() {
       toast.success("Payment processed and tier updated successfully");
       setShowPaymentDialog(false);
       await clinicsQuery.refetch();
-      form.reset();
+      form.reset({
+        paymentMethod: "razorpay",
+        amount: "",
+        newTier: "",
+        paymentNotes: "",
+      });
     },
   });
 
@@ -430,11 +444,12 @@ export default function PaymentProcessingPage() {
           </DialogHeader>
 
           {tierInfo && (
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              noValidate
-              className="space-y-4"
-            >
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                noValidate
+                className="space-y-4"
+              >
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">
@@ -599,7 +614,8 @@ export default function PaymentProcessingPage() {
                     : "Process Payment"}
                 </Button>
               </div>
-            </form>
+              </form>
+            </Form>
           )}
         </DialogContent>
       </Dialog>

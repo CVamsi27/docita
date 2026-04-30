@@ -22,6 +22,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
@@ -155,7 +156,11 @@ export function UsersPageContainer() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
+            <div
+              className="flex items-center justify-center py-8"
+              role="status"
+              aria-label="Loading team members"
+            >
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : filteredUsers.length === 0 ? (
@@ -230,6 +235,9 @@ export function UsersPageContainer() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>
+              Review team member contact details and professional credentials.
+            </DialogDescription>
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-6">

@@ -129,7 +129,7 @@ export function ClinicList({
               <TableRow key={clinic.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                       {clinic.name.substring(0, 2).toUpperCase()}
                     </div>
                     {clinic.name}

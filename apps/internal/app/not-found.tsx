@@ -12,7 +12,7 @@ export default function NotFound() {
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
           <FileQuestion className="h-10 w-10 text-muted-foreground" />
         </div>
-        <h1 className="mb-2 text-4xl font-bold tracking-tight">404</h1>
+        <h1 className="mb-2 text-4xl font-bold tracking-normal">404</h1>
         <h2 className="mb-2 text-xl font-semibold">Page not found</h2>
         <p className="mb-6 text-muted-foreground">
           Sorry, we couldn&apos;t find the page you&apos;re looking for. The
