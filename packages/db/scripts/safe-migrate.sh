@@ -229,7 +229,10 @@ create_backup() {
 # Function to validate migration files
 validate_migration() {
     local migration_dir="./prisma/migrations"
-    local latest_migration=$(ls -t "$migration_dir" | head -1)
+    local latest_migration=$(find "$migration_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | grep -E '^[0-9]{14}_' | sort | tail -1)
+    if [ -z "$latest_migration" ]; then
+        latest_migration=$(find "$migration_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort | tail -1)
+    fi
     local migration_file="${migration_dir}/${latest_migration}/migration.sql"
     
     if [ ! -f "$migration_file" ]; then

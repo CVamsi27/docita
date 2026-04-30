@@ -799,6 +799,8 @@ model Invoice {
   @@index([createdAt])
   @@index([clinicId])
   @@index([clinicId, issuedAt])
+  @@index([clinicId, createdAt(sort: Desc)], map: "Invoice_clinicId_createdAt_desc_idx")
+  @@index([clinicId, status, createdAt(sort: Desc)], map: "Invoice_clinicId_status_createdAt_desc_idx")
   @@index([patientId])
   @@index([status, createdAt])
   @@index([status])
@@ -1267,6 +1269,8 @@ model PaymentSession {
   patient           Patient?             @relation(fields: [patientId], references: [id])
 
   @@index([clinicId])
+  @@index([clinicId, providerSessionId], map: "PaymentSession_clinicId_providerSessionId_idx")
+  @@index([clinicId, status], map: "PaymentSession_clinicId_status_idx")
   @@index([invoiceId])
   @@index([providerSessionId])
   @@index([status])
@@ -1763,6 +1767,8 @@ model InventoryItem {
   movements     InventoryMovement[]
 
   @@index([clinicId])
+  @@index([clinicId, active], map: "InventoryItem_clinicId_active_idx")
+  @@index([clinicId, category], map: "InventoryItem_clinicId_category_idx")
   @@index([category])
   @@index([expiryDate])
 }

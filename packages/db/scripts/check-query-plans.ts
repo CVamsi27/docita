@@ -194,71 +194,88 @@ async function run(): Promise<void> {
       blockedSeqScanTable: "InvoiceItem",
       requiredIndexes: ["InvoiceItem_clinicId_invoiceId_idx"],
     },
+    {
+      name: "invoice-analytics-clinic-created-at",
+      sql: `SELECT id, total
+            FROM "Invoice"
+            WHERE "clinicId" = $1
+              AND "createdAt" >= $2
+            ORDER BY "createdAt" DESC
+            LIMIT 100`,
+      params: ["clinic-plan-check", new Date("2026-01-01T00:00:00.000Z")],
+      blockedSeqScanTable: "Invoice",
+      requiredIndexes: ["Invoice_clinicId_createdAt_desc_idx"],
+    },
   ];
 
   let hasFailure = false;
 
-  await prisma.$transaction(async (tx) => {
-    const explainClient: ExplainClient = tx;
-    await explainClient.$executeRawUnsafe("SET LOCAL enable_seqscan = off");
-    await explainClient.$executeRawUnsafe("SET LOCAL enable_sort = off");
-    await explainClient.$executeRawUnsafe("SET LOCAL enable_bitmapscan = off");
+  await prisma.$transaction(
+    async (tx) => {
+      const explainClient: ExplainClient = tx;
+      await explainClient.$executeRawUnsafe("SET LOCAL enable_seqscan = off");
+      await explainClient.$executeRawUnsafe("SET LOCAL enable_sort = off");
+      await explainClient.$executeRawUnsafe("SET LOCAL enable_bitmapscan = off");
 
-    const requiredIndexNames = Array.from(
-      new Set(checks.flatMap((check) => check.requiredIndexes)),
-    );
-    const existingIndexes = await getExistingIndexes(
-      explainClient,
-      requiredIndexNames,
-    );
-
-    for (const check of checks) {
-      const plan = await explain(explainClient, check.sql, check.params);
-      const nodes = collectPlanNodes(plan);
-      const indexNames = collectIndexNames(nodes);
-      const missingRequiredIndexes = check.requiredIndexes.filter(
-        (name) => !existingIndexes.has(name),
+      const requiredIndexNames = Array.from(
+        new Set(checks.flatMap((check) => check.requiredIndexes)),
       );
-      const hasSeqScan = nodes.some(
-        (node) =>
-          node["Node Type"] === "Seq Scan" &&
-          node["Relation Name"] === check.blockedSeqScanTable,
+      const existingIndexes = await getExistingIndexes(
+        explainClient,
+        requiredIndexNames,
       );
-      const hasIndexAccess = nodes.some((node) => {
-        const nodeType = node["Node Type"] ?? "";
-        const usesIndexNode =
-          nodeType === "Index Scan" ||
-          nodeType === "Index Only Scan" ||
-          nodeType === "Bitmap Heap Scan" ||
-          nodeType === "Bitmap Index Scan";
-        if (!usesIndexNode) return false;
 
-        return (
-          node["Relation Name"] === check.blockedSeqScanTable ||
-          typeof node["Index Name"] === "string"
+      for (const check of checks) {
+        const plan = await explain(explainClient, check.sql, check.params);
+        const nodes = collectPlanNodes(plan);
+        const indexNames = collectIndexNames(nodes);
+        const missingRequiredIndexes = check.requiredIndexes.filter(
+          (name) => !existingIndexes.has(name),
         );
-      });
+        const hasSeqScan = nodes.some(
+          (node) =>
+            node["Node Type"] === "Seq Scan" &&
+            node["Relation Name"] === check.blockedSeqScanTable,
+        );
+        const hasIndexAccess = nodes.some((node) => {
+          const nodeType = node["Node Type"] ?? "";
+          const usesIndexNode =
+            nodeType === "Index Scan" ||
+            nodeType === "Index Only Scan" ||
+            nodeType === "Bitmap Heap Scan" ||
+            nodeType === "Bitmap Index Scan";
+          if (!usesIndexNode) return false;
 
-      const pass =
-        missingRequiredIndexes.length === 0 && hasIndexAccess && !hasSeqScan;
-      process.stdout.write(`${check.name}: ${pass ? "PASS" : "FAIL"}\n`);
+          return (
+            node["Relation Name"] === check.blockedSeqScanTable ||
+            typeof node["Index Name"] === "string"
+          );
+        });
 
-      if (!pass) {
-        hasFailure = true;
-        process.stdout.write(`  required indexes: ${check.requiredIndexes.join(", ")}\n`);
-        process.stdout.write(
-          `  missing required: ${missingRequiredIndexes.length > 0 ? missingRequiredIndexes.join(", ") : "none"}\n`,
-        );
-        process.stdout.write(
-          `  used indexes: ${indexNames.size > 0 ? Array.from(indexNames).join(", ") : "none"}\n`,
-        );
-        process.stdout.write(`  has indexed access: ${hasIndexAccess}\n`);
-        process.stdout.write(
-          `  seq scan on ${check.blockedSeqScanTable}: ${hasSeqScan}\n`,
-        );
+        const pass =
+          missingRequiredIndexes.length === 0 && hasIndexAccess && !hasSeqScan;
+        process.stdout.write(`${check.name}: ${pass ? "PASS" : "FAIL"}\n`);
+
+        if (!pass) {
+          hasFailure = true;
+          process.stdout.write(
+            `  required indexes: ${check.requiredIndexes.join(", ")}\n`,
+          );
+          process.stdout.write(
+            `  missing required: ${missingRequiredIndexes.length > 0 ? missingRequiredIndexes.join(", ") : "none"}\n`,
+          );
+          process.stdout.write(
+            `  used indexes: ${indexNames.size > 0 ? Array.from(indexNames).join(", ") : "none"}\n`,
+          );
+          process.stdout.write(`  has indexed access: ${hasIndexAccess}\n`);
+          process.stdout.write(
+            `  seq scan on ${check.blockedSeqScanTable}: ${hasSeqScan}\n`,
+          );
+        }
       }
-    }
-  });
+    },
+    { maxWait: 30_000, timeout: 60_000 },
+  );
 
   if (hasFailure) {
     process.exit(1);
