@@ -35,6 +35,7 @@ import { SkipSubscriptionCheck } from '@/shared/modules/auth/decorators/skip-sub
 import { SkipPasswordExpiry } from '@/shared/modules/auth/guards/password-expired.guard';
 import { SkipEmailVerification } from '@/shared/modules/auth/guards/email-verified.guard';
 import { RequestWithUser } from '@/common/types/common.types';
+import { requireUserId } from '@/common/utils/request-context.utils';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MAX_FILE_SIZE } from '@workspace/utils';
 import {
@@ -260,7 +261,7 @@ export class OnboardingController {
     const onboardingStep =
       dto.path === 'CREATE_CLINIC' ? 'CREATING_CLINIC' : 'JOINING_CLINIC';
 
-    await this.usersService.update(req.user!.id, {
+    await this.usersService.update(requireUserId(req), {
       onboardingStep,
     });
 

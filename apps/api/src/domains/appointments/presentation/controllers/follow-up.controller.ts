@@ -19,6 +19,7 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 
 @Controller()
 @UseGuards(TierGuard)
@@ -42,7 +43,7 @@ export class FollowUpController {
     return this.followUpService.create({
       ...body,
       appointmentId,
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicId(req),
     });
   }
 
@@ -51,7 +52,7 @@ export class FollowUpController {
     @Req() req: RequestWithUser,
     @Query('appointmentId') appointmentId?: string,
   ) {
-    const clinicId = req.user!.clinicId!;
+    const clinicId = requireClinicId(req);
     if (appointmentId) {
       return this.followUpService.findForAppointment(appointmentId, clinicId);
     }
@@ -66,18 +67,18 @@ export class FollowUpController {
   ) {
     return this.followUpService.book(
       id,
-      req.user!.clinicId!,
+      requireClinicId(req),
       bookedAppointmentId,
     );
   }
 
   @Patch('follow-ups/:id/complete')
   async completeFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.followUpService.complete(id, req.user!.clinicId!);
+    return this.followUpService.complete(id, requireClinicId(req));
   }
 
   @Patch('follow-ups/:id/cancel')
   async cancelFollowUp(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.followUpService.cancel(id, req.user!.clinicId!);
+    return this.followUpService.cancel(id, requireClinicId(req));
   }
 }

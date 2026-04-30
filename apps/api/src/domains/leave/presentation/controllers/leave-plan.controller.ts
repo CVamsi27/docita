@@ -21,6 +21,10 @@ import {
   ALL_STAFF_ROLES,
   CLINIC_ADMIN_ROLES as ADMIN_ROLES,
 } from '@/common/constants/role-groups';
+import {
+  requireClinicId,
+  requireUserRole,
+} from '@/common/utils/request-context.utils';
 
 @ApiTags('leave-plans')
 @Controller('leave-plans')
@@ -33,7 +37,7 @@ export class LeavePlanController {
   @Get()
   @ApiOperation({ summary: 'List leave plans for the clinic' })
   async getPlans(@Request() req: RequestWithUser) {
-    return this.leavePlanService.getPlans(req.user!.clinicId!);
+    return this.leavePlanService.getPlans(requireClinicId(req));
   }
 
   @Post()
@@ -49,10 +53,10 @@ export class LeavePlanController {
       isActive?: boolean;
     },
   ) {
-    if (!ADMIN_ROLES.includes(req.user!.role as Role)) {
+    if (!ADMIN_ROLES.includes(requireUserRole(req) as Role)) {
       throw new ForbiddenException('Only admins can manage leave plans');
     }
-    return this.leavePlanService.createPlan(req.user!.clinicId!, body);
+    return this.leavePlanService.createPlan(requireClinicId(req), body);
   }
 
   @Put(':id')
@@ -68,9 +72,9 @@ export class LeavePlanController {
       isActive?: boolean;
     },
   ) {
-    if (!ADMIN_ROLES.includes(req.user!.role as Role)) {
+    if (!ADMIN_ROLES.includes(requireUserRole(req) as Role)) {
       throw new ForbiddenException('Only admins can manage leave plans');
     }
-    return this.leavePlanService.updatePlan(id, req.user!.clinicId!, body);
+    return this.leavePlanService.updatePlan(id, requireClinicId(req), body);
   }
 }

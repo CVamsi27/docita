@@ -25,6 +25,11 @@ import {
   ApproveJoinRequestDto,
   RejectJoinRequestDto,
 } from '@/domains/clinics/application/dto/join-request.dto';
+import {
+  requireClinicId,
+  requireUser,
+  requireUserId,
+} from '@/common/utils/request-context.utils';
 
 @Controller('clinics/join-requests')
 @SkipSubscriptionCheck()
@@ -43,7 +48,7 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Body() dto: CreateJoinRequestDto,
   ) {
-    const user = req.user!;
+    const user = requireUser(req);
     this.logger.log('Creating join request', {
       userId: user.id,
       clinicId: dto.clinicId,
@@ -104,14 +109,14 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Query('status') status?: JoinRequestStatus,
   ) {
-    return this.joinRequestService.findByClinic(req.user!.clinicId!, status);
+    return this.joinRequestService.findByClinic(requireClinicId(req), status);
   }
 
   @Get('mine')
   @UseGuards(JwtAuthGuard)
   async getMyJoinRequest(@Request() req: RequestWithUser) {
     const requests = await this.joinRequestService.findUserPendingRequests(
-      req.user!.id,
+      requireUserId(req),
     );
 
     if (requests.length === 0) {
@@ -125,7 +130,7 @@ export class JoinRequestsController {
   @Roles(Role.ADMIN, Role.ADMIN_DOCTOR)
   async countPendingRequests(@Request() req: RequestWithUser) {
     const requests = await this.joinRequestService.findByClinic(
-      req.user!.clinicId!,
+      requireClinicId(req),
       'PENDING',
     );
 
@@ -140,10 +145,11 @@ export class JoinRequestsController {
     @Param('id') requestId: string,
     @Body() dto: ApproveJoinRequestDto,
   ) {
-    const user = req.user!;
+    const user = requireUser(req);
+    const clinicId = requireClinicId(req);
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== user.clinicId) {
+    if (!request || request.clinicId !== clinicId) {
       throw new NotFoundException('Request not found');
     }
 
@@ -157,7 +163,7 @@ export class JoinRequestsController {
 
     try {
       await this.staffNotificationService.notifyStaff({
-        clinicId: user.clinicId!,
+        clinicId,
         doctorId: request.userId,
         type: 'MEMBER_JOIN_APPROVED',
         title: 'Welcome to the Team!',
@@ -184,10 +190,11 @@ export class JoinRequestsController {
     @Param('id') requestId: string,
     @Body() dto: RejectJoinRequestDto,
   ) {
-    const user = req.user!;
+    const user = requireUser(req);
+    const clinicId = requireClinicId(req);
     const request = await this.joinRequestService.findById(requestId);
 
-    if (!request || request.clinicId !== user.clinicId) {
+    if (!request || request.clinicId !== clinicId) {
       throw new NotFoundException('Request not found');
     }
 
@@ -200,7 +207,7 @@ export class JoinRequestsController {
 
     try {
       await this.staffNotificationService.notifyStaff({
-        clinicId: user.clinicId!,
+        clinicId,
         doctorId: request.userId,
         type: 'MEMBER_JOIN_REJECTED',
         title: 'Join Request Not Approved',
@@ -226,7 +233,7 @@ export class JoinRequestsController {
     @Request() req: RequestWithUser,
     @Param('id') requestId: string,
   ) {
-    await this.joinRequestService.withdraw(requestId, req.user!.id);
+    await this.joinRequestService.withdraw(requestId, requireUserId(req));
 
     return {
       success: true,

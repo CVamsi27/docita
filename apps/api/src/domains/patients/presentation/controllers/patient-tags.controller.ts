@@ -24,6 +24,7 @@ import {
   updatePatientTagRequestSchema,
 } from '@workspace/types';
 import { RequestWithUser } from '@/common/types/common.types';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 import { PatientTagsService } from '@/domains/patients/application/services/patient-tags.service';
 import {
   PatientTagListResponseDto,
@@ -46,7 +47,7 @@ export class PatientTagsController {
     @Param('patientId') patientId: string,
   ) {
     return this.tagsService.list({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicId(req),
       patientId,
     });
   }
@@ -61,7 +62,7 @@ export class PatientTagsController {
   ) {
     const parsed = createPatientTagRequestSchema.parse(body);
     return this.tagsService.create({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicId(req),
       patientId,
       ...parsed,
     });
@@ -78,7 +79,7 @@ export class PatientTagsController {
   ) {
     const parsed = updatePatientTagRequestSchema.parse(body);
     return this.tagsService.update({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicId(req),
       patientId,
       tagId,
       ...parsed,
@@ -93,7 +94,7 @@ export class PatientTagsController {
     @Param('tagId') tagId: string,
   ) {
     await this.tagsService.remove({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicId(req),
       patientId,
       tagId,
     });

@@ -25,6 +25,7 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 
 @Controller('whatsapp-v2')
 @UseGuards(JwtAuthGuard, RolesGuard, TierGuard)
@@ -38,7 +39,7 @@ export class WhatsAppController {
 
   @Get('templates')
   async listTemplates(@Request() req: RequestWithUser) {
-    return this.queryService.listTemplates(req.user!.clinicId!);
+    return this.queryService.listTemplates(requireClinicId(req));
   }
 
   @Post('messages/send')
@@ -47,8 +48,10 @@ export class WhatsAppController {
     @Request() req: RequestWithUser,
     @Body() body: SendWhatsAppMessageDto,
   ) {
+    const clinicId = requireClinicId(req);
+
     return this.sendMessageUseCase.execute({
-      clinicId: req.user!.clinicId!,
+      clinicId,
       recipientPhone: body.recipientPhone,
       templateName: body.templateName,
       variables: body.variables,

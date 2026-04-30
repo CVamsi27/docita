@@ -22,6 +22,11 @@ import {
   ALL_STAFF_ROLES,
   CLINIC_ADMIN_ROLES as ADMIN_ROLES,
 } from '@/common/constants/role-groups';
+import {
+  requireClinicId,
+  requireUserId,
+  requireUserRole,
+} from '@/common/utils/request-context.utils';
 
 @ApiTags('leaves')
 @Controller('leaves')
@@ -44,11 +49,12 @@ export class LeaveController {
       staffId?: string;
     },
   ) {
-    const isAdmin = ADMIN_ROLES.includes(req.user!.role as Role);
-    const targetStaffId = isAdmin && body.staffId ? body.staffId : req.user!.id;
+    const isAdmin = ADMIN_ROLES.includes(requireUserRole(req) as Role);
+    const targetStaffId =
+      isAdmin && body.staffId ? body.staffId : requireUserId(req);
     return this.leaveService.applyLeave(
       targetStaffId,
-      req.user!.clinicId!,
+      requireClinicId(req),
       body,
     );
   }
@@ -62,10 +68,10 @@ export class LeaveController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const isAdmin = ADMIN_ROLES.includes(req.user!.role as Role);
-    const effectiveStaffId = isAdmin ? staffId : req.user!.id;
+    const isAdmin = ADMIN_ROLES.includes(requireUserRole(req) as Role);
+    const effectiveStaffId = isAdmin ? staffId : requireUserId(req);
 
-    return this.leaveService.getLeaves(req.user!.clinicId!, {
+    return this.leaveService.getLeaves(requireClinicId(req), {
       staffId: effectiveStaffId,
       status,
       startDate,
@@ -76,19 +82,22 @@ export class LeaveController {
   @Get('balance')
   @ApiOperation({ summary: 'Get leave balance for current user' })
   async getLeaveBalance(@Request() req: RequestWithUser) {
-    return this.leaveService.getLeaveBalance(req.user!.id, req.user!.clinicId!);
+    return this.leaveService.getLeaveBalance(
+      requireUserId(req),
+      requireClinicId(req),
+    );
   }
 
   @Patch(':id/approve')
   @ApiOperation({ summary: 'Approve a leave request (admin only)' })
   async approveLeave(@Param('id') id: string, @Request() req: RequestWithUser) {
-    if (!ADMIN_ROLES.includes(req.user!.role as Role)) {
+    if (!ADMIN_ROLES.includes(requireUserRole(req) as Role)) {
       throw new ForbiddenException('Only admins can approve leave');
     }
     return this.leaveService.approveLeave(
       id,
-      req.user!.id,
-      req.user!.clinicId!,
+      requireUserId(req),
+      requireClinicId(req),
     );
   }
 
@@ -99,13 +108,13 @@ export class LeaveController {
     @Request() req: RequestWithUser,
     @Body('rejectionReason') rejectionReason: string,
   ) {
-    if (!ADMIN_ROLES.includes(req.user!.role as Role)) {
+    if (!ADMIN_ROLES.includes(requireUserRole(req) as Role)) {
       throw new ForbiddenException('Only admins can reject leave');
     }
     return this.leaveService.rejectLeave(
       id,
-      req.user!.id,
-      req.user!.clinicId!,
+      requireUserId(req),
+      requireClinicId(req),
       rejectionReason || 'No reason provided',
     );
   }
@@ -113,6 +122,10 @@ export class LeaveController {
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancel own leave request' })
   async cancelLeave(@Param('id') id: string, @Request() req: RequestWithUser) {
-    return this.leaveService.cancelLeave(id, req.user!.id, req.user!.clinicId!);
+    return this.leaveService.cancelLeave(
+      id,
+      requireUserId(req),
+      requireClinicId(req),
+    );
   }
 }

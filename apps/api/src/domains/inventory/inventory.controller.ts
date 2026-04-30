@@ -21,6 +21,10 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import {
+  requireClinicId,
+  requireUserId,
+} from '@/common/utils/request-context.utils';
 
 @ApiTags('Inventory')
 @Controller('inventory')
@@ -33,7 +37,7 @@ export class InventoryController {
   @Get('stats')
   @ApiOperation({ summary: 'Get inventory statistics' })
   getStats(@Request() req: RequestWithUser) {
-    return this.inventoryService.getStats(req.user!.clinicId!);
+    return this.inventoryService.getStats(requireClinicId(req));
   }
 
   @Get()
@@ -44,7 +48,7 @@ export class InventoryController {
     @Query('category') category?: string,
     @Query('status') status?: string,
   ) {
-    return this.inventoryService.getItems(req.user!.clinicId!, {
+    return this.inventoryService.getItems(requireClinicId(req), {
       search,
       category,
       status,
@@ -54,7 +58,7 @@ export class InventoryController {
   @Get(':id')
   @ApiOperation({ summary: 'Get inventory item by ID' })
   getItemById(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.inventoryService.getItemById(req.user!.clinicId!, id);
+    return this.inventoryService.getItemById(requireClinicId(req), id);
   }
 
   @Post()
@@ -64,8 +68,8 @@ export class InventoryController {
     @Body() body: Record<string, unknown>,
   ) {
     return this.inventoryService.createItem(
-      req.user!.clinicId!,
-      req.user!.id,
+      requireClinicId(req),
+      requireUserId(req),
       body as Parameters<InventoryService['createItem']>[2],
     );
   }
@@ -77,13 +81,13 @@ export class InventoryController {
     @Param('id') id: string,
     @Body() body: Record<string, unknown>,
   ) {
-    return this.inventoryService.updateItem(req.user!.clinicId!, id, body);
+    return this.inventoryService.updateItem(requireClinicId(req), id, body);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Deactivate inventory item' })
   deleteItem(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.inventoryService.deleteItem(req.user!.clinicId!, id);
+    return this.inventoryService.deleteItem(requireClinicId(req), id);
   }
 
   @Post(':id/movements')
@@ -101,9 +105,9 @@ export class InventoryController {
     },
   ) {
     return this.inventoryService.addMovement(
-      req.user!.clinicId!,
+      requireClinicId(req),
       id,
-      req.user!.id,
+      requireUserId(req),
       body,
     );
   }

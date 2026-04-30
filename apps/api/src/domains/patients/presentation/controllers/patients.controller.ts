@@ -28,6 +28,7 @@ import {
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 import {
   CreatePatientDto,
   ListPatientsQueryDto,
@@ -66,7 +67,7 @@ export class PatientsController {
     @Body() body: CreatePatientDto,
   ) {
     return this.patientService.createPatient(
-      this.normalizeCreateBody(body, req.user!.clinicId!),
+      this.normalizeCreateBody(body, requireClinicId(req)),
     );
   }
 
@@ -82,7 +83,7 @@ export class PatientsController {
   ) {
     const { search, gender, page, limit } = query;
     return this.patientService.listPatients({
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicId(req),
       search,
       gender,
       page: page ?? 1,
@@ -93,7 +94,7 @@ export class PatientsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get patient by ID' })
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.patientService.getPatient(id, req.user!.clinicId!);
+    return this.patientService.getPatient(id, requireClinicId(req));
   }
 
   @Patch(':id')
@@ -107,7 +108,7 @@ export class PatientsController {
     return this.patientService.updatePatient(
       id,
       this.normalizeUpdateBody(body),
-      req.user!.clinicId!,
+      requireClinicId(req),
     );
   }
 
@@ -116,6 +117,6 @@ export class PatientsController {
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete patient' })
   async delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    await this.patientService.deletePatient(id, req.user!.clinicId!);
+    await this.patientService.deletePatient(id, requireClinicId(req));
   }
 }

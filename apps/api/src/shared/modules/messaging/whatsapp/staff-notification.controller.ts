@@ -20,6 +20,10 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import {
+  requireClinicId,
+  requireUserId,
+} from '@/common/utils/request-context.utils';
 
 @Controller('staff-notifications')
 @UseGuards(JwtAuthGuard, RolesGuard, TierGuard)
@@ -33,18 +37,23 @@ export class StaffNotificationController {
     @Req() req: RequestWithUser,
     @Query('limit') limit?: number,
   ) {
-    return this.notificationService.getUnreadNotifications(req.user!.id, limit);
+    return this.notificationService.getUnreadNotifications(
+      requireUserId(req),
+      limit,
+    );
   }
 
   @Get('unread-count')
   async getUnreadCount(@Req() req: RequestWithUser) {
-    const count = await this.notificationService.getUnreadCount(req.user!.id);
+    const count = await this.notificationService.getUnreadCount(
+      requireUserId(req),
+    );
     return { count };
   }
 
   @Patch('mark-read/:id')
   async markRead(@Req() req: RequestWithUser, @Param('id') id: string) {
-    await this.notificationService.markNotificationRead(id, req.user!.id);
+    await this.notificationService.markNotificationRead(id, requireUserId(req));
     return { success: true };
   }
 
@@ -53,15 +62,15 @@ export class StaffNotificationController {
     @Req() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    await this.notificationService.deleteNotification(id, req.user!.id);
+    await this.notificationService.deleteNotification(id, requireUserId(req));
     return { success: true };
   }
 
   @Delete('delete-all')
   async deleteAllNotifications(@Req() req: RequestWithUser) {
     await this.notificationService.deleteAllNotifications(
-      req.user!.id,
-      req.user!.clinicId!,
+      requireUserId(req),
+      requireClinicId(req),
     );
     return { success: true };
   }

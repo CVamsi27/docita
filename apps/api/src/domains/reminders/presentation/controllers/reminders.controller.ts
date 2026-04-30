@@ -26,6 +26,7 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/common/types/common.types';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 
 @Controller('reminders')
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
@@ -35,7 +36,7 @@ export class RemindersController {
   @Get('settings')
   @ZodSerializerDto(ReminderSettingsResponseDto)
   getSettings(@Request() req: RequestWithUser) {
-    return this.remindersService.getSettings(req.user!.clinicId!);
+    return this.remindersService.getSettings(requireClinicId(req));
   }
 
   @Put('settings')
@@ -45,7 +46,7 @@ export class RemindersController {
     @Request() req: RequestWithUser,
     @Body() data: ReminderSettingsDto,
   ) {
-    return this.remindersService.updateSettings(data, req.user!.clinicId!);
+    return this.remindersService.updateSettings(data, requireClinicId(req));
   }
 
   @Get('history')
@@ -54,7 +55,10 @@ export class RemindersController {
     @Request() req: RequestWithUser,
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 50,
   ) {
-    return this.remindersService.getReminderHistory(req.user!.clinicId!, limit);
+    return this.remindersService.getReminderHistory(
+      requireClinicId(req),
+      limit,
+    );
   }
 
   @Post('send/:appointmentId')
@@ -68,7 +72,7 @@ export class RemindersController {
     return this.remindersService.sendManualReminder(
       appointmentId,
       body.type,
-      req.user!.clinicId!,
+      requireClinicId(req),
     );
   }
 }

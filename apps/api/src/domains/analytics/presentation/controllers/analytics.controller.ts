@@ -40,6 +40,7 @@ import {
 } from '@/domains/analytics/dto/analytics.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { RequestWithUser } from '@/common/types/common.types';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 
 @Controller('analytics')
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_ANALYTICS))
@@ -52,11 +53,15 @@ export class AnalyticsController {
     return value ? new Date(value) : undefined;
   }
 
+  private getClinicId(req: RequestWithUser): string {
+    return requireClinicId(req);
+  }
+
   @Get('overview')
   @RateLimit({ limit: 30, window: 60000 })
   @ZodSerializerDto(OverviewStatsResponseDto)
   getOverview(@Request() req: RequestWithUser) {
-    return this.analyticsService.getOverview(req.user!.clinicId!);
+    return this.analyticsService.getOverview(this.getClinicId(req));
   }
 
   @Get('revenue')
@@ -66,7 +71,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsPeriodDaysQueryDto,
   ) {
     return this.analyticsService.getRevenueTrends(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       query.period ?? 'daily',
       query.days ?? 30,
     );
@@ -79,7 +84,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDaysQueryDto,
   ) {
     return this.analyticsService.getPatientGrowth(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       query.days ?? 30,
     );
   }
@@ -87,7 +92,7 @@ export class AnalyticsController {
   @Get('appointments')
   @ZodSerializerDto(AppointmentStatsResponseDto)
   getAppointmentStats(@Request() req: RequestWithUser) {
-    return this.analyticsService.getAppointmentStats(req.user!.clinicId!);
+    return this.analyticsService.getAppointmentStats(this.getClinicId(req));
   }
 
   @Get('top-diagnoses')
@@ -97,7 +102,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsLimitQueryDto,
   ) {
     return this.analyticsService.getTopDiagnoses(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       query.limit ?? 10,
     );
   }
@@ -110,7 +115,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getDiseaseTrends(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
     );
@@ -124,7 +129,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getDiseaseTrendsByCategory(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
     );
@@ -138,7 +143,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsTimeSeriesQueryDto,
   ) {
     return this.analyticsService.getDiseaseTimeSeries(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       new Date(query.startDate),
       new Date(query.endDate),
       query.groupBy ?? 'month',
@@ -153,7 +158,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getRevenueByCptCode(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
     );
@@ -167,7 +172,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getRevenueByCategory(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
     );
@@ -181,7 +186,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsTimeSeriesQueryDto,
   ) {
     return this.analyticsService.getRevenueTimeSeries(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       new Date(query.startDate),
       new Date(query.endDate),
       query.groupBy ?? 'month',
@@ -196,7 +201,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getCodingComplianceMetrics(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
     );
@@ -206,7 +211,7 @@ export class AnalyticsController {
   @RequireFeature(Feature.ADVANCED_ANALYTICS)
   @ZodSerializerDto(UncodedVisitsStatsResponseDto)
   getUncodedVisitsStats(@Request() req: RequestWithUser) {
-    return this.analyticsService.getUncodedVisitsStats(req.user!.clinicId!);
+    return this.analyticsService.getUncodedVisitsStats(this.getClinicId(req));
   }
 
   @Get('compliance/timeliness')
@@ -217,7 +222,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getCodingTimeliness(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
     );
@@ -231,7 +236,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsPeriodDateRangeQueryDto,
   ) {
     return this.analyticsService.getRevenueMetrics(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       query.period ?? 'monthly',
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
@@ -246,7 +251,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsPeriodDateRangeQueryDto,
   ) {
     return this.analyticsService.getAppointmentMetrics(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       query.period ?? 'monthly',
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
@@ -261,7 +266,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsDateRangeQueryDto,
   ) {
     return this.analyticsService.getPatientDemographics(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.parseDate(query.startDate),
       this.parseDate(query.endDate),
     );
@@ -274,7 +279,7 @@ export class AnalyticsController {
     @Query() query: AnalyticsLimitQueryDto,
   ) {
     return this.analyticsService.getTopConditions(
-      req.user!.clinicId!,
+      this.getClinicId(req),
       query.limit ?? 10,
     );
   }

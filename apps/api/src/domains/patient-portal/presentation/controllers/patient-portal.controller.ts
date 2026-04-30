@@ -20,6 +20,7 @@ import { PatientPortalContextService } from '@/domains/patient-portal/applicatio
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
 import { parsePaginationInt } from '@/common/utils/string.utils';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
+import { requireUserId } from '@/common/utils/request-context.utils';
 
 @ApiTags('patient-portal')
 @Controller('patient-portal')
@@ -35,10 +36,14 @@ export class PatientPortalController {
     private readonly medicationDoseService: MedicationDoseService,
   ) {}
 
+  private getUserId(req: RequestWithUser): string {
+    return requireUserId(req);
+  }
+
   @Get('dashboard')
   @ApiOperation({ summary: 'Get patient portal dashboard' })
   async getDashboard(@Request() req: RequestWithUser) {
-    return this.portalService.getDashboard(req.user!.id);
+    return this.portalService.getDashboard(this.getUserId(req));
   }
 
   @Get('appointments')
@@ -54,7 +59,7 @@ export class PatientPortalController {
       offset?: string;
     },
   ) {
-    return this.portalService.getAppointments(req.user!.id, {
+    return this.portalService.getAppointments(this.getUserId(req), {
       status: query.status,
       startDate: query.startDate,
       endDate: query.endDate,
@@ -69,7 +74,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    return this.portalService.getAppointmentById(req.user!.id, id);
+    return this.portalService.getAppointmentById(this.getUserId(req), id);
   }
 
   @Get('prescriptions')
@@ -78,7 +83,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Query() query: { limit?: string; offset?: string },
   ) {
-    return this.portalService.getPrescriptions(req.user!.id, {
+    return this.portalService.getPrescriptions(this.getUserId(req), {
       limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
       offset: parsePaginationInt(query.offset, { min: 0 }),
     });
@@ -90,7 +95,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Param('id') id: string,
   ) {
-    return this.portalService.getPrescriptionById(req.user!.id, id);
+    return this.portalService.getPrescriptionById(this.getUserId(req), id);
   }
 
   @Get('invoices')
@@ -99,7 +104,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Query() query: { status?: string; limit?: string; offset?: string },
   ) {
-    return this.portalService.getInvoices(req.user!.id, {
+    return this.portalService.getInvoices(this.getUserId(req), {
       status: query.status,
       limit: parsePaginationInt(query.limit, { min: 1, max: 200 }),
       offset: parsePaginationInt(query.offset, { min: 0 }),
@@ -109,7 +114,7 @@ export class PatientPortalController {
   @Get('profile')
   @ApiOperation({ summary: 'Get patient profile' })
   async getProfile(@Request() req: RequestWithUser) {
-    return this.portalService.getProfile(req.user!.id);
+    return this.portalService.getProfile(this.getUserId(req));
   }
 
   @Patch('profile')
@@ -128,13 +133,13 @@ export class PatientPortalController {
       emergencyContactRelation?: string;
     },
   ) {
-    return this.portalService.updateProfile(req.user!.id, body);
+    return this.portalService.updateProfile(this.getUserId(req), body);
   }
 
   @Get('consent')
   @ApiOperation({ summary: 'Get consent settings' })
   async getConsent(@Request() req: RequestWithUser) {
-    return this.portalService.getConsent(req.user!.id);
+    return this.portalService.getConsent(this.getUserId(req));
   }
 
   @Patch('consent')
@@ -143,7 +148,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Body() body: { whatsappConsent?: boolean; dataStorageConsent?: boolean },
   ) {
-    return this.portalService.updateConsent(req.user!.id, body);
+    return this.portalService.updateConsent(this.getUserId(req), body);
   }
 
   @Post('profile/delete-request')
@@ -152,7 +157,7 @@ export class PatientPortalController {
     @Request() req: RequestWithUser,
     @Body() body: { reason: string; confirmDeletion?: boolean },
   ) {
-    return this.portalService.requestDataDeletion(req.user!.id, body);
+    return this.portalService.requestDataDeletion(this.getUserId(req), body);
   }
 
   @Get('timeline')
@@ -169,7 +174,7 @@ export class PatientPortalController {
     },
   ) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      this.getUserId(req),
     );
     const eventTypes = query.eventTypes
       ? (query.eventTypes.split(',') as Parameters<
@@ -189,7 +194,7 @@ export class PatientPortalController {
   @ApiOperation({ summary: 'Get patient clinical snapshot' })
   async getSnapshot(@Request() req: RequestWithUser) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      this.getUserId(req),
     );
     return this.timelineService.getPatientSnapshot(clinicId, patientId);
   }
@@ -198,7 +203,7 @@ export class PatientPortalController {
   @ApiOperation({ summary: 'Get active medications' })
   async getActiveMedications(@Request() req: RequestWithUser) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      this.getUserId(req),
     );
     return this.medicationDoseService.getActiveMedications(clinicId, patientId);
   }
@@ -218,7 +223,7 @@ export class PatientPortalController {
     },
   ) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      this.getUserId(req),
     );
     return this.medicationDoseService.getDoseHistory(clinicId, patientId, {
       prescriptionId: query.prescriptionId,
@@ -246,7 +251,7 @@ export class PatientPortalController {
     },
   ) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      this.getUserId(req),
     );
     return this.medicationDoseService.recordAdHocDose(
       clinicId,
@@ -268,7 +273,7 @@ export class PatientPortalController {
     @Query() query: { prescriptionId?: string },
   ) {
     const { patientId, clinicId } = await this.contextService.getPatientContext(
-      req.user!.id,
+      this.getUserId(req),
     );
     return this.medicationDoseService.getAdherenceSummary(
       clinicId,

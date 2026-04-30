@@ -15,6 +15,7 @@ import { FeedbackService } from '@/domains/feedback/application/services/feedbac
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role } from '@workspace/db';
 import { RequestWithUser } from '@/common/types/common.types';
+import { requireUserRole } from '@/common/utils/request-context.utils';
 
 import {
   CreateFeedbackDto,
@@ -112,7 +113,7 @@ export class FeedbackController {
     @Param('id') id: string,
     @Body() dto: UpdateFeedbackStatusDto,
   ) {
-    if (req.user!.role !== Role.ADMIN) {
+    if (requireUserRole(req) !== Role.ADMIN) {
       throw new ForbiddenException('Only admins can update feedback status');
     }
 
@@ -125,7 +126,7 @@ export class FeedbackController {
 
   @Delete(':id')
   delete(@Request() req: RequestWithUser, @Param('id') id: string) {
-    if (req.user!.role !== Role.ADMIN) {
+    if (requireUserRole(req) !== Role.ADMIN) {
       throw new ForbiddenException('Only admins can delete feedback');
     }
 

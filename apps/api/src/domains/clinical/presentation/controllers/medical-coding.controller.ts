@@ -28,6 +28,10 @@ import {
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
 import { RequestWithUser } from '@/common/types/common.types';
+import {
+  requireClinicId,
+  requireUserId,
+} from '@/common/utils/request-context.utils';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 
 @Controller('clinical/medical-coding')
@@ -50,7 +54,7 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
   ): Promise<(IcdCode | null)[]> {
     return (await this.clinicalService.getFavorites(
-      req.user!.id,
+      requireUserId(req),
     )) as (IcdCode | null)[];
   }
 
@@ -69,7 +73,7 @@ export class MedicalCodingController {
     @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
     return (await this.clinicalService.addFavorite(
-      req.user!.id,
+      requireUserId(req),
       code,
       description,
       category,
@@ -81,7 +85,10 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
     @Param('icdCodeId') icdCodeId: string,
   ): Promise<void> {
-    return await this.clinicalService.removeFavorite(req.user!.id, icdCodeId);
+    return await this.clinicalService.removeFavorite(
+      requireUserId(req),
+      icdCodeId,
+    );
   }
 
   @Get('cpt/search')
@@ -94,7 +101,7 @@ export class MedicalCodingController {
     @Request() req: RequestWithUser,
   ): Promise<(CptCode | null)[]> {
     return (await this.clinicalService.getCptFavorites(
-      req.user!.id,
+      requireUserId(req),
     )) as (CptCode | null)[];
   }
 
@@ -113,7 +120,7 @@ export class MedicalCodingController {
     @Body('category') category: string,
   ): Promise<DoctorFavoriteCode> {
     return (await this.clinicalService.addCptFavorite(
-      req.user!.id,
+      requireUserId(req),
       code,
       description,
       category,
@@ -126,7 +133,7 @@ export class MedicalCodingController {
     @Param('cptCodeId') cptCodeId: string,
   ): Promise<void> {
     return await this.clinicalService.removeCptFavorite(
-      req.user!.id,
+      requireUserId(req),
       cptCodeId,
     );
   }
@@ -137,14 +144,14 @@ export class MedicalCodingController {
     @Query('search') search?: string,
   ): Promise<Appointment[]> {
     return await this.clinicalService.getUncodedVisits(
-      req.user!.clinicId!,
+      requireClinicId(req),
       search,
     );
   }
 
   @Get('settings')
   async getCodingSettings(@Request() req: RequestWithUser) {
-    return this.settingsService.getMedicalCodingSettings(req.user!.clinicId!);
+    return this.settingsService.getMedicalCodingSettings(requireClinicId(req));
   }
 
   @Put('settings')
@@ -154,7 +161,7 @@ export class MedicalCodingController {
     @Body() body: MedicalCodingSettings,
   ) {
     return this.settingsService.updateMedicalCodingSettings(
-      req.user!.clinicId!,
+      requireClinicId(req),
       body,
     );
   }

@@ -22,6 +22,7 @@ import {
   getDbRolesForTarget,
   requireFeatureForTarget,
 } from '@/shared/modules/auth/auth/access-matrix.util';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 
 @ApiTags('Queue')
 @Controller('queue')
@@ -51,7 +52,7 @@ export class QueueController {
     }
 
     return this.queueService.getQueue(
-      req.user!.clinicId!,
+      requireClinicId(req),
       doctorScope.scopedDoctorId,
       search,
     );
@@ -75,7 +76,7 @@ export class QueueController {
     }
 
     return this.queueService.getTodayQueue(
-      req.user!.clinicId!,
+      requireClinicId(req),
       doctorScope.scopedDoctorId,
       search,
     );
@@ -87,7 +88,7 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('appointmentId') appointmentId: string,
   ) {
-    return this.queueService.checkIn(req.user!.clinicId!, appointmentId);
+    return this.queueService.checkIn(requireClinicId(req), appointmentId);
   }
 
   @Post('call/:queueId')
@@ -96,7 +97,7 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('queueId') queueId: string,
   ) {
-    return this.queueService.callPatient(req.user!.clinicId!, queueId);
+    return this.queueService.callPatient(requireClinicId(req), queueId);
   }
 
   @Post('complete/:queueId')
@@ -105,7 +106,7 @@ export class QueueController {
     @Request() req: RequestWithUser,
     @Param('queueId') queueId: string,
   ) {
-    return this.queueService.completePatient(req.user!.clinicId!, queueId);
+    return this.queueService.completePatient(requireClinicId(req), queueId);
   }
 
   @Post('reset')
@@ -113,6 +114,6 @@ export class QueueController {
     summary: 'Reset queue (cancel all WAITING and IN_PROGRESS tokens)',
   })
   resetQueue(@Request() req: RequestWithUser) {
-    return this.queueService.resetQueue(req.user!.clinicId!);
+    return this.queueService.resetQueue(requireClinicId(req));
   }
 }

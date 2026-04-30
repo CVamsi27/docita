@@ -391,7 +391,11 @@ export class WhatsappController {
   @ZodSerializerDto(SuccessResponseDto)
   async deleteAllNotifications(@Req() req: Request) {
     const user = req.user as { id: string; clinicId?: string };
-    await this.whatsappService.deleteAllNotifications(user.id, user.clinicId!);
+    if (!user.clinicId) {
+      throw new BadRequestException('Clinic context is required');
+    }
+
+    await this.whatsappService.deleteAllNotifications(user.id, user.clinicId);
     return { success: true, message: 'All notifications deleted' };
   }
 }

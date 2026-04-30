@@ -40,6 +40,7 @@ import {
   appointmentRescheduleRequestSchema,
   resolveDoctorScopedAppointmentFilter,
 } from '@workspace/types';
+import { requireClinicId } from '@/common/utils/request-context.utils';
 
 const parseAppointmentStatus = (
   status: string,
@@ -85,6 +86,10 @@ export class AppointmentsController {
     };
   }
 
+  private getClinicId(req: RequestWithUser): string {
+    return requireClinicId(req);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create new appointment' })
   async create(
@@ -93,7 +98,7 @@ export class AppointmentsController {
   ) {
     const payload = appointmentDomainCreateSchema.parse({
       ...body,
-      clinicId: req.user!.clinicId!,
+      clinicId: this.getClinicId(req),
     });
 
     return this.appointmentService.createAppointment(payload);
@@ -144,7 +149,7 @@ export class AppointmentsController {
     }
 
     return this.appointmentService.listAppointments({
-      clinicId: req.user!.clinicId!,
+      clinicId: this.getClinicId(req),
       startDate: effectiveStartDate ? new Date(effectiveStartDate) : undefined,
       endDate: effectiveEndDate ? new Date(effectiveEndDate) : undefined,
       patientId,
@@ -161,7 +166,7 @@ export class AppointmentsController {
   async findOne(@Param('id') id: string, @Request() req: RequestWithUser) {
     return this.appointmentService.getAppointment(
       id,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.getAccessContext(req),
     );
   }
@@ -176,7 +181,7 @@ export class AppointmentsController {
   ) {
     return this.appointmentService.updateAppointmentDetails(
       id,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       body,
       this.getAccessContext(req),
     );
@@ -191,7 +196,7 @@ export class AppointmentsController {
   ) {
     return this.appointmentService.startConsultation(
       id,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.getAccessContext(req),
     );
   }
@@ -216,7 +221,7 @@ export class AppointmentsController {
     } = body;
     return this.appointmentService.createVitals(
       id,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       vitals,
       this.getAccessContext(req),
     );
@@ -242,7 +247,7 @@ export class AppointmentsController {
     } = body;
     return this.appointmentService.updateVitals(
       id,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       vitals,
       this.getAccessContext(req),
     );
@@ -258,7 +263,7 @@ export class AppointmentsController {
   ): Promise<DiagnosesSyncResponseDto> {
     const result = await this.appointmentService.syncDiagnoses(
       id,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       body.diagnoses ?? [],
       body.contentHash,
     );
@@ -284,7 +289,7 @@ export class AppointmentsController {
     return this.appointmentService.cancelAppointment(
       id,
       reason,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.getAccessContext(req),
     );
   }
@@ -301,7 +306,7 @@ export class AppointmentsController {
       id,
       payload.startTime,
       payload.endTime,
-      req.user!.clinicId!,
+      this.getClinicId(req),
       this.getAccessContext(req),
     );
   }
