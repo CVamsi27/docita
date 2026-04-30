@@ -40,6 +40,20 @@ export class PaymentsService {
     private paymentLinkProvider: IPaymentLinkProvider,
   ) {}
 
+  private resolveInvoiceClinicId(
+    invoice: Awaited<ReturnType<IInvoiceRepository['findById']>>,
+  ): string | undefined {
+    return invoice?.clinicId ?? invoice?.patient?.clinic?.id;
+  }
+
+  private async getClinicInvoice(invoiceId: string, clinicId: string) {
+    const invoice = await this.invoiceRepository.findById(invoiceId, clinicId);
+    if (!invoice || this.resolveInvoiceClinicId(invoice) !== clinicId) {
+      throw new NotFoundException('Invoice not found');
+    }
+    return invoice;
+  }
+
   async createPaymentSession(dto: {
     invoiceId: string;
     amount: number;
@@ -55,6 +69,13 @@ export class PaymentsService {
     );
 
     const amountInPaise = Math.round(dto.amount * 100);
+    const invoice = await this.getClinicInvoice(dto.invoiceId, dto.clinicId);
+
+    if (invoice.patientId !== dto.patientId) {
+      throw new BadRequestException(
+        'Payment session patient does not match invoice patient',
+      );
+    }
 
     if (dto.paymentMode === 'CASH') {
       const session = await this.repository.create({
@@ -73,7 +94,6 @@ export class PaymentsService {
       return session;
     }
 
-    const invoice = await this.invoiceRepository.findById(dto.invoiceId);
     const patient = invoice?.patient;
     const customerName = `${patient?.firstName || ''} ${
       patient?.lastName || ''
@@ -211,14 +231,15 @@ export class PaymentsService {
     amount?: number;
     notes?: string;
   }) {
-    const invoice = await this.invoiceRepository.findById(data.invoiceId);
-    if (!invoice || invoice.patient?.clinic?.id !== data.clinicId) {
-      throw new NotFoundException('Invoice not found');
-    }
+    const invoice = await this.getClinicInvoice(data.invoiceId, data.clinicId);
 
-    await this.invoiceRepository.update(invoice.id, {
-      status: InvoiceStatus.PAID,
-    });
+    await this.invoiceRepository.update(
+      invoice.id,
+      {
+        status: InvoiceStatus.PAID,
+      },
+      data.clinicId,
+    );
 
     if (!invoice.patientId) {
       throw new BadRequestException(

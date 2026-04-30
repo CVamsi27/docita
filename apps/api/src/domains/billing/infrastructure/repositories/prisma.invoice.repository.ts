@@ -33,6 +33,20 @@ const normalizeInvoicePrefix = (prefix?: string): string => {
   return normalized.slice(0, 4);
 };
 
+const buildInvoiceOwnershipWhere = (
+  id: string,
+  clinicId?: string,
+): Prisma.InvoiceWhereInput => {
+  if (!clinicId) {
+    return { id };
+  }
+
+  return {
+    id,
+    OR: [{ clinicId }, { clinicId: null, patient: { clinicId } }],
+  };
+};
+
 @Injectable()
 export class PrismaInvoiceRepository implements IInvoiceRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -112,9 +126,9 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     });
   }
 
-  async findById(id: string): Promise<InvoiceDetail | null> {
+  async findById(id: string, clinicId?: string): Promise<InvoiceDetail | null> {
     const invoice = await this.getReadClient().invoice.findFirst({
-      where: { id },
+      where: buildInvoiceOwnershipWhere(id, clinicId),
       select: INVOICE_DETAIL_SELECT,
     });
     return invoice as InvoiceDetail | null;
@@ -131,9 +145,10 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
   async update(
     id: string,
     data: Prisma.InvoiceUpdateInput,
+    clinicId?: string,
   ): Promise<InvoiceDetail> {
     const result = await this.prisma.invoice.updateMany({
-      where: { id },
+      where: buildInvoiceOwnershipWhere(id, clinicId),
       data,
     });
     if (result.count === 0) {
@@ -141,7 +156,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     }
 
     const invoice = await this.prisma.invoice.findFirst({
-      where: { id },
+      where: buildInvoiceOwnershipWhere(id, clinicId),
       select: INVOICE_DETAIL_SELECT,
     });
     if (!invoice) {
@@ -150,8 +165,10 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     return invoice as InvoiceDetail;
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.invoice.deleteMany({ where: { id } });
+  async delete(id: string, clinicId?: string): Promise<void> {
+    await this.prisma.invoice.deleteMany({
+      where: buildInvoiceOwnershipWhere(id, clinicId),
+    });
   }
 
   async findPatientContext(

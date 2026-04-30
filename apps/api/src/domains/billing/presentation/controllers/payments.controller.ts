@@ -28,6 +28,10 @@ import { IdempotencyInterceptor } from '@/common/interceptors/idempotency.interc
 import { UseInterceptors } from '@nestjs/common';
 import { RequestWithUser } from '@/common/types/common.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import {
+  requireClinicId,
+  requireUserId,
+} from '@/common/utils/request-context.utils';
 
 @Controller('payments')
 @UseGuards(TierGuard)
@@ -49,7 +53,7 @@ export class PaymentsController {
   ) {
     return this.paymentsService.createPaymentLink({
       ...dto,
-      clinicId: req.user!.clinicId!,
+      clinicId: requireClinicId(req),
       currency: dto.currency || this.configService.getCurrencyCode(),
     });
   }
@@ -57,7 +61,7 @@ export class PaymentsController {
   @Post(':id/send-whatsapp')
   @ZodSerializerDto(AnyResponseDto)
   async sendWhatsApp(@Param('id') id: string, @Request() req: RequestWithUser) {
-    await this.paymentsService.verifySessionOwnership(id, req.user!.clinicId!);
+    await this.paymentsService.verifySessionOwnership(id, requireClinicId(req));
     return this.paymentsService.sendPaymentLinkWhatsApp(id);
   }
 
@@ -67,7 +71,7 @@ export class PaymentsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    await this.paymentsService.verifySessionOwnership(id, req.user!.clinicId!);
+    await this.paymentsService.verifySessionOwnership(id, requireClinicId(req));
     return this.paymentsService.getPaymentSession(id);
   }
 
@@ -81,8 +85,8 @@ export class PaymentsController {
   ) {
     return this.paymentsService.markInvoicePaidManually({
       invoiceId,
-      clinicId: req.user!.clinicId!,
-      performedByUserId: req.user!.id,
+      clinicId: requireClinicId(req),
+      performedByUserId: requireUserId(req),
       paymentMethod: dto.paymentMethod,
       amount: dto.amount,
       notes: dto.notes,
