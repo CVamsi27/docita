@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ContextType, ExecutionContext, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
+import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
+import { ROLES_KEY } from '@/shared/modules/auth/auth/roles.decorator';
+import { mockGetAllAndOverrideKeyMap } from '@/test-utils';
 import { beforeEach, describe, it, expect, jest } from '@jest/globals';
 
 type AuthUser = {
@@ -41,9 +44,10 @@ function mockRolesReflectorSequence(
   mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
   options: { isPublic: boolean; requiredRoles?: readonly string[] },
 ): void {
-  mock
-    .mockReturnValueOnce(options.isPublic)
-    .mockReturnValueOnce(options.requiredRoles);
+  mockGetAllAndOverrideKeyMap(mock, [
+    [IS_PUBLIC_KEY, options.isPublic],
+    [ROLES_KEY, options.requiredRoles],
+  ]);
 }
 
 describe('RolesGuard', () => {

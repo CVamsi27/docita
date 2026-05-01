@@ -2,6 +2,9 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { Role } from '@workspace/db';
+import { ALLOW_NO_CLINIC_KEY } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
+import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
+import { mockGetAllAndOverrideKeyMap } from '@/test-utils';
 import { TenantGuard } from './tenant.guard';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
@@ -14,9 +17,10 @@ function mockTenantMetadataFlags(
   mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
   flags: { isPublic: boolean; allowNoClinic: boolean },
 ): void {
-  mock
-    .mockReturnValueOnce(flags.isPublic)
-    .mockReturnValueOnce(flags.allowNoClinic);
+  mockGetAllAndOverrideKeyMap(mock, [
+    [IS_PUBLIC_KEY, flags.isPublic],
+    [ALLOW_NO_CLINIC_KEY, flags.allowNoClinic],
+  ]);
 }
 
 describe('TenantGuard', () => {
