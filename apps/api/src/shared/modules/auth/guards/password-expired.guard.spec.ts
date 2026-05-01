@@ -35,11 +35,10 @@ describe('PasswordExpiredGuard', () => {
   let guard: PasswordExpiredGuard;
 
   beforeEach(() => {
-    const getAllAndOverride = createKeyedReflectorMock([
-      [SKIP_PASSWORD_EXPIRY_KEY, false],
-    ]);
     reflector = {
-      getAllAndOverride,
+      getAllAndOverride: createKeyedReflectorMock([
+        [SKIP_PASSWORD_EXPIRY_KEY, false],
+      ]),
     };
 
     prisma = {

@@ -28,12 +28,11 @@ describe('EmailVerifiedGuard', () => {
   let guard: EmailVerifiedGuard;
 
   beforeEach(() => {
-    const getAllAndOverride = createKeyedReflectorMock([
-      [IS_PUBLIC_KEY, false],
-      [SKIP_EMAIL_VERIFICATION_KEY, false],
-    ]);
     reflector = {
-      getAllAndOverride,
+      getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
+        [SKIP_EMAIL_VERIFICATION_KEY, false],
+      ]),
     };
     guard = new EmailVerifiedGuard(asType<Reflector>(reflector));
   });

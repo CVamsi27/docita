@@ -35,12 +35,11 @@ describe('SubscriptionStatusGuard', () => {
   let guard: SubscriptionStatusGuard;
 
   beforeEach(() => {
-    const getAllAndOverride = createKeyedReflectorMock([
-      [IS_PUBLIC_KEY, false],
-      [SKIP_SUBSCRIPTION_CHECK_KEY, false],
-    ]);
     reflector = {
-      getAllAndOverride,
+      getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
+        [SKIP_SUBSCRIPTION_CHECK_KEY, false],
+      ]),
     };
     clinicAuthCache = {
       getClinicAuth: jest.fn(),
