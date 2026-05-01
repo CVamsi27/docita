@@ -4,6 +4,7 @@ import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import { asType } from '@/test-utils/as-type';
+import { mockGetAllAndOverrideKeyBranch } from '@/test-utils/mock-reflector-get-all-and-override';
 import {
   IS_PUBLIC_KEY,
   SKIP_SUBSCRIPTION_CHECK_KEY,
@@ -43,10 +44,12 @@ describe('SubscriptionStatusGuard', () => {
   });
 
   it('skips check for public routes', async () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === IS_PUBLIC_KEY) return true;
-      return false;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      IS_PUBLIC_KEY,
+      true,
+      false,
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -55,10 +58,12 @@ describe('SubscriptionStatusGuard', () => {
   });
 
   it('skips check when metadata disables subscription guard', async () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === SKIP_SUBSCRIPTION_CHECK_KEY) return true;
-      return false;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      SKIP_SUBSCRIPTION_CHECK_KEY,
+      true,
+      false,
+    );
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),

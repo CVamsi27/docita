@@ -2,6 +2,7 @@ import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { asType } from '@/test-utils/as-type';
+import { mockGetAllAndOverrideKeyBranch } from '@/test-utils/mock-reflector-get-all-and-override';
 import {
   CLINIC_SCOPED_KEY,
   ClinicScopedGuard,
@@ -32,10 +33,12 @@ describe('ClinicScopedGuard', () => {
   });
 
   it('marks request as empty when clinic is missing and returnEmptyOnMissing is true', () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === CLINIC_SCOPED_KEY) return { returnEmptyOnMissing: true };
-      return undefined;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      CLINIC_SCOPED_KEY,
+      { returnEmptyOnMissing: true },
+      undefined,
+    );
     const request: Record<string, unknown> = {};
 
     const allowed = guard.canActivate(createContext(request));
@@ -45,10 +48,12 @@ describe('ClinicScopedGuard', () => {
   });
 
   it('uses custom paramName and allows request', () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === CLINIC_SCOPED_KEY) return { paramName: 'facilityId' };
-      return undefined;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      CLINIC_SCOPED_KEY,
+      { paramName: 'facilityId' },
+      undefined,
+    );
     const request = {
       query: { facilityId: 'clinic-1' },
     };

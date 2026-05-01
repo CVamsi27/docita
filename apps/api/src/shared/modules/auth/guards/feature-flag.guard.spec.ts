@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 import { asType } from '@/test-utils/as-type';
+import { mockGetAllAndOverrideKeyBranch } from '@/test-utils/mock-reflector-get-all-and-override';
 import { FEATURE_FLAG_KEY, FeatureFlagGuard } from './feature-flag.guard';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
@@ -45,10 +46,12 @@ describe('FeatureFlagGuard', () => {
   });
 
   it('uses clinic id from authenticated user when checking flag', async () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === FEATURE_FLAG_KEY) return 'enable_queue_management';
-      return undefined;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      FEATURE_FLAG_KEY,
+      'enable_queue_management',
+      undefined,
+    );
     featureFlagService.isEnabled.mockResolvedValue(true);
 
     await expect(

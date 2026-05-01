@@ -7,6 +7,7 @@ import {
 } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { asType } from '@/test-utils/as-type';
+import { mockGetAllAndOverrideKeyMap } from '@/test-utils/mock-reflector-get-all-and-override';
 import { FEATURE_KEY, Feature, TIER_KEY, Tier } from './tier.decorator';
 import { TierGuard } from './tier.guard';
 
@@ -65,11 +66,10 @@ describe('TierGuard', () => {
   });
 
   function setMetadata(requiredTier?: Tier, requiredFeature?: Feature): void {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === TIER_KEY) return requiredTier;
-      if (key === FEATURE_KEY) return requiredFeature;
-      return undefined;
-    });
+    mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [TIER_KEY, requiredTier],
+      [FEATURE_KEY, requiredFeature],
+    ]);
   }
 
   it('allows request when no tier or feature metadata is present', async () => {
