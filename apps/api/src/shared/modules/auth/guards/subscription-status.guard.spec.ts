@@ -5,8 +5,9 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import {
   asType,
+  createKeyedReflectorMock,
   mockGetAllAndOverrideKeyBranch,
-  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
 } from '@/test-utils';
 import {
   IS_PUBLIC_KEY,
@@ -27,17 +28,14 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('SubscriptionStatusGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let clinicAuthCache: jest.Mocked<
     Pick<ClinicAuthCacheService, 'getClinicAuth'>
   >;
   let guard: SubscriptionStatusGuard;
 
   beforeEach(() => {
-    const getAllAndOverride = jest.fn() as jest.MockedFunction<
-      Reflector['getAllAndOverride']
-    >;
-    mockGetAllAndOverrideKeyMap(getAllAndOverride, [
+    const getAllAndOverride = createKeyedReflectorMock([
       [IS_PUBLIC_KEY, false],
       [SKIP_SUBSCRIPTION_CHECK_KEY, false],
     ]);

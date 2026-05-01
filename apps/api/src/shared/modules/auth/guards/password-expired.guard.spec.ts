@@ -3,8 +3,9 @@ import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   asType,
+  createKeyedReflectorMock,
   mockGetAllAndOverrideKeyBranch,
-  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
 } from '@/test-utils';
 import {
   PasswordExpiredGuard,
@@ -25,7 +26,7 @@ function createContext(user: unknown): ExecutionContext {
 
 describe('PasswordExpiredGuard', () => {
   type UserLookupResult = { passwordExpiresAt: Date | null } | null;
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     $queryRaw: jest.MockedFunction<
       (...args: unknown[]) => Promise<UserLookupResult[]>
@@ -34,10 +35,7 @@ describe('PasswordExpiredGuard', () => {
   let guard: PasswordExpiredGuard;
 
   beforeEach(() => {
-    const getAllAndOverride = jest.fn() as jest.MockedFunction<
-      Reflector['getAllAndOverride']
-    >;
-    mockGetAllAndOverrideKeyMap(getAllAndOverride, [
+    const getAllAndOverride = createKeyedReflectorMock([
       [SKIP_PASSWORD_EXPIRY_KEY, false],
     ]);
     reflector = {

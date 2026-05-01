@@ -7,13 +7,14 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { SubscriptionStatus } from '@workspace/db';
+import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
 import {
   isBillingAdminRole,
   isSubscriptionPastGraceDeadline,
 } from '@/shared/modules/auth/utils/subscription-hard-lock.util';
 
-export const IS_PUBLIC_KEY = 'isPublic';
+export { IS_PUBLIC_KEY };
 export const SKIP_SUBSCRIPTION_CHECK_KEY = 'skipSubscriptionCheck';
 
 @Injectable()
