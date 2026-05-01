@@ -146,6 +146,7 @@ This project uses **two different test frameworks** optimized for their respecti
 - Native integration with NestJS dependency injection, decorators, Guards, and Interceptors
 - Established ecosystem and patterns for backend testing
 - Official NestJS documentation standardizes on Jest
+- When specs stub `Reflector#getAllAndOverride`, use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/TESTING.md` (Backend unit tests).
 
 **Running API tests:**
 

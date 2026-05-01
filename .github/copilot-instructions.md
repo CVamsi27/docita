@@ -42,6 +42,7 @@ Apply these rules when generating or editing code in this repository.
 - Add/adjust tests for changed behavior.
 - Prefer focused tests nearest the changed code.
 - For user flows, update E2E when applicable.
+- API guard specs: stub `Reflector#getAllAndOverride` via `@/test-utils` keyed helpers (`docs/TESTING.md`, Backend unit tests).
 
 ## 7) Documentation Rules
 
