@@ -25,7 +25,6 @@ export function SpecialtiesSection() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
-          {}
           <Card className="overflow-hidden border-border bg-card">
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
@@ -33,7 +32,9 @@ export function SpecialtiesSection() {
                   <Baby className="h-6 w-6 text-info" />
                 </div>
                 <div>
-                  <h3 className="ui-section-title text-[var(--fs-2xl)]">Pediatrics</h3>
+                  <h3 className="ui-section-title text-[var(--fs-2xl)]">
+                    Pediatrics
+                  </h3>
                   <p className="text-muted-foreground">
                     Comprehensive child care tools
                   </p>
@@ -70,7 +71,6 @@ export function SpecialtiesSection() {
             </div>
           </Card>
 
-          {}
           <Card className="overflow-hidden border-border bg-card">
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
@@ -78,7 +78,9 @@ export function SpecialtiesSection() {
                   <Smile className="h-6 w-6 text-success" />
                 </div>
                 <div>
-                  <h3 className="ui-section-title text-[var(--fs-2xl)]">Dental Care</h3>
+                  <h3 className="ui-section-title text-[var(--fs-2xl)]">
+                    Dental Care
+                  </h3>
                   <p className="text-muted-foreground">
                     Advanced dental practice management
                   </p>

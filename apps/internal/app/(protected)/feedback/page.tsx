@@ -214,7 +214,6 @@ export default function FeedbackPage() {
         }
       />
 
-      {}
       {stats && (
         <div className="grid gap-4 md:grid-cols-5">
           <Card>
@@ -225,7 +224,9 @@ export default function FeedbackPage() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.total}</div>
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                {stats.total}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {stats.recentFeedback} in last 7 days
               </p>
@@ -284,7 +285,6 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      {}
       {stats && (
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -375,7 +375,6 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      {}
       {showFilters && (
         <Card>
           <CardContent className="pt-6">
@@ -492,7 +491,6 @@ export default function FeedbackPage() {
         </Card>
       )}
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>All Feedback</CardTitle>
@@ -582,7 +580,6 @@ export default function FeedbackPage() {
         </CardContent>
       </Card>
 
-      {}
       <Dialog
         open={!!selectedFeedback}
         onOpenChange={() => setSelectedFeedback(null)}
@@ -603,7 +600,6 @@ export default function FeedbackPage() {
               </DialogHeader>
 
               <div className="space-y-6">
-                {}
                 <div className="flex items-center gap-4">
                   <div>
                     <Label className="text-muted-foreground">
@@ -631,7 +627,6 @@ export default function FeedbackPage() {
                   </div>
                 </div>
 
-                {}
                 {selectedFeedback.goodFeatures.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-success">
@@ -653,7 +648,6 @@ export default function FeedbackPage() {
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.badFeatures.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-destructive">
@@ -675,7 +669,6 @@ export default function FeedbackPage() {
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.improvementAreas.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-warning">
@@ -697,7 +690,6 @@ export default function FeedbackPage() {
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.featureRequests && (
                   <div className="space-y-2">
                     <Label>Feature Requests</Label>
@@ -707,7 +699,6 @@ export default function FeedbackPage() {
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.generalComments && (
                   <div className="space-y-2">
                     <Label>General Comments</Label>
@@ -717,7 +708,6 @@ export default function FeedbackPage() {
                   </div>
                 )}
 
-                {}
                 <div className="border-t pt-4 space-y-4">
                   <div className="space-y-2">
                     <Label>Admin Notes</Label>

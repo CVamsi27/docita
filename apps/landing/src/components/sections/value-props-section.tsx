@@ -14,7 +14,6 @@ export function ValuePropsSection() {
     <section className="landing-section bg-background">
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:gap-16">
-          {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2 lg:order-1">
               <div className="badge-success mb-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
@@ -56,7 +55,6 @@ export function ValuePropsSection() {
             </div>
           </div>
 
-          {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2">
               <div className="badge-info mb-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
@@ -98,7 +96,6 @@ export function ValuePropsSection() {
             </div>
           </div>
 
-          {}
           <div className="grid gap-8 lg:grid-cols-2 items-center">
             <div className="order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 rounded-full tier-pro px-4 py-2 text-sm mb-4">

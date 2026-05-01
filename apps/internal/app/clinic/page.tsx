@@ -75,7 +75,6 @@ export default function ClinicDashboard() {
 
       {clinic ? (
         <>
-          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -100,7 +99,6 @@ export default function ClinicDashboard() {
             </CardContent>
           </Card>
 
-          {}
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -108,7 +106,9 @@ export default function ClinicDashboard() {
                 <Stethoscope className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{clinic.doctors}</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                  {clinic.doctors}
+                </div>
               </CardContent>
             </Card>
 
@@ -120,7 +120,9 @@ export default function ClinicDashboard() {
                 <User className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{clinic.receptionists}</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                  {clinic.receptionists}
+                </div>
               </CardContent>
             </Card>
 

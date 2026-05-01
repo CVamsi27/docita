@@ -116,7 +116,6 @@ export default function CreateDoctorPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
-            {}
             <div className="space-y-4">
               <h3 className="font-semibold">Basic Information</h3>
 
@@ -228,7 +227,6 @@ export default function CreateDoctorPage() {
               </div>
             </div>
 
-            {}
             <div className="space-y-4">
               <h3 className="font-semibold">Professional Information</h3>
 
@@ -284,7 +282,6 @@ export default function CreateDoctorPage() {
               </div>
             </div>
 
-            {}
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"

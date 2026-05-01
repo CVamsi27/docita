@@ -284,7 +284,6 @@ export default function AdminsPage() {
         size="compact"
       />
 
-      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -320,7 +319,6 @@ export default function AdminsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -411,7 +409,6 @@ export default function AdminsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -457,7 +454,6 @@ export default function AdminsPage() {
         </DialogContent>
       </Dialog>
 
-      {}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -583,7 +579,6 @@ export default function AdminsPage() {
         </DialogContent>
       </Dialog>
 
-      {}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

@@ -89,7 +89,6 @@ export default function ProtectedLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {}
       <aside className="hidden w-64 flex-col border-r border-border/70 bg-background/70 backdrop-blur md:flex">
         <div className="flex h-14 items-center border-b border-border/70 px-6">
           <Link
@@ -135,9 +134,7 @@ export default function ProtectedLayout({
         </div>
       </aside>
 
-      {}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {}
         <header className="flex h-14 items-center gap-4 border-b border-border/70 bg-background/80 backdrop-blur px-4 md:hidden">
           <MobileNav />
           <span className="text-lg font-semibold tracking-tight">

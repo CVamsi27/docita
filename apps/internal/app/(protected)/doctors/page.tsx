@@ -253,7 +253,6 @@ export default function DoctorsPage() {
         size="compact"
       />
 
-      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -286,7 +285,6 @@ export default function DoctorsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -406,7 +404,6 @@ export default function DoctorsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -421,7 +418,6 @@ export default function DoctorsPage() {
 
           {selectedDoctor && (
             <div className="space-y-6">
-              {}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Email</Label>
@@ -529,11 +525,10 @@ export default function DoctorsPage() {
               )}
 
               {(() => {
-                const verificationPublicNote =
-                  getDoctorVerificationPublicNote(
-                    selectedDoctor.verificationStatus,
-                    selectedDoctor.verificationReason,
-                  );
+                const verificationPublicNote = getDoctorVerificationPublicNote(
+                  selectedDoctor.verificationStatus,
+                  selectedDoctor.verificationReason,
+                );
                 if (!verificationPublicNote) return null;
                 return (
                   <div>
@@ -587,7 +582,6 @@ export default function DoctorsPage() {
                 )}
               </div>
 
-              {}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Award className="h-5 w-5 text-primary" />
@@ -636,7 +630,6 @@ export default function DoctorsPage() {
                 )}
               </div>
 
-              {}
               {Array.isArray(selectedDoctor.additionalSpecializations) &&
                 selectedDoctor.additionalSpecializations.length > 0 && (
                   <div>
