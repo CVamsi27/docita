@@ -2,8 +2,11 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils';
-import { PatientDoctorGuard } from './patient-doctor.guard';
+import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  DOCTOR_PATIENT_SCOPED_KEY,
+  PatientDoctorGuard,
+} from './patient-doctor.guard';
 
 function createContext(
   user: Record<string, unknown>,
@@ -18,6 +21,18 @@ function createContext(
     getHandler: (() => () => undefined) as ExecutionContext['getHandler'],
     getClass: (() => class TestClass {}) as ExecutionContext['getClass'],
   });
+}
+
+function mockDoctorPatientScoped(
+  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  enabled: boolean,
+): void {
+  mockGetAllAndOverrideKeyBranch(
+    mock,
+    DOCTOR_PATIENT_SCOPED_KEY,
+    enabled,
+    false,
+  );
 }
 
 describe('PatientDoctorGuard', () => {
@@ -55,7 +70,7 @@ describe('PatientDoctorGuard', () => {
   });
 
   it('allows request when doctor-patient scoping is not enabled', async () => {
-    reflector.getAllAndOverride.mockReturnValue(false);
+    mockDoctorPatientScoped(reflector.getAllAndOverride, false);
 
     await expect(
       guard.canActivate(
@@ -70,7 +85,7 @@ describe('PatientDoctorGuard', () => {
   });
 
   it('allows admin-type roles to bypass doctor-patient relationship checks', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockDoctorPatientScoped(reflector.getAllAndOverride, true);
 
     await expect(
       guard.canActivate(
@@ -85,7 +100,7 @@ describe('PatientDoctorGuard', () => {
   });
 
   it('allows request when patientId is missing', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockDoctorPatientScoped(reflector.getAllAndOverride, true);
 
     await expect(
       guard.canActivate(
@@ -97,7 +112,7 @@ describe('PatientDoctorGuard', () => {
   });
 
   it('allows patient role when patient record is linked to user', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockDoctorPatientScoped(reflector.getAllAndOverride, true);
     prisma.patient.findFirst.mockResolvedValue({ id: 'p1' });
 
     await expect(
@@ -116,7 +131,7 @@ describe('PatientDoctorGuard', () => {
   });
 
   it('blocks patient role when patient record is not linked', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockDoctorPatientScoped(reflector.getAllAndOverride, true);
     prisma.patient.findFirst.mockResolvedValue(null);
 
     await expect(
@@ -130,7 +145,7 @@ describe('PatientDoctorGuard', () => {
   });
 
   it('allows doctor role when active patient relationship exists', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockDoctorPatientScoped(reflector.getAllAndOverride, true);
     prisma.patientDoctor.findFirst.mockResolvedValue({ id: 'rel-1' });
 
     await expect(
@@ -153,7 +168,7 @@ describe('PatientDoctorGuard', () => {
   });
 
   it('blocks doctor role when active relationship does not exist', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockDoctorPatientScoped(reflector.getAllAndOverride, true);
     prisma.patientDoctor.findFirst.mockResolvedValue(null);
 
     await expect(
