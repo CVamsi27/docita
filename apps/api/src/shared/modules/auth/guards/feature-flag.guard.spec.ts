@@ -2,8 +2,15 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
-import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import { asType, mockGetAllAndOverrideKeyMap } from '@/test-utils';
 import { FEATURE_FLAG_KEY, FeatureFlagGuard } from './feature-flag.guard';
+
+function mockRequireFeatureFlag(
+  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  flagName: string | undefined,
+): void {
+  mockGetAllAndOverrideKeyMap(mock, [[FEATURE_FLAG_KEY, flagName]]);
+}
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
   return asType<ExecutionContext>({
@@ -36,7 +43,7 @@ describe('FeatureFlagGuard', () => {
   });
 
   it('allows request when no feature flag metadata is set', async () => {
-    reflector.getAllAndOverride.mockReturnValue(undefined);
+    mockRequireFeatureFlag(reflector.getAllAndOverride, undefined);
 
     await expect(
       guard.canActivate(createContext({ user: { clinicId: 'clinic-1' } })),
@@ -45,12 +52,7 @@ describe('FeatureFlagGuard', () => {
   });
 
   it('uses clinic id from authenticated user when checking flag', async () => {
-    mockGetAllAndOverrideKeyBranch(
-      reflector.getAllAndOverride,
-      FEATURE_FLAG_KEY,
-      'enable_queue_management',
-      undefined,
-    );
+    mockRequireFeatureFlag(reflector.getAllAndOverride, 'enable_queue_management');
     featureFlagService.isEnabled.mockResolvedValue(true);
 
     await expect(
@@ -64,7 +66,7 @@ describe('FeatureFlagGuard', () => {
   });
 
   it('falls back to clinic id from query when user clinic is unavailable', async () => {
-    reflector.getAllAndOverride.mockReturnValue('enable_ai_features');
+    mockRequireFeatureFlag(reflector.getAllAndOverride, 'enable_ai_features');
     featureFlagService.isEnabled.mockResolvedValue(true);
 
     await expect(
@@ -77,7 +79,7 @@ describe('FeatureFlagGuard', () => {
   });
 
   it('blocks request when feature flag is disabled', async () => {
-    reflector.getAllAndOverride.mockReturnValue('enable_ai_features');
+    mockRequireFeatureFlag(reflector.getAllAndOverride, 'enable_ai_features');
     featureFlagService.isEnabled.mockResolvedValue(false);
 
     await expect(
