@@ -55,15 +55,17 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 
 ### CI/CD Pipeline (GitHub Actions)
 
-**Location**: `.github/workflows/test.yml`
+**Locations**:
+
+- `.github/workflows/ci.yml` — lint, typecheck, unit tests, and repository standards (including Knip when scope matches)
+- `.github/workflows/frontend-critical-e2e.yml` — Playwright lanes for the doctor app and related flows
+- `.github/workflows/api-e2e.yml` — NestJS Jest E2E against PostgreSQL where configured
 
 **Features**:
 
-- ✅ Multi-lane Playwright CI (smoke + onboarding/verify + auth/tenant critical)
-- ✅ PostgreSQL service container for backend tests
-- ✅ Automatic test report uploads
-- ✅ Coverage reporting
-- ✅ Concurrency control to prevent duplicate runs
+- ✅ Path-filtered jobs so unrelated edits do not burn CI minutes
+- ✅ PostgreSQL service containers where E2E workflows require a database
+- ✅ Concurrency control on key workflows
 
 ## Setup Instructions
 
