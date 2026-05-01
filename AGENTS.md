@@ -125,7 +125,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 ### 7.4 Unused dependencies and exports (Knip)
 
 - Run `pnpm knip` for consolidated or workspace-wide changes and treat failures like lint: fix unused exports and dependencies or adjust `knip.json` only when the pattern is intentional.
-- CI runs Knip in the Repository Standards job on workflows that execute `.github/workflows/ci.yml`.
+- In CI, Knip runs in the Repository Standards job only when the diff touches dependency manifests, `knip.json`, `turbo.json`, or paths under `apps/`, `packages/`, or `scripts/` (see `isKnipChange` in [`scripts/detect-workflow-scope.mjs`](scripts/detect-workflow-scope.mjs)). Workflow-only edits skip Knip to conserve minutes per section 11.2.
 
 ## 8) UX and Design Rules (Project-Wide)
 
@@ -307,6 +307,6 @@ Before finalizing changes:
 - TODO/FIXME-style comments are resolved or removed from touched areas; redundant comments are removed per section 7.2.
 - Typographic hierarchy is preserved (headings > body > sub-points).
 - Changed behavior is covered by appropriate tests/checks.
-- `pnpm knip` passes when CI Repository Standards (including Knip) applies to the change.
+- When your change is Knip-relevant per the CI scope detector, `pnpm knip` passes locally and the Knip step runs in CI; otherwise run Knip locally before merging if you touched dependencies or exports.
 - Relevant local tests/builds were run and passed before the final push.
 - If CI was red, the corresponding local workflow commands were run and passed before the final push.

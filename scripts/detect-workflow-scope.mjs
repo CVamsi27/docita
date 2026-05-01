@@ -32,7 +32,7 @@ const changedFiles = execFileSync(
   .split(/\r?\n/)
   .filter(Boolean);
 
-  const outputs =
+const outputs =
   scope === "ci"
     ? {
         dependencies: changedFiles.some(isDependenciesChange),
@@ -42,6 +42,7 @@ const changedFiles = execFileSync(
         landing: changedFiles.some(isLandingChange),
         worker: changedFiles.some(isWorkerChange),
         db: changedFiles.some(isDbChange),
+        knip: changedFiles.some(isKnipChange),
       }
     : {
         api: changedFiles.some(isDeployApiChange),
@@ -88,6 +89,17 @@ function isDependenciesChange(file) {
     file === "pnpm-workspace.yaml" ||
     (file.startsWith("apps/") && file.endsWith("/package.json")) ||
     (file.startsWith("packages/") && file.endsWith("/package.json"))
+  );
+}
+
+function isKnipChange(file) {
+  return (
+    isDependenciesChange(file) ||
+    file === "knip.json" ||
+    file === "turbo.json" ||
+    file.startsWith("apps/") ||
+    file.startsWith("packages/") ||
+    file.startsWith("scripts/")
   );
 }
 

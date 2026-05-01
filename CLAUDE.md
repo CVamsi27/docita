@@ -126,7 +126,7 @@ cd packages/db && pnpm db:studio
 ```bash
 pnpm verify:standard           # Verify structure and contracts
 pnpm check:hygiene             # Block stray artifacts from being committed
-pnpm knip                      # Unused dependencies and exports (CI Repository Standards)
+pnpm knip                      # Unused deps/exports (CI runs when scope detector marks Knip-relevant paths)
 pnpm check:prisma-boundary     # Ensure Prisma not imported in frontend
 ```
 
@@ -634,7 +634,7 @@ export class PrescriptionFactory {
 
 - Run `pnpm lint` and changed issues
 - Run `pnpm verify:standard` and `pnpm check:hygiene` when touching structure, scripts, or many packages
-- Run `pnpm knip` for consolidated PRs or workspace-wide dependency/export changes (CI enforces Knip in Repository Standards)
+- Run `pnpm knip` for consolidated PRs or workspace-wide dependency/export changes (CI runs Knip when changed paths match `isKnipChange` in `scripts/detect-workflow-scope.mjs`)
 - Run `pnpm test` for changed areas
 - Run `pnpm build` for changed areas
 - Ensure no debug artifacts or `console.log` statements

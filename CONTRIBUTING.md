@@ -89,7 +89,7 @@ This is a Monorepo managed by **Turborepo**.
     ```bash
     pnpm check:hygiene    # Ensure generated/runtime artifacts are not tracked
     pnpm verify:standard # Structure, contracts, prisma boundary (when broad changes)
-    pnpm knip             # Unused deps/exports for consolidated or workspace-wide PRs
+    pnpm knip             # Unused deps/exports; CI runs this when the diff touches apps/packages/scripts, manifests, or knip.json (see scripts/detect-workflow-scope.mjs)
     pnpm lint             # Lint
     pnpm build            # Verify build consistency when impact is broad
     pnpm test             # Tests for touched areas
