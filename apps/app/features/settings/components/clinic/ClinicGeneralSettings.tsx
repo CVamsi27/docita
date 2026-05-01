@@ -87,8 +87,7 @@ export function ClinicGeneralSettings() {
           "CLINIC",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clinic]);
+  }, [clinic, form]);
 
   const handleSubmit = (data: ClinicSettingsFormValues) => {
     updateClinic(data, {
@@ -166,11 +165,14 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label={`${facilityLabel} Name`}
+                  htmlFor="clinic-name"
                   required
                   error={form.formState.errors.name?.message}
                 >
-                  <FormControl>
+                  <FormControl id="clinic-name">
                     <Input
+                      id="clinic-name"
+                      autoComplete="organization"
                       placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
                       {...field}
                     />
@@ -184,8 +186,8 @@ export function ClinicGeneralSettings() {
               name="facilityLabel"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Display label"
-                  hint="How your facility is referred to across the app (navigation, settings, team, and join flows). Defaults to Clinic."
+                  label="Facility type (how we refer to your organization)"
+                  hint="Shown in navigation and join flows. Default is Clinic unless you choose Hospital."
                 >
                   <FormControl>
                     <Select
@@ -213,11 +215,17 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Address"
+                  htmlFor="clinic-address"
                   required
                   error={form.formState.errors.address?.message}
                 >
-                  <FormControl>
-                    <Input placeholder="Enter address" {...field} />
+                  <FormControl id="clinic-address">
+                    <Input
+                      id="clinic-address"
+                      autoComplete="street-address"
+                      placeholder="Enter address"
+                      {...field}
+                    />
                   </FormControl>
                 </FormFieldGroup>
               )}
@@ -229,11 +237,17 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Phone Number"
+                  htmlFor="clinic-phone"
                   required
                   error={form.formState.errors.phone?.message}
                 >
-                  <FormControl>
-                    <Input placeholder="Enter phone number" {...field} />
+                  <FormControl id="clinic-phone">
+                    <Input
+                      id="clinic-phone"
+                      autoComplete="tel"
+                      placeholder="Enter phone number"
+                      {...field}
+                    />
                   </FormControl>
                 </FormFieldGroup>
               )}
@@ -245,11 +259,14 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="GSTIN"
+                  htmlFor="clinic-gstin"
                   error={form.formState.errors.gstin?.message}
                   hint="Needed for GST invoices on paid Indian plans. Keep this aligned with your tax registration."
                 >
-                  <FormControl>
+                  <FormControl id="clinic-gstin">
                     <Input
+                      id="clinic-gstin"
+                      autoComplete="off"
                       placeholder="27ABCDE1234F1Z5"
                       {...field}
                       value={field.value || ""}

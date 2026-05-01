@@ -16,7 +16,7 @@ test.describe("Subscription & Billing", () => {
   test("should display subscription status on upgrade page", async ({
     page,
   }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await expect(page.locator("h1")).toContainText(/Upgrade|Plan/i);
     await expect(page.getByText("Current Plan").first()).toBeVisible();
@@ -24,7 +24,7 @@ test.describe("Subscription & Billing", () => {
   });
 
   test("should display all tier options", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await expect(page.getByRole("heading", { name: "Starter" })).toBeVisible();
     await expect(
@@ -41,7 +41,7 @@ test.describe("Subscription & Billing", () => {
   test("should show professional and enterprise feature details", async ({
     page,
   }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await expect(page.getByText("Everything in Essential, plus")).toBeVisible();
     await expect(
@@ -54,7 +54,7 @@ test.describe("Subscription & Billing", () => {
   });
 
   test("should show billing history", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await page.getByRole("button", { name: /Billing History/i }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
@@ -62,7 +62,7 @@ test.describe("Subscription & Billing", () => {
   });
 
   test("should open plan confirmation from a paid plan", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await page
       .getByRole("button", { name: /Upgrade|Select Plan|Downgrade/i })
@@ -73,17 +73,30 @@ test.describe("Subscription & Billing", () => {
   });
 
   test("should display FAQ section", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await page.getByRole("tab", { name: "FAQ" }).click();
     await expect(page.getByText(/FAQ|Frequently Asked/i).first()).toBeVisible();
   });
 
   test("should display contact sales button", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await expect(
       page.getByRole("button", { name: /Contact Sales/i }).first(),
+    ).toBeVisible();
+  });
+
+  test("should render billing locked page when visited directly", async ({
+    page,
+  }) => {
+    await page.goto("/billing-locked", { waitUntil: "networkidle" });
+
+    await expect(
+      page.getByRole("heading", { name: /Workspace access paused/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/subscription billing must be resolved/i),
     ).toBeVisible();
   });
 });
