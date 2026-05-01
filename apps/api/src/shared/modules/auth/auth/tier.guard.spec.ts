@@ -15,6 +15,7 @@ type ClinicRecord = {
   intelligenceAddon: IntelligenceAddon;
   features: Record<string, boolean>;
   subscriptionStatus: SubscriptionStatus;
+  subscription: { graceUntil: Date | null };
 };
 
 function createContext(user: unknown): ExecutionContext {
@@ -45,6 +46,7 @@ describe('TierGuard', () => {
     intelligenceAddon: IntelligenceAddon.NONE,
     features: {},
     subscriptionStatus: SubscriptionStatus.ACTIVE,
+    subscription: { graceUntil: null },
   };
 
   beforeEach(() => {
@@ -232,6 +234,40 @@ describe('TierGuard', () => {
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+  });
+
+  it('blocks tier checks after grace deadline for non-admin roles', async () => {
+    setMetadata(Tier.STARTER, undefined);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      subscriptionStatus: SubscriptionStatus.GRACE,
+      subscription: {
+        graceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      },
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({ clinicId: 'clinic-1', role: 'DOCTOR' }),
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows tier checks after grace deadline for billing admins', async () => {
+    setMetadata(Tier.STARTER, undefined);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      subscriptionStatus: SubscriptionStatus.GRACE,
+      subscription: {
+        graceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      },
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({ clinicId: 'clinic-1', role: 'ADMIN_DOCTOR' }),
+      ),
     ).resolves.toBe(true);
   });
 });

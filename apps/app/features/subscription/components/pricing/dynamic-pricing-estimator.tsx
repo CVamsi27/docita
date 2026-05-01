@@ -287,7 +287,7 @@ export function DynamicPricingEstimator({
               </Badge>
             ) : shownTotal !== null && estimate ? (
               <div className="text-right">
-                <span className="text-2xl font-bold text-foreground">
+                <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-foreground">
                   {estimate.currency.symbol}
                   {shownTotal.toLocaleString()}
                 </span>

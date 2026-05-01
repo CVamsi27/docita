@@ -199,7 +199,9 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                 <Button
                   size="sm"
                   className="w-full gap-2"
-                  onClick={() => router.push("/upgrade?tier=PROFESSIONAL")}
+                  onClick={() =>
+                    router.push("/settings?tab=subscription&tier=PROFESSIONAL")
+                  }
                 >
                   Upgrade to Professional <ArrowRight className="h-3.5 w-3.5" />
                 </Button>

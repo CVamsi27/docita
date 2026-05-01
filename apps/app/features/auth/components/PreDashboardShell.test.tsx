@@ -29,6 +29,10 @@ vi.mock("./AuthBrandingPanel", () => ({
   AuthBrandingPanel: () => <div data-testid="branding-panel" />,
 }));
 
+vi.mock("@/components/common/support-contact", () => ({
+  SupportContact: () => <div data-testid="support-contact-footer" />,
+}));
+
 vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => <button type="button">Theme</button>,
 }));
@@ -92,6 +96,16 @@ describe("PreDashboardShell", () => {
     expect(
       container.querySelector('[data-testid="branding-panel"]'),
     ).not.toBeNull();
+  });
+
+  it("renders the support contact footer", () => {
+    render(
+      <PreDashboardShell currentStep="choose-path">
+        <div>Choose path</div>
+      </PreDashboardShell>,
+    );
+
+    expect(screen.getByTestId("support-contact-footer")).toBeInTheDocument();
   });
 
   it("can hide the progress indicator", () => {

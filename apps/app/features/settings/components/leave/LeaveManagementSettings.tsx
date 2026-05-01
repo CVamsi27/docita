@@ -71,6 +71,7 @@ const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   EARNED: "Earned",
   COMP_OFF: "Comp Off",
   UNPAID: "Unpaid",
+  HOLIDAY: "Holiday",
 };
 
 const STATUS_VARIANT: Record<
@@ -185,6 +186,10 @@ export function LeaveManagementSettings() {
 
   return (
     <div className="space-y-6">
+      <p className="text-sm text-muted-foreground max-w-3xl">
+        Submit leave here when your clinic tracks quotas and approvals. To block
+        the scheduling calendar immediately, use Time away under Availability.
+      </p>
       {balance.length > 0 && (
         <Card>
           <CardHeader>

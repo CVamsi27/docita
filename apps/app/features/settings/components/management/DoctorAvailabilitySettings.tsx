@@ -198,9 +198,9 @@ export function DoctorAvailabilitySettings() {
         <CardContent className="space-y-6">
           {isAdmin && doctors.length > 0 && (
             <div className="space-y-2">
-              <Label>Select Doctor</Label>
+              <Label htmlFor="availability-doctor">Select Doctor</Label>
               <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
-                <SelectTrigger className="w-full sm:w-64">
+                <SelectTrigger id="availability-doctor" className="w-full sm:w-64">
                   <SelectValue placeholder="Select a doctor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -241,6 +241,7 @@ export function DoctorAvailabilitySettings() {
                       updateDay(day.dayOfWeek, { isActive: val })
                     }
                     id={`toggle-${day.dayOfWeek}`}
+                    name={`availability-${day.dayOfWeek}-active`}
                   />
                   <Label
                     htmlFor={`toggle-${day.dayOfWeek}`}
@@ -258,9 +259,17 @@ export function DoctorAvailabilitySettings() {
                   }
                 >
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Start</Label>
+                    <Label
+                      htmlFor={`availability-${day.dayOfWeek}-start`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      Start
+                    </Label>
                     <Input
+                      id={`availability-${day.dayOfWeek}-start`}
+                      name={`availability-${day.dayOfWeek}-start`}
                       type="time"
+                      autoComplete="off"
                       value={day.startTime}
                       onChange={(e) =>
                         updateDay(day.dayOfWeek, { startTime: e.target.value })
@@ -269,9 +278,17 @@ export function DoctorAvailabilitySettings() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">End</Label>
+                    <Label
+                      htmlFor={`availability-${day.dayOfWeek}-end`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      End
+                    </Label>
                     <Input
+                      id={`availability-${day.dayOfWeek}-end`}
+                      name={`availability-${day.dayOfWeek}-end`}
                       type="time"
+                      autoComplete="off"
                       value={day.endTime}
                       onChange={(e) =>
                         updateDay(day.dayOfWeek, { endTime: e.target.value })
@@ -280,9 +297,17 @@ export function DoctorAvailabilitySettings() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Slot (min)</Label>
+                    <Label
+                      htmlFor={`availability-${day.dayOfWeek}-slot-duration`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      Slot (min)
+                    </Label>
                     <Input
+                      id={`availability-${day.dayOfWeek}-slot-duration`}
+                      name={`availability-${day.dayOfWeek}-slot-duration`}
                       type="number"
+                      autoComplete="off"
                       value={day.slotDuration}
                       onChange={(e) =>
                         updateDay(day.dayOfWeek, {

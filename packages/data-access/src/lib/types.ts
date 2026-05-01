@@ -24,6 +24,7 @@ export interface APIError extends Error {
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
+  validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
 }

@@ -40,7 +40,6 @@ interface PaymentStepProps {
   clinicEmail?: string;
   clinicPhone?: string;
   tier?: string;
-  onStartTrial?: () => void;
 }
 
 
@@ -55,7 +54,6 @@ export function PaymentStep({
   clinicEmail,
   clinicPhone,
   tier,
-  onStartTrial,
 }: PaymentStepProps) {
   const [autoPay, setAutoPay] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -160,7 +158,7 @@ export function PaymentStep({
         <CardDescription>
           {isFree
             ? "Your selected plan has no upfront cost"
-            : "Complete payment to activate your subscription. You won't be charged until your trial ends."}
+            : "Complete payment to activate your subscription."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -236,23 +234,6 @@ export function PaymentStep({
               Back
             </Button>
           </div>
-
-          {tier === "ESSENTIAL" && onStartTrial && (
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">
-                Not ready to pay?
-              </p>
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                onClick={onStartTrial}
-                disabled={isProcessing}
-              >
-                Start 14-day free trial instead →
-              </Button>
-            </div>
-          )}
 
           <div className="flex justify-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-3 w-3" />

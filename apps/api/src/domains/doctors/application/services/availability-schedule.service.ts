@@ -303,4 +303,20 @@ export class AvailabilityScheduleService {
     await this.repository.deleteTimeOff(id);
     return { success: true };
   }
+
+  getUnavailableDoctorIdsForCalendarDate(
+    clinicId: string,
+    date: Date | string,
+  ): Promise<string[]> {
+    const target = new Date(date);
+    const rangeStart = new Date(target);
+    rangeStart.setHours(0, 0, 0, 0);
+    const rangeEnd = new Date(target);
+    rangeEnd.setHours(23, 59, 59, 999);
+    return this.repository.findDoctorIdsWithFullDayTimeOffOverlappingRange(
+      clinicId,
+      rangeStart,
+      rangeEnd,
+    );
+  }
 }

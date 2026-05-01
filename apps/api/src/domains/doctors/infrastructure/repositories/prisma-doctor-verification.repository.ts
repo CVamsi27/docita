@@ -48,6 +48,8 @@ export class PrismaDoctorVerificationRepository implements IDoctorVerificationRe
         name: true,
         role: true,
         registrationNumber: true,
+        registrationCouncil: true,
+        registrationStateCode: true,
         licenseNumber: true,
       },
     });

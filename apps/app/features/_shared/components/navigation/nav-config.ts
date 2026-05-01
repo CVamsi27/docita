@@ -3,7 +3,6 @@ import {
   Bell,
   Boxes,
   CalendarDays,
-  ClipboardCheck,
   FileInput,
   Files,
   FlaskConical,
@@ -46,13 +45,6 @@ export const navItems: NavItem[] = [
     href: "/appointments",
     icon: CalendarDays,
     label: "Appointments",
-    feature: Feature.CALENDAR_SLOTS,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
-  },
-  {
-    href: "/follow-ups",
-    icon: ClipboardCheck,
-    label: "Follow-ups",
     feature: Feature.CALENDAR_SLOTS,
     accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
   },
@@ -130,7 +122,7 @@ export const FIXED_NAV_HREFS = new Set(["/dashboard", "/settings"]);
 
 export const mobileOnlyNavItems: NavItem[] = [
   {
-    href: "/settings?tab=notification-feed",
+    href: "/settings?tab=notifications",
     icon: Bell,
     label: "Notifications",
   },

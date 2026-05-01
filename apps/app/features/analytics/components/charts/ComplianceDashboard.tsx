@@ -46,7 +46,7 @@ export const ComplianceDashboard = ({
               )}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {metric.value || metric.score}%
               </div>
               <p className="text-xs text-muted-foreground">

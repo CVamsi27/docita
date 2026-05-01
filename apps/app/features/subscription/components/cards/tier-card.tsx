@@ -45,6 +45,8 @@ interface TierCardProps {
   includedLabel?: string;
   limitHighlights?: string[];
   featureDisplay?: "compact" | "detailed";
+  /** Accent stripe at top of card (plans grid usually omits this). */
+  showTopAccent?: boolean;
 }
 
 const TIER_ICONS: Record<string, React.ElementType> = {
@@ -139,6 +141,7 @@ export function TierCard({
   includedLabel,
   limitHighlights,
   featureDisplay = "compact",
+  showTopAccent = false,
 }: TierCardProps & { currentTierValue?: Tier; onSelect?: () => void }) {
   const tierName = Tier[tier] as string;
   const Icon = TIER_ICONS[tierName] || Zap;
@@ -157,7 +160,9 @@ export function TierCard({
         className,
       )}
     >
-      <div className={cn("h-1.5 w-full", gradient.accent)} />
+      {showTopAccent ? (
+        <div className={cn("h-1.5 w-full", gradient.accent)} />
+      ) : null}
       {isCurrentTier && (
         <Badge className="absolute right-4 top-4 bg-primary text-primary-foreground shadow-sm">
           Current Plan
@@ -175,7 +180,7 @@ export function TierCard({
             <Icon className="h-5 w-5" />
           </div>
           <div className="min-w-0 space-y-1">
-            <h3 className="text-xl font-semibold leading-tight tracking-normal text-foreground">
+            <h3 className="ui-section-title text-[var(--fs-xl)] leading-[var(--lh-tight)] text-foreground">
               {info.name}
             </h3>
             <CardDescription className="text-sm font-medium">
@@ -194,7 +199,7 @@ export function TierCard({
         {pricing && (
           <div className="mt-5 space-y-4">
             <div className="rounded-lg border border-border/70 bg-background/80 p-4 shadow-sm">
-              <p className="text-3xl font-semibold tracking-normal text-foreground">
+              <p className="text-[var(--fs-3xl)] font-semibold leading-[var(--lh-tight)] tabular-nums text-foreground">
                 {formatTierPrice(tier, pricing, billingCycle, currencySymbol)}
               </p>
               {pricing.monthly !== 0 && pricing.monthly !== "custom" && (

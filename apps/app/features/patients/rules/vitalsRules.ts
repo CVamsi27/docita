@@ -1,4 +1,4 @@
-import type { Appointment } from "@workspace/types";
+import type { Appointment, VitalSign } from "@workspace/types";
 
 export interface VitalsData {
   bloodPressure?: string;
@@ -8,10 +8,11 @@ export interface VitalsData {
   height?: number;
   spo2?: number;
   respiratoryRate?: number;
+  bmi?: number;
 }
 
 export interface VitalsWithDate {
-  vitals: VitalsData;
+  vitals: VitalSign;
   date: string;
 }
 

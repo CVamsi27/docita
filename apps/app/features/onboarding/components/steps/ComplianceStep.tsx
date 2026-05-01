@@ -407,10 +407,13 @@ export function ComplianceStep({
   const copyQrLink = qrFlow.copyLink;
 
   const resolveOnboardingId = useCallback(async (): Promise<string | null> => {
+    if (onboardingId) {
+      return onboardingId;
+    }
     if (ensureOnboardingId) {
       return await ensureOnboardingId();
     }
-    return onboardingId ?? null;
+    return null;
   }, [ensureOnboardingId, onboardingId]);
 
   const fetchSignaturePreview = useCallback(

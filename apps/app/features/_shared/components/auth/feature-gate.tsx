@@ -87,7 +87,7 @@ export function LockedFeatureCard({
           asChild
           className="gap-2"
         >
-          <Link href="/upgrade">
+          <Link href="/settings?tab=subscription">
             <Sparkles className="h-4 w-4" />
             Upgrade to {tierInfo?.name || "unlock"}
           </Link>

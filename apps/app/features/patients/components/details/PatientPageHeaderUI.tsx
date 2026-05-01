@@ -22,7 +22,7 @@ export function PatientPageHeaderUI({ patient, onEdit }: PatientPageHeaderUIProp
       </div>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">
+          <h1 className="ui-page-title">
             {patient.firstName} {patient.lastName}
           </h1>
           <div className="flex items-center gap-2 mt-1">

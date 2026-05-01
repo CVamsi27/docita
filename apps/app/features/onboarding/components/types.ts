@@ -189,7 +189,7 @@ export const defaultClinicRegistrationData: ClinicRegistrationData = {
     billingCycle: "MONTHLY",
     price: 0,
     currency: DEFAULT_CURRENCY,
-    isCoreTrial: true,
+    isCoreTrial: false,
   },
   paymentDetails: {},
   teamMembers: [],

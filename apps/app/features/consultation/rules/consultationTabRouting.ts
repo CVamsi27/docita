@@ -19,6 +19,39 @@ const LEGACY_TAB_MAPPING: Record<string, string> = {
   invoice: "treatment",
 };
 
+/** Maps normalized legacy `tab` query values to workspace `section` ids (SOAP + specialty). */
+export const LEGACY_TAB_TO_SECTION_ID: Record<string, string> = {
+  "chief-complaint": "subjective",
+  history: "subjective",
+  examination: "objective",
+  diagnosis: "assessment",
+  treatment: "plan",
+  "dental-chart": "specialty-dental",
+  "vision-exam": "specialty-vision",
+  "growth-chart": "specialty-growth",
+};
+
+export function legacyTabToSectionId(
+  rawTab?: string | null,
+  clinicType?: string | null,
+): string | undefined {
+  const tab = normalizeConsultationTab(rawTab, clinicType);
+  return LEGACY_TAB_TO_SECTION_ID[tab];
+}
+
+/** Resolve workspace section from URL: prefers `section`, falls back to mapped legacy `tab`. */
+export function resolveConsultationSectionFromUrl(
+  sectionParam?: string | null,
+  tabParam?: string | null,
+  clinicType?: string | null,
+): string | undefined {
+  const trimmed = sectionParam?.trim();
+  if (trimmed) {
+    return trimmed;
+  }
+  return legacyTabToSectionId(tabParam, clinicType);
+}
+
 function normalizeRawTab(rawTab?: string | null): string {
   if (!rawTab) {
     return "chief-complaint";
@@ -53,16 +86,22 @@ export function buildConsultationRoute(
   appointmentId: string,
   options?: {
     tab?: string;
+    section?: string;
     from?: string;
     clinicType?: string | null;
   },
 ): string {
   const params = new URLSearchParams();
-  const normalizedTab = normalizeConsultationTab(options?.tab, options?.clinicType);
 
-  if (normalizedTab !== "chief-complaint") {
-    params.set("tab", normalizedTab);
+  let sectionId = options?.section?.trim();
+  if (!sectionId && options?.tab != null) {
+    sectionId = legacyTabToSectionId(options.tab, options?.clinicType);
   }
+
+  if (sectionId && sectionId !== "subjective") {
+    params.set("section", sectionId);
+  }
+
   if (options?.from) {
     params.set("from", options.from);
   }

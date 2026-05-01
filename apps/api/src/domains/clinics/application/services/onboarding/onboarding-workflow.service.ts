@@ -232,11 +232,12 @@ export class OnboardingWorkflowService {
     paymentData?: OnboardingPaymentInput,
   ): Promise<Subscription> {
     const now = new Date();
-    const isEssentialTrial =
-      planData.tier === ClinicTier.ESSENTIAL &&
-      paymentData?.skipPayment === true;
-    const periodEnd = isEssentialTrial
-      ? new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
+    const isStarterWithoutPayment =
+      planData.tier === ClinicTier.STARTER && paymentData?.skipPayment === true;
+    const periodEnd = isStarterWithoutPayment
+      ? planData.billingCycle === BillingCycle.YEARLY
+        ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
       : planData.billingCycle === BillingCycle.YEARLY
         ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
         : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);

@@ -150,7 +150,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
               <div className="w-56 text-center">
                 <p className="text-sm font-medium mb-2">Authorized Signature</p>
                 {authorizedSignatureUrl ? (
-                  <div className="mb-2 flex justify-center">
+                  <div className="mb-2 flex justify-center rounded-md bg-background px-3 py-2">
                     <img
                       src={authorizedSignatureUrl}
                       alt="Authorized Signature"

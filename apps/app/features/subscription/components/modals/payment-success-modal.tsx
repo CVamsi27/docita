@@ -91,7 +91,7 @@ export function PaymentSuccessModal({
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/15 ring-8 ring-success/10">
             <CheckCircle2 className="h-8 w-8 text-success" />
           </div>
-          <DialogTitle className="text-center text-2xl font-bold text-foreground">
+          <DialogTitle className="ui-section-title text-center text-[var(--fs-2xl)] text-foreground">
             Payment Successful!
           </DialogTitle>
           <DialogDescription className="text-center text-base">

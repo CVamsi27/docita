@@ -20,7 +20,7 @@ const STEP_TITLES: Record<AuthStep, string> = {
 };
 
 const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
-  email: "Enter your email to continue",
+  email: "Use your work email to sign in or create an account",
   login: "Sign in to your workspace",
   signup: "Get started with Docita",
 };
@@ -276,7 +276,7 @@ export function AuthPageContainer() {
       currentStep={step}
       contentMaxWidth={contentMaxWidth}
       contentAlignment={contentAlignment}
-      showBrandingPanel={step !== "email"}
+      showBrandingPanel
       showProgress={step === "signup"}
     >
       <div

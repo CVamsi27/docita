@@ -55,6 +55,42 @@ const PatientMedicalHistoryContainerLazy = dynamic(
   { ssr: false, loading: SectionLoading },
 );
 
+const CardiologyExamSectionLazy = dynamic(
+  () =>
+    import(
+      "@/features/consultation/components/specialty/CardiologyExamSection"
+    ).then((m) => m.CardiologyExamSection),
+  { ssr: false, loading: SectionLoading },
+);
+const DermatologyExamSectionLazy = dynamic(
+  () =>
+    import(
+      "@/features/consultation/components/specialty/DermatologyExamSection"
+    ).then((m) => m.DermatologyExamSection),
+  { ssr: false, loading: SectionLoading },
+);
+const GynecologyExamSectionLazy = dynamic(
+  () =>
+    import(
+      "@/features/consultation/components/specialty/GynecologyExamSection"
+    ).then((m) => m.GynecologyExamSection),
+  { ssr: false, loading: SectionLoading },
+);
+const PsychiatryExamSectionLazy = dynamic(
+  () =>
+    import(
+      "@/features/consultation/components/specialty/PsychiatryExamSection"
+    ).then((m) => m.PsychiatryExamSection),
+  { ssr: false, loading: SectionLoading },
+);
+const InvestigationsSectionLazy = dynamic(
+  () =>
+    import(
+      "@/features/consultation/components/specialty/InvestigationsSection"
+    ).then((m) => m.InvestigationsSection),
+  { ssr: false, loading: SectionLoading },
+);
+
 interface SectionProps {
   readOnly?: boolean;
   sectionRef?: React.Ref<HTMLElement>;
@@ -300,4 +336,24 @@ export function GrowthSpecialtySection({
       />
     </SectionContainer>
   );
+}
+
+export function CardiologyExamSection(props: SectionProps) {
+  return <CardiologyExamSectionLazy {...props} />;
+}
+
+export function DermatologyExamSection(props: SectionProps) {
+  return <DermatologyExamSectionLazy {...props} />;
+}
+
+export function GynecologyExamSection(props: SectionProps) {
+  return <GynecologyExamSectionLazy {...props} />;
+}
+
+export function PsychiatryExamSection(props: SectionProps) {
+  return <PsychiatryExamSectionLazy {...props} />;
+}
+
+export function InvestigationsSection(props: SectionProps) {
+  return <InvestigationsSectionLazy {...props} />;
 }

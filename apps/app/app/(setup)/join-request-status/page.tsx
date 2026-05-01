@@ -12,7 +12,6 @@ import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
 import { formatDistanceToNow, format } from 'date-fns';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
-import { SupportContact } from "@/components/common/support-contact";
 import { useAuth } from '@/lib/auth-context';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
@@ -246,8 +245,6 @@ export default function JoinRequestStatusPage() {
             </Button>
           </div>
         </Card>
-
-        <SupportContact className="text-sm" />
       </div>
     </PreDashboardShell>
   );

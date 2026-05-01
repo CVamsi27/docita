@@ -33,6 +33,8 @@ interface UpdateDoctorData {
   hospitalRole?: HospitalRole;
   qualification?: string;
   registrationNumber?: string;
+  registrationCouncil?: string | null;
+  registrationStateCode?: string | null;
   licenseNumber?: string;
   licenseExpiry?: Date;
   signatureUrl?: string;
@@ -121,6 +123,8 @@ export class DoctorsService {
         select: {
           ...DOCTOR_LIST_SELECT,
           registrationNumber: true,
+          registrationCouncil: true,
+          registrationStateCode: true,
           verificationStatus: true,
           verificationReason: true,
           verificationCheckedAt: true,
@@ -153,6 +157,8 @@ export class DoctorsService {
           hospitalRole: doctor.hospitalRole,
           qualification: doctor.qualification,
           registrationNumber: doctor.registrationNumber,
+          registrationCouncil: doctor.registrationCouncil,
+          registrationStateCode: doctor.registrationStateCode,
           verificationStatus: doctor.verificationStatus,
           verificationReason: doctor.verificationReason,
           verificationCheckedAt: doctor.verificationCheckedAt,
@@ -178,6 +184,8 @@ export class DoctorsService {
           hospitalRole: doctor.hospitalRole,
           qualification: doctor.qualification,
           registrationNumber: doctor.registrationNumber,
+          registrationCouncil: doctor.registrationCouncil,
+          registrationStateCode: doctor.registrationStateCode,
           verificationStatus: doctor.verificationStatus,
           verificationReason: doctor.verificationReason,
           verificationCheckedAt: doctor.verificationCheckedAt,
@@ -207,6 +215,8 @@ export class DoctorsService {
         hospitalRole: true,
         qualification: true,
         registrationNumber: true,
+        registrationCouncil: true,
+        registrationStateCode: true,
         licenseNumber: true,
         licenseExpiry: true,
         signatureUrl: true,
@@ -329,6 +339,8 @@ export class DoctorsService {
       hospitalRole,
       qualification,
       registrationNumber,
+      registrationCouncil,
+      registrationStateCode,
       licenseNumber,
       licenseExpiry,
       signatureUrl,
@@ -349,6 +361,10 @@ export class DoctorsService {
     if (qualification !== undefined) updateData.qualification = qualification;
     if (registrationNumber !== undefined)
       updateData.registrationNumber = registrationNumber;
+    if (registrationCouncil !== undefined)
+      updateData.registrationCouncil = registrationCouncil;
+    if (registrationStateCode !== undefined)
+      updateData.registrationStateCode = registrationStateCode;
     if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
     if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
     if (signatureUrl !== undefined) {
@@ -384,6 +400,8 @@ export class DoctorsService {
         hospitalRole: true,
         qualification: true,
         registrationNumber: true,
+        registrationCouncil: true,
+        registrationStateCode: true,
         licenseNumber: true,
         signatureUrl: true,
         signatureUploadedAt: true,
@@ -406,6 +424,8 @@ export class DoctorsService {
 
     if (
       registrationNumber !== undefined ||
+      registrationCouncil !== undefined ||
+      registrationStateCode !== undefined ||
       licenseNumber !== undefined ||
       name !== undefined
     ) {

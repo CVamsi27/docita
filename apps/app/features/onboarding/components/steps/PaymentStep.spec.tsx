@@ -63,27 +63,4 @@ describe("PaymentStep", () => {
     expect(onBack).toHaveBeenCalled();
   });
 
-  it("shows and triggers the free trial button for ESSENTIAL tier", () => {
-    const onStartTrial = vi.fn();
-
-    render(
-      <PaymentStep
-        onComplete={vi.fn()}
-        onBack={vi.fn()}
-        selectedPlanPrice={1000}
-        billingCycle="MONTHLY"
-        currencySymbol="₹"
-        tier="ESSENTIAL"
-        onStartTrial={onStartTrial}
-      />,
-    );
-
-    const trialBtn = screen.getByRole("button", {
-      name: /Start 14-day free trial instead/i,
-    });
-    expect(trialBtn).toBeInTheDocument();
-
-    fireEvent.click(trialBtn);
-    expect(onStartTrial).toHaveBeenCalled();
-  });
 });

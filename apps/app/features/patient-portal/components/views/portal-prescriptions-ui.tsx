@@ -29,8 +29,8 @@ export function PatientPortalPrescriptionsUI({
     <div className="space-y-4">
       {showHeader ? (
         <div>
-          <h1 className="text-2xl font-semibold tracking-normal">Prescriptions</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="ui-page-title">Prescriptions</h1>
+          <p className="ui-page-subtitle">
             Access active and past prescriptions shared by your doctors.
           </p>
         </div>

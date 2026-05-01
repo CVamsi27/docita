@@ -31,6 +31,9 @@ function AppointmentsContent() {
   const {
     date,
     setDate,
+    calendarMonth,
+    onCalendarMonthChange,
+    appointmentCountsByDay,
     checkingIn,
     cancelDialogOpen,
     setCancelDialogOpen,
@@ -153,6 +156,9 @@ function AppointmentsContent() {
           <AppointmentsCalendarUI
             date={date}
             onDateSelect={setDate}
+            calendarMonth={calendarMonth}
+            onCalendarMonthChange={onCalendarMonthChange}
+            appointmentCountsByDay={appointmentCountsByDay}
             canViewAllDoctors={canViewAllDoctors || false}
             doctorsList={doctorsList}
             selectedDoctorId={selectedDoctorId}

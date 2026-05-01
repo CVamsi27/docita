@@ -216,6 +216,16 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
             : prev,
         );
       }
+      if (data.subscriptionGraceUntil !== undefined) {
+        setClinicState((prev) =>
+          prev
+            ? {
+                ...prev,
+                subscriptionGraceUntil: data.subscriptionGraceUntil,
+              }
+            : prev,
+        );
+      }
     }
   });
 

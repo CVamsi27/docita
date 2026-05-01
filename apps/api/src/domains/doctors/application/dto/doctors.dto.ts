@@ -6,6 +6,7 @@ import {
   updateDoctorRequestSchema,
   doctorResponseSchema,
   doctorListResponseSchema,
+  updateDoctorRegistrationRequestSchema,
 } from '@workspace/types';
 
 export const CreateDoctorSchema = createDoctorRequestSchema.extend({
@@ -21,11 +22,8 @@ export const UpdateDoctorSchema = updateDoctorRequestSchema.extend({
 });
 export class UpdateDoctorDto extends createZodDto(UpdateDoctorSchema) {}
 
-export const UpdateDoctorRegistrationSchema = updateDoctorRequestSchema
-  .pick({ registrationNumber: true })
-  .extend({
-    registrationNumber: z.string().trim().min(1),
-  });
+export const UpdateDoctorRegistrationSchema =
+  updateDoctorRegistrationRequestSchema;
 export class UpdateDoctorRegistrationDto extends createZodDto(
   UpdateDoctorRegistrationSchema,
 ) {}

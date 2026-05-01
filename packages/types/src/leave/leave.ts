@@ -6,6 +6,7 @@ export const leaveTypeSchema = z.enum([
   "EARNED",
   "COMP_OFF",
   "UNPAID",
+  "HOLIDAY",
 ]);
 export type LeaveType = z.infer<typeof leaveTypeSchema>;
 

@@ -91,6 +91,35 @@ describe('LeaveService', () => {
         }),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('creates a holiday leave request', async () => {
+      const holidayLeave = { ...mockLeave, leaveType: 'HOLIDAY' };
+      leaveRepository.createLeave.mockResolvedValue(holidayLeave);
+
+      const result = await service.applyLeave('staff-1', 'clinic-1', {
+        leaveType: 'HOLIDAY',
+        startDate: '2026-12-22',
+        endDate: '2026-12-26',
+        reason: 'Clinic holiday week',
+      });
+
+      expect(leaveRepository.createLeave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          leaveType: 'HOLIDAY',
+        }),
+      );
+      expect(result.leaveType).toBe('HOLIDAY');
+    });
+
+    it('rejects unsupported leave type strings', async () => {
+      await expect(
+        service.applyLeave('staff-1', 'clinic-1', {
+          leaveType: 'INVALID_TYPE',
+          startDate: '2026-04-01',
+          endDate: '2026-04-02',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('approveLeave', () => {
@@ -221,10 +250,15 @@ describe('LeaveService', () => {
 
       const result = await service.getLeaveBalance('staff-1', 'clinic-1');
 
-      expect(result).toHaveLength(5);
+      expect(result).toHaveLength(6);
       const casual = result.find((r) => r.leaveType === 'CASUAL');
       expect(casual?.annualQuota).toBe(10);
       expect(casual?.used).toBe(0);
+
+      const holiday = result.find((r) => r.leaveType === 'HOLIDAY');
+      expect(holiday).toBeDefined();
+      expect(holiday?.annualQuota).toBe(0);
+      expect(holiday?.used).toBe(0);
     });
   });
 });

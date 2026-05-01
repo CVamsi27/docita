@@ -20,7 +20,6 @@ import {
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
-import { TrialOfferBanner } from "@/features/subscription/components";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
@@ -41,11 +40,10 @@ interface PlanSelectionProps {
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { isCoreTrial?: boolean; currency?: string },
+    options?: { currency?: string },
   ) => Promise<void>;
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";
-  defaultIsCoreTrial?: boolean;
   currency?: string;
 }
 
@@ -63,7 +61,6 @@ export function PlanSelectionStep({
   onSelect,
   defaultTier = "ESSENTIAL",
   defaultBillingCycle = "MONTHLY",
-  defaultIsCoreTrial: _defaultIsCoreTrial = false,
   currency,
 }: PlanSelectionProps) {
   const { currency: detectedCurrency } = useLocaleCurrency();
@@ -110,7 +107,6 @@ export function PlanSelectionStep({
     setIsSubmitting(true);
     try {
       await onSelect(tier, billingCycle, tierPricingData.pricing, {
-        isCoreTrial: tier === "ESSENTIAL",
         currency: resolvedCurrency,
       });
     } finally {
@@ -169,8 +165,6 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <TrialOfferBanner />
-
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button

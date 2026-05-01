@@ -68,6 +68,8 @@ export class DoctorVerificationService {
       id: doctor.id,
       name: doctor.name,
       registrationNumber: doctor.registrationNumber,
+      registrationCouncil: doctor.registrationCouncil ?? undefined,
+      registrationStateCode: doctor.registrationStateCode ?? undefined,
       licenseNumber: doctor.licenseNumber ?? undefined,
     });
 
@@ -135,6 +137,8 @@ export class DoctorVerificationService {
     id: string;
     name: string;
     registrationNumber: string;
+    registrationCouncil?: string;
+    registrationStateCode?: string;
     licenseNumber?: string;
   }): Promise<VerificationResult> {
     const licenseCheck = await this.checkLicenseExpiry(input.id);
@@ -149,11 +153,14 @@ export class DoctorVerificationService {
     const { apiUrl, apiKey } = this.configService.getDoctorVerificationConfig();
 
     if (!apiUrl) {
+      this.logger.warn(
+        'Doctor verification skipped: DOCTOR_VERIFICATION_API_URL is not configured',
+      );
       return {
         status: DoctorVerificationStatus.FAILED,
         source: 'NMC',
         reason:
-          'Government verification provider is not configured. Set DOCTOR_VERIFICATION_API_URL.',
+          'Registration verification is temporarily unavailable. Please try again later.',
       };
     }
 
@@ -171,6 +178,8 @@ export class DoctorVerificationService {
           doctorId: input.id,
           name: input.name,
           registrationNumber: input.registrationNumber,
+          registrationCouncil: input.registrationCouncil,
+          registrationStateCode: input.registrationStateCode,
           licenseNumber: input.licenseNumber,
         }),
         signal: controller.signal,
@@ -179,10 +188,14 @@ export class DoctorVerificationService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        this.logger.warn(
+          `Doctor verification provider returned HTTP ${response.status}`,
+        );
         return {
           status: DoctorVerificationStatus.FAILED,
           source: 'NMC',
-          reason: `Verification provider error (${response.status})`,
+          reason:
+            'Registration verification is temporarily unavailable. Please try again later.',
         };
       }
 
@@ -208,13 +221,14 @@ export class DoctorVerificationService {
         data: payload.data,
       };
     } catch (error) {
+      this.logger.warn(
+        `Doctor verification request failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
       return {
         status: DoctorVerificationStatus.FAILED,
         source: 'NMC',
         reason:
-          error instanceof Error
-            ? `Verification request failed: ${error.message}`
-            : 'Verification request failed',
+          'Registration verification is temporarily unavailable. Please try again later.',
       };
     }
   }

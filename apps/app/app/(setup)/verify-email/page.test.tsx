@@ -32,10 +32,6 @@ vi.mock("@workspace/ui/components/theme-toggle", () => ({
   ThemeToggle: () => <button type="button">Toggle theme</button>,
 }));
 
-vi.mock("@/components/common/support-contact", () => ({
-  SupportContact: () => <div data-testid="support-contact" />,
-}));
-
 vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
     user: mocks.user,

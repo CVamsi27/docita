@@ -11,8 +11,6 @@ import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { UpdateAppointmentInput } from "@workspace/types";
-import { normalizeConsultationTab } from "@/features/consultation/rules/consultationTabRouting";
-
 export const useConsultationLogic = (appointmentId: string) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -121,11 +119,6 @@ export const useConsultationLogic = (appointmentId: string) => {
     [queryClient, appointmentId, updateAppointment],
   );
 
-  const defaultTab = normalizeConsultationTab(
-    searchParams.get("tab"),
-    clinic?.type,
-  );
-
   return {
     state: {
       appointmentData,
@@ -139,7 +132,7 @@ export const useConsultationLogic = (appointmentId: string) => {
       clinic,
       clinicType: clinic?.type,
       isSidebarOpen,
-      defaultTab,
+      fallbackRoute,
     },
     handlers: {
       handleBack,

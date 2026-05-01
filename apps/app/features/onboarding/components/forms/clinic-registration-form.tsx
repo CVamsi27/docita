@@ -8,15 +8,12 @@ import { getUserFacingErrorMessage } from "@workspace/types";
 import { useClinicRegistrationFlow } from "@/features/onboarding/hooks/use-clinic-registration-flow";
 import { useAuth } from "@/lib/auth-context";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-button";
-import { getSupportPhoneNumber } from "@/lib/support-contact";
 import {
   ClinicDetailsStep,
   ComplianceStep,
   PlanSelectionStep,
   TeamInviteStep,
 } from "@/features/onboarding/components/steps";
-import { PaymentStep } from "@/features/onboarding/components/steps/PaymentStep";
 import {
   type ClinicDetails,
   clinicDetailsSchema,
@@ -28,7 +25,6 @@ import {
 } from "@/features/onboarding/components/types";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Button } from "@workspace/ui/components/button";
-import { getCurrencySymbol } from "@workspace/utils";
 import {
   Dialog,
   DialogContent,
@@ -100,18 +96,9 @@ export function ClinicRegistrationForm({
 }) {
   const { user } = useAuth();
   const { currency } = useLocaleCurrency();
-  const supportPhone = getSupportPhoneNumber();
-  const supportMessage =
-    "Hi Docita team, I need help with facility onboarding and pricing for my hospital";
   const [stepError, setStepError] = useState<string | null>(null);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [savedDraft, setSavedDraft] = useState<OnboardingDraft | null>(null);
-  const [pendingPaymentPlan, setPendingPaymentPlan] = useState<{
-    tier: string;
-    billingCycle: "MONTHLY" | "YEARLY";
-    pricing: { monthly: number | "custom"; yearly: number | "custom" };
-  } | null>(null);
-
   const {
     step,
     formData,
@@ -231,7 +218,6 @@ export function ClinicRegistrationForm({
       ...defaultComplianceValues,
     });
     setStepError(null);
-    setPendingPaymentPlan(null);
     localStorage.removeItem(DRAFT_KEY);
     setShowDraftDialog(false);
     setSavedDraft(null);
@@ -246,29 +232,19 @@ export function ClinicRegistrationForm({
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { isCoreTrial?: boolean; currency?: string },
+    options?: { currency?: string },
   ) => {
     setStepError(null);
 
-    // For paid Essential plans without trial, show PaymentStep before Razorpay
     const price = billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
     const clinicGstin = clinicForm.getValues("gstin");
     const isIndianCurrency = currency === "INR";
     const isPaidPlan = typeof price === "number" && price > 0;
 
-    if (isIndianCurrency && isPaidPlan && !options?.isCoreTrial && !clinicGstin?.trim()) {
+    if (isIndianCurrency && isPaidPlan && !clinicGstin?.trim()) {
       setStepError(
         "Add your GSTIN in Facility Details before charging a paid Indian plan. We need it for GST invoices.",
       );
-      return;
-    }
-
-    if (
-      tier === "ESSENTIAL" &&
-      !options?.isCoreTrial &&
-      isPaidPlan
-    ) {
-      setPendingPaymentPlan({ tier, billingCycle, pricing });
       return;
     }
 
@@ -289,15 +265,6 @@ export function ClinicRegistrationForm({
         }),
       );
     }
-  };
-
-  const handleStartTrial = async () => {
-    if (!pendingPaymentPlan) return;
-    const { tier, billingCycle, pricing } = pendingPaymentPlan;
-    setPendingPaymentPlan(null);
-    await handleSetPlanSelection(tier, billingCycle, pricing, {
-      isCoreTrial: true,
-    });
   };
 
   const handleSetTeamMembers = async (members: Parameters<typeof setTeamMembers>[0]) => {
@@ -389,7 +356,6 @@ export function ClinicRegistrationForm({
     if (missingClinicData.length === 0) return;
 
     restartOnboarding();
-    setPendingPaymentPlan(null);
     localStorage.removeItem(DRAFT_KEY);
     setSavedDraft(null);
     setShowDraftDialog(false);
@@ -489,43 +455,12 @@ export function ClinicRegistrationForm({
         />
       )}
 
-      {step === 2 && !pendingPaymentPlan && (
+      {step === 2 && (
         <PlanSelectionStep
           currency={currency}
           defaultTier={formData.planSelection.tier}
           defaultBillingCycle={formData.planSelection.billingCycle}
-          defaultIsCoreTrial={formData.planSelection.isCoreTrial}
           onSelect={handleSetPlanSelection}
-        />
-      )}
-
-      {step === 2 && pendingPaymentPlan && (
-        <PaymentStep
-          selectedPlanPrice={
-            pendingPaymentPlan.billingCycle === "YEARLY"
-              ? typeof pendingPaymentPlan.pricing.yearly === "number"
-                ? pendingPaymentPlan.pricing.yearly
-                : 0
-              : typeof pendingPaymentPlan.pricing.monthly === "number"
-                ? pendingPaymentPlan.pricing.monthly
-                : 0
-          }
-          billingCycle={pendingPaymentPlan.billingCycle}
-          currencySymbol={getCurrencySymbol(currency)}
-          currencyCode={currency}
-          clinicEmail={user?.email}
-          clinicPhone={formData.clinicDetails.phone}
-          tier={pendingPaymentPlan.tier}
-          onStartTrial={handleStartTrial}
-          onBack={() => setPendingPaymentPlan(null)}
-          onComplete={async () => {
-            setPendingPaymentPlan(null);
-            await handleSetPlanSelection(
-              pendingPaymentPlan.tier,
-              pendingPaymentPlan.billingCycle,
-              pendingPaymentPlan.pricing,
-            );
-          }}
         />
       )}
 
@@ -550,22 +485,6 @@ export function ClinicRegistrationForm({
           ensureOnboardingId={ensureOnboardingId}
         />
       )}
-
-      <div className="rounded-lg border bg-muted/30 p-4 md:p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <p className="font-semibold">Need help with setup?</p>
-          <p className="text-sm text-muted-foreground">
-            We support onboarding, reminders, and follow-up over WhatsApp and
-            you can reach us directly if you want a guided setup
-          </p>
-        </div>
-        <WhatsAppButton
-          phoneNumber={supportPhone}
-          message={supportMessage}
-          label="Message onboarding team"
-          variant="default"
-        />
-      </div>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import {
 } from "@/hooks/api/use-appointments";
 import { useDoctors } from "@/hooks/api/use-settings";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { fetchFirstAvailableDatetimeLocal } from "@/lib/doctor-availability-first-slot";
 
 function toDateTimeLocal(value: string | Date, preferredTime?: string | null) {
   const date = new Date(value);
@@ -87,8 +88,6 @@ export function AppointmentRequestsPanel() {
       request.preferredDate,
       request.preferredTime,
     );
-    const startTime = startByRequest[request.id] ?? defaultStart;
-    const endTime = endByRequest[request.id] ?? addMinutesLocal(startTime, 30);
     const doctorId =
       doctorByRequest[request.id] ??
       request.preferredDoctorId ??
@@ -101,6 +100,20 @@ export function AppointmentRequestsPanel() {
       );
       return;
     }
+
+    let resolvedDefaultStart = defaultStart;
+    if (!startByRequest[request.id]) {
+      const fromSlots = await fetchFirstAvailableDatetimeLocal(
+        request.preferredDate,
+        doctorId,
+      );
+      if (fromSlots) {
+        resolvedDefaultStart = fromSlots;
+      }
+    }
+
+    const startTime = startByRequest[request.id] ?? resolvedDefaultStart;
+    const endTime = endByRequest[request.id] ?? addMinutesLocal(startTime, 30);
 
     try {
       await approveRequest.mutateAsync({

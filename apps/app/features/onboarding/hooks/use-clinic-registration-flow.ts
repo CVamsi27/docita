@@ -29,7 +29,6 @@ interface PlanPricing {
 }
 
 interface PlanSelectionOptions {
-  isCoreTrial?: boolean;
   currency?: string;
 }
 
@@ -302,8 +301,6 @@ export function useClinicRegistrationFlow() {
       const price =
         billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
 
-      const isCoreTrial =
-        tier === "ESSENTIAL" && options?.isCoreTrial !== false;
       const resolvedCurrency = options?.currency || DEFAULT_CURRENCY;
 
       setFormData((prev) => ({
@@ -313,7 +310,7 @@ export function useClinicRegistrationFlow() {
           billingCycle,
           price: typeof price === "number" ? price : 0,
           currency: resolvedCurrency,
-          isCoreTrial,
+          isCoreTrial: false,
         },
       }));
 
@@ -322,7 +319,7 @@ export function useClinicRegistrationFlow() {
         return;
       }
 
-      if (tier === "STARTER" || isCoreTrial) {
+      if (tier === "STARTER") {
         setFormData((prev) => ({
           ...prev,
           paymentDetails: {

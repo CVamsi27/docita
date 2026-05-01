@@ -255,7 +255,7 @@ export function PatientContextCardUI({
                 size="sm"
                 className="flex-1 h-8 text-xs"
               >
-                <Link href={`/patients/${patient.id}`}>
+                <Link href={`/patients/${patient.id}?tab=visits`}>
                   <FileText className="h-3 w-3 mr-1" />
                   Full History
                 </Link>
@@ -266,7 +266,7 @@ export function PatientContextCardUI({
                 size="sm"
                 className="flex-1 h-8 text-xs"
               >
-                <Link href={`/patients/${patient.id}/prescriptions`}>
+                <Link href={`/patients/${patient.id}?tab=prescriptions`}>
                   <Pill className="h-3 w-3 mr-1" />
                   Prescriptions
                 </Link>

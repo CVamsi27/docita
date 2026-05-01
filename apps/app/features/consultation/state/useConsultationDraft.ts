@@ -7,8 +7,13 @@ import type { ExaminationData } from "@/features/consultation/components/structu
 import type { Medication } from "@/features/consultation/components/structured/PrescriptionInput";
 import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 import type {
+  CardiologyExamData,
+  ClinicalInvestigation,
+  DermatologyExamData,
   GrowthChartData,
+  GynecologyExamData,
   OphthalmologyExamData,
+  PsychiatryExamData,
 } from "@workspace/types";
 
 export type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
@@ -24,6 +29,11 @@ export interface ConsultationDraftState {
   dentalChart: DentalChartValue;
   eyeExam: OphthalmologyExamData;
   growthData: GrowthChartData;
+  cardiologyExam: CardiologyExamData;
+  dermatologyExam: DermatologyExamData;
+  gynecologyExam: GynecologyExamData;
+  psychiatryExam: PsychiatryExamData;
+  investigations: ClinicalInvestigation[];
   followUpPlan: string;
   dirty: boolean;
   saveState: SaveState;
@@ -69,6 +79,33 @@ export interface ConsultationDraftActions {
       | ((prev: GrowthChartData) => GrowthChartData),
   ) => void;
   setFollowUpPlan: (updater: string | ((prev: string) => string)) => void;
+  setCardiologyExam: (
+    updater:
+      | CardiologyExamData
+      | ((prev: CardiologyExamData) => CardiologyExamData),
+  ) => void;
+  setDermatologyExam: (
+    updater:
+      | DermatologyExamData
+      | ((prev: DermatologyExamData) => DermatologyExamData),
+  ) => void;
+  setGynecologyExam: (
+    updater:
+      | GynecologyExamData
+      | ((prev: GynecologyExamData) => GynecologyExamData),
+  ) => void;
+  setPsychiatryExam: (
+    updater:
+      | PsychiatryExamData
+      | ((prev: PsychiatryExamData) => PsychiatryExamData),
+  ) => void;
+  setInvestigations: (
+    updater:
+      | ClinicalInvestigation[]
+      | ((
+          prev: ClinicalInvestigation[],
+        ) => ClinicalInvestigation[]),
+  ) => void;
   markClean: (savedAt?: number) => void;
   markSaving: () => void;
   markError: (message: string) => void;
@@ -104,6 +141,14 @@ const DEFAULT_GROWTH: GrowthChartData = {
   measurements: [],
 };
 
+const DEFAULT_CARDIOLOGY: CardiologyExamData = {};
+
+const DEFAULT_DERMATOLOGY: DermatologyExamData = {};
+
+const DEFAULT_GYNECOLOGY: GynecologyExamData = {};
+
+const DEFAULT_PSYCHIATRY: PsychiatryExamData = {};
+
 const DEFAULT_STATE: ConsultationDraftState = {
   appointmentId: null,
   chiefComplaint: [],
@@ -115,6 +160,11 @@ const DEFAULT_STATE: ConsultationDraftState = {
   dentalChart: {},
   eyeExam: {},
   growthData: DEFAULT_GROWTH,
+  cardiologyExam: DEFAULT_CARDIOLOGY,
+  dermatologyExam: DEFAULT_DERMATOLOGY,
+  gynecologyExam: DEFAULT_GYNECOLOGY,
+  psychiatryExam: DEFAULT_PSYCHIATRY,
+  investigations: [],
   followUpPlan: "",
   dirty: false,
   saveState: "idle",
@@ -208,6 +258,41 @@ export const useConsultationDraft = create<ConsultationDraftStore>(
     setFollowUpPlan: (updater) =>
       set((state) => ({
         followUpPlan: resolveUpdater(updater, state.followUpPlan),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setCardiologyExam: (updater) =>
+      set((state) => ({
+        cardiologyExam: resolveUpdater(updater, state.cardiologyExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setDermatologyExam: (updater) =>
+      set((state) => ({
+        dermatologyExam: resolveUpdater(updater, state.dermatologyExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setGynecologyExam: (updater) =>
+      set((state) => ({
+        gynecologyExam: resolveUpdater(updater, state.gynecologyExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setPsychiatryExam: (updater) =>
+      set((state) => ({
+        psychiatryExam: resolveUpdater(updater, state.psychiatryExam),
+        dirty: true,
+        saveState: "dirty",
+      })),
+
+    setInvestigations: (updater) =>
+      set((state) => ({
+        investigations: resolveUpdater(updater, state.investigations),
         dirty: true,
         saveState: "dirty",
       })),

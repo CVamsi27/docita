@@ -124,13 +124,16 @@ export function SecuritySettings() {
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between space-y-0">
                   <div className="space-y-1">
-                    <Label>Two-Factor Authentication</Label>
+                    <Label htmlFor="two-factor-auth">
+                      Two-Factor Authentication
+                    </Label>
                     <p className="text-sm text-muted-foreground">
                       Add an extra layer of security
                     </p>
                   </div>
                   <FormControl>
                     <Switch
+                      id="two-factor-auth"
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
@@ -146,15 +149,19 @@ export function SecuritySettings() {
                 <FormItem className="space-y-0">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <Label>Session Timeout (minutes)</Label>
+                      <Label htmlFor="session-timeout">
+                        Session Timeout (minutes)
+                      </Label>
                       <p className="text-sm text-muted-foreground">
                         Auto logout after inactivity
                       </p>
                     </div>
                     <div className="flex flex-col items-end">
-                      <FormControl>
+                      <FormControl id="session-timeout">
                         <Input
+                          id="session-timeout"
                           type="number"
+                          autoComplete="off"
                           inputMode="numeric"
                           min={5}
                           max={240}
@@ -177,7 +184,7 @@ export function SecuritySettings() {
                 <FormItem className="flex items-center justify-between space-y-0">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <Label>Enable Audit Logs</Label>
+                      <Label htmlFor="audit-logs">Enable Audit Logs</Label>
                       {!canAccess(Feature.AUDIT_LOGS) ? (
                         <FeatureTierBadge
                           feature={Feature.AUDIT_LOGS}
@@ -192,7 +199,7 @@ export function SecuritySettings() {
                   <div className="flex items-center gap-2">
                     {!canAccess(Feature.AUDIT_LOGS) ? (
                       <Button asChild variant="outline" size="sm" className="h-8">
-                        <Link href="/upgrade">
+                        <Link href="/settings?tab=subscription">
                           <Lock className="mr-2 h-3 w-3" />
                           Upgrade
                         </Link>
@@ -200,6 +207,7 @@ export function SecuritySettings() {
                     ) : (
                       <FormControl>
                         <Switch
+                          id="audit-logs"
                           checked={field.value}
                           onCheckedChange={field.onChange}
                         />

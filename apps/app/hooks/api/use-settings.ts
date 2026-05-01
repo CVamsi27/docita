@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+import { z } from "zod";
 import {
   Clinic,
   CreateClinicDoctorRequest,
@@ -12,8 +14,14 @@ import {
   User,
   type AppClinicSettings,
   subscriptionCurrentResponseSchema,
+  availableSlotSchema,
 } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import {
+  useAPIMutation,
+  useAPIQuery,
+  useAPIQueryValidated,
+} from "@/lib/api-core";
+import { withQueryString } from "@/lib/http/query-string";
 
 export type ClinicAppSettings = AppClinicSettings;
 
@@ -266,13 +274,78 @@ export const useCreateDoctorTimeOff = () =>
       startTime?: string;
       endTime?: string;
     }
-  >("/doctor-availability/time-off", "POST");
+  >("/doctor-availability/time-off", "POST", {
+    invalidateKeys: [["doctor-time-offs"]],
+  });
 
 export const useDeleteDoctorTimeOff = (id: string) =>
   useAPIMutation<{ success: boolean }, void>(
     `/doctor-availability/time-off/${id}`,
     "DELETE",
   );
+
+export const useDeleteDoctorTimeOffMutation = () =>
+  useAPIMutation<{ success: boolean }, string>(
+    (id) => `/doctor-availability/time-off/${id}`,
+    "DELETE",
+    {
+      invalidateKeys: [["doctor-time-offs"]],
+    },
+  );
+
+const unavailableDoctorsResponseSchema = z.object({
+  doctorIds: z.array(z.string()),
+});
+
+const doctorAvailabilitySlotRowSchema = availableSlotSchema.extend({
+  specialization: z.string().nullable().optional(),
+});
+
+export function useUnavailableDoctorIdsForDate(
+  date: Date | undefined,
+  queryOptions?: { enabled?: boolean },
+) {
+  const dateStr = date ? format(date, "yyyy-MM-dd") : "";
+  const enabled =
+    Boolean(date && dateStr) && (queryOptions?.enabled ?? true);
+
+  return useAPIQueryValidated(
+    ["doctor-unavailability", dateStr],
+    withQueryString("/doctor-availability/time-off/unavailable-doctors", {
+      date: dateStr,
+    }),
+    unavailableDoctorsResponseSchema,
+    { enabled },
+  );
+}
+
+export function useDoctorAvailabilitySlots(
+  date: Date | undefined,
+  doctorId: string | undefined,
+  queryOptions?: { enabled?: boolean },
+) {
+  const enabled =
+    Boolean(date && doctorId) && (queryOptions?.enabled ?? true);
+
+  return useAPIQueryValidated(
+    [
+      "doctor-availability-slots",
+      date?.toISOString() ?? "",
+      doctorId ?? "",
+    ],
+    enabled && date && doctorId
+      ? withQueryString("/doctor-availability/slots", {
+          date: date.toISOString(),
+          doctorId,
+        })
+      : "/doctor-availability/slots",
+    z.array(doctorAvailabilitySlotRowSchema),
+    {
+      enabled,
+      staleTime: 30_000,
+    },
+  );
+}
 
 export const useMedicalCodingSettings = () =>
   useAPIQuery<{

@@ -81,12 +81,15 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Current Password"
+                  htmlFor="current-password"
                   required
                   error={form.formState.errors.currentPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="current-password">
                     <Input
+                      id="current-password"
                       type="password"
+                      autoComplete="current-password"
                       placeholder="Enter current password"
                       {...field}
                     />
@@ -101,12 +104,15 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="New Password"
+                  htmlFor="new-password"
                   required
                   error={form.formState.errors.newPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="new-password">
                     <Input
+                      id="new-password"
                       type="password"
+                      autoComplete="new-password"
                       placeholder="Enter new password"
                       {...field}
                     />
@@ -122,12 +128,15 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Confirm New Password"
+                  htmlFor="confirm-password"
                   required
                   error={form.formState.errors.confirmPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="confirm-password">
                     <Input
+                      id="confirm-password"
                       type="password"
+                      autoComplete="new-password"
                       placeholder="Confirm new password"
                       {...field}
                     />

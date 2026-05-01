@@ -84,7 +84,7 @@ export function ConsultationTimerUI({
               </p>
               <p
                 className={cn(
-                  "text-3xl font-bold font-mono tabular-nums",
+                  "text-[var(--fs-3xl)] font-semibold font-mono tabular-nums leading-[var(--lh-tight)]",
                   getTimeColor(),
                 )}
               >

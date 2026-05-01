@@ -33,6 +33,7 @@ import {
   ListDoctorSchedulesQueryDto,
   ListDoctorTimeOffQueryDto,
   DoctorAvailableSlotsQueryDto,
+  DoctorUnavailableDoctorsQueryDto,
 } from '@/domains/doctors/application/dto/doctor-availability.dto';
 import { ZodValidationPipe } from '@/common/pipes/zod-validation.pipe';
 import { RequestWithUser } from '@/common/types/common.types';
@@ -208,5 +209,18 @@ export class DoctorAvailabilityController {
       date,
       doctorId,
     );
+  }
+
+  @Get('time-off/unavailable-doctors')
+  getUnavailableDoctorIdsForDate(
+    @Request() req: RequestWithUser,
+    @Query() query: DoctorUnavailableDoctorsQueryDto,
+  ) {
+    if (!req.user?.clinicId) {
+      throw new BadRequestException('Clinic ID is required');
+    }
+    return this.doctorAvailabilityService
+      .getUnavailableDoctorIdsForCalendarDate(req.user.clinicId, query.date)
+      .then((doctorIds) => ({ doctorIds }));
   }
 }

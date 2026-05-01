@@ -123,4 +123,54 @@ test.describe("Consultation Flow", () => {
       );
     }
   });
+
+  test("maps legacy tab query to section in URL", async ({ page }) => {
+    await page.goto(`/consultation/${appointmentId}?tab=treatment`);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1500);
+    await expect(page).toHaveURL(new RegExp(`section=plan`));
+  });
+
+  test("shows leave confirmation when draft is dirty", async ({ page }) => {
+    await page.goto(`/consultation/${appointmentId}`);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
+
+    const hpi = page.locator("#hpi");
+    await expect(hpi).toBeVisible({ timeout: 15000 });
+    await hpi.fill("Leave guard integration test note");
+
+    await page.getByRole("button", { name: "Back" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: /Leave consultation/i }),
+    ).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole("button", { name: "Stay" }).click();
+    await expect(page).toHaveURL(new RegExp(`/consultation/${appointmentId}`));
+  });
+
+  test("save and leave navigates away from consultation workspace", async ({
+    page,
+  }) => {
+    await page.goto(`/consultation/${appointmentId}`);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(2000);
+
+    const hpi = page.locator("#hpi");
+    await expect(hpi).toBeVisible({ timeout: 15000 });
+    await hpi.fill("Save and leave end-to-end test note");
+
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect(
+      page.getByRole("heading", { name: /Leave consultation/i }),
+    ).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole("button", { name: "Save and leave" }).click();
+
+    await expect(page).not.toHaveURL(
+      new RegExp(`/consultation/${appointmentId}(?:\\?|$)`),
+      { timeout: 25000 },
+    );
+  });
 });

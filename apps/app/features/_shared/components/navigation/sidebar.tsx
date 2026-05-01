@@ -10,7 +10,6 @@ import {
   Menu,
   Settings2,
   SlidersHorizontal,
-  Sparkles,
   X,
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
@@ -30,6 +29,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useAppConfig } from "@/lib/app-config-context";
 import { canAccessTarget } from "@/lib/access-policy";
+import { canManageBilling } from "@/lib/permissions";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import { APP_ACCESS_TARGETS, type ClinicType } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
@@ -53,9 +53,10 @@ import {
   type NavItem,
 } from "./nav-config";
 
-function getIconClasses(isActive: boolean) {
+function getIconClasses(isActive: boolean, collapsedRail?: boolean) {
   return cn(
-    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-transparent transition-colors",
+    "relative flex h-8 w-8 shrink-0 items-center justify-center ring-1 ring-transparent transition-colors",
+    collapsedRail ? "rounded-full" : "rounded-xl",
     isActive
       ? "bg-foreground text-background ring-border/40"
       : "bg-background/60 text-muted-foreground ring-border/40",
@@ -171,6 +172,9 @@ function SidebarContent({
   );
 
   const tierInfo = getTierInfo();
+  const collapsedRail = isCollapsed && !isMobile;
+  const canOpenBillingSettings =
+    !!user?.role && canManageBilling(user.role);
   const tierDotClass = cn(
     "h-2 w-2 rounded-full shrink-0",
     tierInfo.color === "blue" && "bg-info shadow-[0_0_8px_theme(colors.info)]",
@@ -258,15 +262,16 @@ function SidebarContent({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-medium transition-colors",
+                  "group flex items-center gap-3 px-2.5 py-2 text-sm font-medium transition-colors",
+                  collapsedRail ? "rounded-full justify-center px-0" : "rounded-xl",
                   isActive
                     ? "bg-foreground text-background shadow-sm"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                  isCollapsed && !isMobile && "justify-center px-0",
+                  collapsedRail && "mx-auto w-11 max-w-[2.75rem]",
                 )}
-                title={isCollapsed && !isMobile ? item.label : undefined}
+                title={collapsedRail ? item.label : undefined}
               >
-                <div className={getIconClasses(isActive)}>
+                <div className={getIconClasses(isActive, collapsedRail)}>
                   <item.icon className="h-4 w-4 shrink-0" />
                 </div>
                 {showLabels && (
@@ -372,52 +377,63 @@ function SidebarContent({
           </div>
         </TooltipProvider>
 
-        {/* Plan + Upgrade row */}
+        {/* Plan row */}
         {isAdmin && (
           <div
             className={cn(
-              "flex items-center gap-2 pb-3",
-              isCollapsed && !isMobile ? "flex-col items-center px-1" : "px-3",
+              "pb-3",
+              collapsedRail ? "flex flex-col items-center px-1" : "px-3",
             )}
           >
-            <div
-              className={cn(
-                "flex items-center gap-2 min-w-0",
-                isCollapsed && !isMobile ? "justify-center" : "flex-1",
-              )}
-            >
-              <span className={tierDotClass} />
-              {showLabels && (
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
-                    Plan
-                  </p>
-                  <p className="text-sm font-medium truncate leading-tight mt-0.5">
-                    {tierInfo.name}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {canAccessTarget(APP_ACCESS_TARGETS.PAGE_UPGRADE, {
-              role: user?.role,
-              canAccessFeature: canAccess,
-            }) && (
-              <Button
+            {canOpenBillingSettings ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    href="/settings?tab=subscription"
+                    className={cn(
+                      "flex items-center gap-2 min-w-0 rounded-xl px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+                      collapsedRail &&
+                        "size-11 flex-col justify-center rounded-full p-0 hover:bg-muted/60",
+                      !collapsedRail && "w-full",
+                    )}
+                    aria-label={`Billing and subscription, ${tierInfo.name}`}
+                  >
+                    <span className={tierDotClass} />
+                    {showLabels && (
+                      <div className="min-w-0 flex-1 text-left">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
+                          Plan
+                        </p>
+                        <p className="text-sm font-medium truncate leading-tight mt-0.5">
+                          {tierInfo.name}
+                        </p>
+                      </div>
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  Billing and subscription
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <div
                 className={cn(
-                  "shrink-0 gap-1.5",
-                  isCollapsed && !isMobile
-                    ? "h-8 w-8 rounded-full border border-border/70 bg-background/70 p-0 text-primary hover:bg-background/85"
-                    : "h-9 px-4 text-xs rounded-full",
+                  "flex items-center gap-2 min-w-0",
+                  collapsedRail ? "flex-col justify-center" : "",
                 )}
-                size="sm"
-                asChild
               >
-                <Link href="/upgrade">
-                  <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                  {showLabels && "Upgrade"}
-                </Link>
-              </Button>
+                <span className={tierDotClass} />
+                {showLabels && (
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground leading-none">
+                      Plan
+                    </p>
+                    <p className="text-sm font-medium truncate leading-tight mt-0.5">
+                      {tierInfo.name}
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -448,7 +464,7 @@ function SidebarContent({
                 className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-3 text-sm">
-                  <div className={getIconClasses(false)}>
+                  <div className={getIconClasses(false, false)}>
                     <item.icon className="h-4 w-4 shrink-0" />
                   </div>
                   <span className="font-medium">{item.label}</span>

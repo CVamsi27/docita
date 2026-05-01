@@ -24,6 +24,7 @@ import {
   PrescriptionDefaultsSettingsContainer,
   QueueSettings,
 } from "@/features/settings/components";
+import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
 import { SettingsProfileHeader } from "./profile/SettingsProfileHeader";
 
 interface SettingsTabItem {
@@ -83,6 +84,17 @@ const DoctorAvailabilitySettingsLazy = dynamic(
   },
 );
 
+const DoctorTimeAwaySettingsLazy = dynamic(
+  () =>
+    import("./management/DoctorTimeAwaySettings").then(
+      (mod) => mod.DoctorTimeAwaySettings,
+    ),
+  {
+    ssr: false,
+    loading: () => lazyPanelFallback,
+  },
+);
+
 const LeaveManagementSettingsLazy = dynamic(
   () =>
     import("./leave/LeaveManagementSettings").then(
@@ -116,6 +128,28 @@ const DangerZoneSettingsLazy = dynamic(
   },
 );
 
+const ComplianceSettingsLazy = dynamic(
+  () =>
+    import("@/features/settings/components/compliance/ComplianceSettingsPanel").then(
+      (mod) => mod.ComplianceSettingsPanel,
+    ),
+  {
+    ssr: false,
+    loading: () => lazyPanelFallback,
+  },
+);
+
+const JoinRequestsSettingsLazy = dynamic(
+  () =>
+    import("@/features/settings/components/management/JoinRequestsSettingsPanel").then(
+      (mod) => mod.JoinRequestsSettingsPanel,
+    ),
+  {
+    ssr: false,
+    loading: () => lazyPanelFallback,
+  },
+);
+
 export function SettingsPageUI({
   filteredTabs,
   searchQuery,
@@ -140,6 +174,11 @@ export function SettingsPageUI({
           <div className="relative w-full md:w-72 md:shrink-0">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              id="settings-search"
+              name="settingsSearch"
+              type="search"
+              autoComplete="off"
+              aria-label="Search settings"
               placeholder="Search settings..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -222,14 +261,6 @@ export function SettingsPageUI({
             </TabsContent>
           )}
 
-          {visibleTabValues.has("subscription") && (
-            <TabsContent value="subscription" className="mt-0 space-y-6">
-              <RoleGuard requiredPermission="manageBilling">
-                <SubscriptionSettingsLazy />
-              </RoleGuard>
-            </TabsContent>
-          )}
-
           {visibleTabValues.has("members") && (
             <TabsContent value="members" className="mt-0 space-y-6">
               <RoleGuard requiredPermission="manageStaff">
@@ -238,10 +269,37 @@ export function SettingsPageUI({
             </TabsContent>
           )}
 
+          {visibleTabValues.has("join-requests") && (
+            <TabsContent value="join-requests" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageStaff">
+                <JoinRequestsSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
+
+          {visibleTabValues.has("subscription") && (
+            <TabsContent value="subscription" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageBilling">
+                <SubscriptionSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
+
+          {visibleTabValues.has("compliance") && (
+            <TabsContent value="compliance" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageClinic">
+                <ComplianceSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
+
           {visibleTabValues.has("availability") && (
             <TabsContent value="availability" className="mt-0 space-y-6">
               <RoleGuard requiredRole="DOCTOR">
-                <DoctorAvailabilitySettingsLazy />
+                <div className="space-y-6">
+                  <DoctorAvailabilitySettingsLazy />
+                  <DoctorTimeAwaySettingsLazy />
+                </div>
               </RoleGuard>
             </TabsContent>
           )}
@@ -297,6 +355,12 @@ export function SettingsPageUI({
           {visibleTabValues.has("appearance") && (
             <TabsContent value="appearance" className="mt-0">
               <AppearanceSettings />
+            </TabsContent>
+          )}
+
+          {visibleTabValues.has("help-support") && (
+            <TabsContent value="help-support" className="mt-0 space-y-6">
+              <HelpSupportSettingsPanel />
             </TabsContent>
           )}
 

@@ -1,64 +1,33 @@
 "use client";
 
+import { Suspense } from "react";
 import { useParams } from "next/navigation";
-import dynamic from "next/dynamic";
-import { useState } from "react";
 import {
   EditPatientDialog,
   PatientFaceSheetHeaderContainer as PatientFaceSheetHeader,
-  PatientTagManagerContainer as PatientTagManager,
 } from "@/features/patients/components";
-import { PatientMetricsHistoryUI } from "@/features/patients/components/details/PatientMetricsHistoryUI";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-
-const PatientMedicalHistory = dynamic(
-  () =>
-    import("@/features/patients/components").then(
-      (m) => m.PatientMedicalHistoryContainer,
-    ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
-);
-
-const MedicalDocumentList = dynamic(
-  () =>
-    import("@/features/medical-documents/components/MedicalDocumentList").then(
-      (m) => m.MedicalDocumentList,
-    ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
-);
-
-const UnifiedTimelineContainer = dynamic(
-  () =>
-    import("@/features/patients/components/timeline/UnifiedTimelineContainer").then(
-      (m) => m.UnifiedTimelineContainer,
-    ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
-);
-import { Button } from "@workspace/ui/components/button";
+import { PatientDetailTabs } from "@/features/patients/components/details/PatientDetailTabs";
+import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-state";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs";
-import { CalendarPlus, Clock, FileText, Pencil, User } from "lucide-react";
-import { HeartPulse } from "lucide-react";
-import { Feature } from "@/lib/stores/permission-store";
-import { PatientWithMedicalHistory as PatientWithHistory } from "@workspace/types";
+import { Skeleton } from "@workspace/ui/components/skeleton";
+import { User } from "lucide-react";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
-import { PatientSnapshotStrip } from "@/features/_shared/components/patient-history";
-import { usePatientSnapshot } from "@/hooks/api/use-patient-timeline";
+
+function PatientDetailTabsFallback() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-10 w-full max-w-4xl" />
+      <Skeleton className="h-64 rounded-lg" />
+    </div>
+  );
+}
 
 export default function PatientDetailPage() {
   const params = useParams();
-  const [activeTab, setActiveTab] = useState<
-    "timeline" | "records" | "vitals" | "documents"
-  >("timeline");
-  const [isEditingRecords, setIsEditingRecords] = useState(false);
+  const patientId = (params["id"] as string) ?? "";
 
-  const { state, handlers } = usePatientDetailLogic(params["id"] as string);
+  const { state, handlers } = usePatientDetailLogic(patientId);
 
   const {
     loading,
@@ -69,15 +38,13 @@ export default function PatientDetailPage() {
     canRecordPatientVitals,
     isEditDialogOpen,
     setIsEditDialogOpen,
-    canAccess,
+    appointments,
+    statistics,
   } = state;
 
   const patient = state.patient;
 
   const { handleBackToPatients, handleScheduleVisit, handleRefetch } = handlers;
-
-  const patientId = patient?.id ?? "";
-  const { data: snapshot } = usePatientSnapshot(patientId);
 
   if (loading) {
     return (
@@ -141,36 +108,18 @@ export default function PatientDetailPage() {
         patient={patient}
         onBack={handleBackToPatients}
         actions={
-          <>
-            {canAccess(Feature.CALENDAR_SLOTS) && canCreateAppointment && (
-              <Button size="sm" onClick={handleScheduleVisit}>
-                <CalendarPlus className="h-4 w-4 mr-1.5" />
-                Schedule Visit
-              </Button>
-            )}
-            {canEditPatient && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setIsEditDialogOpen(true)}
-              >
-                <Pencil className="h-4 w-4 mr-1.5" />
-                Edit
-              </Button>
-            )}
-          </>
+          <PatientHeaderActions
+            patientId={patient.id}
+            appointments={appointments}
+            canEditPatient={canEditPatient}
+            canCreateAppointment={canCreateAppointment}
+            onScheduleVisit={handleScheduleVisit}
+            onEdit={() => setIsEditDialogOpen(true)}
+          />
         }
       />
 
       <div className="space-y-6 py-6">
-        {snapshot && (
-          <PatientSnapshotStrip
-            snapshot={snapshot}
-            layout="horizontal"
-            showVitals
-          />
-        )}
-
         <EditPatientDialog
           patient={patient}
           open={isEditDialogOpen}
@@ -178,82 +127,17 @@ export default function PatientDetailPage() {
           onPatientUpdated={() => handleRefetch()}
         />
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => {
-            const next = v as "timeline" | "records" | "vitals" | "documents";
-            setActiveTab(next);
-            if (next !== "records") {
-              setIsEditingRecords(false);
-            }
-          }}
-          className="w-full"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="timeline" className="flex-1 sm:flex-none">
-                <Clock className="mr-1.5 h-4 w-4" />
-                Timeline
-              </TabsTrigger>
-              <TabsTrigger value="records" className="flex-1 sm:flex-none">
-                <FileText className="mr-1.5 h-4 w-4" />
-                Records
-              </TabsTrigger>
-              <TabsTrigger value="vitals" className="flex-1 sm:flex-none">
-                <HeartPulse className="mr-1.5 h-4 w-4" />
-                Vitals
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="flex-1 sm:flex-none">
-                <FileText className="mr-1.5 h-4 w-4" />
-                Docs
-              </TabsTrigger>
-            </TabsList>
-
-            <div className="flex items-center gap-2 self-end sm:self-auto">
-              {activeTab === "records" && (
-                <Button
-                  size="sm"
-                  variant={isEditingRecords ? "default" : "outline"}
-                  onClick={() => setIsEditingRecords((v) => !v)}
-                >
-                  {isEditingRecords ? "Editing Records" : "Edit Records"}
-                </Button>
-              )}
-              <PatientTagManager patientId={patient.id!} />
-            </div>
-          </div>
-
-          <TabsContent value="timeline" className="mt-0">
-            <UnifiedTimelineContainer patientId={patient.id!} />
-          </TabsContent>
-
-          <TabsContent value="records" className="mt-0">
-            <PatientMedicalHistory
-              patient={patient as PatientWithHistory}
-              readOnly={!isEditingRecords}
-              variant="default"
-              allowGrowthEdit={false}
-            />
-          </TabsContent>
-
-          <TabsContent value="vitals" className="mt-0">
-            <PatientMetricsHistoryUI
-              patientId={patient.id!}
-              readOnly={!canRecordPatientVitals}
-              categoryKey="vitals"
-              title="Vitals History"
-              emptyHistoryMessage="No vitals have been recorded for this patient yet."
-              emptyDefinitionsMessage="Vitals will appear here after they are recorded for this patient."
-              showTracking={false}
-              showConfiguration={false}
-              showRecording={canRecordPatientVitals}
-            />
-          </TabsContent>
-
-          <TabsContent value="documents" className="mt-0">
-            <MedicalDocumentList patientId={patient.id!} />
-          </TabsContent>
-        </Tabs>
+        <Suspense fallback={<PatientDetailTabsFallback />}>
+          <PatientDetailTabs
+            patient={patient}
+            patientId={patient.id}
+            appointments={appointments}
+            statistics={statistics}
+            canEditPatient={canEditPatient}
+            canRecordPatientVitals={canRecordPatientVitals}
+            onScheduleVisit={handleScheduleVisit}
+          />
+        </Suspense>
       </div>
     </AppPageScaffold>
   );

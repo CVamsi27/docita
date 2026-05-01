@@ -63,6 +63,11 @@ export class PrismaClinicDataRepository implements IClinicDataRepository {
     return this.getReadClient().clinic.findUnique({
       where: { id },
       include: {
+        subscription: {
+          select: {
+            graceUntil: true,
+          },
+        },
         users: {
           select: {
             id: true,

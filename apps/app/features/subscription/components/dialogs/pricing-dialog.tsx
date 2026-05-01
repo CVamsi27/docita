@@ -212,11 +212,13 @@ export function PricingDialog({
                   className="mb-4 animate-in fade-in slide-in-from-left-2 duration-200"
                 >
                   {isCustomTier ? (
-                    <div className="text-2xl font-bold">Custom</div>
+                    <div className="text-[var(--fs-2xl)] font-semibold leading-[var(--lh-tight)]">
+                      Custom
+                    </div>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold">
+                        <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                           {formatPrice(monthlyEquivalent as number)}
                         </span>
                         <span className="text-sm text-muted-foreground">

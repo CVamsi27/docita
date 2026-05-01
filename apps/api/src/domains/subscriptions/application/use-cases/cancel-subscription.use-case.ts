@@ -65,6 +65,7 @@ export class CancelSubscriptionUseCase {
         clinicId: request.clinicId,
         tier: 'STARTER',
         subscriptionStatus: SubscriptionStatusEnum.CANCELLED,
+        subscriptionGraceUntil: null,
       });
     }
 

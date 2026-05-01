@@ -41,6 +41,7 @@ export class ExpireSubscriptionUseCase {
       clinicId: subscription.clinicId,
       tier: 'STARTER',
       subscriptionStatus: SubscriptionStatusEnum.EXPIRED,
+      subscriptionGraceUntil: null,
     });
 
     this.logger.log(`Subscription expired for clinic ${subscription.clinicId}`);

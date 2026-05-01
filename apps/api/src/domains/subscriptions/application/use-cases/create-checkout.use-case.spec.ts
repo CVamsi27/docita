@@ -3,7 +3,10 @@ import { CreateCheckoutUseCase } from './create-checkout.use-case';
 import type { ISubscriptionRepository } from '@/domains/subscriptions/application/ports/subscription.repository.port';
 import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import type { IPaymentGateway } from '@/domains/subscriptions/application/ports/payment-gateway.port';
+import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
+import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
+import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
 
@@ -44,6 +47,7 @@ describe('CreateCheckoutUseCase', () => {
     sendSubscriptionEmail: jest.fn(async () => undefined),
     updateScheduledPlanChange: jest.fn(async () => undefined),
     clearScheduledPlanChange: jest.fn(async () => undefined),
+    emitUpdate: jest.fn(async () => undefined),
   } as unknown as IClinicOperations;
 
   const paymentGateway: IPaymentGateway = {
@@ -65,7 +69,13 @@ describe('CreateCheckoutUseCase', () => {
     verifyWebhookSignature: jest.fn(() => true),
   };
 
-  const pricingService = new SubscriptionPricingService();
+  const checkoutPricing = new SubscriptionCheckoutPricingService(
+    new SubscriptionPricingService(),
+    new ProratingService(),
+  );
+  const activateSubscription = {
+    applyPlanChangeWithoutPayment: jest.fn(async () => undefined),
+  } as unknown as ActivateSubscriptionUseCase;
   const configService = {
     getCurrencyCode: () => 'INR',
     getRazorpayKeyId: () => 'rzp_test',
@@ -82,7 +92,8 @@ describe('CreateCheckoutUseCase', () => {
       subscriptionRepo,
       clinicOps,
       paymentGateway,
-      pricingService,
+      checkoutPricing,
+      activateSubscription,
       configService,
       featureFlagService,
     );

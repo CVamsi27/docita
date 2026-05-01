@@ -202,8 +202,10 @@ export function ComparisonTable({
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
       <div className="p-6 border-b">
-        <h2 className="text-2xl font-bold text-center">Compare Plans</h2>
-        <p className="text-center text-muted-foreground mt-2">
+        <h2 className="ui-section-title text-center text-[var(--fs-2xl)]">
+          Compare Plans
+        </h2>
+        <p className="ui-page-subtitle mt-2 text-center">
           Find the perfect fit for your facility&apos;s needs
         </p>
       </div>

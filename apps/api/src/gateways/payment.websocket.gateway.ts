@@ -32,6 +32,7 @@ export interface ClinicUpdateData {
   tier?: ClinicTier;
   intelligenceAddon?: string;
   subscriptionStatus?: SubscriptionStatus;
+  subscriptionGraceUntil?: string | null;
 }
 
 interface RateLimitTracker {

@@ -116,4 +116,14 @@ export class DoctorAvailabilityService {
   ) {
     return this.slotService.getAvailableSlots(clinicId, date, doctorId);
   }
+
+  getUnavailableDoctorIdsForCalendarDate(
+    clinicId: string,
+    date: Date | string,
+  ) {
+    return this.scheduleService.getUnavailableDoctorIdsForCalendarDate(
+      clinicId,
+      date,
+    );
+  }
 }

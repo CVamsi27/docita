@@ -23,10 +23,10 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
-import { VitalsModal } from "./modals/VitalsModal";
 import { BillingModal } from "./modals/BillingModal";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
 
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "badge-info",
@@ -65,16 +65,9 @@ export function ConsultationPageHeaderUI({
   isDesktopSidebarOpen = true,
   onToggleDesktopSidebar,
 }: ConsultationPageHeaderUIProps) {
-  const [vitalsOpen, setVitalsOpen] = useState(false);
+  const { openVitals } = useConsultationVitals();
   const [billingOpen, setBillingOpen] = useState(false);
   const queryClient = useQueryClient();
-
-  const handleVitalsSaved = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["appointments", appointmentId],
-    });
-    queryClient.invalidateQueries({ queryKey: ["patient-snapshot"] });
-  };
 
   const handleBillingSaved = () => {
     queryClient.invalidateQueries({
@@ -101,6 +94,7 @@ export function ConsultationPageHeaderUI({
             variant="ghost"
             size="icon"
             onClick={onBack}
+            aria-label="Back"
             className="h-9 w-9 shrink-0 -ml-1 rounded-full text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -205,7 +199,7 @@ export function ConsultationPageHeaderUI({
                 variant="outline"
                 size="sm"
                 className="hidden sm:flex gap-1.5 h-8"
-                onClick={() => setVitalsOpen(true)}
+                onClick={() => openVitals()}
                 title="Record vital signs"
               >
                 <HeartPulse className="h-3.5 w-3.5 text-destructive" />
@@ -232,7 +226,7 @@ export function ConsultationPageHeaderUI({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setVitalsOpen(true)}>
+                  <DropdownMenuItem onClick={() => openVitals()}>
                     <HeartPulse className="mr-2 h-4 w-4 text-destructive" />
                     Vitals
                   </DropdownMenuItem>
@@ -252,13 +246,6 @@ export function ConsultationPageHeaderUI({
         </div>
       </header>
 
-      <VitalsModal
-        open={vitalsOpen}
-        onOpenChange={setVitalsOpen}
-        appointmentId={appointmentId}
-        patientName={patientName}
-        onSaved={handleVitalsSaved}
-      />
       <BillingModal
         open={billingOpen}
         onOpenChange={setBillingOpen}

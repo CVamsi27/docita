@@ -73,6 +73,11 @@ export type ClinicListItem = Prisma.ClinicGetPayload<{
 
 export type ClinicDetailsItem = Prisma.ClinicGetPayload<{
   include: {
+    subscription: {
+      select: {
+        graceUntil: true;
+      };
+    };
     users: {
       select: {
         id: true;

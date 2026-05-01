@@ -20,6 +20,10 @@ import {
   ClinicTier,
 } from '@workspace/db';
 import { IS_PUBLIC_KEY } from './public.decorator';
+import {
+  isBillingAdminRole,
+  isSubscriptionPastGraceDeadline,
+} from '@/shared/modules/auth/utils/subscription-hard-lock.util';
 
 @Injectable()
 export class TierGuard implements CanActivate {
@@ -68,6 +72,11 @@ export class TierGuard implements CanActivate {
         intelligenceAddon: true,
         features: true,
         subscriptionStatus: true,
+        subscription: {
+          select: {
+            graceUntil: true,
+          },
+        },
       },
     });
 
@@ -76,6 +85,18 @@ export class TierGuard implements CanActivate {
         return true;
       }
       throw new ForbiddenException('Clinic not found');
+    }
+
+    if (
+      isSubscriptionPastGraceDeadline({
+        subscriptionStatus: clinic.subscriptionStatus,
+        graceUntil: clinic.subscription?.graceUntil,
+      }) &&
+      !isBillingAdminRole(user.role)
+    ) {
+      throw new ForbiddenException(
+        'Workspace access is limited until billing is resolved.',
+      );
     }
 
     const allowedSubscriptionStatuses = new Set<SubscriptionStatus>([

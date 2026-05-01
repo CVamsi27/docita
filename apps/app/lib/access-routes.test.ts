@@ -65,6 +65,12 @@ describe("getAccessTargetForPath", () => {
     );
   });
 
+  it("maps billing-locked to dashboard access (all staff)", () => {
+    expect(getAccessTargetForPath("/billing-locked")).toBe(
+      APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+    );
+  });
+
   it("returns null for routes without access mapping", () => {
     expect(getAccessTargetForPath("/unknown")).toBeNull();
     expect(getAccessTargetForPath("")).toBeNull();

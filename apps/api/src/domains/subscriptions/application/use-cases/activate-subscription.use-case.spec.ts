@@ -5,7 +5,10 @@ import type { ISubscriptionRepository } from '@/domains/subscriptions/applicatio
 import type { IClinicOperations } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import type { IPaymentGateway } from '@/domains/subscriptions/application/ports/payment-gateway.port';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
+import { ProratingService } from '@/domains/subscriptions/core/services/proration.service';
+import { SubscriptionCheckoutPricingService } from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 describe('ActivateSubscriptionUseCase', () => {
   const subscriptionRepo: ISubscriptionRepository = {
@@ -64,6 +67,15 @@ describe('ActivateSubscriptionUseCase', () => {
     getClinicPricingOffer: jest.fn(async () => null),
   } as unknown as FeatureFlagService;
 
+  const checkoutPricing = new SubscriptionCheckoutPricingService(
+    new SubscriptionPricingService(),
+    new ProratingService(),
+  );
+
+  const configService = {
+    getCurrencyCode: jest.fn(() => 'INR'),
+  } as unknown as AppConfigService;
+
   let useCase: ActivateSubscriptionUseCase;
 
   beforeEach(() => {
@@ -74,6 +86,8 @@ describe('ActivateSubscriptionUseCase', () => {
       paymentGateway,
       new SubscriptionPricingService(),
       featureFlagService,
+      checkoutPricing,
+      configService,
     );
   });
 

@@ -208,10 +208,12 @@ export class ClinicDataService {
     const clinic = await this.repository.findById(id);
     if (!clinic) return null;
 
-    const settings = this.toRecord(clinic.settings);
+    const { subscription, ...clinicRow } = clinic;
+    const settings = this.toRecord(clinicRow.settings);
     return this.attachResolvedClinicSignatureUrl({
-      ...clinic,
-      phoneNumber: clinic.phone,
+      ...clinicRow,
+      subscriptionGraceUntil: subscription?.graceUntil ?? null,
+      phoneNumber: clinicRow.phone,
       gstin: this.readOptionalString(settings, 'gstin'),
       description: this.readString(settings, 'description'),
       openingTime: this.readString(settings, 'openingTime'),

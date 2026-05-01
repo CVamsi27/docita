@@ -22,7 +22,7 @@ import type { ImperativePanelHandle } from "@workspace/ui/components/resizable";
 import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
 import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
-import type { User } from "@workspace/types";
+import type { TierName, User } from "@workspace/types";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { Skeleton } from "@workspace/ui/components/skeleton";
@@ -40,11 +40,16 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { canAccessTarget } from "@/lib/access-policy";
+import { getTierInfo } from "@/lib/tier-config";
 import { getAccessTargetForPath } from "@/lib/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import {
+  isBillingAdminRole,
+  isPastSubscriptionGraceDeadline,
+} from "@/lib/subscription-lockout";
 
-const SUBSCRIPTION_ALLOWED_PATHS = ["/upgrade", "/settings", "/login"];
+const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
 
 function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
@@ -110,11 +115,25 @@ function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
 
 function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   const { clinic } = useClinic();
+  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (!clinic) return;
+    const pastGrace = isPastSubscriptionGraceDeadline(clinic);
+    const billingAdmin = isBillingAdminRole(user?.role);
+
+    if (
+      pastGrace &&
+      !billingAdmin &&
+      !pathname?.startsWith("/billing-locked") &&
+      !pathname?.startsWith("/login")
+    ) {
+      router.replace("/billing-locked");
+      return;
+    }
+
     const status = clinic.subscriptionStatus;
     const isExpired = status === "EXPIRED";
     const isBlocked = isExpired;
@@ -122,9 +141,9 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
       isBlocked &&
       !SUBSCRIPTION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
     ) {
-      router.replace("/upgrade");
+      router.replace("/settings?tab=subscription");
     }
-  }, [clinic, pathname, router]);
+  }, [clinic, pathname, router, user?.role]);
 
   return <>{children}</>;
 }
@@ -205,6 +224,10 @@ function SubscriptionLockNotice() {
   const isPastDue = status === "PAST_DUE";
   const isPaused = status === "PAUSED";
   const isTrialing = status === "TRIALING";
+  const trialTierLabel =
+    clinic?.tier && typeof clinic.tier === "string"
+      ? getTierInfo(clinic.tier as TierName).name
+      : "subscription";
   const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
   const trialEndText =
     trialEnd && Number.isFinite(trialEnd.getTime())
@@ -218,7 +241,7 @@ function SubscriptionLockNotice() {
         ? "Trial Active: Payment Not Completed"
         : "Payment Required";
   const description = isExpired
-    ? "This facility is locked until payment is completed. You can still open billing and upgrade pages to restore access."
+    ? "This facility is locked until payment is completed. You can still open billing under Settings, Subscription to restore access."
     : isGrace
       ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
       : isPastDue
@@ -226,7 +249,11 @@ function SubscriptionLockNotice() {
         : isPaused
           ? "This subscription is paused. Resolve billing to restore full access."
       : isTrialing
-        ? `Your Essential trial is active${trialEndText ? ` until ${trialEndText}` : ""}. Add payment to keep paid features after the trial ends.`
+        ? `Your ${trialTierLabel} trial is active${trialEndText ? ` until ${trialEndText}` : ""}. ${
+            clinic?.tier === "STARTER"
+              ? "Upgrade to a paid plan when you need higher limits."
+              : "Add payment to keep full access after the trial ends."
+          }`
         : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
 
   return (
@@ -256,10 +283,14 @@ function SubscriptionLockNotice() {
           <Button
             size="sm"
             variant={isExpired ? "secondary" : "outline"}
-            onClick={() => router.push("/upgrade")}
+            onClick={() => router.push("/settings?tab=subscription")}
             className="self-start sm:self-auto"
           >
-            {isTrialing ? "Add Payment" : "Resolve Payment"}
+            {isTrialing && clinic?.tier === "STARTER"
+              ? "View plans"
+              : isTrialing
+                ? "Add Payment"
+                : "Resolve Payment"}
           </Button>
         </AlertDescription>
       </Alert>

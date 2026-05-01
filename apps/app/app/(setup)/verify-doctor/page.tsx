@@ -14,6 +14,7 @@ import { ApiError } from "@/lib/errors";
 import {
   sanitizeUserFacingMessage,
   type Clinic,
+  type UpdateDoctorRegistrationRequest,
   type User,
 } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
@@ -27,6 +28,8 @@ export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [registrationNumber, setRegistrationNumber] = useState("");
+  const [registrationCouncil, setRegistrationCouncil] = useState("");
+  const [registrationStateCode, setRegistrationStateCode] = useState("");
   const [registrationError, setRegistrationError] = useState<string | null>(
     null,
   );
@@ -55,7 +58,7 @@ export default function VerifyDoctorPage() {
 
   const updateDoctorRegistration = useAPIMutation<
     User,
-    { registrationNumber: string }
+    UpdateDoctorRegistrationRequest
   >(`/doctors/${user?.id}/registration-number`, "PUT", {
     invalidateKeys: [["doctor-profile", user?.id ?? ""]],
   });
@@ -67,6 +70,12 @@ export default function VerifyDoctorPage() {
 
   const profile = doctorProfile ?? user;
   const hasSignature = !!profile?.signatureUrl;
+
+  useEffect(() => {
+    if (!doctorProfile) return;
+    setRegistrationCouncil(doctorProfile.registrationCouncil ?? "");
+    setRegistrationStateCode(doctorProfile.registrationStateCode ?? "");
+  }, [doctorProfile]);
   const hasSavedRegistration = !!profile?.registrationNumber;
   const hasDraftRegistration = registrationNumber.trim().length > 0;
   const hasRegistrationProgress = hasSavedRegistration || hasDraftRegistration;
@@ -157,9 +166,15 @@ export default function VerifyDoctorPage() {
     setIsSavingReg(true);
     setRegistrationError(null);
     try {
-      await updateDoctorRegistration.mutateAsync({
+      const payload: UpdateDoctorRegistrationRequest = {
         registrationNumber: registrationNumber.trim(),
-      });
+      };
+      const council = registrationCouncil.trim();
+      const region = registrationStateCode.trim();
+      if (council) payload.registrationCouncil = council;
+      if (region) payload.registrationStateCode = region;
+
+      await updateDoctorRegistration.mutateAsync(payload);
       await refetch();
       toast.success("Registration number saved");
       setRegistrationNumber("");
@@ -270,7 +285,8 @@ export default function VerifyDoctorPage() {
     },
     {
       label: "Medical Registration Number",
-      description: "Your council registration number for verification",
+      description:
+        "Registration number and jurisdiction details for council verification",
       done: hasRegistrationProgress,
       required: true,
     },
@@ -492,50 +508,119 @@ export default function VerifyDoctorPage() {
             </h2>
           </div>
           {hasSavedRegistration ? (
-            <p className="text-sm text-muted-foreground">
-              Saved:
-              <span className="ml-1 font-medium text-foreground">
-                {profile?.registrationNumber}
-              </span>
-            </p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                Saved:
+                <span className="ml-1 font-medium text-foreground">
+                  {profile?.registrationNumber}
+                </span>
+              </p>
+              {(profile?.registrationCouncil || profile?.registrationStateCode) && (
+                <p className="text-xs">
+                  {profile?.registrationCouncil ? (
+                    <>
+                      Council:
+                      <span className="ml-1 font-medium text-foreground">
+                        {profile.registrationCouncil}
+                      </span>
+                    </>
+                  ) : null}
+                  {profile?.registrationStateCode ? (
+                    <>
+                      <span className={profile?.registrationCouncil ? " ml-2" : ""}>
+                        Region:
+                        <span className="ml-1 font-medium text-foreground">
+                          {profile.registrationStateCode}
+                        </span>
+                      </span>
+                    </>
+                  ) : null}
+                </p>
+              )}
+              <p className="text-xs">
+                Verification timing depends on your council. You can continue once
+                your registration number is saved.
+              </p>
+            </div>
           ) : (
-            <div className="space-y-2">
-              <Label
-                htmlFor="registration-number"
-                className="text-xs text-muted-foreground"
-              >
-                Enter your medical council registration number
-              </Label>
-              <div className="relative">
-                <Input
-                  id="registration-number"
-                  placeholder="e.g. MH-12345"
-                  value={registrationNumber}
-                  onChange={(e) => {
-                    setRegistrationNumber(e.target.value);
-                    if (registrationError) {
-                      setRegistrationError(null);
-                    }
-                  }}
-                  onBlur={() => {
-                    if (!registrationNumber.trim() || isSavingReg) return;
-                    void handleSaveRegistration();
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key !== "Enter") return;
-                    event.preventDefault();
-                    if (!registrationNumber.trim() || isSavingReg) return;
-                    void handleSaveRegistration();
-                  }}
-                  aria-invalid={registrationError ? true : false}
-                  className={`pr-10 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
-                />
-                {isSavingReg ? (
-                  <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-                ) : null}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="registration-number"
+                  className="text-xs text-muted-foreground"
+                >
+                  Medical council registration number
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="registration-number"
+                    placeholder="e.g. MH-12345"
+                    value={registrationNumber}
+                    onChange={(e) => {
+                      setRegistrationNumber(e.target.value);
+                      if (registrationError) {
+                        setRegistrationError(null);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                    aria-invalid={registrationError ? true : false}
+                    className={`pr-10 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
+                  />
+                  {isSavingReg ? (
+                    <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                  ) : null}
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="registration-council"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Issuing council (optional)
+                  </Label>
+                  <Input
+                    id="registration-council"
+                    placeholder="e.g. Karnataka Medical Council"
+                    value={registrationCouncil}
+                    onChange={(e) => setRegistrationCouncil(e.target.value)}
+                    onBlur={() => {
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="registration-region"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Region code (optional)
+                  </Label>
+                  <Input
+                    id="registration-region"
+                    placeholder="e.g. IN-KA"
+                    value={registrationStateCode}
+                    onChange={(e) => setRegistrationStateCode(e.target.value)}
+                    onBlur={() => {
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                  />
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Press Enter or click outside the field to save.
+                Save runs when you leave the registration number field or press
+                Enter there. Optional fields are sent with the same save.
               </p>
               {registrationError && (
                 <p className="text-xs text-destructive">{registrationError}</p>

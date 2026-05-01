@@ -11,14 +11,28 @@ import type { ChiefComplaintItem } from "@/features/consultation/components/stru
 import type { DiagnosisItem } from "@/features/consultation/components/structured/DiagnosisInput";
 import type { ExaminationData } from "@/features/consultation/components/structured/ExaminationInput";
 import type {
+  CardiologyExamData,
+  ClinicalInvestigation,
+  DermatologyExamData,
   GrowthChartData,
+  GynecologyExamData,
   OphthalmologyExamData,
+  PsychiatryExamData,
 } from "@workspace/types";
 import type { DentalChartValue } from "@/features/consultation/components/specialty/DentalChartUI";
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") return {};
   return Object.fromEntries(Object.entries(value));
+}
+
+function nestedSystemicNotes(raw: unknown): string {
+  if (typeof raw === "string") return raw;
+  if (raw && typeof raw === "object") {
+    const obj = toRecord(raw);
+    if (typeof obj.notes === "string") return obj.notes;
+  }
+  return "";
 }
 
 function ensureString(val: unknown): string {
@@ -134,6 +148,25 @@ export function useConsultationHydrate({
 
     const genExam = data["generalExamination"];
     const sysExam = data["systemicExamination"];
+    const sysRecord = sysExam ? toRecord(sysExam) : {};
+    const mssRaw = sysRecord["mss"];
+    let musculoskeletalFromMss = "";
+    if (mssRaw && typeof mssRaw === "object") {
+      const mss = toRecord(mssRaw);
+      musculoskeletalFromMss = [
+        typeof mss["jointExamination"] === "string"
+          ? (mss["jointExamination"] as string)
+          : "",
+        typeof mss["notes"] === "string" ? (mss["notes"] as string) : "",
+        typeof mss["muscleStrength"] === "string"
+          ? (mss["muscleStrength"] as string)
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+    }
+
     const examination: ExaminationData = {
       general: genExam
         ? {
@@ -143,12 +176,16 @@ export function useConsultationHydrate({
         : DEFAULT_EXAMINATION.general,
       systemic: sysExam
         ? {
-            cvs: ensureString(toRecord(sysExam).cvs),
-            rs: ensureString(toRecord(sysExam).rs),
-            pa: ensureString(toRecord(sysExam).pa),
-            cns: ensureString(toRecord(sysExam).cns),
-            musculoskeletal: ensureString(toRecord(sysExam).musculoskeletal),
-            notes: ensureString(toRecord(sysExam).additionalNotes),
+            cvs: nestedSystemicNotes(sysRecord["cvs"]),
+            rs: nestedSystemicNotes(sysRecord["rs"]),
+            pa: nestedSystemicNotes(sysRecord["pa"]),
+            cns: nestedSystemicNotes(sysRecord["cns"]),
+            musculoskeletal:
+              musculoskeletalFromMss ||
+              (typeof sysRecord["musculoskeletal"] === "string"
+                ? sysRecord["musculoskeletal"]
+                : ""),
+            notes: ensureString(sysRecord["additionalNotes"]),
           }
         : DEFAULT_EXAMINATION.systemic,
     };
@@ -174,6 +211,15 @@ export function useConsultationHydrate({
         measurements: [],
       };
 
+    const cardiologyExam = (data["cardiologyExam"] as CardiologyExamData) || {};
+    const dermatologyExam =
+      (data["dermatologyExam"] as DermatologyExamData) || {};
+    const gynecologyExam = (data["gynecologyExam"] as GynecologyExamData) || {};
+    const psychiatryExam = (data["psychiatryExam"] as PsychiatryExamData) || {};
+    const investigations = Array.isArray(data["investigations"])
+      ? (data["investigations"] as ClinicalInvestigation[])
+      : [];
+
     const codedForHash = diagnosis
       .filter((d) => d.icdCode?.id)
       .map((d, idx) => ({
@@ -193,6 +239,11 @@ export function useConsultationHydrate({
       dentalChart,
       eyeExam,
       growthData,
+      cardiologyExam,
+      dermatologyExam,
+      gynecologyExam,
+      psychiatryExam,
+      investigations,
       followUpPlan,
       diagnosesContentHash,
     });
@@ -215,6 +266,11 @@ export function useConsultationHydrate({
               dentalChart?: DentalChartValue;
               eyeExam?: OphthalmologyExamData;
               growthData?: GrowthChartData;
+              cardiologyExam?: CardiologyExamData;
+              dermatologyExam?: DermatologyExamData;
+              gynecologyExam?: GynecologyExamData;
+              psychiatryExam?: PsychiatryExamData;
+              investigations?: ClinicalInvestigation[];
             }
           | null;
         if (!parsed) return;
@@ -241,6 +297,11 @@ export function useConsultationHydrate({
           dentalChart: parsed.dentalChart ?? state.dentalChart,
           eyeExam: parsed.eyeExam ?? state.eyeExam,
           growthData: parsed.growthData ?? state.growthData,
+          cardiologyExam: parsed.cardiologyExam ?? state.cardiologyExam,
+          dermatologyExam: parsed.dermatologyExam ?? state.dermatologyExam,
+          gynecologyExam: parsed.gynecologyExam ?? state.gynecologyExam,
+          psychiatryExam: parsed.psychiatryExam ?? state.psychiatryExam,
+          investigations: parsed.investigations ?? state.investigations,
           dirty: true,
           saveState: "dirty",
         }));

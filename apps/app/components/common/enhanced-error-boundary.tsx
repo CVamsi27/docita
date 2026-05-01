@@ -178,12 +178,12 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-[400px] flex items-center justify-center p-4">
-          <Card className="max-w-md w-full border-destructive/20 shadow-lg">
+          <Card className="max-w-md w-full border-destructive/20 shadow-md">
             <CardHeader className="text-center pb-2">
               <div className="mx-auto bg-destructive/10 p-3 rounded-full w-fit mb-4">
                 <AlertCircle className="h-8 w-8 text-destructive" />
               </div>
-              <CardTitle className="text-2xl font-bold tracking-normal">
+              <CardTitle className="ui-section-title text-[var(--fs-xl)]">
                 {userError.title}
               </CardTitle>
             </CardHeader>

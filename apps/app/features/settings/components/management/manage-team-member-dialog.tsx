@@ -30,6 +30,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Loader2, ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";
+import { getDoctorVerificationPublicNote } from "@/lib/doctor-verification-display";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   MEMBER_ROLE_LABELS,
@@ -78,6 +79,13 @@ export function ManageTeamMemberDialog({
   getVerificationBadgeLabel,
   formatDate,
 }: ManageTeamMemberDialogProps) {
+  const verificationPublicNote = member
+    ? getDoctorVerificationPublicNote(
+        member.verificationStatus,
+        member.verificationReason,
+      )
+    : null;
+
   return (
     <Dialog open={!!member} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[640px]">
@@ -269,11 +277,9 @@ export function ManageTeamMemberDialog({
                           Signature uploaded:{" "}
                           {formatDate(member.signatureUploadedAt)}
                         </p>
-                        {member.verificationReason && (
-                          <p>
-                            Verification note: {member.verificationReason}
-                          </p>
-                        )}
+                        {verificationPublicNote ? (
+                          <p>Status details: {verificationPublicNote}</p>
+                        ) : null}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {!member.signatureUploadedAt && (

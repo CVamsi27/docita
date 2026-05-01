@@ -94,10 +94,6 @@ vi.mock("sonner", () => ({
   },
 }));
 
-vi.mock("@/components/common/support-contact", () => ({
-  SupportContact: () => <div data-testid="support-contact" />,
-}));
-
 describe("JoinRequestStatusPage", () => {
   beforeEach(() => {
     mocks.router.replace.mockReset();

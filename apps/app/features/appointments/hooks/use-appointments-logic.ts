@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format } from "date-fns";
+import {
+  addDays,
+  endOfMonth,
+  format,
+  startOfMonth,
+  subDays,
+} from "date-fns";
 import { toast } from "sonner";
-import { useDoctors } from "@/hooks/api/use-settings";
+import { useDoctors, useUnavailableDoctorIdsForDate } from "@/hooks/api/use-settings";
 import {
   type AppointmentListItem,
   useAppointments,
@@ -44,6 +50,9 @@ export const useAppointmentsLogic = () => {
   const NON_CANCELLED_APPOINTMENT_STATUSES =
     "scheduled,confirmed,in_progress,completed,no-show";
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() =>
+    startOfMonth(new Date()),
+  );
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
 
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -69,7 +78,13 @@ export const useAppointmentsLogic = () => {
   const selectedDateStr = date ? format(date, "yyyy-MM-dd") : undefined;
 
   const handleDateSelect = useCallback((next: Date | undefined) => {
-    setDate(next ?? new Date());
+    const selected = next ?? new Date();
+    setDate(selected);
+    setCalendarMonth(startOfMonth(selected));
+  }, []);
+
+  const handleCalendarMonthChange = useCallback((month: Date) => {
+    setCalendarMonth(month);
   }, []);
 
   const canViewAllDoctors = useMemo(
@@ -88,7 +103,47 @@ export const useAppointmentsLogic = () => {
   );
 
   const { data: doctors = [] } = useDoctors();
-  const doctorsList = doctors;
+  const { data: unavailableDoctorResponse } = useUnavailableDoctorIdsForDate(date);
+  const unavailableDoctorIds = useMemo(
+    () => new Set(unavailableDoctorResponse?.doctorIds ?? []),
+    [unavailableDoctorResponse?.doctorIds],
+  );
+
+  const doctorsList = useMemo(
+    () => doctors.filter((d) => !unavailableDoctorIds.has(d.id)),
+    [doctors, unavailableDoctorIds],
+  );
+
+  useEffect(() => {
+    if (
+      selectedDoctorId &&
+      unavailableDoctorIds.has(selectedDoctorId)
+    ) {
+      setSelectedDoctorId(undefined);
+    }
+  }, [selectedDoctorId, unavailableDoctorIds]);
+
+  const rangeStart = subDays(startOfMonth(calendarMonth), 7);
+  const rangeEnd = addDays(endOfMonth(calendarMonth), 7);
+
+  const { data: monthRangeAppointmentsResponse } = useAppointments({
+    startDate: format(rangeStart, "yyyy-MM-dd"),
+    endDate: format(rangeEnd, "yyyy-MM-dd"),
+    ...(doctorScope.scopedDoctorId
+      ? { doctorId: doctorScope.scopedDoctorId }
+      : {}),
+    status: NON_CANCELLED_APPOINTMENT_STATUSES,
+    limit: 500,
+  });
+
+  const appointmentCountsByDay = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const apt of monthRangeAppointmentsResponse?.items ?? []) {
+      const key = format(new Date(apt.startTime), "yyyy-MM-dd");
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return map;
+  }, [monthRangeAppointmentsResponse?.items]);
 
   const {
     data: appointmentsResponse,
@@ -263,6 +318,9 @@ export const useAppointmentsLogic = () => {
     state: {
       date,
       setDate: handleDateSelect,
+      calendarMonth,
+      onCalendarMonthChange: handleCalendarMonthChange,
+      appointmentCountsByDay,
       checkingIn,
       startingConsultationId,
       cancelDialogOpen,

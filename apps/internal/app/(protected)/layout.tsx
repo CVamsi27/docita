@@ -68,7 +68,7 @@ const sidebarItems = [
     icon: MessageSquare,
   },
   {
-    title: "WhatsApp Inbox",
+    title: "Support WhatsApp",
     href: "/support",
     icon: Inbox,
   },

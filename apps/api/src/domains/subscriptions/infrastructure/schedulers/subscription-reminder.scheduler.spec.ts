@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
-import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
+import { NotifySubscriptionGraceDeadlineUseCase } from '@/domains/subscriptions/application/use-cases/notify-subscription-grace-deadline.use-case';
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SubscriptionReminderScheduler } from './subscription-reminder.scheduler';
@@ -17,9 +17,16 @@ describe('SubscriptionReminderScheduler', () => {
       sent: 0,
       failed: 0,
     });
-  const expireExecuteMock =
-    jest.fn<(subscriptionId: string) => Promise<void>>();
   const graceExecuteMock = jest.fn<(subscriptionId: string) => Promise<void>>();
+  const notifyGraceDeadlineExecuteMock = jest
+    .fn<NotifySubscriptionGraceDeadlineUseCase['execute']>()
+    .mockResolvedValue({
+      reminderType: 'grace_deadline_3d',
+      matchedSubscriptions: 0,
+      attemptedClinics: 0,
+      sent: 0,
+      failed: 0,
+    });
   const runUnrestrictedMock =
     jest.fn<(callback: () => Promise<void>) => Promise<void>>();
   const findManyMock =
@@ -34,10 +41,10 @@ describe('SubscriptionReminderScheduler', () => {
   ) as NotifyExpiringSubscriptionsUseCase;
   notifyUseCase.execute = notifyExecuteMock;
 
-  const expireUseCase = Object.create(
-    ExpireSubscriptionUseCase.prototype,
-  ) as ExpireSubscriptionUseCase;
-  expireUseCase.execute = expireExecuteMock;
+  const notifyGraceDeadlineUseCase = Object.create(
+    NotifySubscriptionGraceDeadlineUseCase.prototype,
+  ) as NotifySubscriptionGraceDeadlineUseCase;
+  notifyGraceDeadlineUseCase.execute = notifyGraceDeadlineExecuteMock;
 
   const graceUseCase = Object.create(
     EnterGracePeriodUseCase.prototype,
@@ -81,7 +88,7 @@ describe('SubscriptionReminderScheduler', () => {
 
     scheduler = new SubscriptionReminderScheduler(
       notifyUseCase,
-      expireUseCase,
+      notifyGraceDeadlineUseCase,
       graceUseCase,
       prisma,
       adminAlerts,
@@ -91,7 +98,6 @@ describe('SubscriptionReminderScheduler', () => {
   it('converts expired trial subscriptions to STARTER free fallback', async () => {
     findManyMock
       .mockResolvedValueOnce([{ id: 'sub_trial_1', clinicId: 'clinic_1' }])
-      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
     subscriptionUpdateMock.mockResolvedValue({} as Record<string, never>);
     clinicUpdateMock.mockResolvedValue({} as Record<string, never>);
@@ -124,8 +130,7 @@ describe('SubscriptionReminderScheduler', () => {
   it('still moves lapsed ACTIVE subscriptions into grace period', async () => {
     findManyMock
       .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ id: 'sub_active_1' }])
-      .mockResolvedValueOnce([]);
+      .mockResolvedValueOnce([{ id: 'sub_active_1' }]);
 
     await scheduler.handleLapsedSubscriptions();
 

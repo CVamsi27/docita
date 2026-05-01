@@ -7,6 +7,11 @@ export interface PlatformStats {
   prescriptions: number;
 }
 
+interface PlatformStatsCacheEntry {
+  expiresAt: number;
+  stats: PlatformStats | null;
+}
+
 export interface TierPricing {
   monthly: number | "custom";
   yearly: number | "custom";
@@ -107,6 +112,9 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
   tiers: FALLBACK_TIERS,
 };
 
+const PLATFORM_STATS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+let platformStatsCache: PlatformStatsCacheEntry | null = null;
+
 function isLiveLandingDataEnabled(): boolean {
   return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
 }
@@ -123,6 +131,11 @@ export async function fetchPlatformStats(
 ): Promise<PlatformStats | null> {
   if (!isLiveLandingDataEnabled()) {
     return null;
+  }
+
+  const now = Date.now();
+  if (platformStatsCache && platformStatsCache.expiresAt > now) {
+    return platformStatsCache.stats;
   }
 
   try {
@@ -145,13 +158,24 @@ export async function fetchPlatformStats(
       return null;
     }
 
-    return {
+    const stats = {
       clinics,
       doctors,
       patients,
       prescriptions,
     };
+    platformStatsCache = {
+      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
+      stats,
+    };
+
+    return stats;
   } catch {
+    platformStatsCache = {
+      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
+      stats: null,
+    };
+
     return null;
   }
 }

@@ -68,6 +68,7 @@ export function AppearanceSettings() {
         <div className="space-y-3">
           <Label>Accent Color</Label>
           <ToggleGroup
+            aria-label="Accent color"
             type="single"
             value={primaryColor || "blue"}
             onValueChange={(value) => {
@@ -80,6 +81,18 @@ export function AppearanceSettings() {
               { value: "green", className: "bg-success" },
               { value: "purple", className: "bg-primary" },
               { value: "orange", className: "bg-warning" },
+              {
+                value: "rose",
+                className: "bg-[oklch(0.58_0.19_22)]",
+              },
+              {
+                value: "teal",
+                className: "bg-[oklch(0.52_0.12_185)]",
+              },
+              {
+                value: "slate",
+                className: "bg-[oklch(0.48_0.03_260)]",
+              },
             ].map((color) => (
               <ToggleGroupItem
                 key={color.value}
@@ -102,12 +115,13 @@ export function AppearanceSettings() {
         </div>
         <div className="flex items-center justify-between gap-4">
           <div>
-            <Label>Compact Mode</Label>
+            <Label htmlFor="compact-mode">Compact Mode</Label>
             <p className="text-sm text-muted-foreground">
               Reduce spacing for more content
             </p>
           </div>
           <Switch
+            id="compact-mode"
             checked={compactMode}
             onCheckedChange={(checked: boolean) => setCompactMode(checked)}
           />

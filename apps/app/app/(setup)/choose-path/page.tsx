@@ -9,7 +9,6 @@ import { typedApi } from "@/lib/api-client";
 import { logger } from "@/lib/logger";
 import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
-import { SupportContact } from "@/components/common/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 
@@ -133,8 +132,6 @@ export default function ChoosePathPage() {
           onClick={() => handleChoosePath("JOIN_CLINIC")}
         />
       </div>
-
-      <SupportContact />
     </PreDashboardShell>
   );
 }

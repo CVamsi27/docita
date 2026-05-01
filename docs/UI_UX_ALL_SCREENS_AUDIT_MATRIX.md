@@ -49,7 +49,6 @@ Every route below is covered by the shared UI system pass and the relevant app a
 | `/lab-tests` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/patients` | protected app | Browser smoke + app audit |
 | `/patients/[id]` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/patients/[id]/history` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/prescriptions` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/prescriptions/[id]` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/profile` | protected app | Shared app shell pass + app audit; auth-gated locally |
@@ -57,7 +56,7 @@ Every route below is covered by the shared UI system pass and the relevant app a
 | `/settings/compliance` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/settings/team/join-requests` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/specialty/dental-charts` | protected app | Shared app shell pass + app audit; auth-gated locally |
-| `/upgrade` | protected app | Shared app shell pass + app audit; auth-gated locally |
+| `/upgrade` | protected app | Redirects to `/settings?tab=subscription`; treat billing UX via Settings subscription tab |
 | `/whatsapp` | protected app | Shared app shell pass + app audit; auth-gated locally |
 | `/choose-path` | setup | Browser smoke: unauthenticated redirect state verified |
 | `/clinic-selection` | setup | Shared setup shell pass + app audit |

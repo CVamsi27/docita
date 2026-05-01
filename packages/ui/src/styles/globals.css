@@ -211,10 +211,65 @@ html.dark[data-accent="orange"] {
   --sidebar-ring: oklch(0.78 0.14 70);
 }
 
+html[data-accent="rose"] {
+  --primary: oklch(0.55 0.19 22);
+  --ring: oklch(0.55 0.19 22);
+  --secondary-foreground: oklch(0.55 0.19 22);
+  --sidebar-primary: oklch(0.55 0.19 22);
+  --sidebar-accent-foreground: oklch(0.55 0.19 22);
+  --sidebar-ring: oklch(0.55 0.19 22);
+}
+
+html[data-accent="teal"] {
+  --primary: oklch(0.52 0.12 185);
+  --ring: oklch(0.52 0.12 185);
+  --secondary-foreground: oklch(0.52 0.12 185);
+  --sidebar-primary: oklch(0.52 0.12 185);
+  --sidebar-accent-foreground: oklch(0.52 0.12 185);
+  --sidebar-ring: oklch(0.52 0.12 185);
+}
+
+html[data-accent="slate"] {
+  --primary: oklch(0.48 0.03 260);
+  --ring: oklch(0.48 0.03 260);
+  --secondary-foreground: oklch(0.48 0.03 260);
+  --sidebar-primary: oklch(0.48 0.03 260);
+  --sidebar-accent-foreground: oklch(0.48 0.03 260);
+  --sidebar-ring: oklch(0.48 0.03 260);
+}
+
+html.dark[data-accent="rose"] {
+  --primary: oklch(0.72 0.17 22);
+  --ring: oklch(0.72 0.17 22);
+  --secondary-foreground: oklch(0.72 0.17 22);
+  --sidebar-primary: oklch(0.72 0.17 22);
+  --sidebar-accent-foreground: oklch(0.72 0.17 22);
+  --sidebar-ring: oklch(0.72 0.17 22);
+}
+
+html.dark[data-accent="teal"] {
+  --primary: oklch(0.72 0.11 185);
+  --ring: oklch(0.72 0.11 185);
+  --secondary-foreground: oklch(0.72 0.11 185);
+  --sidebar-primary: oklch(0.72 0.11 185);
+  --sidebar-accent-foreground: oklch(0.72 0.11 185);
+  --sidebar-ring: oklch(0.72 0.11 185);
+}
+
+html.dark[data-accent="slate"] {
+  --primary: oklch(0.72 0.04 260);
+  --ring: oklch(0.72 0.04 260);
+  --secondary-foreground: oklch(0.72 0.04 260);
+  --sidebar-primary: oklch(0.72 0.04 260);
+  --sidebar-accent-foreground: oklch(0.72 0.04 260);
+  --sidebar-ring: oklch(0.72 0.04 260);
+}
+
 .dark {
   --surface-1: var(--card);
   --surface-2: oklch(0.155 0.025 261);
   --surface-3: oklch(0.185 0.028 261);
+  --surface-tint: oklch(0.135 0.034 250);
 
   /* Tag color ramp — slightly lifted for dark mode contrast. */
   --tag-rose: oklch(0.7 0.2 22);

@@ -11,6 +11,7 @@ import {
 import { DocitaIcon } from "@workspace/ui/components/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
+import { LoginDailyThought } from "@/features/auth/components/LoginDailyThought";
 
 interface SetupStep {
   icon: typeof KeyRound;
@@ -86,16 +87,26 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
   const activeStepIndex = setupSteps.findIndex((step) =>
     step.authSteps.includes(currentStep),
   );
+  const isEmailFirst = currentStep === "email";
   const isLogin = ["login", "forgot-password", "reset-password"].includes(
     currentStep,
   );
-  const heroKicker = isLogin ? "Welcome back" : "Getting started";
-  const heroTitle = isLogin
-    ? "Pick up where you left off"
-    : "Everything in one guided path to your facility";
-  const heroDescription = isLogin
-    ? "Sign in to manage appointments, patients, billing, and clinical workflows"
-    : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
+
+  const heroKicker = isEmailFirst
+    ? "Welcome to Docita"
+    : isLogin
+      ? "Welcome back"
+      : "Getting started";
+  const heroTitle = isEmailFirst
+    ? "Your practice workspace starts here"
+    : isLogin
+      ? "Pick up where you left off"
+      : "Everything in one guided path to your facility";
+  const heroDescription = isEmailFirst
+    ? "Run appointments, clinical notes, prescriptions, and billing in one secure workspace built for healthcare teams."
+    : isLogin
+      ? "Sign in to manage appointments, patients, billing, and clinical workflows"
+      : "Account setup, email verification, onboarding — each step unlocks the next. You only do this once.";
 
   return (
     <aside
@@ -133,7 +144,18 @@ export function AuthBrandingPanel({ currentStep }: AuthBrandingPanelProps) {
         </div>
 
         <div className="mt-8 max-w-lg rounded-[var(--radius)] border border-border/70 bg-background/85 p-4 shadow-sm backdrop-blur">
-          {isLogin ? (
+          {isEmailFirst ? (
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-foreground">
+                Sign in or get started
+              </p>
+              <p className="text-xs text-muted-foreground pb-2">
+                Enter your work email on the right. We will take you to sign in
+                or account creation, then guide you through setup.
+              </p>
+              <LoginDailyThought />
+            </div>
+          ) : isLogin ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-3">
                 <div>

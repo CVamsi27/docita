@@ -67,6 +67,12 @@ export interface IDoctorScheduleRepository {
     where: Prisma.DoctorTimeOffWhereInput,
   ): Promise<DoctorTimeOff[]>;
 
+  findDoctorIdsWithFullDayTimeOffOverlappingRange(
+    clinicId: string,
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): Promise<string[]>;
+
   createTimeOff(
     data: Prisma.DoctorTimeOffCreateInput,
   ): Promise<DoctorTimeOff & { doctor: { id: string; name: string } }>;

@@ -37,6 +37,12 @@ vi.mock("@/lib/user-facing-errors", () => ({
   showUserFacingErrorToast: appointmentMocks.showError,
 }));
 
+vi.mock("@/lib/doctor-availability-first-slot", () => ({
+  fetchFirstAvailableDatetimeLocal: vi
+    .fn()
+    .mockResolvedValue(null),
+}));
+
 const appointmentRequest: AppointmentRequestResponse = {
   id: "req_1",
   patientId: "patient_1",

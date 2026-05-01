@@ -18,6 +18,8 @@ model User {
   updatedAt                  DateTime                 @updatedAt
   qualification              String?
   registrationNumber         String?
+  registrationCouncil        String?
+  registrationStateCode      String?
   signatureUrl               String?
   signatureUploadedAt        DateTime?
   bio                        String?
@@ -3409,6 +3411,7 @@ enum LeaveType {
   EARNED
   COMP_OFF
   UNPAID
+  HOLIDAY
 }
 
 enum LeaveStatus {

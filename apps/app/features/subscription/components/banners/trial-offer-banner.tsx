@@ -11,7 +11,7 @@ interface TrialOfferBannerProps {
 }
 
 export function TrialOfferBanner({
-  actionLabel = "Start 14-day trial",
+  actionLabel = "View plans",
   className,
   onAction,
 }: TrialOfferBannerProps) {
@@ -21,7 +21,7 @@ export function TrialOfferBanner({
         "rounded-[var(--radius)] border border-primary/25 bg-primary/5 p-4 text-sm",
         className,
       )}
-      aria-label="14-day free trial"
+      aria-label="Subscription plans overview"
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex gap-3">
@@ -30,12 +30,12 @@ export function TrialOfferBanner({
           </div>
           <div className="space-y-1">
             <p className="flex items-center gap-2 font-semibold text-foreground">
-              14-day free Essential trial is available
+              Compare plans and billing options
               <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             </p>
             <p className="text-muted-foreground">
-              Start with Essential at no upfront cost. Add payment only when you
-              are ready to continue after the trial.
+              Review tiers below and choose monthly or yearly billing. Paid plans
+              activate after checkout is completed.
             </p>
           </div>
         </div>

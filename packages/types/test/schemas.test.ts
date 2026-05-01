@@ -7,6 +7,10 @@ import {
 import { createAppointmentSchema } from "../src/operations/appointments";
 import { CLINIC_TYPE_OPTIONS } from "../src/shared/users";
 import { createPatientSchema } from "../src/patient/patients";
+import {
+  createLeaveRequestSchema,
+  leaveTypeSchema,
+} from "../src/leave/leave";
 
 describe("@workspace/types schemas", () => {
   it("validates login response payload", () => {
@@ -142,5 +146,16 @@ describe("@workspace/types schemas", () => {
         notes: "",
       }).success,
     ).toBe(true);
+  });
+
+  it("accepts HOLIDAY in leave type schemas", () => {
+    expect(leaveTypeSchema.parse("HOLIDAY")).toBe("HOLIDAY");
+    expect(
+      createLeaveRequestSchema.parse({
+        leaveType: "HOLIDAY",
+        startDate: "2026-01-10",
+        endDate: "2026-01-12",
+      }).leaveType,
+    ).toBe("HOLIDAY");
   });
 });

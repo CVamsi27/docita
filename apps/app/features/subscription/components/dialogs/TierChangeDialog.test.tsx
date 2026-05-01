@@ -11,6 +11,13 @@ vi.mock("@/hooks/api/use-pricing", () => ({
   usePricingConfig: pricingMocks.usePricingConfig,
 }));
 
+vi.mock("@/hooks/api/use-billing", () => ({
+  useProrationPreview: () => ({
+    data: undefined,
+    isFetching: false,
+  }),
+}));
+
 const pricingConfig = {
   currency: "INR",
   tiers: [

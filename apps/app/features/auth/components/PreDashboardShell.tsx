@@ -7,6 +7,11 @@ import { Button } from "@workspace/ui/components/button";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
+import { SupportContact } from "@/components/common/support-contact";
+import {
+  SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
+  SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
+} from "@/lib/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
@@ -55,6 +60,11 @@ interface PreDashboardShellProps {
    * step and existing-account login step).
    */
   showProgress?: boolean;
+  /**
+   * Overrides the footer WhatsApp prefilled text. When omitted, `currentStep === "onboarding"`
+   * uses the onboarding template; all other steps use the generic default.
+   */
+  supportWhatsappMessage?: string;
 }
 
 export function PreDashboardShell({
@@ -65,11 +75,17 @@ export function PreDashboardShell({
   showSignOut = false,
   showBrandingPanel = true,
   showProgress = true,
+  supportWhatsappMessage,
 }: PreDashboardShellProps) {
   const router = useRouter();
   const { logout, user } = useAuth();
   const meta = STEP_META[currentStep];
   const stepNumber = meta.index + 1;
+  const footerWhatsappMessage =
+    supportWhatsappMessage ??
+    (currentStep === "onboarding"
+      ? SUPPORT_WHATSAPP_MESSAGE_ONBOARDING
+      : SUPPORT_WHATSAPP_MESSAGE_DEFAULT);
 
   useEffect(() => {
     if (
@@ -154,7 +170,7 @@ export function PreDashboardShell({
 
             {children}
           </div>
-          <div className="flex justify-center gap-6 px-4 pb-6 text-xs text-muted-foreground lg:hidden">
+          <div className="flex justify-center gap-6 px-4 pb-2 text-xs text-muted-foreground lg:hidden">
             <span className="flex items-center gap-1">
               <Shield className="h-3 w-3 shrink-0" aria-hidden />
               Data Encrypted
@@ -163,6 +179,14 @@ export function PreDashboardShell({
               <Lock className="h-3 w-3 shrink-0" aria-hidden />
               Privacy Controls
             </span>
+          </div>
+          <div className="w-full max-w-2xl px-4 pb-6">
+            <SupportContact
+              layout="stack"
+              variant="footer"
+              className="w-full"
+              whatsappMessage={footerWhatsappMessage}
+            />
           </div>
         </div>
       </div>

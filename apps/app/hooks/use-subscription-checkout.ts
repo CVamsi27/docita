@@ -61,7 +61,26 @@ export function useSubscriptionCheckout(
             body: JSON.stringify({ tier, billingCycle }),
           }),
         );
-        const { orderId, amountCents, currency, razorpayKeyId } = createData;
+        const {
+          orderId,
+          amountCents,
+          currency,
+          razorpayKeyId,
+        } = createData;
+        const completedWithoutPayment =
+          "completedWithoutPayment" in createData &&
+          createData.completedWithoutPayment === true;
+
+        if (completedWithoutPayment) {
+          setTier(tier);
+          await invalidateSubscriptionQueries();
+          onSuccess({
+            planName: `${tier} Plan`,
+            amount: 0,
+          });
+          return;
+        }
+
         if (!orderId || !amountCents || !currency || !razorpayKeyId) {
           throw new Error("We could not start checkout right now. Please try again.");
         }

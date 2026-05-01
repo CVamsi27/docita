@@ -21,6 +21,20 @@
     center top;
 }
 
+.dark .landing-hero-origin {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--surface-tint) 74%, var(--background)) 0%,
+      color-mix(in oklch, var(--background) 94%, var(--primary) 6%) 52%,
+      var(--background) 100%
+    ),
+    url("/grid.svg");
+  background-position:
+    center,
+    center top;
+}
+
 html,
 body {
   max-width: 100%;

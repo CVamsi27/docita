@@ -41,7 +41,7 @@ export function PatientStatsCardsUI({
               <p className="font-medium text-muted-foreground uppercase tracking-widest text-[var(--fs-2xs)]">
                 Total Visits
               </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold tracking-normal">
+              <h3 className="ui-section-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)] tabular-nums leading-[var(--lh-tight)]">
                 {showLoading ? "..." : totalVisits}
               </h3>
             </div>
@@ -59,7 +59,7 @@ export function PatientStatsCardsUI({
               <p className="font-medium text-muted-foreground uppercase tracking-widest text-[var(--fs-2xs)]">
                 Last Visit
               </p>
-              <h3 className="text-sm sm:text-lg font-bold truncate">
+              <h3 className="ui-section-title text-[var(--fs-sm)] sm:text-[var(--fs-lg)] font-semibold truncate">
                 {showLoading
                   ? "..."
                   : lastVisit
@@ -83,7 +83,7 @@ export function PatientStatsCardsUI({
               <p className="font-medium text-muted-foreground uppercase tracking-widest text-[var(--fs-2xs)]">
                 Next Visit
               </p>
-              <h3 className="text-sm sm:text-lg font-bold truncate">
+              <h3 className="ui-section-title text-[var(--fs-sm)] sm:text-[var(--fs-lg)] font-semibold truncate">
                 {showLoading
                   ? "..."
                   : nextVisit
@@ -107,7 +107,7 @@ export function PatientStatsCardsUI({
               <p className="font-medium text-muted-foreground uppercase tracking-widest text-[var(--fs-2xs)]">
                 Adherence
               </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold tracking-normal">
+              <h3 className="ui-section-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)] tabular-nums leading-[var(--lh-tight)]">
                 {showLoading ? "..." : `${adherenceRate}%`}
               </h3>
             </div>

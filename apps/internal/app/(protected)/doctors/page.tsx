@@ -54,6 +54,7 @@ import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
+  getDoctorVerificationPublicNote,
   HOSPITAL_ROLE_LABELS,
   type HospitalRole,
   type Specialization,
@@ -520,7 +521,6 @@ export default function DoctorsPage() {
                 </div>
               </div>
 
-              {}
               {selectedDoctor.bio && (
                 <div>
                   <Label className="text-muted-foreground">Biography</Label>
@@ -528,16 +528,23 @@ export default function DoctorsPage() {
                 </div>
               )}
 
-              {selectedDoctor.verificationReason && (
-                <div>
-                  <Label className="text-muted-foreground">
-                    Verification Note
-                  </Label>
-                  <p className="mt-1">{selectedDoctor.verificationReason}</p>
-                </div>
-              )}
+              {(() => {
+                const verificationPublicNote =
+                  getDoctorVerificationPublicNote(
+                    selectedDoctor.verificationStatus,
+                    selectedDoctor.verificationReason,
+                  );
+                if (!verificationPublicNote) return null;
+                return (
+                  <div>
+                    <Label className="text-muted-foreground">
+                      Verification note
+                    </Label>
+                    <p className="mt-1">{verificationPublicNote}</p>
+                  </div>
+                );
+              })()}
 
-              {}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <GraduationCap className="h-5 w-5 text-primary" />

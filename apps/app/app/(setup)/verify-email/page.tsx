@@ -11,7 +11,6 @@ import {
 } from "@/lib/auth-context";
 import { logger } from "@/lib/logger";
 import { API_URL } from "@/lib/api-config";
-import { SupportContact } from "@/components/common/support-contact";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";
 
@@ -149,8 +148,6 @@ function VerifyEmailInner() {
           </div>
         )}
       </div>
-
-      <SupportContact />
     </PreDashboardShell>
   );
 }

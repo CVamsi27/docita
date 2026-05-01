@@ -8,8 +8,8 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }));
 
-vi.mock("./modals/VitalsModal", () => ({
-  VitalsModal: () => null,
+vi.mock("@/features/consultation/workspace/consultation-vitals-context", () => ({
+  useConsultationVitals: () => ({ openVitals: vi.fn() }),
 }));
 
 vi.mock("./modals/BillingModal", () => ({

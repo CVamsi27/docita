@@ -33,6 +33,7 @@ import {
   getUserFacingErrorMessage,
 } from "@workspace/types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
+import { useProrationPreview } from "@/hooks/api/use-billing";
 import { formatCurrency } from "@/lib/formatters";
 
 interface TierChangeDialogProps {
@@ -70,6 +71,11 @@ export function TierChangeDialog({
 
   const { pricingConfig, isLoading: pricingLoading } =
     usePricingConfig(currency);
+
+  const { data: prorationPreview, isFetching: prorationLoading } =
+    useProrationPreview(selectedTier ?? "STARTER", billingCycle, {
+      enabled: open && !!selectedTier && selectedTier !== "ENTERPRISE",
+    });
 
   if (!selectedTier) return null;
 
@@ -258,6 +264,43 @@ export function TierChangeDialog({
                     {billingCycle === "YEARLY" ? "/year" : "/month"}
                   </span>
                 </p>
+              </div>
+            )}
+
+            {selectedTier !== "ENTERPRISE" && (prorationLoading || prorationPreview) && (
+              <div className="rounded-lg border bg-muted/25 p-3 text-sm space-y-2">
+                {prorationLoading ? (
+                  <p className="text-muted-foreground">Calculating checkout amount...</p>
+                ) : prorationPreview ? (
+                  <>
+                    {prorationPreview.creditCents > 0 ? (
+                      <p className="text-muted-foreground">
+                        Credit from unused period:{" "}
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(
+                            prorationPreview.creditCents / 100,
+                            currency,
+                            {
+                              locale: currencyConfig.locale,
+                              fractionDigits: currencyConfig.decimalPlaces,
+                            },
+                          )}
+                        </span>
+                      </p>
+                    ) : null}
+                    <p className="font-semibold">
+                      Due today:{" "}
+                      {formatCurrency(
+                        prorationPreview.finalAmountCents / 100,
+                        currency,
+                        {
+                          locale: currencyConfig.locale,
+                          fractionDigits: currencyConfig.decimalPlaces,
+                        },
+                      )}
+                    </p>
+                  </>
+                ) : null}
               </div>
             )}
 

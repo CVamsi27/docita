@@ -65,8 +65,8 @@ const configs: AuditConfig[] = [
   },
   {
     app: "landing",
-    port: 3001,
-    pages: ["/", "/features", "/pricing", "/about"],
+    port: 3003,
+    pages: ["/", "/#features", "/#pricing", "/contact"],
   },
 ];
 
@@ -262,28 +262,23 @@ async function generateReport(results: AppAuditResult[]): Promise<void> {
 }
 
 async function main(): Promise<void> {
-
-  configs.forEach((c) => {
-
-  });
-
   const results: AppAuditResult[] = [];
 
   for (const config of configs) {
     try {
       const result = await auditApp(config);
       results.push(result);
-    } catch (error) {
-
+    } catch {
+      process.stderr.write(
+        `Accessibility audit skipped or failed for "${config.app}" (is the dev server running on port ${config.port}?)\n`,
+      );
     }
   }
 
   await generateReport(results);
-
-  for (const result of results) {
-    
-    
-  }
 }
 
-main().catch(console.error);
+main().catch((err: unknown) => {
+  process.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
+  process.exitCode = 1;
+});

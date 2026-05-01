@@ -15,6 +15,7 @@ import {
   EnterGracePeriodUseCase,
   ProcessWebhookUseCase,
   NotifyExpiringSubscriptionsUseCase,
+  NotifySubscriptionGraceDeadlineUseCase,
 } from './application/use-cases';
 import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
 import {
@@ -61,6 +62,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     EnterGracePeriodUseCase,
     ProcessWebhookUseCase,
     NotifyExpiringSubscriptionsUseCase,
+    NotifySubscriptionGraceDeadlineUseCase,
     SubscriptionsQueryService,
     SubscriptionReminderScheduler,
     OverageBillingScheduler,

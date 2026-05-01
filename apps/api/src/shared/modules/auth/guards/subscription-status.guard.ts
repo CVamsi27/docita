@@ -8,6 +8,10 @@ import {
 import { Reflector } from '@nestjs/core';
 import { SubscriptionStatus } from '@workspace/db';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
+import {
+  isBillingAdminRole,
+  isSubscriptionPastGraceDeadline,
+} from '@/shared/modules/auth/utils/subscription-hard-lock.util';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const SKIP_SUBSCRIPTION_CHECK_KEY = 'skipSubscriptionCheck';
@@ -56,6 +60,22 @@ export class SubscriptionStatusGuard implements CanActivate {
         user.clinicId,
         { bypassCache: true },
       );
+
+      if (
+        isSubscriptionPastGraceDeadline({
+          subscriptionStatus: clinicAuth.subscriptionStatus,
+          graceUntil: clinicAuth.subscriptionGraceUntil,
+        }) &&
+        !isBillingAdminRole(user.role)
+      ) {
+        throw new ForbiddenException({
+          message:
+            'Your workspace is temporarily restricted until billing is resolved. Ask an organization admin to update subscription billing.',
+          code: 'SUBSCRIPTION_HARD_LOCKED',
+          action: 'BILLING_REQUIRED',
+          billingSettingsUrl: '/settings?tab=subscription',
+        });
+      }
 
       const allowedStatuses: SubscriptionStatus[] = [
         SubscriptionStatus.ACTIVE,

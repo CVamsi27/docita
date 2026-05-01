@@ -53,12 +53,12 @@ describe('OnboardingWorkflowService', () => {
     jest.useRealTimers();
   });
 
-  it('creates unpaid Essential onboarding as a 14-day trial', async () => {
+  it('creates unpaid Starter onboarding as a monthly trial', async () => {
     await service.createSubscription(
       tx,
       'clinic-1',
       {
-        tier: ClinicTier.ESSENTIAL,
+        tier: ClinicTier.STARTER,
         billingCycle: BillingCycle.MONTHLY,
         currency: 'INR',
       },
@@ -71,20 +71,20 @@ describe('OnboardingWorkflowService', () => {
     expect(tx.subscription.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         clinicId: 'clinic-1',
-        plan: ClinicTier.ESSENTIAL,
+        plan: ClinicTier.STARTER,
         billingCycle: BillingCycle.MONTHLY,
         status: SubscriptionStatus.TRIALING,
         currentPeriodStart: new Date('2026-04-29T00:00:00.000Z'),
-        currentPeriodEnd: new Date('2026-05-13T00:00:00.000Z'),
+        currentPeriodEnd: new Date('2026-05-29T00:00:00.000Z'),
       }),
     });
     expect(tx.subscriptionPayment.create).not.toHaveBeenCalled();
     expect(tx.clinic.update).toHaveBeenCalledWith({
       where: { id: 'clinic-1' },
       data: {
-        tier: ClinicTier.ESSENTIAL,
+        tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.TRIALING,
-        trialEndsAt: new Date('2026-05-13T00:00:00.000Z'),
+        trialEndsAt: new Date('2026-05-29T00:00:00.000Z'),
       },
     });
   });

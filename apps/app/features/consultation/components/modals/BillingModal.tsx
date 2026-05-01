@@ -397,7 +397,7 @@ export function BillingModal({
               )}
               <div className="border-t pt-3 mt-2 flex justify-between items-center">
                 <span className="font-semibold">Grand Total</span>
-                <span className="text-2xl font-bold">
+                <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {fmt(calculations.total)}
                 </span>
               </div>

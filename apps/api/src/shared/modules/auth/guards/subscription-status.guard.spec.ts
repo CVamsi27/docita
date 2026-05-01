@@ -83,30 +83,35 @@ describe('SubscriptionStatusGuard', () => {
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.ACTIVE,
+        subscriptionGraceUntil: null,
         hasIntelligence: false,
         features: {},
       })
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.TRIALING,
+        subscriptionGraceUntil: null,
         hasIntelligence: false,
         features: {},
       })
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.PAST_DUE,
+        subscriptionGraceUntil: null,
         hasIntelligence: false,
         features: {},
       })
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.GRACE,
+        subscriptionGraceUntil: null,
         hasIntelligence: false,
         features: {},
       })
       .mockResolvedValueOnce({
         tier: ClinicTier.STARTER,
         subscriptionStatus: SubscriptionStatus.PAUSED,
+        subscriptionGraceUntil: null,
         hasIntelligence: false,
         features: {},
       });
@@ -132,6 +137,7 @@ describe('SubscriptionStatusGuard', () => {
     clinicAuthCache.getClinicAuth.mockResolvedValue({
       tier: ClinicTier.STARTER,
       subscriptionStatus: SubscriptionStatus.CANCELLED,
+      subscriptionGraceUntil: null,
       hasIntelligence: false,
       features: {},
     });
@@ -146,6 +152,44 @@ describe('SubscriptionStatusGuard', () => {
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+  });
+
+  it('blocks staff when grace deadline has passed', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.GRACE,
+      subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'RECEPTIONIST',
+        }),
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows billing admins when grace deadline has passed', async () => {
+    clinicAuthCache.getClinicAuth.mockResolvedValue({
+      tier: ClinicTier.STARTER,
+      subscriptionStatus: SubscriptionStatus.PAST_DUE,
+      subscriptionGraceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      hasIntelligence: false,
+      features: {},
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({
+          clinicId: 'clinic-1',
+          role: 'ADMIN',
+        }),
+      ),
     ).resolves.toBe(true);
   });
 });

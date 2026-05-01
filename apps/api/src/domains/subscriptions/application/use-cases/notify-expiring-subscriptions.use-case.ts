@@ -78,7 +78,7 @@ export class NotifyExpiringSubscriptionsUseCase {
         clinic: {
           include: {
             users: {
-              where: { role: 'ADMIN' },
+              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
               select: { email: true, name: true },
             },
           },

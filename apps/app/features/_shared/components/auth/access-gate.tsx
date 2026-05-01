@@ -73,7 +73,7 @@ export function AccessGate({
           size="sm"
           className="gap-2"
         >
-          <Link href="/upgrade">
+          <Link href="/settings?tab=subscription">
             <Sparkles className="size-4" aria-hidden />
             Upgrade plan
           </Link>

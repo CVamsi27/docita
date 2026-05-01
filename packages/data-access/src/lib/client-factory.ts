@@ -1,8 +1,33 @@
 import { z } from "zod";
-import { APIRequestError, ErrorCodes, getErrorCode } from "@/lib/errors";
-import { buildURL, normalizeHeaders } from "@/lib/request-helpers";
-import { executeWithRetry } from "@/lib/retry";
-import type { APIClient, APIClientConfig, RequestConfig } from "@/lib/types";
+import { APIRequestError, ErrorCodes, getErrorCode } from "./errors";
+import { buildURL, normalizeHeaders } from "./request-helpers";
+import { executeWithRetry } from "./retry";
+import type { APIClient, APIClientConfig, RequestConfig } from "./types";
+
+function toHeaderRecord(headers?: HeadersInit): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+
+  if (headers instanceof Headers) {
+    return Object.fromEntries(headers.entries());
+  }
+
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
+  }
+
+  return Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key, String(value)]),
+  );
+}
+
+function hasHeader(headers: HeadersInit | undefined, name: string): boolean {
+  const target = name.toLowerCase();
+  return Object.keys(toHeaderRecord(headers)).some(
+    (key) => key.toLowerCase() === target,
+  );
+}
 
 export function createAPIClient(config: APIClientConfig): APIClient {
   const {
@@ -22,12 +47,19 @@ export function createAPIClient(config: APIClientConfig): APIClient {
     endpoint: string,
     options: RequestConfig = {},
   ): Promise<T> {
+    const shouldAttachJsonContentType =
+      !(options.body instanceof FormData) &&
+      !hasHeader(defaultHeaders, "content-type") &&
+      !hasHeader(options.headers, "content-type");
+
     let requestConfig: RequestConfig = {
       ...options,
       headers: {
-        "Content-Type": "application/json",
-        ...defaultHeaders,
-        ...options.headers,
+        ...toHeaderRecord(defaultHeaders),
+        ...toHeaderRecord(options.headers),
+        ...(shouldAttachJsonContentType
+          ? { "Content-Type": "application/json" }
+          : {}),
       },
     };
 
@@ -81,8 +113,15 @@ export function createAPIClient(config: APIClientConfig): APIClient {
             errorData = null;
           }
 
+          const rfc7807 = errorData as {
+            detail?: string;
+            message?: string;
+            validationErrors?: Record<string, string>;
+          };
+
           const error = new APIRequestError(
-            (errorData as { message?: string })?.message ||
+            rfc7807?.detail ||
+              rfc7807?.message ||
               response.statusText ||
               "Request failed",
             {
@@ -90,6 +129,9 @@ export function createAPIClient(config: APIClientConfig): APIClient {
               statusText: response.statusText,
               code: getErrorCode(response.status),
               ...(errorData ? { data: errorData } : {}),
+              ...(rfc7807?.validationErrors
+                ? { validationErrors: rfc7807.validationErrors }
+                : {}),
             },
           );
 
@@ -289,11 +331,30 @@ export function createAPIClient(config: APIClientConfig): APIClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new APIRequestError(errorData?.message || response.statusText, {
-          status: response.status,
-          data: errorData,
-        });
+        const errorData = (await response.json().catch(() => null)) as Record<
+          string,
+          unknown
+        > | null;
+        const rfc7807 = errorData as {
+          detail?: string;
+          message?: string;
+          validationErrors?: Record<string, string>;
+        } | null;
+        throw new APIRequestError(
+          rfc7807?.detail ||
+            rfc7807?.message ||
+            response.statusText ||
+            "Request failed",
+          {
+            status: response.status,
+            statusText: response.statusText,
+            code: getErrorCode(response.status),
+            ...(errorData ? { data: errorData } : {}),
+            ...(rfc7807?.validationErrors
+              ? { validationErrors: rfc7807.validationErrors }
+              : {}),
+          },
+        );
       }
 
       return response.json();

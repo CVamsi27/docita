@@ -265,6 +265,7 @@ export const subscriptionBillingCheckoutResponseSchema = z
     amountCents: z.number().int().min(0),
     currency: z.string(),
     razorpayKeyId: z.string(),
+    completedWithoutPayment: z.boolean().optional(),
   })
   .strict();
 

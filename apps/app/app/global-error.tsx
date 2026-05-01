@@ -1,7 +1,5 @@
 "use client";
 
-import "@workspace/ui/globals.css";
-
 export default function GlobalError({
   error: _error,
   reset,
@@ -11,27 +9,92 @@ export default function GlobalError({
 }) {
   return (
     <html>
-      <body className="m-0 font-sans bg-background text-foreground">
-        <div className="min-h-screen flex items-center justify-center px-6 bg-[var(--surface-1)]">
-          <div className="max-w-xl w-full text-center">
+      <body
+        style={{
+          margin: 0,
+          background: "#f8fafc",
+          color: "#0f172a",
+          fontFamily:
+            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        }}
+      >
+        <div
+          style={{
+            alignItems: "center",
+            background: "#f8fafc",
+            boxSizing: "border-box",
+            display: "flex",
+            justifyContent: "center",
+            minHeight: "100vh",
+            padding: "24px",
+          }}
+        >
+          <div style={{ maxWidth: "576px", textAlign: "center", width: "100%" }}>
             <div
               role="presentation"
-              className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full bg-[color-mix(in_oklch,var(--destructive),transparent_88%)] text-2xl font-semibold text-[var(--destructive)]"
               aria-hidden="true"
+              style={{
+                alignItems: "center",
+                background: "#fee2e2",
+                borderRadius: "9999px",
+                color: "#b91c1c",
+                display: "grid",
+                fontSize: "24px",
+                fontWeight: 600,
+                height: "64px",
+                margin: "0 auto 24px",
+                placeItems: "center",
+                width: "64px",
+              }}
             >
               !
             </div>
-            <h1 className="m-0 mb-2 text-2xl font-bold tracking-normal">
+            <h1
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                letterSpacing: 0,
+                lineHeight: 1.25,
+                margin: "0 0 8px",
+              }}
+            >
               We could not load this page
             </h1>
-            <p className="m-0 mb-6 text-base leading-relaxed text-muted-foreground">
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "16px",
+                lineHeight: 1.625,
+                margin: "0 0 24px",
+              }}
+            >
               Please try again or return to the home page.
             </p>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "12px",
+                justifyContent: "center",
+              }}
+            >
               <button
                 type="button"
                 onClick={() => reset()}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                style={{
+                  alignItems: "center",
+                  background: "#0f172a",
+                  border: 0,
+                  borderRadius: "8px",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  height: "40px",
+                  justifyContent: "center",
+                  padding: "0 20px",
+                }}
               >
                 Try again
               </button>
@@ -40,7 +103,20 @@ export default function GlobalError({
                 onClick={() => {
                   window.location.href = "/";
                 }}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-input bg-background px-5 text-sm font-semibold text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                style={{
+                  alignItems: "center",
+                  background: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  color: "#0f172a",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  height: "40px",
+                  justifyContent: "center",
+                  padding: "0 20px",
+                }}
               >
                 Go to home
               </button>
