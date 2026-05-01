@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file defines mandatory operating rules for coding agents working in this repository.
-It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.github/copilot-instructions.md`.
+It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-instructions.md`.
 
 ## 1) Scope and Priority
 
