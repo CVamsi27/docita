@@ -105,7 +105,7 @@ export function MedicineReminderDialogUI({
                 error={form.formState.errors.medicineName?.message}
               >
                 <FormControl>
-                  <Input placeholder="e.g., Aspirin, Metformin" {...field} />
+                  <Input placeholder="Medication name" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -121,7 +121,7 @@ export function MedicineReminderDialogUI({
                 error={form.formState.errors.dosage?.message}
               >
                 <FormControl>
-                  <Input placeholder="e.g., 500mg, 1 tablet, 5ml" {...field} />
+                  <Input placeholder="Dosage" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -141,7 +141,7 @@ export function MedicineReminderDialogUI({
                 >
                   <FormControl>
                     <SelectTrigger id="frequency">
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue placeholder="Frequency" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -182,7 +182,7 @@ export function MedicineReminderDialogUI({
               >
                 <FormControl>
                   <Input
-                    placeholder="+1234567890 (optional - auto-detected if empty)"
+                    placeholder="Phone number"
                     {...field}
                     value={field.value || ""}
                   />

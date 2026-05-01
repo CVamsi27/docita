@@ -125,7 +125,7 @@ export function PrescriptionDefaultsSettings() {
                   <FormControl>
                     <Textarea
                       id="defaultInstructions"
-                      placeholder="e.g., Take medicines after food, Drink plenty of water, etc."
+                      placeholder="Enter default instructions"
                       rows={4}
                       {...field}
                     />
@@ -147,7 +147,7 @@ export function PrescriptionDefaultsSettings() {
                   <FormControl>
                     <Textarea
                       id="defaultFooterText"
-                      placeholder="e.g., For any queries, please contact us at..."
+                      placeholder="Enter contact message"
                       rows={3}
                       {...field}
                     />

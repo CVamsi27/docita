@@ -15,6 +15,7 @@ import { CheckCircle2, ExternalLink, X } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 interface PaymentSuccessModalProps {
   open: boolean;
@@ -140,7 +141,7 @@ export function PaymentSuccessModal({
             <Button
               variant="ghost"
               className="w-full"
-              onClick={() => router.push("/settings?tab=subscription")}
+              onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
             >
               <ExternalLink className="mr-2 h-4 w-4" />
               Manage Subscription

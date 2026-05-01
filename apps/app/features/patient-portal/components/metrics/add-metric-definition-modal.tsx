@@ -111,7 +111,7 @@ export function AddMetricDefinitionModal({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               disabled={isPending}
-              placeholder="e.g., Blood Sugar, Sleep Hours"
+              placeholder="Metric name"
               autoFocus
             />
           </div>
@@ -123,7 +123,7 @@ export function AddMetricDefinitionModal({
               disabled={isPending}
             >
               <SelectTrigger id="metric-category">
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
@@ -161,7 +161,7 @@ export function AddMetricDefinitionModal({
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 disabled={isPending}
-                placeholder="e.g., kg, mmHg"
+                placeholder="Unit"
               />
             </div>
           </div>

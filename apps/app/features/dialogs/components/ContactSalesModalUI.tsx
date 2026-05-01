@@ -130,7 +130,7 @@ export function ContactSalesModalUI({
                     >
                       <FormControl>
                         <Input
-                          placeholder="Your name"
+                          placeholder="Name"
                           {...field}
                           disabled={isSubmitting}
                         />
@@ -151,7 +151,7 @@ export function ContactSalesModalUI({
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="your@email.com"
+                          placeholder="Email"
                           {...field}
                           disabled={isSubmitting}
                         />
@@ -170,7 +170,7 @@ export function ContactSalesModalUI({
                     >
                       <FormControl>
                         <Input
-                          placeholder="Your facility name"
+                          placeholder="Facility name"
                           {...field}
                           value={field.value || ""}
                           disabled={isSubmitting}
@@ -191,7 +191,7 @@ export function ContactSalesModalUI({
                     >
                       <FormControl>
                         <Textarea
-                          placeholder="Tell us about your needs..."
+                          placeholder="Enter message"
                           rows={4}
                           {...field}
                           disabled={isSubmitting}

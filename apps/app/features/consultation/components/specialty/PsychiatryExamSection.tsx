@@ -48,7 +48,7 @@ export function PsychiatryExamSection({
             id="psych-mse"
             className="min-h-[140px]"
             readOnly={readOnly}
-            placeholder="Appearance, behavior, mood, affect, thought process and content, cognition, insight, judgment..."
+            placeholder="Mental status examination"
             value={mseNotes}
             onChange={(e) =>
               setValue((prev) => ({
@@ -83,7 +83,7 @@ export function PsychiatryExamSection({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select level" />
+                <SelectValue placeholder="Suicide risk" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unset">Not assessed</SelectItem>
@@ -115,7 +115,7 @@ export function PsychiatryExamSection({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select level" />
+                <SelectValue placeholder="Homicide risk" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unset">Not assessed</SelectItem>
@@ -135,7 +135,7 @@ export function PsychiatryExamSection({
             id="psych-risk-mgmt"
             className="min-h-[88px]"
             readOnly={readOnly}
-            placeholder="Protective factors, contacts, crisis resources..."
+            placeholder="Safety plan"
             value={value.riskAssessment?.riskManagement ?? ""}
             onChange={(e) =>
               setValue((prev) => ({

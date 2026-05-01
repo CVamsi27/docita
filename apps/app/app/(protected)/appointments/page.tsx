@@ -22,6 +22,7 @@ import {
   CancelAppointmentDialog,
 } from "@/features/appointments/components";
 import { AppointmentRequestsPanel } from "@/features/appointments/components/sections/AppointmentRequestsPanel";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 export const dynamic = "force-dynamic";
 
@@ -113,7 +114,7 @@ function AppointmentsContent() {
               to Core tier to unlock this feature.
             </p>
             <Button asChild>
-              <Link href="/settings?tab=subscription">Upgrade to Core</Link>
+              <Link href={SUBSCRIPTION_SETTINGS_PATH}>Upgrade to Core</Link>
             </Button>
           </div>
         </AppPageScaffold>

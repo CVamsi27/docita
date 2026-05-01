@@ -122,7 +122,7 @@ export function BedManagementUI({
             <div className="flex flex-wrap gap-2">
               <Input
                 type="search"
-                placeholder="Search patients, beds..."
+                placeholder="Enter patient or bed"
                 className="w-full sm:w-64"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

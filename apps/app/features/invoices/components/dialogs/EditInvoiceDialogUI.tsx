@@ -66,7 +66,7 @@ export function EditInvoiceDialogUI({
           <Label>Status</Label>
           <Select value={status} onValueChange={onStatusChange}>
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Select status" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (

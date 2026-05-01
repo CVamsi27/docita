@@ -131,7 +131,7 @@ export const InvoicesPageUI: FC = () => {
                 }}
               >
                 <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
@@ -146,7 +146,7 @@ export const InvoicesPageUI: FC = () => {
             <div className="flex flex-1 items-center gap-2 md:max-w-xs">
               <Input
                 type="search"
-                placeholder="Search patient name..."
+                placeholder="Enter patient name"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

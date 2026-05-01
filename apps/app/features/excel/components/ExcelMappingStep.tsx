@@ -81,7 +81,7 @@ export const ExcelMappingStep = ({
                 }
               >
                 <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Select field" />
+                  <SelectValue placeholder="Field" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Skip this column</SelectItem>

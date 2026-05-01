@@ -135,7 +135,7 @@ export function InviteTeamMemberDialog({
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="name@facility.com"
+                        placeholder="Email"
                         {...field}
                       />
                     </FormControl>
@@ -150,7 +150,7 @@ export function InviteTeamMemberDialog({
                   <FormItem>
                     <FormLabel>Phone (optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="+91..." {...field} />
+                      <Input placeholder="Phone number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -167,7 +167,7 @@ export function InviteTeamMemberDialog({
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="At least 8 characters"
+                      placeholder="Enter temporary password"
                       {...field}
                     />
                   </FormControl>
@@ -198,7 +198,7 @@ export function InviteTeamMemberDialog({
                     <FormItem>
                       <FormLabel>Qualification</FormLabel>
                       <FormControl>
-                        <Input placeholder="MBBS, MD" {...field} />
+                        <Input placeholder="Qualification" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -211,7 +211,7 @@ export function InviteTeamMemberDialog({
                     <FormItem>
                       <FormLabel>Registration #</FormLabel>
                       <FormControl>
-                        <Input placeholder="Medical council no" {...field} />
+                        <Input placeholder="Registration number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

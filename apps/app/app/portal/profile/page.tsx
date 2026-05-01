@@ -196,7 +196,7 @@ export default function PatientProfilePage() {
             </Label>
             <Textarea
               id="deletion-reason"
-              placeholder="Please tell us why you're deleting your account..."
+              placeholder="Enter deletion reason"
               value={deletionReason}
               onChange={(e) => setDeletionReason(e.target.value)}
               rows={3}

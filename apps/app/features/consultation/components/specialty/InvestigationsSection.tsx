@@ -161,7 +161,7 @@ export function InvestigationsSection({
                   id={`inv-notes-${index}`}
                   readOnly={readOnly}
                   className="min-h-[72px]"
-                  placeholder="Clinical indication, key findings..."
+                  placeholder="Findings"
                   value={row.notes ?? ""}
                   onChange={(e) => updateAt(index, { notes: e.target.value })}
                 />

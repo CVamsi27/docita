@@ -65,7 +65,7 @@ export const OCRClinicalFindings = ({
                     .map((a: string) => a.trim()),
                 })
               }
-              placeholder="Separated by commas"
+              placeholder="Allergies"
               rows={2}
             />
           </div>
@@ -82,7 +82,7 @@ export const OCRClinicalFindings = ({
                     .map((m: string) => m.trim()),
                 })
               }
-              placeholder="Previous conditions, surgeries, etc."
+              placeholder="Medical history"
               rows={2}
             />
           </div>

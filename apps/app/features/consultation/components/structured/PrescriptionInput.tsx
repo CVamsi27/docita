@@ -116,7 +116,7 @@ export function PrescriptionInput({
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="col-span-1 md:col-span-4">
                 <Input
-                  placeholder="Medication Name (e.g. Amoxicillin 500mg)"
+                  placeholder="Medication name"
                   value={med.name}
                   onChange={(e) =>
                     updateMedication(index, "name", e.target.value)
@@ -127,7 +127,7 @@ export function PrescriptionInput({
               </div>
               <div className="col-span-1 md:col-span-2">
                 <Input
-                  placeholder="Dosage (e.g. 1 tab)"
+                  placeholder="Dosage"
                   value={med.dosage}
                   onChange={(e) =>
                     updateMedication(index, "dosage", e.target.value)
@@ -138,7 +138,7 @@ export function PrescriptionInput({
               </div>
               <div className="col-span-1 md:col-span-2">
                 <Input
-                  placeholder="Freq (e.g. BID)"
+                  placeholder="Frequency"
                   value={med.frequency}
                   onChange={(e) =>
                     updateMedication(index, "frequency", e.target.value)
@@ -197,7 +197,7 @@ export function PrescriptionInput({
               </div>
               <div className="col-span-1 md:col-span-12">
                 <Input
-                  placeholder="Instructions (e.g. Take after food)"
+                  placeholder="Instructions"
                   value={med.instructions || ""}
                   onChange={(e) =>
                     updateMedication(index, "instructions", e.target.value)

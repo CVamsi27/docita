@@ -106,7 +106,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                   <FormLabel>Patient</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Search patient by name or phone..."
+                      placeholder="Enter patient name or phone"
                       {...field}
                     />
                   </FormControl>
@@ -131,7 +131,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                           className="w-full"
                           aria-label="Select Ward"
                         >
-                          <SelectValue placeholder="Select Ward" />
+                          <SelectValue placeholder="Ward" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -162,7 +162,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                           className="w-full"
                           aria-label="Select Bed"
                         >
-                          <SelectValue placeholder="Select Bed" />
+                          <SelectValue placeholder="Bed" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -191,7 +191,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                         className="w-full"
                         aria-label="Select Doctor"
                       >
-                        <SelectValue placeholder="Select Doctor" />
+                        <SelectValue placeholder="Doctor" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -215,7 +215,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                   <FormLabel>Admission Diagnosis</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Primary diagnosis for admission..."
+                      placeholder="Admission diagnosis"
                       className="min-h-20"
                       {...field}
                     />
@@ -233,7 +233,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Additional notes..."
+                      placeholder="Admission notes"
                       className="min-h-[60px]"
                       {...field}
                     />

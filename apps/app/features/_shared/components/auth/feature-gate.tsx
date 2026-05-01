@@ -25,6 +25,7 @@ import {
   TierName,
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 export { Feature, Tier };
 
@@ -87,7 +88,7 @@ export function LockedFeatureCard({
           asChild
           className="gap-2"
         >
-          <Link href="/settings?tab=subscription">
+          <Link href={SUBSCRIPTION_SETTINGS_PATH}>
             <Sparkles className="h-4 w-4" />
             Upgrade to {tierInfo?.name || "unlock"}
           </Link>

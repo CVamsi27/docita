@@ -125,7 +125,7 @@ export function PatientSelector<T extends FieldValues>({
                   <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Search patients"
+                    placeholder="Patient name"
                     value={patientSearch}
                     onChange={(event) => setPatientSearch(event.target.value)}
                     onKeyDown={handleInputKeyDown}

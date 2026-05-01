@@ -288,7 +288,7 @@ export function JoinRequestsSettingsPanel() {
                   Welcome Message <span className="text-muted-foreground">(optional)</span>
               </label>
               <Textarea
-                placeholder="Welcome to the team! Feel free to reach out if you have any questions..."
+                placeholder="Enter welcome message"
                 value={welcomeMessage}
                 onChange={(e) => setWelcomeMessage(e.target.value)}
                 maxLength={500}
@@ -332,7 +332,7 @@ export function JoinRequestsSettingsPanel() {
           <div className="space-y-2 py-4">
             <label className="text-sm font-medium">Reason for Rejection</label>
             <Textarea
-              placeholder="Please explain why this request cannot be approved at this time..."
+              placeholder="Enter rejection reason"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               maxLength={500}

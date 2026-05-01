@@ -139,7 +139,7 @@ export function SubjectiveSection({
         <Textarea
           id="hpi"
           className="min-h-[120px]"
-          placeholder="Onset, progression, aggravating/relieving factors, associated symptoms..."
+          placeholder="Enter history of present illness"
           value={history}
           readOnly={readOnly}
           onChange={(e) => setHistory(e.target.value)}
@@ -245,7 +245,7 @@ export function PlanSection({ readOnly, sectionRef }: SectionProps) {
           <Textarea
             id="treatment-plan"
             className="min-h-[110px]"
-            placeholder="Investigations, referrals, procedures, patient instructions..."
+            placeholder="Enter plan"
             value={treatment}
             readOnly={readOnly}
             onChange={(e) => setTreatment(e.target.value)}
@@ -258,7 +258,7 @@ export function PlanSection({ readOnly, sectionRef }: SectionProps) {
           <Textarea
             id="follow-up-plan"
             className="min-h-[110px]"
-            placeholder="When to return, red flags, review schedule..."
+            placeholder="Enter follow-up instructions"
             value={followUpPlan}
             readOnly={readOnly}
             onChange={(e) => setFollowUpPlan(e.target.value)}

@@ -60,7 +60,7 @@ export function PatientConditions({
           <div className="relative flex-1">
             <Plus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="New condition, e.g. Hypertension"
+              placeholder="Condition name"
               value={newCondition}
               onChange={(e) => onNewConditionChange(e.target.value)}
               onKeyDown={(e) => {

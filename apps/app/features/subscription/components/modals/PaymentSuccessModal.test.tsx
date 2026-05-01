@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { PaymentSuccessModal } from "./payment-success-modal";
 
 const navigationMocks = vi.hoisted(() => ({
@@ -65,7 +66,7 @@ describe("PaymentSuccessModal", () => {
       screen.getByRole("button", { name: "Manage Subscription" }),
     );
     expect(navigationMocks.push).toHaveBeenCalledWith(
-      "/settings?tab=subscription",
+      SUBSCRIPTION_SETTINGS_PATH,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Close" }));

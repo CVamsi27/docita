@@ -7,6 +7,7 @@ interface RouteAccessRule {
 
 const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/dashboard", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
+  { pathPrefix: "/today", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
   {
     pathPrefix: "/billing-locked",
     target: APP_ACCESS_TARGETS.PAGE_DASHBOARD,

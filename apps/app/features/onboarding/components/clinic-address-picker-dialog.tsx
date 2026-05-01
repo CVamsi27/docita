@@ -753,7 +753,7 @@ export function ClinicAddressPickerDialog({
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           id="place-search"
-                          placeholder="Search for your facility location"
+                          placeholder="Facility location"
                           className="h-11 pl-9"
                         />
                       </div>
@@ -772,7 +772,7 @@ export function ClinicAddressPickerDialog({
                         onBlur={() => {
                           window.setTimeout(() => setShowSuggestions(false), 120);
                         }}
-                        placeholder="Search for your facility location"
+                        placeholder="Facility location"
                         className="h-11 pl-9"
                       />
                       {isSearching ? (

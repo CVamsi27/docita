@@ -19,6 +19,7 @@ import {
   ArrowUpDown,
   Calendar,
   Pencil,
+  Stethoscope,
   UserPlus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
@@ -48,6 +49,7 @@ interface PatientsPageUIProps {
   canGoNext: boolean;
   onPrevPage: () => void;
   onNextPage: () => void;
+  onOpenConsultationQueue?: () => void;
 }
 
 export function PatientsPageUI({
@@ -70,6 +72,7 @@ export function PatientsPageUI({
   canGoNext,
   onPrevPage,
   onNextPage,
+  onOpenConsultationQueue,
 }: PatientsPageUIProps) {
   const getAriaSort = (column: keyof Patient | "fullName") => {
     if (sortConfig?.key !== column) {
@@ -95,10 +98,24 @@ export function PatientsPageUI({
         title="Patients"
         description="Manage your patient records and history"
         actions={
-          <Button onClick={onAddPatient} className="gap-2">
-            <UserPlus className="h-4 w-4" />
-            Add Patient
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenConsultationQueue ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onOpenConsultationQueue}
+                className="gap-2"
+              >
+                <Stethoscope className="h-4 w-4" />
+                <span className="hidden sm:inline">Consultation queue</span>
+                <span className="sm:hidden">Queue</span>
+              </Button>
+            ) : null}
+            <Button onClick={onAddPatient} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add Patient
+            </Button>
+          </div>
         }
       />
 
@@ -107,7 +124,7 @@ export function PatientsPageUI({
           <div className="mb-6 flex items-center gap-4">
             <div className="max-w-sm flex-1">
               <DebouncedSearchInput
-                placeholder="Search by name or phone"
+                placeholder="Enter name or phone"
                 className="bg-background"
                 value={searchQuery}
                 onChange={onSearchChange}

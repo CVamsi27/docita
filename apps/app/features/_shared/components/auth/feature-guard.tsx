@@ -19,6 +19,7 @@ import {
   TierName,
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 interface FeatureGuardProps {
   feature: Feature | string;
@@ -71,7 +72,7 @@ function FeatureLockedCard({
           size="sm"
           className="gap-2"
         >
-          <Link href="/settings?tab=subscription">
+          <Link href={SUBSCRIPTION_SETTINGS_PATH}>
             <Sparkles className="h-4 w-4" />
             Upgrade Plan
           </Link>

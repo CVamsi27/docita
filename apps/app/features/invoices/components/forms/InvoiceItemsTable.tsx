@@ -132,7 +132,7 @@ export function InvoiceItemsTable({
                   onChange={(e) =>
                     onUpdateItem(index, "hsnCode", e.target.value)
                   }
-                  placeholder="9993"
+                  placeholder="HSN code"
                 />
               </TableCell>
               <TableCell className="font-medium">

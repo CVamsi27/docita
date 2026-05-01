@@ -124,7 +124,7 @@ export function CancelAppointmentDialog({
               <Textarea
                 value={otherReason}
                 onChange={(e) => setOtherReason(e.target.value)}
-                placeholder="Short reason"
+                placeholder="Cancellation reason"
                 className="min-h-[90px]"
               />
             </div>

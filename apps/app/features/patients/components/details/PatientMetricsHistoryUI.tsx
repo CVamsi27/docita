@@ -415,7 +415,7 @@ export function PatientMetricsHistoryUI({
             <div className="space-y-3">
               <Label className="text-sm">New Category</Label>
               <Input
-                placeholder="Category key, e.g. chronic_conditions"
+                placeholder="Category key"
                 value={newCategoryKey}
                 onChange={(event) => setNewCategoryKey(event.target.value)}
               />
@@ -440,7 +440,7 @@ export function PatientMetricsHistoryUI({
                 onValueChange={setDefinitionCategoryId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -480,7 +480,7 @@ export function PatientMetricsHistoryUI({
                 </SelectContent>
               </Select>
               <Input
-                placeholder="Unit, optional, e.g. mmHg, kg"
+                placeholder="Unit"
                 value={newDefinitionUnit}
                 onChange={(event) => setNewDefinitionUnit(event.target.value)}
               />
@@ -523,7 +523,7 @@ export function PatientMetricsHistoryUI({
                 onValueChange={setValueDefinitionId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select metric" />
+                  <SelectValue placeholder="Metric" />
                 </SelectTrigger>
                 <SelectContent>
                   {flatDefinitions.length === 0 ? (

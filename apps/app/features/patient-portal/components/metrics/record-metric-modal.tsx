@@ -127,7 +127,7 @@ export function RecordMetricModal({
               onChange={(e) => setNotes(e.target.value)}
               disabled={isPending}
               rows={3}
-              placeholder="Any additional context..."
+              placeholder="Notes"
             />
           </div>
           {localError && (

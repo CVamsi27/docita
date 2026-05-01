@@ -267,7 +267,7 @@ export function ClinicGeneralSettings() {
                     <Input
                       id="clinic-gstin"
                       autoComplete="off"
-                      placeholder="27ABCDE1234F1Z5"
+                      placeholder="GST number"
                       {...field}
                       value={field.value || ""}
                     />

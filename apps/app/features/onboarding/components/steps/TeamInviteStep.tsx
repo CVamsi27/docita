@@ -318,7 +318,7 @@ export function TeamInviteStep({
                   <Input
                     id={`email-${index}`}
                     type="email"
-                    placeholder="Member email address"
+                    placeholder="Email"
                     value={member.email}
                     onChange={(e) =>
                       updateMember(index, "email", e.target.value)
@@ -346,7 +346,7 @@ export function TeamInviteStep({
                   </Label>
                   <Input
                     id={`phone-${index}`}
-                    placeholder="+91..."
+                    placeholder="Phone number"
                     value={member.phoneNumber ?? ""}
                     onChange={(e) =>
                       updateMember(index, "phoneNumber", e.target.value)
@@ -363,7 +363,7 @@ export function TeamInviteStep({
                   <Input
                     id={`password-${index}`}
                     type="password"
-                    placeholder="At least 8 characters"
+                    placeholder="Enter password"
                     value={member.password ?? ""}
                     onChange={(e) =>
                       updateMember(index, "password", e.target.value)
@@ -411,7 +411,7 @@ export function TeamInviteStep({
                       id={`role-${index}`}
                       className="w-full rounded-lg px-4 h-11 sm:h-11 data-[size=default]:h-11 data-[size=default]:sm:h-11"
                     >
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder="Role" />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLE_OPTIONS.map((opt) => (
@@ -440,7 +440,7 @@ export function TeamInviteStep({
                     </Label>
                     <Input
                       id={`registrationNumber-${index}`}
-                      placeholder="Medical council no"
+                      placeholder="Registration number"
                       value={member.registrationNumber ?? ""}
                       onChange={(e) =>
                         updateMember(
@@ -486,7 +486,7 @@ export function TeamInviteStep({
                     </Label>
                     <Input
                       id={`qualification-${index}`}
-                      placeholder="MBBS, MD"
+                      placeholder="Qualification"
                       value={member.qualification ?? ""}
                       onChange={(e) =>
                         updateMember(index, "qualification", e.target.value)

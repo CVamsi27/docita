@@ -103,7 +103,7 @@ export default function CodingQueuePage() {
             <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <Input
                 aria-label="Search coding queue"
-                placeholder="Search patient or visit..."
+                placeholder="Enter patient or visit"
                 value={searchQuery}
                 onChange={(event) => {
                   setSearchQuery(event.target.value);

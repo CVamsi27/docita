@@ -52,7 +52,7 @@ export function PatientsFilters({
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or phone"
+              placeholder="Enter name or phone"
               className="pl-9 bg-background"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}

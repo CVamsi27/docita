@@ -129,7 +129,7 @@ export function EditInvoiceDialog({
           <Label>Status</Label>
           <Select value={status} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Select status" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               {invoiceStatusOptions.map((option) => (

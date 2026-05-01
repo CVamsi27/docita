@@ -108,7 +108,7 @@ function ForgotPasswordPageContent() {
               <Input
                 id="email"
                 type="email"
-                placeholder="Email address"
+                placeholder="Email"
                 {...form.register("email")}
                 className="h-11"
                 autoFocus

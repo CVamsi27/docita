@@ -155,7 +155,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search patients, appointments... (⌘K)"
+          placeholder="Enter patient, appointment, or prescription"
           className="h-10 pl-10 pr-10 bg-muted/40 hover:bg-background"
           aria-label="Global search"
           aria-expanded={isOpen}

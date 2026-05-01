@@ -236,7 +236,7 @@ export function PrescriptionModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <Input
-                    placeholder="Medication Name (e.g. Amoxicillin 500mg)"
+                    placeholder="Medication name"
                     value={med.name}
                     onChange={(e) =>
                       updateMedication(index, "name", e.target.value)
@@ -244,28 +244,28 @@ export function PrescriptionModal({
                   />
                 </div>
                 <Input
-                  placeholder="Dosage (e.g. 1 tab)"
+                  placeholder="Dosage"
                   value={med.dosage}
                   onChange={(e) =>
                     updateMedication(index, "dosage", e.target.value)
                   }
                 />
                 <Input
-                  placeholder="Frequency (e.g. BID)"
+                  placeholder="Frequency"
                   value={med.frequency}
                   onChange={(e) =>
                     updateMedication(index, "frequency", e.target.value)
                   }
                 />
                 <Input
-                  placeholder="Duration (e.g. 7 days)"
+                  placeholder="Duration"
                   value={med.duration}
                   onChange={(e) =>
                     updateMedication(index, "duration", e.target.value)
                   }
                 />
                 <Input
-                  placeholder="Route (e.g. ORAL)"
+                  placeholder="Route"
                   value={med.route}
                   onChange={(e) =>
                     updateMedication(index, "route", e.target.value)

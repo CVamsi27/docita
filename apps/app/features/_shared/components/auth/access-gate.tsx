@@ -15,6 +15,7 @@ import { APP_ACCESS_MATRIX, type AppAccessTarget } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-policy";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 interface AccessGateProps {
   target: AppAccessTarget;
@@ -73,7 +74,7 @@ export function AccessGate({
           size="sm"
           className="gap-2"
         >
-          <Link href="/settings?tab=subscription">
+          <Link href={SUBSCRIPTION_SETTINGS_PATH}>
             <Sparkles className="size-4" aria-hidden />
             Upgrade plan
           </Link>

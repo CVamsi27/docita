@@ -81,7 +81,7 @@ export function AppointmentsCalendarUI({
             }
           >
             <SelectTrigger className="h-9 w-full text-sm">
-              <SelectValue placeholder="All Doctors" />
+              <SelectValue placeholder="Doctor" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Doctors</SelectItem>

@@ -131,7 +131,7 @@ export function OrderLabTestDialog({
                     >
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Search patient by name..."
+                          placeholder="Enter patient name"
                           value={patientSearch}
                           onValueChange={setPatientSearch}
                         />
@@ -227,7 +227,7 @@ export function OrderLabTestDialog({
                     >
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Search test by name..."
+                          placeholder="Enter test name"
                           value={testSearch}
                           onValueChange={setTestSearch}
                         />
@@ -297,7 +297,7 @@ export function OrderLabTestDialog({
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter any additional notes..."
+                      placeholder="Enter lab notes"
                       {...field}
                     />
                   </FormControl>

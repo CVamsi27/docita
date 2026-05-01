@@ -137,7 +137,7 @@ export function ChangePasswordSettings() {
                       id="confirm-password"
                       type="password"
                       autoComplete="new-password"
-                      placeholder="Confirm new password"
+                      placeholder="Confirm password"
                       {...field}
                     />
                   </FormControl>

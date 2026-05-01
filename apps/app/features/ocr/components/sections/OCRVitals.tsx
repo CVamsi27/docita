@@ -51,7 +51,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="120/80"
+                placeholder="BP"
               />
             </div>
             <div className="space-y-2">
@@ -74,7 +74,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="98.6"
+                placeholder="Temperature"
               />
             </div>
             <div className="space-y-2">
@@ -97,7 +97,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="72"
+                placeholder="Pulse"
               />
             </div>
           </div>
@@ -116,7 +116,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="16"
+                placeholder="Respiratory rate"
               />
             </div>
             <div className="space-y-2">
@@ -132,7 +132,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="98"
+                placeholder="SpO2"
               />
             </div>
             <div className="space-y-2">
@@ -148,7 +148,7 @@ export const OCRVitals = ({
                     },
                   })
                 }
-                placeholder="100"
+                placeholder="Glucose"
               />
             </div>
           </div>

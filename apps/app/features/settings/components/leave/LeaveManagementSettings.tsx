@@ -280,7 +280,7 @@ export function LeaveManagementSettings() {
             {userIsAdmin && staffMembers.length > 0 && (
               <Select value={staffFilter} onValueChange={setStaffFilter}>
                 <SelectTrigger className="w-44 h-8 text-xs">
-                  <SelectValue placeholder="Filter by staff" />
+                  <SelectValue placeholder="Staff" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All staff</SelectItem>
@@ -356,7 +356,7 @@ export function LeaveManagementSettings() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select staff member" />
+                            <SelectValue placeholder="Staff member" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -385,7 +385,7 @@ export function LeaveManagementSettings() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder="Leave type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -465,7 +465,7 @@ export function LeaveManagementSettings() {
                     <FormLabel>Reason (optional)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Brief reason for leave..."
+                        placeholder="Reason for leave"
                         rows={3}
                         {...field}
                       />
@@ -518,7 +518,7 @@ export function LeaveManagementSettings() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
+                            <SelectValue placeholder="Leave type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -597,7 +597,7 @@ export function LeaveManagementSettings() {
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Provide a reason..."
+                placeholder="Enter rejection reason"
                 rows={3}
               />
             </div>

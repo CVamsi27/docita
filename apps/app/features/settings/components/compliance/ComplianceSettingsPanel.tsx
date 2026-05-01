@@ -434,7 +434,7 @@ export function ComplianceSettingsPanel() {
                 <Input
                   id="patient-id"
                   value={requestForm.patientId ?? ""}
-                  placeholder="Optional patient record ID"
+                  placeholder="Patient ID"
                   onChange={(event) =>
                     setRequestForm((current) => ({
                       ...current,
@@ -450,7 +450,7 @@ export function ComplianceSettingsPanel() {
                 <Input
                   id="channel"
                   value={requestForm.requestChannel ?? ""}
-                  placeholder="in_person, whatsapp, email"
+                  placeholder="Request channel"
                   onChange={(event) =>
                     setRequestForm((current) => ({
                       ...current,
@@ -484,7 +484,7 @@ export function ComplianceSettingsPanel() {
                 <Input
                   id="relation"
                   value={requestForm.requestedByRelation ?? ""}
-                  placeholder="self, guardian, nominee"
+                  placeholder="Relation"
                   onChange={(event) =>
                     setRequestForm((current) => ({
                       ...current,
@@ -501,7 +501,7 @@ export function ComplianceSettingsPanel() {
               <Textarea
                 id="details"
                 value={requestForm.requestDetails ?? ""}
-                placeholder="Short operational note. Avoid copying clinical records here."
+                placeholder="Request details"
                 onChange={(event) =>
                   setRequestForm((current) => ({
                     ...current,

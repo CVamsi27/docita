@@ -150,7 +150,7 @@ export function DoctorTimeAwaySettings() {
               onValueChange={setSelectedDoctorId}
             >
               <SelectTrigger id="time-away-doctor" className="w-full sm:w-72">
-                <SelectValue placeholder="Select doctor" />
+                <SelectValue placeholder="Doctor" />
               </SelectTrigger>
               <SelectContent>
                 {doctors.map((d) => (
@@ -188,7 +188,7 @@ export function DoctorTimeAwaySettings() {
               id="time-away-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Holiday, conference, etc."
+              placeholder="Reason"
               maxLength={200}
             />
           </div>

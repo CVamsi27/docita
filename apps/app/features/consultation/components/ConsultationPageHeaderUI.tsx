@@ -27,6 +27,7 @@ import { BillingModal } from "./modals/BillingModal";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
+import { SaveStatusChip } from "@/features/consultation/workspace/chrome/SaveStatusChip";
 
 const STATUS_STYLES: Record<string, string> = {
   scheduled: "badge-info",
@@ -170,7 +171,10 @@ export function ConsultationPageHeaderUI({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+          {!readOnly && (
+            <SaveStatusChip className="hidden md:inline-flex max-w-[min(100%,14rem)] truncate" />
+          )}
           {onToggleDesktopSidebar && (
             <Button
               variant="outline"

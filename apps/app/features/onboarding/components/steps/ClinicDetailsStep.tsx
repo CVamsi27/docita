@@ -317,7 +317,7 @@ export function ClinicDetailsStep({
                     }
                   >
                     <SelectValue
-                      placeholder={`Select ${facilityLabel.toLowerCase()} type`}
+                      placeholder={`${facilityLabel} type`}
                     />
                   </SelectTrigger>
                   <SelectContent>
@@ -401,7 +401,7 @@ export function ClinicDetailsStep({
                 id="email"
                 type="email"
                 {...clinicForm.register("email")}
-                placeholder={`${facilityLabel} email address`}
+                placeholder="Email"
                 aria-invalid={!!clinicForm.formState.errors.email}
                 aria-describedby={
                   clinicForm.formState.errors.email
@@ -446,7 +446,7 @@ export function ClinicDetailsStep({
                 <Input
                   id="addressLine1"
                   {...clinicForm.register("addressLine1")}
-                  placeholder="House or building number, street"
+                  placeholder="Address line 1"
                   aria-invalid={!!clinicForm.formState.errors.addressLine1}
                   aria-describedby={
                     clinicForm.formState.errors.addressLine1
@@ -469,7 +469,7 @@ export function ClinicDetailsStep({
                 <Input
                   id="addressLine2"
                   {...clinicForm.register("addressLine2")}
-                  placeholder="Apartment, landmark, or locality"
+                  placeholder="Address line 2"
                   aria-invalid={!!clinicForm.formState.errors.addressLine2}
                   aria-describedby={
                     clinicForm.formState.errors.addressLine2
@@ -518,7 +518,7 @@ export function ClinicDetailsStep({
                   <Input
                     id="state"
                     {...clinicForm.register("state")}
-                    placeholder="State or province"
+                    placeholder="State"
                     aria-invalid={!!clinicForm.formState.errors.state}
                     aria-describedby={
                       clinicForm.formState.errors.state
@@ -554,7 +554,7 @@ export function ClinicDetailsStep({
                   <Input
                     id="pincode"
                     {...clinicForm.register("pincode")}
-                    placeholder="Postal code or pincode"
+                    placeholder="Postal code"
                     aria-invalid={!!clinicForm.formState.errors.pincode}
                     aria-describedby={
                       clinicForm.formState.errors.pincode
@@ -590,7 +590,7 @@ export function ClinicDetailsStep({
               <Input
                 id="website"
                 {...clinicForm.register("website")}
-                placeholder="Website URL"
+                placeholder="Website"
                 aria-invalid={!!clinicForm.formState.errors.website}
                 aria-describedby={
                   clinicForm.formState.errors.website
@@ -610,7 +610,7 @@ export function ClinicDetailsStep({
               <Input
                 id="gstin"
                 {...clinicForm.register("gstin")}
-                placeholder="27ABCDE1234F1Z5"
+                placeholder="GSTIN"
                 aria-invalid={!!clinicForm.formState.errors.gstin}
                 aria-describedby={
                   clinicForm.formState.errors.gstin

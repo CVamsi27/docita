@@ -83,7 +83,7 @@ function IcdSearchField({
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
-          placeholder="Search ICD-10 code..."
+          placeholder="ICD-10 code"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -211,7 +211,7 @@ export function DiagnosisInput({
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="col-span-1 md:col-span-5">
                 <Input
-                  placeholder="Condition / Disease Name"
+                  placeholder="Condition name"
                   value={item.condition}
                   onChange={(e) =>
                     updateItem(index, "condition", e.target.value)
@@ -270,7 +270,7 @@ export function DiagnosisInput({
                   Notes / Remarks
                 </label>
                 <Input
-                  placeholder="Notes / Remarks"
+                  placeholder="Notes"
                   value={item.notes || ""}
                   onChange={(e) => updateItem(index, "notes", e.target.value)}
                   readOnly={readOnly}

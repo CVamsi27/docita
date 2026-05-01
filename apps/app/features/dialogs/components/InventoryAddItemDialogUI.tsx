@@ -111,7 +111,7 @@ export function InventoryAddItemDialogUI({
                 error={form.formState.errors.name?.message}
               >
                 <FormControl>
-                  <Input placeholder="e.g., Paracetamol 500mg" {...field} />
+                  <Input placeholder="Item name" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -132,7 +132,7 @@ export function InventoryAddItemDialogUI({
                 >
                   <FormControl>
                     <SelectTrigger id="category">
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Category" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -157,7 +157,7 @@ export function InventoryAddItemDialogUI({
                 error={form.formState.errors.quantity?.message}
               >
                 <FormControl>
-                  <Input type="number" min="0" placeholder="0" {...field} />
+                  <Input type="number" min="0" placeholder="Quantity" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -192,7 +192,7 @@ export function InventoryAddItemDialogUI({
                     onChange={(date) =>
                       field.onChange(date?.toISOString().slice(0, 10) ?? "")
                     }
-                    placeholder="Select expiry date"
+                    placeholder="Expiry date"
                   />
                 </FormControl>
               </FormFieldGroup>

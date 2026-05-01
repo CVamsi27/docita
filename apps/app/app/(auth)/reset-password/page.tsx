@@ -123,7 +123,7 @@ function ResetPasswordInner() {
                 <Input
                   id="newPassword"
                   type={showPassword ? "text" : "password"}
-                  placeholder="New password"
+                  placeholder="Enter new password"
                   {...form.register("newPassword")}
                   className="h-11 pr-10"
                   autoFocus
@@ -159,7 +159,7 @@ function ResetPasswordInner() {
               <Input
                 id="confirmPassword"
                 type={showPassword ? "text" : "password"}
-                placeholder="Confirm password"
+                placeholder="Enter confirm password"
                 {...form.register("confirmPassword")}
                 className="h-11"
               />

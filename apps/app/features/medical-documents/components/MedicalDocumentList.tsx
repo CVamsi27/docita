@@ -228,7 +228,7 @@ export function MedicalDocumentList({ patientId }: Props) {
             <div className="space-y-2">
               <Label>Title</Label>
               <Input
-                placeholder="Document title"
+                placeholder="Title"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
               />

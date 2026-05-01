@@ -110,7 +110,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -212,7 +212,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                   <FormItem>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter notes..."
+                        placeholder="Notes"
                         className="min-h-[100px]"
                         {...field}
                       />

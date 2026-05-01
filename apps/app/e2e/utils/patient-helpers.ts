@@ -8,6 +8,13 @@ import { type ClinicType } from "@workspace/types";
 export const API_URL = process.env["API_URL"] || "http://127.0.0.1:3001/api/v1";
 export const TEST_PASSWORD = "Test@123456";
 
+/** Next.js `(protected)` patient routes — keep Playwright URLs aligned with the app router. */
+export const PATIENTS_LIST_PATH = "/patients";
+
+export function patientDetailPath(patientId: string): string {
+  return `${PATIENTS_LIST_PATH}/${patientId}`;
+}
+
 export interface UserData {
   id: string;
   email: string;

@@ -1,3 +1,4 @@
+import { SUBSCRIPTION_SETTINGS_PATH } from "./subscription-settings-path";
 import { appSession } from "./session";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -47,7 +48,7 @@ function getRedirectPathForForbiddenCode(code?: string): string | null {
       return "/verify-email-sent";
     case "SUBSCRIPTION_INACTIVE":
     case "INSUFFICIENT_TIER":
-      return "/settings?tab=subscription";
+      return SUBSCRIPTION_SETTINGS_PATH;
     case "NO_CLINIC":
       return "/choose-path";
     default:

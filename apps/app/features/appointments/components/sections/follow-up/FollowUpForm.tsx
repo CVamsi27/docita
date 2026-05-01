@@ -147,7 +147,7 @@ export function FollowUpForm({
       <div className="space-y-2">
         <Label>Notes</Label>
         <Textarea
-          placeholder="Notes for the next visit"
+          placeholder="Follow-up notes"
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           className="h-20 resize-none"

@@ -73,7 +73,7 @@ export default function ProfilePage() {
               id="name"
               value={formData.name}
               onChange={handleNameChange}
-              placeholder="Your name"
+              placeholder="Full name"
               disabled={isSaving}
             />
           </div>

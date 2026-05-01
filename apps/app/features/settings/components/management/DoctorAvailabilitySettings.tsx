@@ -201,7 +201,7 @@ export function DoctorAvailabilitySettings() {
               <Label htmlFor="availability-doctor">Select Doctor</Label>
               <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
                 <SelectTrigger id="availability-doctor" className="w-full sm:w-64">
-                  <SelectValue placeholder="Select a doctor" />
+                  <SelectValue placeholder="Doctor" />
                 </SelectTrigger>
                 <SelectContent>
                   {doctors.map((doctor) => (

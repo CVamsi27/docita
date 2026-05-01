@@ -45,7 +45,7 @@ export const PrescriptionAssistantTab = ({
             Symptoms / Chief Complaint
           </label>
           <Textarea
-            placeholder="e.g., Sore throat, fever for 3 days, difficulty swallowing..."
+            placeholder="Enter symptoms or chief complaint"
             value={state.symptoms}
             onChange={(e) => handlers.setSymptoms(e.target.value)}
             rows={3}
@@ -54,7 +54,7 @@ export const PrescriptionAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Working Diagnosis</label>
           <Input
-            placeholder="e.g., Acute Pharyngitis"
+            placeholder="Working diagnosis"
             value={state.diagnosis}
             onChange={(e) => handlers.setDiagnosis(e.target.value)}
           />
@@ -64,7 +64,7 @@ export const PrescriptionAssistantTab = ({
             Current Medications (for interaction check)
           </label>
           <Textarea
-            placeholder="e.g., Warfarin 5mg daily, Lisinopril 10mg daily..."
+            placeholder="Enter current medications"
             value={state.currentMedications}
             onChange={(e) => handlers.setCurrentMedications(e.target.value)}
             rows={2}
@@ -73,7 +73,7 @@ export const PrescriptionAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Known Allergies</label>
           <Input
-            placeholder="e.g., Penicillin, Sulfa drugs..."
+            placeholder="Known allergies"
             value={state.allergies}
             onChange={(e) => handlers.setAllergies(e.target.value)}
           />

@@ -101,7 +101,7 @@ export const InvoiceCreateUI: FC = () => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -203,7 +203,7 @@ export const InvoiceCreateUI: FC = () => {
                   <FormItem>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter notes..."
+                        placeholder="Notes"
                         className="min-h-[100px]"
                         {...field}
                       />

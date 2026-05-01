@@ -33,6 +33,9 @@ describe("getAccessTargetForPath", () => {
     expect(getAccessTargetForPath("/dashboard")).toBe(
       APP_ACCESS_TARGETS.PAGE_DASHBOARD,
     );
+    expect(getAccessTargetForPath("/today")).toBe(
+      APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+    );
     expect(getAccessTargetForPath("/settings/compliance")).toBe(
       APP_ACCESS_TARGETS.PAGE_SETTINGS,
     );

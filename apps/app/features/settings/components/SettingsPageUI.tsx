@@ -179,7 +179,7 @@ export function SettingsPageUI({
               type="search"
               autoComplete="off"
               aria-label="Search settings"
-              placeholder="Search settings..."
+              placeholder="Enter search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"

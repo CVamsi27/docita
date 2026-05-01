@@ -268,7 +268,7 @@ export function AppointmentRequestsPanel() {
                           [request.id]: event.target.value,
                         }))
                       }
-                      placeholder="Response if rejecting"
+                      placeholder="Rejection message"
                       aria-label="Reject response"
                     />
                     <Button

@@ -229,7 +229,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                       {...field}
                       value={field.value ?? ""}
                       type="email"
-                      placeholder="Email address"
+                      placeholder="Email"
                     />
                   </FormControl>
                   <FormMessage />
@@ -253,7 +253,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
+                        <SelectValue placeholder="Gender" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -284,7 +284,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                       onChange={(date) =>
                         field.onChange(date?.toISOString().slice(0, 10) ?? "")
                       }
-                      placeholder="Select date of birth"
+                      placeholder="Date of birth"
                       maxDate={new Date()}
                     />
                   </FormControl>
@@ -467,7 +467,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                       {...field}
                       value={field.value ?? ""}
                       type="email"
-                      placeholder="Email address"
+                      placeholder="Email"
                     />
                   </FormControl>
                   <FormMessage />
@@ -490,7 +490,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
+                        <SelectValue placeholder="Gender" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -517,7 +517,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                       onChange={(date) =>
                         field.onChange(date?.toISOString().slice(0, 10) ?? "")
                       }
-                      placeholder="Select date of birth"
+                      placeholder="Date of birth"
                       maxDate={new Date()}
                     />
                   </FormControl>

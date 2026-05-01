@@ -6,7 +6,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { SupportContact } from "@/components/common/support-contact";
@@ -19,7 +18,7 @@ export default function BillingLockedPage() {
         <CardHeader className="space-y-2">
           <div className="flex items-center gap-2 text-destructive">
             <LockKeyhole className="h-6 w-6 shrink-0" aria-hidden />
-            <CardTitle className="text-xl">Workspace access paused</CardTitle>
+            <h1 className="ui-section-title text-xl">Workspace access paused</h1>
           </div>
           <CardDescription className="text-base">
             Your organization&apos;s subscription billing must be resolved before

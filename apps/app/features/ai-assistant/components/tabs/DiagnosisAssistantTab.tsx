@@ -34,7 +34,7 @@ export const DiagnosisAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Chief Complaint</label>
           <Textarea
-            placeholder="e.g., 45-year-old male presents with chest pain radiating to left arm..."
+            placeholder="Enter chief complaint"
             value={state.chiefComplaint}
             onChange={(e) => handlers.setChiefComplaint(e.target.value)}
             rows={3}
@@ -43,7 +43,7 @@ export const DiagnosisAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Vital Signs</label>
           <Textarea
-            placeholder="e.g., BP: 150/90, HR: 88, Temp: 98.6°F, SpO2: 97%..."
+            placeholder="Enter vital signs"
             value={state.vitalSigns}
             onChange={(e) => handlers.setVitalSigns(e.target.value)}
             rows={2}
@@ -54,7 +54,7 @@ export const DiagnosisAssistantTab = ({
             Physical Examination Findings
           </label>
           <Textarea
-            placeholder="e.g., Pharynx erythematous, tonsillar exudates present..."
+            placeholder="Enter examination findings"
             value={state.examFindings}
             onChange={(e) => handlers.setExamFindings(e.target.value)}
             rows={3}

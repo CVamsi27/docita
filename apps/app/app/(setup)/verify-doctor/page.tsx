@@ -554,7 +554,7 @@ export default function VerifyDoctorPage() {
                 <div className="relative">
                   <Input
                     id="registration-number"
-                    placeholder="e.g. MH-12345"
+                    placeholder="Registration number"
                     value={registrationNumber}
                     onChange={(e) => {
                       setRegistrationNumber(e.target.value);
@@ -590,7 +590,7 @@ export default function VerifyDoctorPage() {
                   </Label>
                   <Input
                     id="registration-council"
-                    placeholder="e.g. Karnataka Medical Council"
+                    placeholder="Medical council"
                     value={registrationCouncil}
                     onChange={(e) => setRegistrationCouncil(e.target.value)}
                     onBlur={() => {
@@ -608,7 +608,7 @@ export default function VerifyDoctorPage() {
                   </Label>
                   <Input
                     id="registration-region"
-                    placeholder="e.g. IN-KA"
+                    placeholder="State code"
                     value={registrationStateCode}
                     onChange={(e) => setRegistrationStateCode(e.target.value)}
                     onBlur={() => {

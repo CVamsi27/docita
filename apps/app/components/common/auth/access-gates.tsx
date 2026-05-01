@@ -8,6 +8,7 @@ import type { Permission } from "@/lib/permissions";
 import { Feature, Tier } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 interface PermissionGateProps {
   requires: Permission | Permission[];
@@ -149,7 +150,7 @@ function UpgradePrompt({
         )}
       </p>
       <Button
-        onClick={() => router.push("/settings?tab=subscription")}
+        onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
         variant="secondary"
         className="mt-4"
       >
@@ -174,7 +175,7 @@ function SubscriptionExpiredBanner() {
         Your subscription has expired. Please renew to continue using Docita.
       </p>
       <Button
-        onClick={() => router.push("/settings?tab=subscription")}
+        onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
         variant="destructive"
         className="mt-4"
       >

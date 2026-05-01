@@ -174,7 +174,7 @@ export function ManageTeamMemberDialog({
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="name@facility.com"
+                          placeholder="Email"
                           {...field}
                         />
                       </FormControl>
@@ -189,7 +189,7 @@ export function ManageTeamMemberDialog({
                     <FormItem>
                       <FormLabel>Phone (optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="+91..." {...field} />
+                        <Input placeholder="Phone number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,7 +220,7 @@ export function ManageTeamMemberDialog({
                         <FormItem>
                           <FormLabel>Qualification</FormLabel>
                           <FormControl>
-                            <Input placeholder="MBBS, MD" {...field} />
+                            <Input placeholder="Qualification" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -234,7 +234,7 @@ export function ManageTeamMemberDialog({
                           <FormLabel>Registration #</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Medical council no"
+                              placeholder="Registration number"
                               {...field}
                             />
                           </FormControl>

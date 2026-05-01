@@ -75,7 +75,7 @@ export function PortalOtpLoginUI() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your 10-digit mobile number"
+                  placeholder="Enter mobile number"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   disabled={isLoading}
@@ -108,7 +108,7 @@ export function PortalOtpLoginUI() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={6}
-                  placeholder="Enter 6-digit code"
+                  placeholder="Enter verification code"
                   value={otp}
                   onChange={(e) =>
                     setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))

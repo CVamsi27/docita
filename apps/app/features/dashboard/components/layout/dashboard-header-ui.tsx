@@ -144,7 +144,7 @@ export function DashboardHeaderUI({
         >
           <Search className="mr-2 h-4 w-4" />
           <span className="hidden sm:inline">Search patients...</span>
-          <span className="sm:hidden">Search...</span>
+          <span className="sm:hidden">Search</span>
           <kbd className="pointer-events-none ml-auto hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium sm:flex">
             ⌘K
           </kbd>

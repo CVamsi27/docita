@@ -18,6 +18,7 @@ import type { SupportedCurrency } from "@workspace/types";
 import { Calculator, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import { subscriptionSettingsHref } from "@/lib/subscription-settings-path";
 
 interface UsagePricingCalculatorProps {
   currency?: SupportedCurrency;
@@ -200,7 +201,9 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                   size="sm"
                   className="w-full gap-2"
                   onClick={() =>
-                    router.push("/settings?tab=subscription&tier=PROFESSIONAL")
+                    router.push(
+                      subscriptionSettingsHref({ tier: "PROFESSIONAL" }),
+                    )
                   }
                 >
                   Upgrade to Professional <ArrowRight className="h-3.5 w-3.5" />

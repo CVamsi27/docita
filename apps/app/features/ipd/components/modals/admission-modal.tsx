@@ -111,7 +111,7 @@ export const AdmissionModal: FC<ModalProps> = ({
               onChange={(e) =>
                 setData({ ...data, patientId: e.target.value })
               }
-              placeholder="Enter existing patient ID"
+              placeholder="Patient ID"
               aria-invalid={!!errors.patientId}
             />
             {errors.patientId && (

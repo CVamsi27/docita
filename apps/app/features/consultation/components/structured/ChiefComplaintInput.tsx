@@ -189,7 +189,7 @@ export function ChiefComplaintInput({
                 </div>
                 <Input
                   id={`chief-complaint-${index}`}
-                  placeholder="e.g. Fever with chills, headache, abdominal pain"
+                  placeholder="Symptom or concern"
                   value={item.complaint}
                   onChange={(e) =>
                     updateItem(index, "complaint", e.target.value)
@@ -211,7 +211,7 @@ export function ChiefComplaintInput({
                     id={`duration-value-${index}`}
                     type="number"
                     min="1"
-                    placeholder="How long?"
+                    placeholder="Duration"
                     value={item.durationValue}
                     onChange={(e) =>
                       updateItem(index, "durationValue", e.target.value)
@@ -274,7 +274,7 @@ export function ChiefComplaintInput({
                 </Label>
                 <Textarea
                   id={`complaint-notes-${index}`}
-                  placeholder="Optional context: progression, triggers, associated symptoms, or patient wording"
+                  placeholder="Clinical notes"
                   value={item.notes || ""}
                   onChange={(e) => updateItem(index, "notes", e.target.value)}
                   readOnly={readOnly}

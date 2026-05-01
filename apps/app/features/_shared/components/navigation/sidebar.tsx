@@ -35,6 +35,7 @@ import { APP_ACCESS_TARGETS, type ClinicType } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
 import { useClinic } from "@/lib/clinic-context";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
 import { NotificationPanel } from "./notification-panel";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
@@ -389,7 +390,7 @@ function SidebarContent({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
-                    href="/settings?tab=subscription"
+                    href={SUBSCRIPTION_SETTINGS_PATH}
                     className={cn(
                       "flex items-center gap-2 min-w-0 rounded-xl px-1 py-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
                       collapsedRail &&

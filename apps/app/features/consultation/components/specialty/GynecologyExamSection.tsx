@@ -41,7 +41,7 @@ export function GynecologyExamSection({
             id="gyn-lmp"
             className="min-h-[72px]"
             readOnly={readOnly}
-            placeholder="Date, cycle pattern, contraception..."
+            placeholder="Last menstrual period"
             value={lmp}
             onChange={(e) =>
               setValue((prev) => ({
@@ -62,7 +62,7 @@ export function GynecologyExamSection({
             id="gyn-antenatal"
             className="min-h-[100px]"
             readOnly={readOnly}
-            placeholder="GA, fundal height, fetal heart rate, concerns..."
+            placeholder="Antenatal notes"
             value={value.antenatalRecord?.notes ?? ""}
             onChange={(e) =>
               setValue((prev) => ({

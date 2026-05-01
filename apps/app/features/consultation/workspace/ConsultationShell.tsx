@@ -466,12 +466,15 @@ export function ConsultationShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <div
           className={cn(
-            "sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-background/95 px-3 py-2 backdrop-blur md:px-6",
+            "sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-3 py-2 backdrop-blur md:px-6",
+            readOnly ? "justify-end" : "justify-between md:justify-end",
           )}
         >
-          <div className="flex items-center gap-2 min-w-0">
-            <SaveStatusChip />
-          </div>
+          {!readOnly ? (
+            <div className="flex min-w-0 items-center md:hidden">
+              <SaveStatusChip />
+            </div>
+          ) : null}
           <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"

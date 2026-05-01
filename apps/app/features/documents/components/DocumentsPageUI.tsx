@@ -116,7 +116,7 @@ export function DocumentsPageUI({
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by patient, file name, or type..."
+            placeholder="Enter patient, file name, or type"
             className="pl-9 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

@@ -214,7 +214,7 @@ export function CommandPalette() {
       open={open}
       onOpenChange={setOpen}
       actions={actions}
-      placeholder="Search or type a command..."
+      placeholder="Enter command"
       groupOrder={[GROUP_NAVIGATION, GROUP_ACTIONS]}
     />
   );

@@ -115,7 +115,7 @@ test.describe("Documents", () => {
     await page.goto("/documents", { waitUntil: "networkidle" });
 
     const searchInput = page.getByPlaceholder(
-      "Search by patient, file name, or type...",
+      "Enter patient, file name, or type",
     );
     await expect(searchInput).toBeVisible();
 

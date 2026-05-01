@@ -48,6 +48,7 @@ import {
   isBillingAdminRole,
   isPastSubscriptionGraceDeadline,
 } from "@/lib/subscription-lockout";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
@@ -141,7 +142,7 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
       isBlocked &&
       !SUBSCRIPTION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
     ) {
-      router.replace("/settings?tab=subscription");
+      router.replace(SUBSCRIPTION_SETTINGS_PATH);
     }
   }, [clinic, pathname, router, user?.role]);
 
@@ -283,7 +284,7 @@ function SubscriptionLockNotice() {
           <Button
             size="sm"
             variant={isExpired ? "secondary" : "outline"}
-            onClick={() => router.push("/settings?tab=subscription")}
+            onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
             className="self-start sm:self-auto"
           >
             {isTrialing && clinic?.tier === "STARTER"

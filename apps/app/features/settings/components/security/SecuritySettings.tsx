@@ -20,6 +20,7 @@ import Link from "next/link";
 import { Feature } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { FeatureTierBadge } from "@/features/_shared/components/auth/feature-gate";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import {
   ClinicAppSettings,
   useClinicSettings,
@@ -199,7 +200,7 @@ export function SecuritySettings() {
                   <div className="flex items-center gap-2">
                     {!canAccess(Feature.AUDIT_LOGS) ? (
                       <Button asChild variant="outline" size="sm" className="h-8">
-                        <Link href="/settings?tab=subscription">
+                        <Link href={SUBSCRIPTION_SETTINGS_PATH}>
                           <Lock className="mr-2 h-3 w-3" />
                           Upgrade
                         </Link>

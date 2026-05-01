@@ -11,49 +11,84 @@ import {
 import { MessageSquare, Send, Settings, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-state";
 import { PageHeader } from "@workspace/ui/components/page-header";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert";
 import { useWhatsappStats } from "@/hooks/api/use-whatsapp";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
 import { StatTile } from "@workspace/ui";
+import { whatsappOptInRatePercent } from "@/features/whatsapp/lib/whatsapp-opt-in-rate";
 
 export default function WhatsAppPage() {
-  const { data: stats } = useWhatsappStats();
+  const { data: stats, isLoading, isError, refetch } = useWhatsappStats();
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
   const subscriberCount = stats?.subscribers || 0;
   const totalPatients = stats?.totalPatients || 0;
-  const optInRate =
-    totalPatients > 0 ? Math.round((subscriberCount / totalPatients) * 100) : 0;
+  const optInRate = whatsappOptInRatePercent(subscriberCount, totalPatients);
+
+  const header = (
+    <PageHeader
+      title="WhatsApp Integration"
+      description="Manage your facility's WhatsApp Business API settings and automation."
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsSettingsDialogOpen(true)}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Manage Settings
+          </Button>
+          <Button onClick={() => setIsBroadcastDialogOpen(true)}>
+            <Send className="mr-2 h-4 w-4" />
+            Create Campaign
+          </Button>
+        </div>
+      }
+    />
+  );
 
   return (
     <FeatureGuard feature="WHATSAPP_MESSAGING">
-      <AppPageScaffold
-        className="max-w-5xl"
-        header={
-          <PageHeader
-            title="WhatsApp Integration"
-            description="Manage your facility's WhatsApp Business API settings and automation."
-            actions={
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsSettingsDialogOpen(true)}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Manage Settings
-                </Button>
-                <Button onClick={() => setIsBroadcastDialogOpen(true)}>
-                  <Send className="mr-2 h-4 w-4" />
-                  Create Campaign
-                </Button>
-              </div>
-            }
+      <AppPageScaffold className="max-w-5xl" header={header}>
+        {isLoading && !stats ? (
+          <DataState
+            status="loading"
+            loadingMessage="Loading WhatsApp stats..."
           />
-        }
-      >
+        ) : null}
+
+        {isError ? (
+          <DataState
+            status="error"
+            className="min-h-[40vh]"
+            errorMessage="We could not load WhatsApp stats. Please try again."
+            onRetry={() => refetch()}
+          />
+        ) : null}
+
+        {!isLoading && !isError && stats && totalPatients === 0 ? (
+          <Alert className="mb-4 border-info/40 bg-info/10">
+            <AlertTitle>No patients on file yet</AlertTitle>
+            <AlertDescription>
+              Add patients with mobile numbers to reach them on WhatsApp. Use{" "}
+              <span className="font-medium text-foreground">
+                Manage Settings
+              </span>{" "}
+              when your Meta Business integration is ready.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {!isLoading && !isError ? (
         <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -148,6 +183,7 @@ export default function WhatsAppPage() {
             }
           />
         </div>
+        ) : null}
 
         <WhatsAppBroadcastDialog
           isOpen={isBroadcastDialogOpen}

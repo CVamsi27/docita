@@ -44,7 +44,7 @@ export function DermatologyExamSection({
             id="derm-skin"
             className="min-h-[120px]"
             readOnly={readOnly}
-            placeholder="Morphology, distribution, mucosa, nails..."
+            placeholder="Skin examination"
             value={skinNotes}
             onChange={(e) =>
               setValue((prev) => ({
@@ -66,7 +66,7 @@ export function DermatologyExamSection({
               id="derm-assessment"
               className="min-h-[100px]"
               readOnly={readOnly}
-              placeholder="Diagnosis considerations..."
+              placeholder="Clinical assessment"
               value={value.clinicalAssessment ?? ""}
               onChange={(e) => patch({ clinicalAssessment: e.target.value })}
             />
@@ -79,7 +79,7 @@ export function DermatologyExamSection({
               id="derm-plan"
               className="min-h-[100px]"
               readOnly={readOnly}
-              placeholder="Topicals, procedures, phototherapy, follow-up..."
+              placeholder="Plan"
               value={value.plan ?? ""}
               onChange={(e) => patch({ plan: e.target.value })}
             />

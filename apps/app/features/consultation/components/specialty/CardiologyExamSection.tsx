@@ -39,7 +39,7 @@ export function CardiologyExamSection({
             id="cardio-assessment"
             className="min-h-[100px]"
             readOnly={readOnly}
-            placeholder="Symptoms, functional class, exam highlights..."
+            placeholder="Clinical assessment"
             value={value.clinicalAssessment ?? ""}
             onChange={(e) => patch({ clinicalAssessment: e.target.value })}
           />
@@ -53,7 +53,7 @@ export function CardiologyExamSection({
               id="cardio-risk"
               className="min-h-[88px]"
               readOnly={readOnly}
-              placeholder="HTN, DM, smoking, family history..."
+              placeholder="Risk factors"
               value={value.riskFactors ?? ""}
               onChange={(e) => patch({ riskFactors: e.target.value })}
             />
@@ -66,7 +66,7 @@ export function CardiologyExamSection({
               id="cardio-meds"
               className="min-h-[88px]"
               readOnly={readOnly}
-              placeholder="Antiplatelets, beta blockers, ACE-I..."
+              placeholder="Cardiac medications"
               value={value.medications ?? ""}
               onChange={(e) => patch({ medications: e.target.value })}
             />
@@ -80,7 +80,7 @@ export function CardiologyExamSection({
             id="cardio-ecg"
             className="min-h-[88px]"
             readOnly={readOnly}
-            placeholder="Rhythm, intervals, ischemia, comparison to prior..."
+            placeholder="ECG monitoring notes"
             value={
               value.ecg?.interpretation ??
               value.ecg?.findings ??
@@ -106,7 +106,7 @@ export function CardiologyExamSection({
               id="cardio-plan"
               className="min-h-[88px]"
               readOnly={readOnly}
-              placeholder="Medication changes, referrals, tests..."
+              placeholder="Plan"
               value={value.plan ?? ""}
               onChange={(e) => patch({ plan: e.target.value })}
             />
@@ -119,7 +119,7 @@ export function CardiologyExamSection({
               id="cardio-notes"
               className="min-h-[88px]"
               readOnly={readOnly}
-              placeholder="Additional documentation..."
+              placeholder="General notes"
               value={value.generalNotes ?? ""}
               onChange={(e) => patch({ generalNotes: e.target.value })}
             />

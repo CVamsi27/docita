@@ -220,7 +220,7 @@ export function BillingModal({
                 onChange={(date) =>
                   setDueDate(date?.toISOString().slice(0, 10) ?? "")
                 }
-                placeholder="Select due date"
+                placeholder="Due date"
                 className="w-40 h-8"
               />
             </div>
@@ -365,7 +365,7 @@ export function BillingModal({
                 </Label>
                 <Select value={paymentMode} onValueChange={setPaymentMode}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select mode" />
+                    <SelectValue placeholder="Payment mode" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="CASH">Cash</SelectItem>

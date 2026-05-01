@@ -111,7 +111,7 @@ export function PatientSocialHistoryComp({
             <Label htmlFor="dietaryRestrictions">Dietary Restrictions</Label>
             <Input
               id="dietaryRestrictions"
-              placeholder="Dietary restrictions, e.g. vegetarian or gluten-free"
+              placeholder="Dietary restrictions"
               value={patient.socialHistory?.dietaryRestrictions || ""}
               onChange={(e) =>
                 onSocialHistoryUpdate("dietaryRestrictions", e.target.value)
