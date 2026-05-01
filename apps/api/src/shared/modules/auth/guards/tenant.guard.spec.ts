@@ -5,6 +5,7 @@ import { Role } from '@workspace/db';
 import { ALLOW_NO_CLINIC_KEY } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
 import {
+  asType,
   createKeyedReflectorMock,
   mockGetAllAndOverrideKeyMap,
   type MockedReflectorGetAllAndOverride,
@@ -28,22 +29,21 @@ function mockTenantMetadataFlags(
 }
 
 describe('TenantGuard', () => {
-  let reflector: Reflector;
-  let getAllAndOverrideMock: MockedReflectorGetAllAndOverride;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let guard: TenantGuard;
 
   beforeEach(() => {
-    reflector = Object.create(Reflector.prototype) as Reflector;
-    getAllAndOverrideMock = createKeyedReflectorMock([
-      [IS_PUBLIC_KEY, false],
-      [ALLOW_NO_CLINIC_KEY, false],
-    ]);
-    reflector.getAllAndOverride = getAllAndOverrideMock;
-    guard = new TenantGuard(reflector);
+    reflector = {
+      getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
+        [ALLOW_NO_CLINIC_KEY, false],
+      ]),
+    };
+    guard = new TenantGuard(asType<Reflector>(reflector));
   });
 
   it('should allow public route', () => {
-    mockTenantMetadataFlags(getAllAndOverrideMock, {
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
       isPublic: true,
       allowNoClinic: false,
     });
@@ -53,7 +53,7 @@ describe('TenantGuard', () => {
   });
 
   it('should allow INTERNAL without clinicId', () => {
-    mockTenantMetadataFlags(getAllAndOverrideMock, {
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
       isPublic: false,
       allowNoClinic: false,
     });
@@ -65,7 +65,7 @@ describe('TenantGuard', () => {
   });
 
   it('should allow no-clinic route when AllowNoClinic is set', () => {
-    mockTenantMetadataFlags(getAllAndOverrideMock, {
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
       isPublic: false,
       allowNoClinic: true,
     });
@@ -77,7 +77,7 @@ describe('TenantGuard', () => {
   });
 
   it('should reject authenticated user without clinic for clinic-scoped route', () => {
-    mockTenantMetadataFlags(getAllAndOverrideMock, {
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
       isPublic: false,
       allowNoClinic: false,
     });
@@ -90,7 +90,7 @@ describe('TenantGuard', () => {
   });
 
   it('should reject clinic mismatch from params/query/body', () => {
-    mockTenantMetadataFlags(getAllAndOverrideMock, {
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
       isPublic: false,
       allowNoClinic: false,
     });
@@ -108,7 +108,7 @@ describe('TenantGuard', () => {
   });
 
   it('should allow matching clinicId across request parts', () => {
-    mockTenantMetadataFlags(getAllAndOverrideMock, {
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
       isPublic: false,
       allowNoClinic: false,
     });

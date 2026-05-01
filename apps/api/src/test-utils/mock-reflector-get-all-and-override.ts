@@ -23,6 +23,7 @@ export function mockGetAllAndOverrideKeyMap(
   mock.mockImplementation((key: unknown) => map.get(key));
 }
 
+/** Prefer keyed maps over ordering-sensitive `mockReturnValueOnce` on `getAllAndOverride`. */
 export function createKeyedReflectorMock(
   entries: ReadonlyArray<readonly [unknown, unknown]>,
 ): MockedReflectorGetAllAndOverride {
