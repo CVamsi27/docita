@@ -302,12 +302,6 @@ export class StaffManagementService {
       if (!isAdminSwitchRole(actorRole)) {
         throw new ForbiddenException('Only admins can change member roles');
       }
-
-      if (!isAdminSwitchRole(member.role) || !isAdminSwitchRole(data.role)) {
-        throw new BadRequestException(
-          'Only Admin and Admin Doctor role changes are supported here',
-        );
-      }
     }
 
     const updated = await this.prisma.user.update({

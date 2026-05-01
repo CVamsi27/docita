@@ -11,6 +11,8 @@ import {
   UploadedFile,
   BadRequestException,
   ForbiddenException,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { OnboardingService } from '@/domains/clinics/application/services/onboarding/onboarding.service';
 import { UsersService } from '@/domains/users/application/services/users.service';
@@ -202,10 +204,20 @@ export class OnboardingController {
     @Param('onboardingId') onboardingId: string,
     @Param('sessionId') sessionId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Headers('x-upload-secret')
+    uploadSecretHeader: string | string[] | undefined,
     @Request() req?: RequestWithUser,
   ) {
     if (!file) {
       throw new BadRequestException('Signature file is required');
+    }
+
+    const rawSecret = Array.isArray(uploadSecretHeader)
+      ? uploadSecretHeader[0]
+      : uploadSecretHeader;
+    const uploadSecret = typeof rawSecret === 'string' ? rawSecret.trim() : '';
+    if (!uploadSecret) {
+      throw new UnauthorizedException('X-Upload-Secret header is required');
     }
 
     try {
@@ -224,6 +236,7 @@ export class OnboardingController {
         onboardingId,
         sessionId,
         file,
+        uploadSecret,
         {
           modifiedBy: req?.user?.id,
           modifiedByRole: req?.user?.role,

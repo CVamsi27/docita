@@ -104,9 +104,7 @@ describe('ClinicTypeGuard', () => {
     });
 
     it('blocks request when clinic type does not match required type', async () => {
-      mockRequiredClinicTypes(reflector.getAllAndOverride, [
-        ClinicType.DENTAL,
-      ]);
+      mockRequiredClinicTypes(reflector.getAllAndOverride, [ClinicType.DENTAL]);
       prisma.clinic.findUnique.mockResolvedValue({
         type: ClinicType.GENERAL,
         name: 'Main Clinic',

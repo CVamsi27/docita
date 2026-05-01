@@ -59,7 +59,10 @@ describe('FeatureFlagGuard', () => {
   });
 
   it('uses clinic id from authenticated user when checking flag', async () => {
-    mockRequireFeatureFlag(reflector.getAllAndOverride, 'enable_queue_management');
+    mockRequireFeatureFlag(
+      reflector.getAllAndOverride,
+      'enable_queue_management',
+    );
     featureFlagService.isEnabled.mockResolvedValue(true);
 
     await expect(

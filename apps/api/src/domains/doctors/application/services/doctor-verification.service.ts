@@ -7,6 +7,7 @@ import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
+
 type VerificationResult = {
   status: DoctorVerificationStatus;
   source: string;
@@ -24,6 +25,7 @@ type VerificationProviderResponse = {
   data?: JsonValue;
 };
 
+/** Verification uses the configured HTTP provider; extend with jurisdiction-specific logic when council APIs are integrated. */
 @Injectable()
 export class DoctorVerificationService {
   private readonly logger = new Logger(DoctorVerificationService.name);
