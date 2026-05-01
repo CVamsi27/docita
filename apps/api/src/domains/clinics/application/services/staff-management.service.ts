@@ -15,10 +15,11 @@ type ClinicMemberRole =
   | 'ADMIN'
   | 'ADMIN_DOCTOR';
 
-const isAdminSwitchRole = (
-  role: Role | ClinicMemberRole | undefined,
-): role is 'ADMIN' | 'ADMIN_DOCTOR' =>
-  role === Role.ADMIN || role === Role.ADMIN_DOCTOR;
+/** Clinic admins (ADMIN / ADMIN_DOCTOR) may assign any allowed clinic member role. */
+const actorMayAssignMemberRoles = (
+  actorRole: Role | ClinicMemberRole | undefined,
+): actorRole is 'ADMIN' | 'ADMIN_DOCTOR' =>
+  actorRole === Role.ADMIN || actorRole === Role.ADMIN_DOCTOR;
 
 interface CreateDoctorData {
   name: string;
@@ -299,7 +300,7 @@ export class StaffManagementService {
     }
 
     if (data.role && data.role !== member.role) {
-      if (!isAdminSwitchRole(actorRole)) {
+      if (!actorMayAssignMemberRoles(actorRole)) {
         throw new ForbiddenException('Only admins can change member roles');
       }
     }
