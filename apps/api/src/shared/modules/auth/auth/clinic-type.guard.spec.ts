@@ -3,8 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { ClinicType } from '@workspace/db';
 import { FacilityType } from '@workspace/types';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
-import { mockGetAllAndOverrideKeyBranch } from '@/test-utils/mock-reflector-get-all-and-override';
+import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
 import { CLINIC_TYPES_KEY, FACILITY_TYPES_KEY } from './clinic-type.decorator';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 

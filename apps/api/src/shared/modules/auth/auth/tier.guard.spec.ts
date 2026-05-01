@@ -6,8 +6,7 @@ import {
   SubscriptionStatus,
 } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
-import { mockGetAllAndOverrideKeyMap } from '@/test-utils/mock-reflector-get-all-and-override';
+import { asType, mockGetAllAndOverrideKeyMap } from '@/test-utils';
 import { FEATURE_KEY, Feature, TIER_KEY, Tier } from './tier.decorator';
 import { TierGuard } from './tier.guard';
 

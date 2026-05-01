@@ -1,8 +1,11 @@
 import { ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
-import { PasswordExpiredGuard } from './password-expired.guard';
+import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  PasswordExpiredGuard,
+  SKIP_PASSWORD_EXPIRY_KEY,
+} from './password-expired.guard';
 
 function createContext(user: unknown): ExecutionContext {
   return asType<ExecutionContext>({
@@ -52,7 +55,12 @@ describe('PasswordExpiredGuard', () => {
   });
 
   it('skips guard when skip metadata is enabled', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      SKIP_PASSWORD_EXPIRY_KEY,
+      true,
+      false,
+    );
 
     await expect(
       guard.canActivate(createContext({ sub: 'user-123' })),

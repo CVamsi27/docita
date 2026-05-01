@@ -3,8 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
-import { asType } from '@/test-utils/as-type';
-import { mockGetAllAndOverrideKeyBranch } from '@/test-utils/mock-reflector-get-all-and-override';
+import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
 import {
   IS_PUBLIC_KEY,
   SKIP_SUBSCRIPTION_CHECK_KEY,

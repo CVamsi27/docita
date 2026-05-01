@@ -2,8 +2,7 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
-import { asType } from '@/test-utils/as-type';
-import { mockGetAllAndOverrideKeyBranch } from '@/test-utils/mock-reflector-get-all-and-override';
+import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
 import { FEATURE_FLAG_KEY, FeatureFlagGuard } from './feature-flag.guard';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
