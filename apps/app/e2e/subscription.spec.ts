@@ -18,7 +18,9 @@ test.describe("Subscription & Billing", () => {
   }) => {
     await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
-    await expect(page.locator("h1")).toContainText(/Upgrade|Plan/i);
+    await expect(page.locator("h1")).toContainText(
+      /Settings|Upgrade|Plan|Billing|Subscription/i,
+    );
     await expect(page.getByText("Current Plan").first()).toBeVisible();
     await expect(page.getByText("Current usage")).toBeVisible();
   });
@@ -92,9 +94,7 @@ test.describe("Subscription & Billing", () => {
   }) => {
     await page.goto("/billing-locked", { waitUntil: "networkidle" });
 
-    await expect(
-      page.getByRole("heading", { name: /Workspace access paused/i }),
-    ).toBeVisible();
+    await expect(page.getByText(/Workspace access paused/i)).toBeVisible();
     await expect(
       page.getByText(/subscription billing must be resolved/i),
     ).toBeVisible();

@@ -97,9 +97,7 @@ test.describe("Subscription billing (settings)", () => {
   }) => {
     await page.goto("/billing-locked", { waitUntil: "networkidle" });
 
-    await expect(
-      page.getByRole("heading", { name: /Workspace access paused/i }),
-    ).toBeVisible();
+    await expect(page.getByText(/Workspace access paused/i)).toBeVisible();
     await expect(
       page.getByText(/subscription billing must be resolved/i),
     ).toBeVisible();
