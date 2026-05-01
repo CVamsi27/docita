@@ -149,7 +149,6 @@ export function ClinicRegistrationForm({
     },
   });
 
-  // Check for saved draft on mount
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
@@ -192,7 +191,6 @@ export function ClinicRegistrationForm({
         localStorage.removeItem(DRAFT_KEY);
       }
     } catch {
-      // Ignore parse errors
     }
   }, [clinicForm]);
 

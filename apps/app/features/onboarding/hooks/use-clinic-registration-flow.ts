@@ -551,7 +551,6 @@ export function useClinicRegistrationFlow() {
           try {
             await refreshUser();
           } catch {
-            // fallback: noop
           }
         }
 
@@ -559,7 +558,6 @@ export function useClinicRegistrationFlow() {
           description: "Your facility has been registered. Redirecting...",
         });
 
-        // Clear session persistence on successful completion
         try {
           sessionStorage.removeItem(SESSION_KEY);
           sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);

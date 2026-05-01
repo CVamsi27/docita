@@ -79,7 +79,6 @@ export function guessCurrencyFromTimezone(): SupportedCurrency {
       return "USD";
     }
   } catch {
-    // ignore
   }
 
   return "USD";

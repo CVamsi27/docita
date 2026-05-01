@@ -63,7 +63,6 @@ export function DashboardHeaderUI({
         setShared(true);
         setTimeout(() => setShared(false), 2000);
       } catch {
-        // no-op
       }
     }
   };
