@@ -3,6 +3,7 @@ import { ContextType, ExecutionContext, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
+import { IS_UPLOAD_SESSION_SECRET_ROUTE_KEY } from '@/shared/modules/auth/auth/upload-session-secret-route.decorator';
 import { ROLES_KEY } from '@/shared/modules/auth/auth/roles.decorator';
 import {
   createKeyedReflectorMock,
@@ -46,10 +47,18 @@ const createExecutionContext = (user?: AuthUser): ExecutionContext => ({
 
 function mockRolesReflectorSequence(
   mock: MockedReflectorGetAllAndOverride,
-  options: { isPublic: boolean; requiredRoles?: readonly string[] },
+  options: {
+    isPublic: boolean;
+    uploadSessionSecretRoute?: boolean;
+    requiredRoles?: readonly string[];
+  },
 ): void {
   mockGetAllAndOverrideKeyMap(mock, [
     [IS_PUBLIC_KEY, options.isPublic],
+    [
+      IS_UPLOAD_SESSION_SECRET_ROUTE_KEY,
+      options.uploadSessionSecretRoute ?? false,
+    ],
     [ROLES_KEY, options.requiredRoles],
   ]);
 }
@@ -60,6 +69,7 @@ describe('RolesGuard', () => {
   const mockReflector = {
     getAllAndOverride: createKeyedReflectorMock([
       [IS_PUBLIC_KEY, false],
+      [IS_UPLOAD_SESSION_SECRET_ROUTE_KEY, false],
       [ROLES_KEY, undefined],
     ]),
   };
@@ -135,6 +145,18 @@ describe('RolesGuard', () => {
       expect(() =>
         guard.canActivate(createExecutionContext(undefined)),
       ).toThrow();
+    });
+
+    it('allows upload-session-secret routes without an authenticated user', () => {
+      mockRolesReflectorSequence(mockReflector.getAllAndOverride, {
+        isPublic: false,
+        uploadSessionSecretRoute: true,
+        requiredRoles: ['DOCTOR'],
+      });
+
+      const result = guard.canActivate(createExecutionContext(undefined));
+
+      expect(result).toBe(true);
     });
 
     it('should handle multiple required roles', () => {

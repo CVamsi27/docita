@@ -5,9 +5,11 @@ import {
   asType,
   createKeyedReflectorMock,
   mockGetAllAndOverrideKeyBranch,
+  mockGetAllAndOverrideKeyMap,
   type MockedReflectorGetAllAndOverride,
 } from '@/test-utils';
 import { IS_PUBLIC_KEY } from './public.decorator';
+import { IS_UPLOAD_SESSION_SECRET_ROUTE_KEY } from './upload-session-secret-route.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 function createContext(): ExecutionContext {
@@ -35,6 +37,24 @@ describe('JwtAuthGuard', () => {
       true,
       false,
     );
+
+    const parentCanActivate = jest.spyOn(
+      Object.getPrototypeOf(JwtAuthGuard.prototype),
+      'canActivate',
+    );
+
+    const allowed = guard.canActivate(createContext());
+    expect(allowed).toBe(true);
+    expect(parentCanActivate).not.toHaveBeenCalled();
+
+    parentCanActivate.mockRestore();
+  });
+
+  it('allows upload-session-secret routes without invoking passport guard', () => {
+    mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [IS_PUBLIC_KEY, false],
+      [IS_UPLOAD_SESSION_SECRET_ROUTE_KEY, true],
+    ]);
 
     const parentCanActivate = jest.spyOn(
       Object.getPrototypeOf(JwtAuthGuard.prototype),

@@ -67,6 +67,42 @@ export class UploadsService {
     }
   }
 
+  private validateSessionReadyForUpload(
+    session: {
+      uploadSecretHash: string | null;
+      expiresAt: Date;
+      status: string;
+      fileUrl: string | null;
+    },
+    uploadSecret: string | undefined,
+  ): void {
+    this.assertUploadSecretValid(session.uploadSecretHash, uploadSecret);
+
+    if (session.expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException('This upload link has expired');
+    }
+
+    if (session.status === 'uploaded' || session.fileUrl) {
+      throw new BadRequestException('This upload link has already been used');
+    }
+  }
+
+  /**
+   * Validates session id + upload secret before multipart handling (guard layer).
+   * `updateSession` performs the same checks again for defense in depth.
+   */
+  async assertReadyForUpload(id: string, uploadSecret: string): Promise<void> {
+    const session = await this.prisma.uploadSession.findFirst({
+      where: { id },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    this.validateSessionReadyForUpload(session, uploadSecret);
+  }
+
   async createSession(options?: CreateUploadSessionOptions) {
     const plaintextSecret = randomBytes(32).toString('base64url');
     const uploadSecretHash = this.hashUploadSecret(plaintextSecret);
@@ -127,18 +163,7 @@ export class UploadsService {
       throw new NotFoundException('Session not found');
     }
 
-    this.assertUploadSecretValid(
-      session.uploadSecretHash,
-      context?.uploadSecret,
-    );
-
-    if (session.expiresAt.getTime() < Date.now()) {
-      throw new BadRequestException('This upload link has expired');
-    }
-
-    if (session.status === 'uploaded' || session.fileUrl) {
-      throw new BadRequestException('This upload link has already been used');
-    }
+    this.validateSessionReadyForUpload(session, context?.uploadSecret);
 
     const modifiedAt = new Date().toISOString();
     const fileUrl = await this.storageProvider.upload(file, 'documents', {

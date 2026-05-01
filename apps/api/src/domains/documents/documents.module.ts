@@ -3,6 +3,7 @@ import { PrismaModule } from '@/prisma/prisma.module';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { TemplatesController } from './presentation/controllers/templates.controller';
 import { UploadsController } from './presentation/controllers/uploads.controller';
+import { UploadSessionSecretGuard } from './presentation/guards/upload-session-secret.guard';
 import { TemplatesService } from './application/services/templates.service';
 import { UploadsService } from './application/services/uploads.service';
 import { StoredFileUrlResolverService } from './application/services/stored-file-url-resolver.service';
@@ -17,6 +18,7 @@ const logger = new Logger('DocumentsModule');
   controllers: [TemplatesController, UploadsController],
   providers: [
     TemplatesService,
+    UploadSessionSecretGuard,
     UploadsService,
     StoredFileUrlResolverService,
     {

@@ -19,7 +19,7 @@ import {
   IntelligenceAddon,
   ClinicTier,
 } from '@workspace/db';
-import { IS_PUBLIC_KEY } from './public.decorator';
+import { bypassesSessionGuards } from './auth-route-metadata.util';
 import {
   isBillingAdminRole,
   isSubscriptionPastGraceDeadline,
@@ -33,11 +33,7 @@ export class TierGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-    if (isPublic) {
+    if (bypassesSessionGuards(this.reflector, context)) {
       return true;
     }
 

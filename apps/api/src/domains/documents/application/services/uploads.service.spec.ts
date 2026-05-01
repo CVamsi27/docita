@@ -180,4 +180,43 @@ describe('UploadsService', () => {
       ).rejects.toBeInstanceOf(NotFoundException);
     });
   });
+
+  describe('assertReadyForUpload', () => {
+    const plaintext = 'opaque-upload-secret';
+    const sessionRow = {
+      id: 'sess-1',
+      uploadSecretHash: hashUploadSecret(plaintext),
+      status: 'pending',
+      fileUrl: null,
+      expiresAt: new Date(Date.now() + 60_000),
+      purpose: UploadSessionPurpose.GENERAL,
+      doctorId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('resolves when id and secret are valid', async () => {
+      prisma.uploadSession.findFirst.mockResolvedValue({ ...sessionRow });
+
+      await expect(
+        service.assertReadyForUpload(sessionRow.id, plaintext),
+      ).resolves.toBeUndefined();
+    });
+
+    it('throws NotFound when session is missing', async () => {
+      prisma.uploadSession.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.assertReadyForUpload('missing', plaintext),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('throws Unauthorized when secret is wrong', async () => {
+      prisma.uploadSession.findFirst.mockResolvedValue({ ...sessionRow });
+
+      await expect(
+        service.assertReadyForUpload(sessionRow.id, 'wrong'),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+  });
 });

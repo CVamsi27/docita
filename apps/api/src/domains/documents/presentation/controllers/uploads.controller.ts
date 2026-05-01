@@ -8,7 +8,6 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
@@ -20,7 +19,8 @@ import {
 import { ZodSerializerDto } from 'nestjs-zod';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
-import { Public } from '@/shared/modules/auth/auth/public.decorator';
+import { UploadSessionSecretRoute } from '@/shared/modules/auth/auth/upload-session-secret-route.decorator';
+import { UploadSessionSecretGuard } from '@/domains/documents/presentation/guards/upload-session-secret.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   Feature,
@@ -54,11 +54,13 @@ export class UploadsController {
   }
 
   /**
-   * Skips JWT for QR/mobile uploads; access is gated by `X-Upload-Secret`
-   * issued once from POST /uploads/session (not derivable from the session id alone).
+   * QR/mobile uploads use `X-Upload-Secret` (issued once from POST /uploads/session).
+   * `UploadSessionSecretGuard` validates the secret before multipart parsing; the route
+   * is not blanket-`Public` (JWT/roles/tier skip only applies to this handler metadata).
    */
   @Post('session/:id')
-  @Public()
+  @UploadSessionSecretRoute()
+  @UseGuards(UploadSessionSecretGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: createTempDiskStorage(),
@@ -103,7 +105,7 @@ export class UploadsController {
     const uploadSecret =
       typeof uploadSecretHeader === 'string' ? uploadSecretHeader.trim() : '';
     if (!uploadSecret) {
-      throw new UnauthorizedException('X-Upload-Secret header is required');
+      throw new BadRequestException('Missing upload credentials');
     }
 
     try {
