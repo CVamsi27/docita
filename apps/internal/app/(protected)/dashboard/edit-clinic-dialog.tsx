@@ -274,7 +274,7 @@ export function EditClinicDialog({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select tier" />
+                    <SelectValue placeholder="Tier" />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABLE_TIERS.map((tier) => (
@@ -296,7 +296,7 @@ export function EditClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select facility type" />
+                  <SelectValue placeholder="Facility type" />
                 </SelectTrigger>
                 <SelectContent>
                   {CLINIC_TYPE_OPTIONS.map((type) => (
@@ -348,7 +348,7 @@ export function EditClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>

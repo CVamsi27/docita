@@ -323,7 +323,7 @@ export function SupportInboxPage() {
                 <Input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search by name, phone, or message"
+                  placeholder="Enter name, phone, or message"
                   className="pl-10"
                 />
               </div>
@@ -525,7 +525,7 @@ export function SupportInboxPage() {
                     <Textarea
                       value={replyMessage}
                       onChange={(event) => setReplyMessage(event.target.value)}
-                      placeholder="Type a reply to send through WhatsApp"
+                      placeholder="Enter reply"
                       rows={4}
                       className="resize-none"
                     />

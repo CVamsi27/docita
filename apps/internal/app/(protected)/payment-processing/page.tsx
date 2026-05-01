@@ -531,7 +531,7 @@ export default function PaymentProcessingPage() {
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="0"
+                          placeholder="Amount"
                           {...field}
                           disabled
                         />
@@ -581,7 +581,7 @@ export default function PaymentProcessingPage() {
                       <FormLabel>Payment Notes (Optional)</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Add any notes about this payment..."
+                          placeholder="Payment notes"
                           {...field}
                         />
                       </FormControl>

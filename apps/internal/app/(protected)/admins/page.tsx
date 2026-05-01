@@ -291,7 +291,7 @@ export default function AdminsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search admins by name or email..."
+                  placeholder="Enter name or email"
                   value={adminSearch}
                   onChange={(e) => setAdminSearch(e.target.value)}
                   className="pl-9"
@@ -300,7 +300,7 @@ export default function AdminsPage() {
             </div>
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Select facility" />
+                <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
                 {Array.isArray(clinics) &&
@@ -484,7 +484,7 @@ export default function AdminsPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@clinic.com"
+                placeholder="Email"
                 value={createForm.email}
                 onChange={(e) =>
                   setCreateForm({ ...createForm, email: e.target.value })
@@ -497,7 +497,7 @@ export default function AdminsPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter a strong password"
+                placeholder="Enter password"
                 value={createForm.password}
                 onChange={(e) =>
                   setCreateForm({ ...createForm, password: e.target.value })
@@ -510,7 +510,7 @@ export default function AdminsPage() {
               <Input
                 id="phoneNumber"
                 type="tel"
-                placeholder="+91 XXXXX XXXXX"
+                placeholder="Phone number"
                 value={createForm.phoneNumber}
                 onChange={(e) =>
                   setCreateForm({ ...createForm, phoneNumber: e.target.value })
@@ -530,7 +530,7 @@ export default function AdminsPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select admin type" />
+                  <SelectValue placeholder="Admin type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">
@@ -607,7 +607,7 @@ export default function AdminsPage() {
               <Input
                 id="edit-email"
                 type="email"
-                placeholder="admin@clinic.com"
+                placeholder="Email"
                 value={editForm.email}
                 onChange={(e) =>
                   setEditForm({ ...editForm, email: e.target.value })
@@ -620,7 +620,7 @@ export default function AdminsPage() {
               <Input
                 id="edit-phoneNumber"
                 type="tel"
-                placeholder="+91 XXXXX XXXXX"
+                placeholder="Phone number"
                 value={editForm.phoneNumber}
                 onChange={(e) =>
                   setEditForm({ ...editForm, phoneNumber: e.target.value })
@@ -640,7 +640,7 @@ export default function AdminsPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select admin type" />
+                  <SelectValue placeholder="Admin type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">

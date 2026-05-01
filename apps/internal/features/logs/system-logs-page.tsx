@@ -338,7 +338,7 @@ export function SystemLogsPage({
               const value = e.target.value;
               setSearchText(value);
             }}
-            placeholder="Message or details"
+            placeholder="Message"
           />
         </div>
 

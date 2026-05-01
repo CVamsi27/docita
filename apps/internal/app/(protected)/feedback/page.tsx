@@ -391,7 +391,7 @@ export default function FeedbackPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All statuses" />
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All statuses</SelectItem>
@@ -415,7 +415,7 @@ export default function FeedbackPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All categories" />
+                    <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All categories</SelectItem>
@@ -439,7 +439,7 @@ export default function FeedbackPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Any rating" />
+                    <SelectValue placeholder="Rating" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Any rating</SelectItem>
@@ -714,7 +714,7 @@ export default function FeedbackPage() {
                     <Textarea
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
-                      placeholder="Add notes about this feedback..."
+                      placeholder="Feedback notes"
                       className="min-h-20"
                     />
                   </div>

@@ -530,7 +530,7 @@ export default function BillingDashboard() {
             <div className="w-40">
               <Select value={tierFilter} onValueChange={setTierFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by tier" />
+                  <SelectValue placeholder="Tier" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Tiers</SelectItem>
@@ -545,7 +545,7 @@ export default function BillingDashboard() {
             <div className="w-48">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>

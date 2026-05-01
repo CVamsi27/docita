@@ -262,7 +262,7 @@ export function CreateClinicDialog({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select tier" />
+                    <SelectValue placeholder="Tier" />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABLE_TIERS.map((tier) => (
@@ -284,7 +284,7 @@ export function CreateClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select facility type" />
+                  <SelectValue placeholder="Facility type" />
                 </SelectTrigger>
                 <SelectContent>
                   {CLINIC_TYPE_OPTIONS.map((type) => (
@@ -456,7 +456,7 @@ export function CreateClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select admin type" />
+                  <SelectValue placeholder="Admin type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">

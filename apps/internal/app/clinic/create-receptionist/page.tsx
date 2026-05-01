@@ -103,7 +103,7 @@ export default function CreateReceptionistPage() {
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
                     id="name"
-                    placeholder="John Smith"
+                    placeholder="Full name"
                     value={form.name}
                     onChange={(e) => {
                       setForm({ ...form, name: e.target.value });
@@ -133,7 +133,7 @@ export default function CreateReceptionistPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="receptionist@clinic.com"
+                    placeholder="Email"
                     value={form.email}
                     onChange={(e) => {
                       setForm({ ...form, email: e.target.value });
@@ -166,7 +166,7 @@ export default function CreateReceptionistPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter a strong password"
+                    placeholder="Enter password"
                     value={form.password}
                     onChange={(e) => {
                       setForm({ ...form, password: e.target.value });
@@ -198,7 +198,7 @@ export default function CreateReceptionistPage() {
                   <Input
                     id="phoneNumber"
                     type="tel"
-                    placeholder="+91 XXXXX XXXXX"
+                    placeholder="Phone number"
                     value={form.phoneNumber}
                     onChange={(e) =>
                       setForm({ ...form, phoneNumber: e.target.value })

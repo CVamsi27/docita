@@ -522,7 +522,7 @@ export default function PricingPage() {
                     disabled={isLoadingClinics}
                   >
                     <option value="">
-                      {isLoadingClinics ? "Loading facilities..." : "Select facility"}
+                      {isLoadingClinics ? "Loading" : "Facility"}
                     </option>
                     {clinicOptions.map((clinic) => (
                       <option key={clinic.id} value={clinic.id}>
@@ -541,7 +541,7 @@ export default function PricingPage() {
                         title: e.target.value,
                       }))
                     }
-                    placeholder="3 months free"
+                    placeholder="Offer title"
                   />
                 </div>
                 <div className="space-y-2">
@@ -583,7 +583,7 @@ export default function PricingPage() {
                         validUntil: date?.toISOString().slice(0, 10) ?? "",
                       }))
                     }
-                    placeholder="Select date"
+                    placeholder="Date"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
@@ -596,7 +596,7 @@ export default function PricingPage() {
                         description: e.target.value,
                       }))
                     }
-                    placeholder="In exchange for weekly feedback"
+                    placeholder="Description"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-3">
@@ -609,7 +609,7 @@ export default function PricingPage() {
                         notes: e.target.value,
                       }))
                     }
-                    placeholder="Requested by founder / approved by sales"
+                    placeholder="Internal notes"
                   />
                 </div>
               </div>

@@ -120,7 +120,7 @@ export function UsersPageContainer() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, email, or specialization..."
+                  placeholder="Enter name, email, or specialization"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   className="pl-9"
@@ -132,7 +132,7 @@ export function UsersPageContainer() {
                 className="w-full md:w-[250px]"
                 aria-label="Filter by facility"
               >
-                <SelectValue placeholder="Select facility" />
+                <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Facilities</SelectItem>

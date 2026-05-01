@@ -221,7 +221,7 @@ export function AuditLogViewer() {
                   onChange={(date) =>
                     setSelectedDate(date?.toISOString().slice(0, 10) ?? "")
                   }
-                  placeholder="Select date"
+                  placeholder="Date"
                   className="flex-1"
                 />
               </div>
@@ -236,7 +236,7 @@ export function AuditLogViewer() {
                 onValueChange={setSelectedActionType}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="All Actions" />
+                  <SelectValue placeholder="Action" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Actions</SelectItem>
@@ -259,7 +259,7 @@ export function AuditLogViewer() {
                   type="text"
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
-                  placeholder="Filter by user ID"
+                  placeholder="User ID"
                   className="pl-9"
                 />
               </div>

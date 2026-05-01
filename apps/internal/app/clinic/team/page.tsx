@@ -293,7 +293,7 @@ export default function TeamPage() {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              placeholder="John Doe"
+              placeholder="Full name"
               required
             />
           </FormFieldGroup>
@@ -310,7 +310,7 @@ export default function TeamPage() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              placeholder="member@facility.com"
+              placeholder="Email"
               required
             />
           </FormFieldGroup>
@@ -331,7 +331,7 @@ export default function TeamPage() {
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select role" />
+              <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="DOCTOR">Doctor</SelectItem>
@@ -353,7 +353,7 @@ export default function TeamPage() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              placeholder="Enter a strong password"
+              placeholder="Enter password"
               required
             />
           </FormFieldGroup>
@@ -371,7 +371,7 @@ export default function TeamPage() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              placeholder="Leave blank to keep existing password"
+              placeholder="New password"
             />
           </FormFieldGroup>
         )}
@@ -384,7 +384,7 @@ export default function TeamPage() {
             onChange={(e) =>
               setFormData({ ...formData, phoneNumber: e.target.value })
             }
-            placeholder="+91 XXXXX XXXXX"
+            placeholder="Phone number"
           />
         </FormFieldGroup>
 
@@ -404,7 +404,7 @@ export default function TeamPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select specialization" />
+                    <SelectValue placeholder="Specialization" />
                   </SelectTrigger>
                   <SelectContent>
                     {SPECIALIZATIONS.map((spec) => (
@@ -423,7 +423,7 @@ export default function TeamPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, qualification: e.target.value })
                   }
-                  placeholder="e.g., MBBS, MD"
+                  placeholder="Qualification"
                 />
               </FormFieldGroup>
             </FormGrid>
@@ -446,7 +446,7 @@ export default function TeamPage() {
                     registrationNumber: e.target.value,
                   })
                 }
-                placeholder="Medical Council Reg. No."
+                placeholder="Registration number"
                 required
               />
             </FormFieldGroup>

@@ -260,7 +260,7 @@ export default function DoctorsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search doctors by name, email, or specialization..."
+                  placeholder="Enter name, email, or specialization"
                   value={doctorSearch}
                   onChange={(e) => setDoctorSearch(e.target.value)}
                   className="pl-9"
@@ -269,7 +269,7 @@ export default function DoctorsPage() {
             </div>
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Select facility" />
+                <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Facilities</SelectItem>
