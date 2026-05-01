@@ -75,10 +75,10 @@ describe("consultation modals", () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText("e.g. 70"), {
+    fireEvent.change(screen.getByPlaceholderText("Weight"), {
       target: { value: "64.5" },
     });
-    fireEvent.change(screen.getByPlaceholderText("e.g. 98"), {
+    fireEvent.change(screen.getByPlaceholderText("SpO2"), {
       target: { value: "99" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save Vitals" }));

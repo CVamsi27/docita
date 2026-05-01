@@ -39,9 +39,7 @@ describe("AddPatientDialog", () => {
     expect(screen.getByPlaceholderText("First name")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Last name")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Phone number")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Email address"),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
   });
 
   it("updates first name input value", () => {

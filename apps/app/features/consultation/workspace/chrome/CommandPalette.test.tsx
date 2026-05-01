@@ -61,7 +61,7 @@ describe("CommandPalette", () => {
       />,
     );
 
-    const input = screen.getByPlaceholderText(/Jump to section/i);
+    const input = screen.getByPlaceholderText("Enter command");
     fireEvent.change(input, { target: { value: "diagnosis" } });
 
     expect(

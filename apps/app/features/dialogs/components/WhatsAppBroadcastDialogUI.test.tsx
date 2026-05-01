@@ -45,13 +45,10 @@ describe("WhatsAppBroadcastDialogUI", () => {
       />,
     );
 
-    fireEvent.change(
-      screen.getByPlaceholderText("e.g., Monthly Health Reminder"),
-      {
-        target: { value: "Monthly Reminder" },
-      },
-    );
-    fireEvent.change(screen.getByPlaceholderText("Enter your message..."), {
+    fireEvent.change(screen.getByPlaceholderText("Campaign name"), {
+      target: { value: "Monthly Reminder" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter message"), {
       target: { value: "Your follow-up visit is due this month." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Create Campaign" }));

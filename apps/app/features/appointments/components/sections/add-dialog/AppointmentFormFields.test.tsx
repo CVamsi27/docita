@@ -57,7 +57,7 @@ function TestFormWithoutInitialType() {
   );
 }
 
-const NOTES_PLACEHOLDER = "Anything the team should know before the visit";
+const NOTES_PLACEHOLDER = "Visit notes";
 
 describe("AppointmentFormFields", () => {
   it("renders type and notes fields", () => {

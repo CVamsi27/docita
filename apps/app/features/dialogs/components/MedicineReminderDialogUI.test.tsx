@@ -15,12 +15,9 @@ describe("MedicineReminderDialogUI", () => {
       />,
     );
 
-    fireEvent.change(
-      screen.getByPlaceholderText("+1234567890 (optional - auto-detected if empty)"),
-      {
-        target: { value: "123" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Phone number"), {
+      target: { value: "123" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Create Reminder" }));
 
     expect(await screen.findByText("Enter medicine name.")).toBeInTheDocument();
@@ -41,18 +38,15 @@ describe("MedicineReminderDialogUI", () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText("e.g., Aspirin, Metformin"), {
+    fireEvent.change(screen.getByPlaceholderText("Medication name"), {
       target: { value: "Metformin" },
     });
-    fireEvent.change(screen.getByPlaceholderText("e.g., 500mg, 1 tablet, 5ml"), {
+    fireEvent.change(screen.getByPlaceholderText("Dosage"), {
       target: { value: "500mg" },
     });
-    fireEvent.change(
-      screen.getByPlaceholderText("+1234567890 (optional - auto-detected if empty)"),
-      {
-        target: { value: "+919000000000" },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Phone number"), {
+      target: { value: "+919000000000" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Create Reminder" }));
 
     await waitFor(() => {

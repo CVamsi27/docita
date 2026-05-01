@@ -103,7 +103,7 @@ describe("InvoiceEditUI", () => {
     fireEvent.change(screen.getByDisplayValue("Procedure"), {
       target: { value: "Dental procedure" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Enter notes..."), {
+    fireEvent.change(screen.getByPlaceholderText("Notes"), {
       target: { value: "Updated payment instructions." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Update Invoice" }));

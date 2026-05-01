@@ -93,12 +93,9 @@ describe("JoinRequestsPage", () => {
     expect(screen.getByText("Requested: DOCTOR")).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole("button", { name: /Approve/i })[0]!);
-    fireEvent.change(
-      screen.getByPlaceholderText(
-        "Welcome to the team! Feel free to reach out if you have any questions...",
-      ),
-      { target: { value: "Welcome to Care Clinic." } },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Enter welcome message"), {
+      target: { value: "Welcome to Care Clinic." },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Approve Request" }));
 
     await waitFor(() => {
@@ -119,12 +116,9 @@ describe("JoinRequestsPage", () => {
     render(<JoinRequestsPage />);
 
     fireEvent.click(screen.getAllByRole("button", { name: /Reject/i })[0]!);
-    fireEvent.change(
-      screen.getByPlaceholderText(
-        "Please explain why this request cannot be approved at this time...",
-      ),
-      { target: { value: "  Please contact the facility owner first.  " } },
-    );
+    fireEvent.change(screen.getByPlaceholderText("Enter rejection reason"), {
+      target: { value: "  Please contact the facility owner first.  " },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Reject Request" }));
 
     await waitFor(() => {

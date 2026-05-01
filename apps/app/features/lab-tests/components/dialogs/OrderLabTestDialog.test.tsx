@@ -101,7 +101,7 @@ describe("OrderLabTestDialog", () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Enter any additional notes..."), {
+    fireEvent.change(screen.getByPlaceholderText("Enter lab notes"), {
       target: { value: "Fasting sample preferred" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Order Test" }));

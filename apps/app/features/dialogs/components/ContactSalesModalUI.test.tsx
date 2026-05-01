@@ -44,16 +44,16 @@ describe("ContactSalesModalUI", () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Your name"), {
+    fireEvent.change(screen.getByPlaceholderText("Name"), {
       target: { value: "Dr. Asha Rao" },
     });
-    fireEvent.change(screen.getByPlaceholderText("your@email.com"), {
+    fireEvent.change(screen.getByPlaceholderText("Email"), {
       target: { value: "asha@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Your facility name"), {
+    fireEvent.change(screen.getByPlaceholderText("Facility name"), {
       target: { value: "Asha Care" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Tell us about your needs..."), {
+    fireEvent.change(screen.getByPlaceholderText("Enter message"), {
       target: { value: "We need a multi-doctor billing rollout." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Send Inquiry" }));

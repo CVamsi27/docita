@@ -95,7 +95,7 @@ describe("UsersPageContainer", () => {
     expect(screen.getByText("asha@example.com")).toBeInTheDocument();
 
     fireEvent.change(
-      screen.getByPlaceholderText("Search by name, email, or specialization..."),
+      screen.getByPlaceholderText("Enter name, email, or specialization"),
       { target: { value: "cardio" } },
     );
     expect(usersDataMocks.setSearchTerm).toHaveBeenCalledWith("cardio");

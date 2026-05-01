@@ -8,7 +8,7 @@ describe("TeamInviteStep", () => {
       <TeamInviteStep onComplete={vi.fn()} onSkip={vi.fn()} ownerEmail="owner@example.com" />,
     );
 
-    const emailInput = screen.getByPlaceholderText("Member email address");
+    const emailInput = screen.getByPlaceholderText("Email");
     const firstRemoveButton = screen.getByRole("button", { name: "Remove member 1" });
 
     expect(firstRemoveButton).toBeDisabled();

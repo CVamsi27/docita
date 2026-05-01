@@ -38,10 +38,10 @@ describe("InventoryAddItemDialogUI", () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText("e.g., Paracetamol 500mg"), {
+    fireEvent.change(screen.getByPlaceholderText("Item name"), {
       target: { value: "Paracetamol 500mg" },
     });
-    fireEvent.change(screen.getByPlaceholderText("0"), {
+    fireEvent.change(screen.getByPlaceholderText("Quantity"), {
       target: { value: "25" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Add Item" }));

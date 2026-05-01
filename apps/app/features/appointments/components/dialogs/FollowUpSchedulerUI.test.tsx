@@ -77,7 +77,7 @@ describe("FollowUpSchedulerUI", () => {
     fireEvent.click(screen.getByLabelText("WhatsApp Notification"));
     expect(props.onWhatsappReminderChange).toHaveBeenCalledWith(false);
 
-    fireEvent.change(screen.getByPlaceholderText("Notes for the next visit"), {
+    fireEvent.change(screen.getByPlaceholderText("Follow-up notes"), {
       target: { value: "Review symptoms after medication course." },
     });
     expect(props.onNotesChange).toHaveBeenCalledWith(

@@ -153,9 +153,7 @@ describe("SupportInboxPage", () => {
 
     renderWithQueryClient(<SupportInboxPage />);
 
-    const replyBox = await screen.findByPlaceholderText(
-      "Type a reply to send through WhatsApp",
-    );
+    const replyBox = await screen.findByPlaceholderText("Enter reply");
     expect(screen.getByRole("button", { name: "Send reply" })).toBeDisabled();
 
     fireEvent.change(replyBox, {

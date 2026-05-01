@@ -103,7 +103,7 @@ describe("InvoiceCreateUI", () => {
     fireEvent.change(screen.getByDisplayValue("500"), {
       target: { value: "750" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Enter notes..."), {
+    fireEvent.change(screen.getByPlaceholderText("Notes"), {
       target: { value: "Pay within seven days." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Save Invoice" }));
