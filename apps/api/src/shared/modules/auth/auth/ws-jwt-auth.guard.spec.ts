@@ -2,7 +2,7 @@ import { ExecutionContext } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { WsJwtAuthGuard } from './ws-jwt-auth.guard';
 
 function createWsContext(client: Record<string, unknown>): ExecutionContext {

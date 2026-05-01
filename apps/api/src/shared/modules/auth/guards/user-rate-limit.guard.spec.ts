@@ -1,7 +1,7 @@
 import { ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { UserRateLimitService } from '@/shared/modules/services/user-rate-limit.service';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { UserRateLimitGuard } from './user-rate-limit.guard';
 
 function createContext(

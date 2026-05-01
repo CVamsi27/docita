@@ -2,7 +2,7 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { PatientDoctorGuard } from './patient-doctor.guard';
 
 function createContext(

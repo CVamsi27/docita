@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { PrismaService } from '@/prisma/prisma.service';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { ApiKeyService } from './api-key.service';
 
 describe('ApiKeyService', () => {

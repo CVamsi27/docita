@@ -2,7 +2,7 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConsentType } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { ConsentGuard } from './consent.guard';
 
 function createContext(params: Record<string, string>): ExecutionContext {
