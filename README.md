@@ -130,8 +130,8 @@ See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment 
 
 ## Staging
 
-- Use the `staging` branch for pre-production deploys.
-- Follow [Staging Setup](docs/STAGING.md) for the branch-level API, Cloudflare, and database configuration.
+- **`staging` mirrors `main`**: it should match production-bound code; feature work merges via PR into `main`, then automation fast-forwards `staging`.
+- Use staging deploy targets to validate the same tree as `main` (see [Staging Setup](docs/STAGING.md) for API, Cloudflare, and database configuration).
 
 ## License
 

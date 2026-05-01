@@ -41,6 +41,8 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 - `clinic-registration.spec.ts` - Onboarding wizard with signature upload
 - `critical-flows.spec.ts` - Auth, isolation, and high-risk business flow checks
 - `patients.spec.ts` - Patient creation, search, and list display
+- `upgrade.spec.ts` - Subscription billing UI under Settings (tier cards, billing history)
+- `subscription.spec.ts` - Subscription settings and billing-locked page smoke checks
 - `playwright.config.ts` - Playwright configuration
 
 **Features**:
@@ -67,10 +69,10 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 
 ### Prerequisites
 
-- Node.js 20+
-- pnpm 10.4.1+
-- PostgreSQL 16+ (for local testing)
-- Docker (optional, for running PostgreSQL in Docker)
+- Node.js `>=22.12.0` (match root `package.json` `engines`)
+- pnpm `10.30.3` (match root `package.json` `packageManager`)
+- PostgreSQL 16+ reachable from `DATABASE_URL` in the repo `.env` (local testing)
+- Docker (optional, for running PostgreSQL locally)
 
 ### Installation
 
@@ -137,6 +139,24 @@ pnpm --filter @docita/app test:e2e:debug
 
 # View test report after run
 pnpm --filter @docita/app test:e2e:report
+```
+
+### Doctor app subscription / billing E2E (`upgrade.spec.ts`, `subscription.spec.ts`)
+
+These specs register a user via the API and drive the Next.js app at `http://localhost:3000`. **PostgreSQL must be running** and migrations applied for the API (`http://localhost:3001` by default) or registration returns `500` / `ECONNREFUSED` from Prisma.
+
+```bash
+# From repo root: ensure DATABASE_URL in .env points at a live Postgres, then:
+pnpm db:deploy
+
+# Terminal 1 — API
+pnpm --filter @docita/api run dev
+
+# Terminal 2 — App
+pnpm --filter @docita/app run dev
+
+# Terminal 3 — focused Playwright run
+cd apps/app && pnpm exec playwright test e2e/upgrade.spec.ts --project=chromium
 ```
 
 ### Run All Tests
