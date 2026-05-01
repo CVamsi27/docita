@@ -169,7 +169,7 @@ function FormExample() {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="Full name" {...field} />
               </FormControl>
               <FormDescription>This is a demo field</FormDescription>
               <FormMessage />
@@ -198,7 +198,7 @@ export function CorePrimitives() {
         <Badge>Badge</Badge>
         <Label htmlFor="input-demo">Input label</Label>
       </div>
-      <Input id="input-demo" placeholder="Type here" />
+      <Input id="input-demo" placeholder="Enter text" />
       <Textarea placeholder="Textarea" />
       <div className="flex items-center gap-4">
         <Checkbox
@@ -363,7 +363,7 @@ export function OverlaysAndMenus() {
 
       <Select value={selectValue} onValueChange={setSelectValue}>
         <SelectTrigger>
-          <SelectValue placeholder="Select role" />
+          <SelectValue placeholder="Role" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="doctor">Doctor</SelectItem>
@@ -412,7 +412,7 @@ export function CommandAndSearch() {
   return (
     <div className="space-y-6 p-4">
       <Command className="rounded border max-w-md">
-        <CommandInput placeholder="Search commands" />
+        <CommandInput placeholder="Command" />
         <CommandList>
           <CommandEmpty>No results</CommandEmpty>
           <CommandGroup heading="Suggestions">

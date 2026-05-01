@@ -41,7 +41,7 @@ export function SearchDialog({
   onOpenChange,
   title,
   description,
-  placeholder = "Search...",
+  placeholder = "Search",
   items,
   onSelect,
   isLoading = false,
