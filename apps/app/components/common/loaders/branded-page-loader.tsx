@@ -1,4 +1,4 @@
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { DocitaLoadingIndicator } from "@workspace/ui";
 
 interface BrandedPageLoaderProps {
   label?: string;
@@ -7,17 +7,37 @@ interface BrandedPageLoaderProps {
 export function BrandedPageLoader({ label = "Loading..." }: BrandedPageLoaderProps) {
   return (
     <div
-      className="flex min-h-[60vh] flex-col items-center justify-center gap-4"
+      className="relative flex min-h-[60vh] flex-col items-center justify-center gap-4"
       role="status"
       aria-label={label}
     >
-      <div className="docita-loading-pulse">
-        <DocitaIcon className="h-12 w-12" />
+      <RouteLoadingBackdrop className="pointer-events-none absolute inset-0 opacity-[0.35]" />
+      <div className="relative z-[1] flex flex-col items-center gap-4">
+        <DocitaLoadingIndicator variant="page" withStatusRole={false} />
+        <p className="text-sm text-muted-foreground">{label}</p>
       </div>
-      <div className="h-1 w-24 overflow-hidden rounded-full bg-muted">
-        <div className="docita-loading-shimmer h-full w-1/2 rounded-full bg-primary/40" />
+    </div>
+  );
+}
+
+function RouteLoadingBackdrop({ className }: { className?: string }) {
+  return (
+    <div
+      className={className}
+      aria-hidden
+    >
+      <div className="mx-auto flex h-full max-w-4xl flex-col gap-4 px-4 pt-6">
+        <div className="h-8 w-48 rounded-md bg-muted" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-24 rounded-lg border border-border/40 bg-muted/50" />
+          ))}
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="h-48 rounded-lg border border-border/40 bg-muted/40 lg:col-span-2" />
+          <div className="h-48 rounded-lg border border-border/40 bg-muted/40" />
+        </div>
       </div>
-      <p className="text-sm text-muted-foreground">{label}</p>
     </div>
   );
 }
