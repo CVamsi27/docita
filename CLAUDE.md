@@ -125,6 +125,8 @@ cd packages/db && pnpm db:studio
 
 ```bash
 pnpm verify:standard           # Verify structure and contracts
+pnpm check:hygiene             # Block stray artifacts from being committed
+pnpm knip                      # Unused dependencies and exports (CI Repository Standards)
 pnpm check:prisma-boundary     # Ensure Prisma not imported in frontend
 ```
 
@@ -631,15 +633,18 @@ export class PrescriptionFactory {
 ### Before Committing
 
 - Run `pnpm lint` and changed issues
+- Run `pnpm verify:standard` and `pnpm check:hygiene` when touching structure, scripts, or many packages
+- Run `pnpm knip` for consolidated PRs or workspace-wide dependency/export changes (CI enforces Knip in Repository Standards)
 - Run `pnpm test` for changed areas
 - Run `pnpm build` for changed areas
 - Ensure no debug artifacts or `console.log` statements
 - Verify no emojis in code or comments
 - Check all imports use `@` aliases, not `../`
-- Verify no TODO/FIXME comments (implement or remove them)
+- Verify no TODO/FIXME comments (implement or remove them); drop redundant comments per `AGENTS.md` section 7.2
 - Remove any .txt, .log, or temporary files
 - Verify no secrets in code
 - Check that types compile: `turbo check-types`
+- Prefer fixing types over `@ts-expect-error` / broad `eslint-disable` (see `AGENTS.md` section 7.3)
 
 ## Key Documentation
 

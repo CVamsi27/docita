@@ -29,7 +29,6 @@
       "ignoreDependencies": [
         "class-variance-authority",
         "clsx",
-        "react-phone-number-input",
         "tailwind-merge",
         "@types/react-signature-canvas",
         "baseline-browser-mapping",

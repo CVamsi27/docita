@@ -91,6 +91,9 @@ jobs:
       - name: Verify Repository Standards
         run: pnpm verify:standard
 
+      - name: Knip unused dependencies and exports
+        run: pnpm knip
+
   api-quality:
     name: API Unit Checks
     needs: changes

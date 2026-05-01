@@ -87,11 +87,15 @@ This is a Monorepo managed by **Turborepo**.
     Before pushing, ensure your code passes standard checks:
 
     ```bash
-    pnpm check:hygiene # Ensure generated/runtime artifacts are not tracked
-    pnpm lint    # Check for linting errors
-    pnpm build   # Verify build consistency
-    pnpm test    # Run tests
+    pnpm check:hygiene    # Ensure generated/runtime artifacts are not tracked
+    pnpm verify:standard # Structure, contracts, prisma boundary (when broad changes)
+    pnpm knip             # Unused deps/exports for consolidated or workspace-wide PRs
+    pnpm lint             # Lint
+    pnpm build            # Verify build consistency when impact is broad
+    pnpm test             # Tests for touched areas
     ```
+
+    Coding-agent rules, typing discipline, and the full checklist live in [`AGENTS.md`](AGENTS.md).
 
 ### Repository Hygiene
 

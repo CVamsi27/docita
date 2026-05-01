@@ -53,5 +53,8 @@ Apply these rules when generating or editing code in this repository.
 Before finalizing, ensure:
 
 - lint/typecheck/tests are green,
+- `pnpm knip` passes when your change affects dependencies, exports, or multiple workspaces (see `AGENTS.md` sections 7.4 and 10),
 - no debug artifacts are added,
 - user-impact and rollout risk are clearly described.
+
+Authoritative agent rules live in `AGENTS.md` (typing, comments, Knip, verification).
