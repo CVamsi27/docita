@@ -91,4 +91,17 @@ test.describe("Subscription billing (settings)", () => {
     await page.getByRole("button", { name: "Yearly" }).click();
     await expect(page.getByRole("button", { name: "Yearly" })).toBeVisible();
   });
+
+  test("should render billing locked page when visited directly", async ({
+    page,
+  }) => {
+    await page.goto("/billing-locked", { waitUntil: "networkidle" });
+
+    await expect(
+      page.getByRole("heading", { name: /Workspace access paused/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/subscription billing must be resolved/i),
+    ).toBeVisible();
+  });
 });

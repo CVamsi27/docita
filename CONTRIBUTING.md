@@ -6,8 +6,8 @@ Thank you for your interest in contributing to Docita! This document provides gu
 
 ### Prerequisites
 
-- **Node.js**: v20 or higher
-- **pnpm**: v10+ (This project uses pnpm for package management)
+- **Node.js**: `>=22.12.0` (match root `package.json` `engines`)
+- **pnpm**: `10.30.3` (match root `package.json` `packageManager`)
 - **Docker**: Required for running the database and other services locally if not using cloud providers.
 
 ### Installation
