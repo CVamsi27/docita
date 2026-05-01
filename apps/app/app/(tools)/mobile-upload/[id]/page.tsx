@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useParams } from "next/navigation";
+import { Suspense, useCallback, useMemo, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { Button } from "@workspace/ui/components/button";
@@ -10,11 +10,17 @@ import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
 import { apiFetch } from "@/lib/api-client";
+import { buildCsrfHeaders } from "@/lib/csrf";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
-export default function MobileUploadPage() {
+function MobileUploadPageInner() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const sessionId = params["id"] as string;
+  const uploadSecretFromQuery = useMemo(
+    () => searchParams.get("uploadSecret"),
+    [searchParams],
+  );
   const [file, setFile] = useState<File | null>(null);
   const [success, setSuccess] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -25,10 +31,18 @@ export default function MobileUploadPage() {
       const formData = new FormData();
       formData.append("file", selectedFile);
 
+      const secret = uploadSecretFromQuery?.trim();
+      if (!secret) {
+        throw new Error("Missing upload credentials in this link.");
+      }
+
       return await apiFetch<{ status?: string; fileUrl?: string }>(
         `/uploads/session/${sessionId}`,
         {
           method: "POST",
+          headers: buildCsrfHeaders({
+            "X-Upload-Secret": secret,
+          }),
           body: formData,
           suppressGlobalErrorToast: true,
         },
@@ -73,6 +87,13 @@ export default function MobileUploadPage() {
           showUserFacingErrorToast(null, message, "upload");
           return;
         }
+        if (error.status === 401) {
+          const message =
+            "This upload link is invalid or incomplete. Please scan the QR code again.";
+          setErrorMessage(message);
+          showUserFacingErrorToast(null, message, "upload");
+          return;
+        }
         if (error.status === 400) {
           const message = "Please upload an image file";
           setErrorMessage(message);
@@ -95,13 +116,28 @@ export default function MobileUploadPage() {
     return <MobileSuccessScreen />;
   }
 
+  if (!uploadSecretFromQuery?.trim()) {
+    return (
+      <div className="min-h-screen bg-linear-to-b from-background to-card dark:from-background dark:to-card">
+        <MobileHeader />
+        <div className="max-w-sm mx-auto px-4 py-6 space-y-6">
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            This upload link is incomplete. Please scan the QR code again from
+            your desktop.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-b from-background to-card dark:from-background dark:to-card">
       <MobileHeader />
 
-      {}
       <div className="max-w-sm mx-auto px-4 py-6 space-y-6">
-        {}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-semibold text-foreground">
             Scan Document
@@ -111,7 +147,6 @@ export default function MobileUploadPage() {
           </p>
         </div>
 
-        {}
         <MobileFileUploader
           onFileSelect={handleFileSelect}
           previewUrl={previewUrl}
@@ -127,7 +162,6 @@ export default function MobileUploadPage() {
           </p>
         )}
 
-        {}
         <Button
           className={`w-full h-14 text-base font-medium rounded-lg shadow-lg transition-all ${
             file && !uploadMutation.isPending
@@ -151,11 +185,25 @@ export default function MobileUploadPage() {
           )}
         </Button>
 
-        {}
         <p className="text-center text-xs text-muted-foreground px-4">
           The document will appear on your desktop instantly
         </p>
       </div>
     </div>
+  );
+}
+
+export default function MobileUploadPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4 text-sm text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          Loading...
+        </div>
+      }
+    >
+      <MobileUploadPageInner />
+    </Suspense>
   );
 }

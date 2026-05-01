@@ -47,7 +47,9 @@ interface ComplianceStepProps {
   onBack: () => void;
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
   onboardingId?: string;
-  ensureOnboardingId?: (options?: { forceRefresh?: boolean }) => Promise<string>;
+  ensureOnboardingId?: (options?: {
+    forceRefresh?: boolean;
+  }) => Promise<string>;
   clinicId?: string;
 }
 interface QrSessionStatusResponse {
@@ -71,7 +73,9 @@ function resolveSignaturePreviewUrl(fileUrl: string): string {
   if (trimmed.startsWith("/")) {
     const apiOrigin = new URL(
       API_URL,
-      typeof window !== "undefined" ? window.location.origin : "http://localhost",
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "http://localhost",
     ).origin;
     return `${apiOrigin}${trimmed}`;
   }
@@ -135,14 +139,21 @@ function LegalCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className={cn("text-sm font-semibold", accepted && "text-primary")}>
+            <p
+              className={cn(
+                "text-sm font-semibold",
+                accepted && "text-primary",
+              )}
+            >
               {index}. {title}
             </p>
             <Badge
               variant={accepted ? "default" : "outline"}
               className={cn(
                 "text-[var(--fs-2xs)] h-5 px-2",
-                accepted ? "bg-primary/90 text-primary-foreground" : "text-muted-foreground",
+                accepted
+                  ? "bg-primary/90 text-primary-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {accepted ? "Accepted" : "Pending review"}
@@ -209,7 +220,9 @@ function LegalDocumentDialog({
       setScrollProgress(100);
       return;
     }
-    setScrollProgress(Math.min(100, Math.round((container.scrollTop / maxScroll) * 100)));
+    setScrollProgress(
+      Math.min(100, Math.round((container.scrollTop / maxScroll) * 100)),
+    );
   }, []);
 
   useEffect(() => {
@@ -245,10 +258,15 @@ function LegalDocumentDialog({
         <DialogHeader className="border-b bg-muted/25 px-6 py-5">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">
-              <DialogTitle className="text-base md:text-lg">{title}</DialogTitle>
+              <DialogTitle className="text-base md:text-lg">
+                {title}
+              </DialogTitle>
               <DialogDescription>{description}</DialogDescription>
             </div>
-            <Badge variant="outline" className="h-6 px-2.5 text-[var(--fs-2xs)]">
+            <Badge
+              variant="outline"
+              className="h-6 px-2.5 text-[var(--fs-2xs)]"
+            >
               Required
             </Badge>
           </div>
@@ -295,7 +313,8 @@ export function ComplianceStep({
   onboardingId,
   ensureOnboardingId,
 }: ComplianceStepProps) {
-  const [activeLegalDoc, setActiveLegalDoc] = useState<LegalDocumentType | null>(null);
+  const [activeLegalDoc, setActiveLegalDoc] =
+    useState<LegalDocumentType | null>(null);
   const signatureSessionId = complianceForm.watch("slaSignatureSessionId");
   const hasSignatureSession = Boolean(signatureSessionId);
   const hasOnboardingContext = Boolean(onboardingId || ensureOnboardingId);
@@ -315,9 +334,9 @@ export function ComplianceStep({
       const status = data.status?.toLowerCase();
       return Boolean(
         data.uploaded ||
-          data.fileUrl ||
-          status === "uploaded" ||
-          status === "completed",
+        data.fileUrl ||
+        status === "uploaded" ||
+        status === "completed",
       );
     },
     [],
@@ -325,7 +344,7 @@ export function ComplianceStep({
 
   const createQrSession = useCallback(async () => {
     const createSession = async (resolvedOnboardingId: string) => {
-      return await apiFetch<{ id: string }>(
+      return await apiFetch<{ id: string; uploadSecret: string }>(
         `/onboarding/${resolvedOnboardingId}/sla-signature-session`,
         {
           method: "POST",
@@ -343,11 +362,14 @@ export function ComplianceStep({
     }
 
     if (!activeOnboardingId) {
-      throw new Error("We could not create the signature link right now. Please try again.");
+      throw new Error(
+        "We could not create the signature link right now. Please try again.",
+      );
     }
 
-    let sessionData: { id: string } | null = null;
-    let errMessage = "We could not create the signature link right now. Please try again.";
+    let sessionData: { id: string; uploadSecret: string } | null = null;
+    let errMessage =
+      "We could not create the signature link right now. Please try again.";
 
     try {
       sessionData = await createSession(activeOnboardingId);
@@ -376,7 +398,7 @@ export function ComplianceStep({
       sessionId: sessionData.id,
       contextId: activeOnboardingId,
       qrUrl: toAbsoluteAppUrl(
-        `/upload-signature/onboarding?onboardingId=${activeOnboardingId}&sessionId=${sessionData.id}`,
+        `/upload-signature/onboarding?onboardingId=${encodeURIComponent(activeOnboardingId)}&sessionId=${encodeURIComponent(sessionData.id)}&uploadSecret=${encodeURIComponent(sessionData.uploadSecret)}`,
       ),
     };
   }, [ensureOnboardingId, onboardingId]);
@@ -500,7 +522,9 @@ export function ComplianceStep({
         toast.message("We have not received the signature yet");
       }
     } catch {
-      showUserFacingErrorToast("We could not refresh the signature status. Please try again.");
+      showUserFacingErrorToast(
+        "We could not refresh the signature status. Please try again.",
+      );
     }
   }, [refreshQrStatus]);
 
@@ -510,10 +534,14 @@ export function ComplianceStep({
       if (copied) {
         toast.success("Link copied");
       } else {
-        showUserFacingErrorToast("We could not copy this link. Please try again.");
+        showUserFacingErrorToast(
+          "We could not copy this link. Please try again.",
+        );
       }
     } catch {
-      showUserFacingErrorToast("We could not copy this link. Please try again.");
+      showUserFacingErrorToast(
+        "We could not copy this link. Please try again.",
+      );
     }
   }, [copyQrLink]);
 
@@ -522,26 +550,32 @@ export function ComplianceStep({
     title: string;
     summary: string;
     accepted: boolean;
-    fieldKey: "acceptedSLA" | "acceptedPrivacyPolicy" | "acceptedDataProcessing";
+    fieldKey:
+      | "acceptedSLA"
+      | "acceptedPrivacyPolicy"
+      | "acceptedDataProcessing";
   }[] = [
     {
       key: "sla",
       title: "Service Level Agreement",
-      summary: "Platform uptime, support timelines, incident response, and governance commitments",
+      summary:
+        "Platform uptime, support timelines, incident response, and governance commitments",
       accepted: !!complianceForm.watch("acceptedSLA"),
       fieldKey: "acceptedSLA",
     },
     {
       key: "privacy",
       title: "Privacy Policy & Data Consent",
-      summary: "How patient data is collected, stored, and processed under DPDP regulations",
+      summary:
+        "How patient data is collected, stored, and processed under DPDP regulations",
       accepted: !!complianceForm.watch("acceptedPrivacyPolicy"),
       fieldKey: "acceptedPrivacyPolicy",
     },
     {
       key: "dpa",
       title: "Data Processing Agreement",
-      summary: "Your obligations as a data fiduciary and our role as a data processor",
+      summary:
+        "Your obligations as a data fiduciary and our role as a data processor",
       accepted: !!complianceForm.watch("acceptedDataProcessing"),
       fieldKey: "acceptedDataProcessing",
     },
@@ -551,10 +585,22 @@ export function ComplianceStep({
 
   const legalDocumentConfig = activeLegalDoc
     ? activeLegalDoc === "sla"
-      ? { title: "Service Level Agreement", description: "Review the SLA terms before accepting", content: <SLAContent /> }
+      ? {
+          title: "Service Level Agreement",
+          description: "Review the SLA terms before accepting",
+          content: <SLAContent />,
+        }
       : activeLegalDoc === "privacy"
-        ? { title: "Privacy Policy & Data Consent", description: "Review privacy and consent terms before accepting", content: <PrivacyPolicyContent /> }
-        : { title: "Data Processing Agreement", description: "Review data processing obligations before accepting", content: <DataProcessingAgreementContent /> }
+        ? {
+            title: "Privacy Policy & Data Consent",
+            description: "Review privacy and consent terms before accepting",
+            content: <PrivacyPolicyContent />,
+          }
+        : {
+            title: "Data Processing Agreement",
+            description: "Review data processing obligations before accepting",
+            content: <DataProcessingAgreementContent />,
+          }
     : null;
 
   return (
@@ -572,20 +618,26 @@ export function ComplianceStep({
                 id="requireConsent"
                 checked={complianceForm.watch("requireConsent")}
                 onCheckedChange={(checked) =>
-                  complianceForm.setValue("requireConsent", checked as boolean, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                    shouldValidate: true,
-                  })
+                  complianceForm.setValue(
+                    "requireConsent",
+                    checked as boolean,
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    },
+                  )
                 }
                 className="mt-0.5"
               />
               <div>
                 <Label htmlFor="requireConsent" className="text-sm">
-                  Require explicit patient consent for WhatsApp communications (mandatory under DPDP)
+                  Require explicit patient consent for WhatsApp communications
+                  (mandatory under DPDP)
                 </Label>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  WhatsApp integration is enabled by default. Patient consent is required before sending any messages per DPDP regulations.
+                  WhatsApp integration is enabled by default. Patient consent is
+                  required before sending any messages per DPDP regulations.
                 </p>
               </div>
             </div>
@@ -673,7 +725,9 @@ export function ComplianceStep({
                   <h3 className="font-semibold text-sm">Legal Agreements</h3>
                 </div>
                 <Badge
-                  variant={acceptedCount === legalDocs.length ? "default" : "secondary"}
+                  variant={
+                    acceptedCount === legalDocs.length ? "default" : "secondary"
+                  }
                   className="h-6 px-2.5"
                 >
                   {acceptedCount}/{legalDocs.length} accepted
@@ -684,7 +738,8 @@ export function ComplianceStep({
                 className="h-1.5"
               />
               <p className="text-xs text-muted-foreground">
-                Review each agreement and accept all documents to continue registration.
+                Review each agreement and accept all documents to continue
+                registration.
               </p>
             </div>
             <div className="space-y-3">
@@ -695,9 +750,7 @@ export function ComplianceStep({
                   title={doc.title}
                   summary={doc.summary}
                   accepted={doc.accepted}
-                  error={
-                    complianceForm.formState.errors[doc.fieldKey]?.message
-                  }
+                  error={complianceForm.formState.errors[doc.fieldKey]?.message}
                   onOpenDocument={() => setActiveLegalDoc(doc.key)}
                   onUnaccept={() =>
                     complianceForm.setValue(doc.fieldKey, false, {
@@ -726,17 +779,23 @@ export function ComplianceStep({
           const pendingItems = checklist.filter((c) => !c.done);
           return (
             <>
-              {pendingItems.length > 0 && !complianceForm.formState.isSubmitting && (
-                <div className="w-full rounded-md border border-muted bg-muted/30 p-3 space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground">Complete before registering:</p>
-                  {pendingItems.map((item) => (
-                    <p key={item.label} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
-                      {item.label}
+              {pendingItems.length > 0 &&
+                !complianceForm.formState.isSubmitting && (
+                  <div className="w-full rounded-md border border-muted bg-muted/30 p-3 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Complete before registering:
                     </p>
-                  ))}
-                </div>
-              )}
+                    {pendingItems.map((item) => (
+                      <p
+                        key={item.label}
+                        className="text-xs text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
+                        {item.label}
+                      </p>
+                    ))}
+                  </div>
+                )}
               <div className="flex w-full justify-between gap-4">
                 <Button variant="outline" onClick={onBack}>
                   Back
@@ -766,11 +825,23 @@ export function ComplianceStep({
           content={legalDocumentConfig.content}
           onAgree={() => {
             if (activeLegalDoc === "sla") {
-              complianceForm.setValue("acceptedSLA", true, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+              complianceForm.setValue("acceptedSLA", true, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              });
             } else if (activeLegalDoc === "privacy") {
-              complianceForm.setValue("acceptedPrivacyPolicy", true, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+              complianceForm.setValue("acceptedPrivacyPolicy", true, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              });
             } else if (activeLegalDoc === "dpa") {
-              complianceForm.setValue("acceptedDataProcessing", true, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+              complianceForm.setValue("acceptedDataProcessing", true, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              });
             }
             setActiveLegalDoc(null);
           }}

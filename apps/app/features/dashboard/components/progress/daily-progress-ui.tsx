@@ -24,7 +24,6 @@ export function DailyProgressUI({
         </div>
 
         <div className="space-y-3">
-          {}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Appointments</span>
@@ -46,7 +45,6 @@ export function DailyProgressUI({
             </div>
           </div>
 
-          {}
           <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
             <div className="flex items-center gap-2">
               <Zap className="h-3.5 w-3.5 text-warning" />

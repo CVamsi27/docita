@@ -122,10 +122,13 @@ describe("ComplianceStep", () => {
       }
 
       if (url.endsWith("/onboarding/onb_1/sla-signature-session")) {
-        return new Response(JSON.stringify({ id: "sess_1" }), {
-          status: 201,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ id: "sess_1", uploadSecret: "sec_one" }),
+          {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
 
       return new Response(JSON.stringify({}), {
@@ -180,10 +183,13 @@ describe("ComplianceStep", () => {
       }
 
       if (url.endsWith("/onboarding/onb_fresh/sla-signature-session")) {
-        return new Response(JSON.stringify({ id: "sess_retry" }), {
-          status: 201,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ id: "sess_retry", uploadSecret: "sec_retry" }),
+          {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
 
       if (url.includes("/status")) {

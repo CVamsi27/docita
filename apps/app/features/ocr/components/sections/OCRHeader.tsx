@@ -30,7 +30,6 @@ export const OCRHeader = ({
         </CardDescription>
       </CardHeader>
 
-      {}
       <div className="surface-warning rounded-lg p-3 flex gap-3">
         <AlertCircle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
         <div className="text-sm text-warning-foreground">
@@ -43,7 +42,6 @@ export const OCRHeader = ({
         </div>
       </div>
 
-      {}
       {Object.entries(confidenceScores).some(([, score]) => score < 0.6) && (
         <div className="surface-danger rounded-lg p-3 flex gap-3">
           <AlertOctagon className="h-5 w-5 text-destructive shrink-0" />
@@ -56,7 +54,6 @@ export const OCRHeader = ({
         </div>
       )}
 
-      {}
       {Object.keys(suggestedCorrections).length > 0 && (
         <div className="surface-info rounded-lg p-3 flex gap-3">
           <Lightbulb className="h-5 w-5 text-info shrink-0" />

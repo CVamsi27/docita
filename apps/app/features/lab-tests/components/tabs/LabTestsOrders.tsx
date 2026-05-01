@@ -45,7 +45,6 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -62,7 +61,6 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
         </Button>
       </div>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Lab Test Orders</CardTitle>
@@ -80,9 +78,15 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                   <TableRow>
                     <TableHead>Patient</TableHead>
                     <TableHead>Test Name</TableHead>
-                    <TableHead className="hidden sm:table-cell">Category</TableHead>
-                    <TableHead className="hidden md:table-cell">Ordered By</TableHead>
-                    <TableHead className="hidden sm:table-cell">Order Date</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Category
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Ordered By
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Order Date
+                    </TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -111,9 +115,22 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                         <StatusBadge status={test.status} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="gap-1" title={test.status === "completed" ? "View Results" : "Details"}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1"
+                          title={
+                            test.status === "completed"
+                              ? "View Results"
+                              : "Details"
+                          }
+                        >
                           <FileText className="h-4 w-4" />
-                          <span className="hidden sm:inline">{test.status === "completed" ? "View Results" : "Details"}</span>
+                          <span className="hidden sm:inline">
+                            {test.status === "completed"
+                              ? "View Results"
+                              : "Details"}
+                          </span>
                         </Button>
                       </TableCell>
                     </TableRow>

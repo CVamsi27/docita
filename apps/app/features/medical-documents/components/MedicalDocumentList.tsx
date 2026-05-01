@@ -64,15 +64,17 @@ const DOCUMENT_TYPE_OPTIONS = [
   "OTHER",
 ] as const;
 
-const DOCUMENT_TYPE_LABELS: Record<(typeof DOCUMENT_TYPE_OPTIONS)[number], string> =
-  {
-    MEDICAL_CERTIFICATE: "Medical Certificate",
-    FITNESS_CERTIFICATE: "Fitness Certificate",
-    DISCHARGE_SUMMARY: "Discharge Summary",
-    REFERRAL_LETTER: "Referral Letter",
-    SICK_NOTE: "Sick Note",
-    OTHER: "Other",
-  };
+const DOCUMENT_TYPE_LABELS: Record<
+  (typeof DOCUMENT_TYPE_OPTIONS)[number],
+  string
+> = {
+  MEDICAL_CERTIFICATE: "Medical Certificate",
+  FITNESS_CERTIFICATE: "Fitness Certificate",
+  DISCHARGE_SUMMARY: "Discharge Summary",
+  REFERRAL_LETTER: "Referral Letter",
+  SICK_NOTE: "Sick Note",
+  OTHER: "Other",
+};
 
 export function MedicalDocumentList({ patientId }: Props) {
   const { user } = useAuth();
@@ -134,21 +136,27 @@ export function MedicalDocumentList({ patientId }: Props) {
 
   const handleCreate = async () => {
     if (!newTitle.trim()) {
-      showUserFacingErrorToast(
-        "Enter a document title before creating it",
-      );
+      showUserFacingErrorToast("Enter a document title before creating it");
       return;
     }
     setCreating(true);
     try {
       let pdfUrl: string | null = null;
       if (newFile) {
-        const session = await api.post<{ id: string }>(`/uploads/session`, {});
+        const session = await api.post<{ id: string; uploadSecret: string }>(
+          `/uploads/session`,
+          {},
+        );
         const formData = new FormData();
         formData.append("file", newFile);
         const uploaded = await api.post<{ fileUrl?: string | null }>(
           `/uploads/session/${session.id}`,
           formData,
+          {
+            headers: {
+              "X-Upload-Secret": session.uploadSecret,
+            },
+          },
         );
         pdfUrl = uploaded?.fileUrl ?? null;
       }
@@ -284,9 +292,7 @@ export function MedicalDocumentList({ patientId }: Props) {
                 </div>
               ) : null}
               {newFileUrl ? (
-                <p className="text-xs text-muted-foreground">
-                  File selected.
-                </p>
+                <p className="text-xs text-muted-foreground">File selected.</p>
               ) : null}
             </div>
           </div>
@@ -318,14 +324,27 @@ export function MedicalDocumentList({ patientId }: Props) {
                     </p>
                   </div>
                 </div>
-                <Badge variant={STATUS_COLORS[doc.status] as "default" | "secondary" | "destructive" | "outline"}>
+                <Badge
+                  variant={
+                    STATUS_COLORS[doc.status] as
+                      | "default"
+                      | "secondary"
+                      | "destructive"
+                      | "outline"
+                  }
+                >
                   {doc.status}
                 </Badge>
               </div>
             </CardHeader>
             {doc.pdfUrl ? (
               <CardContent className="py-0 px-4 pb-3">
-                <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                >
                   <a href={doc.pdfUrl} target="_blank" rel="noreferrer">
                     View uploaded file
                   </a>

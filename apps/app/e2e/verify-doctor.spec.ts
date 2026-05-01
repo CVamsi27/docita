@@ -262,6 +262,11 @@ async function createDoctorWithSignature(
   const signatureSessionData = asRecord(await signatureSessionRes.json());
   const signatureSessionId = readString(signatureSessionData, "id");
   expect(signatureSessionId).toBeTruthy();
+  const signatureUploadSecret = readString(
+    signatureSessionData,
+    "uploadSecret",
+  );
+  expect(signatureUploadSecret).toBeTruthy();
 
   const uploadSlaRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
@@ -269,6 +274,7 @@ async function createDoctorWithSignature(
       headers: {
         ...authHeaders(accessToken),
         ...csrfHeaders,
+        "X-Upload-Secret": signatureUploadSecret,
       },
       multipart: {
         file: {

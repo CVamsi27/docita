@@ -25,19 +25,27 @@ function OnboardingSlaUploadInner() {
     () => searchParams.get("onboardingId"),
     [searchParams],
   );
-  const sessionId = useMemo(() => searchParams.get("sessionId"), [searchParams]);
+  const sessionId = useMemo(
+    () => searchParams.get("sessionId"),
+    [searchParams],
+  );
+  const uploadSecret = useMemo(
+    () => searchParams.get("uploadSecret"),
+    [searchParams],
+  );
 
   const [uploadComplete, setUploadComplete] = useState(false);
   const [alreadyUploaded, setAlreadyUploaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const statusQuery = useQuery({
-    queryKey: onboardingId && sessionId
-      ? appQueryKeys.onboarding.signatureSession(onboardingId, sessionId)
-      : appQueryKeys.onboarding.signatureSession("missing", "missing"),
-    enabled: Boolean(onboardingId && sessionId),
+    queryKey:
+      onboardingId && sessionId
+        ? appQueryKeys.onboarding.signatureSession(onboardingId, sessionId)
+        : appQueryKeys.onboarding.signatureSession("missing", "missing"),
+    enabled: Boolean(onboardingId && sessionId && uploadSecret?.trim()),
     queryFn: async () => {
-      if (!onboardingId || !sessionId) {
+      if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
         throw new Error(
           "This signature link is incomplete. Please open the full link again.",
         );
@@ -58,24 +66,28 @@ function OnboardingSlaUploadInner() {
     retry: false,
   });
 
-  const getCompletedSignatureState = (data: {
-    status?: string;
-    uploaded?: boolean;
-    fileUrl?: string | null;
-  } | undefined) => {
+  const getCompletedSignatureState = (
+    data:
+      | {
+          status?: string;
+          uploaded?: boolean;
+          fileUrl?: string | null;
+        }
+      | undefined,
+  ) => {
     const status = data?.status?.toLowerCase();
 
     return Boolean(
       data?.uploaded ||
-        data?.fileUrl ||
-        status === "uploaded" ||
-        status === "completed",
+      data?.fileUrl ||
+      status === "uploaded" ||
+      status === "completed",
     );
   };
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!onboardingId || !sessionId) {
+      if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
         throw new Error(
           "This signature link is incomplete. Please open the full link again.",
         );
@@ -87,7 +99,9 @@ function OnboardingSlaUploadInner() {
         `/onboarding/${onboardingId}/sla-signature-session/${sessionId}`,
         {
           method: "POST",
-          headers: buildCsrfHeaders(),
+          headers: buildCsrfHeaders({
+            "X-Upload-Secret": uploadSecret.trim(),
+          }),
           body: formData,
         },
       );
@@ -95,7 +109,7 @@ function OnboardingSlaUploadInner() {
   });
 
   useEffect(() => {
-    if (!onboardingId || !sessionId) {
+    if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
       setError(
         "This signature link is incomplete. Please open the full link again.",
       );
@@ -110,10 +124,10 @@ function OnboardingSlaUploadInner() {
       setAlreadyUploaded(true);
       setUploadComplete(true);
     }
-  }, [onboardingId, sessionId, statusQuery.data]);
+  }, [onboardingId, sessionId, uploadSecret, statusQuery.data]);
 
   const handleUpload = async (file: File) => {
-    if (!onboardingId || !sessionId) return;
+    if (!onboardingId || !sessionId || !uploadSecret?.trim()) return;
     setError(null);
 
     try {
@@ -206,7 +220,7 @@ function OnboardingSlaUploadInner() {
     );
   }
 
-  if (!onboardingId || !sessionId) {
+  if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
         <Card className="w-full max-w-md">
@@ -235,7 +249,8 @@ function OnboardingSlaUploadInner() {
         <CardHeader>
           <CardTitle>Upload SLA Signature</CardTitle>
           <CardDescription>
-            Draw or upload your signature to authorise the Docita Service Level Agreement.
+            Draw or upload your signature to authorise the Docita Service Level
+            Agreement.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

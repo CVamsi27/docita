@@ -53,7 +53,6 @@ export const ExcelMappingStep = ({
 }: ExcelMappingStepProps) => {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Column Mapping</CardTitle>
@@ -64,7 +63,10 @@ export const ExcelMappingStep = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {preview.columns.map((col) => (
-            <div key={col.excelColumn} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <div
+              key={col.excelColumn}
+              className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+            >
               <div className="flex-1">
                 <Label className="text-sm font-medium">{col.excelColumn}</Label>
                 <p className="text-xs text-muted-foreground truncate">
@@ -114,7 +116,6 @@ export const ExcelMappingStep = ({
         </CardFooter>
       </Card>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Data Preview</CardTitle>

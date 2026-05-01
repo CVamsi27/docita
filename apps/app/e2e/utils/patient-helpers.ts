@@ -354,11 +354,18 @@ async function setupTestUserImpl(
 
   const signatureSession = await signatureSessionRes.json();
   const signatureSessionId = signatureSession.id;
+  const signatureUploadSecret = signatureSession.uploadSecret as string;
+  if (!signatureUploadSecret) {
+    throw new Error("SLA signature session missing uploadSecret");
+  }
 
   const uploadSignatureRes = await request.post(
     `${API_URL}/onboarding/${onboardingId}/sla-signature-session/${signatureSessionId}`,
     {
-      headers: authHeaders(accessToken),
+      headers: {
+        ...authHeaders(accessToken),
+        "X-Upload-Secret": signatureUploadSecret,
+      },
       multipart: {
         file: {
           name: "signature.png",

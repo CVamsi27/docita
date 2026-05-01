@@ -211,7 +211,6 @@ export function ConsentNoticeModal({
           <div className="space-y-6">
             <p className="text-muted-foreground">{content.description}</p>
 
-            {}
             <div className="space-y-4">
               <h4 className="font-semibold">Purpose of Data Collection</h4>
               {content.purposes.map((purpose) => (
@@ -244,7 +243,6 @@ export function ConsentNoticeModal({
               ))}
             </div>
 
-            {}
             <div className="space-y-3">
               <h4 className="font-semibold">Your Rights</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -257,7 +255,6 @@ export function ConsentNoticeModal({
               </ul>
             </div>
 
-            {}
             <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">

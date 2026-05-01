@@ -79,7 +79,6 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     "hover:bg-muted/60 hover:border-border/50",
                   )}
                 >
-                  {}
                   <div className="flex flex-col items-center justify-center min-w-10 sm:min-w-12 text-center">
                     <p
                       className={cn(
@@ -94,7 +93,6 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </p>
                   </div>
 
-                  {}
                   <div className="relative h-10 flex items-center">
                     <div className="w-px h-full bg-border" />
                     {apt.status === "in-progress" && (
@@ -105,7 +103,6 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     )}
                   </div>
 
-                  {}
                   <Avatar className="h-9 w-9 shrink-0">
                     <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-medium">
                       {apt.patient?.firstName?.[0]}
@@ -122,9 +119,10 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </p>
                   </div>
 
-                  {}
                   <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <span className="hidden sm:block"><StatusBadge status={apt.status} /></span>
+                    <span className="hidden sm:block">
+                      <StatusBadge status={apt.status} />
+                    </span>
                     {(apt.status === "scheduled" ||
                       apt.status === "in-progress") && (
                       <Button

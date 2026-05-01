@@ -72,7 +72,6 @@ export function PatientContextCardUI({
   isExpanded,
   onToggleExpand,
   className,
-
 }: PatientContextCardUIProps) {
   const hasAllergies = patient.allergies && patient.allergies.length > 0;
 
@@ -84,7 +83,6 @@ export function PatientContextCardUI({
         className,
       )}
     >
-      {}
       <div className="p-3 border-b bg-muted/30">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -115,7 +113,10 @@ export function PatientContextCardUI({
                   </span>
                 )}
                 {hasAllergies && (
-                  <Badge variant="destructive" className="text-[var(--fs-2xs)] h-5">
+                  <Badge
+                    variant="destructive"
+                    className="text-[var(--fs-2xs)] h-5"
+                  >
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     Allergies
                   </Badge>
@@ -138,7 +139,6 @@ export function PatientContextCardUI({
         </div>
       </div>
 
-      {}
       {hasAllergies && (
         <div className="px-3 py-2 surface-danger border-b">
           <div className="flex items-center gap-2">
@@ -150,12 +150,9 @@ export function PatientContextCardUI({
         </div>
       )}
 
-      {}
       <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
         <CollapsibleContent>
           <div className="p-3 space-y-4">
-            {}
-            {}
             <div className="px-4 py-2 border-b">
               <SummaryConditions
                 conditions={(patient.conditions || []).map((c) => ({
@@ -166,7 +163,6 @@ export function PatientContextCardUI({
               />
             </div>
 
-            {}
             <div className="px-4 py-2 border-b">
               <SummaryMedications
                 medications={(patient.currentMedications || []).map((m) => ({
@@ -178,16 +174,12 @@ export function PatientContextCardUI({
             </div>
 
             <div className="px-4 py-2 border-b">
-              {}
-
-              {}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Activity className="h-4 w-4" />
                   Key Vitals (Last 3 visits)
                 </div>
 
-                {}
                 {patient.recentVitals?.bp &&
                   patient.recentVitals.bp.length > 0 && (
                     <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
@@ -207,7 +199,6 @@ export function PatientContextCardUI({
                     </div>
                   )}
 
-                {}
                 {patient.recentVitals?.weight &&
                   patient.recentVitals.weight.length > 0 && (
                     <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
@@ -247,7 +238,6 @@ export function PatientContextCardUI({
               </div>
             )}
 
-            {}
             <div className="flex items-center gap-2 pt-2">
               <Button
                 asChild

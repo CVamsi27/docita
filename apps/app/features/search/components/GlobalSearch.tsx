@@ -139,7 +139,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
-      {}
       <div className="relative">
         <Search
           className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
@@ -183,7 +182,6 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
         )}
       </div>
 
-      {}
       {isOpen && (query.length >= 2 || results.length > 0 || isError) && (
         <div
           id="search-results"
@@ -196,7 +194,10 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
               role="status"
               aria-live="polite"
             >
-              <Loader2 className="h-5 w-5 animate-spin mr-2" aria-hidden="true" />
+              <Loader2
+                className="h-5 w-5 animate-spin mr-2"
+                aria-hidden="true"
+              />
               Searching...
             </div>
           ) : isError ? (

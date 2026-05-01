@@ -88,21 +88,16 @@ export function MobileFileUploader({
               </div>
             </div>
           ) : (
-            
             <label className="block cursor-pointer">
               <div className="aspect-4/3 flex flex-col items-center justify-center p-6 space-y-4">
                 <div
                   className={`p-4 rounded-lg transition-colors ${
-                    dragActive
-                      ? "surface-info"
-                      : "bg-muted"
+                    dragActive ? "surface-info" : "bg-muted"
                   }`}
                 >
                   <Camera
                     className={`h-10 w-10 transition-colors ${
-                      dragActive
-                        ? "text-info"
-                        : "text-muted-foreground"
+                      dragActive ? "text-info" : "text-muted-foreground"
                     }`}
                   />
                 </div>
@@ -114,7 +109,6 @@ export function MobileFileUploader({
                     or select from gallery
                   </p>
                 </div>
-                {}
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <ImageIcon className="h-3 w-3" />
                   <span>JPG, PNG supported</span>

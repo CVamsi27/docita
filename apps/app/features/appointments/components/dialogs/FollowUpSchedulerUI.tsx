@@ -122,7 +122,6 @@ export function FollowUpSchedulerUI({
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
-          {}
           <QuickScheduleButtons
             quickSchedules={quickSchedules}
             onQuickSchedule={onQuickSchedule}
@@ -130,7 +129,6 @@ export function FollowUpSchedulerUI({
           />
 
           <div className="grid grid-cols-2 gap-4">
-            {}
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
@@ -161,7 +159,6 @@ export function FollowUpSchedulerUI({
                 </PopoverContent>
               </Popover>
             </div>
-            {}
             <FollowUpForm
               followUpType={followUpType}
               onTypeChange={onTypeChange}
@@ -180,7 +177,6 @@ export function FollowUpSchedulerUI({
             />
           </div>
 
-          {}
           {selectedDate && (
             <FollowUpSummary
               selectedDate={selectedDate}

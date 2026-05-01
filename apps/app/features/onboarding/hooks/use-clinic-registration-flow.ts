@@ -257,7 +257,7 @@ export function useClinicRegistrationFlow() {
     async (file: File): Promise<string> => {
       const currentOnboardingId = await ensureOnboardingId();
 
-      const sessionData = await apiFetch<{ id: string }>(
+      const sessionData = await apiFetch<{ id: string; uploadSecret: string }>(
         `/onboarding/${currentOnboardingId}/sla-signature-session`,
         {
           method: "POST",
@@ -273,7 +273,9 @@ export function useClinicRegistrationFlow() {
         `/onboarding/${currentOnboardingId}/sla-signature-session/${sessionData.id}`,
         {
           method: "POST",
-          headers: buildCsrfHeaders(),
+          headers: buildCsrfHeaders({
+            "X-Upload-Secret": sessionData.uploadSecret,
+          }),
           body: uploadData,
         },
       );
@@ -550,8 +552,7 @@ export function useClinicRegistrationFlow() {
           // Refresh in-memory auth state so pages using `useAuth` update immediately
           try {
             await refreshUser();
-          } catch {
-          }
+          } catch {}
         }
 
         toast.success("Registration Successful", {

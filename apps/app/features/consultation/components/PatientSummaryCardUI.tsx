@@ -15,11 +15,7 @@ import {
 import { AlertTriangle, Droplet, User } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { format } from "date-fns";
-import {
-
-  CodeStatus,
-  CodeStatusAlertUI,
-} from "./summary/CodeStatusAlertUI";
+import { CodeStatus, CodeStatusAlertUI } from "./summary/CodeStatusAlertUI";
 import { AllergyAlertUI } from "./summary/AllergyAlertUI";
 import { SummaryVitals } from "./shared/SummaryVitals";
 import { SummaryMedications } from "./shared/SummaryMedications";
@@ -145,7 +141,6 @@ export function PatientSummaryCardUI({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {}
         {hasAllergies && (
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -175,27 +170,21 @@ export function PatientSummaryCardUI({
           </div>
         )}
 
-        {}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-4">
-            {}
             <div className="space-y-2">
               <AllergyAlertUI allergies={allergies} />
             </div>
             {codeStatus && <CodeStatusAlertUI codeStatus={codeStatus} />}
           </div>
 
-          {}
           <SummaryConditions conditions={activeConditions} />
 
-          {}
           <SummaryMedications medications={currentMedications} />
 
-          {}
           <SummaryVitals vitals={latestVitals} />
         </div>
 
-        {}
         {expanded && (
           <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-3">
             <div>

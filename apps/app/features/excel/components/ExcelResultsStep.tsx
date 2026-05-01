@@ -154,7 +154,6 @@ export const ExcelResultsStep = ({
         </Card>
       )}
 
-      {}
       <div className="flex gap-4">
         <Button onClick={() => router.push("/patients")}>
           <Check className="mr-2 h-4 w-4" />

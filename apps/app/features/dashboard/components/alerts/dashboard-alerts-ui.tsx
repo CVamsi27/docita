@@ -100,7 +100,6 @@ export function DashboardAlertsUI({
         </div>
       ))}
 
-      {}
       {todayAppointments > 0 && (
         <div className="flex items-center gap-3 px-1">
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">

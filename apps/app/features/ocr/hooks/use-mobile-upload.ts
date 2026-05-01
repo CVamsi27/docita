@@ -76,7 +76,9 @@ export const useMobileUpload = () => {
 
       pollTimeoutRef.current = setTimeout(() => {
         clearPolling();
-        toast.message("Mobile upload timed out. Please generate a new QR code.");
+        toast.message(
+          "Mobile upload timed out. Please generate a new QR code.",
+        );
       }, 120000);
     },
     [clearPolling],
@@ -85,11 +87,18 @@ export const useMobileUpload = () => {
   const startMobileUpload = useCallback(
     async (onUploadComplete: (file: File, url: string) => void) => {
       try {
-        const data = await apiFetch<{ id: string }>(`/uploads/session`, {
-          method: "POST",
-        });
+        const data = await apiFetch<{ id: string; uploadSecret: string }>(
+          `/uploads/session`,
+          {
+            method: "POST",
+          },
+        );
 
-        setQrUrl(toAbsoluteAppUrl(`/mobile-upload/${data.id}`));
+        setQrUrl(
+          toAbsoluteAppUrl(
+            `/mobile-upload/${data.id}?uploadSecret=${encodeURIComponent(data.uploadSecret)}`,
+          ),
+        );
         setShowQr(true);
         pollSession(data.id, onUploadComplete);
       } catch (_error) {
