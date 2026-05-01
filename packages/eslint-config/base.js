@@ -15,6 +15,8 @@ export const config = [
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
 
+      "no-empty": ["warn", { allowEmptyCatch: true }],
+
       "sort-imports": [
         "warn",
         {

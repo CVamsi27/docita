@@ -37,9 +37,17 @@ const createExecutionContext = (user?: AuthUser): ExecutionContext => ({
     [{ user }][index] as T,
 });
 
+function mockRolesReflectorSequence(
+  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  options: { isPublic: boolean; requiredRoles?: readonly string[] },
+): void {
+  mock
+    .mockReturnValueOnce(options.isPublic)
+    .mockReturnValueOnce(options.requiredRoles);
+}
+
 describe('RolesGuard', () => {
   let guard: RolesGuard;
-  let _reflector: Reflector;
 
   const mockReflector = {
     getAllAndOverride: jest.fn(),
@@ -57,14 +65,14 @@ describe('RolesGuard', () => {
     }).compile();
 
     guard = module.get<RolesGuard>(RolesGuard);
-    _reflector = module.get<Reflector>(Reflector);
   });
 
   describe('canActivate', () => {
     it('should allow request when no roles are required (open route)', () => {
-      mockReflector.getAllAndOverride
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(undefined);
+      mockRolesReflectorSequence(mockReflector.getAllAndOverride, {
+        isPublic: false,
+        requiredRoles: undefined,
+      });
 
       const result = guard.canActivate(
         createExecutionContext({ id: 'user-1', role: 'DOCTOR' }),
@@ -74,9 +82,10 @@ describe('RolesGuard', () => {
     });
 
     it('should allow request when user has required role', () => {
-      mockReflector.getAllAndOverride
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(['DOCTOR', 'ADMIN']);
+      mockRolesReflectorSequence(mockReflector.getAllAndOverride, {
+        isPublic: false,
+        requiredRoles: ['DOCTOR', 'ADMIN'],
+      });
 
       const result = guard.canActivate(
         createExecutionContext({
@@ -90,9 +99,10 @@ describe('RolesGuard', () => {
     });
 
     it('should deny request when user lacks required role', () => {
-      mockReflector.getAllAndOverride
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(['ADMIN']);
+      mockRolesReflectorSequence(mockReflector.getAllAndOverride, {
+        isPublic: false,
+        requiredRoles: ['ADMIN'],
+      });
 
       expect(() =>
         guard.canActivate(
@@ -106,9 +116,10 @@ describe('RolesGuard', () => {
     });
 
     it('should deny request when user is not authenticated', () => {
-      mockReflector.getAllAndOverride
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(['DOCTOR']);
+      mockRolesReflectorSequence(mockReflector.getAllAndOverride, {
+        isPublic: false,
+        requiredRoles: ['DOCTOR'],
+      });
 
       expect(() =>
         guard.canActivate(createExecutionContext(undefined)),
@@ -116,10 +127,11 @@ describe('RolesGuard', () => {
     });
 
     it('should handle multiple required roles', () => {
-      const requiredRoles = ['DOCTOR', 'RECEPTIONIST', 'ADMIN'];
-      mockReflector.getAllAndOverride
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(requiredRoles);
+      const requiredRoles = ['DOCTOR', 'RECEPTIONIST', 'ADMIN'] as const;
+      mockRolesReflectorSequence(mockReflector.getAllAndOverride, {
+        isPublic: false,
+        requiredRoles,
+      });
 
       const result = guard.canActivate(
         createExecutionContext({
@@ -133,9 +145,10 @@ describe('RolesGuard', () => {
     });
 
     it('should reject superfluous roles not in required list', () => {
-      mockReflector.getAllAndOverride
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(['DOCTOR']);
+      mockRolesReflectorSequence(mockReflector.getAllAndOverride, {
+        isPublic: false,
+        requiredRoles: ['DOCTOR'],
+      });
 
       expect(() =>
         guard.canActivate(
