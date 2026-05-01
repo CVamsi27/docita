@@ -1,7 +1,12 @@
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import {
   CLINIC_SCOPED_KEY,
   ClinicScopedGuard,
@@ -21,12 +26,12 @@ function createContext(request: Record<string, unknown>): ExecutionContext {
 }
 
 describe('ClinicScopedGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let guard: ClinicScopedGuard;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([]),
     };
     guard = new ClinicScopedGuard(asType<Reflector>(reflector));
   });

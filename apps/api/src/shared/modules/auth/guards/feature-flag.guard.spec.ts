@@ -2,11 +2,16 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
-import { asType, mockGetAllAndOverrideKeyMap } from '@/test-utils';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { FEATURE_FLAG_KEY, FeatureFlagGuard } from './feature-flag.guard';
 
 function mockRequireFeatureFlag(
-  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  mock: MockedReflectorGetAllAndOverride,
   flagName: string | undefined,
 ): void {
   mockGetAllAndOverrideKeyMap(mock, [[FEATURE_FLAG_KEY, flagName]]);
@@ -25,13 +30,15 @@ function createContext(request: Record<string, unknown>): ExecutionContext {
 }
 
 describe('FeatureFlagGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let featureFlagService: jest.Mocked<Pick<FeatureFlagService, 'isEnabled'>>;
   let guard: FeatureFlagGuard;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([
+        [FEATURE_FLAG_KEY, undefined],
+      ]),
     };
     featureFlagService = {
       isEnabled: jest.fn(),

@@ -4,7 +4,11 @@ import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-hos
 import { Role } from '@workspace/db';
 import { ALLOW_NO_CLINIC_KEY } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
 import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
-import { mockGetAllAndOverrideKeyMap } from '@/test-utils';
+import {
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { TenantGuard } from './tenant.guard';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
@@ -14,7 +18,7 @@ function createContext(request: Record<string, unknown>): ExecutionContext {
 }
 
 function mockTenantMetadataFlags(
-  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  mock: MockedReflectorGetAllAndOverride,
   flags: { isPublic: boolean; allowNoClinic: boolean },
 ): void {
   mockGetAllAndOverrideKeyMap(mock, [
@@ -25,16 +29,15 @@ function mockTenantMetadataFlags(
 
 describe('TenantGuard', () => {
   let reflector: Reflector;
-  let getAllAndOverrideMock: jest.MockedFunction<
-    Reflector['getAllAndOverride']
-  >;
+  let getAllAndOverrideMock: MockedReflectorGetAllAndOverride;
   let guard: TenantGuard;
 
   beforeEach(() => {
     reflector = Object.create(Reflector.prototype) as Reflector;
-    getAllAndOverrideMock = jest.fn() as jest.MockedFunction<
-      Reflector['getAllAndOverride']
-    >;
+    getAllAndOverrideMock = createKeyedReflectorMock([
+      [IS_PUBLIC_KEY, false],
+      [ALLOW_NO_CLINIC_KEY, false],
+    ]);
     reflector.getAllAndOverride = getAllAndOverrideMock;
     guard = new TenantGuard(reflector);
   });

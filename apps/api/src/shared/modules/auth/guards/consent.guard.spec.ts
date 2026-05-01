@@ -2,7 +2,12 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ConsentType } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyMap } from '@/test-utils';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { ConsentGuard, REQUIRE_CONSENT_KEY } from './consent.guard';
 
 function createContext(params: Record<string, string>): ExecutionContext {
@@ -18,14 +23,14 @@ function createContext(params: Record<string, string>): ExecutionContext {
 }
 
 function mockRequiredConsentTypes(
-  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  mock: MockedReflectorGetAllAndOverride,
   types: ConsentType[] | undefined,
 ): void {
   mockGetAllAndOverrideKeyMap(mock, [[REQUIRE_CONSENT_KEY, types]]);
 }
 
 describe('ConsentGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     consent: {
       findFirst: jest.MockedFunction<
@@ -37,7 +42,9 @@ describe('ConsentGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([
+        [REQUIRE_CONSENT_KEY, undefined],
+      ]),
     };
     prisma = {
       consent: {

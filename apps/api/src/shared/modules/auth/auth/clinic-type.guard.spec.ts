@@ -3,19 +3,24 @@ import { Reflector } from '@nestjs/core';
 import { ClinicType } from '@workspace/db';
 import { FacilityType } from '@workspace/types';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyMap } from '@/test-utils';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { CLINIC_TYPES_KEY, FACILITY_TYPES_KEY } from './clinic-type.decorator';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
 
 function mockRequiredClinicTypes(
-  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  mock: MockedReflectorGetAllAndOverride,
   types: ClinicType[] | undefined,
 ): void {
   mockGetAllAndOverrideKeyMap(mock, [[CLINIC_TYPES_KEY, types]]);
 }
 
 function mockRequiredFacilityTypes(
-  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  mock: MockedReflectorGetAllAndOverride,
   types: FacilityType[] | undefined,
 ): void {
   mockGetAllAndOverrideKeyMap(mock, [[FACILITY_TYPES_KEY, types]]);
@@ -34,7 +39,7 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('ClinicTypeGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     clinic: {
       findUnique: jest.MockedFunction<
@@ -47,7 +52,10 @@ describe('ClinicTypeGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([
+        [CLINIC_TYPES_KEY, undefined],
+        [FACILITY_TYPES_KEY, undefined],
+      ]),
     };
     prisma = {
       clinic: {

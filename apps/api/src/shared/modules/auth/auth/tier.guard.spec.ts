@@ -6,7 +6,12 @@ import {
   SubscriptionStatus,
 } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyMap } from '@/test-utils';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { FEATURE_KEY, Feature, TIER_KEY, Tier } from './tier.decorator';
 import { TierGuard } from './tier.guard';
 
@@ -31,7 +36,7 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('TierGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     clinic: {
       findUnique: jest.MockedFunction<
@@ -51,7 +56,10 @@ describe('TierGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([
+        [TIER_KEY, undefined],
+        [FEATURE_KEY, undefined],
+      ]),
     };
     prisma = {
       clinic: {

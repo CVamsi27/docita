@@ -2,7 +2,12 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import {
   DOCTOR_PATIENT_SCOPED_KEY,
   PatientDoctorGuard,
@@ -24,7 +29,7 @@ function createContext(
 }
 
 function mockDoctorPatientScoped(
-  mock: jest.MockedFunction<Reflector['getAllAndOverride']>,
+  mock: MockedReflectorGetAllAndOverride,
   enabled: boolean,
 ): void {
   mockGetAllAndOverrideKeyBranch(
@@ -36,7 +41,7 @@ function mockDoctorPatientScoped(
 }
 
 describe('PatientDoctorGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     patient: {
       findFirst: jest.MockedFunction<
@@ -53,7 +58,7 @@ describe('PatientDoctorGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([]),
     };
     prisma = {
       patient: {

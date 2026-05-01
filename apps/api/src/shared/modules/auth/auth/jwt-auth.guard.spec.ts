@@ -1,7 +1,12 @@
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -13,12 +18,12 @@ function createContext(): ExecutionContext {
 }
 
 describe('JwtAuthGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let guard: JwtAuthGuard;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([]),
     };
     guard = new JwtAuthGuard(asType<Reflector>(reflector));
   });
