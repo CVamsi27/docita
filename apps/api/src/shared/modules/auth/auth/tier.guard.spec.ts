@@ -12,6 +12,7 @@ import {
   mockGetAllAndOverrideKeyMap,
   type MockedReflectorGetAllAndOverride,
 } from '@/test-utils';
+import { IS_PUBLIC_KEY } from './public.decorator';
 import { FEATURE_KEY, Feature, TIER_KEY, Tier } from './tier.decorator';
 import { TierGuard } from './tier.guard';
 
@@ -57,6 +58,7 @@ describe('TierGuard', () => {
   beforeEach(() => {
     reflector = {
       getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
         [TIER_KEY, undefined],
         [FEATURE_KEY, undefined],
       ]),
@@ -74,10 +76,22 @@ describe('TierGuard', () => {
 
   function setMetadata(requiredTier?: Tier, requiredFeature?: Feature): void {
     mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [IS_PUBLIC_KEY, false],
       [TIER_KEY, requiredTier],
       [FEATURE_KEY, requiredFeature],
     ]);
   }
+
+  it('allows public routes without loading clinic', async () => {
+    mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [IS_PUBLIC_KEY, true],
+      [TIER_KEY, Tier.ESSENTIAL],
+      [FEATURE_KEY, undefined],
+    ]);
+
+    await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
+    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+  });
 
   it('allows request when no tier or feature metadata is present', async () => {
     setMetadata(undefined, undefined);
