@@ -1,7 +1,11 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  asType,
+  mockGetAllAndOverrideKeyBranch,
+  mockGetAllAndOverrideKeyMap,
+} from '@/test-utils';
 import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { SKIP_EMAIL_VERIFICATION_KEY } from './email-verified.guard';
 import { EmailVerifiedGuard } from './email-verified.guard';
@@ -23,8 +27,15 @@ describe('EmailVerifiedGuard', () => {
   let guard: EmailVerifiedGuard;
 
   beforeEach(() => {
+    const getAllAndOverride = jest.fn() as jest.MockedFunction<
+      Reflector['getAllAndOverride']
+    >;
+    mockGetAllAndOverrideKeyMap(getAllAndOverride, [
+      [IS_PUBLIC_KEY, false],
+      [SKIP_EMAIL_VERIFICATION_KEY, false],
+    ]);
     reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride,
     };
     guard = new EmailVerifiedGuard(asType<Reflector>(reflector));
   });

@@ -3,7 +3,11 @@ import { Reflector } from '@nestjs/core';
 import { ClinicTier, SubscriptionStatus } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ClinicAuthCacheService } from '@/shared/modules/auth/auth/clinic-auth-cache.service';
-import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  asType,
+  mockGetAllAndOverrideKeyBranch,
+  mockGetAllAndOverrideKeyMap,
+} from '@/test-utils';
 import {
   IS_PUBLIC_KEY,
   SKIP_SUBSCRIPTION_CHECK_KEY,
@@ -30,8 +34,15 @@ describe('SubscriptionStatusGuard', () => {
   let guard: SubscriptionStatusGuard;
 
   beforeEach(() => {
+    const getAllAndOverride = jest.fn() as jest.MockedFunction<
+      Reflector['getAllAndOverride']
+    >;
+    mockGetAllAndOverrideKeyMap(getAllAndOverride, [
+      [IS_PUBLIC_KEY, false],
+      [SKIP_SUBSCRIPTION_CHECK_KEY, false],
+    ]);
     reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride,
     };
     clinicAuthCache = {
       getClinicAuth: jest.fn(),

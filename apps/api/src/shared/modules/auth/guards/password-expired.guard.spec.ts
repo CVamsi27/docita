@@ -1,7 +1,11 @@
 import { ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType, mockGetAllAndOverrideKeyBranch } from '@/test-utils';
+import {
+  asType,
+  mockGetAllAndOverrideKeyBranch,
+  mockGetAllAndOverrideKeyMap,
+} from '@/test-utils';
 import {
   PasswordExpiredGuard,
   SKIP_PASSWORD_EXPIRY_KEY,
@@ -30,8 +34,14 @@ describe('PasswordExpiredGuard', () => {
   let guard: PasswordExpiredGuard;
 
   beforeEach(() => {
+    const getAllAndOverride = jest.fn() as jest.MockedFunction<
+      Reflector['getAllAndOverride']
+    >;
+    mockGetAllAndOverrideKeyMap(getAllAndOverride, [
+      [SKIP_PASSWORD_EXPIRY_KEY, false],
+    ]);
     reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride,
     };
 
     prisma = {
