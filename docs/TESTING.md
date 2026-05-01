@@ -124,6 +124,10 @@ pnpm --filter @docita/api test:e2e:cov
 pnpm --filter @docita/api test:e2e -- auth.e2e-spec.ts
 ```
 
+### Backend unit tests (API / Jest)
+
+Specs live next to sources under `apps/api/src/**/*.spec.ts`. Guards and decorators that call NestJS `Reflector#getAllAndOverride` should stub it through `@/test-utils`: `createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, and `mockGetAllAndOverrideKeyBranch`, using the same metadata key constants the implementation reads (for example `IS_PUBLIC_KEY`, tier keys). Keyed maps avoid brittle `mockReturnValueOnce` ordering on a bare `jest.fn()`.
+
 ### Frontend E2E Tests
 
 ```bash
