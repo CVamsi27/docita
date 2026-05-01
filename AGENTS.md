@@ -177,6 +177,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
   - API uses Jest
   - Frontend uses Vitest
   - E2E uses Playwright
+- API specs that stub NestJS `Reflector#getAllAndOverride` should use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/TESTING.md` (Backend unit tests).
 - For large or consolidated pull requests, prefer this baseline before push:
   - `pnpm lint`
   - `pnpm verify:standard`
