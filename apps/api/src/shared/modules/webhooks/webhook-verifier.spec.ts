@@ -1,34 +1,7 @@
-import { describe, expect, it, beforeEach } from '@jest/globals';
+import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { createHmac } from 'crypto';
-import type { Cache } from 'cache-manager';
 import { WebhookVerifierService } from './webhook-verifier';
-
-function buildMemoryCache(): Cache {
-  const store = new Map<string, { value: unknown; expiresAt: number }>();
-  return {
-    get: async (key: string) => {
-      const entry = store.get(key);
-      if (!entry) return undefined;
-      if (entry.expiresAt && Date.now() > entry.expiresAt) {
-        store.delete(key);
-        return undefined;
-      }
-      return entry.value;
-    },
-    set: async (key: string, value: unknown, ttlMs?: number) => {
-      store.set(key, {
-        value,
-        expiresAt: ttlMs ? Date.now() + ttlMs : 0,
-      });
-    },
-    del: async (key: string) => {
-      store.delete(key);
-    },
-    reset: async () => {
-      store.clear();
-    },
-  } as unknown as Cache;
-}
+import type { WebhookReplayDedupeRepository } from './webhook-replay-dedupe.repository';
 
 const sign = (secret: string, body: Buffer, prefix?: string): string => {
   const digest = createHmac('sha256', secret).update(body).digest('hex');
@@ -37,11 +10,16 @@ const sign = (secret: string, body: Buffer, prefix?: string): string => {
 
 describe('WebhookVerifierService', () => {
   let service: WebhookVerifierService;
-  let cache: Cache;
+  let dedupe: {
+    tryClaim: jest.MockedFunction<WebhookReplayDedupeRepository['tryClaim']>;
+  };
 
   beforeEach(() => {
-    cache = buildMemoryCache();
-    service = new WebhookVerifierService(cache);
+    dedupe = { tryClaim: jest.fn() };
+    dedupe.tryClaim.mockResolvedValue(true);
+    service = new WebhookVerifierService(
+      dedupe as unknown as WebhookReplayDedupeRepository,
+    );
   });
 
   it('accepts a valid Razorpay-shaped signature', async () => {
@@ -54,6 +32,7 @@ describe('WebhookVerifierService', () => {
       secret: 'shh',
     });
     expect(result.ok).toBe(true);
+    expect(dedupe.tryClaim).toHaveBeenCalledTimes(1);
   });
 
   it('accepts a valid Meta WhatsApp prefixed signature', async () => {
@@ -79,6 +58,7 @@ describe('WebhookVerifierService', () => {
     });
     expect(result.ok).toBe(false);
     expect(result.failure).toBe('missing-secret');
+    expect(dedupe.tryClaim).not.toHaveBeenCalled();
   });
 
   it('rejects when the signature does not match', async () => {
@@ -91,6 +71,7 @@ describe('WebhookVerifierService', () => {
     });
     expect(result.ok).toBe(false);
     expect(result.failure).toBe('invalid-signature');
+    expect(dedupe.tryClaim).not.toHaveBeenCalled();
   });
 
   it('rejects when the signed timestamp is too old', async () => {
@@ -105,11 +86,13 @@ describe('WebhookVerifierService', () => {
     });
     expect(result.ok).toBe(false);
     expect(result.failure).toBe('stale-timestamp');
+    expect(dedupe.tryClaim).not.toHaveBeenCalled();
   });
 
   it('rejects when the same signature is replayed within the window', async () => {
     const body = Buffer.from('{}');
     const signature = sign('shh', body);
+    dedupe.tryClaim.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
     const first = await service.verify({
       provider: 'razorpay',
       rawBody: body,
@@ -143,6 +126,7 @@ describe('WebhookVerifierService', () => {
       secret: 'shh',
     });
     expect(other.ok).toBe(true);
+    expect(dedupe.tryClaim).toHaveBeenCalledTimes(2);
   });
 
   it('rejects malformed payloads with a missing signature', async () => {

@@ -1,12 +1,11 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import type { Cache } from 'cache-manager';
+import { Injectable, Logger } from '@nestjs/common';
 import { createHash, createHmac, timingSafeEqual } from 'crypto';
 import {
   WebhookVerificationInput,
   WebhookVerificationResult,
   WebhookProvider,
 } from '@/shared/modules/webhooks/webhook-verifier.types';
+import { WebhookReplayDedupeRepository } from '@/shared/modules/webhooks/webhook-replay-dedupe.repository';
 
 const TIMESTAMP_TOLERANCE_SECONDS = 5 * 60;
 const REPLAY_CACHE_TTL_MS = 10 * 60 * 1000;
@@ -45,7 +44,9 @@ const buildReplayKey = (
 export class WebhookVerifierService {
   private readonly logger = new Logger(WebhookVerifierService.name);
 
-  constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
+  constructor(
+    private readonly dedupeRepository: WebhookReplayDedupeRepository,
+  ) {}
 
   async verify(
     input: WebhookVerificationInput,
@@ -87,14 +88,18 @@ export class WebhookVerifierService {
       input.rawBody,
       input.signedTimestampSeconds,
     );
-    const seen = await this.cache.get<boolean>(replayKey);
-    if (seen) {
+    const dedupeKeyHash = createHash('sha256').update(replayKey).digest('hex');
+    const expiresAt = new Date(Date.now() + REPLAY_CACHE_TTL_MS);
+    const claimed = await this.dedupeRepository.tryClaim(
+      dedupeKeyHash,
+      expiresAt,
+    );
+    if (!claimed) {
       this.logger.warn(
         `Replayed webhook detected for provider ${input.provider}`,
       );
       return { ok: false, failure: 'replayed' };
     }
-    await this.cache.set(replayKey, true, REPLAY_CACHE_TTL_MS);
     return { ok: true };
   }
 }
