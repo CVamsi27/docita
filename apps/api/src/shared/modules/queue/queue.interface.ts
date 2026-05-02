@@ -10,6 +10,14 @@ export interface QueueJobOptions {
   priority?: number;
   timeout?: number;
   removeOnComplete?: boolean;
+  /**
+   * Optional client-provided key. If a job with the same `name` +
+   * `idempotencyKey` was COMPLETED in the last 24h the new enqueue
+   * short-circuits and returns the original job instead of running again.
+   * Callers should synthesise from a domain id + action when they don't
+   * receive one (e.g. `whatsapp:send:${messageId}`).
+   */
+  idempotencyKey?: string;
 }
 
 export type QueueJobData = Prisma.InputJsonObject;

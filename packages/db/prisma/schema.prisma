@@ -3588,24 +3588,29 @@ enum QueueJobStatus {
   COMPLETED
   FAILED
   DELAYED
+  DEAD_LETTERED
 }
 
 model QueueJob {
-  id           String         @id @default(cuid())
-  name         String
-  data         Json
-  status       QueueJobStatus @default(WAITING)
-  priority     Int            @default(0)
-  attemptsMade Int            @default(0)
-  maxAttempts  Int            @default(3)
-  failedReason String?
-  processedAt  DateTime?
-  delayedUntil DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @default(now()) @updatedAt
+  id             String         @id @default(cuid())
+  name           String
+  data           Json
+  status         QueueJobStatus @default(WAITING)
+  priority       Int            @default(0)
+  attemptsMade   Int            @default(0)
+  maxAttempts    Int            @default(5)
+  failedReason   String?
+  processedAt    DateTime?
+  delayedUntil   DateTime?
+  idempotencyKey String?
+  completedAt    DateTime?
+  deadLetteredAt DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
 
   @@index([name, status])
   @@index([name, status, priority(sort: Desc), createdAt], map: "QueueJob_name_status_priority_createdAt_idx")
   @@index([status, delayedUntil])
   @@index([createdAt])
+  @@index([name, idempotencyKey, completedAt(sort: Desc)], map: "QueueJob_idempotency_lookup_idx")
 }

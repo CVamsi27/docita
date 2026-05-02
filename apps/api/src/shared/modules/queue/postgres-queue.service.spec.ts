@@ -23,6 +23,9 @@ interface MockRow {
   delayedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  idempotencyKey: string | null;
+  completedAt: Date | null;
+  deadLetteredAt: Date | null;
 }
 
 const makeRow = (overrides: Partial<MockRow> = {}): MockRow => ({
@@ -38,6 +41,9 @@ const makeRow = (overrides: Partial<MockRow> = {}): MockRow => ({
   delayedUntil: null,
   createdAt: new Date('2026-01-01T00:00:00.000Z'),
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  idempotencyKey: null,
+  completedAt: null,
+  deadLetteredAt: null,
   ...overrides,
 });
 
@@ -47,6 +53,8 @@ describe('PostgresQueueService', () => {
   const deleteMock = jest.fn<(args: unknown) => Promise<MockRow>>();
   const deleteManyMock =
     jest.fn<(args: unknown) => Promise<{ count: number }>>();
+  const findManyMock = jest.fn<(args: unknown) => Promise<MockRow[]>>();
+  const countMock = jest.fn<(args: unknown) => Promise<number>>();
   const queryRawMock = jest.fn<(...args: unknown[]) => Promise<unknown[]>>();
 
   const prisma = {
@@ -56,6 +64,8 @@ describe('PostgresQueueService', () => {
       update: updateMock,
       delete: deleteMock,
       deleteMany: deleteManyMock,
+      findMany: findManyMock,
+      count: countMock,
     },
     $queryRaw: queryRawMock,
   };
@@ -65,6 +75,7 @@ describe('PostgresQueueService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     createMock.mockResolvedValue(makeRow());
+    countMock.mockResolvedValue(0);
     service = new PostgresQueueService(prisma as never);
   });
 
@@ -132,17 +143,22 @@ describe('PostgresQueueService', () => {
         expect.objectContaining({ id: 'qj-1', name: 'test-job' }),
       );
       expect(updateMock).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { status: 'COMPLETED' } }),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'COMPLETED',
+            completedAt: expect.any(Date),
+          }),
+        }),
       );
     });
 
-    it('marks job as FAILED and stores failedReason when handler throws (no retries left)', async () => {
+    it('dead-letters the job and stores failedReason when retries are exhausted', async () => {
       const exhaustedRow = makeRow({ attemptsMade: 2, maxAttempts: 3 });
       queryRawMock
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([exhaustedRow]);
-      updateMock.mockResolvedValue(makeRow({ status: 'FAILED' }));
+      updateMock.mockResolvedValue(makeRow({ status: 'DEAD_LETTERED' }));
 
       const handler = jest
         .fn<QueueJobHandler<QueueJobData>>()
@@ -156,8 +172,10 @@ describe('PostgresQueueService', () => {
       expect(updateMock).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            status: 'FAILED',
+            status: 'DEAD_LETTERED',
             failedReason: 'handler failed',
+            deadLetteredAt: expect.any(Date),
+            attemptsMade: 3,
           }),
         }),
       );
@@ -263,6 +281,122 @@ describe('PostgresQueueService', () => {
         jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
       );
       expect(() => service.onModuleDestroy()).not.toThrow();
+    });
+  });
+
+  describe('idempotency', () => {
+    it('returns the prior completed job when an idempotency key matches a recent completion', async () => {
+      const priorRow = makeRow({
+        id: 'qj-prior',
+        status: 'COMPLETED',
+        idempotencyKey: 'send:patient-1:appt-2',
+        completedAt: new Date(),
+      });
+      queryRawMock.mockResolvedValueOnce([priorRow]);
+
+      const job = await service.enqueue(
+        'test-job',
+        { foo: 'bar' },
+        { idempotencyKey: 'send:patient-1:appt-2' },
+      );
+
+      expect(createMock).not.toHaveBeenCalled();
+      expect(job.id).toBe('qj-prior');
+    });
+
+    it('persists the idempotency key on new enqueues when no prior completion exists', async () => {
+      queryRawMock.mockResolvedValueOnce([]);
+      createMock.mockResolvedValueOnce(
+        makeRow({ idempotencyKey: 'send:patient-1:appt-2' }),
+      );
+
+      await service.enqueue(
+        'test-job',
+        {},
+        { idempotencyKey: 'send:patient-1:appt-2' },
+      );
+
+      const callArg = (createMock.mock.lastCall?.[0] ?? {}) as {
+        data: { idempotencyKey: string | null };
+      };
+      expect(callArg.data.idempotencyKey).toBe('send:patient-1:appt-2');
+    });
+  });
+
+  describe('retry backoff bounds', () => {
+    it('caps the retry delay at 60 seconds', async () => {
+      const beforeMs = Date.now();
+      const retryableRow = makeRow({ attemptsMade: 9, maxAttempts: 20 });
+      queryRawMock
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([retryableRow]);
+
+      const handler = jest
+        .fn<QueueJobHandler<QueueJobData>>()
+        .mockRejectedValue(new Error('still flaky'));
+
+      await service.process('test-job', handler);
+      await (
+        service as unknown as { poll: (name: string) => Promise<void> }
+      ).poll('test-job');
+
+      const updateCall = (updateMock.mock.lastCall?.[0] ?? {}) as {
+        data: { status: string; delayedUntil: Date };
+      };
+      const waitMs = updateCall.data.delayedUntil.getTime() - beforeMs;
+      expect(updateCall.data.status).toBe('DELAYED');
+      expect(waitMs).toBeGreaterThanOrEqual(59_500);
+      expect(waitMs).toBeLessThanOrEqual(60_500);
+    });
+  });
+
+  describe('listDeadLettered', () => {
+    it('returns dead-lettered jobs in deadLetteredAt desc order', async () => {
+      findManyMock.mockResolvedValueOnce([
+        makeRow({
+          id: 'dl-2',
+          status: 'DEAD_LETTERED',
+          deadLetteredAt: new Date('2026-01-02T00:00:00.000Z'),
+        }),
+        makeRow({
+          id: 'dl-1',
+          status: 'DEAD_LETTERED',
+          deadLetteredAt: new Date('2026-01-01T00:00:00.000Z'),
+        }),
+      ]);
+
+      const jobs = await service.listDeadLettered('test-job', 10);
+
+      expect(findManyMock).toHaveBeenCalledWith({
+        where: { name: 'test-job', status: 'DEAD_LETTERED' },
+        orderBy: { deadLetteredAt: 'desc' },
+        take: 10,
+      });
+      expect(jobs.map((j) => j.id)).toEqual(['dl-2', 'dl-1']);
+    });
+  });
+
+  describe('replayDeadLettered', () => {
+    it('resets attempts and status back to WAITING', async () => {
+      updateMock.mockResolvedValueOnce(
+        makeRow({ id: 'dl-1', status: 'WAITING', attemptsMade: 0 }),
+      );
+
+      const job = await service.replayDeadLettered('dl-1');
+
+      expect(updateMock).toHaveBeenCalledWith({
+        where: { id: 'dl-1' },
+        data: expect.objectContaining({
+          status: 'WAITING',
+          attemptsMade: 0,
+          failedReason: null,
+          deadLetteredAt: null,
+          delayedUntil: null,
+          processedAt: null,
+        }),
+      });
+      expect(job.id).toBe('dl-1');
     });
   });
 });
