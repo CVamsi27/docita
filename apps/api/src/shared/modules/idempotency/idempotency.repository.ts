@@ -80,24 +80,24 @@ export class IdempotencyRepository {
       IDEMPOTENCY_PROCESSING_TTL_SECONDS + IDEMPOTENCY_TTL_SECONDS_DEFAULT,
     );
 
-    await this.prisma.$transaction(async (tx) => {
-      await tx.apiHttpIdempotencyRecord.deleteMany({
-        where: {
-          scopedKey,
-          OR: [
-            {
-              status: 'PROCESSING',
-              processingExpiresAt: { lt: now },
-            },
-            {
-              status: 'COMPLETED',
-              recordExpiresAt: { lt: now },
-            },
-          ],
-        },
-      });
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.apiHttpIdempotencyRecord.deleteMany({
+          where: {
+            scopedKey,
+            OR: [
+              {
+                status: 'PROCESSING',
+                processingExpiresAt: { lt: now },
+              },
+              {
+                status: 'COMPLETED',
+                recordExpiresAt: { lt: now },
+              },
+            ],
+          },
+        });
 
-      try {
         await tx.apiHttpIdempotencyRecord.create({
           data: {
             scopedKey,
@@ -107,32 +107,35 @@ export class IdempotencyRepository {
             recordExpiresAt: processingGuardExpiresAt,
           },
         });
-      } catch (error) {
-        if (!isPrismaUniqueViolation(error)) {
-          throw error;
-        }
-        const existing = await tx.apiHttpIdempotencyRecord.findUnique({
-          where: { scopedKey },
-        });
-        if (!existing) {
-          throw error;
-        }
-        if (
-          existing.status === 'PROCESSING' &&
-          existing.processingExpiresAt > now
-        ) {
-          throw new ConflictException(
-            'A request with this Idempotency-Key is already in progress.',
-          );
-        }
-        if (existing.status === 'COMPLETED' && existing.recordExpiresAt > now) {
-          throw new ConflictException(
-            'A request with this Idempotency-Key is already in progress.',
-          );
-        }
+      });
+    } catch (error) {
+      if (!isPrismaUniqueViolation(error)) {
         throw error;
       }
-    });
+      // After INSERT ... ON CONFLICT / unique failure, Postgres aborts the
+      // transaction. Never query on the same interactive `tx`; read committed
+      // state on a fresh client instead so follow-up writes are not poisoned.
+      const existing = await this.prisma.apiHttpIdempotencyRecord.findUnique({
+        where: { scopedKey },
+      });
+      if (!existing) {
+        throw error;
+      }
+      if (
+        existing.status === 'PROCESSING' &&
+        existing.processingExpiresAt > now
+      ) {
+        throw new ConflictException(
+          'A request with this Idempotency-Key is already in progress.',
+        );
+      }
+      if (existing.status === 'COMPLETED' && existing.recordExpiresAt > now) {
+        throw new ConflictException(
+          'A request with this Idempotency-Key is already in progress.',
+        );
+      }
+      throw error;
+    }
   }
 
   async completeProcessing(
