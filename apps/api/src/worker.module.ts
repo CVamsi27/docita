@@ -17,6 +17,7 @@ import { MonitoringSchedulerModule } from '@/shared/modules/monitoring/monitorin
 import { SubscriptionsWorkerModule } from '@/domains/subscriptions/subscriptions.worker.module';
 import { DoctorsVerificationWorkerModule } from '@/domains/doctors/doctors-verification.worker.module';
 import { AdminAlertsSchedulerModule } from '@/shared/modules/messaging/admin-alerts/admin-alerts.scheduler.module';
+import { EphemeralStoreSchedulerModule } from '@/shared/modules/ephemeral-store/ephemeral-store.scheduler.module';
 
 const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
 
@@ -50,6 +51,7 @@ const ENABLE_SCHEDULERS = process.env.ENABLE_SCHEDULERS !== 'false';
     ClinicalSchedulerModule,
     RemindersSchedulerModule,
     ComplianceSchedulerModule,
+    EphemeralStoreSchedulerModule,
     MonitoringSchedulerModule,
     AdminAlertsSchedulerModule,
     SubscriptionsWorkerModule,

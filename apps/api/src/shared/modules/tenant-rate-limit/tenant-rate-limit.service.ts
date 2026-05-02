@@ -39,9 +39,10 @@ export class TenantRateLimitService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    if (!process.env.REDIS_URL) {
+    if (process.env.NODE_ENV !== 'test') {
       this.logger.warn(
-        'No REDIS_URL configured; tenant rate limiter is using in-memory cache. Counters are single-node only and will not be shared across replicas.',
+        'Tenant burst and sustained rate counters use the in-process Nest cache-manager store. ' +
+          'Enforcement is best-effort per API replica until a shared counter store is introduced.',
       );
     }
   }

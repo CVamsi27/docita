@@ -22,6 +22,17 @@ The procedures cover the production stack:
 > and `wrangler` installed and authenticated. PHI must never be pasted
 > into chat or shared docs while debugging.
 
+### Ephemeral Postgres tables (idempotency and webhooks)
+
+HTTP idempotency (`Idempotency-Key` on marked POST routes) and verified
+webhook replay dedupe are stored in Postgres (`ApiHttpIdempotencyRecord`,
+`WebhookReplayDedupe`). No Redis is required for these features. The API
+worker process runs an hourly job (`EphemeralStoreCleanupScheduler`) that
+deletes expired rows so these tables stay bounded. If schedulers are
+disabled (`ENABLE_SCHEDULERS=false`), only that cleanup is skipped for the
+process; apply migrations so the tables exist before traffic hits idempotent
+routes.
+
 ---
 
 ## RB-01: API rollback
