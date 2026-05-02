@@ -167,19 +167,18 @@ export function DoctorAvailabilitySettings() {
       >
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Skeleton animation="wave" className="h-5 w-5 rounded" />
+            <Skeleton className="h-5 w-5 rounded" />
             <div className="space-y-2">
-              <Skeleton animation="wave" className="h-6 w-48" />
-              <Skeleton animation="wave" className="h-4 w-72 max-w-full" />
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-72 max-w-full" />
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton animation="wave" className="h-9 w-full max-w-xs" />
+          <Skeleton className="h-9 w-full max-w-xs" />
           {[1, 2, 3, 4].map((i) => (
             <Skeleton
               key={i}
-              animation="wave"
               className="h-16 w-full rounded-lg"
             />
           ))}

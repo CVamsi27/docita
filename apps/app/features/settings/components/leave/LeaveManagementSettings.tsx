@@ -317,7 +317,6 @@ export function LeaveManagementSettings() {
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton
                   key={i}
-                  animation="wave"
                   className="h-16 w-full rounded-lg"
                 />
               ))}

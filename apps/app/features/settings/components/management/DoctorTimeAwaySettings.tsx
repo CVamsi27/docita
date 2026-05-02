@@ -249,7 +249,7 @@ export function DoctorTimeAwaySettings() {
         <div className="space-y-2">
           <h3 className="text-sm font-semibold">Scheduled time away</h3>
           {isLoading ? (
-            <Skeleton animation="wave" className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
           ) : upcomingSorted.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No time away recorded yet.

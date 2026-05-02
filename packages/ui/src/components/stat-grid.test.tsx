@@ -35,7 +35,7 @@ describe("StatGrid", () => {
 
     expect(screen.queryByText("Total patients")).not.toBeInTheDocument();
     expect(
-      container.querySelectorAll(".animate-shimmer").length,
+      container.querySelectorAll('[data-skeleton="true"]').length,
     ).toBeGreaterThan(0);
   });
 

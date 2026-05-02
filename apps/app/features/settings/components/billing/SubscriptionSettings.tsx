@@ -67,8 +67,8 @@ export function SubscriptionSettings() {
               iconClassName="h-8 w-8 text-muted-foreground"
             />
             <div className="min-w-0 flex-1 space-y-2 text-left">
-              <Skeleton animation="wave" className="h-4 w-full max-w-[250px]" />
-              <Skeleton animation="wave" className="h-4 w-full max-w-[200px]" />
+              <Skeleton className="h-4 w-full max-w-[250px]" />
+              <Skeleton className="h-4 w-full max-w-[200px]" />
             </div>
           </div>
         </CardContent>

@@ -75,9 +75,9 @@ export function LoginDailyThought() {
           aria-live="polite"
           aria-label="Loading daily thought"
         >
-          <Skeleton animation="wave" className="h-4 w-full" />
-          <Skeleton animation="wave" className="h-4 w-full max-w-md" />
-          <Skeleton animation="wave" className="h-3 w-32" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full max-w-md" />
+          <Skeleton className="h-3 w-32" />
         </div>
       ) : data ? (
         <blockquote className="space-y-2 border-l-2 border-primary/40 pl-3">

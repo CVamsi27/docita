@@ -83,7 +83,7 @@ export function CodeStatusAlertUI({
         "flex items-center gap-2 px-3 py-2 rounded-lg",
         colors.container,
         colors.text,
-        isCritical && "animate-pulse",
+        isCritical && "ring-2 ring-destructive/60",
         className,
       )}
     >

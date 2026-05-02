@@ -33,7 +33,7 @@ export function TimeSlotPickerUI({
         aria-label="Loading time slots"
       >
         {Array.from({ length: 12 }).map((_, i) => (
-          <Skeleton key={i} animation="wave" className="h-12 rounded-md" />
+          <Skeleton key={i} className="h-12 rounded-md" />
         ))}
       </div>
     );

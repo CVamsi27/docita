@@ -20,8 +20,8 @@ describe("PatientListSkeleton", () => {
   it("renders content area skeletons", () => {
     const { container } = render(<PatientListSkeleton />);
 
-    const skeletonLines = container.querySelectorAll(".animate-shimmer");
-    expect(skeletonLines.length).toBeGreaterThan(24); 
+    const skeletonLines = container.querySelectorAll('[data-skeleton="true"]');
+    expect(skeletonLines.length).toBeGreaterThan(24);
   });
 
   it("renders action button placeholders", () => {
@@ -42,10 +42,12 @@ describe("PatientListSkeleton", () => {
     });
   });
 
-  it("renders all skeleton elements with animation", () => {
+  it("renders the expected number of skeleton elements", () => {
     const { container } = render(<PatientListSkeleton />);
-    const animatedElements = container.querySelectorAll(".animate-shimmer");
+    const skeletonElements = container.querySelectorAll(
+      '[data-skeleton="true"]',
+    );
 
-    expect(animatedElements.length).toBeGreaterThanOrEqual(40);
+    expect(skeletonElements.length).toBeGreaterThanOrEqual(40);
   });
 });

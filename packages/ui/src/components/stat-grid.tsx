@@ -63,13 +63,12 @@ export function StatGrid({
               <div className="flex items-start gap-3">
                 <Skeleton
                   variant="circular"
-                  animation="wave"
                   className="h-9 w-9 shrink-0"
                 />
                 <div className="min-w-0 flex-1 space-y-2">
-                  <Skeleton animation="wave" className="h-3 w-20" />
-                  <Skeleton animation="wave" className="h-7 w-16" />
-                  <Skeleton animation="wave" className="h-3 w-24" />
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-7 w-16" />
+                  <Skeleton className="h-3 w-24" />
                 </div>
               </div>
             </div>

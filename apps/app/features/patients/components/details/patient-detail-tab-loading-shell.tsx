@@ -18,12 +18,11 @@ export function PatientDetailTabLoadingShell() {
           iconClassName="h-8 w-8"
         />
         <div className="min-w-0 flex-1 space-y-2">
-          <Skeleton animation="wave" className="h-4 w-48" />
-          <Skeleton animation="wave" className="h-4 w-full max-w-lg" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-4 w-full max-w-lg" />
         </div>
       </div>
       <Skeleton
-        animation="wave"
         className="h-48 w-full rounded-lg md:h-64"
       />
     </div>

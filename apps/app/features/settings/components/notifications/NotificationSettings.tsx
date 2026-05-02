@@ -101,13 +101,13 @@ export function NotificationSettings() {
         aria-label="Loading notification settings"
       >
         <CardHeader>
-          <Skeleton animation="wave" className="h-6 w-56" />
-          <Skeleton animation="wave" className="mt-2 h-4 w-full max-w-md" />
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="mt-2 h-4 w-full max-w-md" />
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
-          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
-          <Skeleton animation="wave" className="h-10 w-32" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-10 w-32" />
         </CardContent>
       </Card>
     );

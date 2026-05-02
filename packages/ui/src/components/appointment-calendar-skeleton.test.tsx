@@ -58,10 +58,12 @@ describe("AppointmentCalendarSkeleton", () => {
     expect(legendItems).toHaveLength(3);
   });
 
-  it("renders all skeleton elements with animation", () => {
+  it("renders the expected number of skeleton elements", () => {
     const { container } = render(<AppointmentCalendarSkeleton />);
-    const animatedElements = container.querySelectorAll(".animate-shimmer");
+    const skeletonElements = container.querySelectorAll(
+      '[data-skeleton="true"]',
+    );
 
-    expect(animatedElements.length).toBeGreaterThan(40);
+    expect(skeletonElements.length).toBeGreaterThan(40);
   });
 });

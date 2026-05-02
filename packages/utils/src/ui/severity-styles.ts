@@ -76,7 +76,7 @@ export const ALLERGY_SEVERITY_CONFIG: Record<
   { color: string; iconName: SeverityIconName; priority: number }
 > = {
   LIFE_THREATENING: {
-    color: "badge-danger animate-pulse",
+    color: "badge-danger font-bold uppercase tracking-wide",
     iconName: "ShieldAlert",
     priority: 1,
   },

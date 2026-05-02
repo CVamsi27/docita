@@ -60,7 +60,6 @@ export function ConsultationTimerUI({
                 size="sm"
                 className={cn(
                   "gap-2 font-mono tabular-nums",
-                  isRunning && "animate-pulse",
                   className,
                 )}
               >

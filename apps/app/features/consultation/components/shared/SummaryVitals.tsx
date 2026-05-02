@@ -20,7 +20,7 @@ const VITAL_STATUS_COLORS = {
   normal: "text-success",
   elevated: "text-warning",
   low: "text-info",
-  critical: "text-destructive animate-pulse",
+  critical: "text-destructive font-bold",
 };
 
 export function SummaryVitals({

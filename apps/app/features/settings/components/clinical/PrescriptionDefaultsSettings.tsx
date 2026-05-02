@@ -90,12 +90,12 @@ export function PrescriptionDefaultsSettings() {
         aria-label="Loading prescription defaults"
       >
         <CardHeader>
-          <Skeleton animation="wave" className="h-5 w-48" />
-          <Skeleton animation="wave" className="mt-1 h-4 w-64" />
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="mt-1 h-4 w-64" />
         </CardHeader>
         <CardContent className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} animation="wave" className="h-10 w-full" />
+            <Skeleton key={i} className="h-10 w-full" />
           ))}
         </CardContent>
       </Card>

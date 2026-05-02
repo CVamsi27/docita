@@ -25,16 +25,15 @@ export function PatientProfileHeaderContainer({
       >
         <div className="flex gap-6">
           <Skeleton
-            animation="wave"
             variant="circular"
             className="h-32 w-32 rounded-full"
           />
           <div className="space-y-4 flex-1">
-            <Skeleton animation="wave" className="h-8 w-1/3 rounded" />
-            <Skeleton animation="wave" className="h-4 w-1/4 rounded" />
+            <Skeleton className="h-8 w-1/3 rounded" />
+            <Skeleton className="h-4 w-1/4 rounded" />
             <div className="flex gap-2">
-              <Skeleton animation="wave" className="h-6 w-24 rounded" />
-              <Skeleton animation="wave" className="h-6 w-24 rounded" />
+              <Skeleton className="h-6 w-24 rounded" />
+              <Skeleton className="h-6 w-24 rounded" />
             </div>
           </div>
         </div>

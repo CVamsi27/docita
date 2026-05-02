@@ -171,37 +171,33 @@ export function DocumentsPageUI({
                 {Array.from({ length: 8 }).map((_, i) => (
                   <TableRow key={`doc-skel-${i}`} className="hover:bg-transparent">
                     <TableCell className="hidden md:table-cell">
-                      <Skeleton animation="wave" className="h-4 w-20 font-mono" />
+                      <Skeleton className="h-4 w-20 font-mono" />
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Skeleton
-                          animation="wave"
                           className="h-4 w-4 shrink-0 rounded-sm"
                         />
                         <Skeleton
-                          animation="wave"
                           className="h-4 max-w-[200px] flex-1"
                         />
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Skeleton animation="wave" className="h-4 w-28" />
+                      <Skeleton className="h-4 w-28" />
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      <Skeleton animation="wave" className="h-6 w-20 rounded-full" />
+                      <Skeleton className="h-6 w-20 rounded-full" />
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      <Skeleton animation="wave" className="h-4 w-24" />
+                      <Skeleton className="h-4 w-24" />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Skeleton
-                          animation="wave"
                           className="h-8 w-8 rounded-md"
                         />
                         <Skeleton
-                          animation="wave"
                           className="h-8 w-8 rounded-md"
                         />
                       </div>
