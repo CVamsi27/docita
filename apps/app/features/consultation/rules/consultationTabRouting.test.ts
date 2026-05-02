@@ -50,6 +50,12 @@ describe("consultationTabRouting", () => {
     expect(resolveConsultationSectionFromUrl("assessment", null)).toBe(
       "assessment",
     );
+    expect(
+      legacyTabToSectionId("investigations", "GENERAL"),
+    ).toBe("specialty-investigations");
+    expect(legacyTabToSectionId("cardiology-exam", "CARDIOLOGY")).toBe(
+      "specialty-cardiology",
+    );
   });
 });
 

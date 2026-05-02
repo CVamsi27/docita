@@ -43,7 +43,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import { useInvoicesLogic } from "@/features/invoices/hooks/use-invoices-logic";
+import {
+  DATE_FORMAT_OPTIONS_US_LONG,
+  formatDate,
+} from "@/lib/formatters";
 import Link from "next/link";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
@@ -69,14 +78,6 @@ export const InvoicesPageUI: FC = () => {
     searchQuery,
     setSearchQuery,
   } = useInvoicesLogic();
-
-  const formatDate = (dateString: string | Date) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
 
   const formatCurrency = (amount: number | undefined) => {
     return clinicCurrency.formatCurrency(amount || 0);
@@ -178,7 +179,7 @@ export const InvoicesPageUI: FC = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <LoadingState message="Loading invoices..." />
+            <LoadingState message="Loading invoices…" />
           ) : (
             <div className="ui-card-surface overflow-x-hidden">
               <Table>
@@ -208,7 +209,13 @@ export const InvoicesPageUI: FC = () => {
                         </span>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {invoice.createdAt ? formatDate(invoice.createdAt) : "N/A"}
+                        {invoice.createdAt
+                          ? formatDate(
+                              invoice.createdAt,
+                              "en-US",
+                              DATE_FORMAT_OPTIONS_US_LONG,
+                            )
+                          : "N/A"}
                       </TableCell>
                       <TableCell>
                         {formatCurrency(invoice.totalAmount ?? invoice.total)}
@@ -218,12 +225,19 @@ export const InvoicesPageUI: FC = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Open menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              Invoice actions
+                            </TooltipContent>
+                          </Tooltip>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem asChild>

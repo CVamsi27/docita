@@ -1,6 +1,7 @@
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import { formatDate } from "@/lib/formatters";
 
 export type CodeStatus =
   | "FULL_CODE"
@@ -93,9 +94,7 @@ export function CodeStatusAlertUI({
         {!compact && updatedAt && (
           <span className="ml-2 text-xs opacity-75">
             (Updated:{" "}
-            {typeof updatedAt === "string"
-              ? new Date(updatedAt).toLocaleDateString()
-              : updatedAt.toLocaleDateString()}
+            {formatDate(updatedAt)}
             {updatedBy && ` by ${updatedBy}`})
           </span>
         )}

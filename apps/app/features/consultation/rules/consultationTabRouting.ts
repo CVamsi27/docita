@@ -1,3 +1,5 @@
+import { getConsultationSectionsForClinic } from "@/features/consultation/workspace/consultation-section-registry";
+
 const BASE_CONSULTATION_TABS = [
   "chief-complaint",
   "history",
@@ -10,6 +12,10 @@ const SPECIALTY_TAB_BY_CLINIC: Record<string, string> = {
   DENTAL: "dental-chart",
   OPHTHALMOLOGY: "vision-exam",
   PEDIATRIC: "growth-chart",
+  CARDIOLOGY: "cardiology-exam",
+  DERMATOLOGY: "dermatology-exam",
+  GYNECOLOGY: "gynecology-exam",
+  PSYCHIATRY: "mental-status-exam",
 };
 
 const LEGACY_TAB_MAPPING: Record<string, string> = {
@@ -29,6 +35,13 @@ export const LEGACY_TAB_TO_SECTION_ID: Record<string, string> = {
   "dental-chart": "specialty-dental",
   "vision-exam": "specialty-vision",
   "growth-chart": "specialty-growth",
+  "cardiology-exam": "specialty-cardiology",
+  "dermatology-exam": "specialty-dermatology",
+  "gynecology-exam": "specialty-gynecology",
+  "mental-status-exam": "specialty-psychiatry",
+  "psychiatry-exam": "specialty-psychiatry",
+  investigations: "specialty-investigations",
+  "labs-imaging": "specialty-investigations",
 };
 
 export function legacyTabToSectionId(
@@ -78,6 +91,13 @@ export function normalizeConsultationTab(
   clinicType?: string | null,
 ): string {
   const tab = normalizeRawTab(rawTab);
+  const mappedSection = LEGACY_TAB_TO_SECTION_ID[tab];
+  if (mappedSection) {
+    const sections = getConsultationSectionsForClinic(clinicType);
+    if (sections.some((s) => s.id === mappedSection)) {
+      return tab;
+    }
+  }
   const validTabs = getConsultationTabIds(clinicType);
   return validTabs.includes(tab) ? tab : "chief-complaint";
 }

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { render } from "@/test/render-with-tooltip";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { GlobalSearch } from "./GlobalSearch";

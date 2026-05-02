@@ -1,6 +1,7 @@
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -12,6 +13,7 @@ import {
   Phone,
   ShieldAlert,
 } from "lucide-react";
+import { formatDate } from "@/lib/formatters";
 
 interface PatientFaceSheetHeaderUIProps {
   firstName: string;
@@ -74,15 +76,17 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div className="flex items-center gap-4">
           {onBack && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onBack}
-              aria-label="Back"
-              className="h-9 w-9 shrink-0 -ml-2 text-muted-foreground hover:text-foreground"
-            >
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-            </Button>
+            <SymbolTooltip label="Back">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onBack}
+                aria-label="Back"
+                className="h-9 w-9 shrink-0 -ml-2 text-muted-foreground hover:text-foreground"
+              >
+                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              </Button>
+            </SymbolTooltip>
           )}
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-base font-bold text-primary sm:h-14 sm:w-14 sm:text-lg">
             {initials}
@@ -98,7 +102,7 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
               <span className="text-muted-foreground/40">•</span>
               <span className="capitalize">{gender?.toLowerCase()}</span>
               <span className="text-muted-foreground/40">•</span>
-              <span>DOB: {new Date(dateOfBirth).toLocaleDateString()}</span>
+              <span>DOB: {formatDate(dateOfBirth)}</span>
             </div>
           </div>
         </div>
@@ -144,37 +148,41 @@ export function PatientFaceSheetHeaderUI(props: PatientFaceSheetHeaderUIProps) {
                     : allergiesLabel}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent>Allergies</TooltipContent>
+              <TooltipContent className="max-w-xs">{allergiesLabel}</TooltipContent>
             </Tooltip>
           </div>
 
           {(insuranceProvider || emergencyContactName) && (
             <div className="hidden md:flex items-center gap-4 text-xs text-muted-foreground">
               {insuranceProvider && (
-                <div
-                  className="flex items-center gap-1.5"
-                  title={
+                <SymbolTooltip
+                  label={
                     insurancePolicyNumber
-                      ? `Policy: ${insurancePolicyNumber}`
-                      : undefined
+                      ? `${insuranceProvider} — Policy: ${insurancePolicyNumber}`
+                      : insuranceProvider
                   }
+                  side="bottom"
                 >
-                  <Building2 className="h-3 w-3 opacity-70" />
-                  <span className="truncate max-w-[150px]">
-                    {insuranceProvider}
-                  </span>
-                </div>
+                  <div className="flex cursor-default items-center gap-1.5">
+                    <Building2 className="h-3 w-3 shrink-0 opacity-70" />
+                    <span className="truncate max-w-[150px]">
+                      {insuranceProvider}
+                    </span>
+                  </div>
+                </SymbolTooltip>
               )}
               {emergencyContactName && (
-                <div
-                  className="flex items-center gap-1.5"
-                  title={`${emergencyContactRelation}: ${emergencyContactPhone}`}
+                <SymbolTooltip
+                  label={`${emergencyContactRelation ?? "Contact"}: ${emergencyContactPhone ?? ""}`}
+                  side="bottom"
                 >
-                  <Phone className="h-3 w-3 opacity-70" />
-                  <span className="truncate max-w-[150px]">
-                    {emergencyContactName}
-                  </span>
-                </div>
+                  <div className="flex cursor-default items-center gap-1.5">
+                    <Phone className="h-3 w-3 shrink-0 opacity-70" />
+                    <span className="truncate max-w-[150px]">
+                      {emergencyContactName}
+                    </span>
+                  </div>
+                </SymbolTooltip>
               )}
             </div>
           )}

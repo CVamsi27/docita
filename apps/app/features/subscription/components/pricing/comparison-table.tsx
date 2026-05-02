@@ -21,6 +21,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -327,16 +328,25 @@ export function ComparisonTable({
                 <TableRow key={row.name} className="hover:bg-muted/50">
                   <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] text-sm font-medium py-2.5 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm truncate" title={row.name}>
-                        {row.name}
-                      </span>
+                      <SymbolTooltip
+                        label={row.name}
+                        side="top"
+                        contentClassName="max-w-[280px]"
+                      >
+                        <span className="text-sm truncate">{row.name}</span>
+                      </SymbolTooltip>
                       {LIMIT_ROW_DESCRIPTIONS[row.name] && (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
+                            <Info
+                              className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0"
+                              aria-label="About this limit"
+                            />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[280px]" side="right">
-                            <p className="text-xs">Info</p>
+                            <p className="text-xs">
+                              {LIMIT_ROW_DESCRIPTIONS[row.name]}
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       )}
@@ -423,9 +433,13 @@ function FeatureCategoryRows({
           <TableRow key={feature} className="hover:bg-muted/50">
             <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] hover:bg-muted/50 transition-colors py-2.5">
               <div className="flex items-center gap-2">
-                <span className="text-sm truncate" title={details.name}>
-                  {details.name}
-                </span>
+                <SymbolTooltip
+                  label={details.name}
+                  side="top"
+                  contentClassName="max-w-[280px]"
+                >
+                  <span className="text-sm truncate">{details.name}</span>
+                </SymbolTooltip>
                 {!details.isGenerallyAvailable && (
                   <Badge variant="secondary" className="text-[var(--fs-2xs)] px-1.5 py-0">
                     Planned
@@ -434,10 +448,13 @@ function FeatureCategoryRows({
                 {details.description && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
+                      <Info
+                        className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0"
+                        aria-label="About this feature"
+                      />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[280px]" side="right">
-                      <p className="text-xs">Info</p>
+                      <p className="text-xs">{details.description}</p>
                     </TooltipContent>
                   </Tooltip>
                 )}

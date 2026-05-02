@@ -39,7 +39,7 @@ export const LabTestsCatalog: FC<LabTestsCatalogProps> = ({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <LoadingState message="Loading catalog..." />
+          <LoadingState message="Loading catalog…" />
         ) : (
           <div className="overflow-x-hidden">
             <Table>

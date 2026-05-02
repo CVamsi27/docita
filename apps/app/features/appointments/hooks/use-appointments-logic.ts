@@ -3,10 +3,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   addDays,
   endOfMonth,
-  format,
+  formatPickerIsoDate,
   startOfMonth,
   subDays,
-} from "date-fns";
+} from "@workspace/utils";
 import { toast } from "sonner";
 import { useDoctors, useUnavailableDoctorIdsForDate } from "@/hooks/api/use-settings";
 import {
@@ -38,13 +38,15 @@ export const generateTimeSlots = () => {
 
 export const TIME_SLOTS = generateTimeSlots();
 
-const getCurrentTimeSlot = () => {
-  const now = new Date();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
+/** Local wall-clock half-hour key (`HH:mm`) for matching `TIME_SLOTS` and scroll-to-current. */
+export function formatLocalHalfHourSlotKey(d: Date): string {
+  const hours = d.getHours();
+  const minutes = d.getMinutes();
   const slotMinutes = Math.floor(minutes / 30) * 30;
   return `${hours.toString().padStart(2, "0")}:${slotMinutes.toString().padStart(2, "0")}`;
-};
+}
+
+const getCurrentTimeSlot = () => formatLocalHalfHourSlotKey(new Date());
 
 export const useAppointmentsLogic = () => {
   const NON_CANCELLED_APPOINTMENT_STATUSES =
@@ -75,7 +77,7 @@ export const useAppointmentsLogic = () => {
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
 
   // Use local calendar day (not UTC) to avoid off-by-one-day queries.
-  const selectedDateStr = date ? format(date, "yyyy-MM-dd") : undefined;
+  const selectedDateStr = date ? formatPickerIsoDate(date) : undefined;
 
   const handleDateSelect = useCallback((next: Date | undefined) => {
     const selected = next ?? new Date();
@@ -127,8 +129,8 @@ export const useAppointmentsLogic = () => {
   const rangeEnd = addDays(endOfMonth(calendarMonth), 7);
 
   const { data: monthRangeAppointmentsResponse } = useAppointments({
-    startDate: format(rangeStart, "yyyy-MM-dd"),
-    endDate: format(rangeEnd, "yyyy-MM-dd"),
+    startDate: formatPickerIsoDate(rangeStart),
+    endDate: formatPickerIsoDate(rangeEnd),
     ...(doctorScope.scopedDoctorId
       ? { doctorId: doctorScope.scopedDoctorId }
       : {}),
@@ -139,7 +141,7 @@ export const useAppointmentsLogic = () => {
   const appointmentCountsByDay = useMemo(() => {
     const map = new Map<string, number>();
     for (const apt of monthRangeAppointmentsResponse?.items ?? []) {
-      const key = format(new Date(apt.startTime), "yyyy-MM-dd");
+      const key = formatPickerIsoDate(new Date(apt.startTime));
       map.set(key, (map.get(key) ?? 0) + 1);
     }
     return map;

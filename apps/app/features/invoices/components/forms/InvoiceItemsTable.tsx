@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import {
   Select,
@@ -139,15 +140,19 @@ export function InvoiceItemsTable({
                 {formatCurrency(item.total)}
               </TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Remove ${item.description || "line item"}`}
-                  className="text-destructive hover:text-destructive/90"
-                  onClick={() => onRemoveItem(index)}
+                <SymbolTooltip
+                  label={`Remove ${item.description || "line item"}`}
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Remove ${item.description || "line item"}`}
+                    className="text-destructive hover:text-destructive/90"
+                    onClick={() => onRemoveItem(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </SymbolTooltip>
               </TableCell>
             </TableRow>
           ))}

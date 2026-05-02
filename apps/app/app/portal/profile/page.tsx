@@ -28,6 +28,7 @@ import { PageHeader } from "@workspace/ui/components/page-header";
 import { toast } from "sonner";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { formatDate } from "@/lib/formatters";
 
 export default function PatientProfilePage() {
   const [deletionReason, setDeletionReason] = useState("");
@@ -127,9 +128,7 @@ export default function PatientProfilePage() {
                 <p className="text-xs text-muted-foreground">
                   Consent given on
                   <span className="ml-1">
-                    {new Date(
-                      consentSettings.whatsappConsentAt,
-                    ).toLocaleDateString()}
+                    {formatDate(consentSettings.whatsappConsentAt)}
                   </span>
                 </p>
               )}
@@ -225,7 +224,7 @@ export default function PatientProfilePage() {
           >
             <Trash2 className="mr-2 h-4 w-4" />
             {requestDeletion.isPending
-              ? "Processing..."
+              ? "Processing…"
               : "Delete My Account & Data"}
           </Button>
         </CardContent>

@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import SignatureCanvas from 'react-signature-canvas';
 import { Button } from '@workspace/ui/components/button';
+import { SymbolTooltip } from '@workspace/ui/components/tooltip';
 import { Card } from '@workspace/ui/components/card';
 import { Check, Eraser, Redo2, Trash2, Undo2 } from 'lucide-react';
 
@@ -135,26 +136,30 @@ export function SignaturePad({ onSave, onCancel, className }: SignatureCanvasPro
           </div>
 
           <div className="flex gap-2 justify-end flex-wrap">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={undo}
-              disabled={historyIndex < 0}
-              title="Undo"
-            >
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={redo}
-              disabled={historyIndex >= history.length - 1}
-              title="Redo"
-            >
-              <Redo2 className="h-4 w-4" />
-            </Button>
+            <SymbolTooltip label="Undo">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={undo}
+                disabled={historyIndex < 0}
+                aria-label="Undo"
+              >
+                <Undo2 className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
+            <SymbolTooltip label="Redo">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={redo}
+                disabled={historyIndex >= history.length - 1}
+                aria-label="Redo"
+              >
+                <Redo2 className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
             <Button
               type="button"
               variant="outline"

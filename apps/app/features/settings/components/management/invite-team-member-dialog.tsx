@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import type { UseFormReturn } from "react-hook-form";
 import {
   Dialog,
@@ -26,7 +28,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Button } from "@workspace/ui/components/button";
-import { Loader2 } from "lucide-react";
+
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import type { InviteFormValues } from "@/features/settings/components/management/member-management-schemas";
 
@@ -235,7 +237,7 @@ export function InviteTeamMemberDialog({
                 className="w-full sm:w-auto"
               >
                 {isSaving && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                 )}
                 Invite Member
               </Button>

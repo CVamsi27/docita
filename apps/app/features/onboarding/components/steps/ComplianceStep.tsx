@@ -685,7 +685,7 @@ export function ComplianceStep({
                 </div>
                 {signaturePreviewLoading ? (
                   <p className="text-xs text-muted-foreground">
-                    Loading signature preview...
+                    Loading signature preview…
                   </p>
                 ) : signatureFileUrl && !signaturePreviewFailed ? (
                   <div className="rounded-md border bg-background p-3">
@@ -807,7 +807,7 @@ export function ComplianceStep({
                   disabled={complianceForm.formState.isSubmitting || !isReady}
                 >
                   {complianceForm.formState.isSubmitting
-                    ? "Creating Clinic..."
+                    ? "Creating Clinic…"
                     : "Complete Registration"}
                 </Button>
               </div>

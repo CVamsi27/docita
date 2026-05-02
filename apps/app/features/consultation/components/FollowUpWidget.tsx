@@ -9,6 +9,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Calendar, Check, X } from "lucide-react";
 import { APIRequestError } from "@workspace/data-access";
 import { api } from "@/lib/api-client";
@@ -16,6 +17,7 @@ import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import { formatDate } from "@/lib/formatters";
 
 interface FollowUp {
   id: string;
@@ -144,33 +146,37 @@ export function FollowUpWidget({ appointmentId }: FollowUpWidgetProps) {
               </p>
               <p className="text-xs text-muted-foreground">{fu.reason}</p>
               <p className="text-xs text-muted-foreground">
-                {new Date(fu.scheduledDate).toLocaleDateString()}
+                {formatDate(fu.scheduledDate)}
               </p>
             </div>
             <div className="flex items-center gap-1">
               <Badge variant="outline" className="text-xs">
                 {humanizeUiLabel(fu.status)}
               </Badge>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 w-7 p-0 text-success hover:bg-success/10"
-                disabled={actioning === fu.id}
-                onClick={() => handleComplete(fu.id)}
-                title="Mark as completed"
-              >
-                <Check className="h-3 w-3" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                disabled={actioning === fu.id}
-                onClick={() => handleCancel(fu.id)}
-                title="Cancel follow-up"
-              >
-                <X className="h-3 w-3" />
-              </Button>
+              <SymbolTooltip label="Mark as completed">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-success hover:bg-success/10"
+                  disabled={actioning === fu.id}
+                  onClick={() => handleComplete(fu.id)}
+                  aria-label="Mark as completed"
+                >
+                  <Check className="h-3 w-3" />
+                </Button>
+              </SymbolTooltip>
+              <SymbolTooltip label="Cancel follow-up">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  disabled={actioning === fu.id}
+                  onClick={() => handleCancel(fu.id)}
+                  aria-label="Cancel follow-up"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </SymbolTooltip>
             </div>
           </div>
         ))}

@@ -41,6 +41,7 @@ import {
 } from "@/features/settings/components/management/member-management-schemas";
 import { InviteTeamMemberDialog } from "@/features/settings/components/management/invite-team-member-dialog";
 import { ManageTeamMemberDialog } from "@/features/settings/components/management/manage-team-member-dialog";
+import { formatDateSafe } from "@/lib/formatters";
 
 interface MemberManagementUIProps {
   members: User[];
@@ -88,13 +89,6 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
   const getVerificationBadgeLabel = (status?: User["verificationStatus"]) => {
     if (!status) return "Unverified";
     return status.charAt(0) + status.slice(1).toLowerCase();
-  };
-
-  const formatDate = (value?: string | Date) => {
-    if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleDateString();
   };
 
   const form = useForm<InviteFormValues>({
@@ -329,7 +323,11 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading team members"
+      >
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Team Members</CardTitle>
@@ -342,10 +340,14 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-3 p-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
+                <Skeleton
+                  animation="wave"
+                  variant="circular"
+                  className="h-10 w-10 rounded-full"
+                />
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-48" />
+                  <Skeleton animation="wave" className="h-4 w-32" />
+                  <Skeleton animation="wave" className="h-3 w-48" />
                 </div>
               </div>
             ))}
@@ -505,7 +507,7 @@ export const MemberManagementUI: FC<MemberManagementUIProps> = ({
         onReverifyDoctor={handleReverifyDoctor}
         getVerificationBadgeVariant={getVerificationBadgeVariant}
         getVerificationBadgeLabel={getVerificationBadgeLabel}
-        formatDate={formatDate}
+        formatDate={formatDateSafe}
       />
     </Card>
   );

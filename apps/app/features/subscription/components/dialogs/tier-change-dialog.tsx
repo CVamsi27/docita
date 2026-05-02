@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import {
   Dialog,
@@ -12,18 +14,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowRight,
-  Building2,
-  CheckCircle,
-  Crown,
-  Loader2,
-  Rocket,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle, Crown, Rocket, Sparkles, Zap } from "lucide-react";
 import {
   PRICING_CURRENCY_CONFIG,
   type SupportedCurrency,
@@ -34,7 +25,7 @@ import {
 } from "@workspace/types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useProrationPreview } from "@/hooks/api/use-billing";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatPriceWithCurrency } from "@workspace/utils";
 
 interface TierChangeDialogProps {
   open: boolean;
@@ -83,8 +74,17 @@ export function TierChangeDialog({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div
+            className="flex items-center justify-center py-8"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading pricing"
+          >
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              iconClassName="h-8 w-8"
+            />
           </div>
         </DialogContent>
       </Dialog>
@@ -118,13 +118,8 @@ export function TierChangeDialog({
   const selectedHasCustomPricing =
     selectedTier === "ENTERPRISE" || selectedPrice === "custom";
 
-  const formatPrice = (price: number | "custom") => {
-    if (price === "custom") return "Custom";
-    return formatCurrency(price, currency, {
-      locale: currencyConfig.locale,
-      fractionDigits: currencyConfig.decimalPlaces,
-    });
-  };
+  const formatPrice = (price: number | "custom") =>
+    formatPriceWithCurrency(price, currency);
 
   const priceDiff =
     !currentHasCustomPricing &&
@@ -270,21 +265,18 @@ export function TierChangeDialog({
             {selectedTier !== "ENTERPRISE" && (prorationLoading || prorationPreview) && (
               <div className="rounded-lg border bg-muted/25 p-3 text-sm space-y-2">
                 {prorationLoading ? (
-                  <p className="text-muted-foreground">Calculating checkout amount...</p>
+                  <p className="text-muted-foreground">Calculating checkout amount…</p>
                 ) : prorationPreview ? (
                   <>
                     {prorationPreview.creditCents > 0 ? (
                       <p className="text-muted-foreground">
                         Credit from unused period:{" "}
                         <span className="font-medium text-foreground">
-                          {formatCurrency(
-                            prorationPreview.creditCents / 100,
+                          {formatCurrency(prorationPreview.creditCents / 100, {
                             currency,
-                            {
-                              locale: currencyConfig.locale,
-                              fractionDigits: currencyConfig.decimalPlaces,
-                            },
-                          )}
+                            locale: currencyConfig.locale,
+                            fractionDigits: currencyConfig.decimalPlaces,
+                          })}
                         </span>
                       </p>
                     ) : null}
@@ -292,8 +284,8 @@ export function TierChangeDialog({
                       Due today:{" "}
                       {formatCurrency(
                         prorationPreview.finalAmountCents / 100,
-                        currency,
                         {
+                          currency,
                           locale: currencyConfig.locale,
                           fractionDigits: currencyConfig.decimalPlaces,
                         },
@@ -351,8 +343,8 @@ export function TierChangeDialog({
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Processing…
                   </>
                 ) : selectedTier === "ENTERPRISE" ? (
                   "Request Callback"

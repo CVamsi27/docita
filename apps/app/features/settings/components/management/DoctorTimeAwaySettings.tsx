@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   useClinicMembers,
@@ -9,7 +11,7 @@ import {
 } from "@/hooks/api/use-settings";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -19,6 +21,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Label } from "@workspace/ui/components/label";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Switch } from "@workspace/ui/components/switch";
 import {
@@ -28,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -235,7 +238,7 @@ export function DoctorTimeAwaySettings() {
         >
           {createMutation.isPending ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
               Saving
             </>
           ) : (
@@ -246,7 +249,7 @@ export function DoctorTimeAwaySettings() {
         <div className="space-y-2">
           <h3 className="text-sm font-semibold">Scheduled time away</h3>
           {isLoading ? (
-            <Skeleton className="h-24 w-full" />
+            <Skeleton animation="wave" className="h-24 w-full" />
           ) : upcomingSorted.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No time away recorded yet.
@@ -268,9 +271,9 @@ export function DoctorTimeAwaySettings() {
                   >
                     <div>
                       <div className="font-medium">
-                        {format(start, "MMM d, yyyy")}
+                        {formatDate(start, "MMM d, yyyy")}
                         {" – "}
-                        {format(end, "MMM d, yyyy")}
+                        {formatDate(end, "MMM d, yyyy")}
                         {!off.isFullDay && off.startTime && off.endTime
                           ? ` (${off.startTime}–${off.endTime})`
                           : null}
@@ -280,28 +283,30 @@ export function DoctorTimeAwaySettings() {
                       ) : null}
                     </div>
                     {canDelete && off.id ? (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0 text-destructive hover:text-destructive"
-                        aria-label="Remove time away"
-                        disabled={deleteMutation.isPending}
-                        onClick={async () => {
-                          try {
-                            await deleteMutation.mutateAsync(off.id!);
-                            toast.success("Time away removed");
-                          } catch (error) {
-                            showUserFacingErrorToast(
-                              error,
-                              "We could not remove this entry. Please try again.",
-                              "save",
-                            );
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <SymbolTooltip label="Remove time away">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 text-destructive hover:text-destructive"
+                          aria-label="Remove time away"
+                          disabled={deleteMutation.isPending}
+                          onClick={async () => {
+                            try {
+                              await deleteMutation.mutateAsync(off.id!);
+                              toast.success("Time away removed");
+                            } catch (error) {
+                              showUserFacingErrorToast(
+                                error,
+                                "We could not remove this entry. Please try again.",
+                                "save",
+                              );
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </SymbolTooltip>
                     ) : null}
                   </li>
                 );

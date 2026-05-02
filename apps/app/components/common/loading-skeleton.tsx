@@ -6,14 +6,16 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 export function LoadingSkeleton({
   className = "",
   count = 1,
+  animation = "wave",
 }: {
   className?: string;
   count?: number;
+  animation?: "pulse" | "wave";
 }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <Skeleton key={i} className={className} />
+        <Skeleton key={i} animation={animation} className={className} />
       ))}
     </>
   );

@@ -41,7 +41,7 @@ import {
   ExternalLink,
   Inbox,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import { ClinicSlaSignatureQR } from "@/features/settings/components/clinic-sla-signature-qr";
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -230,7 +230,7 @@ export function ComplianceSettingsPanel() {
           <AlertDescription>
             SLA accepted and signed on
             <span className="ml-1">
-              {format(new Date(compliance.slaSignatureAcceptedAt), "PPP")}
+              {formatDate(compliance.slaSignatureAcceptedAt, "dd MMMM yyyy")}
             </span>
           </AlertDescription>
         </Alert>
@@ -320,7 +320,7 @@ export function ComplianceSettingsPanel() {
                       Due
                       <span className="ml-1">
                         {request.dueAt
-                          ? format(new Date(request.dueAt), "PPP")
+                          ? formatDate(request.dueAt, "dd MMMM yyyy")
                           : "not set"}
                       </span>
                     </p>
@@ -555,7 +555,7 @@ export function ComplianceSettingsPanel() {
               <p className="text-sm font-medium">Consent Template</p>
               <p className="text-xs text-muted-foreground">
                 {compliance?.consentTemplateUpdatedAt
-                  ? `Last updated ${format(new Date(compliance.consentTemplateUpdatedAt), "PPP")}`
+                  ? `Last updated ${formatDate(compliance.consentTemplateUpdatedAt, "dd MMMM yyyy")}`
                   : "Default template in use"}
               </p>
             </div>
@@ -649,7 +649,7 @@ export function ComplianceSettingsPanel() {
                     {log.action}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(log.createdAt), "MMM d, HH:mm")}
+                    {formatDate(log.createdAt, "MMM d, HH:mm")}
                   </span>
                 </div>
               ))}

@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import React from "react";
 import { FieldValues, Path, PathValue, UseFormReturn } from "react-hook-form";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@workspace/ui/components/popover";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Check, ChevronsUpDown, Loader2, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { Patient } from "@workspace/types";
 
@@ -137,8 +138,8 @@ export function PatientSelector<T extends FieldValues>({
                 <div className="max-h-[280px] overflow-y-auto p-1">
                   {patientsLoading ? (
                     <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Searching...</span>
+                      <DocitaLoadingIndicator variant="inline" decorative />
+                      <span>Searching…</span>
                     </div>
                   ) : selectablePatients.length === 0 ? (
                     <div className="px-4 py-6 text-center">

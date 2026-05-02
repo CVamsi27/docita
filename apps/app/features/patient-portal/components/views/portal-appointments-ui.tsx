@@ -13,6 +13,7 @@ import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import type { PatientPortalAppointment } from "@/features/patient-portal/types/patient-portal-types";
 import { getAppointmentStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
+import { formatDateTime } from "@/lib/formatters";
 
 interface PatientPortalAppointmentsUIProps {
   appointments: PatientPortalAppointment[];
@@ -60,7 +61,7 @@ export function PatientPortalAppointmentsUI({
                     </Badge>
                   </div>
                   <div className="text-muted-foreground">
-                    {new Date(appointment.scheduledAt).toLocaleString()} •{" "}
+                    {formatDateTime(appointment.scheduledAt)} •{" "}
                     {appointment.clinicName}
                   </div>
                 </div>

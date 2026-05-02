@@ -94,7 +94,7 @@ export function PatientsTable({
                   colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Loading patients...
+                  Loading patients…
                 </TableCell>
               </TableRow>
             ) : patients.length === 0 ? (

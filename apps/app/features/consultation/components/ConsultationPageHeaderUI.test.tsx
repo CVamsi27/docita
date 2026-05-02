@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@workspace/ui/components/tooltip";
 import { ConsultationPageHeaderUI } from "./ConsultationPageHeaderUI";
+
+function renderWithUiProviders(ui: ReactElement) {
+  return render(<TooltipProvider>{ui}</TooltipProvider>);
+}
 
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({
@@ -30,7 +36,7 @@ vi.mock("@/features/consultation/workspace/chrome/SaveStatusChip", () => ({
 
 describe("ConsultationPageHeaderUI", () => {
   it("hides edit actions in read-only mode", () => {
-    render(
+    renderWithUiProviders(
       <ConsultationPageHeaderUI
         patientName="Asha Rao"
         appointmentDate="2026-04-18T10:00:00.000Z"
@@ -55,7 +61,7 @@ describe("ConsultationPageHeaderUI", () => {
   });
 
   it("shows draft save status when the consultation is editable", () => {
-    render(
+    renderWithUiProviders(
       <ConsultationPageHeaderUI
         patientName="Asha Rao"
         appointmentDate="2026-04-18T10:00:00.000Z"

@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { Plus } from "lucide-react";
 import { MetricSparkline } from "./metric-sparkline";
@@ -123,14 +124,17 @@ export function MetricCategorySection({
                     <CardTitle className="text-sm font-medium">
                       {def.label}
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0"
-                      onClick={() => setSelectedDefinition(def)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    <SymbolTooltip label={`Record ${def.label}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => setSelectedDefinition(def)}
+                        aria-label={`Record ${def.label}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </SymbolTooltip>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">

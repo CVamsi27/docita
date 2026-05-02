@@ -54,7 +54,7 @@ export default function UiContractVisualTestPage() {
           <CardContent>
             <DataState
               status="loading"
-              loadingMessage="Loading appointment data..."
+              loadingMessage="Loading appointment data…"
             />
           </CardContent>
         </Card>

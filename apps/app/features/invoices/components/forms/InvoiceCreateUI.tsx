@@ -35,7 +35,7 @@ import { BackButton } from "@/components/common/navigation/back-button";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency } from "@workspace/utils";
 
 export const InvoiceCreateUI: FC = () => {
   const {

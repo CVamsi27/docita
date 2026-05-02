@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { render } from "@/test/render-with-tooltip";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ClinicGeneralSettings } from "./ClinicGeneralSettings";
@@ -75,7 +76,9 @@ describe("ClinicGeneralSettings", () => {
     expect(screen.getByDisplayValue("Care Clinic")).toBeInTheDocument();
     expect(screen.getByText("DOCITA123")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByTitle("Copy clinic code"));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Copy clinic code" }),
+    );
 
     await waitFor(() => {
       expect(settingsMocks.writeText).toHaveBeenCalledWith("DOCITA123");

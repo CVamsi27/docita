@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   useBulkDoctorSchedules,
@@ -26,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Calendar, Loader2 } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -158,23 +160,35 @@ export function DoctorAvailabilitySettings() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading doctor availability"
+      >
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Skeleton className="h-5 w-5 rounded" />
+            <Skeleton animation="wave" className="h-5 w-5 rounded" />
             <div className="space-y-2">
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-72 max-w-full" />
+              <Skeleton animation="wave" className="h-6 w-48" />
+              <Skeleton animation="wave" className="h-4 w-72 max-w-full" />
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-9 w-full max-w-xs" />
+          <Skeleton animation="wave" className="h-9 w-full max-w-xs" />
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+            <Skeleton
+              key={i}
+              animation="wave"
+              className="h-16 w-full rounded-lg"
+            />
           ))}
           <div className="flex justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              iconClassName="h-8 w-8 text-muted-foreground"
+            />
           </div>
         </CardContent>
       </Card>
@@ -328,8 +342,8 @@ export function DoctorAvailabilitySettings() {
           <Button className="w-full" onClick={handleSave} disabled={isSaving}>
             {isSaving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                Saving…
               </>
             ) : (
               "Save Availability"

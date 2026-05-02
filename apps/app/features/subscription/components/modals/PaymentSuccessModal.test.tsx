@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
+import { render } from "@/test/render-with-tooltip";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { PaymentSuccessModal } from "./payment-success-modal";

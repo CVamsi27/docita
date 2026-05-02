@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { format } from "date-fns";
 import { Calendar, ChevronRight, Clock, Play } from "lucide-react";
+import { formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -9,6 +11,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { EmptyState } from "@workspace/ui/components/empty-state";
@@ -28,9 +31,11 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
-              <Clock className="h-4 w-4" />
-            </div>
+            <SymbolTooltip label="Today's appointments">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
+                <Clock className="h-4 w-4" aria-hidden />
+              </div>
+            </SymbolTooltip>
             <div>
               <CardTitle className="text-base font-semibold">
                 Today&apos;s Schedule
@@ -86,10 +91,10 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                         apt.status === "in-progress" && "text-primary",
                       )}
                     >
-                      {format(new Date(apt.startTime), "h:mm")}
+                      {formatDate(apt.startTime, "hh:mm")}
                     </p>
                     <p className="text-xs text-muted-foreground uppercase">
-                      {format(new Date(apt.startTime), "a")}
+                      {formatDate(apt.startTime, "a")}
                     </p>
                   </div>
 
@@ -125,18 +130,25 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </span>
                     {(apt.status === "scheduled" ||
                       apt.status === "in-progress") && (
-                      <Button
-                        size="icon"
-                        variant={
-                          apt.status === "in-progress" ? "default" : "ghost"
+                      <SymbolTooltip
+                        label={
+                          apt.status === "in-progress"
+                            ? "Continue consultation"
+                            : "Open consultation"
                         }
-                        className={cn(
-                          "h-7 w-7 sm:h-8 sm:w-8",
-                          apt.status === "in-progress" && "shadow-sm",
-                        )}
                       >
-                        <Play className="h-3 w-3" />
-                      </Button>
+                        <span
+                          className={cn(
+                            "inline-flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg border border-transparent",
+                            apt.status === "in-progress"
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted/50 text-muted-foreground group-hover:bg-muted",
+                          )}
+                          aria-hidden
+                        >
+                          <Play className="h-3 w-3" />
+                        </span>
+                      </SymbolTooltip>
                     )}
                   </div>
                 </Link>

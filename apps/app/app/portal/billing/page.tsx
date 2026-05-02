@@ -76,7 +76,7 @@ export default function PortalBillingPage() {
     >
       <DataState
         status={state}
-        loadingMessage="Loading invoices..."
+        loadingMessage="Loading invoices…"
         errorMessage="We could not load your billing details. Please try again."
         onRetry={() => void refetch()}
         emptyIcon={Receipt}

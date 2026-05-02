@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -38,7 +38,7 @@ export function LabsTab({ patientId }: LabsTabProps) {
   } = useLabTestOrders({ patientId });
 
   if (isLoading) {
-    return <DataState status="loading" loadingMessage="Loading lab tests..." />;
+    return <DataState status="loading" loadingMessage="Loading lab tests…" />;
   }
 
   if (isError) {
@@ -66,10 +66,10 @@ export function LabsTab({ patientId }: LabsTabProps) {
     <div className="space-y-3">
       {orders.map((order) => {
         const orderedAt = order.createdAt
-          ? format(new Date(order.createdAt), "EEE, d MMM yyyy")
+          ? formatDate(order.createdAt, "EEE, d MMM yyyy")
           : "";
         const completedAt = order.completedAt
-          ? format(new Date(order.completedAt), "d MMM yyyy")
+          ? formatDate(order.completedAt, "d MMM yyyy")
           : null;
         const variant = STATUS_VARIANT[order.status] ?? "outline";
 

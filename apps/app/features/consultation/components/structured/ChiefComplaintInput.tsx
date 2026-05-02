@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
@@ -162,14 +165,23 @@ export function ChiefComplaintInput({
                     {hasComplaint ? "Recorded" : "Needs symptom"}
                   </span>
                   {!readOnly && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => removeItem(index)}
+                    <SymbolTooltip
+                      label={
+                        isPrimary
+                          ? "Remove primary complaint"
+                          : "Remove additional complaint"
+                      }
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => removeItem(index)}
+                        aria-label="Remove complaint"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </SymbolTooltip>
                   )}
                 </div>
               </div>

@@ -1,9 +1,11 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import { toast } from "sonner";
 import {
   Card,
@@ -31,7 +33,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { Loader2, Plus, Check, X, Ban } from "lucide-react";
+import { Plus, Check, X, Ban } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useClinicMembers } from "@/hooks/api/use-settings";
 import {
@@ -306,9 +308,18 @@ export function LeaveManagementSettings() {
         </CardHeader>
         <CardContent>
           {leavesLoading ? (
-            <div className="space-y-3 py-2">
+            <div
+              className="space-y-3 py-2"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading leave requests"
+            >
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                <Skeleton
+                  key={i}
+                  animation="wave"
+                  className="h-16 w-full rounded-lg"
+                />
               ))}
             </div>
           ) : leaves.length === 0 ? (
@@ -487,7 +498,7 @@ export function LeaveManagementSettings() {
                   disabled={applyLeaveMutation.isPending}
                 >
                   {applyLeaveMutation.isPending && (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                   )}
                   Submit Request
                 </Button>
@@ -574,7 +585,7 @@ export function LeaveManagementSettings() {
                     disabled={createPlanMutation.isPending}
                   >
                     {createPlanMutation.isPending && (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                     )}
                     Save Plan
                   </Button>
@@ -685,8 +696,8 @@ function LeaveRequestRow({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {format(new Date(leave.startDate as string), "MMM d, yyyy")} -{" "}
-          {format(new Date(leave.endDate as string), "MMM d, yyyy")}
+          {formatDate(leave.startDate as string, "MMM d, yyyy")} -{" "}
+          {formatDate(leave.endDate as string, "MMM d, yyyy")}
         </p>
         {leave.reason && (
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
@@ -710,7 +721,7 @@ function LeaveRequestRow({
               disabled={approveMutation.isPending}
             >
               {approveMutation.isPending ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
               ) : (
                 <Check className="h-3 w-3" />
               )}
@@ -737,7 +748,7 @@ function LeaveRequestRow({
               disabled={cancelMutation.isPending}
             >
               {cancelMutation.isPending ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
               ) : (
                 <Ban className="h-3 w-3" />
               )}
@@ -779,7 +790,7 @@ function RejectButton({
       disabled={rejectMutation.isPending}
     >
       {rejectMutation.isPending && (
-        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
       )}
       Reject Leave
     </Button>

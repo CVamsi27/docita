@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import React, { FC, ReactNode } from "react";
-import { Loader2, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -305,7 +307,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
             </Button>
             <Button type="submit" disabled={createPatient.isPending}>
               {createPatient.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
               )}
               Add Patient
             </Button>
@@ -538,7 +540,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             </Button>
             <Button type="submit" disabled={updatePatient.isPending}>
               {updatePatient.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
               )}
               Save Changes
             </Button>

@@ -156,7 +156,7 @@ describe("ChoosePathPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 });

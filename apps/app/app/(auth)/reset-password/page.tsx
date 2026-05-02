@@ -1,13 +1,16 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { CheckCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { api } from "@/lib/api-client";
@@ -128,22 +131,25 @@ function ResetPasswordInner() {
                   className="h-11 pr-10"
                   autoFocus
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                <SymbolTooltip
+                  label={showPassword ? "Hide password" : "Show password"}
+                  side="left"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {showPassword ? "Hide password" : "Show password"}
-                  </span>
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </SymbolTooltip>
               </div>
               {form.formState.errors.newPassword && (
                 <p className="text-sm text-destructive">
@@ -181,8 +187,8 @@ function ResetPasswordInner() {
             >
               {form.formState.isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Resetting...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Resetting…
                 </>
               ) : (
                 "Reset Password"
@@ -211,7 +217,19 @@ export default function ResetPasswordPage() {
           <div className="ui-card-surface space-y-6 p-6 sm:p-8">
             <div className="text-center ui-copy-stack">
               <h1 className="ui-page-title">Reset Password</h1>
-              <p className="ui-page-subtitle">Loading…</p>
+              <div
+                className="flex flex-col items-center gap-3 py-4"
+                role="status"
+                aria-live="polite"
+                aria-label="Loading password reset"
+              >
+                <DocitaLoadingIndicator
+                  variant="section"
+                  withStatusRole={false}
+                  iconClassName="h-10 w-10 text-primary"
+                />
+                <p className="ui-page-subtitle">Loading…</p>
+              </div>
             </div>
           </div>
         </PreDashboardShell>

@@ -9,6 +9,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { Pill } from "lucide-react";
 import type { ActiveMedication } from "@workspace/types";
+import { formatDate } from "@/lib/formatters";
 
 interface ActiveMedicationsCardProps {
   medications: ActiveMedication[];
@@ -68,8 +69,8 @@ export function ActiveMedicationsCard({ medications }: ActiveMedicationsCardProp
 
             {med.startDate && (
               <p className="text-xs text-muted-foreground">
-                Started: {new Date(med.startDate).toLocaleDateString()}
-                {med.endDate && ` &middot; Until: ${new Date(med.endDate).toLocaleDateString()}`}
+                Started: {formatDate(med.startDate)}
+                {med.endDate && ` &middot; Until: ${formatDate(med.endDate)}`}
               </p>
             )}
 

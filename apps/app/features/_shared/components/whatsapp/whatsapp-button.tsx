@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Button } from "@workspace/ui/components/button";
 import { MessageCircle } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
@@ -14,15 +15,21 @@ interface WhatsAppButtonProps {
   allowGenericLink?: boolean;
 }
 
-export function WhatsAppButton({
-  phoneNumber,
-  message,
-  className,
-  variant = "outline",
-  label = "WhatsApp",
-  size = "default",
-  allowGenericLink = false,
-}: WhatsAppButtonProps) {
+export const WhatsAppButton = React.forwardRef<
+  HTMLButtonElement,
+  WhatsAppButtonProps
+>(function WhatsAppButton(
+  {
+    phoneNumber,
+    message,
+    className,
+    variant = "outline",
+    label = "WhatsApp",
+    size = "default",
+    allowGenericLink = false,
+  },
+  ref,
+) {
   const handleClick = () => {
     const encodedMessage = message ? encodeURIComponent(message) : "";
     const formattedPhone = phoneNumber?.replace(/\D/g, "");
@@ -39,16 +46,21 @@ export function WhatsAppButton({
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
+  const isIconOnly = size === "icon" || label === "";
+  const accessibleLabel = label || "Send via WhatsApp";
+
   return (
     <Button
+      ref={ref}
       variant={variant}
       size={size}
       className={cn("gap-2", className)}
       onClick={handleClick}
       disabled={!phoneNumber && !allowGenericLink}
+      aria-label={isIconOnly ? accessibleLabel : undefined}
     >
       <MessageCircle className="h-4 w-4" />
       {size !== "icon" && label}
     </Button>
   );
-}
+});

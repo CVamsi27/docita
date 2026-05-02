@@ -34,7 +34,11 @@ import {
   PRICING_DIALOG_TIER_ICONS,
   PRICING_DIALOG_TIERS,
 } from "@/features/subscription/config/pricing-config";
-import { formatCurrency } from "@/lib/formatters";
+import {
+  formatAmountLocale,
+  formatCountLocale,
+  formatPriceWithCurrency,
+} from "@workspace/utils";
 
 interface PricingDialogProps {
   open: boolean;
@@ -74,13 +78,8 @@ export function PricingDialog({
     usage: DEFAULT_PRICING_USAGE_INPUTS,
   });
 
-  const formatPrice = (price: number | "custom") => {
-    if (price === "custom") return "Custom";
-    return formatCurrency(price, currency, {
-      locale: currencyConfig.locale,
-      fractionDigits: currencyConfig.decimalPlaces,
-    });
-  };
+  const formatPrice = (price: number | "custom") =>
+    formatPriceWithCurrency(price, currency);
 
   const getTierNumeric = (tierName: TierName): Tier => {
     return Tier[tierName as keyof typeof Tier];
@@ -258,7 +257,10 @@ export function PricingDialog({
                       </p>
                       <p className="text-sm font-semibold text-foreground">
                         {estimate?.currency.symbol}
-                        {estimateValue.toLocaleString()}
+                        {formatAmountLocale(estimateValue, currencyConfig.locale, {
+                          minimumFractionDigits: currencyConfig.decimalPlaces,
+                          maximumFractionDigits: currencyConfig.decimalPlaces,
+                        })}
                         {isYearly ? "/yr" : "/mo"}
                       </p>
                     </div>
@@ -271,7 +273,7 @@ export function PricingDialog({
                     <span>
                       {limits.patients === 999999
                         ? "Unlimited"
-                        : limits.patients.toLocaleString()}{" "}
+                        : formatCountLocale(limits.patients)}{" "}
                       patients
                     </span>
                   </div>
@@ -293,7 +295,7 @@ export function PricingDialog({
                       <span>
                         {limits.appointments === 999999
                           ? "Unlimited"
-                          : limits.appointments.toLocaleString()}{" "}
+                          : formatCountLocale(limits.appointments)}{" "}
                         consultations/mo
                       </span>
                     </div>
@@ -340,7 +342,7 @@ export function PricingDialog({
         </div>
 
         <div className="text-center text-sm text-muted-foreground pt-4 border-t border-border/50">
-          {isLoadingAny && <p className="mb-2">Updating usage estimates...</p>}
+          {isLoadingAny && <p className="mb-2">Updating usage estimates…</p>}
           <p>
             All plans include basic support. Enterprise customers get dedicated
             account management.

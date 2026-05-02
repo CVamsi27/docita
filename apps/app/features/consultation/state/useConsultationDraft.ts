@@ -116,6 +116,13 @@ export interface ConsultationDraftActions {
 export type ConsultationDraftStore = ConsultationDraftState &
   ConsultationDraftActions;
 
+/** Aligns leave navigation, history traps, and `beforeunload` warnings. */
+export function consultationDraftNeedsLeaveGuard(
+  s: Pick<ConsultationDraftState, "dirty" | "saveState">,
+): boolean {
+  return s.dirty || s.saveState === "error" || s.saveState === "saving";
+}
+
 const DEFAULT_EXAMINATION: ExaminationData = {
   general: {
     pallor: false,

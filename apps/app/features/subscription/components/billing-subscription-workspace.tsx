@@ -56,6 +56,8 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
+import { formatCountLocale } from "@workspace/utils";
+import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 
 const PLAN_ORDER = [
   Tier.STARTER,
@@ -81,17 +83,14 @@ const PLAN_INCLUDED_LABEL: Partial<Record<TierName, string>> = {
 
 function formatPlanDate(value?: string | null) {
   if (!value) return "Not scheduled";
-  return new Date(value).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const formatted = formatLocaleDateShortMonthYear(value);
+  return formatted.length > 0 ? formatted : "Not scheduled";
 }
 
 function formatLimitValue(value?: number) {
   if (value === undefined) return undefined;
   if (value >= 999999 || value === 999) return "Unlimited";
-  return value.toLocaleString("en-IN");
+  return formatCountLocale(value);
 }
 
 function formatLimitLabel(

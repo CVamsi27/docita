@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -40,6 +40,7 @@ import { useSidebarPreferences } from "@/hooks/use-sidebar-preferences";
 import { NotificationPanel } from "./notification-panel";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -198,13 +199,16 @@ function SidebarContent({
     <>
       {/* Header */}
       {isCollapsed && !isMobile ? (
-        <button
-          className="flex h-14 w-full shrink-0 items-center justify-center border-b border-border/60 hover:bg-muted/50 transition-colors"
-          onClick={onExpand}
-          aria-label="Expand sidebar"
-        >
-          <DocitaIcon />
-        </button>
+        <SymbolTooltip label="Expand sidebar" side="right">
+          <button
+            type="button"
+            className="flex h-14 w-full shrink-0 items-center justify-center border-b border-border/60 hover:bg-muted/50 transition-colors"
+            onClick={onExpand}
+            aria-label="Expand sidebar"
+          >
+            <DocitaIcon />
+          </button>
+        </SymbolTooltip>
       ) : (
         <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 px-3">
           <Link
@@ -214,15 +218,17 @@ function SidebarContent({
             <DocitaLogo />
           </Link>
           {isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-              onClick={onClose}
-              aria-label="Close sidebar"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <SymbolTooltip label="Close sidebar" side="bottom">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={onClose}
+                aria-label="Close sidebar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
           )}
         </div>
       )}
@@ -230,19 +236,22 @@ function SidebarContent({
       {/* Scrollable nav */}
       <div className="relative flex-1 min-h-0">
         {showTopShadow && !isCollapsed && (
-          <button
-            aria-label="Scroll up"
-            className="group absolute top-0 left-0 right-0 z-10 flex h-8 cursor-pointer items-start justify-center pt-1"
-            style={{
-              background:
-                "linear-gradient(to bottom, hsl(var(--background)) 20%, transparent)",
-            }}
-            onClick={() =>
-              scrollRef.current?.scrollBy({ top: -120, behavior: "smooth" })
-            }
-          >
-            <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5" />
-          </button>
+          <SymbolTooltip label="Scroll up">
+            <button
+              type="button"
+              aria-label="Scroll up"
+              className="group absolute top-0 left-0 right-0 z-10 flex h-8 cursor-pointer items-start justify-center pt-1"
+              style={{
+                background:
+                  "linear-gradient(to bottom, hsl(var(--background)) 20%, transparent)",
+              }}
+              onClick={() =>
+                scrollRef.current?.scrollBy({ top: -120, behavior: "smooth" })
+              }
+            >
+              <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5" />
+            </button>
+          </SymbolTooltip>
         )}
 
         <nav
@@ -258,9 +267,8 @@ function SidebarContent({
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-            return (
+            const link = (
               <Link
-                key={item.href}
                 href={item.href}
                 className={cn(
                   "group flex items-center gap-3 px-2.5 py-2 text-sm font-medium transition-colors",
@@ -270,7 +278,6 @@ function SidebarContent({
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   collapsedRail && "mx-auto w-11 max-w-[2.75rem]",
                 )}
-                title={collapsedRail ? item.label : undefined}
               >
                 <div className={getIconClasses(isActive, collapsedRail)}>
                   <item.icon className="h-4 w-4 shrink-0" />
@@ -280,23 +287,38 @@ function SidebarContent({
                 )}
               </Link>
             );
+
+            return (
+              <Fragment key={item.href}>
+                {collapsedRail ? (
+                  <SymbolTooltip label={item.label} side="right">
+                    {link}
+                  </SymbolTooltip>
+                ) : (
+                  link
+                )}
+              </Fragment>
+            );
           })}
         </nav>
 
         {showBottomShadow && !isCollapsed && (
-          <button
-            aria-label="Scroll down"
-            className="group absolute bottom-0 left-0 right-0 z-10 flex h-10 cursor-pointer items-end justify-center pb-1.5"
-            style={{
-              background:
-                "linear-gradient(to top, hsl(var(--background)) 40%, transparent)",
-            }}
-            onClick={() =>
-              scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })
-            }
-          >
-            <ChevronDown className="h-4 w-4 animate-bounce text-muted-foreground transition-transform group-hover:translate-y-0.5" />
-          </button>
+          <SymbolTooltip label="Scroll down">
+            <button
+              type="button"
+              aria-label="Scroll down"
+              className="group absolute bottom-0 left-0 right-0 z-10 flex h-10 cursor-pointer items-end justify-center pb-1.5"
+              style={{
+                background:
+                  "linear-gradient(to top, hsl(var(--background)) 40%, transparent)",
+              }}
+              onClick={() =>
+                scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })
+              }
+            >
+              <ChevronDown className="h-4 w-4 animate-bounce text-muted-foreground transition-transform group-hover:translate-y-0.5" />
+            </button>
+          </SymbolTooltip>
         )}
       </div>
 
@@ -543,14 +565,16 @@ export function SidebarMobileTrigger({
   onClick: () => void;
 }) {
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-9 w-9 md:hidden"
-      onClick={onClick}
-      aria-label="Open navigation"
-    >
-      <Menu className="h-5 w-5" />
-    </Button>
+    <SymbolTooltip label="Open navigation" side="bottom">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9 md:hidden"
+        onClick={onClick}
+        aria-label="Open navigation"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+    </SymbolTooltip>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
+import { formatCountLocale } from "@workspace/utils";
 import { CalendarCheck2, CheckCircle2, Clock, Users } from "lucide-react";
 
 interface DashboardStatsGridProps {
@@ -24,28 +25,28 @@ export function DashboardStatsGridUI({
     {
       id: "patients",
       label: "Total patients",
-      value: stats.totalPatients.toLocaleString(),
+      value: formatCountLocale(stats.totalPatients),
       icon: <Users className="size-4" aria-hidden />,
       accent: "info",
     },
     {
       id: "today-appointments",
       label: "Today's appointments",
-      value: stats.todayAppointments.toLocaleString(),
+      value: formatCountLocale(stats.todayAppointments),
       icon: <CalendarCheck2 className="size-4" aria-hidden />,
       accent: "warning",
     },
     {
       id: "completed-today",
       label: "Completed today",
-      value: completedToday.toLocaleString(),
+      value: formatCountLocale(completedToday),
       icon: <CheckCircle2 className="size-4" aria-hidden />,
       accent: "success",
     },
     {
       id: "in-progress",
       label: "In progress",
-      value: inProgressToday.toLocaleString(),
+      value: formatCountLocale(inProgressToday),
       icon: <Clock className="size-4" aria-hidden />,
       accent: "default",
     },

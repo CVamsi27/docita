@@ -53,7 +53,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   } = useInvoiceDetailsLogic(invoiceId, { autoPrint: shouldAutoPrint });
 
   if (isLoading) {
-    return <LoadingState message="Loading invoice details..." />;
+    return <LoadingState message="Loading invoice details…" />;
   }
 
   if (error || !invoice) {
@@ -98,7 +98,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             disabled={isDownloading}
           >
             <Download className="h-4 w-4 mr-2" />
-            {isDownloading ? "Preparing..." : "Download"}
+            {isDownloading ? "Preparing…" : "Download"}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

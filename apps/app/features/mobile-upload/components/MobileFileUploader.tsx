@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@workspace/ui/components/card";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Camera, ImageIcon, RotateCcw, X } from "lucide-react";
 
 interface MobileFileUploaderProps {
@@ -73,13 +74,16 @@ export function MobileFileUploader({
                 fill
                 className="object-contain bg-black/5 dark:bg-black/10"
               />
-              <button
-                onClick={clearFile}
-                className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors shadow-lg"
-                aria-label="Remove image"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              <SymbolTooltip label="Remove image">
+                <button
+                  type="button"
+                  onClick={clearFile}
+                  className="absolute top-3 right-3 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors shadow-lg"
+                  aria-label="Remove image"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </SymbolTooltip>
               <div className="absolute bottom-3 left-3 right-3">
                 <div className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg flex items-center justify-center gap-2">
                   <RotateCcw className="h-3 w-3" />

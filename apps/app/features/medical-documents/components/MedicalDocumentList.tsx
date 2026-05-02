@@ -189,7 +189,7 @@ export function MedicalDocumentList({ patientId }: Props) {
   if (loading) {
     return (
       <div className="text-sm text-muted-foreground py-4">
-        Loading documents...
+        Loading documents…
       </div>
     );
   }
@@ -301,7 +301,7 @@ export function MedicalDocumentList({ patientId }: Props) {
               Cancel
             </Button>
             <Button onClick={handleCreate} disabled={creating}>
-              {creating ? "Creating..." : "Create"}
+              {creating ? "Creating…" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>

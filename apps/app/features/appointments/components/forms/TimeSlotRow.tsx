@@ -1,15 +1,8 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { memo } from "react";
-import { format } from "date-fns";
-import {
-  Check,
-  Clock,
-  ExternalLink,
-  Loader2,
-  MoreVertical,
-  Stethoscope,
-  User,
-  UserCheck,
-} from "lucide-react";
+import { formatDate } from "@workspace/utils";
+import { formatTime } from "@/lib/formatters";
+import { Check, Clock, ExternalLink, MoreVertical, Stethoscope, User, UserCheck } from "lucide-react";
 import Link from "next/link";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { Button } from "@workspace/ui/components/button";
@@ -20,6 +13,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
+import {
+  SymbolTooltip,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import { usePermissions } from "@/hooks/use-permissions";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
@@ -92,10 +91,18 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
             <div className="flex shrink-0 flex-col items-start">
               <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground tabular-nums">
                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                {format(aptStart, "h:mm a")}
+                {formatTime(aptStart, "en-IN", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
               </div>
               <span className="mt-0.5 pl-5 text-xs text-muted-foreground tabular-nums">
-                {format(aptEnd, "h:mm a")}
+                {formatTime(aptEnd, "en-IN", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
               </span>
             </div>
 
@@ -127,7 +134,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                   {apt.patient ? "Linked patient" : "Unlinked patient"}
                 </span>
                 <span aria-hidden="true">&middot;</span>
-                <span>{format(aptStart, "EEE, MMM d")}</span>
+                <span>{formatDate(aptStart, "EEE, MMM d")}</span>
                 <span aria-hidden="true">&middot;</span>
                 <span>{appointmentTypeLabel}</span>
                 {apt.doctor?.name && (
@@ -142,21 +149,22 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
 
           <div className="flex flex-wrap items-center gap-1.5 @md/apt:flex-nowrap @md/apt:justify-end">
             {apt.status === "confirmed" && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onCheckIn(apt.id!)}
-                disabled={checkingIn === apt.id}
-                className="h-8 gap-1.5 rounded-full px-3 text-xs"
-                title="Check in patient"
-              >
-                {checkingIn === apt.id ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <UserCheck className="h-3.5 w-3.5" />
-                )}
-                <span>Check-in</span>
-              </Button>
+              <SymbolTooltip label="Check in patient">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onCheckIn(apt.id!)}
+                  disabled={checkingIn === apt.id}
+                  className="h-8 gap-1.5 rounded-full px-3 text-xs"
+                >
+                  {checkingIn === apt.id ? (
+                    <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3.5 w-3.5" />
+                  ) : (
+                    <UserCheck className="h-3.5 w-3.5" />
+                  )}
+                  <span>Check-in</span>
+                </Button>
+              </SymbolTooltip>
             )}
             {apt.status === "checked-in" && (
               <Badge
@@ -168,29 +176,35 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
               </Badge>
             )}
             {canAccessConsultation && (
-              <Button
-                size="sm"
-                variant={isTerminalVisit ? "outline" : "default"}
-                onClick={() => onStartConsultation(apt.id!)}
-                disabled={startingConsultationId === apt.id}
-                className="h-8 gap-1.5 rounded-full px-3 text-xs"
-                title={consultationTitle}
-              >
-                <Stethoscope className="h-3.5 w-3.5" />
-                <span>{consultationPrimaryLabel}</span>
-              </Button>
+              <SymbolTooltip label={consultationTitle}>
+                <Button
+                  size="sm"
+                  variant={isTerminalVisit ? "outline" : "default"}
+                  onClick={() => onStartConsultation(apt.id!)}
+                  disabled={startingConsultationId === apt.id}
+                  className="h-8 gap-1.5 rounded-full px-3 text-xs"
+                >
+                  <Stethoscope className="h-3.5 w-3.5" />
+                  <span>{consultationPrimaryLabel}</span>
+                </Button>
+              </SymbolTooltip>
             )}
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 shrink-0 rounded-full p-0"
-                  aria-label="More appointment actions"
-                >
-                  <MoreVertical className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 shrink-0 rounded-full p-0"
+                      aria-label="More appointment actions"
+                    >
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">More actions</TooltipContent>
+              </Tooltip>
               <DropdownMenuContent align="end" className="min-w-[200px]">
                 <DropdownMenuItem asChild>
                   <Link

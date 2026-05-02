@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import {
   Card,
   CardContent,
@@ -8,7 +9,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Badge } from "@workspace/ui/components/badge";
-import { Brain, Loader2, Shield, Sparkles, Stethoscope } from "lucide-react";
+import { Brain, Shield, Sparkles, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { DiagnosisSuggestion } from "@/features/ai-assistant/hooks/use-ai-assistant-logic";
 import { EmptyState } from "@/features/ai-assistant/components/AIAssistantUI";
@@ -67,8 +68,8 @@ export const DiagnosisAssistantTab = ({
         >
           {state.isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analyzing...
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+              Analyzing…
             </>
           ) : (
             <>

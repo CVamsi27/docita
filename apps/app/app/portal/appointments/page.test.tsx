@@ -108,7 +108,7 @@ describe("PortalAppointmentsPage", () => {
       refetch: portalAppointmentMocks.refetch,
     });
     const { rerender } = render(<PortalAppointmentsPage />);
-    expect(screen.getByText("Loading appointments...")).toBeInTheDocument();
+    expect(screen.getByText("Loading appointments…")).toBeInTheDocument();
 
     portalAppointmentMocks.usePatientPortalAppointments.mockReturnValue({
       data: { appointments: [] },

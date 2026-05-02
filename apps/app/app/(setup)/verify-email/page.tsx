@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 import { sanitizeUserFacingMessage } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -101,9 +103,18 @@ function VerifyEmailInner() {
     <PreDashboardShell currentStep="verify-email">
       <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {state === "loading" && (
-          <div className="flex flex-col items-center gap-4 py-4">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="ui-page-subtitle">Verifying your email...</p>
+          <div
+            className="flex flex-col items-center gap-4 py-4"
+            role="status"
+            aria-live="polite"
+            aria-label="Verifying email"
+          >
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              iconClassName="h-10 w-10 text-primary"
+            />
+            <p className="ui-page-subtitle">Verifying your email…</p>
           </div>
         )}
 
@@ -158,9 +169,18 @@ export default function VerifyEmailPage() {
       fallback={
         <PreDashboardShell currentStep="verify-email">
           <div className="ui-card-surface space-y-6 p-8">
-            <div className="flex flex-col items-center gap-4 py-4">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="ui-page-subtitle">Loading…</p>
+            <div
+              className="flex flex-col items-center gap-4 py-4"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading email verification"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-10 w-10 text-primary"
+              />
+              <p className="ui-page-subtitle">Loading verification…</p>
             </div>
           </div>
         </PreDashboardShell>

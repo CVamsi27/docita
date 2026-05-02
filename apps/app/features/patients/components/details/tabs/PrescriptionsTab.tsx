@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -30,7 +30,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
 
   if (isLoading) {
     return (
-      <DataState status="loading" loadingMessage="Loading prescriptions..." />
+      <DataState status="loading" loadingMessage="Loading prescriptions…" />
     );
   }
 
@@ -64,7 +64,7 @@ export function PrescriptionsTab({ patientId }: PrescriptionsTabProps) {
     <div className="space-y-3">
       {sorted.map((prescription) => {
         const date = prescription.createdAt
-          ? format(new Date(prescription.createdAt), "EEE, d MMM yyyy")
+          ? formatDate(prescription.createdAt, "EEE, d MMM yyyy")
           : "";
         const medications = prescription.medications ?? [];
         const doctorName =

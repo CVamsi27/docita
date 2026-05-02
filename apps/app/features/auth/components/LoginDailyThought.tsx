@@ -68,26 +68,21 @@ export function LoginDailyThought() {
       </h3>
 
       {loading ? (
-        <div className="space-y-2" aria-busy="true">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full max-w-md" />
-          <Skeleton className="h-3 w-32" />
+        <div
+          className="space-y-2"
+          aria-busy="true"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading daily thought"
+        >
+          <Skeleton animation="wave" className="h-4 w-full" />
+          <Skeleton animation="wave" className="h-4 w-full max-w-md" />
+          <Skeleton animation="wave" className="h-3 w-32" />
         </div>
       ) : data ? (
         <blockquote className="space-y-2 border-l-2 border-primary/40 pl-3">
           <p className="text-sm leading-relaxed text-foreground">{data.quote}</p>
           <footer className="text-xs text-muted-foreground">— {data.author}</footer>
-          <p className="text-[var(--fs-2xs)] text-muted-foreground">
-            Quotes provided by{" "}
-            <a
-              href="https://zenquotes.io/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-primary underline-offset-2 hover:underline"
-            >
-              ZenQuotes
-            </a>
-          </p>
         </blockquote>
       ) : null}
     </section>

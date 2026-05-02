@@ -11,6 +11,7 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
+import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { PsychiatryExamData } from "@workspace/types";
 
 interface PsychiatryExamSectionProps {
@@ -22,6 +23,7 @@ export function PsychiatryExamSection({
   readOnly,
   sectionRef,
 }: PsychiatryExamSectionProps) {
+  const subtitle = useConsultationSectionSubtitle("specialty-psychiatry");
   const value = useConsultationDraft((s) => s.psychiatryExam);
   const setValue = useConsultationDraft((s) => s.setPsychiatryExam);
 
@@ -37,6 +39,7 @@ export function PsychiatryExamSection({
       id="specialty-psychiatry"
       letter="M"
       title="Mental Status Examination"
+      subtitle={subtitle}
       description="MSE, risk assessment, and psychiatric plan."
     >
       <div className="space-y-4">

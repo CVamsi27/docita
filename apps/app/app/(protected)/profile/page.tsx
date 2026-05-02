@@ -91,7 +91,7 @@ export default function ProfilePage() {
               disabled={isSaving || updateProfileMutation.isPending}
             >
               {isSaving || updateProfileMutation.isPending
-                ? "Saving..."
+                ? "Saving…"
                 : "Save Changes"}
             </Button>
           </div>

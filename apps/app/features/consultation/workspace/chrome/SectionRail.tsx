@@ -147,6 +147,18 @@ export function SectionRail({
               <span className="text-sm font-medium leading-tight truncate">
                 {section.shortLabel}
               </span>
+              {section.subtitle ? (
+                <span
+                  className={cn(
+                    "text-xs leading-snug truncate",
+                    isActive
+                      ? "text-primary-foreground/85"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {section.subtitle}
+                </span>
+              ) : null}
               <span
                 className={cn(
                   "text-[var(--fs-2xs)] uppercase tracking-wide",
@@ -157,7 +169,7 @@ export function SectionRail({
                       : "text-muted-foreground/70",
                 )}
               >
-                {isComplete ? "Documented" : "Pending"}
+                {isComplete ? "Started" : "Empty"}
               </span>
             </span>
             <Icon
@@ -190,7 +202,7 @@ export function SectionTabs({
   const completion = useSectionCompletion();
   return (
     <div
-      className="md:hidden sticky top-[57px] z-10 flex flex-wrap overflow-x-hidden border-b bg-background/95 backdrop-blur"
+      className="md:hidden sticky top-[57px] z-10 flex flex-nowrap gap-0 overflow-x-auto overscroll-x-contain border-b bg-background/95 backdrop-blur [scrollbar-width:thin]"
       role="tablist"
       aria-label="Consultation sections"
     >

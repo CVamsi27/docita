@@ -58,7 +58,7 @@ export const useInvoicesLogic = () => {
   }, [invoices, sortBy]);
 
   const handleDownloadPdf = async (invoiceId: string) => {
-    const toastId = toast.loading("Preparing PDF...");
+    const toastId = toast.loading("Preparing PDF…");
     try {
       const { jobId } = await invoicesApi.enqueuePdf(invoiceId);
 

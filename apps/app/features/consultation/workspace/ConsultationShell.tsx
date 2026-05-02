@@ -41,7 +41,13 @@ import {
   VisionSpecialtySection,
 } from "@/features/consultation/workspace/sections";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
-import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
+import {
+  CLINIC_TYPE_FEATURES,
+  type Appointment,
+  type ClinicType,
+  type PatientWithMedicalHistory,
+} from "@workspace/types";
+import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";
 
 interface ConsultationShellProps {
   appointmentData: Appointment & { patient?: PatientWithMedicalHistory };
@@ -74,7 +80,15 @@ export function ConsultationShell({
     [clinicType],
   );
 
+  const clinicFeatures = useMemo(() => {
+    const key = (clinicType?.toUpperCase() ?? "GENERAL") as ClinicType;
+    return CLINIC_TYPE_FEATURES[key] ?? CLINIC_TYPE_FEATURES.GENERAL;
+  }, [clinicType]);
+
   const sectionIdsKey = sections.map((s) => s.id).join(",");
+
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
 
   const { data: patient, isLoading: patientLoading } =
     usePatientWithMedicalHistory(appointmentData.patientId ?? "");
@@ -90,9 +104,19 @@ export function ConsultationShell({
   );
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const observerBumpRaf = useRef<number | null>(null);
+  const [observerEpoch, setObserverEpoch] = useState(0);
   const setSectionRef = useCallback(
     (id: string) => (el: HTMLElement | null) => {
       sectionRefs.current[id] = el;
+      if (el === null) return;
+      if (observerBumpRaf.current != null) {
+        cancelAnimationFrame(observerBumpRaf.current);
+      }
+      observerBumpRaf.current = requestAnimationFrame(() => {
+        observerBumpRaf.current = null;
+        setObserverEpoch((n) => n + 1);
+      });
     },
     [],
   );
@@ -121,7 +145,8 @@ export function ConsultationShell({
       }
       const next = new URLSearchParams(searchParams?.toString() ?? "");
       next.delete("tab");
-      if (id !== "subjective") {
+      const firstId = sectionsRef.current[0]?.id ?? "subjective";
+      if (id !== firstId) {
         next.set("section", id);
       } else {
         next.delete("section");
@@ -143,7 +168,8 @@ export function ConsultationShell({
     const matchedResolved = resolved
       ? sections.find((s) => s.id === resolved)
       : undefined;
-    const valid = matchedResolved?.id ?? sections[0]?.id ?? "subjective";
+    const defaultSectionId = sections[0]?.id ?? "subjective";
+    const valid = matchedResolved?.id ?? defaultSectionId;
 
     setActiveSectionId(valid);
 
@@ -153,7 +179,7 @@ export function ConsultationShell({
       next.delete("tab");
       changed = true;
     }
-    if (valid !== "subjective") {
+    if (valid !== defaultSectionId) {
       if (next.get("section") !== valid) {
         next.set("section", valid);
         changed = true;
@@ -200,7 +226,7 @@ export function ConsultationShell({
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, [sections]);
+  }, [sections, observerEpoch]);
 
   const isDirty = useConsultationDraft((s) => s.dirty);
   const saveState = useConsultationDraft((s) => s.saveState);
@@ -455,7 +481,11 @@ export function ConsultationShell({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+    <ConsultationWorkspaceProvider
+      clinicFeatures={clinicFeatures}
+      sections={sections}
+    >
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
       <SectionRail
         sections={sections}
         activeSectionId={activeSectionId}
@@ -541,6 +571,7 @@ export function ConsultationShell({
         onOpenChange={setPaletteOpen}
         actions={paletteActions}
       />
-    </div>
+      </div>
+    </ConsultationWorkspaceProvider>
   );
 }

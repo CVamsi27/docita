@@ -65,7 +65,7 @@ test.describe("Documents", () => {
       page.locator("div", { hasText: "All Documents" }).first(),
     ).toBeVisible();
 
-    await expect(page.getByText("Loading documents...")).not.toBeVisible({
+    await expect(page.getByText("Loading documents…")).not.toBeVisible({
       timeout: 10000,
     });
 

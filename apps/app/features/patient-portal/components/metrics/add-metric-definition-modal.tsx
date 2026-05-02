@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { FormEvent, useState } from "react";
 import {
   Dialog,
@@ -20,7 +22,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { getUserFacingErrorMessage } from "@workspace/types";
-import { Loader2 } from "lucide-react";
+
 import { useCreatePortalMetricDefinition } from "@/hooks/api/use-patient-portal";
 
 interface MetricCategory {
@@ -180,8 +182,8 @@ export function AddMetricDefinitionModal({
             <Button type="submit" disabled={isPending}>
               {isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Creating…
                 </>
               ) : (
                 "Create Metric"

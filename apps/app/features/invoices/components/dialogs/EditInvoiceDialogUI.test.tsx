@@ -1,7 +1,17 @@
+import type { ReactElement } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { InvoiceItem } from "@workspace/types";
 import { EditInvoiceDialogUI } from "./EditInvoiceDialogUI";
+
+/** Dialog content portals outside a test wrapper; avoid Radix tooltip context there. */
+vi.mock("@workspace/ui/components/tooltip", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@workspace/ui/components/tooltip")>();
+  return {
+    ...actual,
+    SymbolTooltip: ({ children }: { children: ReactElement }) => children,
+  };
+});
 
 vi.mock("@/hooks/use-clinic-currency", () => ({
   useClinicCurrency: () => ({

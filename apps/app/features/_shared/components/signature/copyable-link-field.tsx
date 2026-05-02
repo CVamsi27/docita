@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { CheckCircle2, Copy } from "lucide-react";
 
 interface CopyableLinkFieldProps {
@@ -38,20 +39,24 @@ export function CopyableLinkField({
       <div className="flex min-w-0 items-center gap-2 rounded-md border bg-background p-2">
         <code className="min-w-0 flex-1 truncate text-xs">{value}</code>
         {!actionLabel ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleCopy}
-            className="shrink-0"
-            aria-label="Copy upload link"
+          <SymbolTooltip
+            label={copied ? "Copied to clipboard" : "Copy upload link"}
           >
-            {copied ? (
-              <CheckCircle2 className="h-4 w-4 text-success" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCopy}
+              className="shrink-0"
+              aria-label={copied ? "Copied to clipboard" : "Copy upload link"}
+            >
+              {copied ? (
+                <CheckCircle2 className="h-4 w-4 text-success" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </SymbolTooltip>
         ) : null}
       </div>
 

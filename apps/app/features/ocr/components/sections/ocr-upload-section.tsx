@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import Image from "next/image";
 import {
   Card,
@@ -7,7 +8,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { AlertCircle, Loader2, Scan, Smartphone, Upload } from "lucide-react";
+import { AlertCircle, Scan, Smartphone, Upload } from "lucide-react";
 
 interface OCRUploadSectionProps {
   previewUrl: string | null;
@@ -81,8 +82,8 @@ export const OCRUploadSection = ({
             >
               {isScanning ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Scanning...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Scanning…
                 </>
               ) : (
                 <>

@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import {
   Card,
   CardContent,
@@ -9,14 +10,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Lightbulb,
-  Loader2,
-  Pill,
-  Sparkles,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Lightbulb, Pill, Sparkles } from "lucide-react";
 import type {
   DrugInteraction,
   PrescriptionSuggestion,
@@ -85,8 +79,8 @@ export const PrescriptionAssistantTab = ({
         >
           {state.isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analyzing...
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+              Analyzing…
             </>
           ) : (
             <>

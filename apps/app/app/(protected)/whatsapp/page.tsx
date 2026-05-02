@@ -23,6 +23,7 @@ import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
 import { StatTile } from "@workspace/ui";
+import { formatCountLocale } from "@workspace/utils";
 import { whatsappOptInRatePercent } from "@/features/whatsapp/lib/whatsapp-opt-in-rate";
 
 export default function WhatsAppPage() {
@@ -62,7 +63,7 @@ export default function WhatsAppPage() {
         {isLoading && !stats ? (
           <DataState
             status="loading"
-            loadingMessage="Loading WhatsApp stats..."
+            loadingMessage="Loading WhatsApp stats…"
           />
         ) : null}
 
@@ -165,7 +166,7 @@ export default function WhatsAppPage() {
 
           <StatTile
             label="Subscribers"
-            value={subscriberCount.toLocaleString()}
+            value={formatCountLocale(subscriberCount)}
             description="Patients with phone numbers on file"
             icon={<Users className="h-4 w-4" aria-hidden />}
             footer={

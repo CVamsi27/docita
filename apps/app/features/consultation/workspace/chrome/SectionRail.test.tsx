@@ -82,9 +82,9 @@ describe("SectionRail", () => {
       />,
     );
     const subj = screen.getByRole("button", { name: /Subjective/i });
-    expect(subj.textContent).toMatch(/Documented/i);
+    expect(subj.textContent).toMatch(/Started/i);
     const assess = screen.getByRole("button", { name: /Assessment/i });
-    expect(assess.textContent).toMatch(/Pending/i);
+    expect(assess.textContent).toMatch(/Empty/i);
   });
 
   it("marks Plan documented when follow-up plan is entered", () => {
@@ -97,7 +97,7 @@ describe("SectionRail", () => {
       />,
     );
     const plan = screen.getByRole("button", { name: /Plan/i });
-    expect(plan.textContent).toMatch(/Documented/i);
+    expect(plan.textContent).toMatch(/Started/i);
   });
 
   it("marks Objective documented when musculoskeletal notes exist", () => {
@@ -116,7 +116,7 @@ describe("SectionRail", () => {
       />,
     );
     const objective = screen.getByRole("button", { name: /Objective/i });
-    expect(objective.textContent).toMatch(/Documented/i);
+    expect(objective.textContent).toMatch(/Started/i);
   });
 });
 

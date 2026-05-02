@@ -22,6 +22,7 @@ import {
 import { useDoctors } from "@/hooks/api/use-settings";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { fetchFirstAvailableDatetimeLocal } from "@/lib/doctor-availability-first-slot";
+import { formatDate } from "@/lib/formatters";
 
 function toDateTimeLocal(value: string | Date, preferredTime?: string | null) {
   const date = new Date(value);
@@ -169,7 +170,7 @@ export function AppointmentRequestsPanel() {
       <CardContent>
         <DataState
           status={state}
-          loadingMessage="Loading appointment requests..."
+          loadingMessage="Loading appointment requests…"
           errorMessage="We could not load appointment requests."
           onRetry={() => void refetch()}
           emptyIcon={Inbox}
@@ -196,7 +197,7 @@ export function AppointmentRequestsPanel() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Preferred{" "}
-                        {new Date(request.preferredDate).toLocaleDateString()}
+                        {formatDate(request.preferredDate)}
                         {request.preferredTime
                           ? ` at ${request.preferredTime}`
                           : ""}

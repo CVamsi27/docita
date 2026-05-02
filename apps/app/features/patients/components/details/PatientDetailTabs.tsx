@@ -9,7 +9,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { Skeleton } from "@workspace/ui/components/skeleton";
+import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import {
   Activity,
   ClipboardList,
@@ -32,7 +32,7 @@ const OverviewTab = dynamic(
     import("@/features/patients/components/details/tabs/OverviewTab").then(
       (m) => m.OverviewTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 const VisitsTab = dynamic(
@@ -40,7 +40,7 @@ const VisitsTab = dynamic(
     import("@/features/patients/components/details/tabs/VisitsTab").then(
       (m) => m.VisitsTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 const RecordsTab = dynamic(
@@ -48,7 +48,7 @@ const RecordsTab = dynamic(
     import("@/features/patients/components/details/tabs/RecordsTab").then(
       (m) => m.RecordsTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 const PrescriptionsTab = dynamic(
@@ -56,7 +56,7 @@ const PrescriptionsTab = dynamic(
     import("@/features/patients/components/details/tabs/PrescriptionsTab").then(
       (m) => m.PrescriptionsTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 const VitalsTab = dynamic(
@@ -64,7 +64,7 @@ const VitalsTab = dynamic(
     import("@/features/patients/components/details/tabs/VitalsTab").then(
       (m) => m.VitalsTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 const LabsTab = dynamic(
@@ -72,7 +72,7 @@ const LabsTab = dynamic(
     import("@/features/patients/components/details/tabs/LabsTab").then(
       (m) => m.LabsTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 const DocumentsTab = dynamic(
@@ -80,7 +80,7 @@ const DocumentsTab = dynamic(
     import("@/features/patients/components/details/tabs/DocumentsTab").then(
       (m) => m.DocumentsTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 const BillingTab = dynamic(
@@ -88,7 +88,7 @@ const BillingTab = dynamic(
     import("@/features/patients/components/details/tabs/BillingTab").then(
       (m) => m.BillingTab,
     ),
-  { loading: () => <Skeleton className="h-64 rounded-lg" />, ssr: false },
+  { loading: () => <PatientDetailTabLoadingShell />, ssr: false },
 );
 
 export const PATIENT_DETAIL_TAB_VALUES = [

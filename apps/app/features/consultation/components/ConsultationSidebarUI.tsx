@@ -3,6 +3,7 @@
 import React, { FC } from "react";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Clock, User, X } from "lucide-react";
 import {
   Appointment,
@@ -95,15 +96,17 @@ export const ConsultationSidebarUI: FC<ConsultationSidebarProps> = ({
           </div>
         </div>
         {onClose && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-8 w-8 -mr-2 text-muted-foreground hover:text-foreground"
-            aria-label="Close sidebar"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <SymbolTooltip label="Close sidebar">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-8 w-8 -mr-2 text-muted-foreground hover:text-foreground"
+              aria-label="Close sidebar"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </SymbolTooltip>
         )}
       </div>
 

@@ -84,14 +84,18 @@ export function PrescriptionDefaultsSettings() {
 
   if (loading) {
     return (
-      <Card>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading prescription defaults"
+      >
         <CardHeader>
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="mt-1 h-4 w-64" />
+          <Skeleton animation="wave" className="h-5 w-48" />
+          <Skeleton animation="wave" className="mt-1 h-4 w-64" />
         </CardHeader>
         <CardContent className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
+            <Skeleton key={i} animation="wave" className="h-10 w-full" />
           ))}
         </CardContent>
       </Card>
@@ -233,7 +237,7 @@ export function PrescriptionDefaultsSettings() {
             <div className="flex justify-end pt-4">
               <Button type="submit" disabled={saving} className="gap-2">
                 <Save className="h-4 w-4" />
-                {saving ? "Saving..." : "Save Defaults"}
+                {saving ? "Saving…" : "Save Defaults"}
               </Button>
             </div>
           </form>

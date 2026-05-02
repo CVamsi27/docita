@@ -556,7 +556,7 @@ export function useClinicRegistrationFlow() {
         }
 
         toast.success("Registration Successful", {
-          description: "Your facility has been registered. Redirecting...",
+          description: "Your facility has been registered. Redirecting…",
         });
 
         try {

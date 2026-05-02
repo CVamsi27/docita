@@ -20,6 +20,7 @@ import {
 } from "@workspace/ui/components/tabs";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -176,22 +177,25 @@ export function PatientTagManagerUI({
         </DialogHeader>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
             placeholder="Enter tags"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className={searchQuery.trim() ? "pl-9 pr-10" : "pl-9"}
+            aria-label="Search tags"
           />
           {searchQuery && (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <SymbolTooltip label="Clear search">
+              <button
+                type="button"
+                aria-label="Clear search"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </SymbolTooltip>
           )}
         </div>
 
@@ -271,24 +275,28 @@ export function PatientTagManagerUI({
                               </div>
                             )}
                           </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                            aria-label="Save tag"
-                            onClick={saveEdit}
-                          >
-                            <Check className="h-4 w-4 text-success" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                            aria-label="Cancel edit"
-                            onClick={cancelEditing}
-                          >
-                            <X className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <SymbolTooltip label="Save tag">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              aria-label="Save tag"
+                              onClick={saveEdit}
+                            >
+                              <Check className="h-4 w-4 text-success" />
+                            </Button>
+                          </SymbolTooltip>
+                          <SymbolTooltip label="Cancel edit">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                              aria-label="Cancel edit"
+                              onClick={cancelEditing}
+                            >
+                              <X className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </SymbolTooltip>
                         </div>
                       ) : (
                         <>
@@ -303,25 +311,29 @@ export function PatientTagManagerUI({
                           </div>
                           <div className="flex items-center gap-1">
                             {onEditTag && (
+                              <SymbolTooltip label={`Edit tag ${tag.tag}`}>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0"
+                                  aria-label={`Edit tag ${tag.tag}`}
+                                  onClick={() => startEditing(tag)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </SymbolTooltip>
+                            )}
+                            <SymbolTooltip label={`Delete tag ${tag.tag}`}>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 w-8 p-0"
-                                aria-label={`Edit tag ${tag.tag}`}
-                                onClick={() => startEditing(tag)}
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                aria-label={`Delete tag ${tag.tag}`}
+                                onClick={() => onRemoveTag(tag.id)}
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4" />
                               </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              aria-label={`Delete tag ${tag.tag}`}
-                              onClick={() => onRemoveTag(tag.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            </SymbolTooltip>
                           </div>
                         </>
                       )}

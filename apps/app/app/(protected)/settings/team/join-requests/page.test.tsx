@@ -137,7 +137,7 @@ describe("JoinRequestsPage", () => {
       isLoading: true,
     };
     const { rerender } = render(<JoinRequestsPage />);
-    expect(screen.getByText("Loading join requests...")).toBeInTheDocument();
+    expect(screen.getByText("Loading join requests…")).toBeInTheDocument();
 
     joinRequestMocks.query = {
       data: [],

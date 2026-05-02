@@ -265,8 +265,8 @@ export function AuthPageContainer() {
   if (isRedirecting) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
-        description="Taking you to your workspace..."
+        title="Redirecting…"
+        description="Taking you to your workspace…"
       />
     );
   }

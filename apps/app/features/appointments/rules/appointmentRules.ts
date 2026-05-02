@@ -1,27 +1,24 @@
 import type { Appointment } from "@workspace/types";
 import {
   addMinutes,
-  differenceInMinutes,
-  isAfter,
-  isBefore,
+  getMinutesDifference,
+  isFuture,
+  isPast,
   isToday,
   startOfMinute,
   subMinutes,
-} from "date-fns";
+} from "@workspace/utils";
 
 export const isAppointmentPast = (appointment: Appointment): boolean => {
-  const appointmentDate = new Date(appointment.startTime);
-  return isBefore(appointmentDate, new Date());
+  return isPast(appointment.startTime);
 };
 
 export const isAppointmentToday = (appointment: Appointment): boolean => {
-  const appointmentDate = new Date(appointment.startTime);
-  return isToday(appointmentDate);
+  return isToday(appointment.startTime);
 };
 
 export const isAppointmentUpcoming = (appointment: Appointment): boolean => {
-  const appointmentDate = new Date(appointment.startTime);
-  return isAfter(appointmentDate, new Date());
+  return isFuture(appointment.startTime);
 };
 
 /** Visit is finished: clinical record should not be edited in the consultation workspace. */
@@ -81,9 +78,7 @@ export const canReschedule = (appointment: Appointment): boolean => {
 export const getAppointmentDuration = (appointment: Appointment): number => {
   if (!appointment.endTime) return 30;
 
-  const start = new Date(appointment.startTime);
-  const end = new Date(appointment.endTime);
-  return differenceInMinutes(end, start);
+  return getMinutesDifference(appointment.startTime, appointment.endTime);
 };
 
 export const validateAppointmentData = (
@@ -106,7 +101,7 @@ export const validateAppointmentData = (
   if (data.startTime && data.endTime) {
     const start = new Date(data.startTime);
     const end = new Date(data.endTime);
-    if (isAfter(start, end)) {
+    if (start.getTime() > end.getTime()) {
       errors.push("Choose an end time after the start time");
     }
   }

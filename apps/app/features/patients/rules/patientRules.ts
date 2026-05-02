@@ -1,6 +1,6 @@
 import type { Patient, User } from "@workspace/types";
-import { differenceInYears } from "date-fns";
 import {
+  calculateAge,
   DEFAULT_COUNTRY_CODE,
   normalizeCountryCode,
 } from "@workspace/utils";
@@ -24,8 +24,8 @@ type PatientDateLike = {
 export const isPatientMinor = (patient: Patient): boolean => {
   if (!patient.dateOfBirth) return false;
 
-  const age = differenceInYears(new Date(), new Date(patient.dateOfBirth));
-  return age < 18;
+  const age = calculateAge(patient.dateOfBirth);
+  return age !== null && age < 18;
 };
 
 export const requiresGuardianConsent = (patient: Patient): boolean => {
@@ -53,7 +53,7 @@ export const getPatientDisplayName = (patient: PatientNameLike): string => {
 
 export const getPatientAge = (patient: PatientDateLike): number | null => {
   if (!patient.dateOfBirth) return null;
-  return differenceInYears(new Date(), new Date(patient.dateOfBirth));
+  return calculateAge(patient.dateOfBirth);
 };
 
 export const getPatientAgeDisplay = (patient: PatientDateLike): string => {

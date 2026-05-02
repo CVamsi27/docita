@@ -120,12 +120,12 @@ test.describe("Patient Management", () => {
       await addButton.click();
 
       const today = new Date();
-      const dayLabel = today.toLocaleDateString("en-US", {
+      const dayLabel = new Intl.DateTimeFormat("en-US", {
         weekday: "long",
         month: "long",
         day: "numeric",
         year: "numeric",
-      });
+      }).format(today);
 
       await page.fill('input[placeholder*="First"]', "John");
       await page.fill('input[placeholder*="Last"]', "Doe");
@@ -274,7 +274,7 @@ test.describe("Patient Management", () => {
     );
     await page.goto("/patients", { waitUntil: "load" }).catch(() => {});
 
-    const loadingState = page.locator("text=Loading patients...");
+    const loadingState = page.locator("text=Loading patients…");
     await expect(loadingState).not.toBeVisible({ timeout: 5000 });
 
     const patientA = page.locator("text=ClinicA-Patient").first();

@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import {
   Select,
@@ -101,15 +102,17 @@ export function PrescriptionInput({
                 </span>
               </div>
               {!readOnly && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => removeMedication(index)}
-                  title="Remove medication"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <SymbolTooltip label="Remove medication">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => removeMedication(index)}
+                    aria-label="Remove medication"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </SymbolTooltip>
               )}
             </div>
 

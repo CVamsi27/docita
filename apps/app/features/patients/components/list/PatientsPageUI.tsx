@@ -23,6 +23,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";
@@ -176,14 +177,41 @@ export function PatientsPageUI({
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24">
-                      <div className="space-y-2 px-4">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-2/3" />
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 8 }).map((_, row) => (
+                    <TableRow key={`skeleton-${row}`} className="hover:bg-transparent">
+                      <TableCell>
+                        <Skeleton
+                          variant="circular"
+                          animation="wave"
+                          className="h-8 w-8"
+                        />
+                      </TableCell>
+                      <TableCell className="max-w-[160px] sm:max-w-xs">
+                        <Skeleton animation="wave" className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="space-y-2">
+                          <Skeleton animation="wave" className="h-4 w-36" />
+                          <Skeleton animation="wave" className="h-3 w-44" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Skeleton animation="wave" className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Skeleton
+                            animation="wave"
+                            className="h-8 w-20 rounded-md"
+                          />
+                          <Skeleton
+                            animation="wave"
+                            className="h-8 w-9 rounded-md"
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : filteredPatients.length === 0 ? (
                   <TableRow>
                     <TableCell
@@ -244,35 +272,37 @@ export function PatientsPageUI({
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 gap-1.5"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (patientId) {
-                                  onSchedulePatient(patientId);
-                                }
-                              }}
-                              disabled={!patientId}
-                              title="Schedule appointment"
-                            >
-                              <Calendar className="h-4 w-4" />
-                              <span className="hidden sm:inline">Schedule</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 gap-1.5"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEditPatient(patient);
-                              }}
-                              title="Edit patient"
-                            >
-                              <Pencil className="h-4 w-4" />
-                              <span className="hidden sm:inline">Edit</span>
-                            </Button>
+                            <SymbolTooltip label="Schedule appointment">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-1.5"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (patientId) {
+                                    onSchedulePatient(patientId);
+                                  }
+                                }}
+                                disabled={!patientId}
+                              >
+                                <Calendar className="h-4 w-4" />
+                                <span className="hidden sm:inline">Schedule</span>
+                              </Button>
+                            </SymbolTooltip>
+                            <SymbolTooltip label="Edit patient">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 gap-1.5"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditPatient(patient);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                <span className="hidden sm:inline">Edit</span>
+                              </Button>
+                            </SymbolTooltip>
                           </div>
                         </TableCell>
                       </TableRow>

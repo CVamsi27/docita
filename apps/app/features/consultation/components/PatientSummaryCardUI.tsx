@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/tooltip";
 import { AlertTriangle, Droplet, User } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import { CodeStatus, CodeStatusAlertUI } from "./summary/CodeStatusAlertUI";
 import { AllergyAlertUI } from "./summary/AllergyAlertUI";
 import { SummaryVitals } from "./shared/SummaryVitals";
@@ -202,7 +202,7 @@ export function PatientSummaryCardUI({
               <h4 className="text-sm font-medium mb-2">Last Visit</h4>
               {lastVisit ? (
                 <div className="text-sm text-muted-foreground">
-                  {format(lastVisit, "PPP")}
+                  {formatDate(lastVisit, "dd MMMM yyyy")}
                 </div>
               ) : (
                 <div className="text-sm text-muted-foreground">

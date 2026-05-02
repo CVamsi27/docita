@@ -64,6 +64,7 @@ export function CommandPalette({
           placeholder="Enter command"
           value={query}
           onValueChange={setQuery}
+          showClearButton
         />
         <CommandList>
           <CommandEmpty>No matching commands.</CommandEmpty>

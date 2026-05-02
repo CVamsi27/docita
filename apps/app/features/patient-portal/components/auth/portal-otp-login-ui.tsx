@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { FormEvent } from "react";
 import {
   Card,
@@ -12,7 +14,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Loader2, ArrowLeft, Phone, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Phone, ShieldCheck } from "lucide-react";
 import { usePortalOtpAuth } from "@/features/patient-portal/hooks/use-portal-otp-auth";
 
 export function PortalOtpLoginUI() {
@@ -90,8 +92,8 @@ export function PortalOtpLoginUI() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending code...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Sending code…
                   </>
                 ) : (
                   "Send Code"
@@ -125,8 +127,8 @@ export function PortalOtpLoginUI() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Verifying…
                   </>
                 ) : (
                   "Verify Code"

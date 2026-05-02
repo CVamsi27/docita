@@ -147,7 +147,7 @@ describe("AppointmentRequestsPanel", () => {
       refetch: appointmentMocks.refetch,
     });
     rerender(<AppointmentRequestsPanel />);
-    expect(screen.getByText("Loading appointment requests...")).toBeInTheDocument();
+    expect(screen.getByText("Loading appointment requests…")).toBeInTheDocument();
 
     appointmentMocks.useAppointmentRequests.mockReturnValue({
       data: undefined,

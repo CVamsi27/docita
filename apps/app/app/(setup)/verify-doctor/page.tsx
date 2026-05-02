@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Circle, Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -256,7 +258,7 @@ export default function VerifyDoctorPage() {
   if (isRedirecting) {
     return (
       <PageTransitionLoader
-        title="Redirecting to dashboard..."
+        title="Redirecting to dashboard…"
         description="Finalizing your verification state"
       />
     );
@@ -270,8 +272,17 @@ export default function VerifyDoctorPage() {
     canContinue
   ) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex min-h-screen items-center justify-center bg-background px-4"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading doctor verification"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-10 w-10 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -421,8 +432,8 @@ export default function VerifyDoctorPage() {
                     >
                       {isApplyingOnboardingSignature ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Applying...
+                          <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                          Applying…
                         </>
                       ) : (
                         "Use onboarding signature"
@@ -576,7 +587,7 @@ export default function VerifyDoctorPage() {
                     className={`pr-10 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
                   />
                   {isSavingReg ? (
-                    <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
                   ) : null}
                 </div>
               </div>

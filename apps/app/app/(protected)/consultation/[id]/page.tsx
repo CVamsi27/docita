@@ -10,6 +10,7 @@ import { ConsultationPageHeaderUI } from "@/features/consultation/components/Con
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
 import { ConsultationLeaveDialog } from "@/features/consultation/components/ConsultationLeaveDialog";
 import { ConsultationVitalsProvider } from "@/features/consultation/workspace/consultation-vitals-context";
+import { ConsultationLeaveNavigationProvider } from "@/features/consultation/workspace/consultation-leave-navigation-context";
 import {
   useConsultationLeaveNavigation,
   type ConsultationSaveHandles,
@@ -42,8 +43,9 @@ export default function ConsultationPage() {
 
   const {
     tryNavigateAway,
+    attemptNavigateToHref,
     leaveDialogOpen,
-    setLeaveDialogOpen,
+    onLeaveDialogOpenChange,
     leaveBusy,
     saveAndLeave,
     leaveWithoutSaving,
@@ -51,6 +53,7 @@ export default function ConsultationPage() {
     readOnly: consultationReadOnly,
     fallbackRoute,
     saveHandlesRef,
+    activeAppointmentId: appointmentId,
   });
 
   if (loading) {
@@ -59,7 +62,7 @@ export default function ConsultationPage() {
         <DataState
           status="loading"
           className="min-h-[50vh]"
-          loadingMessage="Loading consultation..."
+          loadingMessage="Loading consultation…"
         />
       </AppPageScaffold>
     );
@@ -122,40 +125,44 @@ export default function ConsultationPage() {
       appointmentId={appointmentId}
       patientName={patientName}
     >
-      <div className="flex h-full flex-col">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-          <ConsultationPageHeaderUI
-            patientName={patientName}
-            appointmentDate={appointmentData.startTime}
-            appointmentId={appointmentId}
-            patientId={appointmentData.patientId}
-            appointmentType={appointmentData.type}
-            appointmentStatus={appointmentData.status}
-            readOnly={consultationReadOnly}
-            chiefComplaint={appointmentData.chiefComplaint ?? undefined}
-            onBack={tryNavigateAway}
-            MobileSidebarContent={MobileSidebar}
-            isDesktopSidebarOpen={isSidebarOpen}
-            onToggleDesktopSidebar={toggleSidebar}
-          />
+      <ConsultationLeaveNavigationProvider
+        attemptNavigateToHref={attemptNavigateToHref}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+            <ConsultationPageHeaderUI
+              patientName={patientName}
+              appointmentDate={appointmentData.startTime}
+              appointmentId={appointmentId}
+              patientId={appointmentData.patientId}
+              appointmentType={appointmentData.type}
+              appointmentStatus={appointmentData.status}
+              readOnly={consultationReadOnly}
+              chiefComplaint={appointmentData.chiefComplaint ?? undefined}
+              onBack={tryNavigateAway}
+              MobileSidebarContent={MobileSidebar}
+              isDesktopSidebarOpen={isSidebarOpen}
+              onToggleDesktopSidebar={toggleSidebar}
+            />
 
-          <ConsultationShell
-            appointmentData={appointmentData}
-            clinicType={clinic?.type}
-            readOnly={consultationReadOnly}
-            isSidebarOpen={isSidebarOpen}
-            saveHandlesRef={saveHandlesRef}
-          />
+            <ConsultationShell
+              appointmentData={appointmentData}
+              clinicType={clinic?.type}
+              readOnly={consultationReadOnly}
+              isSidebarOpen={isSidebarOpen}
+              saveHandlesRef={saveHandlesRef}
+            />
+          </div>
         </div>
-      </div>
 
-      <ConsultationLeaveDialog
-        open={leaveDialogOpen}
-        onOpenChange={setLeaveDialogOpen}
-        leaveBusy={leaveBusy}
-        onSaveAndLeave={saveAndLeave}
-        onLeaveWithoutSaving={leaveWithoutSaving}
-      />
+        <ConsultationLeaveDialog
+          open={leaveDialogOpen}
+          onOpenChange={onLeaveDialogOpenChange}
+          leaveBusy={leaveBusy}
+          onSaveAndLeave={saveAndLeave}
+          onLeaveWithoutSaving={leaveWithoutSaving}
+        />
+      </ConsultationLeaveNavigationProvider>
     </ConsultationVitalsProvider>
   );
 }

@@ -44,7 +44,7 @@ export function WhatsAppSettingsDialogUI({
       description="Configure how your patients receive WhatsApp messages"
       isLoading={isLoading}
       onSubmit={onSave}
-      submitLabel={isLoading ? "Saving..." : "Save Settings"}
+      submitLabel={isLoading ? "Saving…" : "Save Settings"}
     >
       <div className="space-y-4">
         {Object.entries(settings).map(([key, value]) => (

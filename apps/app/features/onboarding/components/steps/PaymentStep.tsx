@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
-import { CreditCard, Loader2, Info, ShieldCheck } from "lucide-react";
+import { CreditCard, Info, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -22,6 +24,7 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
 import { BRAND_PRIMARY_HEX } from "@/lib/branding";
 import type { TierName } from "@workspace/types";
+import { formatAmountLocale } from "@workspace/utils";
 
 interface PaymentDetails {
   autoPay: boolean;
@@ -197,7 +200,12 @@ export function PaymentStep({
           <div className="bg-muted/50 p-4 rounded-lg flex items-center justify-between">
             <span className="font-semibold">Total Due Today:</span>
             <span className="ui-section-title text-[var(--fs-2xl)] leading-none tabular-nums">
-              {isFree ? "Free" : `${currencySymbol}${total.toLocaleString()}`}
+              {isFree
+                ? "Free"
+                : `${currencySymbol}${formatAmountLocale(total, "en-IN", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}`}
             </span>
           </div>
 
@@ -209,8 +217,8 @@ export function PaymentStep({
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Processing…
                 </>
               ) : isFree ? (
                 <>

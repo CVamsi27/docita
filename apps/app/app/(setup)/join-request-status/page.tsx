@@ -8,9 +8,9 @@ import { Card } from '@workspace/ui/components/card';
 import { Button } from '@workspace/ui/components/button';
 import { Alert, AlertDescription, AlertTitle } from '@workspace/ui/components/alert';
 import { Badge } from '@workspace/ui/components/badge';
+import { DATE_FORMATS, formatDate, formatDistanceToNow } from '@workspace/utils';
 import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
-import { formatDistanceToNow, format } from 'date-fns';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
 import { useAuth } from '@/lib/auth-context';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -48,7 +48,7 @@ export default function JoinRequestStatusPage() {
     onSuccess: () => {
       toast.success('Request withdrawn successfully');
       queryClient.invalidateQueries({ queryKey: ['my-join-request'] });
-      setRedirectMessage('Returning to choose path...');
+      setRedirectMessage('Returning to choose path…');
       router.replace('/choose-path');
     },
     onError: () => {
@@ -62,19 +62,19 @@ export default function JoinRequestStatusPage() {
     if (isLoading) return;
 
     if (!user) {
-      setRedirectMessage('Redirecting to login...');
+      setRedirectMessage('Redirecting to login…');
       router.replace('/login?next=/join-request-status');
       return;
     }
 
     if (user.clinicId || user.onboardingStep === 'COMPLETED') {
-      setRedirectMessage('Your request is complete. Taking you to the dashboard...');
+      setRedirectMessage('Your request is complete. Taking you to the dashboard…');
       router.replace('/dashboard');
       return;
     }
 
     if (!request) {
-      setRedirectMessage('No active request found. Returning to choose path...');
+      setRedirectMessage('No active request found. Returning to choose path…');
       router.replace('/choose-path');
     }
   }, [request, isLoading, router, user]);
@@ -85,14 +85,14 @@ export default function JoinRequestStatusPage() {
     if (request.status === 'APPROVED') {
       void (async () => {
         await refreshUser();
-        setRedirectMessage('Your request was approved. Taking you to the dashboard...');
+        setRedirectMessage('Your request was approved. Taking you to the dashboard…');
         router.replace('/dashboard');
       })();
       return;
     }
 
     if (request.status === 'REJECTED') {
-      setRedirectMessage('Your request was not approved. Returning to choose path...');
+      setRedirectMessage('Your request was not approved. Returning to choose path…');
       router.replace('/choose-path');
     }
   }, [request, refreshUser, router]);
@@ -100,21 +100,21 @@ export default function JoinRequestStatusPage() {
   if (redirectMessage) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
+        title="Redirecting…"
         description={redirectMessage}
       />
     );
   }
 
   if (isLoading) {
-    return <PageTransitionLoader title="Loading request status..." />;
+    return <PageTransitionLoader title="Loading request status…" />;
   }
 
   if (!request || request.status !== 'PENDING') {
     return (
       <PageTransitionLoader
-        title="Updating status..."
-        description="Checking the latest review decision..."
+        title="Updating status…"
+        description="Checking the latest review decision…"
       />
     );
   }
@@ -195,10 +195,10 @@ export default function JoinRequestStatusPage() {
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Submitted</p>
                 <p className="text-sm font-medium">
-                  {formatDistanceToNow(new Date(request.requestedAt), { addSuffix: true })}
+                  {formatDistanceToNow(request.requestedAt)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {format(new Date(request.requestedAt), 'PPpp')}
+                  {formatDate(request.requestedAt, DATE_FORMATS.DATETIME_MEDIUM)}
                 </p>
               </div>
 
@@ -206,10 +206,10 @@ export default function JoinRequestStatusPage() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Expires</p>
                   <p className="text-sm font-medium">
-                    {formatDistanceToNow(new Date(request.expiresAt), { addSuffix: true })}
+                    {formatDistanceToNow(request.expiresAt)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {format(new Date(request.expiresAt), 'PPpp')}
+                    {formatDate(request.expiresAt, DATE_FORMATS.DATETIME_MEDIUM)}
                   </p>
                 </div>
               )}
@@ -241,7 +241,7 @@ export default function JoinRequestStatusPage() {
               onClick={() => withdrawMutation.mutate(request.id)}
               disabled={withdrawMutation.isPending}
             >
-              {withdrawMutation.isPending ? 'Withdrawing...' : 'Withdraw Request'}
+              {withdrawMutation.isPending ? 'Withdrawing…' : 'Withdraw Request'}
             </Button>
           </div>
         </Card>

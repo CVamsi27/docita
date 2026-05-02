@@ -216,7 +216,7 @@ export function ContactSalesModalUI({
                     disabled={isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    {isSubmitting ? "Sending..." : "Send Inquiry"}
+                    {isSubmitting ? "Sending…" : "Send Inquiry"}
                   </Button>
                 </div>
               </form>

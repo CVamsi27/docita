@@ -1,30 +1,36 @@
-
+"use client";
 
 import * as React from "react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { cn } from "@/lib/utils";
 
 export interface LoaderProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "md" | "lg";
 }
 
+const iconClassBySize: Record<NonNullable<LoaderProps["size"]>, string> = {
+  sm: "h-4 w-4",
+  md: "h-8 w-8",
+  lg: "h-12 w-12",
+};
+
 const Spinner = React.forwardRef<HTMLDivElement, LoaderProps>(
   ({ className, size = "md", ...props }, ref) => {
-    const sizeClass = {
-      sm: "h-4 w-4",
-      md: "h-8 w-8",
-      lg: "h-12 w-12",
-    }[size];
+    const iconClassName = iconClassBySize[size];
 
     return (
       <div
         ref={ref}
-        className={cn(
-          "inline-block animate-spin rounded-full border-2 border-muted border-t-primary",
-          sizeClass,
-          className,
-        )}
+        className={cn("inline-flex shrink-0 items-center justify-center", className)}
         {...props}
-      />
+      >
+        <DocitaLoadingIndicator
+          variant="inline"
+          decorative
+          iconClassName={iconClassName}
+        />
+      </div>
     );
   },
 );
@@ -41,7 +47,12 @@ const LoadingOverlay = React.forwardRef<HTMLDivElement, LoadingOverlayProps>(
     return (
       <div ref={ref} className={cn("relative isolate", className)} {...props}>
         {children}
-        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-md">
+        <div
+          className="absolute inset-0 flex items-center justify-center rounded-md bg-background/50 backdrop-blur-sm"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading"
+        >
           <Spinner />
         </div>
       </div>

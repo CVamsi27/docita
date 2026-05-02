@@ -1,14 +1,11 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  Mail,
-  RefreshCw,
-} from "lucide-react";
+  AlertTriangle, CheckCircle2, Mail, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { toast } from "sonner";
 import {
@@ -69,7 +66,7 @@ export default function VerifyEmailSentPage() {
 
   useEffect(() => {
     if (!user) {
-      setRedirectMessage("Redirecting to login...");
+      setRedirectMessage("Redirecting to login…");
       router.replace("/login?next=/verify-email-sent");
       return;
     }
@@ -146,7 +143,7 @@ export default function VerifyEmailSentPage() {
   if (redirectMessage) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
+        title="Redirecting…"
         description={redirectMessage}
       />
     );
@@ -283,8 +280,8 @@ export default function VerifyEmailSentPage() {
           >
             {resending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                Sending…
               </>
             ) : (
               <>

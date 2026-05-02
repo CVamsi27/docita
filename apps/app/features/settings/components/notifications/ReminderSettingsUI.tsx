@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { FC, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +18,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
-import { Bell, Loader2 } from "lucide-react";
+import { Bell } from "lucide-react";
 import {
   ClinicAppSettings,
   useClinicSettings,
@@ -287,14 +289,22 @@ export const ReminderSettingsUI: FC = () => {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading reminder settings"
+      >
         <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="mt-2 h-4 w-full max-w-lg" />
+          <Skeleton animation="wave" className="h-6 w-48" />
+          <Skeleton animation="wave" className="mt-2 h-4 w-full max-w-lg" />
         </CardHeader>
         <CardContent className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            <Skeleton
+              key={i}
+              animation="wave"
+              className="h-24 w-full rounded-lg"
+            />
           ))}
         </CardContent>
       </Card>
@@ -369,7 +379,7 @@ export const ReminderSettingsUI: FC = () => {
         </Card>
 
         <Button className="w-full" type="submit" disabled={isSaving}>
-          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          {isSaving ? <DocitaLoadingIndicator variant="inline" decorative className="mr-2" /> : null}
           Save Reminder Settings
         </Button>
       </form>

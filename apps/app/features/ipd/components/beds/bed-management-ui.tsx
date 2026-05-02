@@ -68,7 +68,7 @@ export function BedManagementUI({
   const { formatCurrency } = useClinicCurrency();
 
   if (isLoading) {
-    return <LoadingState message="Loading bed status..." className="min-h-[40vh]" />;
+    return <LoadingState message="Loading bed status…" className="min-h-[40vh]" />;
   }
 
   const {

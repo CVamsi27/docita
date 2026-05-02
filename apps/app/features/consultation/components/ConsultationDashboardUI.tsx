@@ -11,8 +11,8 @@ import {
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { DataState } from "@workspace/ui/components/data-state";
 import { PageHeader } from "@workspace/ui/components/page-header";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Activity,
   Calendar,
@@ -22,6 +22,7 @@ import {
   Users,
 } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
+import { formatTime } from "@/lib/formatters";
 import {
   Avatar,
   AvatarFallback,
@@ -81,10 +82,71 @@ export const ConsultationDashboardUI: FC = () => {
           />
         }
       >
-        <DataState
-          status="loading"
-          loadingMessage="Loading consultation dashboard..."
-        />
+        <StatGrid items={[]} columns={4} isLoading />
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="col-span-1">
+            <CardHeader>
+              <Skeleton animation="wave" className="h-6 w-48 max-w-full" />
+              <div className="mt-2 space-y-2">
+                <Skeleton animation="wave" className="h-4 w-full" />
+                <Skeleton animation="wave" className="h-4 w-[85%]" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <Skeleton
+                      variant="circular"
+                      animation="wave"
+                      className="h-10 w-10 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton animation="wave" className="h-4 w-40" />
+                      <Skeleton animation="wave" className="h-3 w-28" />
+                    </div>
+                  </div>
+                  <Skeleton animation="wave" className="h-9 w-20 shrink-0 rounded-md" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="col-span-1">
+            <CardHeader>
+              <Skeleton animation="wave" className="h-6 w-40 max-w-full" />
+              <div className="mt-2 space-y-2">
+                <Skeleton animation="wave" className="h-4 w-full" />
+                <Skeleton animation="wave" className="h-4 w-[75%]" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <Skeleton
+                      variant="circular"
+                      animation="wave"
+                      className="h-10 w-10 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton animation="wave" className="h-4 w-36" />
+                      <Skeleton animation="wave" className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton animation="wave" className="h-9 w-16 shrink-0 rounded-md" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </AppPageScaffold>
     );
   }
@@ -144,9 +206,7 @@ export const ConsultationDashboardUI: FC = () => {
                           <span>Started:</span>
                           <span className="ml-1">
                           {item.consultationStart
-                            ? new Date(
-                                item.consultationStart,
-                              ).toLocaleTimeString([], {
+                            ? formatTime(item.consultationStart, "en-IN", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })

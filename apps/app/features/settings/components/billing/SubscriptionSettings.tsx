@@ -10,6 +10,8 @@ import { WhatsAppButton } from "@/features/_shared/components/whatsapp/whatsapp-
 import { getSupportPhoneNumber } from "@/lib/support-contact";
 import { BillingSubscriptionWorkspace } from "@/features/subscription/components/billing-subscription-workspace";
 import { TrialOfferBanner } from "@/features/subscription/components";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Card,
   CardContent,
@@ -26,8 +28,9 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { AlertTriangle, Clock, XCircle } from "lucide-react";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
+import { formatDateSafe } from "@/lib/formatters";
 
 function scrollToBillingPlans() {
   document.getElementById("billing-plans-section")?.scrollIntoView({
@@ -51,11 +54,21 @@ export function SubscriptionSettings() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-4">
-            <div className="space-y-2">
-              <div className="h-4 w-[250px] rounded bg-muted animate-pulse" />
-              <div className="h-4 w-[200px] rounded bg-muted animate-pulse" />
+        <CardContent className="space-y-4 pt-6">
+          <div
+            className="flex flex-col items-center gap-4 sm:flex-row sm:items-start"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading subscription"
+          >
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              iconClassName="h-8 w-8 text-muted-foreground"
+            />
+            <div className="min-w-0 flex-1 space-y-2 text-left">
+              <Skeleton animation="wave" className="h-4 w-full max-w-[250px]" />
+              <Skeleton animation="wave" className="h-4 w-full max-w-[200px]" />
             </div>
           </div>
         </CardContent>
@@ -121,7 +134,7 @@ export function SubscriptionSettings() {
   const billingCycle = subscription?.billingCycle || "monthly";
   const basePrice = (subscription?.basePriceCents ?? 0) / 100;
   const periodEnd = subscription?.currentPeriodEnd
-    ? new Date(subscription.currentPeriodEnd).toLocaleDateString()
+    ? formatDateSafe(subscription.currentPeriodEnd)
     : "-";
   const periodDaysLeft = subscription?.currentPeriodEnd
     ? Math.max(
@@ -294,10 +307,9 @@ export function SubscriptionSettings() {
               <div>
                 <p className="text-sm text-muted-foreground">Base price</p>
                 <p className="font-medium">
-                  {new Intl.NumberFormat(undefined, {
-                    style: "currency",
+                  {formatCurrency(basePrice, {
                     currency: subscriptionCurrency,
-                  }).format(basePrice)}
+                  })}
                 </p>
               </div>
               <div className="sm:col-span-2">

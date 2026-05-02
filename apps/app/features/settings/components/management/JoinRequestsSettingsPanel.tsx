@@ -32,7 +32,7 @@ import {
 } from "@workspace/ui/components/dialog";
 import { toast } from "sonner";
 import { typedApi } from "@/lib/api-client";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface JoinRequest {
@@ -157,7 +157,7 @@ export function JoinRequestsSettingsPanel() {
   if (isLoading) {
     return (
       <div className="min-h-[30vh]">
-        <LoadingState message="Loading join requests..." className="py-16" />
+        <LoadingState message="Loading join requests…" className="py-16" />
       </div>
     );
   }
@@ -207,9 +207,7 @@ export function JoinRequestsSettingsPanel() {
                     <span>
                       Submitted
                       <span className="ml-1">
-                        {formatDistanceToNow(new Date(request.requestedAt), {
-                          addSuffix: true,
-                        })}
+                        {formatDistanceToNow(request.requestedAt)}
                       </span>
                     </span>
                   </div>
@@ -312,7 +310,7 @@ export function JoinRequestsSettingsPanel() {
               onClick={handleApprove}
               disabled={approveMutation.isPending}
             >
-              {approveMutation.isPending ? "Approving..." : "Approve Request"}
+              {approveMutation.isPending ? "Approving…" : "Approve Request"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -360,7 +358,7 @@ export function JoinRequestsSettingsPanel() {
               onClick={handleReject}
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
             >
-              {rejectMutation.isPending ? "Rejecting..." : "Reject Request"}
+              {rejectMutation.isPending ? "Rejecting…" : "Reject Request"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -20,11 +20,14 @@ import {
   useCompleteFollowUp,
   useFollowUps,
 } from "@/hooks/api/use-appointments";
+import {
+  type FollowUpListView,
+  getFollowUpListQuery,
+} from "@/features/follow-ups/lib/follow-up-list-query";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { formatDate } from "@/lib/formatters";
 
-type FollowUpView = "overdue" | "today" | "upcoming" | "all";
-
-const VIEW_OPTIONS: Array<{ value: FollowUpView; label: string }> = [
+const VIEW_OPTIONS: Array<{ value: FollowUpListView; label: string }> = [
   { value: "overdue", label: "Overdue" },
   { value: "today", label: "Today" },
   { value: "upcoming", label: "Upcoming" },
@@ -39,48 +42,6 @@ const STATUS_LABELS: Record<FollowUpStatus, string> = {
   CANCELLED: "Cancelled",
   EXPIRED: "Expired",
 };
-
-function startOfToday() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function getQueryForView(view: FollowUpView) {
-  const today = startOfToday();
-  const tomorrow = addDays(today, 1);
-  if (view === "overdue") {
-    return {
-      status: "PENDING,REMINDER_SENT",
-      from: new Date(0).toISOString(),
-      to: today.toISOString(),
-      limit: 100,
-    };
-  }
-  if (view === "today") {
-    return {
-      status: "PENDING,REMINDER_SENT",
-      from: today.toISOString(),
-      to: tomorrow.toISOString(),
-      limit: 100,
-    };
-  }
-  if (view === "upcoming") {
-    return {
-      status: "PENDING,REMINDER_SENT",
-      from: tomorrow.toISOString(),
-      to: addDays(today, 30).toISOString(),
-      limit: 100,
-    };
-  }
-  return { status: "PENDING,REMINDER_SENT", limit: 100 };
-}
 
 function patientName(followUp: FollowUpResponse) {
   const firstName = followUp.patient?.firstName ?? "";
@@ -110,7 +71,7 @@ function FollowUpCard({
           <p className="text-sm text-muted-foreground">{followUp.reason}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <span>
-              Due {new Date(followUp.scheduledDate).toLocaleDateString()}
+              Due {formatDate(followUp.scheduledDate)}
             </span>
             <span>Doctor: {followUp.doctor?.name ?? "Unassigned"}</span>
             {followUp.patient?.phoneNumber ? (
@@ -144,8 +105,8 @@ function FollowUpCard({
 }
 
 export default function FollowUpsPage() {
-  const [view, setView] = useState<FollowUpView>("today");
-  const query = useMemo(() => getQueryForView(view), [view]);
+  const [view, setView] = useState<FollowUpListView>("today");
+  const query = useMemo(() => getFollowUpListQuery(view), [view]);
   const { data = [], isLoading, isError, refetch } = useFollowUps(query);
   const completeFollowUp = useCompleteFollowUp();
   const cancelFollowUp = useCancelFollowUp();
@@ -217,7 +178,7 @@ export default function FollowUpsPage() {
 
       <DataState
         status={state}
-        loadingMessage="Loading follow-ups..."
+        loadingMessage="Loading follow-ups…"
         errorMessage="We could not load follow-ups. Please try again."
         onRetry={() => void refetch()}
         emptyIcon={CalendarCheck}

@@ -1,8 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
 import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
@@ -46,8 +47,8 @@ export default function ClinicSelectionPage() {
             <CardTitle className="ui-section-title">Preparing facility access</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-center gap-2 py-8 ui-helper-text">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading facility workflow...
+            <DocitaLoadingIndicator variant="inline" decorative />
+            Loading facility workflow…
           </CardContent>
         </Card>
       </PreDashboardShell>
@@ -56,7 +57,7 @@ export default function ClinicSelectionPage() {
 
   return (
     <PageTransitionLoader
-      title="Redirecting..."
+      title="Redirecting…"
       description="Taking you to the request-based facility join flow"
     />
   );

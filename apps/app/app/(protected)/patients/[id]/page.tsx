@@ -10,18 +10,9 @@ import { PatientDetailTabs } from "@/features/patients/components/details/Patien
 import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-state";
-import { Skeleton } from "@workspace/ui/components/skeleton";
 import { User } from "lucide-react";
+import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import { usePatientDetailLogic } from "@/features/patients/hooks/use-patient-detail-logic";
-
-function PatientDetailTabsFallback() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-10 w-full max-w-4xl" />
-      <Skeleton className="h-64 rounded-lg" />
-    </div>
-  );
-}
 
 export default function PatientDetailPage() {
   const params = useParams();
@@ -52,7 +43,7 @@ export default function PatientDetailPage() {
         <DataState
           status="loading"
           className="min-h-[50vh]"
-          loadingMessage="Loading patient details..."
+          loadingMessage="Loading patient details…"
         />
       </AppPageScaffold>
     );
@@ -127,7 +118,7 @@ export default function PatientDetailPage() {
           onPatientUpdated={() => handleRefetch()}
         />
 
-        <Suspense fallback={<PatientDetailTabsFallback />}>
+        <Suspense fallback={<PatientDetailTabLoadingShell />}>
           <PatientDetailTabs
             patient={patient}
             patientId={patient.id}

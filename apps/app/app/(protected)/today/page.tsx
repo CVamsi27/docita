@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import {
-  DashboardAlertsContainer,
-  DashboardQuickActionsContainer,
-  DashboardSkeletonUI,
-  DoctorDashboardCards,
-  TodayScheduleUI,
-} from "@/features/dashboard/components";
+import { useMemo } from "react";
+import { DashboardSharedWorkspace } from "@/features/dashboard/components/layout/dashboard-shared-workspace";
+import { DashboardShortcutsSection } from "@/features/dashboard/components/layout/dashboard-shortcuts-section";
+import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dashboard-skeleton-ui";
+import { DashboardRefreshControl } from "@/features/dashboard/components/layout/dashboard-refresh-control";
+import { TodayFollowUpsPanel } from "@/features/dashboard/components/follow-ups/today-follow-ups-panel";
+import { TodayScheduleUI } from "@/features/dashboard/components/schedule/today-schedule-ui";
+import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
 import { Feature } from "@/lib/stores/permission-store";
 import { useClinic } from "@/lib/clinic-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";
 import { DataState } from "@workspace/ui/components/data-state";
@@ -19,6 +21,7 @@ import { LayoutDashboard } from "lucide-react";
 
 export default function TodayPage() {
   const { clinic } = useClinic();
+  const { canStartConsultation } = usePermissions();
   const { state } = useDashboardLogic();
   const {
     stats,
@@ -31,26 +34,58 @@ export default function TodayPage() {
     pendingJoinRequests,
     isLoading,
     isError,
-    refetch,
+    refetchAll,
+    lastDataUpdatedAtMs,
+    isRefreshing,
     canAccess,
   } = state;
+
+  const summaryLine = useMemo(
+    () => formatDashboardSummary(todayAppointments.length, waitingCount),
+    [todayAppointments.length, waitingCount],
+  );
+
+  const headerActions = useMemo(
+    () => (
+      <div className="flex flex-wrap items-center gap-2">
+        <DashboardRefreshControl
+          updatedAtMs={lastDataUpdatedAtMs}
+          isRefreshing={isRefreshing}
+          onRefresh={refetchAll}
+        />
+        {canStartConsultation ? (
+          <Button variant="default" size="sm" asChild>
+            <Link href="/consultation">Open queue</Link>
+          </Button>
+        ) : null}
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard">Dashboard</Link>
+        </Button>
+      </div>
+    ),
+    [
+      lastDataUpdatedAtMs,
+      isRefreshing,
+      refetchAll,
+      canStartConsultation,
+    ],
+  );
 
   const header = (
     <PageHeader
       title="Today"
-      description="Your queue, today's visits, and shortcuts in one place."
-      actions={
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/dashboard">Full dashboard</Link>
-        </Button>
+      description={
+        summaryLine ??
+        "Run today’s shift: queue, schedule, and follow-ups in one place."
       }
+      actions={headerActions}
     />
   );
 
   if (isLoading) {
     return (
       <AppPageScaffold header={header}>
-        <DashboardSkeletonUI />
+        <DashboardSkeletonUI variant="today" />
       </AppPageScaffold>
     );
   }
@@ -62,7 +97,7 @@ export default function TodayPage() {
           status="error"
           className="min-h-[50vh]"
           errorMessage="We could not load today's workspace. Please try again."
-          onRetry={refetch}
+          onRetry={refetchAll}
         />
       </AppPageScaffold>
     );
@@ -88,43 +123,26 @@ export default function TodayPage() {
     );
   }
 
-  const alerts = (
-    <DashboardAlertsContainer
-      todayAppointments={todayAppointments.length}
-      completedAppointments={completedToday}
-      pendingReports={stats.pendingReports}
-      pendingJoinRequests={pendingJoinRequests}
-      patientsWaiting={waitingCount}
-      nextPatientName={
-        currentPatient?.patient
-          ? `${currentPatient.patient.firstName} ${currentPatient.patient.lastName}`
-          : undefined
-      }
-      nextPatientId={currentPatient?.id}
-      className="mb-4"
-    />
-  );
-
   return (
     <AppPageScaffold header={header}>
-      <div className="space-y-4 sm:space-y-6">
-        {alerts}
-        <DoctorDashboardCards
-          currentPatient={currentPatient}
-          nextPatients={nextPatients}
-          queueStats={{
-            waiting: waitingCount,
-            inProgress: inProgressToday,
-            completed: completedToday,
-            total: todayAppointments.length,
-          }}
-          estimatedWaitTime={waitingCount * (clinic?.slotDuration ?? 15)}
-        />
-        <DashboardQuickActionsContainer pendingReports={stats.pendingReports} />
+      <DashboardSharedWorkspace
+        mode="today"
+        todayAppointments={todayAppointments}
+        completedToday={completedToday}
+        inProgressToday={inProgressToday}
+        currentPatient={currentPatient}
+        nextPatients={nextPatients}
+        waitingCount={waitingCount}
+        pendingJoinRequests={pendingJoinRequests}
+        pendingReports={stats.pendingReports}
+        slotDurationMinutes={clinic?.slotDuration ?? 15}
+      >
+        <TodayFollowUpsPanel enabled={canAccess(Feature.CALENDAR_SLOTS)} />
+        <DashboardShortcutsSection pendingReports={stats.pendingReports} />
         {canAccess(Feature.CALENDAR_SLOTS) ? (
           <TodayScheduleUI appointments={todayAppointments} />
         ) : null}
-      </div>
+      </DashboardSharedWorkspace>
     </AppPageScaffold>
   );
 }

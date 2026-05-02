@@ -1,11 +1,13 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -26,7 +28,21 @@ export default function ForgotPasswordPage() {
       fallback={
         <PreDashboardShell currentStep="forgot-password" showProgress={false}>
           <div className="ui-card-surface p-6 sm:p-8">
-            <div className="text-sm text-muted-foreground">Loading...</div>
+            <div
+              className="flex flex-col items-center gap-4 py-4"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading password reset"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-10 w-10 text-primary"
+              />
+              <p className="text-sm text-muted-foreground">
+                Loading password reset…
+              </p>
+            </div>
           </div>
         </PreDashboardShell>
       }
@@ -131,8 +147,8 @@ function ForgotPasswordPageContent() {
             >
               {form.formState.isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Sending…
                 </>
               ) : (
                 "Send Reset Link"

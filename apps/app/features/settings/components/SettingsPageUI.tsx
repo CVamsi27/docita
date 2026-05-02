@@ -1,7 +1,11 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Input } from "@workspace/ui/components/input";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Skeleton } from "@workspace/ui/components/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
 import { BackButton } from "@/components/common/navigation/back-button";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
@@ -47,9 +51,29 @@ interface SettingsPageUIProps {
   firstMatchingTab?: string;
 }
 
-const lazyPanelFallback = (
-  <div className="h-24 rounded-md bg-muted/30 animate-pulse" />
-);
+function LazySettingsPanelFallback() {
+  return (
+    <div
+      className="space-y-4 py-4"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading settings section"
+    >
+      <div className="flex items-center gap-3">
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8"
+        />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton animation="wave" className="h-4 w-40" />
+          <Skeleton animation="wave" className="h-4 w-full max-w-sm" />
+        </div>
+      </div>
+      <Skeleton animation="wave" className="h-32 w-full rounded-lg" />
+    </div>
+  );
+}
 
 const SubscriptionSettingsLazy = dynamic(
   () =>
@@ -58,7 +82,7 @@ const SubscriptionSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -69,7 +93,7 @@ const MemberManagementSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -80,7 +104,7 @@ const DoctorAvailabilitySettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -91,7 +115,7 @@ const DoctorTimeAwaySettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -102,7 +126,7 @@ const LeaveManagementSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -113,7 +137,7 @@ const DoctorProfileSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -124,7 +148,7 @@ const DangerZoneSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -135,7 +159,7 @@ const ComplianceSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -146,7 +170,7 @@ const JoinRequestsSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -172,7 +196,7 @@ export function SettingsPageUI({
             description="Manage your facility preferences and configurations."
           />
           <div className="relative w-full md:w-72 md:shrink-0">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <Input
               id="settings-search"
               name="settingsSearch"
@@ -182,8 +206,24 @@ export function SettingsPageUI({
               placeholder="Enter search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className={cn("pl-9", searchQuery.trim() && "pr-10")}
             />
+            {searchQuery.trim() ? (
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                <SymbolTooltip label="Clear search">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </Button>
+                </SymbolTooltip>
+              </div>
+            ) : null}
           </div>
         </div>
       }

@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
+import { formatDateTime } from "@/lib/formatters";
 
 const STEPS = [
   { number: 1, label: "Facility Details", estimatedTime: "2 min" },
@@ -375,7 +376,7 @@ export function ClinicRegistrationForm({
             <DialogTitle>Continue where you left off?</DialogTitle>
             <DialogDescription>
               A saved draft was found from{" "}
-              {savedDraft ? new Date(savedDraft.savedAt).toLocaleString() : "earlier"}
+              {savedDraft ? formatDateTime(savedDraft.savedAt) : "earlier"}
               {" "}and would you like to restore it?
             </DialogDescription>
           </DialogHeader>

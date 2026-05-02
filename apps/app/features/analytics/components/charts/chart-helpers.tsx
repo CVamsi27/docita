@@ -7,7 +7,7 @@ import { cn } from "@workspace/ui/lib/utils";
 
 export const LoadingSpinner = ({ className }: { className?: string }) => (
   <SharedLoadingState
-    message="Loading chart..."
+    message="Loading chart…"
     className={cn("h-full", className)}
   />
 );

@@ -1,7 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import {
   Dialog,
   DialogClose,
@@ -12,7 +15,7 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { Loader2, LocateFixed, MapPin, Search, X } from "lucide-react";
+import { LocateFixed, MapPin, Search, X } from "lucide-react";
 import {
   Autocomplete,
   GoogleMap,
@@ -702,17 +705,19 @@ export function ClinicAddressPickerDialog({
           <DialogHeader className="border-b bg-background px-4 py-4 sm:px-6 sm:py-5">
             <div className="flex items-start justify-between gap-3">
               <DialogTitle>Select facility location</DialogTitle>
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-                  aria-label="Close location picker"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DialogClose>
+              <SymbolTooltip label="Close location picker">
+                <DialogClose asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Close location picker"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </DialogClose>
+              </SymbolTooltip>
             </div>
             <DialogDescription
               id="clinic-location-dialog-description"
@@ -750,17 +755,18 @@ export function ClinicAddressPickerDialog({
                       }}
                     >
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
                         <Input
                           id="place-search"
                           placeholder="Facility location"
                           className="h-11 pl-9"
+                          aria-label="Search facility location"
                         />
                       </div>
                     </Autocomplete>
                   ) : (
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
                       <Input
                         id="place-search"
                         value={searchQuery}
@@ -773,10 +779,29 @@ export function ClinicAddressPickerDialog({
                           window.setTimeout(() => setShowSuggestions(false), 120);
                         }}
                         placeholder="Facility location"
-                        className="h-11 pl-9"
+                        className={`h-11 pl-9${searchQuery.trim() || isSearching ? " pr-10" : ""}`}
+                        aria-label="Search facility location"
                       />
                       {isSearching ? (
-                        <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                        <DocitaLoadingIndicator variant="inline" decorative className="absolute right-3 top-1/2 -translate-y-1/2" />
+                      ) : searchQuery.trim() ? (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <SymbolTooltip label="Clear search">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => {
+                                setSearchQuery("");
+                                setSuggestions([]);
+                              }}
+                              aria-label="Clear search"
+                            >
+                              <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                            </Button>
+                          </SymbolTooltip>
+                        </div>
                       ) : null}
                       {showSuggestions && suggestions.length > 0 ? (
                         <div className="absolute z-50 mt-2 w-full rounded-lg border bg-popover shadow-lg">
@@ -825,13 +850,13 @@ export function ClinicAddressPickerDialog({
               <div className={styles.mapRoot}>
                 {!isMapViewportReady ? (
                   <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Preparing map...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Preparing map…
                   </div>
                 ) : hasGoogleKey && !isGoogleLoaded && !googleLoadError ? (
                   <div className="flex h-full items-center justify-center rounded-lg border bg-muted/30 p-6 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading map...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Loading map…
                   </div>
                 ) : shouldUseGoogle ? (
                   <GoogleMap
@@ -936,7 +961,7 @@ export function ClinicAddressPickerDialog({
                     onChange={(event) => setAddressDraft(event.target.value)}
                   />
                   {isResolving ? (
-                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="absolute right-3 top-1/2 -translate-y-1/2" />
                   ) : null}
                 </div>
               </div>

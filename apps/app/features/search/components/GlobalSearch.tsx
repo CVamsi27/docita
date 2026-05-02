@@ -1,21 +1,16 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import {
-  AlertTriangle,
-  Calendar,
-  FileText,
-  Loader2,
-  Search,
-  User,
-  X,
-} from "lucide-react";
+import { AlertTriangle, Calendar, FileText, Search, User, X } from "lucide-react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import { sanitizeUserFacingMessage } from "@workspace/types";
 import { appQueryKeys } from "@/lib/query-keys";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { cn } from "@workspace/ui/lib/utils";
 import {
@@ -166,19 +161,23 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           role="combobox"
         />
         {query && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setQuery("");
-              inputRef.current?.focus();
-            }}
-            className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2"
-            aria-label="Clear search"
-          >
-            <X className="h-4 w-4 text-muted-foreground" />
-          </Button>
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+            <SymbolTooltip label="Clear search">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setQuery("");
+                  inputRef.current?.focus();
+                }}
+                className="h-7 w-7"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </SymbolTooltip>
+          </div>
         )}
       </div>
 
@@ -194,11 +193,8 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
               role="status"
               aria-live="polite"
             >
-              <Loader2
-                className="h-5 w-5 animate-spin mr-2"
-                aria-hidden="true"
-              />
-              Searching...
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" iconClassName="h-5 w-5" />
+              Searching…
             </div>
           ) : isError ? (
             <div

@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import Link from "next/link";
 import type { UseFormReturn } from "react-hook-form";
 import {
@@ -28,7 +30,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { Loader2, ShieldCheck, ShieldX } from "lucide-react";
+import { ShieldCheck, ShieldX } from "lucide-react";
 import { User } from "@workspace/types";
 import { getDoctorVerificationPublicNote } from "@/lib/doctor-verification-display";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -302,7 +304,7 @@ export function ManageTeamMemberDialog({
                           disabled={isManaging}
                         >
                           {isReverifyingDoctor && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                           )}
                           Reverify Registration
                         </Button>
@@ -314,11 +316,7 @@ export function ManageTeamMemberDialog({
 
               <div>
                 <p className="text-muted-foreground">Created</p>
-                <p className="font-medium">
-                  {member.createdAt
-                    ? new Date(member.createdAt).toLocaleDateString()
-                    : "-"}
-                </p>
+                <p className="font-medium">{formatDate(member.createdAt)}</p>
               </div>
 
               <DialogFooter className="sm:justify-between">
@@ -338,7 +336,7 @@ export function ManageTeamMemberDialog({
                     className="w-full sm:w-auto"
                   >
                     {isUpdatingMember && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                     )}
                     Save Changes
                   </Button>
@@ -350,7 +348,7 @@ export function ManageTeamMemberDialog({
                     className="w-full sm:w-auto"
                   >
                     {isDeletingMember && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                     )}
                     Remove
                   </Button>

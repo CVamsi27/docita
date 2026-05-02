@@ -82,7 +82,7 @@ export function ConsultationNotesModal({
             onClick={handleSave}
             disabled={!notes.trim() || updateAppointment.isPending}
           >
-            {updateAppointment.isPending ? "Saving..." : "Save Notes"}
+            {updateAppointment.isPending ? "Saving…" : "Save Notes"}
           </Button>
         </DialogFooter>
       </DialogContent>

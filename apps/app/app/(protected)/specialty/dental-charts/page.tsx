@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
-import { Smile, Search, Save, Loader2 } from "lucide-react";
+import { Smile, Search, Save, X } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
@@ -15,10 +17,12 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { toast } from "sonner";
 import { useClinic } from "@/lib/clinic-context";
+import { formatDate } from "@/lib/formatters";
 import { usePatients } from "@/hooks/api/use-patients";
 import {
   usePatientAppointments,
@@ -128,7 +132,7 @@ export default function DentalChartsPage() {
                   disabled={!isDirty || isSaving}
                 >
                   {isSaving ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                   ) : (
                     <Save className="mr-2 h-4 w-4" />
                   )}
@@ -148,7 +152,7 @@ export default function DentalChartsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
                   <Input
                     placeholder="Enter name or phone"
                     data-testid="dental-chart-patient-search"
@@ -158,14 +162,40 @@ export default function DentalChartsPage() {
                       setSelectedPatient(null);
                       setSelectedAppointmentId(null);
                     }}
-                    className="pl-9"
+                    className={search.trim() ? "pl-9 pr-10" : "pl-9"}
+                    aria-label="Search patients for dental chart"
                   />
+                  {search.trim() ? (
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                      <SymbolTooltip label="Clear search">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setSearch("");
+                            setSelectedPatient(null);
+                            setSelectedAppointmentId(null);
+                          }}
+                          aria-label="Clear search"
+                        >
+                          <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                        </Button>
+                      </SymbolTooltip>
+                    </div>
+                  ) : null}
                 </div>
 
                 {patientsLoading && search.length >= 2 && (
-                  <div className="space-y-2">
-                    <Skeleton className="h-9 w-full" />
-                    <Skeleton className="h-9 w-full" />
+                  <div
+                    className="space-y-2"
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Loading patient search"
+                  >
+                    <Skeleton animation="wave" className="h-9 w-full" />
+                    <Skeleton animation="wave" className="h-9 w-full" />
                   </div>
                 )}
 
@@ -207,9 +237,14 @@ export default function DentalChartsPage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {appointmentsLoading ? (
-                    <div className="space-y-2">
-                      <Skeleton className="h-16 w-full" />
-                      <Skeleton className="h-16 w-full" />
+                    <div
+                      className="space-y-2"
+                      role="status"
+                      aria-live="polite"
+                      aria-label="Loading appointments"
+                    >
+                      <Skeleton animation="wave" className="h-16 w-full" />
+                      <Skeleton animation="wave" className="h-16 w-full" />
                     </div>
                   ) : appointments.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-4">
@@ -234,7 +269,7 @@ export default function DentalChartsPage() {
                         >
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-medium">
-                              {new Date(appt.startTime).toLocaleDateString()}
+                              {formatDate(appt.startTime)}
                             </p>
                             {hasChart && (
                               <Badge variant="secondary" className="text-xs">

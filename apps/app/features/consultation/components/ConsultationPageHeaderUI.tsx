@@ -10,6 +10,12 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
+  SymbolTooltip,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,6 +27,7 @@ import {
   SheetTrigger,
 } from "@workspace/ui/components/sheet";
 import { cn } from "@workspace/ui/lib/utils";
+import { formatDate, formatTime } from "@/lib/formatters";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { ConsultationTimerContainer } from "./ConsultationTimerContainer";
 import { BillingModal } from "./modals/BillingModal";
@@ -91,27 +98,37 @@ export function ConsultationPageHeaderUI({
     <>
       <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-background px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onBack}
-            aria-label="Back"
-            className="h-9 w-9 shrink-0 -ml-1 rounded-full text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+          <SymbolTooltip label="Back">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onBack}
+              aria-label="Back"
+              className="h-9 w-9 shrink-0 -ml-1 rounded-full text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </SymbolTooltip>
 
           {MobileSidebarContent && (
             <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden h-8 w-8 shrink-0"
-                >
-                  <PanelLeft className="h-4 w-4" />
-                </Button>
-              </SheetTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="md:hidden h-8 w-8 shrink-0"
+                      aria-label="Open consultation menu"
+                    >
+                      <PanelLeft className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  Open consultation menu
+                </TooltipContent>
+              </Tooltip>
               <SheetContent side="left" className="sm:w-80 p-0">
                 {MobileSidebarContent}
               </SheetContent>
@@ -119,9 +136,11 @@ export function ConsultationPageHeaderUI({
           )}
 
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70">
-              <User className="h-4 w-4 text-primary" />
-            </div>
+            <SymbolTooltip label="Patient">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70">
+                <User className="h-4 w-4 text-primary" aria-hidden />
+              </div>
+            </SymbolTooltip>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-sm font-bold leading-tight truncate">
@@ -150,13 +169,13 @@ export function ConsultationPageHeaderUI({
               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                 <Clock className="h-3 w-3 shrink-0" />
                 <span>
-                  {new Date(appointmentDate).toLocaleDateString("en-IN", {
+                  {formatDate(appointmentDate, "en-IN", {
                     weekday: "short",
                     month: "short",
                     day: "numeric",
                   })}{" "}
                   &middot;{" "}
-                  {new Date(appointmentDate).toLocaleTimeString("en-IN", {
+                  {formatTime(appointmentDate, "en-IN", {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -176,22 +195,26 @@ export function ConsultationPageHeaderUI({
             <SaveStatusChip className="hidden md:inline-flex max-w-[min(100%,14rem)] truncate" />
           )}
           {onToggleDesktopSidebar && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden xl:flex gap-1.5 h-8"
-              onClick={onToggleDesktopSidebar}
-              title={
+            <SymbolTooltip
+              label={
                 isDesktopSidebarOpen
                   ? "Hide patient history"
                   : "Show patient history"
               }
+              side="bottom"
             >
-              <PanelLeft className="h-3.5 w-3.5" />
-              <span>
-                {isDesktopSidebarOpen ? "Hide history" : "Show history"}
-              </span>
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden xl:flex gap-1.5 h-8"
+                onClick={onToggleDesktopSidebar}
+              >
+                <PanelLeft className="h-3.5 w-3.5" />
+                <span>
+                  {isDesktopSidebarOpen ? "Hide history" : "Show history"}
+                </span>
+              </Button>
+            </SymbolTooltip>
           )}
           {!readOnly && (
             <>
@@ -199,36 +222,44 @@ export function ConsultationPageHeaderUI({
                 appointmentId={appointmentId}
                 className="hidden sm:flex"
               />
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex gap-1.5 h-8"
-                onClick={() => openVitals()}
-                title="Record vital signs"
-              >
-                <HeartPulse className="h-3.5 w-3.5 text-destructive" />
-                <span className="hidden md:inline">Vitals</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex gap-1.5 h-8"
-                onClick={() => setBillingOpen(true)}
-                title="Create invoice"
-              >
-                <CreditCard className="h-3.5 w-3.5 text-success" />
-                <span className="hidden md:inline">Invoice</span>
-              </Button>
+              <SymbolTooltip label="Record vital signs" side="bottom">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex gap-1.5 h-8"
+                  onClick={() => openVitals()}
+                >
+                  <HeartPulse className="h-3.5 w-3.5 text-destructive" />
+                  <span className="hidden md:inline">Vitals</span>
+                </Button>
+              </SymbolTooltip>
+              <SymbolTooltip label="Create invoice" side="bottom">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex gap-1.5 h-8"
+                  onClick={() => setBillingOpen(true)}
+                >
+                  <CreditCard className="h-3.5 w-3.5 text-success" />
+                  <span className="hidden md:inline">Invoice</span>
+                </Button>
+              </SymbolTooltip>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="sm:hidden h-8 w-8"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="sm:hidden h-8 w-8"
+                        aria-label="More actions"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">More actions</TooltipContent>
+                </Tooltip>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => openVitals()}>
                     <HeartPulse className="mr-2 h-4 w-4 text-destructive" />

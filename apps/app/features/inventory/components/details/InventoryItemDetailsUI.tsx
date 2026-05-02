@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   Sheet,
   SheetContent,
@@ -72,7 +72,7 @@ export function InventoryItemDetailsUI({
         </SheetHeader>
 
         {isLoading ? (
-          <LoadingState message="Loading item details..." />
+          <LoadingState message="Loading item details…" />
         ) : item ? (
           <div className="flex-1 flex flex-col gap-6 overflow-hidden">
             <div className="grid gap-4 p-4 border rounded-lg bg-muted/20">
@@ -130,7 +130,7 @@ export function InventoryItemDetailsUI({
                   </span>
                   <span className="font-medium">
                     {item.expiryDate
-                      ? format(new Date(item.expiryDate), "PPP")
+                      ? formatDate(item.expiryDate, "dd MMMM yyyy")
                       : "N/A"}
                   </span>
                 </div>
@@ -183,10 +183,7 @@ export function InventoryItemDetailsUI({
                                 </span>
                               </TableCell>
                               <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                                {format(
-                                  new Date(movement.createdAt),
-                                  "MMM d, yyyy",
-                                )}
+                                {formatDate(movement.createdAt, "MMM d, yyyy")}
                               </TableCell>
                               <TableCell className="text-right text-xs text-muted-foreground max-w-[150px] truncate">
                                 {movement.notes || "-"}

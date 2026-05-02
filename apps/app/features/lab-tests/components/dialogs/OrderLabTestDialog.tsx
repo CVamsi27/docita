@@ -1,5 +1,6 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/button";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -103,7 +104,10 @@ export function OrderLabTestDialog({
                   <FormLabel>Patient</FormLabel>
                   <Popover
                     open={patientComboboxOpen}
-                    onOpenChange={setPatientComboboxOpen}
+                    onOpenChange={(nextOpen) => {
+                      setPatientComboboxOpen(nextOpen);
+                      if (!nextOpen) setPatientSearch("");
+                    }}
                     modal={true}
                   >
                     <PopoverTrigger asChild>
@@ -120,7 +124,7 @@ export function OrderLabTestDialog({
                         >
                           {selectedPatient
                             ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
-                            : "Search patient by name..."}
+                            : "Search patient by name…"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
@@ -134,20 +138,21 @@ export function OrderLabTestDialog({
                           placeholder="Enter patient name"
                           value={patientSearch}
                           onValueChange={setPatientSearch}
+                          showClearButton
                         />
                         <CommandList>
                           {patientsLoading ? (
                             <div className="flex items-center justify-center py-6">
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <DocitaLoadingIndicator variant="inline" decorative />
                               <span className="ml-2 text-sm text-muted-foreground">
-                                Searching...
+                                Searching…
                               </span>
                             </div>
                           ) : patients.length === 0 ? (
                             <CommandEmpty>
                               {patientSearch
                                 ? "No patient found"
-                                : "Type to search patients..."}
+                                : "Type to search patients…"}
                             </CommandEmpty>
                           ) : (
                             <CommandGroup>
@@ -199,7 +204,10 @@ export function OrderLabTestDialog({
                   <FormLabel>Test</FormLabel>
                   <Popover
                     open={testComboboxOpen}
-                    onOpenChange={setTestComboboxOpen}
+                    onOpenChange={(nextOpen) => {
+                      setTestComboboxOpen(nextOpen);
+                      if (!nextOpen) setTestSearch("");
+                    }}
                     modal={true}
                   >
                     <PopoverTrigger asChild>
@@ -216,7 +224,7 @@ export function OrderLabTestDialog({
                         >
                           {selectedTest
                             ? selectedTest.name
-                            : "Search test by name..."}
+                            : "Search test by name…"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
@@ -230,13 +238,14 @@ export function OrderLabTestDialog({
                           placeholder="Enter test name"
                           value={testSearch}
                           onValueChange={setTestSearch}
+                          showClearButton
                         />
                         <CommandList>
                           {catalogLoading ? (
                             <div className="flex items-center justify-center py-6">
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <DocitaLoadingIndicator variant="inline" decorative />
                               <span className="ml-2 text-sm text-muted-foreground">
-                                Loading tests...
+                                Loading tests…
                               </span>
                             </div>
                           ) : testCatalog.length === 0 ? (
@@ -315,8 +324,8 @@ export function OrderLabTestDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isCreating} className="gap-2">
-                {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isCreating ? "Creating..." : "Order Test"}
+                {isCreating && <DocitaLoadingIndicator variant="inline" decorative />}
+                {isCreating ? "Creating…" : "Order Test"}
               </Button>
             </DialogFooter>
           </form>

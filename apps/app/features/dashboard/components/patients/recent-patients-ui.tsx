@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, Users } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -78,9 +78,7 @@ export function RecentPatientsUI({ patients }: RecentPatientsUIProps) {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {patient.updatedAt
-                      ? formatDistanceToNow(new Date(patient.updatedAt), {
-                          addSuffix: true,
-                        })
+                      ? formatDistanceToNow(patient.updatedAt)
                       : patient.phoneNumber}
                   </p>
                 </div>

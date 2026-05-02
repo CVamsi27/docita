@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import {
   Dialog,
   DialogContent,
@@ -5,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
-import { Loader2 } from "lucide-react";
+
 import { QRCodeSVG } from "qrcode.react";
 
 interface OCRMobileDialogProps {
@@ -34,8 +35,8 @@ export const OCRMobileDialog = ({
             {qrUrl && <QRCodeSVG value={qrUrl} size={200} />}
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            Waiting for upload...
-            <Loader2 className="inline h-3 w-3 animate-spin" />
+            Waiting for upload…
+            <DocitaLoadingIndicator variant="inline" decorative className="inline" iconClassName="h-3 w-3" />
           </p>
         </div>
       </DialogContent>

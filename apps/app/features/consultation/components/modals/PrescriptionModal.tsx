@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import {
   Dialog,
@@ -8,6 +10,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { toast } from "sonner";
 import {
@@ -222,14 +225,17 @@ export function PrescriptionModal({
                   Medication #{index + 1}
                 </span>
                 {medications.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeMedication(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <SymbolTooltip label="Remove medication">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeMedication(index)}
+                      aria-label="Remove medication"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </SymbolTooltip>
                 )}
               </div>
 
@@ -290,7 +296,7 @@ export function PrescriptionModal({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={createPrescription.isPending}>
-            {createPrescription.isPending ? "Saving..." : "Save Prescription"}
+            {createPrescription.isPending ? "Saving…" : "Save Prescription"}
           </Button>
         </DialogFooter>
       </DialogContent>

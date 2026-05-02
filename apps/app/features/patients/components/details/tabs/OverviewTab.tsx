@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, type ComponentType } from "react";
-import { format } from "date-fns";
+import { formatTime } from "@/lib/formatters";
 import {
   Card,
   CardContent,
@@ -82,7 +82,11 @@ export function OverviewTab({
     if (!todaysAppointment) return null;
     const start = toDate(todaysAppointment.startTime);
     if (!start) return null;
-    return format(start, "h:mm a");
+    return formatTime(start, "en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   })();
 
   const statusBadgeVariant: "default" | "secondary" | "destructive" | "outline" =

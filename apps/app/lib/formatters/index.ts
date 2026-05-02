@@ -7,18 +7,82 @@ export { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 export function formatDate(
   date: Date | string,
   locale: string = "en-IN",
+  options?: Intl.DateTimeFormatOptions,
 ): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString(locale);
+  if (Number.isNaN(d.getTime())) return "";
+  return options !== undefined
+    ? d.toLocaleDateString(locale, options)
+    : d.toLocaleDateString(locale);
+}
+
+/** Calendar-style label when an invalid or missing date should show as "-". */
+export function formatDateSafe(
+  date: Date | string | null | undefined,
+  locale: string = "en-IN",
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  if (date === null || date === undefined) return "-";
+  const formatted = formatDate(date, locale, options);
+  return formatted.length > 0 ? formatted : "-";
+}
+
+export function formatLocaleDateShortMonth(
+  date: Date | string,
+  locale: string = "en-IN",
+): string {
+  return formatDate(date, locale, { day: "numeric", month: "short" });
+}
+
+export function formatLocaleDateShortMonthYear(
+  date: Date | string,
+  locale: string = "en-IN",
+): string {
+  return formatDate(date, locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export function formatTime(
+  date: Date | string,
+  locale: string = "en-IN",
+  options: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+  },
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString(locale, options);
 }
 
 export function formatDateTime(
   date: Date | string,
   locale: string = "en-IN",
+  options?: Intl.DateTimeFormatOptions,
 ): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleString(locale);
+  if (Number.isNaN(d.getTime())) return "";
+  return options !== undefined
+    ? d.toLocaleString(locale, options)
+    : d.toLocaleString(locale);
 }
+
+/** en-US long month (invoices, printable invoice details). */
+export const DATE_FORMAT_OPTIONS_US_LONG: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+};
+
+/** en-US short month (inventory, lab orders). */
+export const DATE_FORMAT_OPTIONS_US_SHORT: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+};
 
 export interface FormatCurrencyOptions {
   locale?: string;
@@ -49,7 +113,7 @@ export function formatPhoneNumber(phone: string): string {
 
 export function truncate(text: string, length: number = 50): string {
   if (text.length <= length) return text;
-  return text.slice(0, length) + "...";
+  return text.slice(0, length) + "…";
 }
 
 export function capitalize(text: string): string {

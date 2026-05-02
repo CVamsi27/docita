@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
 
 interface DoctorInfo {
@@ -129,7 +129,7 @@ export function PrescriptionDocument({
               Date
             </p>
             <p className="font-semibold">
-              {format(new Date(prescription.createdAt), "dd MMMM yyyy")}
+              {formatDate(prescription.createdAt, "dd MMMM yyyy")}
             </p>
           </div>
         </div>

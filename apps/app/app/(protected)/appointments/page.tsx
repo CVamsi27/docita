@@ -221,7 +221,7 @@ function AppointmentsContent() {
 export default function AppointmentsPage() {
   return (
     <Suspense
-      fallback={<LoadingState message="Loading appointments..." className="py-16" />}
+      fallback={<LoadingState message="Loading appointments…" className="py-16" />}
     >
       <AppointmentsContent />
     </Suspense>

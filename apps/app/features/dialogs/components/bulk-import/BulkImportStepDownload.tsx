@@ -1,4 +1,5 @@
-import { Download, Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Download } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { EntityType } from "./types";
 
@@ -32,8 +33,8 @@ export function BulkImportStepDownload({
       >
         {isLoadingTemplate ? (
           <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Loading template...
+            <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+            Loading template…
           </>
         ) : (
           <>

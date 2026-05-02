@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Building2, Mail, Phone, MapPin } from "lucide-react";
+import { Search, Building2, Mail, Phone, MapPin, X } from "lucide-react";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { cn } from "@workspace/ui/lib/utils";
 import { Card } from "@workspace/ui/components/card";
 import {
   Select,
@@ -168,21 +170,38 @@ export default function JoinClinicPage() {
       >
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden />
             <Input
               placeholder="Enter facility name, email, or referral code"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="pl-10 h-11"
+              className={cn("h-11 pl-10", searchQuery.trim() && "pr-10")}
+              aria-label="Search facilities to join"
             />
+            {searchQuery.trim() ? (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <SymbolTooltip label="Clear search">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </Button>
+                </SymbolTooltip>
+              </div>
+            ) : null}
           </div>
           <Button
             onClick={handleSearch}
             disabled={isSearching}
             className="h-11"
           >
-            {isSearching ? "Searching..." : "Search"}
+            {isSearching ? "Searching…" : "Search"}
           </Button>
         </div>
 
@@ -300,7 +319,7 @@ export default function JoinClinicPage() {
               Cancel
             </Button>
             <Button onClick={handleSubmitRequest} disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Request"}
+              {isSubmitting ? "Submitting…" : "Submit Request"}
             </Button>
           </div>
         </DialogContent>

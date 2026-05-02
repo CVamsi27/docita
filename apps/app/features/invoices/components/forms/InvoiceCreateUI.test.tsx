@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { render } from "@/test/render-with-tooltip";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { InvoiceCreateUI } from "./InvoiceCreateUI";
 

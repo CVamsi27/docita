@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Check, Loader2, Users } from "lucide-react";
+import { Building2, Check, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 import { typedApi } from "@/lib/api-client";
@@ -37,17 +39,17 @@ export default function ChoosePathPage() {
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
-      setRedirectMessage("Redirecting to login...");
+      setRedirectMessage("Redirecting to login…");
       router.replace("/login");
       return;
     }
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
-      setRedirectMessage("Account already linked. Redirecting to dashboard...");
+      setRedirectMessage("Account already linked. Redirecting to dashboard…");
       router.replace("/dashboard");
       return;
     }
     if (user?.onboardingStep === "CREATING_CLINIC") {
-      setRedirectMessage("Taking you back to onboarding...");
+      setRedirectMessage("Taking you back to onboarding…");
       router.replace("/onboarding");
     }
   }, [isAuthenticated, isLoading, user, router]);
@@ -69,8 +71,17 @@ export default function ChoosePathPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex min-h-screen items-center justify-center bg-background px-4"
+        role="status"
+        aria-live="polite"
+        aria-label="Checking your session"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-10 w-10 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -78,7 +89,7 @@ export default function ChoosePathPage() {
   if (redirectMessage) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
+        title="Redirecting…"
         description={redirectMessage}
       />
     );
@@ -208,7 +219,7 @@ function PathCard({
         onClick={onClick}
         disabled={disabled}
       >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : buttonLabel}
+        {loading ? <DocitaLoadingIndicator variant="inline" decorative /> : buttonLabel}
       </Button>
     </div>
   );

@@ -1,5 +1,6 @@
 import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Label } from "@workspace/ui/components/label";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -58,7 +59,7 @@ export function EditInvoiceDialogUI({
       description={`Update invoice details for ${patientName}`}
       isLoading={loading}
       onSubmit={onSubmit}
-      submitLabel={loading ? "Saving..." : "Save Changes"}
+      submitLabel={loading ? "Saving…" : "Save Changes"}
       contentClassName="max-w-6xl max-h-[90vh] overflow-y-auto"
     >
       <div className="space-y-4">
@@ -138,15 +139,18 @@ export function EditInvoiceDialogUI({
                       }
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onRemoveItem(index)}
-                    className="text-destructive hover:text-destructive shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <SymbolTooltip label="Remove line item">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRemoveItem(index)}
+                      className="text-destructive hover:text-destructive shrink-0"
+                      aria-label="Remove line item"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </SymbolTooltip>
                 </div>
               </div>
             ))}

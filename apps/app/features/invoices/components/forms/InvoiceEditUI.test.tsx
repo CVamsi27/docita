@@ -1,6 +1,11 @@
+import type { ReactElement } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceEditUI } from "./InvoiceEditUI";
+
+vi.mock("@workspace/ui/components/tooltip", () => ({
+  SymbolTooltip: ({ children }: { children: ReactElement }) => children,
+}));
 
 const invoiceEditMocks = vi.hoisted(() => ({
   onSubmit: vi.fn(),
@@ -85,7 +90,7 @@ describe("InvoiceEditUI", () => {
     invoiceEditMocks.isLoading = true;
     const { rerender } = render(<InvoiceEditUI invoiceId="inv_1" />);
 
-    expect(screen.getByText("Loading invoice...")).toBeInTheDocument();
+    expect(screen.getByText("Loading invoice…")).toBeInTheDocument();
 
     invoiceEditMocks.isLoading = false;
     invoiceEditMocks.invoice = null;

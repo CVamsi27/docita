@@ -1,6 +1,11 @@
+import type { ReactElement } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthPageContainer } from "./AuthPageContainer";
+
+vi.mock("@workspace/ui/components/tooltip", () => ({
+  SymbolTooltip: ({ children }: { children: ReactElement }) => children,
+}));
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -199,7 +204,7 @@ describe("AuthPageContainer", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 });

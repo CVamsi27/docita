@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { ChevronUp, Stethoscope } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -116,13 +117,22 @@ export function FloatingStartConsultation({
       )}
     >
       {isMinimized ? (
-        <Button
-          size="icon"
-          className="h-14 w-14 rounded-full shadow-md hover:shadow-lg"
-          onClick={() => setIsMinimized(false)}
+        <SymbolTooltip
+          label={
+            isResumeFlow ? "Resume consultation" : "Open start consultation"
+          }
         >
-          <Stethoscope className="h-6 w-6" />
-        </Button>
+          <Button
+            size="icon"
+            className="h-14 w-14 rounded-full shadow-md hover:shadow-lg"
+            onClick={() => setIsMinimized(false)}
+            aria-label={
+              isResumeFlow ? "Resume consultation" : "Open start consultation"
+            }
+          >
+            <Stethoscope className="h-6 w-6" />
+          </Button>
+        </SymbolTooltip>
       ) : (
         <div className="bg-primary text-primary-foreground rounded-lg shadow-md p-4 w-[calc(100vw-2rem)] max-w-xs">
           <div className="flex items-center justify-between mb-3">
@@ -132,14 +142,17 @@ export function FloatingStartConsultation({
                 {isResumeFlow ? "Resume Consultation" : "Start Consultation"}
               </span>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20"
-              onClick={() => setIsMinimized(true)}
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
+            <SymbolTooltip label="Minimize">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-primary-foreground hover:bg-primary-foreground/20"
+                onClick={() => setIsMinimized(true)}
+                aria-label="Minimize"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
           </div>
           <p className="text-sm text-primary-foreground/80 mb-3">
             {patientName

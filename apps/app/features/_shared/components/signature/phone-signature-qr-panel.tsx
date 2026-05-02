@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Button } from "@workspace/ui/components/button";
-import { CheckCircle2, Loader2, QrCode, RefreshCw } from "lucide-react";
+import { CheckCircle2, QrCode, RefreshCw } from "lucide-react";
 import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
 
 interface PhoneSignatureQrPanelProps {
@@ -38,7 +40,7 @@ export function PhoneSignatureQrPanel({
   onCopyLink,
   missingContextMessage,
   steps = DEFAULT_STEPS,
-  waitingText = "Waiting for signature from your phone...",
+  waitingText = "Waiting for signature from your phone…",
   successTitle = "Signature received from your phone",
   successDescription = "Your signature has been saved successfully",
 }: PhoneSignatureQrPanelProps) {
@@ -87,8 +89,8 @@ export function PhoneSignatureQrPanel({
 
       {loading ? (
         <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Generating QR code...
+          <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+          Generating QR code…
         </div>
       ) : null}
 
@@ -108,7 +110,7 @@ export function PhoneSignatureQrPanel({
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             {polling ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3.5 w-3.5" />
                 {waitingText}
               </>
             ) : (

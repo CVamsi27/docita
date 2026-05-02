@@ -8,13 +8,15 @@ import { Badge } from "@workspace/ui/components/badge";
 import { Separator } from "@workspace/ui/components/separator";
 import { Button } from "@workspace/ui/components/button";
 import {
+  PRICING_CURRENCY_CONFIG,
   TIER_PRICING_BY_CURRENCY,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   PRICING_CURRENCY_SYMBOLS,
   TIER_LIMITS,
   getWhatsAppAddonPricingByCurrency,
+  type SupportedCurrency,
 } from "@workspace/types";
-import type { SupportedCurrency } from "@workspace/types";
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { Calculator, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
@@ -97,6 +99,12 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
   const { currency: detectedCurrency } = useLocaleCurrency();
   const resolvedCurrency = currency ?? detectedCurrency;
   const symbol = PRICING_CURRENCY_SYMBOLS[resolvedCurrency] ?? resolvedCurrency;
+  const currencyFmt = PRICING_CURRENCY_CONFIG[resolvedCurrency];
+  const fmtMoney = (value: number) =>
+    formatAmountLocale(value, currencyFmt.locale, {
+      minimumFractionDigits: currencyFmt.decimalPlaces,
+      maximumFractionDigits: currencyFmt.decimalPlaces,
+    });
   const proBill = calculateBill(usage, "ESSENTIAL", resolvedCurrency);
   const clinicBill = calculateBill(usage, "PROFESSIONAL", resolvedCurrency);
   const showClinicSuggestion = exceedsProLimits(usage, resolvedCurrency);
@@ -113,7 +121,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
 
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">Base plan</span>
-        <span className="text-sm font-medium">{symbol}{bill.base.toLocaleString()}/mo</span>
+        <span className="text-sm font-medium">{symbol}{fmtMoney(bill.base)}/mo</span>
       </div>
 
       {bill.overageBreakdown.length > 0 && (
@@ -123,10 +131,10 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
           {bill.overageBreakdown.map((o) => (
             <div key={o.label} className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {o.label} ({o.units.toLocaleString()} × {symbol}{o.rate})
+                {o.label} ({formatCountLocale(o.units)} × {symbol}{fmtMoney(o.rate)})
               </span>
               <span className="font-medium text-warning">
-                +{symbol}{Math.round(o.cost).toLocaleString()}
+                +{symbol}{fmtMoney(Math.round(o.cost))}
               </span>
             </div>
           ))}
@@ -138,7 +146,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold">Estimated total</span>
         <div className="text-right">
-          <span className="text-xl font-bold">{symbol}{Math.round(bill.total).toLocaleString()}</span>
+          <span className="text-xl font-bold">{symbol}{fmtMoney(Math.round(bill.total))}</span>
           <span className="text-sm text-muted-foreground">/mo</span>
         </div>
       </div>
@@ -170,7 +178,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                 <div className="flex items-center justify-between">
                   <Label className="text-sm">{label}</Label>
                   <span className="text-sm font-medium tabular-nums">
-                    {usage[key].toLocaleString()} {unit}
+                    {formatCountLocale(usage[key])} {unit}
                   </span>
                 </div>
                 <Slider
@@ -193,7 +201,7 @@ export function UsagePricingCalculator({ currency }: UsagePricingCalculatorProps
                 <p className="text-xs text-muted-foreground text-center">
                   Professional has higher quotas and lower per-unit overage rates - saving you{" "}
                   <span className="font-medium text-foreground">
-                    {symbol}{Math.max(0, Math.round(proBill.total - clinicBill.total)).toLocaleString()}/mo
+                    {symbol}{fmtMoney(Math.max(0, Math.round(proBill.total - clinicBill.total)))}/mo
                   </span>{" "}
                   at this usage level.
                 </p>

@@ -249,7 +249,7 @@ export const AdmissionForm: FC<AdmissionFormProps> = ({
               disabled={isSubmitting || form.formState.isSubmitting}
             >
               {isSubmitting || form.formState.isSubmitting
-                ? "Admitting..."
+                ? "Admitting…"
                 : "Admit Patient"}
             </Button>
           </form>

@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { type ReactNode, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
@@ -10,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   type UploadResult,
   uploadSignature,
@@ -97,10 +99,20 @@ export default function UploadSignaturePage() {
     return (
       <UploadPageShell>
         <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="mb-4 h-8 w-8 animate-spin text-primary" />
+          <CardContent
+            className="flex flex-col items-center justify-center py-12"
+            role="status"
+            aria-live="polite"
+            aria-label="Validating upload link"
+          >
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              className="mb-4"
+              iconClassName="h-8 w-8 text-primary"
+            />
             <p className="text-sm text-muted-foreground">
-              Validating upload link...
+              Validating upload link…
             </p>
           </CardContent>
         </Card>
@@ -194,7 +206,7 @@ export default function UploadSignaturePage() {
             selectImageButtonLabel="Select Image"
             changeImageButtonLabel="Change Image"
             uploadButtonLabel="Upload Signature"
-            uploadingButtonLabel="Uploading..."
+            uploadingButtonLabel="Uploading…"
           />
         </CardContent>
       </Card>

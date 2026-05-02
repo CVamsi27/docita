@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/button";
 import {
   Dialog,
@@ -10,7 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
-import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
+import {
+  consultationDraftNeedsLeaveGuard,
+  useConsultationDraft,
+} from "@/features/consultation/state/useConsultationDraft";
 
 interface ConsultationLeaveDialogProps {
   open: boolean;
@@ -32,6 +35,7 @@ export function ConsultationLeaveDialog({
   const lastError = useConsultationDraft((s) => s.lastError);
 
   const saving = saveState === "saving";
+  const needsLeaveGuard = consultationDraftNeedsLeaveGuard({ dirty, saveState });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -41,7 +45,7 @@ export function ConsultationLeaveDialog({
           <DialogDescription>
             {saving
               ? "Your consultation is still saving. You can wait here or choose to leave; unsaved work may be lost if you leave now."
-              : dirty || saveState === "error"
+              : needsLeaveGuard
                 ? "You have unsaved changes. Save your draft before leaving, or leave without saving."
                 : "You can leave this consultation workspace."}
           </DialogDescription>
@@ -74,7 +78,7 @@ export function ConsultationLeaveDialog({
           >
             {leaveBusy ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                 Saving
               </>
             ) : (

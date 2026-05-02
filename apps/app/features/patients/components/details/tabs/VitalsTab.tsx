@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ComponentType } from "react";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -63,7 +63,7 @@ export function VitalsTab({
       : null);
   const bmiStatus = getBMIStatus(latestBmi);
   const latestDateLabel = latest
-    ? format(new Date(latest.date), "EEE, d MMM yyyy")
+    ? formatDate(latest.date, "EEE, d MMM yyyy")
     : null;
 
   const rows = useMemo<VitalsRow[]>(() => {
@@ -184,7 +184,7 @@ export function VitalsTab({
                   {rows.slice(0, 12).map((row) => (
                     <tr key={row.id} className="border-b last:border-b-0">
                       <td className="py-2 pr-3 text-muted-foreground whitespace-nowrap">
-                        {format(row.date, "d MMM yyyy")}
+                        {formatDate(row.date, "d MMM yyyy")}
                       </td>
                       <td className="py-2 pr-3 tabular-nums">
                         {row.bp ?? "--"}

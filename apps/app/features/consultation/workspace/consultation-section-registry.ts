@@ -15,6 +15,7 @@ import {
 import {
   CLINIC_TYPE_FEATURES,
   type ClinicType,
+  type ClinicTypeFeatures,
 } from "@workspace/types";
 
 export type ConsultationPersistKey =
@@ -48,9 +49,10 @@ export interface ConsultationSection {
   letter: string;
   icon: LucideIcon;
   persistKey?: ConsultationPersistKey;
+  subtitle?: string;
 }
 
-const SOAP_SUBJECTIVE: ConsultationSection = {
+const SOAP_SUBJECTIVE: Omit<ConsultationSection, "subtitle"> = {
   id: "subjective",
   letter: "S",
   label: "Subjective",
@@ -58,7 +60,7 @@ const SOAP_SUBJECTIVE: ConsultationSection = {
   icon: ClipboardList,
 };
 
-const SOAP_OBJECTIVE: ConsultationSection = {
+const SOAP_OBJECTIVE: Omit<ConsultationSection, "subtitle"> = {
   id: "objective",
   letter: "O",
   label: "Objective",
@@ -66,7 +68,7 @@ const SOAP_OBJECTIVE: ConsultationSection = {
   icon: Stethoscope,
 };
 
-const SOAP_ASSESSMENT: ConsultationSection = {
+const SOAP_ASSESSMENT: Omit<ConsultationSection, "subtitle"> = {
   id: "assessment",
   letter: "A",
   label: "Assessment",
@@ -74,13 +76,47 @@ const SOAP_ASSESSMENT: ConsultationSection = {
   icon: Target,
 };
 
-const SOAP_PLAN: ConsultationSection = {
+const SOAP_PLAN: Omit<ConsultationSection, "subtitle"> = {
   id: "plan",
   letter: "P",
   label: "Plan",
   shortLabel: "Plan",
   icon: Pill,
 };
+
+function soapLeadSections(features: ClinicTypeFeatures): ConsultationSection[] {
+  const lead: ConsultationSection[] = [];
+  if (features.chiefComplaint || features.history) {
+    lead.push({
+      ...SOAP_SUBJECTIVE,
+      subtitle: "Patient reports",
+    });
+  }
+  if (features.examination) {
+    lead.push({
+      ...SOAP_OBJECTIVE,
+      subtitle: "Exam findings",
+    });
+  }
+  return lead;
+}
+
+function soapTailSections(features: ClinicTypeFeatures): ConsultationSection[] {
+  const tail: ConsultationSection[] = [];
+  if (features.diagnosis) {
+    tail.push({
+      ...SOAP_ASSESSMENT,
+      subtitle: "Diagnoses",
+    });
+  }
+  if (features.treatment || features.prescriptions || features.followUp) {
+    tail.push({
+      ...SOAP_PLAN,
+      subtitle: "Rx & follow-up",
+    });
+  }
+  return tail;
+}
 
 export function getConsultationSectionsForClinic(
   clinicType?: string | null,
@@ -97,6 +133,7 @@ export function getConsultationSectionsForClinic(
       letter: "D",
       label: "Dental Chart",
       shortLabel: "Dental",
+      subtitle: "Tooth charting",
       icon: Smile,
       persistKey: "dentalChart",
     });
@@ -108,6 +145,7 @@ export function getConsultationSectionsForClinic(
       letter: "V",
       label: "Vision Exam",
       shortLabel: "Vision",
+      subtitle: "Eye exam",
       icon: Eye,
       persistKey: "ophthalmologyExam",
     });
@@ -119,6 +157,7 @@ export function getConsultationSectionsForClinic(
       letter: "G",
       label: "Growth Chart",
       shortLabel: "Growth",
+      subtitle: "Measurements",
       icon: TrendingUp,
       persistKey: "growthData",
     });
@@ -130,6 +169,7 @@ export function getConsultationSectionsForClinic(
       letter: "C",
       label: "Cardiology Exam",
       shortLabel: "Cardiac",
+      subtitle: "Cardiac findings",
       icon: Activity,
       persistKey: "cardiologyExam",
     });
@@ -141,6 +181,7 @@ export function getConsultationSectionsForClinic(
       letter: "K",
       label: "Dermatology Exam",
       shortLabel: "Skin",
+      subtitle: "Skin exam",
       icon: Layers,
       persistKey: "dermatologyExam",
     });
@@ -152,6 +193,7 @@ export function getConsultationSectionsForClinic(
       letter: "Y",
       label: "Gynecology Exam",
       shortLabel: "GYN",
+      subtitle: "GYN exam",
       icon: Stethoscope,
       persistKey: "gynecologyExam",
     });
@@ -166,31 +208,28 @@ export function getConsultationSectionsForClinic(
       letter: "M",
       label: "Mental Status",
       shortLabel: "Psych",
+      subtitle: "MSE",
       icon: Brain,
       persistKey: "psychiatryExam",
     });
   }
 
-  if (
-    features.imagingReview &&
-    (key === "ORTHOPEDIC" || key === "ENT")
-  ) {
+  if (features.investigations) {
     middle.push({
       id: "specialty-investigations",
       letter: "I",
       label: "Investigations",
-      shortLabel: "Imaging",
+      shortLabel: "Orders",
+      subtitle: "Labs & imaging",
       icon: ScanSearch,
       persistKey: "investigations",
     });
   }
 
   return [
-    SOAP_SUBJECTIVE,
-    SOAP_OBJECTIVE,
+    ...soapLeadSections(features),
     ...middle,
-    SOAP_ASSESSMENT,
-    SOAP_PLAN,
+    ...soapTailSections(features),
   ];
 }
 

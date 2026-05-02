@@ -191,7 +191,7 @@ export function VitalsModal({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={recordVitals.isPending}>
-            {recordVitals.isPending ? "Saving..." : "Save Vitals"}
+            {recordVitals.isPending ? "Saving…" : "Save Vitals"}
           </Button>
         </DialogFooter>
       </DialogContent>

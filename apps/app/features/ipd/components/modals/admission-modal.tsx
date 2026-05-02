@@ -223,7 +223,7 @@ export const AdmissionModal: FC<ModalProps> = ({
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Admitting..." : "Admit"}
+              {isSubmitting ? "Admitting…" : "Admit"}
             </Button>
           </div>
         </CardContent>

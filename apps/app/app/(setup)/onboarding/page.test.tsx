@@ -72,7 +72,7 @@ describe("OnboardingPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 
@@ -94,7 +94,7 @@ describe("OnboardingPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 
@@ -116,7 +116,7 @@ describe("OnboardingPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 
@@ -138,7 +138,7 @@ describe("OnboardingPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 });

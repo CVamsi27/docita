@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,7 +22,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Switch } from "@workspace/ui/components/switch";
-import { Loader2, RefreshCw, RotateCcw } from "lucide-react";
+import { RefreshCw, RotateCcw } from "lucide-react";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   isQueueTokenCompleted,
@@ -131,14 +133,19 @@ export const QueueSettings = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {settingsLoading ? (
-            <div className="space-y-4">
+            <div
+              className="space-y-4"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading queue configuration"
+            >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Skeleton className="h-20 w-full rounded-lg" />
-                <Skeleton className="h-20 w-full rounded-lg" />
-                <Skeleton className="h-20 w-full rounded-lg" />
+                <Skeleton animation="wave" className="h-20 w-full rounded-lg" />
+                <Skeleton animation="wave" className="h-20 w-full rounded-lg" />
+                <Skeleton animation="wave" className="h-20 w-full rounded-lg" />
               </div>
-              <Skeleton className="h-16 w-full rounded-lg" />
-              <Skeleton className="h-10 w-full rounded-md" />
+              <Skeleton animation="wave" className="h-16 w-full rounded-lg" />
+              <Skeleton animation="wave" className="h-10 w-full rounded-md" />
             </div>
           ) : (
             <Form {...form}>
@@ -250,7 +257,7 @@ export const QueueSettings = () => {
 
                 <Button className="w-full" type="submit" disabled={isSaving}>
                   {isSaving && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                   )}
                   Save Configuration
                 </Button>
@@ -269,13 +276,22 @@ export const QueueSettings = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {queueLoading ? (
-            <div className="flex flex-col gap-4 py-6">
+            <div
+              className="flex flex-col gap-4 py-6"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading queue statistics"
+            >
               <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-20 rounded-lg" />
+                  <Skeleton
+                    key={i}
+                    animation="wave"
+                    className="h-20 rounded-lg"
+                  />
                 ))}
               </div>
-              <Skeleton className="h-10 w-48" />
+              <Skeleton animation="wave" className="h-10 w-48" />
             </div>
           ) : (
             <>
@@ -324,7 +340,7 @@ export const QueueSettings = () => {
                   disabled={isRefetching}
                 >
                   {isRefetching ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                   ) : (
                     <RefreshCw className="mr-2 h-4 w-4" />
                   )}
@@ -338,7 +354,7 @@ export const QueueSettings = () => {
                   disabled={isResetting || stats.total === 0}
                 >
                   {isResetting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                   ) : (
                     <RotateCcw className="mr-2 h-4 w-4" />
                   )}

@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
@@ -14,6 +15,7 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
+import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { ClinicalInvestigation } from "@workspace/types";
 
 interface InvestigationsSectionProps {
@@ -35,6 +37,7 @@ export function InvestigationsSection({
   readOnly,
   sectionRef,
 }: InvestigationsSectionProps) {
+  const subtitle = useConsultationSectionSubtitle("specialty-investigations");
   const investigations = useConsultationDraft((s) => s.investigations);
   const setInvestigations = useConsultationDraft((s) => s.setInvestigations);
 
@@ -54,6 +57,7 @@ export function InvestigationsSection({
       id="specialty-investigations"
       letter="I"
       title="Investigations"
+      subtitle={subtitle}
       description="Laboratory and imaging orders with status tracking."
       actions={
         !readOnly ? (
@@ -141,16 +145,18 @@ export function InvestigationsSection({
                   </Select>
                 </div>
                 {!readOnly ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 text-muted-foreground hover:text-destructive"
-                    aria-label="Remove investigation"
-                    onClick={() => removeAt(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <SymbolTooltip label="Remove investigation">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 text-muted-foreground hover:text-destructive"
+                      aria-label="Remove investigation"
+                      onClick={() => removeAt(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </SymbolTooltip>
                 ) : null}
               </div>
               <div className="space-y-1.5">

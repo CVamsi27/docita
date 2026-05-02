@@ -13,7 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { format, isSameDay } from "date-fns";
+import {
+  formatDate,
+  formatPickerIsoDate,
+  isSameLocalCalendarDay,
+} from "@workspace/utils";
 
 interface Doctor {
   id: string;
@@ -45,7 +49,7 @@ export function AppointmentsCalendarUI({
   onDoctorSelect,
 }: AppointmentsCalendarUIProps) {
   const selectedDate = date ?? new Date();
-  const isTodaySelected = isSameDay(selectedDate, new Date());
+  const isTodaySelected = isSameLocalCalendarDay(selectedDate, new Date());
 
   const hasAnyMonthIndicators = appointmentCountsByDay.size > 0;
 
@@ -58,7 +62,7 @@ export function AppointmentsCalendarUI({
               Selected date
             </p>
             <CardTitle className="mt-1 truncate text-xl font-semibold tracking-tight">
-              {format(selectedDate, "EEE, d MMM yyyy")}
+              {formatDate(selectedDate, "EEE, d MMM yyyy")}
             </CardTitle>
           </div>
           <Button
@@ -106,7 +110,7 @@ export function AppointmentsCalendarUI({
             onSelect={onDateSelect}
             modifiers={{
               hasAppointments: (day) =>
-                (appointmentCountsByDay.get(format(day, "yyyy-MM-dd")) ?? 0) > 0,
+                (appointmentCountsByDay.get(formatPickerIsoDate(day)) ?? 0) > 0,
             }}
             modifiersClassNames={{
               hasAppointments:

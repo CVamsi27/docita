@@ -6,13 +6,28 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
+function OnboardingWizardLoading() {
+  return (
+    <div
+      className="flex min-h-[320px] flex-col items-center justify-center gap-4 py-12"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading onboarding wizard"
+    >
+      <DocitaLoadingIndicator variant="section" withStatusRole={false} />
+      <p className="ui-page-subtitle text-muted-foreground">Loading wizard…</p>
+    </div>
+  );
+}
 
 const ClinicOnboardingWizard = dynamic(
   () =>
     import("@/features/onboarding/components").then((mod) => ({
       default: mod.ClinicOnboardingWizard,
     })),
-  { ssr: false },
+  { ssr: false, loading: () => <OnboardingWizardLoading /> },
 );
 
 export default function OnboardingPage() {
@@ -23,21 +38,21 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) {
-      setRedirectMessage("Redirecting to login...");
+      setRedirectMessage("Redirecting to login…");
       router.replace("/login?next=/onboarding");
       return;
     }
 
     if (user?.clinicId || user?.onboardingStep === "COMPLETED") {
       setRedirectMessage(
-        "Registration successful. Taking you to your dashboard...",
+        "Registration successful. Taking you to your dashboard…",
       );
       router.replace("/dashboard");
       return;
     }
 
     if (user?.onboardingStep === "JOINING_CLINIC") {
-      setRedirectMessage("Taking you to your join request status...");
+      setRedirectMessage("Taking you to your join request status…");
       router.replace("/join-request-status");
       return;
     }
@@ -46,7 +61,7 @@ export default function OnboardingPage() {
       user?.onboardingStep === "CHOOSE_PATH" ||
       user?.onboardingStep === "NOT_STARTED"
     ) {
-      setRedirectMessage("Taking you to facility setup choices...");
+      setRedirectMessage("Taking you to facility setup choices…");
       router.replace("/choose-path");
     }
   }, [isAuthenticated, isLoading, user, router]);
@@ -54,7 +69,7 @@ export default function OnboardingPage() {
   if (redirectMessage) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
+        title="Redirecting…"
         description={redirectMessage}
       />
     );

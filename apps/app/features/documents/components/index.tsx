@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 
 import {
@@ -79,30 +80,36 @@ export const DocumentList: FC<{
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onView?.(doc.id)}
-                      aria-label={`View document ${doc.name}`}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDownload?.(doc.id)}
-                      aria-label={`Download document ${doc.name}`}
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete?.(doc.id)}
-                      aria-label={`Delete document ${doc.name}`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <SymbolTooltip label={`View ${doc.name}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onView?.(doc.id)}
+                        aria-label={`View document ${doc.name}`}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </SymbolTooltip>
+                    <SymbolTooltip label={`Download ${doc.name}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDownload?.(doc.id)}
+                        aria-label={`Download document ${doc.name}`}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </SymbolTooltip>
+                    <SymbolTooltip label={`Delete ${doc.name}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete?.(doc.id)}
+                        aria-label={`Delete document ${doc.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </SymbolTooltip>
                   </div>
                 </div>
               );

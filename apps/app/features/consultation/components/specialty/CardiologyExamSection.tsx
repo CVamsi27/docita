@@ -4,6 +4,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
+import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { CardiologyExamData } from "@workspace/types";
 
 interface CardiologyExamSectionProps {
@@ -15,6 +16,7 @@ export function CardiologyExamSection({
   readOnly,
   sectionRef,
 }: CardiologyExamSectionProps) {
+  const subtitle = useConsultationSectionSubtitle("specialty-cardiology");
   const value = useConsultationDraft((s) => s.cardiologyExam);
   const setValue = useConsultationDraft((s) => s.setCardiologyExam);
 
@@ -28,6 +30,7 @@ export function CardiologyExamSection({
       id="specialty-cardiology"
       letter="C"
       title="Cardiology Exam"
+      subtitle={subtitle}
       description="Cardiac assessment, ECG or imaging summaries, and follow-up plan."
     >
       <div className="space-y-4">

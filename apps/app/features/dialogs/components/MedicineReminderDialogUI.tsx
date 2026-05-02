@@ -91,7 +91,7 @@ export function MedicineReminderDialogUI({
       description="Configure automatic WhatsApp reminders for patient medications"
       isLoading={isLoading}
       onSubmit={form.handleSubmit(handleSubmit)}
-      submitLabel={isLoading ? "Creating..." : "Create Reminder"}
+      submitLabel={isLoading ? "Creating…" : "Create Reminder"}
     >
       <Form {...form}>
         <div className="space-y-4">

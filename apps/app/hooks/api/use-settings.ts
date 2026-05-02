@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatPickerIsoDate } from "@workspace/utils";
 import { z } from "zod";
 import {
   Clinic,
@@ -305,7 +305,7 @@ export function useUnavailableDoctorIdsForDate(
   date: Date | undefined,
   queryOptions?: { enabled?: boolean },
 ) {
-  const dateStr = date ? format(date, "yyyy-MM-dd") : "";
+  const dateStr = date ? formatPickerIsoDate(date) : "";
   const enabled =
     Boolean(date && dateStr) && (queryOptions?.enabled ?? true);
 

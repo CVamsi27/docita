@@ -1,11 +1,13 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { Button } from "@workspace/ui/components/button";
-import { Loader2, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { MobileHeader } from "@/features/mobile-upload/components/MobileHeader";
 import { MobileSuccessScreen } from "@/features/mobile-upload/components/MobileSuccessScreen";
 import { MobileFileUploader } from "@/features/mobile-upload/components/MobileFileUploader";
@@ -174,8 +176,8 @@ function MobileUploadPageInner() {
         >
           {uploadMutation.isPending ? (
             <span className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Uploading...
+              <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+              Uploading…
             </span>
           ) : (
             <span className="flex items-center gap-2">
@@ -197,9 +199,18 @@ export default function MobileUploadPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4 text-sm text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Loading...
+        <div
+          className="flex min-h-screen flex-col items-center justify-center gap-3 bg-muted/30 p-4"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading upload"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-10 w-10 text-muted-foreground"
+          />
+          <p className="text-sm text-muted-foreground">Loading upload…</p>
         </div>
       }
     >

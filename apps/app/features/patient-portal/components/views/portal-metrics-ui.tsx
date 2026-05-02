@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { DataState } from "@workspace/ui/components/data-state";
 import {
   Select,
@@ -124,16 +125,19 @@ export function PortalMetricsUI({
 
       <div className="flex items-center justify-end gap-2">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => refetchHistory()}
-            disabled={isLoading}
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-            />
-          </Button>
+          <SymbolTooltip label="Refresh metrics">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => refetchHistory()}
+              disabled={isLoading}
+              aria-label="Refresh metrics"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
+            </Button>
+          </SymbolTooltip>
           <Button
             variant="outline"
             size="sm"
@@ -160,7 +164,7 @@ export function PortalMetricsUI({
 
       <DataState
         status={status}
-        loadingMessage="Loading metrics..."
+        loadingMessage="Loading metrics…"
         errorMessage="We could not load your health metrics. Please try again."
         onRetry={handleRetry}
         emptyIcon={Activity}

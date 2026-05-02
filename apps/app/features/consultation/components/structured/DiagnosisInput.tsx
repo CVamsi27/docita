@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -58,13 +59,16 @@ function IcdSearchField({
         <span className="font-mono font-semibold text-primary">{value.code}</span>
         <span className="text-muted-foreground truncate flex-1">{value.description}</span>
         {!readOnly && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="text-muted-foreground hover:text-destructive shrink-0"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+          <SymbolTooltip label="Clear ICD-10 code">
+            <button
+              type="button"
+              onClick={onClear}
+              className="text-muted-foreground hover:text-destructive shrink-0"
+              aria-label="Clear ICD-10 code"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
+            </button>
+          </SymbolTooltip>
         )}
       </div>
     );
@@ -81,7 +85,10 @@ function IcdSearchField({
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
         <Input
           placeholder="ICD-10 code"
           value={search}
@@ -91,8 +98,32 @@ function IcdSearchField({
           }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          className="pl-8 bg-background text-sm h-9"
+          className={`h-9 bg-background pl-8 text-sm${search.trim() ? " pr-9" : ""}`}
+          aria-label="Search ICD-10 codes"
         />
+        {search.trim() ? (
+          <div className="absolute right-1 top-1/2 -translate-y-1/2">
+            <SymbolTooltip label="Clear search">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onClick={() => {
+                  setSearch("");
+                  setOpen(false);
+                }}
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+              </Button>
+            </SymbolTooltip>
+          </div>
+        ) : null}
       </div>
       {open && results.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
@@ -197,14 +228,17 @@ export function DiagnosisInput({
                 )}
               </div>
               {!readOnly && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => removeItem(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <SymbolTooltip label="Remove diagnosis">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => removeItem(index)}
+                    aria-label="Remove diagnosis"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </SymbolTooltip>
               )}
             </div>
 

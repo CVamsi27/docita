@@ -1,4 +1,10 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  dashboardStatsSchema,
+  type DashboardStats,
+  type DashboardPatient,
+} from "@workspace/types";
 import { useDashboardStats } from "@/hooks/api/use-dashboard";
 import { useTodayAppointments } from "@/hooks/api/use-appointments";
 import { useRecentPatients } from "@/hooks/api/use-patients";
@@ -6,34 +12,81 @@ import { usePendingJoinRequestCount } from "@/hooks/api/use-notifications";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { type AppointmentListItem } from "@/hooks/api/use-appointments";
-import { DashboardPatient } from "@workspace/types";
+import { logger } from "@/lib/logger";
+
+function defaultDashboardStats(): DashboardStats {
+  return {
+    totalPatients: 0,
+    totalDoctors: 0,
+    newPatientsThisMonth: 0,
+    todayAppointments: 0,
+    totalAppointments: 0,
+    activePrescriptions: 0,
+    pendingReports: 0,
+    monthlyRevenue: 0,
+    recentActivity: [],
+    upcomingAppointments: [],
+  };
+}
 
 export const useDashboardLogic = () => {
+  const queryClient = useQueryClient();
   const { isAdmin } = useAuth();
   const { canAccess } = usePermissionStore();
 
   const {
-    data,
+    data: rawStatsData,
     isLoading: loadingStats,
     isError,
-    refetch,
+    isFetching: fetchingStats,
+    dataUpdatedAt: statsDataUpdatedAt,
+    refetch: refetchStats,
   } = useDashboardStats();
-  const { data: rawAppointmentsResponse, isLoading: loadingAppointments } =
-    useTodayAppointments();
-  const { data: recentPatientsResponse, isLoading: loadingPatients } =
-    useRecentPatients(5);
-  const { data: pendingJoinRequestsResponse, isLoading: loadingJoinRequests } =
-    usePendingJoinRequestCount(isAdmin);
+  const {
+    data: rawAppointmentsResponse,
+    isLoading: loadingAppointments,
+    isFetching: fetchingAppointments,
+    dataUpdatedAt: appointmentsDataUpdatedAt,
+    refetch: refetchAppointments,
+  } = useTodayAppointments();
+  const {
+    data: recentPatientsResponse,
+    isLoading: loadingPatients,
+    isFetching: fetchingPatients,
+    dataUpdatedAt: patientsDataUpdatedAt,
+    refetch: refetchPatients,
+  } = useRecentPatients(5);
+  const {
+    data: pendingJoinRequestsResponse,
+    isLoading: loadingJoinRequests,
+    isFetching: fetchingJoinRequests,
+    dataUpdatedAt: joinDataUpdatedAt,
+    refetch: refetchJoinRequests,
+  } = usePendingJoinRequestCount(isAdmin);
+
+  const dashboardStats = useMemo((): DashboardStats => {
+    if (rawStatsData == null) {
+      return defaultDashboardStats();
+    }
+    const parsed = dashboardStatsSchema.safeParse(rawStatsData);
+    if (parsed.success) {
+      return parsed.data;
+    }
+    logger.warn("Dashboard stats response failed schema validation", {
+      issues: parsed.error.issues,
+    });
+    return defaultDashboardStats();
+  }, [rawStatsData]);
 
   const stats = useMemo(
     () => ({
-      totalPatients: data?.totalPatients ?? 0,
-      todayAppointments: data?.todayAppointments ?? 0,
-      activePrescriptions: data?.activePrescriptions ?? 0,
-      pendingReports: data?.pendingReports ?? 0,
-      newPatientsThisMonth: data?.newPatientsThisMonth ?? 0,
+      totalPatients: dashboardStats.totalPatients,
+      todayAppointments: dashboardStats.todayAppointments,
+      activePrescriptions: dashboardStats.activePrescriptions,
+      pendingReports: dashboardStats.pendingReports,
+      newPatientsThisMonth: dashboardStats.newPatientsThisMonth,
     }),
-    [data],
+    [dashboardStats],
   );
 
   const castRecentPatients = useMemo<DashboardPatient[]>(() => {
@@ -79,12 +132,59 @@ export const useDashboardLogic = () => {
   }, [rawAppointmentsResponse]);
 
   const isLoading =
-    loadingStats || loadingAppointments || loadingPatients || loadingJoinRequests;
+    loadingStats ||
+    loadingAppointments ||
+    loadingPatients ||
+    loadingJoinRequests;
   const pendingJoinRequests = pendingJoinRequestsResponse?.count ?? 0;
+
+  const refetchAll = useCallback(async () => {
+    const tasks: Promise<unknown>[] = [
+      refetchStats(),
+      refetchAppointments(),
+      refetchPatients(),
+    ];
+    if (isAdmin) {
+      tasks.push(refetchJoinRequests());
+    }
+    await Promise.all(tasks);
+    await queryClient.invalidateQueries({ queryKey: ["follow-ups"] });
+  }, [
+    isAdmin,
+    queryClient,
+    refetchStats,
+    refetchAppointments,
+    refetchPatients,
+    refetchJoinRequests,
+  ]);
+
+  const isRefreshing =
+    fetchingStats ||
+    fetchingAppointments ||
+    fetchingPatients ||
+    fetchingJoinRequests;
+
+  const lastDataUpdatedAtMs = useMemo(() => {
+    const candidates = [
+      statsDataUpdatedAt,
+      appointmentsDataUpdatedAt,
+      patientsDataUpdatedAt,
+      isAdmin ? joinDataUpdatedAt : 0,
+    ].filter((v) => typeof v === "number" && v > 0);
+    return candidates.length ? Math.max(...candidates) : null;
+  }, [
+    statsDataUpdatedAt,
+    appointmentsDataUpdatedAt,
+    patientsDataUpdatedAt,
+    joinDataUpdatedAt,
+    isAdmin,
+  ]);
 
   return {
     state: {
       stats,
+      recentActivity: dashboardStats.recentActivity,
+      upcomingAppointments: dashboardStats.upcomingAppointments,
       castRecentPatients,
       todayAppointments,
       completedToday,
@@ -95,7 +195,10 @@ export const useDashboardLogic = () => {
       pendingJoinRequests,
       isLoading,
       isError,
-      refetch,
+      refetch: refetchAll,
+      refetchAll,
+      lastDataUpdatedAtMs,
+      isRefreshing,
       canAccess,
     },
     permissions: {

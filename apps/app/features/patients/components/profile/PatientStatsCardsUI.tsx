@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Activity, Calendar, Clock, TrendingUp } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@workspace/utils";
 
 export interface PatientStatistics {
   totalVisits: number;
@@ -42,7 +42,7 @@ export function PatientStatsCardsUI({
                 Total Visits
               </p>
               <h3 className="ui-section-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)] tabular-nums leading-[var(--lh-tight)]">
-                {showLoading ? "..." : totalVisits}
+                {showLoading ? "…" : totalVisits}
               </h3>
             </div>
           </div>
@@ -61,11 +61,9 @@ export function PatientStatsCardsUI({
               </p>
               <h3 className="ui-section-title text-[var(--fs-sm)] sm:text-[var(--fs-lg)] font-semibold truncate">
                 {showLoading
-                  ? "..."
+                  ? "…"
                   : lastVisit
-                    ? formatDistanceToNow(new Date(lastVisit), {
-                        addSuffix: true,
-                      })
+                    ? formatDistanceToNow(lastVisit)
                     : "Never"}
               </h3>
             </div>
@@ -85,11 +83,9 @@ export function PatientStatsCardsUI({
               </p>
               <h3 className="ui-section-title text-[var(--fs-sm)] sm:text-[var(--fs-lg)] font-semibold truncate">
                 {showLoading
-                  ? "..."
+                  ? "…"
                   : nextVisit
-                    ? formatDistanceToNow(new Date(nextVisit), {
-                        addSuffix: true,
-                      })
+                    ? formatDistanceToNow(nextVisit)
                     : "None"}
               </h3>
             </div>
@@ -108,7 +104,7 @@ export function PatientStatsCardsUI({
                 Adherence
               </p>
               <h3 className="ui-section-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)] tabular-nums leading-[var(--lh-tight)]">
-                {showLoading ? "..." : `${adherenceRate}%`}
+                {showLoading ? "…" : `${adherenceRate}%`}
               </h3>
             </div>
           </div>

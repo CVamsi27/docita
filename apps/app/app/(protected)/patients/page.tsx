@@ -7,7 +7,7 @@ import { Feature } from "@workspace/types";
 import { PatientsPageContainer } from "@/features/patients/components";
 
 function PatientsPageFallback() {
-  return <LoadingState message="Loading patients..." className="py-16" />;
+  return <LoadingState message="Loading patients…" className="py-16" />;
 }
 
 export default function PatientsPage() {

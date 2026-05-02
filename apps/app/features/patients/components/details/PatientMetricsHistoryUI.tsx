@@ -27,6 +27,7 @@ import {
   useRecordPatientMetricValue,
   useUpdatePatientSelectedMetrics,
 } from "@/features/patients/hooks/usePatients";
+import { formatDate, formatDateTime } from "@/lib/formatters";
 
 type MetricValueType =
   | "TEXT"
@@ -61,7 +62,7 @@ function extractValue(values: Array<Record<string, unknown>>): string {
       if (typeof value.valueBoolean === "boolean")
         return value.valueBoolean ? "Yes" : "No";
       if (typeof value.valueDate === "string")
-        return new Date(value.valueDate).toLocaleDateString();
+        return formatDate(value.valueDate);
       if (value.option && typeof value.option === "object") {
         const option = value.option as { label?: string; value?: string };
         return option.label || option.value || "—";
@@ -310,9 +311,7 @@ export function PatientMetricsHistoryUI({
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {String(category.name || "General")} •{" "}
-                        {new Date(
-                          String(record.recordedAt || new Date()),
-                        ).toLocaleString()}
+                        {formatDateTime(String(record.recordedAt || new Date()))}
                       </div>
                     </div>
                     <Badge variant="outline" className="max-w-[50%] truncate">

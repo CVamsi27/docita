@@ -150,7 +150,7 @@ export function ChangePasswordSettings() {
               type="submit"
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Updating..." : "Update Password"}
+              {form.formState.isSubmitting ? "Updating…" : "Update Password"}
             </Button>
           </form>
         </Form>

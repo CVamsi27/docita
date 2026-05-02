@@ -1,4 +1,5 @@
-import { Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { ErrorBanner } from "@/components/common/error-banner";
 import { FormField } from "@/components/common/form-field";
 import { Button } from "@workspace/ui/components/button";
@@ -47,8 +48,8 @@ export function AuthEmailStepUI({
       >
         {loading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Checking...
+            <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+            Checking…
           </>
         ) : (
           "Continue"

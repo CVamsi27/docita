@@ -43,7 +43,7 @@ export default function PortalDashboardPage() {
     >
       <DataState
         status={isLoading ? "loading" : isError ? "error" : "success"}
-        loadingMessage="Loading your dashboard..."
+        loadingMessage="Loading your dashboard…"
         errorMessage="We could not load your health overview. Please try again."
         onRetry={() => void refetch()}
       >

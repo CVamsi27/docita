@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Table,
@@ -8,6 +10,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Trash2 } from "lucide-react";
 
@@ -81,14 +84,17 @@ export function InvoiceItemsTable({
                 {formatCurrency(item.total)}
               </TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:text-destructive/90"
-                  onClick={() => onRemoveItem(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <SymbolTooltip label="Remove line item">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive/90"
+                    onClick={() => onRemoveItem(index)}
+                    aria-label="Remove line item"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </SymbolTooltip>
               </TableCell>
             </TableRow>
           ))}

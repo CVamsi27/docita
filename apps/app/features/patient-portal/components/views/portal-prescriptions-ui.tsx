@@ -13,6 +13,7 @@ import { Button } from "@workspace/ui/components/button";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import type { PatientPortalPrescription } from "@/features/patient-portal/types/patient-portal-types";
 import { getPrescriptionStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
+import { formatDate } from "@/lib/formatters";
 
 interface PatientPortalPrescriptionsUIProps {
   prescriptions: PatientPortalPrescription[];
@@ -61,7 +62,7 @@ export function PatientPortalPrescriptionsUI({
                   </div>
                   <div className="text-muted-foreground">
                     {prescription.prescribedBy} •{" "}
-                    {new Date(prescription.issuedAt).toLocaleDateString()}
+                    {formatDate(prescription.issuedAt)}
                   </div>
                 </div>
               ))}

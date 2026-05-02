@@ -21,6 +21,7 @@ import {
 } from "@workspace/ui/components/select";
 import { Badge } from "@workspace/ui/components/badge";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -276,22 +277,26 @@ export function TeamInviteStep({
                     This member will be invited during onboarding
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeMember(index)}
-                  disabled={members.length === 1 && !hasRowContent(member)}
-                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                  aria-label={`Remove member ${index + 1}`}
-                  title={
+                <SymbolTooltip
+                  label={
                     hasRowContent(member)
                       ? "Clear member details"
                       : "Remove member"
                   }
+                  side="left"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeMember(index)}
+                    disabled={members.length === 1 && !hasRowContent(member)}
+                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                    aria-label={`Remove member ${index + 1}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </SymbolTooltip>
               </div>
 
               <div className="grid items-start gap-4 sm:grid-cols-2">

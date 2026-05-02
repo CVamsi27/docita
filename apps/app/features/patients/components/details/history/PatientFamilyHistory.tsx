@@ -1,6 +1,6 @@
 import { Button } from "@workspace/ui/components/button";
-
 import { Input } from "@workspace/ui/components/input";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import {
   Card,
   CardContent,
@@ -56,13 +56,16 @@ export function PatientFamilyHistory({
                   </span>
                 </div>
                 {!readOnly && (
-                  <button
-                    type="button"
-                    onClick={() => onRemoveFamilyHistory(history.id!)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  <SymbolTooltip label="Remove family history">
+                    <button
+                      type="button"
+                      onClick={() => onRemoveFamilyHistory(history.id!)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors duration-150"
+                      aria-label="Remove family history"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </SymbolTooltip>
                 )}
               </div>
             ))}

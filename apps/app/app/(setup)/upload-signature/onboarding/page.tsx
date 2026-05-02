@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -12,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { buildCsrfHeaders } from "@/lib/csrf";
 import { apiFetch } from "@/lib/api-client";
 import { appQueryKeys } from "@/lib/query-keys";
@@ -186,8 +188,8 @@ function OnboardingSlaUploadInner() {
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
         <Card className="w-full max-w-md">
           <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Checking signature link...
+            <DocitaLoadingIndicator variant="inline" decorative />
+            Checking signature link…
           </CardContent>
         </Card>
       </div>
@@ -268,7 +270,7 @@ function OnboardingSlaUploadInner() {
             selectImageButtonLabel="Select Image"
             changeImageButtonLabel="Change Image"
             uploadButtonLabel="Upload Signature"
-            uploadingButtonLabel="Uploading..."
+            uploadingButtonLabel="Uploading…"
           />
         </CardContent>
       </Card>
@@ -282,9 +284,18 @@ export default function OnboardingSlaUploadPage() {
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
           <Card className="w-full max-w-md">
-            <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading signature link...
+            <CardContent
+              className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-muted-foreground"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading signature link"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-10 w-10 text-primary"
+              />
+              <p>Loading signature link…</p>
             </CardContent>
           </Card>
         </div>

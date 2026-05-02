@@ -1,4 +1,5 @@
-import { Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
 import { createAppointmentSchema, Doctor, Patient } from "@workspace/types";
@@ -147,7 +148,7 @@ export function AddAppointmentDialogUI({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
               Schedule
             </Button>
           </div>

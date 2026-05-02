@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
+import { render } from "@/test/render-with-tooltip";
 import { describe, expect, it, vi } from "vitest";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 

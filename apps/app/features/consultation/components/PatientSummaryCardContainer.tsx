@@ -1,5 +1,5 @@
 import * as React from "react";
-import { differenceInYears } from "date-fns";
+import { calculateAge } from "@workspace/utils";
 import {
   Allergy,
   ChronicCondition,
@@ -34,7 +34,7 @@ export function PatientSummaryCardContainer({
   const [expanded, setExpanded] = React.useState(false);
 
   const age = patient.dateOfBirth
-    ? differenceInYears(new Date(), new Date(patient.dateOfBirth))
+    ? calculateAge(patient.dateOfBirth)
     : null;
 
   const activeConditions = chronicConditions.filter(

@@ -7,6 +7,7 @@ import { useCreatePrescription } from "@/hooks/api/use-clinical";
 import { logger } from "@/lib/logger";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
+  consultationDraftNeedsLeaveGuard,
   hashDiagnosesForSync,
   useConsultationDraft,
   draftSessionStorageKey,
@@ -267,7 +268,7 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
   useEffect(() => {
     if (readOnly) return;
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (useConsultationDraft.getState().dirty) {
+      if (consultationDraftNeedsLeaveGuard(useConsultationDraft.getState())) {
         persistToSession();
         e.preventDefault();
         e.returnValue = "";

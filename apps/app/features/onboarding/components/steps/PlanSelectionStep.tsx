@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -117,9 +119,18 @@ export function PlanSelectionStep({
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Loading pricing...</span>
+        <CardContent
+          className="flex flex-col items-center justify-center gap-3 py-12 sm:flex-row"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading pricing"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-8 w-8 text-muted-foreground"
+          />
+          <span className="text-sm text-muted-foreground">Loading pricing…</span>
         </CardContent>
       </Card>
     );

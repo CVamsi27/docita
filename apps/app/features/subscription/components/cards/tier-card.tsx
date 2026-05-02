@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 
 interface TierCardProps {
   tier: Tier;
@@ -112,10 +113,10 @@ function formatTierPrice(
     return "Free forever";
   }
   if (billingCycle === "YEARLY" && typeof pricing.yearly === "number") {
-    return `${sym}${pricing.yearly.toLocaleString()}/yr`;
+    return `${sym}${formatAmountLocale(pricing.yearly)}/yr`;
   }
   if (typeof pricing.monthly === "number") {
-    return `From ${sym}${pricing.monthly.toLocaleString()}/mo`;
+    return `From ${sym}${formatAmountLocale(pricing.monthly)}/mo`;
   }
   return "Custom";
 }
@@ -256,7 +257,7 @@ export function TierCard({
                     <span>
                       {usageHints.patients >= 999999
                         ? "Unlimited patients"
-                        : `${usageHints.patients.toLocaleString()} patients`}
+                        : `${formatCountLocale(usageHints.patients)} patients`}
                     </span>
                   </li>
                 )}
@@ -276,7 +277,7 @@ export function TierCard({
                     <span>
                       {usageHints.whatsappMsgs >= 999999
                         ? "Unlimited WA msgs"
-                        : `${usageHints.whatsappMsgs.toLocaleString()} WA msgs/mo`}
+                        : `${formatCountLocale(usageHints.whatsappMsgs)} WA msgs/mo`}
                     </span>
                   </li>
                 )}

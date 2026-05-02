@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +17,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
-import { Bell, Loader2, Smartphone } from "lucide-react";
+import { Bell, Smartphone } from "lucide-react";
 import {
   ClinicAppSettings,
   useClinicSettings,
@@ -93,15 +95,19 @@ export function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading notification settings"
+      >
         <CardHeader>
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="mt-2 h-4 w-full max-w-md" />
+          <Skeleton animation="wave" className="h-6 w-56" />
+          <Skeleton animation="wave" className="mt-2 h-4 w-full max-w-md" />
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-10 w-32" />
+          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
+          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
+          <Skeleton animation="wave" className="h-10 w-32" />
         </CardContent>
       </Card>
     );
@@ -181,7 +187,7 @@ export function NotificationSettings() {
               />
 
               <Button className="w-full" type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Save Preferences
               </Button>
             </form>

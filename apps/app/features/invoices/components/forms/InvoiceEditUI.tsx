@@ -36,7 +36,7 @@ import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency } from "@workspace/utils";
 
 interface InvoiceEditUIProps {
   invoiceId: string;
@@ -58,7 +58,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
   } = useInvoiceEditLogic(invoiceId);
 
   if (isLoading) {
-    return <LoadingState message="Loading invoice..." />;
+    return <LoadingState message="Loading invoice…" />;
   }
 
   if (!invoice) {

@@ -93,7 +93,7 @@ export default function PortalMedicationsPage() {
     >
       <DataState
         status={state}
-        loadingMessage="Loading medications..."
+        loadingMessage="Loading medications…"
         emptyIcon={Pill}
         emptyTitle="No Active Medications"
         emptyDescription="You have no active medications at the moment"

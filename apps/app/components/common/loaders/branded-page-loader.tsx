@@ -4,11 +4,12 @@ interface BrandedPageLoaderProps {
   label?: string;
 }
 
-export function BrandedPageLoader({ label = "Loading..." }: BrandedPageLoaderProps) {
+export function BrandedPageLoader({ label = "Loading…" }: BrandedPageLoaderProps) {
   return (
     <div
       className="relative flex min-h-[60vh] flex-col items-center justify-center gap-4"
       role="status"
+      aria-live="polite"
       aria-label={label}
     >
       <RouteLoadingBackdrop className="pointer-events-none absolute inset-0 opacity-[0.35]" />

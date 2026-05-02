@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { PatientSnapshot } from "@workspace/types";
+import { formatDate } from "@/lib/formatters";
 
 export const ALLERGY_SEVERITY_COLOR: Record<string, string> = {
   LIFE_THREATENING: "bg-destructive/10 text-destructive border-destructive/20",
@@ -142,7 +143,7 @@ export function PatientSnapshotStrip({
           {showVitals && latestVitals?.recordedAt ? (
             <p className="text-[var(--fs-2xs)] text-muted-foreground shrink-0">
               Updated from vitals recorded on{" "}
-              {new Date(latestVitals.recordedAt).toLocaleDateString()}
+              {formatDate(latestVitals.recordedAt)}
             </p>
           ) : null}
         </div>

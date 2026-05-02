@@ -4,6 +4,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
+import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { GynecologyExamData } from "@workspace/types";
 
 interface GynecologyExamSectionProps {
@@ -15,6 +16,7 @@ export function GynecologyExamSection({
   readOnly,
   sectionRef,
 }: GynecologyExamSectionProps) {
+  const subtitle = useConsultationSectionSubtitle("specialty-gynecology");
   const value = useConsultationDraft((s) => s.gynecologyExam);
   const setValue = useConsultationDraft((s) => s.setGynecologyExam);
 
@@ -30,6 +32,7 @@ export function GynecologyExamSection({
       id="specialty-gynecology"
       letter="Y"
       title="Gynecology Exam"
+      subtitle={subtitle}
       description="Menstrual and obstetric context, examination, and plan."
     >
       <div className="space-y-4">

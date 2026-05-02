@@ -37,6 +37,7 @@ import {
   TIER_LIMITS,
   TIER_PRICING,
 } from "@workspace/types";
+import { formatCountLocale } from "@workspace/utils";
 
 export interface PlanPricing {
   monthly: number | "custom";
@@ -96,7 +97,7 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
   const formatLimitValue = (value?: number): string => {
     if (value === undefined) return "—";
     if (value >= 999999 || value === 999) return "Unlimited";
-    return value.toLocaleString();
+    return formatCountLocale(value);
   };
 
   const rows: FeatureComparisonRow[] = [
@@ -273,7 +274,7 @@ export function getPlanHighlights(
     name:
       limits.patients === 999999
         ? "Unlimited patients"
-        : `Up to ${limits.patients.toLocaleString()} patients`,
+        : `Up to ${formatCountLocale(limits.patients)} patients`,
     included: true,
   });
 

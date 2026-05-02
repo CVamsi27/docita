@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useMemo, useState } from "react";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
@@ -32,6 +34,7 @@ import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
+import { formatDate, formatDateTime } from "@/lib/formatters";
 import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
 
 type BillingHistoryItemWithActions = BillingHistoryItem & {
@@ -215,8 +218,17 @@ export function BillingHistoryTable({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div
+        className="flex justify-center p-8"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading billing history"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -347,9 +359,7 @@ export function BillingHistoryTable({
                     !(isFailedLike(status) && !payUrl);
 
                   const dateCell = (
-                    <span>
-                      {new Date(invoice.createdAt).toLocaleDateString("en-IN")}
-                    </span>
+                    <span>{formatDate(invoice.createdAt)}</span>
                   );
 
                   return (
@@ -367,7 +377,7 @@ export function BillingHistoryTable({
                             </TooltipTrigger>
                             <TooltipContent>
                               Paid{" "}
-                              {new Date(invoice.paidAt).toLocaleString("en-IN")}
+                              {formatDateTime(invoice.paidAt)}
                             </TooltipContent>
                           </Tooltip>
                         ) : (

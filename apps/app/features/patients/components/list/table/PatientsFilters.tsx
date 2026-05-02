@@ -8,7 +8,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
-import { Search } from "lucide-react";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Search, X } from "lucide-react";
 
 interface PatientsFiltersProps {
   filterType: "all" | "recent" | "new";
@@ -50,23 +51,31 @@ export function PatientsFilters({
       <CardContent>
         <div className="flex items-center gap-4 mb-6">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
             <Input
               placeholder="Enter name or phone"
-              className="pl-9 bg-background"
+              className={`bg-background pl-9${searchQuery.trim() ? " pr-10" : ""}`}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
+              aria-label="Search patients"
             />
+            {searchQuery.trim() ? (
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                <SymbolTooltip label="Clear search">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => onSearchChange("")}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </Button>
+                </SymbolTooltip>
+              </div>
+            ) : null}
           </div>
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSearchChange("")}
-            >
-              Clear
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>

@@ -37,7 +37,7 @@ export function VisitsTab({ patientId }: VisitsTabProps) {
   };
 
   if (isLoading && !data) {
-    return <DataState status="loading" loadingMessage="Loading visits..." />;
+    return <DataState status="loading" loadingMessage="Loading visits…" />;
   }
 
   if (isError) {

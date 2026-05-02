@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { formatTime } from "@/lib/formatters";
 import {
   Card,
   CardContent,
@@ -106,7 +106,11 @@ export function DoctorDashboardCardsUI({
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground capitalize truncate">
                   {humanizeUiLabel(currentPatient.type)} •{" "}
-                  {format(new Date(currentPatient.startTime), "h:mm a")}
+                  {formatTime(currentPatient.startTime, "en-IN", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
                 </p>
               </div>
               <Button
@@ -134,7 +138,7 @@ export function DoctorDashboardCardsUI({
                 >
                   <Play className="h-4 w-4" />
                   {startingAppointmentId === nextPatients[0].id
-                    ? "Starting..."
+                    ? "Starting…"
                     : "Start Next Patient"}
                 </Button>
               )}

@@ -4,6 +4,7 @@ import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { SectionContainer } from "@/features/consultation/workspace/chrome/SectionContainer";
+import { useConsultationSectionSubtitle } from "@/features/consultation/workspace/consultation-workspace-context";
 import type { DermatologyExamData } from "@workspace/types";
 
 interface DermatologyExamSectionProps {
@@ -15,6 +16,7 @@ export function DermatologyExamSection({
   readOnly,
   sectionRef,
 }: DermatologyExamSectionProps) {
+  const subtitle = useConsultationSectionSubtitle("specialty-dermatology");
   const value = useConsultationDraft((s) => s.dermatologyExam);
   const setValue = useConsultationDraft((s) => s.setDermatologyExam);
 
@@ -33,6 +35,7 @@ export function DermatologyExamSection({
       id="specialty-dermatology"
       letter="K"
       title="Dermatology Exam"
+      subtitle={subtitle}
       description="Skin examination and lesion documentation."
     >
       <div className="space-y-4">

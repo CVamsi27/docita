@@ -10,6 +10,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import {
   BookOpen,
   ChevronRight,
@@ -19,6 +20,7 @@ import {
   MessageCircle,
   Search,
   Video,
+  X,
 } from "lucide-react";
 
 const HELP_CATEGORIES = [
@@ -57,14 +59,30 @@ export const HelpCenter: FC = () => {
           How can we help you?
         </h1>
         <div className="relative max-w-md mx-auto">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
             placeholder="Enter topic"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className={searchQuery.trim() ? "pl-10 pr-10" : "pl-10"}
             aria-label="Search help articles"
           />
+          {searchQuery.trim() ? (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+              <SymbolTooltip label="Clear search">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                </Button>
+              </SymbolTooltip>
+            </div>
+          ) : null}
         </div>
       </div>
 

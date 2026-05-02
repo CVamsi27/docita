@@ -14,6 +14,7 @@ import { EmptyState } from "@workspace/ui/components/empty-state";
 import { formatCurrency } from "@workspace/utils";
 import type { PatientPortalInvoice } from "@/features/patient-portal/types/patient-portal-types";
 import { getInvoiceStatusLabel } from "@/features/patient-portal/rules/patient-portal-rules";
+import { formatDate } from "@/lib/formatters";
 
 interface PatientPortalBillingUIProps {
   invoices: PatientPortalInvoice[];
@@ -63,7 +64,7 @@ export function PatientPortalBillingUI({
                   </div>
                   <div className="text-muted-foreground">
                     Invoice #{invoice.id.slice(0, 8)} •{" "}
-                    {new Date(invoice.dueAt).toLocaleDateString()}
+                    {formatDate(invoice.dueAt)}
                   </div>
                 </div>
               ))}

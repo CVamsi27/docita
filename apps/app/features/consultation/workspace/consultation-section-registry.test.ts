@@ -5,22 +5,26 @@ import {
 } from "./consultation-section-registry";
 
 describe("consultation-section-registry", () => {
-  it("returns SOAP-only sections for GENERAL clinics", () => {
+  it("includes investigations for GENERAL clinics when investigations feature is enabled", () => {
     const sections = getConsultationSectionsForClinic("GENERAL");
     expect(sections.map((s) => s.id)).toEqual([
       "subjective",
       "objective",
+      "specialty-investigations",
       "assessment",
       "plan",
     ]);
+    expect(getConsultationPersistKeysForClinic("GENERAL")).toContain(
+      "investigations",
+    );
   });
 
-  it("inserts dental chart for DENTAL clinics", () => {
+  it("omits objective for DENTAL when examination feature is disabled", () => {
     const sections = getConsultationSectionsForClinic("DENTAL");
     expect(sections.map((s) => s.id)).toEqual([
       "subjective",
-      "objective",
       "specialty-dental",
+      "specialty-investigations",
       "assessment",
       "plan",
     ]);

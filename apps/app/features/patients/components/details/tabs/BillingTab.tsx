@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
 import {
   Card,
   CardContent,
@@ -13,6 +12,7 @@ import { Button } from "@workspace/ui/components/button";
 import { DataState } from "@workspace/ui/components/data-state";
 import { ExternalLink, Receipt } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import { formatCurrency, formatDate } from "@workspace/utils";
 import { useInvoices } from "@/hooks/api/use-billing";
 
 interface BillingTabProps {
@@ -30,25 +30,13 @@ const STATUS_VARIANT: Record<
   CANCELLED: "destructive",
 };
 
-const formatCurrency = (amount: number, currency?: string) => {
-  try {
-    return new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency: currency || "INR",
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${currency || ""} ${amount.toFixed(2)}`.trim();
-  }
-};
-
 export function BillingTab({ patientId }: BillingTabProps) {
   const { data: invoices, isLoading, isError, refetch } = useInvoices({
     patientId,
   });
 
   if (isLoading) {
-    return <DataState status="loading" loadingMessage="Loading invoices..." />;
+    return <DataState status="loading" loadingMessage="Loading invoices…" />;
   }
 
   if (isError) {
@@ -83,7 +71,7 @@ export function BillingTab({ patientId }: BillingTabProps) {
       {sorted.map((invoice) => {
         const issuedDate = invoice.issuedAt ?? invoice.createdAt;
         const dateLabel = issuedDate
-          ? format(new Date(issuedDate), "EEE, d MMM yyyy")
+          ? formatDate(issuedDate, "EEE, d MMM yyyy")
           : "";
         const grandTotal = invoice.grandTotal ?? invoice.total ?? 0;
         const variant = STATUS_VARIANT[invoice.status] ?? "outline";
@@ -108,7 +96,10 @@ export function BillingTab({ patientId }: BillingTabProps) {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-sm font-semibold tabular-nums">
-                    {formatCurrency(grandTotal, invoice.currency)}
+                    {formatCurrency(grandTotal, {
+                      currency: invoice.currency,
+                      fractionDigits: 2,
+                    })}
                   </span>
                   <Badge variant={variant} className="text-xs">
                     {humanizeUiLabel(invoice.status)}
