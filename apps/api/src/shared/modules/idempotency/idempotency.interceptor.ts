@@ -9,8 +9,8 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { from, Observable, of, throwError } from 'rxjs';
+import { catchError, concatMap, mergeMap } from 'rxjs/operators';
 import {
   IDEMPOTENCY_HEADER,
   IDEMPOTENCY_METADATA_KEY,
@@ -135,37 +135,33 @@ export class IdempotencyInterceptor implements NestInterceptor {
       throw err;
     }
 
-    return new Observable((subscriber) => {
-      next
-        .handle()
-        .pipe(
-          tap({
-            next: async (response) => {
-              try {
-                await this.service.saveCached(
-                  scopedKey,
-                  {
-                    bodyHash,
-                    response,
-                    createdAt: Date.now(),
-                  },
-                  metadata.ttl,
-                );
-              } finally {
-                await this.service.clearProcessing(scopedKey);
-              }
-            },
-            error: async () => {
+    return next.handle().pipe(
+      catchError((err) =>
+        from(this.service.clearProcessing(scopedKey)).pipe(
+          mergeMap(() => throwError(() => coerceError(err))),
+        ),
+      ),
+      concatMap((response) =>
+        from(
+          (async () => {
+            try {
+              await this.service.saveCached(
+                scopedKey,
+                {
+                  bodyHash,
+                  response,
+                  createdAt: Date.now(),
+                },
+                metadata.ttl,
+              );
+              return response;
+            } finally {
               await this.service.clearProcessing(scopedKey);
-            },
-          }),
-        )
-        .subscribe({
-          next: (value) => subscriber.next(value),
-          error: (err) => subscriber.error(coerceError(err)),
-          complete: () => subscriber.complete(),
-        });
-    });
+            }
+          })(),
+        ),
+      ),
+    );
   }
 }
 
