@@ -79,16 +79,12 @@ export class AppointmentService {
 
   async getAppointment(
     id: string,
-    clinicId?: string,
+    clinicId: string,
     accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
-    const appointment = await this.appointmentRepository.findById(id);
+    const appointment = await this.appointmentRepository.findById(id, clinicId);
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
-    }
-
-    if (clinicId && appointment.clinicId !== clinicId) {
-      throw new ForbiddenException('Access denied for this appointment');
     }
 
     if (
@@ -114,7 +110,7 @@ export class AppointmentService {
     accessContext?: AppointmentAccessContext,
   ): Promise<{ appointmentId: string; status: string }> {
     const appointment = await this.prisma.appointment.findFirst({
-      where: { id },
+      where: { id, clinicId },
       select: {
         id: true,
         clinicId: true,
@@ -133,10 +129,6 @@ export class AppointmentService {
 
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
-    }
-
-    if (appointment.clinicId !== clinicId) {
-      throw new ForbiddenException('Access denied for this appointment');
     }
 
     if (
@@ -200,7 +192,7 @@ export class AppointmentService {
   async cancelAppointment(
     id: string,
     reason: string,
-    clinicId?: string,
+    clinicId: string,
     accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
     const appointment = await this.getAppointment(id, clinicId, accessContext);
@@ -213,7 +205,7 @@ export class AppointmentService {
     id: string,
     startTime: Date,
     endTime: Date,
-    clinicId?: string,
+    clinicId: string,
     accessContext?: AppointmentAccessContext,
   ): Promise<void> {
     const appointment = await this.getAppointment(id, clinicId, accessContext);
@@ -267,16 +259,12 @@ export class AppointmentService {
     accessContext?: AppointmentAccessContext,
   ): Promise<Appointment> {
     const appointment = await this.prisma.appointment.findFirst({
-      where: { id },
+      where: { id, clinicId },
       select: { id: true, clinicId: true, patientId: true, doctorId: true },
     });
 
     if (!appointment) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
-    }
-
-    if (appointment.clinicId !== clinicId) {
-      throw new ForbiddenException('Access denied for this appointment');
     }
 
     if (
@@ -365,7 +353,7 @@ export class AppointmentService {
     requestHash?: string,
   ): Promise<{ contentHash: string; skipped: boolean; count: number }> {
     const appointment = await this.prisma.appointment.findFirst({
-      where: { id: appointmentId },
+      where: { id: appointmentId, clinicId },
       select: { id: true, clinicId: true },
     });
 
@@ -373,10 +361,6 @@ export class AppointmentService {
       throw new NotFoundException(
         `Appointment with ID ${appointmentId} not found`,
       );
-    }
-
-    if (appointment.clinicId !== clinicId) {
-      throw new ForbiddenException('Access denied for this appointment');
     }
 
     const codedDiagnoses = diagnoses.filter((d) => d.icdCodeId);
@@ -389,7 +373,7 @@ export class AppointmentService {
     }
 
     const existing = await this.prisma.diagnosis.findMany({
-      where: { appointmentId },
+      where: { appointmentId, appointment: { clinicId } },
       select: { icdCodeId: true, notes: true, isPrimary: true },
     });
     const existingHash = this.hashDiagnosesContent(
@@ -443,7 +427,7 @@ export class AppointmentService {
     accessContext?: AppointmentAccessContext,
   ): Promise<VitalSign> {
     const appointment = await this.prisma.appointment.findFirst({
-      where: { id: appointmentId },
+      where: { id: appointmentId, clinicId },
       select: {
         id: true,
         clinicId: true,
@@ -456,10 +440,6 @@ export class AppointmentService {
       throw new NotFoundException(
         `Appointment with ID ${appointmentId} not found`,
       );
-    }
-
-    if (appointment.clinicId !== clinicId) {
-      throw new ForbiddenException('Access denied for this appointment');
     }
 
     if (

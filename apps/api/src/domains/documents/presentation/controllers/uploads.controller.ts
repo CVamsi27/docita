@@ -12,10 +12,15 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from '@/domains/documents/application/services/uploads.service';
 import { MAX_FILE_SIZE } from '@workspace/utils';
-import { UploadSessionResponseDto } from '@/domains/documents/application/dto/uploads.dto';
+import {
+  UploadSessionCreateResponseDto,
+  UploadSessionResponseDto,
+} from '@/domains/documents/application/dto/uploads.dto';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { APP_ACCESS_TARGETS } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
+import { UploadSessionSecretRoute } from '@/shared/modules/auth/auth/upload-session-secret-route.decorator';
+import { UploadSessionSecretGuard } from '@/domains/documents/presentation/guards/upload-session-secret.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   Feature,
@@ -37,7 +42,7 @@ export class UploadsController {
   constructor(private readonly uploadsService: UploadsService) {}
 
   @Post('session')
-  @ZodSerializerDto(UploadSessionResponseDto)
+  @ZodSerializerDto(UploadSessionCreateResponseDto)
   async createSession() {
     return this.uploadsService.createSession();
   }
@@ -48,7 +53,14 @@ export class UploadsController {
     return this.uploadsService.getSession(id);
   }
 
+  /**
+   * QR/mobile uploads use `X-Upload-Secret` (issued once from POST /uploads/session).
+   * `UploadSessionSecretGuard` validates the secret before multipart parsing; the route
+   * is not blanket-`Public` (JWT/roles/tier skip only applies to this handler metadata).
+   */
   @Post('session/:id')
+  @UploadSessionSecretRoute()
+  @UseGuards(UploadSessionSecretGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: createTempDiskStorage(),
@@ -86,15 +98,26 @@ export class UploadsController {
       throw new BadRequestException('File is required');
     }
 
+    const rawSecret = req.headers['x-upload-secret'];
+    const uploadSecretHeader = Array.isArray(rawSecret)
+      ? rawSecret[0]
+      : rawSecret;
+    const uploadSecret =
+      typeof uploadSecretHeader === 'string' ? uploadSecretHeader.trim() : '';
+    if (!uploadSecret) {
+      throw new BadRequestException('Missing upload credentials');
+    }
+
     try {
       await assertAllowedFileSignature(file, ['pdf', 'png', 'jpeg', 'webp']);
 
       return await this.uploadsService.updateSession(id, file, {
         modifiedBy: req.user?.id,
         modifiedByRole: req.user?.role,
-        authMethod: req.user ? 'session-auth' : 'anonymous-upload',
+        authMethod: req.user ? 'session-auth' : 'upload-session-secret',
         ipAddress: req.ip || req.socket?.remoteAddress,
         userAgent: req.headers?.['user-agent'],
+        uploadSecret,
       });
     } catch (error) {
       if (file.path) {

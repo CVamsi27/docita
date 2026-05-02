@@ -100,6 +100,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
           city: 'Hyderabad',
           state: 'TS',
           pincode: '500001',
+          gstin: '22AAAAA0000A1Z5',
         },
         adminAccount: {
           name: 'E2E Admin',
@@ -115,6 +116,7 @@ describe('Clinic Members Lifecycle (e2e)', () => {
         },
         paymentDetails: {
           skipPayment: true,
+          razorpayPaymentId: `pay_e2e_${now}`,
           autoPay: false,
           addons: {
             whatsapp: false,

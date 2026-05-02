@@ -1,6 +1,9 @@
+import { formatPickerIsoDate } from "@workspace/utils";
+import { z } from "zod";
 import {
   Clinic,
   CreateClinicDoctorRequest,
+  CreateClinicMemberRequest,
   CreateClinicReceptionistRequest,
   CreateDoctorRequest,
   type SubscriptionCurrentResponse,
@@ -11,8 +14,14 @@ import {
   User,
   type AppClinicSettings,
   subscriptionCurrentResponseSchema,
+  availableSlotSchema,
 } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import {
+  useAPIMutation,
+  useAPIQuery,
+  useAPIQueryValidated,
+} from "@/lib/api-core";
+import { withQueryString } from "@/lib/http/query-string";
 
 export type ClinicAppSettings = AppClinicSettings;
 
@@ -52,13 +61,15 @@ export interface PrescriptionDefaults {
 }
 
 export interface SignatureUploadSessionResponse {
-  id: string;
-  expiresAt?: string;
-  status?: string;
+  token: string;
+  uploadUrl: string;
+  expiresAt: string | Date;
 }
 
-export const useClinicSettings = () =>
-  useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings");
+export const useClinicSettings = (queryOptions?: { enabled?: boolean }) =>
+  useAPIQuery<Clinic>(["clinic", "settings"], "/clinic/settings", {
+    enabled: queryOptions?.enabled,
+  });
 
 export const useClinicMembers = () =>
   useAPIQuery<User[]>(["clinic", "members"], "/clinic/members");
@@ -76,6 +87,7 @@ export const useCreateClinicDoctor = (clinicId?: string) =>
     "POST",
     {
       invalidateKeys: [["clinic", "members"]],
+      suppressGlobalErrorToast: true,
     },
   );
 
@@ -92,6 +104,24 @@ export const useCreateClinicReceptionist = (clinicId?: string) =>
     "POST",
     {
       invalidateKeys: [["clinic", "members"]],
+      suppressGlobalErrorToast: true,
+    },
+  );
+
+export const useCreateClinicMember = (clinicId?: string) =>
+  useAPIMutation<User, CreateClinicMemberRequest>(
+    () => {
+      if (!clinicId) {
+        throw new Error(
+          "We could not identify this facility. Please refresh and try again.",
+        );
+      }
+      return `/clinics/${clinicId}/members`;
+    },
+    "POST",
+    {
+      invalidateKeys: [["clinic", "members"]],
+      suppressGlobalErrorToast: true,
     },
   );
 
@@ -101,13 +131,10 @@ export const useUpdateClinicMember = () =>
     UpdateClinicMemberRequest & {
       memberId: string;
     }
-  >(
-    ({ memberId }) => `/clinic/members/${memberId}`,
-    "PUT",
-    {
-      invalidateKeys: [["clinic", "members"]],
-    },
-  );
+  >(({ memberId }) => `/clinic/members/${memberId}`, "PUT", {
+    invalidateKeys: [["clinic", "members"]],
+    suppressGlobalErrorToast: true,
+  });
 
 export const useDeleteClinicMember = () =>
   useAPIMutation<{ success: boolean }, { memberId: string }>(
@@ -119,9 +146,13 @@ export const useDeleteClinicMember = () =>
   );
 
 export const useUpdateClinicSettings = () =>
-  useAPIMutation<Clinic, UpdateClinicSettingsRequest>("/clinic/settings", "PUT", {
-    invalidateKeys: [["clinic", "settings"]],
-  });
+  useAPIMutation<Clinic, UpdateClinicSettingsRequest>(
+    "/clinic/settings",
+    "PUT",
+    {
+      invalidateKeys: [["clinic", "settings"]],
+    },
+  );
 
 export const usePrescriptionDefaults = () =>
   useAPIQuery<PrescriptionDefaults>(
@@ -130,10 +161,10 @@ export const usePrescriptionDefaults = () =>
   );
 
 export const useUpdatePrescriptionDefaults = () =>
-  useAPIMutation<
-    { success: boolean },
-    Partial<PrescriptionDefaults>
-  >("/clinic/prescription-defaults", "PUT");
+  useAPIMutation<{ success: boolean }, Partial<PrescriptionDefaults>>(
+    "/clinic/prescription-defaults",
+    "PUT",
+  );
 
 export const useDoctors = () => useAPIQuery<User[]>(["doctors"], "/doctors");
 
@@ -141,10 +172,7 @@ export const useDoctor = (id: string) =>
   useAPIQuery<User>(["doctors", id], `/doctors/${id}`);
 
 export const useCreateDoctor = () =>
-  useAPIMutation<User, CreateDoctorRequest>(
-    "/doctors",
-    "POST",
-  );
+  useAPIMutation<User, CreateDoctorRequest>("/doctors", "POST");
 
 export const useUpdateDoctor = (id: string) =>
   useAPIMutation<User, UpdateDoctorRequest>(`/doctors/${id}`, "PUT");
@@ -156,6 +184,10 @@ export const useCreateDoctorSignatureUploadSession = () =>
   useAPIMutation<SignatureUploadSessionResponse, { doctorId: string }>(
     ({ doctorId }) => `/doctors/${doctorId}/signature-upload-session`,
     "POST",
+    {
+      invalidateKeys: [["clinic", "members"], ["doctors"]],
+      suppressGlobalErrorToast: true,
+    },
   );
 
 export const useReverifyDoctorRegistration = () =>
@@ -174,7 +206,10 @@ export const useDoctorSchedules = (doctorId?: string) =>
   );
 
 export const useClinicSchedules = () =>
-  useAPIQuery<DoctorSchedule[]>(["clinic-schedules"], "/doctor-availability/schedules/clinic");
+  useAPIQuery<DoctorSchedule[]>(
+    ["clinic-schedules"],
+    "/doctor-availability/schedules/clinic",
+  );
 
 export const useCreateDoctorSchedule = () =>
   useAPIMutation<
@@ -239,7 +274,9 @@ export const useCreateDoctorTimeOff = () =>
       startTime?: string;
       endTime?: string;
     }
-  >("/doctor-availability/time-off", "POST");
+  >("/doctor-availability/time-off", "POST", {
+    invalidateKeys: [["doctor-time-offs"]],
+  });
 
 export const useDeleteDoctorTimeOff = (id: string) =>
   useAPIMutation<{ success: boolean }, void>(
@@ -247,13 +284,79 @@ export const useDeleteDoctorTimeOff = (id: string) =>
     "DELETE",
   );
 
+export const useDeleteDoctorTimeOffMutation = () =>
+  useAPIMutation<{ success: boolean }, string>(
+    (id) => `/doctor-availability/time-off/${id}`,
+    "DELETE",
+    {
+      invalidateKeys: [["doctor-time-offs"]],
+    },
+  );
+
+const unavailableDoctorsResponseSchema = z.object({
+  doctorIds: z.array(z.string()),
+});
+
+const doctorAvailabilitySlotRowSchema = availableSlotSchema.extend({
+  specialization: z.string().nullable().optional(),
+});
+
+export function useUnavailableDoctorIdsForDate(
+  date: Date | undefined,
+  queryOptions?: { enabled?: boolean },
+) {
+  const dateStr = date ? formatPickerIsoDate(date) : "";
+  const enabled =
+    Boolean(date && dateStr) && (queryOptions?.enabled ?? true);
+
+  return useAPIQueryValidated(
+    ["doctor-unavailability", dateStr],
+    withQueryString("/doctor-availability/time-off/unavailable-doctors", {
+      date: dateStr,
+    }),
+    unavailableDoctorsResponseSchema,
+    { enabled },
+  );
+}
+
+export function useDoctorAvailabilitySlots(
+  date: Date | undefined,
+  doctorId: string | undefined,
+  queryOptions?: { enabled?: boolean },
+) {
+  const enabled =
+    Boolean(date && doctorId) && (queryOptions?.enabled ?? true);
+
+  return useAPIQueryValidated(
+    [
+      "doctor-availability-slots",
+      date?.toISOString() ?? "",
+      doctorId ?? "",
+    ],
+    enabled && date && doctorId
+      ? withQueryString("/doctor-availability/slots", {
+          date: date.toISOString(),
+          doctorId,
+        })
+      : "/doctor-availability/slots",
+    z.array(doctorAvailabilitySlotRowSchema),
+    {
+      enabled,
+      staleTime: 30_000,
+    },
+  );
+}
+
 export const useMedicalCodingSettings = () =>
   useAPIQuery<{
     enabled: boolean;
     provider: string;
     autoSuggest: boolean;
     preferredSystem: string;
-  }>(["clinic", "medical-coding-settings"], "/clinical/medical-coding/settings");
+  }>(
+    ["clinic", "medical-coding-settings"],
+    "/clinical/medical-coding/settings",
+  );
 
 export const useUpdateMedicalCodingSettings = () =>
   useAPIMutation<

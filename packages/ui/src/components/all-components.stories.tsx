@@ -57,6 +57,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DocitaIcon,
+  DocitaLoadingIndicator,
   DocitaLogo,
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -169,7 +170,7 @@ function FormExample() {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="Full name" {...field} />
               </FormControl>
               <FormDescription>This is a demo field</FormDescription>
               <FormMessage />
@@ -198,7 +199,7 @@ export function CorePrimitives() {
         <Badge>Badge</Badge>
         <Label htmlFor="input-demo">Input label</Label>
       </div>
-      <Input id="input-demo" placeholder="Type here" />
+      <Input id="input-demo" placeholder="Enter text" />
       <Textarea placeholder="Textarea" />
       <div className="flex items-center gap-4">
         <Checkbox
@@ -363,7 +364,7 @@ export function OverlaysAndMenus() {
 
       <Select value={selectValue} onValueChange={setSelectValue}>
         <SelectTrigger>
-          <SelectValue placeholder="Select role" />
+          <SelectValue placeholder="Role" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="doctor">Doctor</SelectItem>
@@ -412,7 +413,7 @@ export function CommandAndSearch() {
   return (
     <div className="space-y-6 p-4">
       <Command className="rounded border max-w-md">
-        <CommandInput placeholder="Search commands" />
+        <CommandInput placeholder="Command" />
         <CommandList>
           <CommandEmpty>No results</CommandEmpty>
           <CommandGroup heading="Suggestions">
@@ -537,6 +538,29 @@ export function StatusAndFeedback() {
         action={{ label: "View all", href: "#" }}
       />
       <LoadingState message="Loading dashboard" />
+      <div className="flex flex-wrap items-center justify-center gap-8 rounded-lg border border-border/60 p-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            DocitaLoadingIndicator page
+          </span>
+          <DocitaLoadingIndicator variant="page" aria-label="Page loading" />
+        </div>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            DocitaLoadingIndicator section
+          </span>
+          <DocitaLoadingIndicator variant="section" aria-label="Section loading" />
+        </div>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            DocitaLoadingIndicator inline
+          </span>
+          <Button type="button" size="sm" variant="outline" className="gap-2">
+            <DocitaLoadingIndicator variant="inline" decorative />
+            Saving
+          </Button>
+        </div>
+      </div>
       <Skeleton className="h-8 w-full" />
       <StatCardSkeleton />
       <TableSkeleton rows={3} />

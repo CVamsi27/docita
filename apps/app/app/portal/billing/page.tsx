@@ -51,6 +51,7 @@ export default function PortalBillingPage() {
     return {
       id: typeof row.id === "string" ? row.id : `invoice-${index}`,
       amount,
+      currency: typeof row.currency === "string" ? row.currency : undefined,
       dueAt,
       status: mapInvoiceStatus(row.status),
     };
@@ -75,7 +76,7 @@ export default function PortalBillingPage() {
     >
       <DataState
         status={state}
-        loadingMessage="Loading invoices..."
+        loadingMessage="Loading invoices…"
         errorMessage="We could not load your billing details. Please try again."
         onRetry={() => void refetch()}
         emptyIcon={Receipt}

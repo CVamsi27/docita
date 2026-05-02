@@ -7,8 +7,9 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
-import { FileText, Filter, FlaskConical, Search } from "lucide-react";
+import { FileText, Filter, FlaskConical, Search, X } from "lucide-react";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import {
@@ -21,6 +22,10 @@ import {
 } from "@workspace/ui/components/table";
 
 import { LabTestOrder } from "@workspace/types";
+import {
+  DATE_FORMAT_OPTIONS_US_SHORT,
+  formatDate,
+} from "@/lib/formatters";
 
 interface LabTestsOrdersProps {
   isLoading: boolean;
@@ -35,26 +40,34 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
   searchQuery,
   setSearchQuery,
 }) => {
-  const formatDate = (dateStr: string | Date) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
     <div className="flex flex-col gap-6">
-      {}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
-            placeholder="Search by patient, test, or doctor..."
+            placeholder="Enter patient, test, or doctor"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className={searchQuery.trim() ? "pl-9 pr-10" : "pl-9"}
+            aria-label="Search lab test orders"
           />
+          {searchQuery.trim() ? (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+              <SymbolTooltip label="Clear search">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                </Button>
+              </SymbolTooltip>
+            </div>
+          ) : null}
         </div>
         <Button variant="outline" className="gap-2">
           <Filter className="h-4 w-4" />
@@ -62,7 +75,6 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
         </Button>
       </div>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>Lab Test Orders</CardTitle>
@@ -72,17 +84,23 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <LoadingState message="Loading lab tests..." />
+            <LoadingState message="Loading lab tests…" />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Patient</TableHead>
                     <TableHead>Test Name</TableHead>
-                    <TableHead className="hidden sm:table-cell">Category</TableHead>
-                    <TableHead className="hidden md:table-cell">Ordered By</TableHead>
-                    <TableHead className="hidden sm:table-cell">Order Date</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Category
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Ordered By
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Order Date
+                    </TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -105,16 +123,32 @@ export const LabTestsOrders: FC<LabTestsOrdersProps> = ({
                         {test.doctor?.name || "-"}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell text-muted-foreground">
-                        {formatDate(test.createdAt)}
+                        {formatDate(
+                          test.createdAt,
+                          "en-US",
+                          DATE_FORMAT_OPTIONS_US_SHORT,
+                        )}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={test.status} />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="gap-1" title={test.status === "completed" ? "View Results" : "Details"}>
-                          <FileText className="h-4 w-4" />
-                          <span className="hidden sm:inline">{test.status === "completed" ? "View Results" : "Details"}</span>
-                        </Button>
+                        <SymbolTooltip
+                          label={
+                            test.status === "completed"
+                              ? "View results"
+                              : "Details"
+                          }
+                        >
+                          <Button variant="ghost" size="sm" className="gap-1">
+                            <FileText className="h-4 w-4" />
+                            <span className="hidden sm:inline">
+                              {test.status === "completed"
+                                ? "View Results"
+                                : "Details"}
+                            </span>
+                          </Button>
+                        </SymbolTooltip>
                       </TableCell>
                     </TableRow>
                   ))}

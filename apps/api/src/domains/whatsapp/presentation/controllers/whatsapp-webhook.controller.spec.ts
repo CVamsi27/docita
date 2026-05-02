@@ -1,7 +1,7 @@
 import { ForbiddenException, Logger } from '@nestjs/common';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { Request } from 'express';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { HandleWebhookUseCase } from '@/domains/whatsapp/application/use-cases/handle-webhook.use-case';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { WhatsAppWebhookController } from './whatsapp-webhook.controller';

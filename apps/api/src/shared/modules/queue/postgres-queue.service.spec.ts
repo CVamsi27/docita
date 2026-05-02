@@ -112,7 +112,10 @@ describe('PostgresQueueService', () => {
   describe('process and poll', () => {
     it('calls the handler when a WAITING job is claimed', async () => {
       const activeRow = makeRow({ status: 'ACTIVE' });
-      queryRawMock.mockResolvedValueOnce([activeRow]);
+      queryRawMock
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([activeRow]);
       updateMock.mockResolvedValue(makeRow({ status: 'COMPLETED' }));
 
       const handler = jest
@@ -135,7 +138,10 @@ describe('PostgresQueueService', () => {
 
     it('marks job as FAILED and stores failedReason when handler throws (no retries left)', async () => {
       const exhaustedRow = makeRow({ attemptsMade: 2, maxAttempts: 3 });
-      queryRawMock.mockResolvedValueOnce([exhaustedRow]);
+      queryRawMock
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([exhaustedRow]);
       updateMock.mockResolvedValue(makeRow({ status: 'FAILED' }));
 
       const handler = jest
@@ -159,7 +165,10 @@ describe('PostgresQueueService', () => {
 
     it('reschedules job with exponential backoff when retries remain', async () => {
       const retryableRow = makeRow({ attemptsMade: 0, maxAttempts: 3 });
-      queryRawMock.mockResolvedValueOnce([retryableRow]);
+      queryRawMock
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([retryableRow]);
       updateMock.mockResolvedValue(makeRow({ status: 'DELAYED' }));
 
       const handler = jest
@@ -180,7 +189,10 @@ describe('PostgresQueueService', () => {
     });
 
     it('does nothing when no WAITING jobs are available', async () => {
-      queryRawMock.mockResolvedValueOnce([]);
+      queryRawMock
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
 
       const handler = jest
         .fn<QueueJobHandler<QueueJobData>>()

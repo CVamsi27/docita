@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import {
   Dialog,
@@ -8,6 +10,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { toast } from "sonner";
 import {
@@ -215,28 +218,31 @@ export function PrescriptionModal({
           {medications.map((med, index) => (
             <div
               key={index}
-              className="flex flex-col gap-3 p-4 bg-muted/40 rounded-xl border border-border/60"
+              className="flex flex-col gap-3 p-4 bg-muted/40 rounded-lg border border-border/60"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Medication #{index + 1}
                 </span>
                 {medications.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeMedication(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <SymbolTooltip label="Remove medication">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeMedication(index)}
+                      aria-label="Remove medication"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </SymbolTooltip>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="col-span-2">
                   <Input
-                    placeholder="Medication Name (e.g. Amoxicillin 500mg)"
+                    placeholder="Medication name"
                     value={med.name}
                     onChange={(e) =>
                       updateMedication(index, "name", e.target.value)
@@ -244,28 +250,28 @@ export function PrescriptionModal({
                   />
                 </div>
                 <Input
-                  placeholder="Dosage (e.g. 1 tab)"
+                  placeholder="Dosage"
                   value={med.dosage}
                   onChange={(e) =>
                     updateMedication(index, "dosage", e.target.value)
                   }
                 />
                 <Input
-                  placeholder="Frequency (e.g. BID)"
+                  placeholder="Frequency"
                   value={med.frequency}
                   onChange={(e) =>
                     updateMedication(index, "frequency", e.target.value)
                   }
                 />
                 <Input
-                  placeholder="Duration (e.g. 7 days)"
+                  placeholder="Duration"
                   value={med.duration}
                   onChange={(e) =>
                     updateMedication(index, "duration", e.target.value)
                   }
                 />
                 <Input
-                  placeholder="Route (e.g. ORAL)"
+                  placeholder="Route"
                   value={med.route}
                   onChange={(e) =>
                     updateMedication(index, "route", e.target.value)
@@ -290,7 +296,7 @@ export function PrescriptionModal({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={createPrescription.isPending}>
-            {createPrescription.isPending ? "Saving..." : "Save Prescription"}
+            {createPrescription.isPending ? "Saving…" : "Save Prescription"}
           </Button>
         </DialogFooter>
       </DialogContent>

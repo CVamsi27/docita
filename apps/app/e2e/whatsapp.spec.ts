@@ -35,6 +35,10 @@ test.describe("WhatsApp Integration", () => {
         clinicId: cachedUser.clinicId,
       },
     });
+    expect(
+      patientRes.ok(),
+      `patient bootstrap failed: ${patientRes.status()}`,
+    ).toBeTruthy();
     cachedPatient = await patientRes.json();
 
     const startTime = new Date();
@@ -50,10 +54,14 @@ test.describe("WhatsApp Integration", () => {
         clinicId: cachedUser!.clinicId,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        status: "completed", 
+        status: "completed",
         type: "consultation",
       },
     });
+    expect(
+      aptRes.ok(),
+      `appointment bootstrap failed: ${aptRes.status()}`,
+    ).toBeTruthy();
     const appointment = await aptRes.json();
 
     const prescRes = await request.post(`${API_URL}/prescriptions`, {
@@ -74,6 +82,10 @@ test.describe("WhatsApp Integration", () => {
         instructions: "Take after food",
       },
     });
+    expect(
+      prescRes.ok(),
+      `prescription bootstrap failed: ${prescRes.status()}`,
+    ).toBeTruthy();
     cachedPrescription = await prescRes.json();
   });
 
@@ -90,23 +102,25 @@ test.describe("WhatsApp Integration", () => {
     });
   }
 
-  test("should render WhatsApp page header and primary actions", async ({ page }) => {
+  test("should render WhatsApp page header and primary actions", async ({
+    page,
+  }) => {
     await injectAuth(page);
     await page.goto("/whatsapp");
     await page.waitForLoadState("networkidle");
 
-    if ((page.url() || "").includes("/dashboard")) {
-      test.skip();
-      return;
-    }
     await expectRoute(page, /\/whatsapp/);
     await expectPageHeader(page, {
       title: "WhatsApp Integration",
       description: /WhatsApp Business API/i,
     });
 
-    await expect(page.getByRole("button", { name: /Manage Settings/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Create Campaign/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Manage Settings/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Create Campaign/i }),
+    ).toBeVisible();
   });
 
   test("should trigger WhatsApp API when sending prescription", async ({
@@ -124,41 +138,30 @@ test.describe("WhatsApp Integration", () => {
       });
     });
 
-    await page.goto("/dashboard/prescriptions", { waitUntil: "load" });
+    expect(
+      cachedPrescription?.id,
+      "prescription bootstrap did not yield an id",
+    ).toBeTruthy();
 
-    const patientText = page.locator("text=WA User");
-    if (await patientText.isVisible()) {
-      await patientText.first().click(); 
-    } else {
-
-      if (cachedPrescription?.id) {
-        await page.goto(`/prescriptions/${cachedPrescription.id}`);
-      }
-    }
+    await page.goto(`/prescriptions/${cachedPrescription!.id}`, {
+      waitUntil: "load",
+    });
 
     const waButton = page
       .locator(
         'button:has-text("WhatsApp"), [aria-label*="WhatsApp"], .whatsapp-share-btn',
       )
       .first();
+    await expect(waButton).toBeVisible({ timeout: 15000 });
+    await waButton.click();
 
-    if (await waButton.isVisible()) {
-      await waButton.click();
-
-      const confirmBtn = page.locator(
-        'button:has-text("Send"), button:has-text("Confirm")',
-      );
-      if (await confirmBtn.isVisible()) {
-        await confirmBtn.click();
-      }
-
-      await page.waitForTimeout(1000); 
-
-      expect(whatsappCalled).toBeTruthy();
-    } else {
-      
-
-      test.skip();
+    const confirmBtn = page
+      .locator('button:has-text("Send"), button:has-text("Confirm")')
+      .first();
+    if (await confirmBtn.isVisible()) {
+      await confirmBtn.click();
     }
+
+    await expect.poll(() => whatsappCalled, { timeout: 5000 }).toBe(true);
   });
 });

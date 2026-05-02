@@ -70,7 +70,7 @@ export function ConsultationNotesModal({
             id="consultation-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Clinical observations, diagnosis, and plan..."
+            placeholder="Consultation notes"
             className="min-h-[160px] sm:min-h-[220px]"
           />
         </div>
@@ -82,7 +82,7 @@ export function ConsultationNotesModal({
             onClick={handleSave}
             disabled={!notes.trim() || updateAppointment.isPending}
           >
-            {updateAppointment.isPending ? "Saving..." : "Save Notes"}
+            {updateAppointment.isPending ? "Saving…" : "Save Notes"}
           </Button>
         </DialogFooter>
       </DialogContent>

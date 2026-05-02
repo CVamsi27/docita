@@ -1,3 +1,5 @@
+import { getConsultationSectionsForClinic } from "@/features/consultation/workspace/consultation-section-registry";
+
 const BASE_CONSULTATION_TABS = [
   "chief-complaint",
   "history",
@@ -10,6 +12,10 @@ const SPECIALTY_TAB_BY_CLINIC: Record<string, string> = {
   DENTAL: "dental-chart",
   OPHTHALMOLOGY: "vision-exam",
   PEDIATRIC: "growth-chart",
+  CARDIOLOGY: "cardiology-exam",
+  DERMATOLOGY: "dermatology-exam",
+  GYNECOLOGY: "gynecology-exam",
+  PSYCHIATRY: "mental-status-exam",
 };
 
 const LEGACY_TAB_MAPPING: Record<string, string> = {
@@ -18,6 +24,46 @@ const LEGACY_TAB_MAPPING: Record<string, string> = {
   prescription: "treatment",
   invoice: "treatment",
 };
+
+/** Maps normalized legacy `tab` query values to workspace `section` ids (SOAP + specialty). */
+export const LEGACY_TAB_TO_SECTION_ID: Record<string, string> = {
+  "chief-complaint": "subjective",
+  history: "subjective",
+  examination: "objective",
+  diagnosis: "assessment",
+  treatment: "plan",
+  "dental-chart": "specialty-dental",
+  "vision-exam": "specialty-vision",
+  "growth-chart": "specialty-growth",
+  "cardiology-exam": "specialty-cardiology",
+  "dermatology-exam": "specialty-dermatology",
+  "gynecology-exam": "specialty-gynecology",
+  "mental-status-exam": "specialty-psychiatry",
+  "psychiatry-exam": "specialty-psychiatry",
+  investigations: "specialty-investigations",
+  "labs-imaging": "specialty-investigations",
+};
+
+export function legacyTabToSectionId(
+  rawTab?: string | null,
+  clinicType?: string | null,
+): string | undefined {
+  const tab = normalizeConsultationTab(rawTab, clinicType);
+  return LEGACY_TAB_TO_SECTION_ID[tab];
+}
+
+/** Resolve workspace section from URL: prefers `section`, falls back to mapped legacy `tab`. */
+export function resolveConsultationSectionFromUrl(
+  sectionParam?: string | null,
+  tabParam?: string | null,
+  clinicType?: string | null,
+): string | undefined {
+  const trimmed = sectionParam?.trim();
+  if (trimmed) {
+    return trimmed;
+  }
+  return legacyTabToSectionId(tabParam, clinicType);
+}
 
 function normalizeRawTab(rawTab?: string | null): string {
   if (!rawTab) {
@@ -45,6 +91,13 @@ export function normalizeConsultationTab(
   clinicType?: string | null,
 ): string {
   const tab = normalizeRawTab(rawTab);
+  const mappedSection = LEGACY_TAB_TO_SECTION_ID[tab];
+  if (mappedSection) {
+    const sections = getConsultationSectionsForClinic(clinicType);
+    if (sections.some((s) => s.id === mappedSection)) {
+      return tab;
+    }
+  }
   const validTabs = getConsultationTabIds(clinicType);
   return validTabs.includes(tab) ? tab : "chief-complaint";
 }
@@ -53,16 +106,22 @@ export function buildConsultationRoute(
   appointmentId: string,
   options?: {
     tab?: string;
+    section?: string;
     from?: string;
     clinicType?: string | null;
   },
 ): string {
   const params = new URLSearchParams();
-  const normalizedTab = normalizeConsultationTab(options?.tab, options?.clinicType);
 
-  if (normalizedTab !== "chief-complaint") {
-    params.set("tab", normalizedTab);
+  let sectionId = options?.section?.trim();
+  if (!sectionId && options?.tab != null) {
+    sectionId = legacyTabToSectionId(options.tab, options?.clinicType);
   }
+
+  if (sectionId && sectionId !== "subjective") {
+    params.set("section", sectionId);
+  }
+
   if (options?.from) {
     params.set("from", options.from);
   }

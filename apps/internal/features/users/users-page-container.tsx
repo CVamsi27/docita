@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -22,6 +24,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
@@ -32,8 +35,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Eye, Loader2, Search, Users } from "lucide-react";
+import { Eye, Search, Users } from "lucide-react";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
+import {
+  formatInternalListDate,
+  formatInternalTimestamp,
+} from "@/lib/format-display-date";
 import { ROLE_CONFIG } from "./types";
 import { getRoleBadgeColor } from "./utils";
 import { useUsersData } from "./use-users-data";
@@ -101,7 +108,7 @@ export function UsersPageContainer() {
                   <p className="text-sm font-medium text-muted-foreground">
                     {config.label}
                   </p>
-                  <p className="text-2xl font-bold mt-1">
+                  <p className="mt-1 text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                     {roleStats[role as keyof typeof roleStats]}
                   </p>
                 </div>
@@ -119,7 +126,7 @@ export function UsersPageContainer() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search by name, email, or specialization..."
+                  placeholder="Enter name, email, or specialization"
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                   className="pl-9"
@@ -131,7 +138,7 @@ export function UsersPageContainer() {
                 className="w-full md:w-[250px]"
                 aria-label="Filter by facility"
               >
-                <SelectValue placeholder="Select facility" />
+                <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Facilities</SelectItem>
@@ -155,8 +162,17 @@ export function UsersPageContainer() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div
+              className="flex items-center justify-center py-8"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading team members"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-primary"
+              />
             </div>
           ) : filteredUsers.length === 0 ? (
             <EmptyState
@@ -205,7 +221,7 @@ export function UsersPageContainer() {
                         {user.phoneNumber || "-"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {formatInternalListDate(user.createdAt)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -230,6 +246,9 @@ export function UsersPageContainer() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>
+              Review team member contact details and professional credentials.
+            </DialogDescription>
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-6">
@@ -338,7 +357,7 @@ export function UsersPageContainer() {
                   Joined
                 </p>
                 <p className="text-sm font-semibold mt-1">
-                  {new Date(selectedUser.createdAt).toLocaleString()}
+                  {formatInternalTimestamp(selectedUser.createdAt)}
                 </p>
               </div>
             </div>

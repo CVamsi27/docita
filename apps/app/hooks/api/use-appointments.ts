@@ -2,19 +2,31 @@ import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { queryKeys } from "@workspace/data-access";
 import {
   Appointment,
+  AppointmentRequestListResponse,
+  AppointmentRequestResponse,
+  ApproveAppointmentRequest,
+  BookFollowUpRequest,
   AppointmentCancelRequest,
+  AppointmentListItemContractResponse,
   CreateAppointmentRequest,
+  FollowUpResponse,
+  ListAppointmentRequestsQuery,
+  ListFollowUpsQuery,
   Patient,
+  listAppointmentsResponseSchema,
+  RejectAppointmentRequest,
   StartConsultationResponse,
   UpdateAppointmentRequest,
 } from "@workspace/types";
 import {
   fetchAPI,
-  PaginatedResponse,
   useAPIMutation,
   useAPIQuery,
+  useAPIQueryValidated,
 } from "@/lib/api-core";
-import { withQueryString } from "@/lib/http/query-string";
+import { withQueryString, type QueryParams } from "@/lib/http/query-string";
+
+export type AppointmentListItem = AppointmentListItemContractResponse;
 
 export type AppointmentWithRelations = Appointment & {
   patient?: Patient;
@@ -63,6 +75,12 @@ type AppointmentQueryOptions = {
 const normalizeAppointmentQueryOptions = (
   options?: AppointmentQueryOptions | null,
 ): AppointmentQueryOptions | undefined => {
+  return normalizeQueryOptions(options);
+};
+
+const normalizeQueryOptions = <T extends QueryParams>(
+  options?: T | null,
+): T | undefined => {
   if (!options) {
     return undefined;
   }
@@ -71,18 +89,17 @@ const normalizeAppointmentQueryOptions = (
     ([, value]) => value !== undefined && value !== null && value !== "",
   );
 
-  return Object.fromEntries(normalizedEntries) as AppointmentQueryOptions;
+  return Object.fromEntries(normalizedEntries) as T;
 };
 
-export const useAppointments = (
-  options?: AppointmentQueryOptions | null,
-) => {
+export const useAppointments = (options?: AppointmentQueryOptions | null) => {
   const normalizedOptions = normalizeAppointmentQueryOptions(options);
   const url = withQueryString("/appointments", normalizedOptions);
 
-  return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
+  return useAPIQueryValidated(
     queryKeys.appointments.list(normalizedOptions),
     url,
+    listAppointmentsResponseSchema,
     { enabled: options !== null, placeholderData: keepPreviousData },
   );
 };
@@ -92,9 +109,10 @@ export const useTodayAppointments = (enabled: boolean = true) => {
   const offsetMs = now.getTimezoneOffset() * 60 * 1000;
   const localDate = new Date(now.getTime() - offsetMs);
   const today = localDate.toISOString().split("T")[0] ?? "";
-  return useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
+  return useAPIQueryValidated(
     queryKeys.appointments.list({ date: today }),
     `/appointments?date=${today}`,
+    listAppointmentsResponseSchema,
     { enabled },
   );
 };
@@ -106,9 +124,10 @@ export const useAppointment = (id: string) =>
   );
 
 export const usePatientAppointments = (patientId: string) =>
-  useAPIQuery<PaginatedResponse<AppointmentWithRelations>>(
+  useAPIQueryValidated(
     queryKeys.appointments.byPatient(patientId),
     `/appointments?patientId=${patientId}`,
+    listAppointmentsResponseSchema,
     { enabled: !!patientId },
   );
 
@@ -118,6 +137,7 @@ export const useCreateAppointment = () =>
     "POST",
     {
       invalidateKeys: [queryKeys.appointments.all()],
+      suppressGlobalErrorToast: true,
     },
   );
 
@@ -130,6 +150,7 @@ export const useUpdateAppointment = (id: string) =>
         queryKeys.appointments.all(),
         queryKeys.appointments.detail(id),
       ],
+      suppressGlobalErrorToast: true,
     },
   );
 
@@ -196,13 +217,13 @@ export const useInfiniteAppointments = (options?: {
   return useInfiniteQuery({
     queryKey: queryKeys.appointments.infinite(normalizedOptions),
     queryFn: ({ pageParam }) => {
-      return fetchAPI<PaginatedResponse<Appointment & { patient?: Patient }>>(
+      return fetchAPI(
         withQueryString("/appointments", {
           ...normalizedOptions,
           limit: options?.limit ?? 50,
           cursor: pageParam as string | undefined,
         }),
-      );
+      ).then((data) => listAppointmentsResponseSchema.parse(data));
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
@@ -218,6 +239,73 @@ export const useCheckInAppointment = () =>
       invalidateKeys: [queryKeys.queue.all(), queryKeys.appointments.all()],
     },
   );
+
+export const useFollowUps = (options?: ListFollowUpsQuery | null) => {
+  const normalizedOptions = normalizeAppointmentQueryOptions(options);
+  return useAPIQuery<FollowUpResponse[]>(
+    ["follow-ups", normalizedOptions ?? {}],
+    withQueryString("/follow-ups", normalizedOptions),
+    { enabled: options !== null, placeholderData: keepPreviousData },
+  );
+};
+
+export const useCompleteFollowUp = () =>
+  useAPIMutation<FollowUpResponse, { id: string }>(
+    ({ id }) => `/follow-ups/${id}/complete`,
+    "PATCH",
+    {
+      invalidateKeys: [["follow-ups"]],
+    },
+  );
+
+export const useCancelFollowUp = () =>
+  useAPIMutation<FollowUpResponse, { id: string }>(
+    ({ id }) => `/follow-ups/${id}/cancel`,
+    "PATCH",
+    {
+      invalidateKeys: [["follow-ups"]],
+    },
+  );
+
+export const useBookFollowUp = () =>
+  useAPIMutation<FollowUpResponse, BookFollowUpRequest & { id: string }>(
+    ({ id }) => `/follow-ups/${id}/book`,
+    "PATCH",
+    {
+      invalidateKeys: [["follow-ups"], queryKeys.appointments.all()],
+    },
+  );
+
+export const useAppointmentRequests = (
+  options?: ListAppointmentRequestsQuery | null,
+) => {
+  const normalizedOptions = normalizeAppointmentQueryOptions(options);
+  return useAPIQuery<AppointmentRequestListResponse>(
+    ["appointment-requests", normalizedOptions ?? {}],
+    withQueryString("/appointment-requests", normalizedOptions),
+    { enabled: options !== null, placeholderData: keepPreviousData },
+  );
+};
+
+export const useApproveAppointmentRequest = () =>
+  useAPIMutation<
+    AppointmentRequestResponse,
+    ApproveAppointmentRequest & { id: string }
+  >(({ id }) => `/appointment-requests/${id}/approve`, "PATCH", {
+    invalidateKeys: [
+      ["appointment-requests"],
+      queryKeys.appointments.all(),
+      ["patient-portal", "appointments"],
+    ],
+  });
+
+export const useRejectAppointmentRequest = () =>
+  useAPIMutation<
+    AppointmentRequestResponse,
+    RejectAppointmentRequest & { id: string }
+  >(({ id }) => `/appointment-requests/${id}/reject`, "PATCH", {
+    invalidateKeys: [["appointment-requests"]],
+  });
 
 export const useQueue = (options?: { search?: string }) => {
   const params = options?.search ? { search: options.search } : undefined;

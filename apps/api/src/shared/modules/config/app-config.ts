@@ -62,6 +62,7 @@ export const EnvSchema = z.object({
   REQUEST_TIMEOUT_MS: z.coerce.number().default(30000),
   SECRETS_PROVIDER: z.enum(['env', 'aws']).default('env'),
   ENABLE_SCHEDULERS: z.coerce.boolean().default(true),
+  QUEUE_BACKEND: z.enum(['memory', 'postgres']).default('memory'),
   API_LOG_MODE: z.string().default('access-and-errors'),
   WORKER_ENTRYPOINT: z.enum(['main', 'worker']).default('main'),
   DOCTOR_VERIFICATION_API_URL: z.string().optional(),
@@ -136,6 +137,7 @@ export function validateEnv(): EnvConfig {
     envToParse.NEXT_PUBLIC_API_URL ??= 'http://localhost:3001/api';
     envToParse.CORS_ORIGINS ??= 'http://localhost:3000';
     envToParse.ENABLE_SCHEDULERS ??= 'true';
+    envToParse.QUEUE_BACKEND ??= 'memory';
     envToParse.WORKER_ENTRYPOINT ??= 'main';
   }
 
@@ -182,6 +184,19 @@ export function validateEnv(): EnvConfig {
     process.stderr.write('\nAPI environment validation failed.\n');
     process.stderr.write('Please fix the following environment variables:\n');
     process.stderr.write('  - JWT_SECRET: Required\n\n');
+    process.exit(1);
+  }
+
+  const requiresDurableQueue =
+    runningAsWorker &&
+    (result.data.NODE_ENV === 'production' ||
+      result.data.NODE_ENV === 'staging');
+  if (requiresDurableQueue && result.data.QUEUE_BACKEND !== 'postgres') {
+    process.stderr.write('\nAPI environment validation failed.\n');
+    process.stderr.write('Please fix the following environment variables:\n');
+    process.stderr.write(
+      '  - QUEUE_BACKEND: Must be postgres for worker in staging/production\n\n',
+    );
     process.exit(1);
   }
 

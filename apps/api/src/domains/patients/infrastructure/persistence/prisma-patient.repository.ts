@@ -8,6 +8,23 @@ import { Patient } from '@/domains/patients/core/entities/patient.entity';
 import { PatientMapper } from '@/domains/patients/infrastructure/mappers/patient.mapper';
 import { Prisma, Gender } from '@workspace/db';
 
+const PATIENT_PERSISTENCE_SELECT = {
+  id: true,
+  clinicId: true,
+  mrn: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phoneNumber: true,
+  gender: true,
+  dateOfBirth: true,
+  address: true,
+  customData: true,
+  createdAt: true,
+  updatedAt: true,
+  version: true,
+} as const;
+
 @Injectable()
 export class PrismaPatientRepository implements IPatientRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -16,10 +33,11 @@ export class PrismaPatientRepository implements IPatientRepository {
     return this.prisma.getReadClient();
   }
 
-  async findById(id: string): Promise<Patient | null> {
+  async findById(id: string, clinicId: string): Promise<Patient | null> {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
-      where: { id },
+      where: { id, clinicId },
+      select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
     return PatientMapper.toDomain(item);
@@ -29,6 +47,7 @@ export class PrismaPatientRepository implements IPatientRepository {
     const readClient = this.getReadClient();
     const item = await readClient.patient.findFirst({
       where: { mrn, clinicId },
+      select: PATIENT_PERSISTENCE_SELECT,
     });
     if (!item) return null;
     return PatientMapper.toDomain(item);
@@ -65,6 +84,7 @@ export class PrismaPatientRepository implements IPatientRepository {
         take: limit,
         skip: (page - 1) * limit,
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        select: PATIENT_PERSISTENCE_SELECT,
       }),
     ]);
 
@@ -85,12 +105,15 @@ export class PrismaPatientRepository implements IPatientRepository {
 
   async update(patient: Patient): Promise<void> {
     const data = PatientMapper.toPersistence(patient);
-    const { id, ...updateData } = data;
+    const { id, clinicId, ...updateData } = data;
     if (!id || typeof id !== 'string') {
       throw new Error('Patient id is required for update');
     }
+    if (!clinicId || typeof clinicId !== 'string') {
+      throw new Error('Patient clinicId is required for update');
+    }
     const result = await this.prisma.patient.updateMany({
-      where: { id },
+      where: { id, clinicId },
       data: {
         ...(updateData as Prisma.PatientUncheckedUpdateInput),
         version: { increment: 1 },
@@ -101,7 +124,7 @@ export class PrismaPatientRepository implements IPatientRepository {
     }
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.patient.deleteMany({ where: { id } });
+  async delete(id: string, clinicId: string): Promise<void> {
+    await this.prisma.patient.deleteMany({ where: { id, clinicId } });
   }
 }

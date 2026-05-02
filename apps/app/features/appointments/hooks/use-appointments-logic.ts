@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format } from "date-fns";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { useDoctors } from "@/hooks/api/use-settings";
 import {
+  addDays,
+  endOfMonth,
+  formatPickerIsoDate,
+  startOfMonth,
+  subDays,
+} from "@workspace/utils";
+import { toast } from "sonner";
+import { useDoctors, useUnavailableDoctorIdsForDate } from "@/hooks/api/use-settings";
+import {
+  type AppointmentListItem,
   useAppointments,
   useCancelAppointment,
   useCheckInAppointment,
@@ -15,11 +21,9 @@ import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 import {
-  Appointment,
   isClinicWideAppointmentRole,
   resolveDoctorScopedAppointmentFilter,
 } from "@workspace/types";
-import { queryKeys } from "@workspace/data-access";
 
 export const generateTimeSlots = () => {
   const slots = [];
@@ -34,18 +38,23 @@ export const generateTimeSlots = () => {
 
 export const TIME_SLOTS = generateTimeSlots();
 
-const getCurrentTimeSlot = () => {
-  const now = new Date();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
+/** Local wall-clock half-hour key (`HH:mm`) for matching `TIME_SLOTS` and scroll-to-current. */
+export function formatLocalHalfHourSlotKey(d: Date): string {
+  const hours = d.getHours();
+  const minutes = d.getMinutes();
   const slotMinutes = Math.floor(minutes / 30) * 30;
   return `${hours.toString().padStart(2, "0")}:${slotMinutes.toString().padStart(2, "0")}`;
-};
+}
+
+const getCurrentTimeSlot = () => formatLocalHalfHourSlotKey(new Date());
 
 export const useAppointmentsLogic = () => {
   const NON_CANCELLED_APPOINTMENT_STATUSES =
     "scheduled,confirmed,in_progress,completed,no-show";
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() =>
+    startOfMonth(new Date()),
+  );
   const [checkingIn, setCheckingIn] = useState<string | null>(null);
 
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -65,14 +74,19 @@ export const useAppointmentsLogic = () => {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const currentTimeSlotRef = useRef<HTMLDivElement>(null);
 
   // Use local calendar day (not UTC) to avoid off-by-one-day queries.
-  const selectedDateStr = date ? format(date, "yyyy-MM-dd") : undefined;
+  const selectedDateStr = date ? formatPickerIsoDate(date) : undefined;
 
   const handleDateSelect = useCallback((next: Date | undefined) => {
-    setDate(next ?? new Date());
+    const selected = next ?? new Date();
+    setDate(selected);
+    setCalendarMonth(startOfMonth(selected));
+  }, []);
+
+  const handleCalendarMonthChange = useCallback((month: Date) => {
+    setCalendarMonth(month);
   }, []);
 
   const canViewAllDoctors = useMemo(
@@ -91,7 +105,47 @@ export const useAppointmentsLogic = () => {
   );
 
   const { data: doctors = [] } = useDoctors();
-  const doctorsList = doctors;
+  const { data: unavailableDoctorResponse } = useUnavailableDoctorIdsForDate(date);
+  const unavailableDoctorIds = useMemo(
+    () => new Set(unavailableDoctorResponse?.doctorIds ?? []),
+    [unavailableDoctorResponse?.doctorIds],
+  );
+
+  const doctorsList = useMemo(
+    () => doctors.filter((d) => !unavailableDoctorIds.has(d.id)),
+    [doctors, unavailableDoctorIds],
+  );
+
+  useEffect(() => {
+    if (
+      selectedDoctorId &&
+      unavailableDoctorIds.has(selectedDoctorId)
+    ) {
+      setSelectedDoctorId(undefined);
+    }
+  }, [selectedDoctorId, unavailableDoctorIds]);
+
+  const rangeStart = subDays(startOfMonth(calendarMonth), 7);
+  const rangeEnd = addDays(endOfMonth(calendarMonth), 7);
+
+  const { data: monthRangeAppointmentsResponse } = useAppointments({
+    startDate: formatPickerIsoDate(rangeStart),
+    endDate: formatPickerIsoDate(rangeEnd),
+    ...(doctorScope.scopedDoctorId
+      ? { doctorId: doctorScope.scopedDoctorId }
+      : {}),
+    status: NON_CANCELLED_APPOINTMENT_STATUSES,
+    limit: 500,
+  });
+
+  const appointmentCountsByDay = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const apt of monthRangeAppointmentsResponse?.items ?? []) {
+      const key = formatPickerIsoDate(new Date(apt.startTime));
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return map;
+  }, [monthRangeAppointmentsResponse?.items]);
 
   const {
     data: appointmentsResponse,
@@ -140,7 +194,7 @@ export const useAppointmentsLogic = () => {
 
   const uniqueAppointments = useMemo(() => {
     const seen = new Set<string>();
-    return appointments.filter((apt: Appointment) => {
+    return appointments.filter((apt: AppointmentListItem) => {
       if (!apt.id || seen.has(apt.id)) return false;
       seen.add(apt.id);
       return true;
@@ -159,27 +213,6 @@ export const useAppointmentsLogic = () => {
   );
 
   const currentTimeSlot = useMemo(() => getCurrentTimeSlot(), []);
-  const appointmentsQueryParams = useMemo(
-    () => ({
-      ...(selectedDateStr ? { date: selectedDateStr } : {}),
-      ...(doctorScope.scopedDoctorId
-        ? { doctorId: doctorScope.scopedDoctorId }
-        : {}),
-      ...(debouncedSearch ? { search: debouncedSearch } : {}),
-      status: NON_CANCELLED_APPOINTMENT_STATUSES,
-      limit: 100,
-    }),
-    [
-      debouncedSearch,
-      doctorScope.scopedDoctorId,
-      NON_CANCELLED_APPOINTMENT_STATUSES,
-      selectedDateStr,
-    ],
-  );
-  const appointmentsQueryKey = useMemo(
-    () => queryKeys.appointments.list(appointmentsQueryParams),
-    [appointmentsQueryParams],
-  );
   const isToday = useMemo(() => {
     if (!date) return false;
     const today = new Date();
@@ -247,73 +280,15 @@ export const useAppointmentsLogic = () => {
     [checkInMutation, refetch],
   );
 
-  const updateCurrentAppointmentsCache = useCallback(
-    (updater: (items: Appointment[]) => Appointment[]) => {
-      queryClient.setQueryData(
-        appointmentsQueryKey,
-        (current:
-          | {
-              items?: Appointment[];
-              count?: number;
-              hasMore?: boolean;
-              nextCursor?: string | null;
-            }
-          | undefined) => {
-          if (!current?.items) {
-            return current;
-          }
-
-          const items = updater(current.items);
-          return {
-            ...current,
-            items,
-            count: items.length,
-          };
-        },
-      );
-    },
-    [appointmentsQueryKey, queryClient],
-  );
-
-  const handleAppointmentAdded = useCallback(
-    async (appointment: Appointment) => {
-      const createdDate = format(new Date(appointment.startTime), "yyyy-MM-dd");
-      const shouldAppendToCurrentView =
-        selectedDateStr === createdDate &&
-        (!doctorScope.scopedDoctorId ||
-          appointment.doctorId === doctorScope.scopedDoctorId);
-
-      if (shouldAppendToCurrentView) {
-        updateCurrentAppointmentsCache((items) => {
-          if (items.some((item) => item.id === appointment.id)) {
-            return items;
-          }
-
-          return [...items, appointment].sort(
-            (a, b) =>
-              new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-          );
-        });
-      }
-
-      await refetch();
-    },
-    [
-      doctorScope.scopedDoctorId,
-      refetch,
-      selectedDateStr,
-      updateCurrentAppointmentsCache,
-    ],
-  );
+  const handleAppointmentAdded = useCallback(async (_appointment: unknown) => {
+    await refetch();
+  }, [refetch]);
 
   const handleCancelAppointment = async (reason: string) => {
     if (!cancellingAptId) return;
     try {
       await cancelAppointmentMutation.mutateAsync({ reason });
       toast.success("Appointment cancelled successfully");
-      updateCurrentAppointmentsCache((items) =>
-        items.filter((item) => item.id !== cancellingAptId),
-      );
       setCancellingAptId(null);
       setCancelDialogOpen(false);
       await refetch();
@@ -331,13 +306,6 @@ export const useAppointmentsLogic = () => {
         status: "no-show",
       });
       toast.success("Appointment marked as no-show");
-      updateCurrentAppointmentsCache((items) =>
-        items.map((item) =>
-          item.id === noShowAptId
-            ? ({ ...item, status: "no-show" } as Appointment)
-            : item,
-        ),
-      );
       setNoShowAptId(null);
       setNoShowDialogOpen(false);
       await refetch();
@@ -352,6 +320,9 @@ export const useAppointmentsLogic = () => {
     state: {
       date,
       setDate: handleDateSelect,
+      calendarMonth,
+      onCalendarMonthChange: handleCalendarMonthChange,
+      appointmentCountsByDay,
       checkingIn,
       startingConsultationId,
       cancelDialogOpen,

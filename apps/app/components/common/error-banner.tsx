@@ -1,8 +1,9 @@
-
+"use client";
 
 import React from "react";
 import { AlertCircle, X } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { getSafeUserMessage } from "@/lib/user-facing-errors";
 
 interface ErrorBannerProps {
@@ -53,16 +54,18 @@ export const ErrorBanner: React.FC<ErrorBannerProps> = ({
           )}
         </div>
         {onDismiss && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-5 w-5 shrink-0 -mt-1"
-            onClick={onDismiss}
-            aria-label="Dismiss error"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <SymbolTooltip label="Dismiss error">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 shrink-0 -mt-1"
+              onClick={onDismiss}
+              aria-label="Dismiss error"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </SymbolTooltip>
         )}
       </div>
     </div>

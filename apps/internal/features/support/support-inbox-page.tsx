@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, formatDistanceToNow } from "date-fns";
+import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -20,14 +22,7 @@ import {
 import { internalQueryKeys } from "@/lib/query-keys";
 import { supportAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import {
-  Inbox,
-  Loader2,
-  MessageSquare,
-  Phone,
-  Search,
-  Send,
-} from "lucide-react";
+import { Inbox, MessageSquare, Phone, Search, Send } from "lucide-react";
 
 const THREAD_LIMIT = 100;
 const THREAD_MESSAGES_LIMIT = 500;
@@ -251,10 +246,10 @@ export function SupportInboxPage() {
             WhatsApp Inbox
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="ui-page-title text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)]">
               Incoming Messages
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="ui-page-subtitle">
               Live WhatsApp conversations received on the onboarding support
               line, with replies sent directly from the internal portal.
             </p>
@@ -267,7 +262,7 @@ export function SupportInboxPage() {
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Threads
               </p>
-              <p className="text-2xl font-bold">{totalThreads}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{totalThreads}</p>
             </CardContent>
           </Card>
           <Card>
@@ -275,7 +270,7 @@ export function SupportInboxPage() {
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Unread
               </p>
-              <p className="text-2xl font-bold">{unreadMessages}</p>
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{unreadMessages}</p>
             </CardContent>
           </Card>
         </div>
@@ -284,7 +279,7 @@ export function SupportInboxPage() {
       {threadsLoading && (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading WhatsApp conversations...
+            Loading WhatsApp conversations…
           </CardContent>
         </Card>
       )}
@@ -323,7 +318,7 @@ export function SupportInboxPage() {
                 <Input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search by name, phone, or message"
+                  placeholder="Enter name, phone, or message"
                   className="pl-10"
                 />
               </div>
@@ -331,7 +326,7 @@ export function SupportInboxPage() {
 
             <CardContent className="space-y-3 p-4 sm:p-5">
               {filteredThreads.length === 0 ? (
-                <div className="rounded-xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-[var(--radius)] border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                   {search.trim()
                     ? "No WhatsApp conversations matched your search"
                     : "No incoming WhatsApp messages yet"}
@@ -349,11 +344,11 @@ export function SupportInboxPage() {
                         setSelectedThreadPhoneNumber(thread.threadPhoneNumber)
                       }
                       className={[
-                        "w-full rounded-xl border p-4 text-left transition-colors",
-                        "hover:border-primary/40 hover:bg-muted/30",
+                        "w-full rounded-[var(--radius)] border border-border/70 p-4 text-left transition-colors",
+                        "hover:bg-muted/30",
                         isSelected
-                          ? "border-primary bg-primary/5 shadow-sm"
-                          : "border-border bg-background",
+                          ? "bg-muted/50 shadow-sm"
+                          : "bg-background",
                       ].join(" ")}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -378,9 +373,7 @@ export function SupportInboxPage() {
                           </p>
                         </div>
                         <div className="shrink-0 text-right text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(thread.lastMessageAt), {
-                            addSuffix: true,
-                          })}
+                          {formatDistanceToNow(thread.lastMessageAt)}
                         </div>
                       </div>
                     </button>
@@ -423,11 +416,11 @@ export function SupportInboxPage() {
                         <p>Support line: {selectedThread.supportPhoneNumber}</p>
                         <p>
                           Last activity{" "}
-                          {formatDistanceToNow(new Date(selectedThread.lastMessageAt), {
-                            addSuffix: true,
-                          })}
+                          {formatDistanceToNow(selectedThread.lastMessageAt)}
                           {" "}
-                          ({format(new Date(selectedThread.lastMessageAt), "PPpp")})
+                          (
+                          {formatDate(selectedThread.lastMessageAt, DATE_FORMATS.DATETIME_LONG)}
+                          )
                         </p>
                       </div>
                     </div>
@@ -448,8 +441,8 @@ export function SupportInboxPage() {
                   <div className="space-y-3">
                     {threadMessagesQuery.isLoading && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Loading conversation...
+                        <DocitaLoadingIndicator variant="inline" decorative />
+                        Loading conversation…
                       </div>
                     )}
 
@@ -464,7 +457,7 @@ export function SupportInboxPage() {
                     {!threadMessagesQuery.isLoading && !threadMessagesErrorMessage && (
                       <div className="space-y-3">
                         {threadMessages.length === 0 ? (
-                          <div className="rounded-xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                          <div className="rounded-[var(--radius)] border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground">
                             This conversation has no stored messages yet.
                           </div>
                         ) : (
@@ -480,7 +473,7 @@ export function SupportInboxPage() {
                               >
                                 <div
                                   className={[
-                                    "max-w-[90%] rounded-2xl border p-4 shadow-sm",
+                                    "max-w-[90%] rounded-[var(--radius)] border p-4 shadow-sm",
                                     isOutbound
                                       ? "border-primary/20 bg-primary/5"
                                       : "border-border bg-muted/30",
@@ -501,12 +494,7 @@ export function SupportInboxPage() {
                                     </Badge>
                                     <span>{formatMessageType(message.messageType)}</span>
                                     <span>
-                                      {formatDistanceToNow(
-                                        new Date(message.receivedAt),
-                                        {
-                                          addSuffix: true,
-                                        },
-                                      )}
+                                      {formatDistanceToNow(message.receivedAt)}
                                     </span>
                                   </div>
                                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-foreground">
@@ -525,7 +513,7 @@ export function SupportInboxPage() {
                     <Textarea
                       value={replyMessage}
                       onChange={(event) => setReplyMessage(event.target.value)}
-                      placeholder="Type a reply to send through WhatsApp"
+                      placeholder="Enter reply"
                       rows={4}
                       className="resize-none"
                     />
@@ -544,7 +532,7 @@ export function SupportInboxPage() {
                         className="gap-2"
                       >
                         {replyMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <DocitaLoadingIndicator variant="inline" decorative />
                         ) : (
                           <Send className="h-4 w-4" />
                         )}

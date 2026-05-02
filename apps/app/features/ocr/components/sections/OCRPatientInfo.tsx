@@ -153,7 +153,7 @@ export const OCRPatientInfo = ({
                     bloodType: e.target.value,
                   })
                 }
-                placeholder="O+, A-, etc."
+                placeholder="Blood type"
               />
             </div>
           </div>

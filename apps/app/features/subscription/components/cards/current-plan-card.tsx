@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  Activity,
-  CalendarClock,
-  Crown,
-  CreditCard,
-  Loader2,
-  LockKeyhole,
-  Receipt,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
+import { Activity, CalendarClock, Crown, CreditCard, LockKeyhole, Receipt, Sparkles, TrendingUp } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,6 +15,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Progress } from "@workspace/ui/components/progress";
 import { cn } from "@workspace/ui/lib/utils";
 import type { CurrentUsage, TierInfo } from "@workspace/types";
+import { formatCountLocale } from "@workspace/utils";
 
 interface CurrentPlanCardProps {
   tierInfo: TierInfo;
@@ -75,7 +68,7 @@ const usageItems = [
 ] as const;
 
 function formatUsageValue(value: number) {
-  return value >= 999999 ? "Unlimited" : value.toLocaleString();
+  return value >= 999999 ? "Unlimited" : formatCountLocale(value);
 }
 
 export function CurrentPlanCard({
@@ -112,7 +105,7 @@ export function CurrentPlanCard({
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-xl",
+                "flex h-11 w-11 items-center justify-center rounded-lg",
                 colors.gradient,
               )}
             >
@@ -213,8 +206,8 @@ export function CurrentPlanCard({
 
           {isUsageLoading ? (
             <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading usage...
+              <DocitaLoadingIndicator variant="inline" decorative />
+              Loading usage…
             </div>
           ) : hasUsageError ? (
             <p className="mt-4 text-sm text-muted-foreground">

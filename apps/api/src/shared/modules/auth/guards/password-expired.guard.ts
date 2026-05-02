@@ -10,7 +10,7 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/prisma/prisma.service';
 import { getAuthenticatedUserId } from '@/shared/modules/auth/auth/request-user.util';
 
-const SKIP_PASSWORD_EXPIRY_KEY = 'skipPasswordExpiry';
+export const SKIP_PASSWORD_EXPIRY_KEY = 'skipPasswordExpiry';
 
 export const SkipPasswordExpiry = () =>
   SetMetadata(SKIP_PASSWORD_EXPIRY_KEY, true);

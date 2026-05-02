@@ -60,9 +60,18 @@ export function StatGrid({
               key={i}
               className="rounded-[var(--radius-lg)] border border-border/60 bg-card p-4"
             >
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="mt-3 h-7 w-16" />
-              <Skeleton className="mt-2 h-3 w-24" />
+              <div className="flex items-start gap-3">
+                <Skeleton
+                  variant="circular"
+                  animation="wave"
+                  className="h-9 w-9 shrink-0"
+                />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton animation="wave" className="h-3 w-20" />
+                  <Skeleton animation="wave" className="h-7 w-16" />
+                  <Skeleton animation="wave" className="h-3 w-24" />
+                </div>
+              </div>
             </div>
           ))
         : items.map((item) => {

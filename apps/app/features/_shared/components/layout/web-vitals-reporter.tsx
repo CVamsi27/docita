@@ -14,6 +14,10 @@ export function WebVitalsReporter() {
   const pathname = usePathname();
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
     const sessionId = `session-${Date.now()}-${Math.random()}`;
     const feature = getFeatureFromPath(pathname);
 
@@ -30,15 +34,12 @@ export function WebVitalsReporter() {
       if (navigator.sendBeacon) {
         navigator.sendBeacon(`${API_URL}/monitoring/web-vitals`, body);
       } else {
-
         fetch(`${API_URL}/monitoring/web-vitals`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body,
           keepalive: true,
-        }).catch(() => {
-
-        });
+        }).catch(() => {});
       }
     }
 
@@ -51,5 +52,5 @@ export function WebVitalsReporter() {
     });
   }, [pathname]);
 
-  return null; 
+  return null;
 }

@@ -1,11 +1,14 @@
+"use client";
+
 import { Button } from "@workspace/ui/components/button";
-import { ArrowLeft, Edit, Lock, Printer, Share2 } from "lucide-react";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { format } from "date-fns";
+import { ArrowLeft, Edit, Lock, Printer, Share2 } from "lucide-react";
+import { formatDate } from "@workspace/utils";
 
 interface PrescriptionHeaderProps {
   createdAt: string;
@@ -29,18 +32,20 @@ export function PrescriptionHeader({
   return (
     <div className="flex items-center justify-between print:hidden">
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          aria-label="Back to prescriptions"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        <SymbolTooltip label="Back to prescriptions">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            aria-label="Back to prescriptions"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </SymbolTooltip>
         <div>
-          <h1 className="text-2xl font-bold">Prescription</h1>
+          <h1 className="ui-page-title">Prescription</h1>
           <p className="text-sm text-muted-foreground">
-            {format(new Date(createdAt), "MMMM d, yyyy")}
+            {formatDate(createdAt, "MMMM d, yyyy")}
           </p>
         </div>
       </div>
@@ -65,7 +70,7 @@ export function PrescriptionHeader({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Upgrade to access WhatsApp sharing</p>
+              <p>WhatsApp</p>
             </TooltipContent>
           </Tooltip>
         )}

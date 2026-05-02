@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Check, Info, Minus } from "lucide-react";
 import {
   FEATURE_TIER_MAP,
@@ -20,6 +21,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -30,6 +32,15 @@ interface ComparisonTableProps {
   currentTier: number;
   keyFeaturesOnly?: boolean;
 }
+
+type AvailableFeatureItem =
+  | { kind: "header"; label: string }
+  | {
+      kind: "feature";
+      feature: Feature;
+      label: string;
+      requiredTier: Tier;
+    };
 
 const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
   {
@@ -151,23 +162,137 @@ export function ComparisonTable({
     .filter((t): t is number => typeof t === "number" && t !== Tier.INTELLIGENCE)
     .sort((a, b) => a - b);
 
-  const limitRows = getFeatureComparisonData().filter(
-    (r: FeatureComparisonRow) => r.category === "limit",
+  const limitRows = useMemo(
+    () =>
+      getFeatureComparisonData().filter(
+        (r: FeatureComparisonRow) => r.category === "limit",
+      ),
+    [],
   );
   const categories = keyFeaturesOnly
     ? KEY_FEATURE_CATEGORIES
     : FEATURE_CATEGORIES;
 
+  const [mobileTier, setMobileTier] = useState<number>(() => {
+    return tiers.includes(currentTier) ? currentTier : (tiers[0] ?? Tier.STARTER);
+  });
+
+  const availableFeatures = useMemo(() => {
+    return categories.flatMap<AvailableFeatureItem>((category) => {
+      const validFeatures = category.features.filter(
+        (f) => f in FEATURE_TIER_MAP && getFeatureDetails(f).isGenerallyAvailable,
+      );
+      if (validFeatures.length === 0) return [];
+
+      const header: AvailableFeatureItem = {
+        kind: "header",
+        label: category.label,
+      };
+
+      const features: AvailableFeatureItem[] = validFeatures.map((feature) => ({
+        kind: "feature",
+        feature,
+        label: getFeatureDetails(feature).name,
+        requiredTier: FEATURE_TIER_MAP[feature],
+      }));
+
+      return [header, ...features];
+    });
+  }, [categories]);
+
   return (
-    <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden">
       <div className="p-6 border-b">
-        <h2 className="text-2xl font-bold text-center">Compare Plans</h2>
-        <p className="text-center text-muted-foreground mt-2">
+        <h2 className="ui-section-title text-center text-[var(--fs-2xl)]">
+          Compare Plans
+        </h2>
+        <p className="ui-page-subtitle mt-2 text-center">
           Find the perfect fit for your facility&apos;s needs
         </p>
       </div>
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="block md:hidden p-4 space-y-4">
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {tiers.map((tier) => {
+            const info = getTierInfo(tier);
+            const isActive = mobileTier === tier;
+            return (
+              <button
+                key={tier}
+                type="button"
+                onClick={() => setMobileTier(tier)}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-background text-foreground border-border hover:bg-muted/50",
+                )}
+              >
+                {info.name}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="rounded-lg border bg-background/50">
+          <div className="p-4 border-b">
+            <p className="text-sm font-semibold text-foreground">Plan Limits</p>
+          </div>
+          <div className="p-4 space-y-3">
+            {limitRows.map((row) => (
+              <div key={row.name} className="flex items-start justify-between gap-4">
+                <p className="text-sm text-muted-foreground min-w-0 break-words">
+                  {row.name}
+                </p>
+                <p className="text-sm font-medium text-foreground text-right">
+                  {String(row.values[mobileTier as Tier])}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-background/50">
+          <div className="p-4 border-b">
+            <p className="text-sm font-semibold text-foreground">Features</p>
+          </div>
+          <div className="p-4 space-y-2">
+            {availableFeatures.map((item, index) => {
+              if (item.kind === "header") {
+                return (
+                  <p
+                    key={`${item.label}-${index}`}
+                    className="pt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                  >
+                    {item.label}
+                  </p>
+                );
+              }
+
+              const hasAccess = mobileTier >= item.requiredTier;
+              return (
+                <div
+                  key={item.feature}
+                  className="flex items-start justify-between gap-3 rounded-md border border-border/60 bg-background/70 px-3 py-2"
+                >
+                  <p className="text-sm text-foreground min-w-0 break-words">
+                    {item.label}
+                  </p>
+                  <div className="shrink-0 pt-0.5">
+                    {hasAccess ? (
+                      <Check className="h-4 w-4 text-success" />
+                    ) : (
+                      <Minus className="h-4 w-4 text-muted-foreground/40" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden md:block">
+        <Table className="text-sm">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[260px] min-w-[200px] sticky left-0 z-10 bg-card border-r">
@@ -203,13 +328,20 @@ export function ComparisonTable({
                 <TableRow key={row.name} className="hover:bg-muted/50">
                   <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] text-sm font-medium py-2.5 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm truncate" title={row.name}>
-                        {row.name}
-                      </span>
+                      <SymbolTooltip
+                        label={row.name}
+                        side="top"
+                        contentClassName="max-w-[280px]"
+                      >
+                        <span className="text-sm truncate">{row.name}</span>
+                      </SymbolTooltip>
                       {LIMIT_ROW_DESCRIPTIONS[row.name] && (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
+                            <Info
+                              className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0"
+                              aria-label="About this limit"
+                            />
                           </TooltipTrigger>
                           <TooltipContent className="max-w-[280px]" side="right">
                             <p className="text-xs">
@@ -301,9 +433,13 @@ function FeatureCategoryRows({
           <TableRow key={feature} className="hover:bg-muted/50">
             <TableCell className="sticky left-0 z-10 bg-card border-r w-[260px] min-w-[200px] hover:bg-muted/50 transition-colors py-2.5">
               <div className="flex items-center gap-2">
-                <span className="text-sm truncate" title={details.name}>
-                  {details.name}
-                </span>
+                <SymbolTooltip
+                  label={details.name}
+                  side="top"
+                  contentClassName="max-w-[280px]"
+                >
+                  <span className="text-sm truncate">{details.name}</span>
+                </SymbolTooltip>
                 {!details.isGenerallyAvailable && (
                   <Badge variant="secondary" className="text-[var(--fs-2xs)] px-1.5 py-0">
                     Planned
@@ -312,7 +448,10 @@ function FeatureCategoryRows({
                 {details.description && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0" />
+                      <Info
+                        className="h-3.5 w-3.5 text-muted-foreground cursor-pointer shrink-0"
+                        aria-label="About this feature"
+                      />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[280px]" side="right">
                       <p className="text-xs">{details.description}</p>

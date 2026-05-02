@@ -1,10 +1,11 @@
-import type { APIError } from "@/lib/types";
+import type { APIError } from "./types";
 
 export class APIRequestError extends Error implements APIError {
   status?: number;
   statusText?: string;
   code?: string;
   data?: Record<string, unknown>;
+  validationErrors?: Record<string, string>;
   isNetworkError?: boolean;
   isTimeout?: boolean;
 
@@ -12,6 +13,13 @@ export class APIRequestError extends Error implements APIError {
     super(message);
     this.name = "APIRequestError";
     Object.assign(this, options);
+  }
+
+  get hasFieldErrors(): boolean {
+    return (
+      !!this.validationErrors &&
+      Object.keys(this.validationErrors).length > 0
+    );
   }
 }
 

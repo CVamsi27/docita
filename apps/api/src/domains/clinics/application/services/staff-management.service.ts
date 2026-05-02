@@ -8,6 +8,19 @@ import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { Role, Specialization } from '@workspace/db';
 
+type ClinicMemberRole =
+  | 'DOCTOR'
+  | 'NURSE'
+  | 'RECEPTIONIST'
+  | 'ADMIN'
+  | 'ADMIN_DOCTOR';
+
+/** Clinic admins (ADMIN / ADMIN_DOCTOR) may assign any allowed clinic member role. */
+const actorMayAssignMemberRoles = (
+  actorRole: Role | ClinicMemberRole | undefined,
+): actorRole is 'ADMIN' | 'ADMIN_DOCTOR' =>
+  actorRole === Role.ADMIN || actorRole === Role.ADMIN_DOCTOR;
+
 interface CreateDoctorData {
   name: string;
   email: string;
@@ -26,11 +39,22 @@ interface CreateReceptionistData {
   role?: 'RECEPTIONIST' | 'NURSE';
 }
 
+interface CreateClinicMemberData {
+  name: string;
+  email: string;
+  password: string;
+  phoneNumber?: string;
+  role: ClinicMemberRole;
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
+}
+
 interface UpdateMemberData {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  role?: 'DOCTOR' | 'NURSE' | 'RECEPTIONIST' | 'ADMIN_DOCTOR';
+  role?: ClinicMemberRole;
   specialization?: string;
   qualification?: string;
   registrationNumber?: string;
@@ -76,6 +100,64 @@ export class StaffManagementService {
         clinicId,
       },
     });
+
+    return user;
+  }
+
+  async createMember(clinicId: string, data: CreateClinicMemberData) {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const prismaRole: Role =
+      data.role === 'DOCTOR'
+        ? Role.DOCTOR
+        : data.role === 'NURSE'
+          ? Role.NURSE
+          : data.role === 'RECEPTIONIST'
+            ? Role.RECEPTIONIST
+            : data.role === 'ADMIN'
+              ? Role.ADMIN
+              : Role.ADMIN_DOCTOR;
+
+    const needsDoctorClinic =
+      data.role === 'DOCTOR' || data.role === 'ADMIN_DOCTOR';
+
+    const user = await this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: hashedPassword,
+        role: prismaRole,
+        clinicId,
+        phoneNumber: data.phoneNumber,
+        ...(needsDoctorClinic
+          ? {
+              qualification: data.qualification,
+              registrationNumber: data.registrationNumber,
+              specialization: data.specialization as Specialization,
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phoneNumber: true,
+        specialization: true,
+        qualification: true,
+        registrationNumber: true,
+        createdAt: true,
+      },
+    });
+
+    if (needsDoctorClinic) {
+      await this.prisma.doctorClinic.create({
+        data: {
+          doctorId: user.id,
+          clinicId,
+        },
+      });
+    }
 
     return user;
   }
@@ -164,6 +246,10 @@ export class StaffManagementService {
         hospitalRole: true,
         qualification: true,
         registrationNumber: true,
+        signatureUploadedAt: true,
+        verificationStatus: true,
+        verificationReason: true,
+        verificationCheckedAt: true,
         profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,
@@ -179,6 +265,7 @@ export class StaffManagementService {
     memberId: string,
     data: UpdateMemberData,
     actorUserId: string,
+    actorRole: Role,
   ) {
     const member = await this.prisma.user.findFirst({
       where: {
@@ -199,17 +286,23 @@ export class StaffManagementService {
       throw new BadRequestException('You cannot change your own role');
     }
 
-    if (member.role === Role.ADMIN && data.role) {
-      throw new ForbiddenException('Admin role cannot be changed here');
-    }
-
     if (
       data.role &&
-      ![Role.DOCTOR, Role.NURSE, Role.RECEPTIONIST, Role.ADMIN_DOCTOR].includes(
-        data.role,
-      )
+      ![
+        Role.DOCTOR,
+        Role.NURSE,
+        Role.RECEPTIONIST,
+        Role.ADMIN,
+        Role.ADMIN_DOCTOR,
+      ].includes(data.role)
     ) {
       throw new BadRequestException('Invalid role for clinic member update');
+    }
+
+    if (data.role && data.role !== member.role) {
+      if (!actorMayAssignMemberRoles(actorRole)) {
+        throw new ForbiddenException('Only admins can change member roles');
+      }
     }
 
     const updated = await this.prisma.user.update({
@@ -240,6 +333,10 @@ export class StaffManagementService {
         specialization: true,
         qualification: true,
         registrationNumber: true,
+        signatureUploadedAt: true,
+        verificationStatus: true,
+        verificationReason: true,
+        verificationCheckedAt: true,
         profilePhotoUrl: true,
         createdAt: true,
         updatedAt: true,

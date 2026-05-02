@@ -6,6 +6,7 @@ export interface ClinicUpdateData {
   tier?: string;
   intelligenceAddon?: string;
   subscriptionStatus?: string;
+  subscriptionGraceUntil?: string | null;
 }
 
 export function useClinicSocket(

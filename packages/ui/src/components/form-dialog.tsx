@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "./dialog";
@@ -77,7 +78,7 @@ export function FormDialogFooter({
   onCancel,
 }: FormDialogFooterProps) {
   return (
-    <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2 pt-2">
+    <DialogFooter>
       <Button
         type="button"
         variant="outline"
@@ -89,13 +90,17 @@ export function FormDialogFooter({
       <Button type="submit" disabled={isLoading || disabled}>
         {isLoading ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            {submitLabel || (isEditing ? "Updating..." : "Creating...")}
+            <DocitaLoadingIndicator
+              variant="inline"
+              decorative
+              className="mr-2"
+            />
+            {submitLabel || (isEditing ? "Updating…" : "Creating…")}
           </>
         ) : (
           submitLabel || (isEditing ? "Update" : "Create")
         )}
       </Button>
-    </div>
+    </DialogFooter>
   );
 }

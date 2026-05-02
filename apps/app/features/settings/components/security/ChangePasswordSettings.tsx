@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   Card,
   CardContent,
@@ -52,13 +53,17 @@ export function ChangePasswordSettings() {
       });
       toast.success("Password updated successfully");
       form.reset();
-    } catch {
-
+    } catch (error) {
+      showUserFacingErrorToast(
+        error,
+        "We could not update your password. Please try again.",
+        "save",
+      );
     }
   };
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>Change Password</CardTitle>
         <CardDescription>Update your account password</CardDescription>
@@ -76,12 +81,15 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Current Password"
+                  htmlFor="current-password"
                   required
                   error={form.formState.errors.currentPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="current-password">
                     <Input
+                      id="current-password"
                       type="password"
+                      autoComplete="current-password"
                       placeholder="Enter current password"
                       {...field}
                     />
@@ -96,12 +104,15 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="New Password"
+                  htmlFor="new-password"
                   required
                   error={form.formState.errors.newPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="new-password">
                     <Input
+                      id="new-password"
                       type="password"
+                      autoComplete="new-password"
                       placeholder="Enter new password"
                       {...field}
                     />
@@ -117,13 +128,16 @@ export function ChangePasswordSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Confirm New Password"
+                  htmlFor="confirm-password"
                   required
                   error={form.formState.errors.confirmPassword?.message}
                 >
-                  <FormControl>
+                  <FormControl id="confirm-password">
                     <Input
+                      id="confirm-password"
                       type="password"
-                      placeholder="Confirm new password"
+                      autoComplete="new-password"
+                      placeholder="Confirm password"
                       {...field}
                     />
                   </FormControl>
@@ -136,7 +150,7 @@ export function ChangePasswordSettings() {
               type="submit"
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Updating..." : "Update Password"}
+              {form.formState.isSubmitting ? "Updating…" : "Update Password"}
             </Button>
           </form>
         </Form>

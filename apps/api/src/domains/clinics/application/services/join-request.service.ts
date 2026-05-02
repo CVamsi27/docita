@@ -5,8 +5,8 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { addDays } from 'date-fns';
 import type { MemberJoinRequest, JoinRequestStatus, Role } from '@workspace/db';
+import { addDays } from '@workspace/utils';
 import {
   IJoinRequestRepository,
   JOIN_REQUEST_REPOSITORY_TOKEN,

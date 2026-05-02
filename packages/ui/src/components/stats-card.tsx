@@ -16,22 +16,22 @@ interface GradientStatCardProps {
 
 const colorStyles = {
   primary: {
-    gradient: "from-primary/20 to-primary/5",
+    surface: "border-primary/20 bg-primary/5",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
   },
   success: {
-    gradient: "from-success/20 to-success/5",
+    surface: "border-success/20 bg-success/5",
     iconBg: "bg-success/10",
     iconColor: "text-success",
   },
   info: {
-    gradient: "from-info/20 to-info/5",
+    surface: "border-info/20 bg-info/5",
     iconBg: "bg-info/10",
     iconColor: "text-info",
   },
   warning: {
-    gradient: "from-warning/20 to-warning/5",
+    surface: "border-warning/20 bg-warning/5",
     iconBg: "bg-warning/10",
     iconColor: "text-warning",
   },
@@ -51,8 +51,8 @@ export function GradientStatCard({
   return (
     <Card
       className={cn(
-        "overflow-hidden border-none shadow-sm transition-colors duration-150 hover:shadow-md",
-        `bg-linear-to-br ${styles.gradient}`,
+        "overflow-hidden shadow-sm transition-colors duration-150 hover:shadow-md",
+        styles.surface,
         className,
       )}
     >
@@ -60,7 +60,7 @@ export function GradientStatCard({
         <div className="flex items-center gap-3 sm:gap-4">
           <div
             className={cn(
-              "flex h-10 w-10 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl",
+              "flex size-10 shrink-0 items-center justify-center rounded-lg sm:size-14",
               styles.iconBg,
               styles.iconColor,
             )}
@@ -70,7 +70,9 @@ export function GradientStatCard({
           <div className="flex-1 min-w-0">
             <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
             <div className="flex items-baseline gap-2">
-              <h3 className="text-2xl sm:text-3xl font-bold">{value}</h3>
+              <h3 className="text-[var(--fs-2xl)] sm:text-[var(--fs-3xl)] font-semibold leading-[var(--lh-tight)] tabular-nums">
+                {value}
+              </h3>
               {subtitle && (
                 <span className="text-xs text-muted-foreground">
                   {subtitle}
@@ -131,7 +133,7 @@ export function QuickActionCard({
       <CardContent className="flex flex-col items-center justify-center p-6 text-center">
         <div
           className={cn(
-            "mb-3 rounded-2xl p-3 transition-colors duration-150",
+            "mb-3 rounded-lg p-3 transition-colors duration-150",
             styles.bg,
           )}
         >

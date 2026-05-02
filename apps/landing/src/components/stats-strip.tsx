@@ -57,15 +57,15 @@ export function StatsStrip() {
           {statCards.map((card) => (
             <article
               key={card.label}
-              className="rounded-xl border border-primary-foreground/20 bg-primary-foreground/5 p-5"
+              className="rounded-[var(--radius)] border border-primary-foreground/20 bg-primary-foreground/5 p-5"
             >
               <card.icon
                 className="mx-auto mb-3 h-7 w-7 opacity-90"
                 aria-hidden="true"
               />
-              <div className="text-3xl font-bold md:text-4xl">
+              <div className="text-[var(--fs-4xl)] font-bold leading-none md:text-[var(--fs-5xl)]">
                 {isLoading
-                  ? "..."
+                  ? "…"
                   : stats
                     ? formatStatValue(stats[card.key])
                     : "—"}

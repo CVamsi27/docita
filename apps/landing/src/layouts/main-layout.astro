@@ -55,7 +55,7 @@ const jsonLd = {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap"
     />
     <script is:inline>
       (() => {
@@ -95,7 +95,7 @@ const jsonLd = {
     {noIndex ? <meta name="robots" content="noindex,nofollow" /> : <meta name="robots" content="index,follow" />}
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
-  <body class="app-shell-bg min-h-screen bg-background font-sans text-foreground antialiased">
+  <body class="app-shell-bg landing-surface min-h-screen bg-background font-sans text-foreground antialiased">
     <SiteHeader />
     <main>
       <slot />

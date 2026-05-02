@@ -34,6 +34,7 @@ export const clinicSchema = z.object({
   createdAt: z.date().or(z.string()),
   updatedAt: z.date().or(z.string()),
   subscriptionStatus: z.string(),
+  subscriptionGraceUntil: z.date().or(z.string()).nullable().optional(),
   branding: jsonObjectSchema.nullable().optional(),
   features: jsonObjectSchema.nullable().optional(),
   whatsappAutomation: whatsAppAutomationSchema.nullable().optional(),

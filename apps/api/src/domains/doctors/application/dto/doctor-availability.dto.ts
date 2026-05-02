@@ -4,6 +4,7 @@ import {
   listDoctorSchedulesQuerySchema,
   listDoctorTimeOffQuerySchema,
   doctorAvailableSlotsQuerySchema,
+  doctorUnavailableDoctorsQuerySchema,
 } from '@workspace/types';
 
 export const dayOfWeekSchema = z.enum([
@@ -107,4 +108,10 @@ export class ListDoctorTimeOffQueryDto extends createZodDto(
 export const DoctorAvailableSlotsQuerySchema = doctorAvailableSlotsQuerySchema;
 export class DoctorAvailableSlotsQueryDto extends createZodDto(
   DoctorAvailableSlotsQuerySchema,
+) {}
+
+export const DoctorUnavailableDoctorsQuerySchema =
+  doctorUnavailableDoctorsQuerySchema;
+export class DoctorUnavailableDoctorsQueryDto extends createZodDto(
+  DoctorUnavailableDoctorsQuerySchema,
 ) {}

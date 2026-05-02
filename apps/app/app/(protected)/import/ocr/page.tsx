@@ -6,6 +6,8 @@ import { useMobileUpload } from "@/features/ocr/hooks/use-mobile-upload";
 import { useOCR } from "@/features/ocr/hooks/use-ocr";
 import { OCRMobileDialog, OCRResults, OCRUploadSection } from "@/features/ocr/components";
 import { BackButton } from "@/components/common/navigation/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 
 export default function OCRPage() {
   const {
@@ -30,29 +32,24 @@ export default function OCRPage() {
 
   const handleMobileUploadStart = () => {
     startMobileUpload((file, _url) => {
-
       handleFileChange(file);
     });
   };
 
   return (
     <FeatureGate feature={Feature.OCR_BASIC} showLockedCard>
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <BackButton fallback="/import" label="Back to Import" />
-        </div>
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-          Smart OCR Digitization
-        </h1>
-        <p className="text-muted-foreground">
-          Upload a photo of a prescription or case sheet to auto-extract
-          details.
-        </p>
-      </div>
+      <AppPageScaffold
+        className="max-w-5xl"
+        header={
+          <PageHeader
+            breadcrumbs={<BackButton fallback="/import" label="Back to Import" />}
+            title="Smart OCR Digitization"
+            description="Upload a photo of a prescription or case sheet to auto-extract details."
+          />
+        }
+      >
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {}
+        <div className="grid gap-6 lg:grid-cols-2">
         <OCRUploadSection
           previewUrl={previewUrl}
           file={file}
@@ -63,7 +60,6 @@ export default function OCRPage() {
           onScan={handleScan}
         />
 
-        {}
         <OCRResults
           scanned={scanned}
           documentType={documentType}
@@ -78,9 +74,8 @@ export default function OCRPage() {
         />
       </div>
 
-      {}
       <OCRMobileDialog open={showQr} onOpenChange={setShowQr} qrUrl={qrUrl} />
-    </div>
+      </AppPageScaffold>
     </FeatureGate>
   );
 }

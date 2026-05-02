@@ -19,6 +19,7 @@ import { useDebounce } from "@workspace/hooks/use-debounce";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { CodingQueue } from "@/features/medical-coding/components";
 import { useCodingQueue } from "@/hooks/api/use-medical-coding";
+import { formatDateTime } from "@/lib/formatters";
 
 function formatQueueDate(value: Appointment["startTime"]): string {
   const date = value instanceof Date ? value : new Date(value);
@@ -27,10 +28,11 @@ function formatQueueDate(value: Appointment["startTime"]): string {
     return "Date unavailable";
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
+  const formatted = formatDateTime(date, "en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(date);
+  });
+  return formatted.length > 0 ? formatted : "Date unavailable";
 }
 
 function formatStatus(status: string): string {
@@ -103,7 +105,7 @@ export default function CodingQueuePage() {
             <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
               <Input
                 aria-label="Search coding queue"
-                placeholder="Search patient or visit..."
+                placeholder="Enter patient or visit"
                 value={searchQuery}
                 onChange={(event) => {
                   setSearchQuery(event.target.value);
@@ -112,8 +114,8 @@ export default function CodingQueuePage() {
               <div className="rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">
                   {pendingCount}
-                </span>{" "}
-                pending review
+                </span>
+                <span className="ml-1">pending review</span>
               </div>
             </CardContent>
           </Card>
@@ -132,7 +134,7 @@ export default function CodingQueuePage() {
           ) : isLoading ? (
             <Card>
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                Loading uncoded visits...
+                Loading uncoded visits…
               </CardContent>
             </Card>
           ) : (

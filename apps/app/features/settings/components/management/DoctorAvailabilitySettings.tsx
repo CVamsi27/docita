@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   useBulkDoctorSchedules,
@@ -26,7 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Calendar, Loader2 } from "lucide-react";
+import { Calendar } from "lucide-react";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 const DAYS_OF_WEEK = [
@@ -157,15 +160,44 @@ export function DoctorAvailabilitySettings() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading doctor availability"
+      >
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Skeleton animation="wave" className="h-5 w-5 rounded" />
+            <div className="space-y-2">
+              <Skeleton animation="wave" className="h-6 w-48" />
+              <Skeleton animation="wave" className="h-4 w-72 max-w-full" />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton animation="wave" className="h-9 w-full max-w-xs" />
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton
+              key={i}
+              animation="wave"
+              className="h-16 w-full rounded-lg"
+            />
+          ))}
+          <div className="flex justify-center py-4">
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              iconClassName="h-8 w-8 text-muted-foreground"
+            />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card >
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-info" />
@@ -180,10 +212,10 @@ export function DoctorAvailabilitySettings() {
         <CardContent className="space-y-6">
           {isAdmin && doctors.length > 0 && (
             <div className="space-y-2">
-              <Label>Select Doctor</Label>
+              <Label htmlFor="availability-doctor">Select Doctor</Label>
               <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
-                <SelectTrigger className="w-full sm:w-64">
-                  <SelectValue placeholder="Select a doctor" />
+                <SelectTrigger id="availability-doctor" className="w-full sm:w-64">
+                  <SelectValue placeholder="Doctor" />
                 </SelectTrigger>
                 <SelectContent>
                   {doctors.map((doctor) => (
@@ -223,6 +255,7 @@ export function DoctorAvailabilitySettings() {
                       updateDay(day.dayOfWeek, { isActive: val })
                     }
                     id={`toggle-${day.dayOfWeek}`}
+                    name={`availability-${day.dayOfWeek}-active`}
                   />
                   <Label
                     htmlFor={`toggle-${day.dayOfWeek}`}
@@ -240,9 +273,17 @@ export function DoctorAvailabilitySettings() {
                   }
                 >
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Start</Label>
+                    <Label
+                      htmlFor={`availability-${day.dayOfWeek}-start`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      Start
+                    </Label>
                     <Input
+                      id={`availability-${day.dayOfWeek}-start`}
+                      name={`availability-${day.dayOfWeek}-start`}
                       type="time"
+                      autoComplete="off"
                       value={day.startTime}
                       onChange={(e) =>
                         updateDay(day.dayOfWeek, { startTime: e.target.value })
@@ -251,9 +292,17 @@ export function DoctorAvailabilitySettings() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">End</Label>
+                    <Label
+                      htmlFor={`availability-${day.dayOfWeek}-end`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      End
+                    </Label>
                     <Input
+                      id={`availability-${day.dayOfWeek}-end`}
+                      name={`availability-${day.dayOfWeek}-end`}
                       type="time"
+                      autoComplete="off"
                       value={day.endTime}
                       onChange={(e) =>
                         updateDay(day.dayOfWeek, { endTime: e.target.value })
@@ -262,9 +311,17 @@ export function DoctorAvailabilitySettings() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Slot (min)</Label>
+                    <Label
+                      htmlFor={`availability-${day.dayOfWeek}-slot-duration`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      Slot (min)
+                    </Label>
                     <Input
+                      id={`availability-${day.dayOfWeek}-slot-duration`}
+                      name={`availability-${day.dayOfWeek}-slot-duration`}
                       type="number"
+                      autoComplete="off"
                       value={day.slotDuration}
                       onChange={(e) =>
                         updateDay(day.dayOfWeek, {
@@ -285,8 +342,8 @@ export function DoctorAvailabilitySettings() {
           <Button className="w-full" onClick={handleSave} disabled={isSaving}>
             {isSaving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                Saving…
               </>
             ) : (
               "Save Availability"

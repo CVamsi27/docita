@@ -1,4 +1,5 @@
-import { Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { ErrorBanner } from "@/components/common/error-banner";
 import { FormField } from "@/components/common/form-field";
 import { Button } from "@workspace/ui/components/button";
@@ -27,7 +28,7 @@ export function AuthEmailStepUI({
         id="email"
         type="email"
         label="Email Address"
-        placeholder="Email address"
+        placeholder="Email"
         value={email}
         onChange={onChangeEmail}
         fieldErrors={fieldErrors}
@@ -41,13 +42,14 @@ export function AuthEmailStepUI({
 
       <Button
         type="submit"
-        className="w-full h-11 text-base shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow"
+        size="pill"
+        className="w-full"
         disabled={loading}
       >
         {loading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Checking...
+            <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+            Checking…
           </>
         ) : (
           "Continue"

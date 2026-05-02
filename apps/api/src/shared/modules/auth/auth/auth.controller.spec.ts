@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AUTH_CONSTANTS } from '@/shared/modules/config/app-constants';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { IpRateLimitGuard } from '@/shared/modules/auth/guards/ip-rate-limit.guard';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { ApiKeyService } from './api-key.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';

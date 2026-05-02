@@ -17,6 +17,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { useAuth } from "@/lib/auth-context";
 import { usePatientConsentSettings } from "@/hooks/api/use-patient-portal";
+import { formatDate } from "@/lib/formatters";
 
 const navigation = [
   { name: "Dashboard", href: "/portal", icon: User },
@@ -41,7 +42,7 @@ export function PortalNav() {
       : pathname === href || pathname.startsWith(`${href}/`);
 
   const consentUpdatedOn = consentSettings?.whatsappConsentAt
-    ? new Date(consentSettings.whatsappConsentAt).toLocaleDateString("en-IN", {
+    ? formatDate(consentSettings.whatsappConsentAt, "en-IN", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -49,8 +50,8 @@ export function PortalNav() {
     : null;
 
   return (
-    <nav className="border-b bg-white">
-      <div className="container mx-auto px-4">
+    <nav className="border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
+      <div className="ui-page-shell px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-8">
             <Link href="/portal" className="text-xl font-bold text-primary">
@@ -65,10 +66,10 @@ export function PortalNav() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                      "inline-flex items-center gap-2 rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        ? "bg-foreground text-background shadow-sm"
+                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -83,7 +84,10 @@ export function PortalNav() {
               <p className="text-sm text-muted-foreground">{user?.name}</p>
               <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                 <span>Consent updated: {consentUpdatedOn || "Not yet"}</span>
-                <Link href="/portal/profile/consent-form" className="text-primary hover:underline">
+                <Link
+                  href="/portal/profile/consent-form"
+                  className="text-primary underline-offset-2 hover:underline"
+                >
                   View
                 </Link>
               </div>
@@ -95,7 +99,7 @@ export function PortalNav() {
         </div>
 
         <div className="md:hidden pb-3">
-          <div className="flex items-center gap-2 overflow-x-auto">
+          <div className="flex flex-wrap items-center gap-2 overflow-x-hidden">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = isItemActive(item.href);
@@ -104,10 +108,10 @@ export function PortalNav() {
                   key={`mobile-${item.name}`}
                   href={item.href}
                   className={cn(
-                    "inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+                    "inline-flex shrink-0 items-center gap-1 rounded-[var(--radius)] px-2.5 py-1.5 text-xs font-medium transition-colors",
                     isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "bg-foreground text-background shadow-sm"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" />

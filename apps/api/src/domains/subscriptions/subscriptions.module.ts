@@ -16,8 +16,10 @@ import {
   EnterGracePeriodUseCase,
   ProcessWebhookUseCase,
   NotifyExpiringSubscriptionsUseCase,
+  NotifySubscriptionGraceDeadlineUseCase,
 } from './application/use-cases';
 import { SubscriptionsQueryService } from './application/services/subscriptions-query.service';
+import { SubscriptionCheckoutPricingService } from './application/services/subscription-checkout-pricing.service';
 import { SubscriptionPaymentPdfService } from './application/services/subscription-payment-pdf.service';
 import {
   SUBSCRIPTION_REPOSITORY_TOKEN,
@@ -46,6 +48,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
   controllers: [SubscriptionsController, SubscriptionsWebhookController],
   providers: [
     SubscriptionPricingService,
+    SubscriptionCheckoutPricingService,
     ProratingService,
     SubscriptionValidationService,
     ReferralService,
@@ -59,6 +62,7 @@ import { AdminAlertsModule } from '@/shared/modules/messaging/admin-alerts/admin
     EnterGracePeriodUseCase,
     ProcessWebhookUseCase,
     NotifyExpiringSubscriptionsUseCase,
+    NotifySubscriptionGraceDeadlineUseCase,
     SubscriptionsQueryService,
     SubscriptionPaymentPdfService,
     {

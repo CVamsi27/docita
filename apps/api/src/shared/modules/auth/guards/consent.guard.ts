@@ -10,7 +10,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { ConsentType } from '@workspace/db';
 import { AuthenticatedRequest } from '@workspace/types';
 
-const REQUIRE_CONSENT_KEY = 'requireConsent';
+export const REQUIRE_CONSENT_KEY = 'requireConsent';
 
 export const RequirePatientConsent = (...types: ConsentType[]) =>
   SetMetadata(

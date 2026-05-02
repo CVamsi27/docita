@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -14,7 +16,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { PageHeader } from "@workspace/ui/components/page-header";
-import { Loader2, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
@@ -103,7 +105,7 @@ export default function CreateReceptionistPage() {
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
                     id="name"
-                    placeholder="John Smith"
+                    placeholder="Full name"
                     value={form.name}
                     onChange={(e) => {
                       setForm({ ...form, name: e.target.value });
@@ -133,7 +135,7 @@ export default function CreateReceptionistPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="receptionist@clinic.com"
+                    placeholder="Email"
                     value={form.email}
                     onChange={(e) => {
                       setForm({ ...form, email: e.target.value });
@@ -166,7 +168,7 @@ export default function CreateReceptionistPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter a strong password"
+                    placeholder="Enter password"
                     value={form.password}
                     onChange={(e) => {
                       setForm({ ...form, password: e.target.value });
@@ -198,7 +200,7 @@ export default function CreateReceptionistPage() {
                   <Input
                     id="phoneNumber"
                     type="tel"
-                    placeholder="+91 XXXXX XXXXX"
+                    placeholder="Phone number"
                     value={form.phoneNumber}
                     onChange={(e) =>
                       setForm({ ...form, phoneNumber: e.target.value })
@@ -208,7 +210,6 @@ export default function CreateReceptionistPage() {
               </div>
             </div>
 
-            {}
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
@@ -218,7 +219,7 @@ export default function CreateReceptionistPage() {
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Create Receptionist
               </Button>
             </div>

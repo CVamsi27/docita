@@ -13,6 +13,8 @@ declare global {
       new (options: RazorpayOptions): RazorpayInstance;
     };
   }
+
+  var __docitaRazorpayLoadPromise: Promise<boolean> | undefined;
 }
 
 interface RazorpayOptions {
@@ -102,11 +104,7 @@ export function useRazorpay() {
   }, []);
 
   const loadRazorpay = useCallback(() => {
-    // Reuse existing in-flight load attempt.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const existingPromise = (globalThis as any).__docitaRazorpayLoadPromise as
-      | Promise<boolean>
-      | undefined;
+    const existingPromise = globalThis.__docitaRazorpayLoadPromise;
     if (existingPromise) return existingPromise;
 
     const promise = new Promise<boolean>((resolve) => {
@@ -156,10 +154,8 @@ export function useRazorpay() {
       };
       document.body.appendChild(script);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).__docitaRazorpayLoadPromise = promise.finally(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (globalThis as any).__docitaRazorpayLoadPromise = undefined;
+    globalThis.__docitaRazorpayLoadPromise = promise.finally(() => {
+      globalThis.__docitaRazorpayLoadPromise = undefined;
     });
 
     return promise;

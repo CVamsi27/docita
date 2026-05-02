@@ -163,9 +163,9 @@ export function CreateClinicDialog({
         description="Create a new facility and its admin account"
         isLoading={loading}
         onSubmit={handleSubmit}
-        submitLabel={loading ? "Creating..." : "Create Facility"}
+        submitLabel={loading ? "Creating…" : "Create Facility"}
       >
-        <form className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Facility Details
@@ -238,7 +238,7 @@ export function CreateClinicDialog({
                     }
                   }}
                   placeholder="Enter phone number"
-                  className="flex min-h-[5rem] min-w-0 flex-col gap-2 rounded-xl border border-input bg-background/60 p-3 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-10 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[9.5rem] [&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-lg [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
+                  className="flex min-h-[5rem] min-w-0 flex-col gap-2 rounded-[var(--radius)] border border-input bg-background/60 p-3 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-10 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[9.5rem] [&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-[var(--radius)] [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={
                     fieldErrors.phone ? "create-clinic-phone-error" : undefined
@@ -262,7 +262,7 @@ export function CreateClinicDialog({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select tier" />
+                    <SelectValue placeholder="Tier" />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABLE_TIERS.map((tier) => (
@@ -284,7 +284,7 @@ export function CreateClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select facility type" />
+                  <SelectValue placeholder="Facility type" />
                 </SelectTrigger>
                 <SelectContent>
                   {CLINIC_TYPE_OPTIONS.map((type) => (
@@ -456,7 +456,7 @@ export function CreateClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select admin type" />
+                  <SelectValue placeholder="Admin type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">
@@ -480,7 +480,7 @@ export function CreateClinicDialog({
               </p>
             </div>
           </div>
-        </form>
+        </div>
       </CRUDDialog>
     </>
   );

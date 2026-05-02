@@ -6,7 +6,7 @@ import { PrintSheet } from "@workspace/ui/components/print-sheet";
 import { LoadingState, EmptyState } from "@workspace/ui/components/empty-state";
 import { FileX } from "lucide-react";
 import { useBackNavigation } from "@/hooks/use-back-navigation";
-import { format } from "date-fns";
+import { DATE_FORMATS, formatDate } from "@workspace/utils";
 import { usePrescription } from "@/hooks/api/use-clinical";
 import { useFeatureAccess } from "@/hooks/use-feature-access";
 import { useClinic } from "@/lib/clinic-context";
@@ -83,7 +83,7 @@ export default function PrescriptionViewPage() {
 
     const doctorInfo = prescription.doctor as DoctorInfo;
     const doctorName = doctorInfo?.name?.trim() ?? "";
-    const date = format(new Date(prescription.createdAt), "dd/MM/yyyy");
+    const date = formatDate(prescription.createdAt, DATE_FORMATS.DATE_SHORT);
 
     let message = `*Prescription for ${patientName}*\n\n`;
     message += `Date: ${date}\n`;
@@ -124,7 +124,7 @@ export default function PrescriptionViewPage() {
   }
 
   if (isLoading) {
-    return <LoadingState message="Loading prescription..." className="min-h-[50vh]" />;
+    return <LoadingState message="Loading prescription…" className="min-h-[50vh]" />;
   }
 
   if (!prescription) {

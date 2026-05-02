@@ -5,6 +5,7 @@ import {
 } from '@/domains/subscriptions/application/ports';
 import { PrismaService } from '@/prisma/prisma.service';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 
 export interface NotifyExpiringSubscriptionsRequest {
   targetDate: Date;
@@ -39,12 +40,7 @@ export class NotifyExpiringSubscriptionsUseCase {
 
   private buildEmail(reminderType: string, clinicName: string, end: Date) {
     const days = this.parseDays(reminderType);
-    const endDate = end.toLocaleDateString('en-IN', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const endDate = formatDate(end, DATE_FORMATS.DATE_WEEKDAY_SHORT_MEDIUM);
 
     const subject =
       days !== null
@@ -78,7 +74,7 @@ export class NotifyExpiringSubscriptionsUseCase {
         clinic: {
           include: {
             users: {
-              where: { role: 'ADMIN' },
+              where: { role: { in: ['ADMIN', 'ADMIN_DOCTOR'] } },
               select: { email: true, name: true },
             },
           },

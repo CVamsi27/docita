@@ -213,7 +213,7 @@ export const PatientHistorySummaryCard: FC<PatientHistorySummaryCardProps> = ({
                     ))}
                   {compact && surgeries.length > 3 && (
                     <span className="text-xs text-muted-foreground block pt-1 pl-1">
-                      +{surgeries.length - 3} more...
+                      +{surgeries.length - 3} more…
                     </span>
                   )}
                 </div>

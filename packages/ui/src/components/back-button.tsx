@@ -1,8 +1,11 @@
+"use client";
+
 import * as React from "react";
 import { ArrowLeft } from "lucide-react";
 
 import { cn } from "@workspace/ui/lib/utils";
 import { Button, type ButtonProps } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 
 export interface BackButtonProps {
   onBack: () => void;
@@ -14,6 +17,9 @@ export interface BackButtonProps {
   ariaLabel?: string;
   disabled?: boolean;
   iconClassName?: string;
+  /** Tooltip text when `iconOnly` is true; defaults to `ariaLabel` or `label`. */
+  tooltipLabel?: string;
+  tooltipSide?: "top" | "right" | "bottom" | "left";
 }
 
 export function BackButton({
@@ -26,11 +32,14 @@ export function BackButton({
   ariaLabel,
   disabled,
   iconClassName,
+  tooltipLabel,
+  tooltipSide = "top",
 }: BackButtonProps) {
   const resolvedAriaLabel = ariaLabel ?? (iconOnly ? label : undefined);
   const resolvedSize = iconOnly && size === "sm" ? "icon-sm" : size;
+  const resolvedTooltip = tooltipLabel ?? resolvedAriaLabel ?? label;
 
-  return (
+  const button = (
     <Button
       type="button"
       variant={variant}
@@ -47,4 +56,14 @@ export function BackButton({
       {iconOnly ? null : <span>{label}</span>}
     </Button>
   );
+
+  if (iconOnly) {
+    return (
+      <SymbolTooltip label={resolvedTooltip} side={tooltipSide}>
+        {button}
+      </SymbolTooltip>
+    );
+  }
+
+  return button;
 }

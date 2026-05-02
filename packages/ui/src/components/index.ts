@@ -1,5 +1,6 @@
 export * from "./accordion";
 export * from "./docita-logo";
+export * from "./docita-loading-indicator";
 export * from "./app-page-scaffold";
 export * from "./app-shell";
 export * from "./breadcrumbs";
@@ -27,6 +28,7 @@ export * from "./filter-bar";
 export * from "./form-page";
 export * from "./print-sheet";
 export * from "./stat-grid";
+export * from "./stat-tile";
 export * from "./timeline";
 export * from "./toolbar";
 export * from "./confirmation-dialog";

@@ -140,6 +140,25 @@ export class PrismaDoctorScheduleRepository implements IDoctorScheduleRepository
     });
   }
 
+  async findDoctorIdsWithFullDayTimeOffOverlappingRange(
+    clinicId: string,
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): Promise<string[]> {
+    const rows = await this.getReadClient().doctorTimeOff.findMany({
+      where: {
+        isFullDay: true,
+        AND: [
+          { startDate: { lte: rangeEnd } },
+          { endDate: { gte: rangeStart } },
+        ],
+        OR: [{ clinicId }, { clinicId: null }],
+      },
+      select: { doctorId: true },
+    });
+    return [...new Set(rows.map((r) => r.doctorId))];
+  }
+
   async createTimeOff(data: Prisma.DoctorTimeOffCreateInput) {
     return this.prisma.doctorTimeOff.create({
       data,

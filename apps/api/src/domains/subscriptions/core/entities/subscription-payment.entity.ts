@@ -1,3 +1,5 @@
+import { formatCurrency } from '@workspace/utils';
+
 export enum PaymentStatusEnum {
   PENDING = 'PENDING',
   PAID = 'PAID',
@@ -125,11 +127,9 @@ export class SubscriptionPayment {
   }
 
   getDisplayAmount(): string {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
+    return formatCurrency(this.amountCents / 100, {
       currency: this.currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(this.amountCents / 100);
+      fractionDigits: 2,
+    });
   }
 }

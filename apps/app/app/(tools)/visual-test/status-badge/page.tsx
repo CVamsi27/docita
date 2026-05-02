@@ -14,7 +14,9 @@ export default function StatusBadgeVisualTest() {
   return (
     <div className="p-8 space-y-12 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold mb-2">StatusBadge Visual Test</h1>
+        <h1 className="ui-page-title mb-2 text-[var(--fs-3xl)]">
+          StatusBadge Visual Test
+        </h1>
         <p className="text-muted-foreground">
           Testing all status badge variants in light and dark modes
         </p>

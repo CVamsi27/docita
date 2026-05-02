@@ -115,7 +115,10 @@ export class SchedulerService {
       if (autoSendWhatsApp) {
         const session = sessionByInvoiceId.get(invoice.id);
         if (session) {
-          await this.paymentsService.sendPaymentLinkWhatsApp(session.id);
+          await this.paymentsService.sendPaymentLinkWhatsApp(
+            session.id,
+            session.clinicId,
+          );
         }
       }
     }

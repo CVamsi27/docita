@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file defines mandatory operating rules for coding agents working in this repository.
-It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.github/copilot-instructions.md`.
+It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-instructions.md`.
 
 ## 1) Scope and Priority
 
@@ -109,16 +109,23 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 ### 7.2 Comments
 
-- Do not leave stale TODO/FIXME comments.
-- If a comment describes missing work and you are implementing that area, implement and remove the stale comment.
-- Keep comments only when they explain non-obvious intent/constraints.
+- Do not leave stale TODO/FIXME comments: implement the behavior (with tests when behavior is user-visible or regression-prone), then remove the note.
+- Remove comments that only restate the code; keep comments that explain non-obvious intent, security/compliance constraints, or invariant “why.”
+- If a comment prescribes missing work in code you are changing, implement it and delete the comment instead of extending the backlog.
 
 ### 7.3 General code hygiene
 
-- No new `any` unless explicitly justified and constrained.
+- No new `any` unless explicitly justified and constrained; prefer Zod-inferred and domain types from `packages/types`.
+- Avoid `@ts-expect-error`, `@ts-ignore`, and broad `eslint-disable` comments—fix the root cause (types, dependency arrays, or API shape). Only suppress with a narrow scope and a one-line rationale when the ecosystem leaves no alternative.
+- At boundaries (`catch`, webhook payloads, untyped JSON), use `unknown` and narrow immediately with guards or Zod `safeParse`; do not use `any` or permanent `Record<string, unknown>` where a schema already exists.
 - Remove dead code and commented-out blocks.
 - No emojis in code, comments, or commit messages.
 - Prefer small cohesive functions and descriptive naming.
+
+### 7.4 Unused dependencies and exports (Knip)
+
+- Run `pnpm knip` for consolidated or workspace-wide changes and treat failures like lint: fix unused exports and dependencies or adjust `knip.json` only when the pattern is intentional.
+- In CI, Knip runs in the Repository Standards job only when the diff touches dependency manifests, `knip.json`, `turbo.json`, or paths under `apps/`, `packages/`, or `scripts/` (see `isKnipChange` in [`scripts/detect-workflow-scope.mjs`](scripts/detect-workflow-scope.mjs)). Workflow-only edits skip Knip to conserve minutes per section 11.2.
 
 ## 8) UX and Design Rules (Project-Wide)
 
@@ -170,6 +177,16 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
   - API uses Jest
   - Frontend uses Vitest
   - E2E uses Playwright
+- API specs that stub NestJS `Reflector#getAllAndOverride` should use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/TESTING.md` (Backend unit tests).
+- For large or consolidated pull requests, prefer this baseline before push:
+  - `pnpm lint`
+  - `pnpm verify:standard`
+  - `pnpm check:hygiene`
+  - `pnpm knip`
+  - `pnpm turbo check-types --continue` (or per-package checks matching CI)
+  - `pnpm test`
+  - `pnpm build` when impact spans multiple apps or packages
+  - `pnpm check:prisma-boundary` when API repositories or Prisma usage changed
 - Minimum pre-merge checks for touched areas:
   - `pnpm lint`
   - relevant typecheck (`pnpm --filter @docita/app run check-types` / API equivalents)
@@ -200,7 +217,7 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 - The production deploy workflow currently targets the API and the worker independently; keep those deploy paths and jobs scoped separately.
 - Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
 - Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
-- Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](/Users/vamsikrishnachandaluri/.codex/worktrees/8bc6/docita/apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
+- Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
 - Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
 
@@ -229,9 +246,9 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 1. `git fetch origin`
 2. `git checkout main && git pull origin main`
-4. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`)
+3. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`, or a scoped consolidation branch such as `fix/consolidate-all-into-one-pr`)
 
-Open a **pull request into `main`**.
+Open a **pull request into `main`**. Consolidation or umbrella branches must still be created from up-to-date `main`, not from `staging`.
 
 ### Staging environment
 
@@ -264,6 +281,7 @@ pnpm audit:internal
 pnpm audit:landing
 pnpm check:hygiene
 pnpm verify:standard
+pnpm knip
 pnpm check:prisma-boundary
 pnpm check:colors
 pnpm db:generate
@@ -287,8 +305,9 @@ Before finalizing changes:
 - No PHI plaintext logging or secret leakage.
 - No console logging, emoji noise, or dead code.
 - Imports use aliases (`@/...` and `@workspace/...`) instead of deep relative paths.
-- TODO/FIXME-style comments are resolved or removed from touched areas.
+- TODO/FIXME-style comments are resolved or removed from touched areas; redundant comments are removed per section 7.2.
 - Typographic hierarchy is preserved (headings > body > sub-points).
 - Changed behavior is covered by appropriate tests/checks.
+- When your change is Knip-relevant per the CI scope detector, `pnpm knip` passes locally and the Knip step runs in CI; otherwise run Knip locally before merging if you touched dependencies or exports.
 - Relevant local tests/builds were run and passed before the final push.
 - If CI was red, the corresponding local workflow commands were run and passed before the final push.

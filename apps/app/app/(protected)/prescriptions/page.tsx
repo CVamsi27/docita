@@ -13,6 +13,7 @@ import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 import { useDebounce } from "@workspace/hooks/use-debounce";
 
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 import { PrescriptionsFilters } from "@/features/prescriptions/components/list/PrescriptionsFilters";
 import {
   PrescriptionsTable,
@@ -90,7 +91,7 @@ export default function PrescriptionsPage() {
             description="Create and manage digital prescriptions for your patients. Upgrade to Core tier to unlock this feature."
             action={{
               label: "Upgrade to Core",
-              href: "/settings?tab=subscription",
+              href: SUBSCRIPTION_SETTINGS_PATH,
             }}
             className="min-h-[50vh]"
           />
@@ -120,8 +121,7 @@ export default function PrescriptionsPage() {
 
         <div className="flex items-center justify-between">
           <p className="text-[var(--fs-xs)] text-muted-foreground">
-            Showing {filteredAndSortedPrescriptions.length} of{" "}
-            {prescriptions.length} prescriptions
+            Showing {filteredAndSortedPrescriptions.length} of {prescriptions.length} prescriptions
           </p>
         </div>
       </AppPageScaffold>

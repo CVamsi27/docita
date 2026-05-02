@@ -134,7 +134,7 @@ export function ContactInquiryForm() {
                   id="name"
                   value={formData.name}
                   onChange={(event) => updateField("name", event.target.value)}
-                  placeholder="Dr. A. Sharma"
+                  placeholder="Full name"
                   aria-invalid={Boolean(errors.name)}
                 />
                 {errors.name ? (
@@ -149,7 +149,7 @@ export function ContactInquiryForm() {
                   type="email"
                   value={formData.email}
                   onChange={(event) => updateField("email", event.target.value)}
-                  placeholder="doctor@facility.com"
+                  placeholder="Email"
                   aria-invalid={Boolean(errors.email)}
                 />
                 {errors.email ? (
@@ -164,7 +164,7 @@ export function ContactInquiryForm() {
                 id="clinic"
                 value={formData.clinic}
                 onChange={(event) => updateField("clinic", event.target.value)}
-                placeholder="Sunrise Family Facility"
+                placeholder="Facility name"
                 aria-invalid={Boolean(errors.clinic)}
               />
               {errors.clinic ? (
@@ -179,7 +179,7 @@ export function ContactInquiryForm() {
                 className="min-h-[140px]"
                 value={formData.message}
                 onChange={(event) => updateField("message", event.target.value)}
-                placeholder="Tell us your current workflow and what you want to improve"
+                placeholder="Enter message"
                 aria-invalid={Boolean(errors.message)}
               />
               {errors.message ? (
@@ -199,7 +199,7 @@ export function ContactInquiryForm() {
               className="w-full sm:w-auto"
             >
               <Send className="mr-2 h-4 w-4" />
-              {isSubmitting ? "Sending..." : "Request setup"}
+              {isSubmitting ? "Sending…" : "Request setup"}
             </Button>
           </form>
         )}

@@ -68,12 +68,12 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
     label: string;
     placeholder: string;
   }> = [
-    { key: "sph", label: "Sphere (Sph)", placeholder: "+/- 0.00" },
-    { key: "cyl", label: "Cylinder (Cyl)", placeholder: "- 0.00" },
-    { key: "axis", label: "Axis", placeholder: "0-180°" },
-    { key: "add", label: "Add", placeholder: "+ 0.00" },
-    { key: "va", label: "VA (Dist)", placeholder: "20/20" },
-    { key: "vaNear", label: "VA (Near)", placeholder: "J1" },
+    { key: "sph", label: "Sphere (Sph)", placeholder: "Sphere" },
+    { key: "cyl", label: "Cylinder (Cyl)", placeholder: "Cylinder" },
+    { key: "axis", label: "Axis", placeholder: "Axis" },
+    { key: "add", label: "Add", placeholder: "Add" },
+    { key: "va", label: "VA (Dist)", placeholder: "Visual acuity" },
+    { key: "vaNear", label: "VA (Near)", placeholder: "Near visual acuity" },
   ];
 
   return (
@@ -82,7 +82,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
         <CardTitle className="text-base">Refraction & Visual Acuity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -152,7 +152,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
             <Label>PD (Pupillary Distance)</Label>
             <div className="flex gap-2">
               <Input
-                placeholder="Distance (mm)"
+                placeholder="Pupillary distance"
                 value={value?.refraction?.pupillaryDistance?.toString() || ""}
                 onChange={(e) =>
                   onChange({
@@ -189,7 +189,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
                 </span>
                 <Input
                   className="pl-8"
-                  placeholder="mmHg"
+                  placeholder="IOP"
                   value={value?.iop?.od?.toString() || ""}
                   onChange={(e) =>
                     onChange({
@@ -211,7 +211,7 @@ export function VisionExamUI({ value, onChange, readOnly }: VisionExamProps) {
                 </span>
                 <Input
                   className="pl-8"
-                  placeholder="mmHg"
+                  placeholder="IOP"
                   value={value?.iop?.os?.toString() || ""}
                   onChange={(e) =>
                     onChange({

@@ -3,9 +3,11 @@
 import * as React from "react";
 import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
+import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -51,20 +53,64 @@ const CommandDialog = ({ children, ...props }: DialogProps) => {
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" data-cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-    <CommandPrimitive.Input
-      ref={ref}
-      className={cn(
-        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    />
-  </div>
-));
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+    /** When true and `value` is a non-empty string, shows a clear control (Radix tooltip). */
+    showClearButton?: boolean;
+  }
+>(
+  (
+    { className, showClearButton, value, onValueChange, disabled, ...props },
+    ref,
+  ) => {
+    const strValue = typeof value === "string" ? value : "";
+    const canClear = Boolean(
+      showClearButton && strValue.trim() && !disabled,
+    );
+
+    return (
+      <div
+        className="flex items-center gap-1 border-b px-3"
+        data-cmdk-input-wrapper=""
+      >
+        <Search
+          className="mr-2 h-4 w-4 shrink-0 opacity-50 pointer-events-none"
+          aria-hidden
+        />
+        <CommandPrimitive.Input
+          ref={ref}
+          className={cn(
+            "flex h-11 min-w-0 flex-1 rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+            className,
+          )}
+          {...props}
+          disabled={disabled}
+          value={value}
+          onValueChange={onValueChange}
+        />
+        {canClear ? (
+          <SymbolTooltip label="Clear search">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              aria-label="Clear search"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={() => {
+                onValueChange?.("");
+              }}
+            >
+              <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+            </Button>
+          </SymbolTooltip>
+        ) : null}
+      </div>
+    );
+  },
+);
 
 CommandInput.displayName = CommandPrimitive.Input.displayName;
 

@@ -2,6 +2,7 @@ export * from "./common";
 export * from "./json-schema";
 export * from "./common-types";
 export * from "./users";
+export * from "./doctor-verification-messages";
 export * from "./clinics";
 export * from "./doctor-clinics";
 export * from "./contact";

@@ -22,14 +22,6 @@ vi.mock("@/hooks/use-locale-currency", () => ({
   useLocaleCurrency: () => ({ currency: "INR" }),
 }));
 
-vi.mock("@/features/_shared/components/whatsapp/whatsapp-button", () => ({
-  WhatsAppButton: () => <div>WhatsApp</div>,
-}));
-
-vi.mock("@/lib/support-contact", () => ({
-  getSupportPhoneNumber: () => "9999999999",
-}));
-
 vi.mock("@/features/onboarding/components/steps", () => ({
   ClinicDetailsStep: () => <div>Clinic Details</div>,
   ComplianceStep: () => <div>Compliance</div>,

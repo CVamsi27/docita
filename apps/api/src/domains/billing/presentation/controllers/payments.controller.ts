@@ -57,8 +57,9 @@ export class PaymentsController {
   @Post(':id/send-whatsapp')
   @ZodSerializerDto(AnyResponseDto)
   async sendWhatsApp(@Param('id') id: string, @Request() req: RequestWithUser) {
-    await this.paymentsService.verifySessionOwnership(id, req.user!.clinicId!);
-    return this.paymentsService.sendPaymentLinkWhatsApp(id);
+    const clinicId = req.user!.clinicId!;
+    await this.paymentsService.verifySessionOwnership(id, clinicId);
+    return this.paymentsService.sendPaymentLinkWhatsApp(id, clinicId);
   }
 
   @Get(':id')
@@ -67,8 +68,9 @@ export class PaymentsController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    await this.paymentsService.verifySessionOwnership(id, req.user!.clinicId!);
-    return this.paymentsService.getPaymentSession(id);
+    const clinicId = req.user!.clinicId!;
+    await this.paymentsService.verifySessionOwnership(id, clinicId);
+    return this.paymentsService.getPaymentSession(id, clinicId);
   }
 
   @Post('invoices/:invoiceId/mark-paid')

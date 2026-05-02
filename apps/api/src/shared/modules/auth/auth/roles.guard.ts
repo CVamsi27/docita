@@ -8,19 +8,14 @@ import { Reflector } from '@nestjs/core';
 import { Role } from '@workspace/db';
 import { ROLES_KEY } from './roles.decorator';
 
-import { IS_PUBLIC_KEY } from './public.decorator';
+import { bypassesSessionGuards } from './auth-route-metadata.util';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
-    if (isPublic) {
+    if (bypassesSessionGuards(this.reflector, context)) {
       return true;
     }
 

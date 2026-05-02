@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -21,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Loader2, Stethoscope } from "lucide-react";
+import { Stethoscope } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
@@ -116,7 +118,6 @@ export default function CreateDoctorPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
-            {}
             <div className="space-y-4">
               <h3 className="font-semibold">Basic Information</h3>
 
@@ -125,7 +126,7 @@ export default function CreateDoctorPage() {
                   <Label htmlFor="name">Full Name *</Label>
                   <Input
                     id="name"
-                    placeholder="Dr. John Doe"
+                    placeholder="Full name"
                     value={form.name}
                     onChange={(e) => {
                       setForm({ ...form, name: e.target.value });
@@ -155,7 +156,7 @@ export default function CreateDoctorPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="doctor@clinic.com"
+                    placeholder="Email"
                     value={form.email}
                     onChange={(e) => {
                       setForm({ ...form, email: e.target.value });
@@ -188,7 +189,7 @@ export default function CreateDoctorPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter a strong password"
+                    placeholder="Enter password"
                     value={form.password}
                     onChange={(e) => {
                       setForm({ ...form, password: e.target.value });
@@ -218,7 +219,7 @@ export default function CreateDoctorPage() {
                   <Input
                     id="phoneNumber"
                     type="tel"
-                    placeholder="+91 XXXXX XXXXX"
+                    placeholder="Phone number"
                     value={form.phoneNumber}
                     onChange={(e) =>
                       setForm({ ...form, phoneNumber: e.target.value })
@@ -228,7 +229,6 @@ export default function CreateDoctorPage() {
               </div>
             </div>
 
-            {}
             <div className="space-y-4">
               <h3 className="font-semibold">Professional Information</h3>
 
@@ -241,7 +241,7 @@ export default function CreateDoctorPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select specialization" />
+                    <SelectValue placeholder="Specialization" />
                   </SelectTrigger>
                   <SelectContent>
                     {SPECIALIZATIONS.map((spec) => (
@@ -258,7 +258,7 @@ export default function CreateDoctorPage() {
                   <Label htmlFor="qualification">Qualification</Label>
                   <Input
                     id="qualification"
-                    placeholder="e.g., MBBS, MD"
+                    placeholder="Qualification"
                     value={form.qualification}
                     onChange={(e) =>
                       setForm({ ...form, qualification: e.target.value })
@@ -271,7 +271,7 @@ export default function CreateDoctorPage() {
                   </Label>
                   <Input
                     id="registrationNumber"
-                    placeholder="Medical Council Reg. No."
+                    placeholder="Registration number"
                     value={form.registrationNumber}
                     onChange={(e) =>
                       setForm({
@@ -284,7 +284,6 @@ export default function CreateDoctorPage() {
               </div>
             </div>
 
-            {}
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
@@ -294,7 +293,7 @@ export default function CreateDoctorPage() {
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Create Doctor
               </Button>
             </div>

@@ -6,7 +6,14 @@ import {
   SubscriptionStatus,
 } from '@workspace/db';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
+import { IS_PUBLIC_KEY } from './public.decorator';
+import { IS_UPLOAD_SESSION_SECRET_ROUTE_KEY } from './upload-session-secret-route.decorator';
 import { FEATURE_KEY, Feature, TIER_KEY, Tier } from './tier.decorator';
 import { TierGuard } from './tier.guard';
 
@@ -15,6 +22,7 @@ type ClinicRecord = {
   intelligenceAddon: IntelligenceAddon;
   features: Record<string, boolean>;
   subscriptionStatus: SubscriptionStatus;
+  subscription: { graceUntil: Date | null };
 };
 
 function createContext(user: unknown): ExecutionContext {
@@ -30,7 +38,7 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('TierGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     clinic: {
       findUnique: jest.MockedFunction<
@@ -45,11 +53,17 @@ describe('TierGuard', () => {
     intelligenceAddon: IntelligenceAddon.NONE,
     features: {},
     subscriptionStatus: SubscriptionStatus.ACTIVE,
+    subscription: { graceUntil: null },
   };
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
+        [IS_UPLOAD_SESSION_SECRET_ROUTE_KEY, false],
+        [TIER_KEY, undefined],
+        [FEATURE_KEY, undefined],
+      ]),
     };
     prisma = {
       clinic: {
@@ -63,12 +77,37 @@ describe('TierGuard', () => {
   });
 
   function setMetadata(requiredTier?: Tier, requiredFeature?: Feature): void {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === TIER_KEY) return requiredTier;
-      if (key === FEATURE_KEY) return requiredFeature;
-      return undefined;
-    });
+    mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [IS_PUBLIC_KEY, false],
+      [IS_UPLOAD_SESSION_SECRET_ROUTE_KEY, false],
+      [TIER_KEY, requiredTier],
+      [FEATURE_KEY, requiredFeature],
+    ]);
   }
+
+  it('allows public routes without loading clinic', async () => {
+    mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [IS_PUBLIC_KEY, true],
+      [IS_UPLOAD_SESSION_SECRET_ROUTE_KEY, false],
+      [TIER_KEY, Tier.ESSENTIAL],
+      [FEATURE_KEY, undefined],
+    ]);
+
+    await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
+    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('allows upload-session-secret routes without loading clinic', async () => {
+    mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [IS_PUBLIC_KEY, false],
+      [IS_UPLOAD_SESSION_SECRET_ROUTE_KEY, true],
+      [TIER_KEY, Tier.ESSENTIAL],
+      [FEATURE_KEY, Feature.DOCUMENT_ARCHIVAL],
+    ]);
+
+    await expect(guard.canActivate(createContext({}))).resolves.toBe(true);
+    expect(prisma.clinic.findUnique).not.toHaveBeenCalled();
+  });
 
   it('allows request when no tier or feature metadata is present', async () => {
     setMetadata(undefined, undefined);
@@ -115,6 +154,18 @@ describe('TierGuard', () => {
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
     ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows tier checks when subscription is in restricted-but-allowed state', async () => {
+    setMetadata(Tier.STARTER, undefined);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      subscriptionStatus: SubscriptionStatus.PAST_DUE,
+    });
+
+    await expect(
+      guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
   });
 
   it('blocks feature when explicit clinic override disables it', async () => {
@@ -220,6 +271,40 @@ describe('TierGuard', () => {
 
     await expect(
       guard.canActivate(createContext({ clinicId: 'clinic-1' })),
+    ).resolves.toBe(true);
+  });
+
+  it('blocks tier checks after grace deadline for non-admin roles', async () => {
+    setMetadata(Tier.STARTER, undefined);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      subscriptionStatus: SubscriptionStatus.GRACE,
+      subscription: {
+        graceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      },
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({ clinicId: 'clinic-1', role: 'DOCTOR' }),
+      ),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows tier checks after grace deadline for billing admins', async () => {
+    setMetadata(Tier.STARTER, undefined);
+    prisma.clinic.findUnique.mockResolvedValue({
+      ...activeStarterClinic,
+      subscriptionStatus: SubscriptionStatus.GRACE,
+      subscription: {
+        graceUntil: new Date('2020-01-01T00:00:00.000Z'),
+      },
+    });
+
+    await expect(
+      guard.canActivate(
+        createContext({ clinicId: 'clinic-1', role: 'ADMIN_DOCTOR' }),
+      ),
     ).resolves.toBe(true);
   });
 });

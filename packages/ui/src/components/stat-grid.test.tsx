@@ -34,9 +34,9 @@ describe("StatGrid", () => {
     );
 
     expect(screen.queryByText("Total patients")).not.toBeInTheDocument();
-    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      container.querySelectorAll(".animate-shimmer").length,
+    ).toBeGreaterThan(0);
   });
 
   it("renders the trend indicator when provided", () => {

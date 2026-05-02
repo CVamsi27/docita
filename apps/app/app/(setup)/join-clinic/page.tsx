@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Building2, Mail, Phone, MapPin } from "lucide-react";
+import { Search, Building2, Mail, Phone, MapPin, X } from "lucide-react";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { cn } from "@workspace/ui/lib/utils";
 import { Card } from "@workspace/ui/components/card";
 import {
   Select,
@@ -150,16 +152,14 @@ export default function JoinClinicPage() {
       contentAlignment="start"
       showSignOut
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
         <BackButton
           fallback="/choose-path"
           label="Back to Choose Path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-          Join a Facility
-        </h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="ui-page-title">Join a Facility</h1>
+        <p className="ui-page-subtitle">
           Search for your facility by name, email, or referral code
         </p>
       </div>
@@ -170,27 +170,44 @@ export default function JoinClinicPage() {
       >
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden />
             <Input
-              placeholder="Search by facility name, email, or code"
+              placeholder="Enter facility name, email, or referral code"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="pl-10 h-11"
+              className={cn("h-11 pl-10", searchQuery.trim() && "pr-10")}
+              aria-label="Search facilities to join"
             />
+            {searchQuery.trim() ? (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <SymbolTooltip label="Clear search">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </Button>
+                </SymbolTooltip>
+              </div>
+            ) : null}
           </div>
           <Button
             onClick={handleSearch}
             disabled={isSearching}
             className="h-11"
           >
-            {isSearching ? "Searching..." : "Search"}
+            {isSearching ? "Searching…" : "Search"}
           </Button>
         </div>
 
         {clinics.length === 0 && searchQuery && !isSearching && (
-          <Card className="p-8 text-center bg-card/80 backdrop-blur-sm">
-            <p className="text-muted-foreground text-sm">
+          <Card className="ui-card-surface p-8 text-center">
+            <p className="ui-helper-text">
               No facilities found, try a different search term
             </p>
           </Card>
@@ -200,12 +217,12 @@ export default function JoinClinicPage() {
           {clinics.map((clinic) => (
             <Card
               key={clinic.id}
-              className="p-5 bg-card/80 backdrop-blur-sm shadow-md"
+              className="ui-card-surface p-5"
             >
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex-1">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                    <div className="shrink-0 rounded-full border border-border/70 bg-background/70 p-2">
                       <Building2 className="h-4 w-4 text-primary" />
                     </div>
                     <div>
@@ -218,7 +235,7 @@ export default function JoinClinicPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 text-sm text-muted-foreground ml-11">
+                  <div className="ml-11 space-y-1.5 ui-helper-text">
                     <div className="flex items-center gap-2">
                       <Mail className="h-3.5 w-3.5" />
                       <span>{clinic.email}</span>
@@ -271,24 +288,23 @@ export default function JoinClinicPage() {
                   <SelectItem value="ADMIN_DOCTOR">Admin Doctor</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
+              <p className="ui-helper-text">
                 Select the role you will have in this facility
               </p>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Message to Admin{" "}
-                <span className="text-muted-foreground">(Optional)</span>
+                Message to Admin <span className="text-muted-foreground">(optional)</span>
               </label>
               <Textarea
-                placeholder="Tell us why you want to join"
+                placeholder="Enter message to admin"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={500}
                 rows={4}
               />
-              <p className="text-xs text-muted-foreground text-right">
+              <p className="ui-helper-text text-right">
                 {message.length}/500
               </p>
             </div>
@@ -303,7 +319,7 @@ export default function JoinClinicPage() {
               Cancel
             </Button>
             <Button onClick={handleSubmitRequest} disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Request"}
+              {isSubmitting ? "Submitting…" : "Submit Request"}
             </Button>
           </div>
         </DialogContent>

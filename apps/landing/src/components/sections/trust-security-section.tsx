@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   Card,
   CardDescription,
@@ -17,12 +18,31 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { SectionHeading } from "@workspace/ui/components/section-heading";
 
+import {
+  landingFadeUpVariants,
+  landingInViewViewport,
+  landingStaggerContainer,
+} from "@/lib/motion-prefs";
+
 export function TrustSecuritySection() {
+  const reduce = useReducedMotion();
+  const item = landingFadeUpVariants(reduce ?? false);
+  const row = landingStaggerContainer(reduce ?? false, 0.06, 0.04);
+
   return (
-    <section className="landing-section bg-background" id="security">
-      <div className="ui-page-shell">
-        <div className="text-center mb-16">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-4 py-2 text-sm text-foreground">
+    <section
+      className="landing-trust-shell landing-section scroll-mt-24 bg-background landing-section-divider-wave-top"
+      id="security"
+    >
+      <div className="ui-page-shell relative z-10">
+        <motion.div
+          className="text-center mb-16"
+          variants={item}
+          initial="hidden"
+          whileInView="visible"
+          viewport={landingInViewViewport}
+        >
+          <div className="badge-success mb-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm">
             <Shield className="h-4 w-4 text-success" />
             <span className="font-medium text-foreground">
               Practical trust controls
@@ -31,34 +51,48 @@ export function TrustSecuritySection() {
           <SectionHeading
             align="center"
             size="section"
+            eyebrow="Security"
             title="Trust built for Indian healthcare operations"
             description="We focus on controls and infrastructure details we can stand behind today: India-hosted backend systems, role-based access, audit trails, consent-aware workflows, and exportable records."
             descriptionClassName="mx-auto max-w-2xl"
           />
-        </div>
+        </motion.div>
 
-        <div className="flex flex-wrap items-center justify-center gap-8 mb-16">
+        <motion.div
+          className="flex flex-wrap items-center justify-center gap-8 mb-16"
+          variants={row}
+          initial="hidden"
+          whileInView="visible"
+          viewport={landingInViewViewport}
+        >
           {[
             { label: "India-hosted", sublabel: "Mumbai region" },
             { label: "DPDP-aware", sublabel: "Consent controls" },
             { label: "Role access", sublabel: "Staff permissions" },
             { label: "Audit logs", sublabel: "Traceable actions" },
             { label: "256-bit", sublabel: "Encryption" },
-          ].map((badge, i) => (
-            <div
-              key={i}
-              className="landing-card flex h-28 w-28 flex-col items-center justify-center border-2 bg-muted/30 transition-colors hover:border-primary/50 hover:bg-primary/5"
+          ].map((badge) => (
+            <motion.div
+              key={badge.label}
+              variants={item}
+              className="landing-trust-mini flex h-28 w-28 flex-col items-center justify-center"
             >
               <ShieldCheck className="h-8 w-8 text-success mb-2" />
               <span className="font-bold text-sm">{badge.label}</span>
               <span className="text-xs text-muted-foreground">
                 {badge.sublabel}
               </span>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          variants={row}
+          initial="hidden"
+          whileInView="visible"
+          viewport={landingInViewViewport}
+        >
           {[
             {
               icon: Lock,
@@ -96,20 +130,22 @@ export function TrustSecuritySection() {
               description:
                 "Export your data anytime in standard formats. No vendor lock-in, ever.",
             },
-          ].map((feature, i) => (
-            <Card key={i} className="landing-card bg-muted/30">
-              <CardHeader>
-                <div className="mb-2 inline-block rounded-lg bg-success/10 p-2 w-fit">
-                  <feature.icon className="h-5 w-5 text-success" />
-                </div>
-                <CardTitle className="text-lg">{feature.title}</CardTitle>
-                <CardDescription className="text-sm">
-                  {feature.description}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+          ].map((feature) => (
+            <motion.div key={feature.title} variants={item}>
+              <Card className="landing-card landing-trust-feature-card h-full border bg-muted/15">
+                <CardHeader>
+                  <div className="mb-2 inline-block rounded-full border border-border/70 bg-background/70 p-2 w-fit">
+                    <feature.icon className="h-5 w-5 text-success" />
+                  </div>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardDescription className="text-sm">
+                    {feature.description}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         <div className="mt-10 flex flex-col items-center gap-3 text-center">
           <p className="max-w-2xl text-sm text-muted-foreground">

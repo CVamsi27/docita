@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -20,7 +22,6 @@ import {
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { ContactSalesModal } from "@/features/dialogs/components/ContactSalesModalContainer";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
-import { TrialOfferBanner } from "@/features/subscription/components";
 import { ComparisonTable } from "@/features/subscription/components/pricing/comparison-table";
 import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
@@ -41,11 +42,10 @@ interface PlanSelectionProps {
     tier: string,
     billingCycle: "MONTHLY" | "YEARLY",
     pricing: { monthly: number | "custom"; yearly: number | "custom" },
-    options?: { isCoreTrial?: boolean; currency?: string },
+    options?: { currency?: string },
   ) => Promise<void>;
   defaultTier?: string;
   defaultBillingCycle?: "MONTHLY" | "YEARLY";
-  defaultIsCoreTrial?: boolean;
   currency?: string;
 }
 
@@ -63,7 +63,6 @@ export function PlanSelectionStep({
   onSelect,
   defaultTier = "ESSENTIAL",
   defaultBillingCycle = "MONTHLY",
-  defaultIsCoreTrial: _defaultIsCoreTrial = false,
   currency,
 }: PlanSelectionProps) {
   const { currency: detectedCurrency } = useLocaleCurrency();
@@ -110,7 +109,6 @@ export function PlanSelectionStep({
     setIsSubmitting(true);
     try {
       await onSelect(tier, billingCycle, tierPricingData.pricing, {
-        isCoreTrial: tier === "ESSENTIAL",
         currency: resolvedCurrency,
       });
     } finally {
@@ -121,9 +119,18 @@ export function PlanSelectionStep({
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Loading pricing...</span>
+        <CardContent
+          className="flex flex-col items-center justify-center gap-3 py-12 sm:flex-row"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading pricing"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-8 w-8 text-muted-foreground"
+          />
+          <span className="text-sm text-muted-foreground">Loading pricing…</span>
         </CardContent>
       </Card>
     );
@@ -156,7 +163,7 @@ Billing preference: ${billingCycle}
 Please contact me with deployment and commercial details.`;
 
   return (
-    <Card className="border-primary/20 bg-linear-to-br from-background via-background to-primary/5">
+    <Card className="border-primary/20 bg-primary/5">
       <CardHeader>
         <CardTitle>Step 2: Choose Your Plan</CardTitle>
         <CardDescription>
@@ -169,8 +176,6 @@ Please contact me with deployment and commercial details.`;
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <TrialOfferBanner />
-
         <div className="flex justify-center">
           <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
             <Button
@@ -206,7 +211,7 @@ Please contact me with deployment and commercial details.`;
               const currencySymbol =
                 PRICING_CURRENCY_SYMBOLS[
                   resolvedCurrency as keyof typeof PRICING_CURRENCY_SYMBOLS
-                ] ?? "₹";
+                ] ?? resolvedCurrency;
               const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[
                 currencyKey
               ] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
@@ -244,7 +249,7 @@ Please contact me with deployment and commercial details.`;
                     currencySymbol={currencySymbol}
                     overageHint={
                       tierName === "ESSENTIAL"
-                        ? "₹0 for first 14 days, then regular billing"
+                        ? `${currencySymbol}0 for first 14 days, then regular billing`
                         : overageHint
                     }
                     buttonLabel={

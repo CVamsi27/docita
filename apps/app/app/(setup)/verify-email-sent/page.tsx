@@ -1,8 +1,11 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, CheckCircle2, Mail, Loader2, RefreshCw } from "lucide-react";
+import {
+  AlertTriangle, CheckCircle2, Mail, RefreshCw } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { toast } from "sonner";
 import {
@@ -63,7 +66,7 @@ export default function VerifyEmailSentPage() {
 
   useEffect(() => {
     if (!user) {
-      setRedirectMessage("Redirecting to login...");
+      setRedirectMessage("Redirecting to login…");
       router.replace("/login?next=/verify-email-sent");
       return;
     }
@@ -140,7 +143,7 @@ export default function VerifyEmailSentPage() {
   if (redirectMessage) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
+        title="Redirecting…"
         description={redirectMessage}
       />
     );
@@ -149,16 +152,16 @@ export default function VerifyEmailSentPage() {
   if (user?.emailVerified === true) {
     return (
       <PreDashboardShell currentStep="verify-email-sent" showSignOut>
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-success/10">
               <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
           </div>
 
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Email verified</h1>
-            <p className="text-muted-foreground text-sm">
+          <div className="text-center ui-copy-stack">
+            <h1 className="ui-page-title">Email verified</h1>
+            <p className="ui-page-subtitle">
               You can continue setup when you are ready.
             </p>
           </div>
@@ -220,25 +223,25 @@ export default function VerifyEmailSentPage() {
 
   return (
     <PreDashboardShell currentStep="verify-email-sent" showSignOut>
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border/70 bg-background/70">
             <Mail className="h-8 w-8 text-primary" />
           </div>
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
-          <p className="text-muted-foreground text-sm">We need to verify</p>
-          <p className="font-medium text-sm">{email}</p>
-          <p className="text-muted-foreground text-sm pt-1">
+          <h1 className="ui-page-title">Check your email</h1>
+          <p className="ui-page-subtitle">We need to verify</p>
+          <p className="text-sm font-medium">{email}</p>
+          <p className="ui-page-subtitle pt-1">
             Use the verification link in the email before continuing with your
             clinic setup.
           </p>
         </div>
 
         {deliveryStatus === "failed" ? (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm">
+          <div className="surface-danger rounded-lg p-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
               <div className="space-y-1">
@@ -246,7 +249,7 @@ export default function VerifyEmailSentPage() {
                   We created your account, but the verification email could not
                   be confirmed as sent.
                 </p>
-                <p className="text-muted-foreground">
+                <p className="ui-helper-text">
                   Try sending it again now. If it still does not arrive, contact
                   support so we can help you complete setup.
                 </p>
@@ -254,12 +257,15 @@ export default function VerifyEmailSentPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-lg border border-border/60 bg-muted/30 p-4 text-sm">
+          <div className="surface-muted rounded-lg p-4">
             <div className="flex items-start gap-3">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-              <div className="space-y-1 text-muted-foreground">
-                <p>Check your inbox and spam folder for a message from Docita</p>
-                <p>The link stays active for 24 hours and you can request a fresh one anytime</p>
+              <div className="space-y-1 ui-helper-text">
+                <p>Check your inbox and spam folder for a message from Docita.</p>
+                <p>
+                  The link stays active for 24 hours and you can request a fresh
+                  one anytime.
+                </p>
               </div>
             </div>
           </div>
@@ -274,8 +280,8 @@ export default function VerifyEmailSentPage() {
           >
             {resending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                Sending…
               </>
             ) : (
               <>
@@ -289,21 +295,23 @@ export default function VerifyEmailSentPage() {
             )}
           </Button>
           {isResendCoolingDown && (
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="text-center ui-helper-text">
               You can resend again in {formatCooldown(resendCooldownRemainingMs)}.
             </p>
           )}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Wrong email?{" "}
-          <button
+        <p className="text-center ui-helper-text">
+          Wrong email?
+          <Button
             type="button"
+            variant="link"
+            size="sm"
             onClick={logout}
-            className="underline underline-offset-4 hover:text-foreground transition-colors"
+            className="ml-1 h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
           >
             Sign out and try again
-          </button>
+          </Button>
         </p>
       </div>
     </PreDashboardShell>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -78,6 +78,15 @@ export const useLabTestsLogic = () => {
       notes: "",
     },
   });
+
+  useEffect(() => {
+    if (!isOrderDialogOpen) {
+      setPatientSearch("");
+      setTestSearch("");
+      setPatientComboboxOpen(false);
+      setTestComboboxOpen(false);
+    }
+  }, [isOrderDialogOpen]);
 
   const selectedPatient = patients.find(
     (p) => p.id === form.watch("patientId"),

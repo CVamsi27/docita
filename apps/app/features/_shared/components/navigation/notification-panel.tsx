@@ -9,11 +9,13 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
-import { BellIcon, CheckIcon, TrashIcon } from "lucide-react";
+import { BellIcon, CheckIcon, TrashIcon, XIcon } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { PriorityBadge } from "@workspace/ui/components/status-badge";
+import { formatTime, isToday, isYesterday } from "@workspace/utils";
 import {
   useNotifications,
   useMarkNotificationRead,
@@ -21,7 +23,6 @@ import {
   type StaffNotification,
 } from "@/hooks/api/use-notifications";
 import { useSocket } from "@/lib/socket-context";
-import { format, isToday, isYesterday, parseISO } from "date-fns";
 
 interface NotificationItemProps {
   notification: StaffNotification;
@@ -61,20 +62,20 @@ function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
             {notification.message}
           </p>
           <p className="text-xs text-muted-foreground">
-            {format(
-              parseISO(notification.createdAt.toString()),
-              "h:mm a",
-            )}
+            {formatTime(notification.createdAt)}
           </p>
         </div>
         {!notification.isRead && (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onMarkRead(notification.id)}
-          >
-            <CheckIcon className="h-4 w-4" />
-          </Button>
+          <SymbolTooltip label="Mark as read">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onMarkRead(notification.id)}
+              aria-label="Mark as read"
+            >
+              <CheckIcon className="h-4 w-4" />
+            </Button>
+          </SymbolTooltip>
         )}
       </div>
     </div>
@@ -95,10 +96,10 @@ function categorizeNotifications(
   const older: StaffNotification[] = [];
 
   notifications.forEach((notification) => {
-    const date = parseISO(notification.createdAt.toString());
-    if (isToday(date)) {
+    const createdAt = notification.createdAt;
+    if (isToday(createdAt)) {
       today.push(notification);
-    } else if (isYesterday(date)) {
+    } else if (isYesterday(createdAt)) {
       yesterday.push(notification);
     } else {
       older.push(notification);
@@ -179,15 +180,7 @@ export function NotificationPanel({
     await markRead.mutateAsync({ id });
   };
 
-  const handleOpenChange = async (newOpen: boolean) => {
-    if (!newOpen && notifications.length > 0 && !isDeleting) {
-      setIsDeleting(true);
-      try {
-        await deleteAll.mutateAsync();
-      } finally {
-        setIsDeleting(false);
-      }
-    }
+  const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
   };
 
@@ -216,8 +209,8 @@ export function NotificationPanel({
                 onClick={() => handleOpenChange(false)}
                 disabled={isDeleting}
               >
-                <TrashIcon className="mr-2 h-4 w-4" />
-                Clear All
+                <XIcon className="mr-2 h-4 w-4" />
+                Close
               </Button>
             )}
           </SheetTitle>
@@ -233,6 +226,26 @@ export function NotificationPanel({
             </div>
           ) : (
             <div className="space-y-4">
+              <div className="px-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={async () => {
+                    if (isDeleting) return;
+                    setIsDeleting(true);
+                    try {
+                      await deleteAll.mutateAsync();
+                    } finally {
+                      setIsDeleting(false);
+                    }
+                  }}
+                  disabled={isDeleting}
+                >
+                  <TrashIcon className="mr-2 h-4 w-4" />
+                  Clear all
+                </Button>
+              </div>
               {categorized.today.length > 0 && (
                 <div>
                   <h3 className="mb-2 px-4 text-xs font-semibold uppercase text-muted-foreground">

@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import React, { FC, ReactNode } from "react";
-import { Loader2, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,9 +36,7 @@ import {
   createPatientRequestSchema,
   updatePatientRequestSchema,
 } from "@workspace/types";
-import {
-  validatePatientPhoneNumberForCountry,
-} from "@/features/patients/rules/patientRules";
+import { validatePatientPhoneNumberForCountry } from "@/features/patients/rules/patientRules";
 
 interface AddPatientDialogProps {
   open?: boolean;
@@ -103,12 +103,16 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const isValid = await form.trigger();
-    if (!isValid) return;
+  const handleInvalidSubmit = () => {
+    showUserFacingErrorToast(
+      "Please check the highlighted fields and try again.",
+      "Please check the highlighted fields and try again.",
+      "form",
+    );
+  };
+
+  const handleSubmit = form.handleSubmit(async (values) => {
     try {
-      const values = form.getValues();
       const phoneError = validatePatientPhoneNumberForCountry(
         values.phoneNumber,
         clinic?.countryCode,
@@ -118,7 +122,11 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
           type: "manual",
           message: phoneError,
         });
-        showUserFacingErrorToast(null, phoneError, "form");
+        showUserFacingErrorToast(
+          "Please check the highlighted fields and try again.",
+          "Please check the highlighted fields and try again.",
+          "form",
+        );
         return;
       }
 
@@ -141,7 +149,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
         "We could not add this patient. Please try again.",
       );
     }
-  };
+  }, handleInvalidSubmit);
 
   const handleClose = (open: boolean) => {
     if (!open) {
@@ -183,8 +191,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Last Name{" "}
-                    <span className="text-destructive ml-0.5">*</span>
+                    Last Name <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="Last name" />
@@ -224,7 +231,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                       {...field}
                       value={field.value ?? ""}
                       type="email"
-                      placeholder="Email address"
+                      placeholder="Email"
                     />
                   </FormControl>
                   <FormMessage />
@@ -238,16 +245,17 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Gender{" "}
-                    <span className="text-destructive ml-0.5">*</span>
+                    Gender <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <Select
                     value={field.value}
-                    onValueChange={(value) => field.onChange(value as GenderValue)}
+                    onValueChange={(value) =>
+                      field.onChange(value as GenderValue)
+                    }
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
+                        <SelectValue placeholder="Gender" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -278,7 +286,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
                       onChange={(date) =>
                         field.onChange(date?.toISOString().slice(0, 10) ?? "")
                       }
-                      placeholder="Select date of birth"
+                      placeholder="Date of birth"
                       maxDate={new Date()}
                     />
                   </FormControl>
@@ -288,7 +296,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
             />
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -299,7 +307,7 @@ export const AddPatientDialog: FC<AddPatientDialogProps> = ({
             </Button>
             <Button type="submit" disabled={createPatient.isPending}>
               {createPatient.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
               )}
               Add Patient
             </Button>
@@ -340,13 +348,17 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
       : undefined,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInvalidSubmit = () => {
+    showUserFacingErrorToast(
+      "Please check the highlighted fields and try again.",
+      "Please check the highlighted fields and try again.",
+      "form",
+    );
+  };
+
+  const handleSubmit = form.handleSubmit(async (values) => {
     if (!patient) return;
-    const isValid = await form.trigger();
-    if (!isValid) return;
     try {
-      const values = form.getValues();
       const phoneError = validatePatientPhoneNumberForCountry(
         values.phoneNumber,
         clinic?.countryCode,
@@ -356,7 +368,11 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
           type: "manual",
           message: phoneError,
         });
-        showUserFacingErrorToast(null, phoneError, "form");
+        showUserFacingErrorToast(
+          "Please check the highlighted fields and try again.",
+          "Please check the highlighted fields and try again.",
+          "form",
+        );
         return;
       }
 
@@ -379,7 +395,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
         "We could not save this patient. Please try again.",
       );
     }
-  };
+  }, handleInvalidSubmit);
 
   if (!patient) return null;
 
@@ -399,7 +415,8 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    First Name <span className="text-destructive ml-0.5">*</span>
+                    First Name{" "}
+                    <span className="text-destructive ml-0.5">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="First name" />
@@ -452,7 +469,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                       {...field}
                       value={field.value ?? ""}
                       type="email"
-                      placeholder="Email address"
+                      placeholder="Email"
                     />
                   </FormControl>
                   <FormMessage />
@@ -469,11 +486,13 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                   </FormLabel>
                   <Select
                     value={field.value ?? ""}
-                    onValueChange={(value) => field.onChange(value as GenderValue)}
+                    onValueChange={(value) =>
+                      field.onChange(value as GenderValue)
+                    }
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
+                        <SelectValue placeholder="Gender" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -500,7 +519,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
                       onChange={(date) =>
                         field.onChange(date?.toISOString().slice(0, 10) ?? "")
                       }
-                      placeholder="Select date of birth"
+                      placeholder="Date of birth"
                       maxDate={new Date()}
                     />
                   </FormControl>
@@ -510,7 +529,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             />
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex flex-col-reverse gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -521,7 +540,7 @@ export const EditPatientDialog: FC<EditPatientDialogProps> = ({
             </Button>
             <Button type="submit" disabled={updatePatient.isPending}>
               {updatePatient.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
               )}
               Save Changes
             </Button>

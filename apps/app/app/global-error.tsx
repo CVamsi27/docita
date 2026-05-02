@@ -9,58 +9,91 @@ export default function GlobalError({
 }) {
   return (
     <html>
-      <body style={{ margin: 0, fontFamily: "system-ui, sans-serif" }}>
+      <body
+        style={{
+          margin: 0,
+          background: "#f8fafc",
+          color: "#0f172a",
+          fontFamily:
+            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        }}
+      >
         <div
           style={{
-            minHeight: "100vh",
-            display: "flex",
             alignItems: "center",
+            background: "#f8fafc",
+            boxSizing: "border-box",
+            display: "flex",
             justifyContent: "center",
-            padding: 24,
-            background: "linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)",
-            color: "#0f172a",
+            minHeight: "100vh",
+            padding: "24px",
           }}
         >
-          <div style={{ maxWidth: 560, textAlign: "center" }}>
+          <div style={{ maxWidth: "576px", textAlign: "center", width: "100%" }}>
             <div
+              role="presentation"
+              aria-hidden="true"
               style={{
-                width: 64,
-                height: 64,
-                borderRadius: 9999,
-                margin: "0 auto 24px",
-                background: "rgba(239, 68, 68, 0.12)",
+                alignItems: "center",
+                background: "#fee2e2",
+                borderRadius: "9999px",
+                color: "#b91c1c",
                 display: "grid",
+                fontSize: "24px",
+                fontWeight: 600,
+                height: "64px",
+                margin: "0 auto 24px",
                 placeItems: "center",
-                fontSize: 28,
+                width: "64px",
               }}
             >
               !
             </div>
-            <h1 style={{ fontSize: 28, margin: "0 0 8px", fontWeight: 700 }}>
+            <h1
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                letterSpacing: 0,
+                lineHeight: 1.25,
+                margin: "0 0 8px",
+              }}
+            >
               We could not load this page
             </h1>
-            <p style={{ margin: "0 0 24px", color: "#475569", lineHeight: 1.6 }}>
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "16px",
+                lineHeight: 1.625,
+                margin: "0 0 24px",
+              }}
+            >
               Please try again or return to the home page.
             </p>
             <div
               style={{
                 display: "flex",
-                gap: 12,
-                justifyContent: "center",
                 flexWrap: "wrap",
+                gap: "12px",
+                justifyContent: "center",
               }}
             >
               <button
                 type="button"
                 onClick={() => reset()}
                 style={{
-                  border: 0,
-                  borderRadius: 12,
-                  padding: "12px 18px",
+                  alignItems: "center",
                   background: "#0f172a",
-                  color: "white",
-                  fontWeight: 600,
+                  border: 0,
+                  borderRadius: "8px",
+                  color: "#ffffff",
                   cursor: "pointer",
+                  display: "inline-flex",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  height: "40px",
+                  justifyContent: "center",
+                  padding: "0 20px",
                 }}
               >
                 Try again
@@ -71,13 +104,18 @@ export default function GlobalError({
                   window.location.href = "/";
                 }}
                 style={{
+                  alignItems: "center",
+                  background: "#ffffff",
                   border: "1px solid #cbd5e1",
-                  borderRadius: 12,
-                  padding: "12px 18px",
-                  background: "white",
+                  borderRadius: "8px",
                   color: "#0f172a",
-                  fontWeight: 600,
                   cursor: "pointer",
+                  display: "inline-flex",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  height: "40px",
+                  justifyContent: "center",
+                  padding: "0 20px",
                 }}
               >
                 Go to home

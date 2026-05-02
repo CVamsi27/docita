@@ -25,6 +25,8 @@ import {
   ImportPreview,
   ImportResult,
   PatientFieldKey as _PatientFieldKey,
+  DATE_FORMATS,
+  formatDate,
 } from '@workspace/utils';
 
 export {
@@ -488,7 +490,10 @@ export class ImportsService {
         if (existingByNameDob) {
           return {
             isDuplicate: true,
-            reason: `Patient ${firstName} ${lastName} with DOB ${dob.toLocaleDateString()} already exists`,
+            reason: `Patient ${firstName} ${lastName} with DOB ${formatDate(
+              dob,
+              DATE_FORMATS.DATE_MEDIUM,
+            )} already exists`,
             existingPatient: {
               id: existingByNameDob.id,
               name: `${existingByNameDob.firstName} ${existingByNameDob.lastName}`,

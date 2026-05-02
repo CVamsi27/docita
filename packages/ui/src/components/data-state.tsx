@@ -27,7 +27,7 @@ interface DataStateProps {
 export function DataState({
   status,
   children,
-  loadingMessage = "Loading...",
+  loadingMessage = "Loading…",
   errorMessage = "We could not load this section. Please try again.",
   onRetry,
   emptyTitle = "Nothing to show",

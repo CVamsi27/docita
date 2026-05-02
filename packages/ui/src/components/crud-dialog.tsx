@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +74,7 @@ export function CRUDDialog({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
           <div className="flex flex-col gap-4 min-w-0">{children}</div>
 
           <DialogFooter>
@@ -89,8 +89,12 @@ export function CRUDDialog({
             <Button type="submit" disabled={isLoading || disabled}>
               {isLoading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  {submitLabel || (isEditing ? "Updating..." : "Creating...")}
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                  />
+                  {submitLabel || (isEditing ? "Updating…" : "Creating…")}
                 </>
               ) : (
                 submitLabel || (isEditing ? "Update" : "Create")

@@ -6,14 +6,16 @@ import { Skeleton } from "@workspace/ui/components/skeleton";
 export function LoadingSkeleton({
   className = "",
   count = 1,
+  animation = "wave",
 }: {
   className?: string;
   count?: number;
+  animation?: "pulse" | "wave";
 }) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <Skeleton key={i} className={className} />
+        <Skeleton key={i} animation={animation} className={className} />
       ))}
     </>
   );
@@ -42,7 +44,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 
 export function CardSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-6 shadow-sm">
       <LoadingSkeleton className="h-6 w-1/3" />
       <LoadingSkeleton className="h-20 w-full" />
       <div className="flex justify-between">

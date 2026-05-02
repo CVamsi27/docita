@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { addMonths, addWeeks, format } from "date-fns";
+import { addMonths, addWeeks, formatDate } from "@workspace/utils";
 import { FollowUpDetails, FollowUpSchedulerUI } from "./FollowUpSchedulerUI";
 import { useConstants } from "@/features/_shared/hooks/use-constants";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -68,7 +68,7 @@ export function FollowUpSchedulerContainer({
 
       onScheduled?.(followUp);
       toast.success(
-        `Follow-up scheduled for ${format(selectedDate, "MMMM d, yyyy")} at ${selectedTime}`,
+        `Follow-up scheduled for ${formatDate(selectedDate, "MMMM d, yyyy")} at ${selectedTime}`,
         {
           description: reminderEnabled
             ? `Reminder will be sent ${reminderDays} day(s) before`

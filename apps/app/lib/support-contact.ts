@@ -1,4 +1,13 @@
 export const SUPPORT_EMAIL = "support@docita.work";
+
+/** Prefilled text when users open WhatsApp for general product help. */
+export const SUPPORT_WHATSAPP_MESSAGE_DEFAULT =
+  "Hi Docita team, I need help with Docita";
+
+/** Prefilled text during facility onboarding and pricing. */
+export const SUPPORT_WHATSAPP_MESSAGE_ONBOARDING =
+  "Hi Docita team, I need help with facility onboarding and pricing for my hospital";
+
 const FALLBACK_SUPPORT_PHONE = "918790311010";
 
 export function getSupportPhoneNumber(): string {
@@ -30,9 +39,10 @@ export function getSupportPhoneDisplay(): string {
 
 export function getSupportContactText(): string {
   const supportPhoneDisplay = getSupportPhoneDisplay();
+  const digits = getPhoneDigits(getSupportPhoneNumber());
 
-  if (supportPhoneDisplay) {
-    return `email ${SUPPORT_EMAIL} or call ${supportPhoneDisplay}`;
+  if (digits.length > 0 && supportPhoneDisplay) {
+    return `email ${SUPPORT_EMAIL} or WhatsApp or call ${supportPhoneDisplay}`;
   }
 
   return `email ${SUPPORT_EMAIL}`;

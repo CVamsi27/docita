@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+import { DATE_FORMATS, formatTime } from '@workspace/utils';
 
 @Injectable()
 export class BusinessRulesService {
@@ -55,7 +56,10 @@ export class BusinessRulesService {
 
     if (overlap) {
       throw new BadRequestException(
-        `Doctor has an overlapping appointment from ${overlap.startTime.toLocaleTimeString()} to ${overlap.endTime.toLocaleTimeString()}`,
+        `Doctor has an overlapping appointment from ${formatTime(
+          overlap.startTime,
+          DATE_FORMATS.TIME_SHORT,
+        )} to ${formatTime(overlap.endTime, DATE_FORMATS.TIME_SHORT)}`,
       );
     }
   }

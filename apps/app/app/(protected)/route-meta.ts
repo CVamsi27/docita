@@ -7,8 +7,8 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/dashboard": { label: "Dashboard" },
   "/patients": { label: "Patients" },
   "/patients/[id]": { label: "Patient", parentPath: "/patients" },
-  "/patients/[id]/history": { label: "History", parentPath: "/patients/[id]" },
   "/appointments": { label: "Appointments" },
+  "/follow-ups": { label: "Follow-ups" },
   "/consultation": { label: "Consultation" },
   "/consultation/[id]": { label: "Consultation", parentPath: "/appointments" },
   "/prescriptions": { label: "Prescriptions" },
@@ -32,7 +32,6 @@ export const ROUTE_META: Record<string, RouteMeta> = {
   "/specialty": { label: "Specialty" },
   "/settings": { label: "Settings" },
   "/settings/compliance": { label: "Compliance", parentPath: "/settings" },
-  "/upgrade": { label: "Upgrade" },
   "/profile": { label: "Profile" },
 };
 

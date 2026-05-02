@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
+import { type ReactNode, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
@@ -10,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   type UploadResult,
   uploadSignature,
@@ -18,6 +20,24 @@ import {
 } from "@/hooks/api/use-signature-upload";
 import { SignatureUploadWorkflow } from "@/features/_shared/components/signature/signature-upload-workflow";
 import { getUserFacingErrorMessage } from "@workspace/types";
+import { SupportContact } from "@/components/common/support-contact";
+
+function UploadPageShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-h-screen flex-col bg-muted/30">
+      <div className="flex flex-1 flex-col items-center justify-center p-4">
+        {children}
+      </div>
+      <div className="w-full border-t border-border/60 bg-background/90 px-4 py-4">
+        <SupportContact
+          layout="stack"
+          variant="footer"
+          className="mx-auto max-w-2xl"
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function UploadSignaturePage() {
   const params = useParams();
@@ -77,22 +97,32 @@ export default function UploadSignaturePage() {
 
   if (validating) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <UploadPageShell>
         <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="mb-4 h-8 w-8 animate-spin text-primary" />
+          <CardContent
+            className="flex flex-col items-center justify-center py-12"
+            role="status"
+            aria-live="polite"
+            aria-label="Validating upload link"
+          >
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              className="mb-4"
+              iconClassName="h-8 w-8 text-primary"
+            />
             <p className="text-sm text-muted-foreground">
-              Validating upload link...
+              Validating upload link…
             </p>
           </CardContent>
         </Card>
-      </div>
+      </UploadPageShell>
     );
   }
 
   if (!tokenValid) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <UploadPageShell>
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -110,13 +140,13 @@ export default function UploadSignaturePage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </UploadPageShell>
     );
   }
 
   if (uploadComplete && uploadResult) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <UploadPageShell>
         <Card className="w-full max-w-md">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -131,12 +161,11 @@ export default function UploadSignaturePage() {
             <Alert className="border-success/50 bg-success/10">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription>
-                Signature uploaded for{" "}
-                <strong>{uploadResult.doctor?.name}</strong>
+                Signature uploaded for <strong>{uploadResult.doctor?.name}</strong>
               </AlertDescription>
             </Alert>
 
-            <div className="rounded-lg border p-4">
+            <div className="rounded-lg border bg-background p-4">
               <img
                 src={uploadResult.signatureUrl}
                 alt="Uploaded signature"
@@ -150,12 +179,12 @@ export default function UploadSignaturePage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </UploadPageShell>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+    <UploadPageShell>
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>Upload Your Signature</CardTitle>
@@ -177,10 +206,10 @@ export default function UploadSignaturePage() {
             selectImageButtonLabel="Select Image"
             changeImageButtonLabel="Change Image"
             uploadButtonLabel="Upload Signature"
-            uploadingButtonLabel="Uploading..."
+            uploadingButtonLabel="Uploading…"
           />
         </CardContent>
       </Card>
-    </div>
+    </UploadPageShell>
   );
 }

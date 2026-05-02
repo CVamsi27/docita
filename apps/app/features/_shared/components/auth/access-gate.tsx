@@ -15,6 +15,7 @@ import { APP_ACCESS_MATRIX, type AppAccessTarget } from "@workspace/types";
 import { canAccessTarget } from "@/lib/access-policy";
 import { useAuth } from "@/lib/auth-context";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 interface AccessGateProps {
   target: AppAccessTarget;
@@ -57,8 +58,7 @@ export function AccessGate({
       : "You do not have access to this area.");
 
   return (
-    <Card className="surface-warning relative overflow-hidden border-2">
-      <div className="absolute top-0 left-0 h-32 w-32 -translate-y-1/2 -translate-x-1/2 rounded-full bg-warning/20 blur-3xl" />
+    <Card className="surface-warning border">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-warning">
           <Lock className="size-5" aria-hidden />
@@ -72,9 +72,9 @@ export function AccessGate({
         <Button
           asChild
           size="sm"
-          className="gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          className="gap-2"
         >
-          <Link href="/upgrade">
+          <Link href={SUBSCRIPTION_SETTINGS_PATH}>
             <Sparkles className="size-4" aria-hidden />
             Upgrade plan
           </Link>

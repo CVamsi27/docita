@@ -1,6 +1,6 @@
 "use client";
 
-import { DocitaIcon } from "@workspace/ui/components/docita-logo";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Card, CardContent } from "@workspace/ui/components/card";
 
 interface PageTransitionLoaderProps {
@@ -27,12 +27,7 @@ export function PageTransitionLoader({
     >
       <Card className="w-full max-w-md">
         <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
-          <div className="docita-loading-pulse">
-            <DocitaIcon className="h-12 w-12" />
-          </div>
-          <div className="h-1 w-20 overflow-hidden rounded-full bg-muted">
-            <div className="docita-loading-shimmer h-full w-1/2 rounded-full bg-primary/40" />
-          </div>
+          <DocitaLoadingIndicator variant="page" withStatusRole={false} />
           <div>
             <p className="text-sm font-medium text-foreground">{title}</p>
             {description ? (

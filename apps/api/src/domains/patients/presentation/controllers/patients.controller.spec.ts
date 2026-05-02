@@ -11,7 +11,7 @@ import { PatientsController } from './patients.controller';
 import { PatientService as PatientsService } from '@/domains/patients/application/services/patient.service';
 import { RolesGuard } from '@/shared/modules/auth/auth/roles.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
-import { Role } from '@workspace/db';
+import { Gender, Role } from '@workspace/db';
 import { RequestWithUser } from '@/common/types/common.types';
 import { ListPatientsQueryDto } from '@/domains/patients/application/dto/patients.dto';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
@@ -118,7 +118,7 @@ describe('PatientsController (Authorization)', () => {
         }),
       );
 
-      expect(result).toEqual(emptyPatients);
+      expect(result).toEqual({ items: [], total: 0 });
       const firstCallQuery = listPatientsMock.mock.calls[0]![0];
 
       expect(firstCallQuery.clinicId).toBe('clinic-1');
@@ -157,7 +157,7 @@ describe('PatientsController (Authorization)', () => {
             lastName: 'Doe',
             email: 'john@example.com',
             phoneNumber: '9999999999',
-            gender: 'male',
+            gender: Gender.MALE,
             metadata: {},
             createdAt: new Date('2026-01-01T00:00:00.000Z'),
             updatedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -178,7 +178,22 @@ describe('PatientsController (Authorization)', () => {
         }),
       );
 
-      expect(result).toEqual(mockPatients);
+      expect(result).toEqual({
+        items: [
+          expect.objectContaining({
+            id: 'patient-1',
+            clinicId: 'clinic-1',
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@example.com',
+            phoneNumber: '9999999999',
+            gender: Gender.MALE,
+            metadata: {},
+            version: 1,
+          }),
+        ],
+        total: 1,
+      });
     });
 
     it('should support search parameter', async () => {

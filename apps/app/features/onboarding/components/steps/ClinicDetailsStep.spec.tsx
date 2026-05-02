@@ -171,9 +171,7 @@ describe("ClinicDetailsStep", () => {
     expect(phoneInput.className).toContain("sm:flex-row");
     expect(screen.queryByText("Optional")).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText("Clinic name")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Clinic email address"),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText(/Address Line 1/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Postal Code \/ Pincode/i)).toBeInTheDocument();
   });

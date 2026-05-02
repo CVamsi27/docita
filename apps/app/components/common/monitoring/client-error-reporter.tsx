@@ -167,15 +167,26 @@ export function ClientErrorReporter() {
 
     window.addEventListener("error", handleError);
     window.addEventListener("unhandledrejection", handleRejection);
-    consoleRef.log = patchedConsoleLog;
-    consoleRef.warn = patchedConsoleWarn;
+
+    // Patch log/warn only when capturing is enabled. Otherwise Next.js and other
+    // dev tooling logs would appear to come from this file and obscure real sources.
+    if (captureConsoleInfo) {
+      consoleRef.log = patchedConsoleLog;
+    }
+    if (captureConsoleWarnings) {
+      consoleRef.warn = patchedConsoleWarn;
+    }
     consoleRef.error = patchedConsoleError;
 
     return () => {
       window.removeEventListener("error", handleError);
       window.removeEventListener("unhandledrejection", handleRejection);
-      consoleRef.log = originalConsoleLog;
-      consoleRef.warn = originalConsoleWarn;
+      if (captureConsoleInfo) {
+        consoleRef.log = originalConsoleLog;
+      }
+      if (captureConsoleWarnings) {
+        consoleRef.warn = originalConsoleWarn;
+      }
       consoleRef.error = originalConsoleError;
     };
   }, []);

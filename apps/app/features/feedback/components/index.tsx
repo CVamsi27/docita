@@ -106,7 +106,7 @@ export const FeedbackForm: FC<{
         <div className="space-y-2">
           <Label>Your Message</Label>
           <Textarea
-            placeholder="Tell us what you think..."
+            placeholder="Enter feedback"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={4}

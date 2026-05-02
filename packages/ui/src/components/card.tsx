@@ -4,18 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@workspace/ui/lib/utils";
 
 const cardVariants = cva(
-  "ui-card-surface flex flex-col gap-4 sm:gap-6 py-4 sm:py-6",
+  "ui-card-surface flex flex-col gap-4 py-4 sm:gap-5 sm:py-5",
   {
     variants: {
       interaction: {
         static: "transition-colors duration-150",
         interactive:
-          "cursor-pointer transition-colors duration-150 hover:bg-muted/20 hover:border-primary/20 hover:shadow-md",
+          "cursor-pointer transition-[background-color,border-color,box-shadow] duration-150 hover:bg-surface-2 hover:border-border/80 hover:shadow-md",
       },
       density: {
         compact: "gap-3 py-3 sm:py-4",
         default: "",
-        spacious: "gap-5 sm:gap-7 py-5 sm:py-7",
+        spacious: "gap-5 sm:gap-6 py-5 sm:py-6",
       },
     },
     defaultVariants: {

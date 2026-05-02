@@ -29,7 +29,10 @@ export class RetryService {
 
   async scheduleRetry(data: PaymentRetryData): Promise<void> {
     try {
-      const invoice = await this.invoiceRepository.findById(data.invoiceId);
+      const invoice = await this.invoiceRepository.findById(
+        data.invoiceId,
+        data.clinicId,
+      );
 
       if (!invoice) {
         throw new BadRequestException(`Invoice ${data.invoiceId} not found`);

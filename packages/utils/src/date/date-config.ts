@@ -179,6 +179,10 @@ export const DATE_FORMATS = {
   DATE_MEDIUM: "dd MMM yyyy",
   DATE_LONG: "dd MMMM yyyy",
   DATE_FULL: "EEEE, dd MMMM yyyy",
+  /** Weekday (abbrev) + medium date — billing reminder copy */
+  DATE_WEEKDAY_SHORT_MEDIUM: "EEE, dd MMM yyyy",
+  /** Weekday + long date + time — appointment reminder emails */
+  DATETIME_WEEKDAY_LONG: "EEEE, dd MMMM yyyy, hh:mm a",
   TIME_SHORT: "HH:mm",
   TIME_MEDIUM: "hh:mm a",
   TIME_LONG: "HH:mm:ss",

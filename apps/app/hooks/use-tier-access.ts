@@ -97,7 +97,15 @@ export function useTierAccess() {
 
   const isSubscriptionActive = useMemo(() => {
     const status = subscription?.subscriptionStatus;
-    return status === "ACTIVE" || status === "TRIALING";
+    // Match backend subscription enforcement + upgrade UX.
+    return (
+      status === "ACTIVE" ||
+      status === "TRIALING" ||
+      status === "PAST_DUE" ||
+      status === "PAYMENT_DUE" ||
+      status === "GRACE" ||
+      status === "PAUSED"
+    );
   }, [subscription?.subscriptionStatus]);
 
   return {

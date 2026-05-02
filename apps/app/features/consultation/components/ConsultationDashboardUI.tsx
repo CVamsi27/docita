@@ -1,6 +1,6 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -11,8 +11,8 @@ import {
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
-import { DataState } from "@workspace/ui/components/data-state";
 import { PageHeader } from "@workspace/ui/components/page-header";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Activity,
   Calendar,
@@ -22,11 +22,13 @@ import {
   Users,
 } from "lucide-react";
 import { useConsultationDashboard } from "@/features/consultation/hooks/use-consultation-dashboard";
+import { formatTime } from "@/lib/formatters";
 import {
   Avatar,
   AvatarFallback,
 } from "@workspace/ui/components/avatar";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import { StatGrid } from "@workspace/ui/components/stat-grid";
 
 export const ConsultationDashboardUI: FC = () => {
   const {
@@ -40,6 +42,36 @@ export const ConsultationDashboardUI: FC = () => {
     router,
   } = useConsultationDashboard();
 
+  const statItems = useMemo(
+    () => [
+      {
+        id: "scheduled",
+        label: "Scheduled Today",
+        value: stats.scheduledToday,
+        icon: <Calendar className="h-4 w-4" aria-hidden />,
+      },
+      {
+        id: "waiting",
+        label: "Waiting",
+        value: stats.waiting,
+        icon: <Users className="h-4 w-4" aria-hidden />,
+      },
+      {
+        id: "active",
+        label: "Active",
+        value: stats.inProgress,
+        icon: <Activity className="h-4 w-4" aria-hidden />,
+      },
+      {
+        id: "completed",
+        label: "Completed",
+        value: stats.completed,
+        icon: <Stethoscope className="h-4 w-4" aria-hidden />,
+      },
+    ],
+    [stats],
+  );
+
   if (isLoading) {
     return (
       <AppPageScaffold
@@ -50,10 +82,71 @@ export const ConsultationDashboardUI: FC = () => {
           />
         }
       >
-        <DataState
-          status="loading"
-          loadingMessage="Loading consultation dashboard..."
-        />
+        <StatGrid items={[]} columns={4} isLoading />
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="col-span-1">
+            <CardHeader>
+              <Skeleton animation="wave" className="h-6 w-48 max-w-full" />
+              <div className="mt-2 space-y-2">
+                <Skeleton animation="wave" className="h-4 w-full" />
+                <Skeleton animation="wave" className="h-4 w-[85%]" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <Skeleton
+                      variant="circular"
+                      animation="wave"
+                      className="h-10 w-10 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton animation="wave" className="h-4 w-40" />
+                      <Skeleton animation="wave" className="h-3 w-28" />
+                    </div>
+                  </div>
+                  <Skeleton animation="wave" className="h-9 w-20 shrink-0 rounded-md" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="col-span-1">
+            <CardHeader>
+              <Skeleton animation="wave" className="h-6 w-40 max-w-full" />
+              <div className="mt-2 space-y-2">
+                <Skeleton animation="wave" className="h-4 w-full" />
+                <Skeleton animation="wave" className="h-4 w-[75%]" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <Skeleton
+                      variant="circular"
+                      animation="wave"
+                      className="h-10 w-10 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton animation="wave" className="h-4 w-36" />
+                      <Skeleton animation="wave" className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton animation="wave" className="h-9 w-16 shrink-0 rounded-md" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </AppPageScaffold>
     );
   }
@@ -73,46 +166,7 @@ export const ConsultationDashboardUI: FC = () => {
         />
       }
     >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Scheduled Today
-            </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.scheduledToday}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Waiting</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.waiting}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgress}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completed}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatGrid items={statItems} columns={4} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
@@ -125,16 +179,16 @@ export const ConsultationDashboardUI: FC = () => {
           </CardHeader>
           <CardContent>
             {activeConsultations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                <Stethoscope className="h-8 w-8 mb-2 opacity-50" />
-                <p>No active consultations</p>
+              <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-8 text-center">
+                <Stethoscope className="mb-2 h-8 w-8 opacity-50 text-muted-foreground" aria-hidden />
+                <p className="ui-helper-text">No active consultations</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {activeConsultations.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg bg-primary/5"
+                    className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-primary/20 bg-primary/5 p-3 sm:p-4"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar className="shrink-0">
@@ -148,16 +202,16 @@ export const ConsultationDashboardUI: FC = () => {
                           {item.patient?.firstName} {item.patient?.lastName}
                         </p>
                         <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
-                          <Clock className="mr-1 h-3 w-3 shrink-0" />
-                          Started:{" "}
+                          <Clock className="mr-1 h-3 w-3 shrink-0" aria-hidden />
+                          <span>Started:</span>
+                          <span className="ml-1">
                           {item.consultationStart
-                            ? new Date(
-                                item.consultationStart,
-                              ).toLocaleTimeString([], {
+                            ? formatTime(item.consultationStart, "en-IN", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })
                             : "Just now"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -171,7 +225,7 @@ export const ConsultationDashboardUI: FC = () => {
                             item.appointmentId || item.id,
                           )
                         }
-                        >
+                      >
                         Continue
                       </Button>
                     ) : (
@@ -196,16 +250,16 @@ export const ConsultationDashboardUI: FC = () => {
           </CardHeader>
           <CardContent>
             {waitingList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                <Users className="h-8 w-8 mb-2 opacity-50" />
-                <p>Waiting room is empty</p>
+              <div className="ui-card-surface flex flex-col items-center justify-center border-2 border-dashed border-border/60 p-8 text-center">
+                <Users className="mb-2 h-8 w-8 opacity-50 text-muted-foreground" aria-hidden />
+                <p className="ui-helper-text">Waiting room is empty</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {waitingList.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg"
+                    className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card p-3 sm:p-4"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-muted font-bold text-sm">

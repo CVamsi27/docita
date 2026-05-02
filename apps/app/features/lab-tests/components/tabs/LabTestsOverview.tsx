@@ -25,7 +25,9 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats?.pending ?? 0}</div>
+          <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+            {stats?.pending ?? 0}
+          </div>
           <p className="text-xs text-muted-foreground">Awaiting processing</p>
         </CardContent>
       </Card>
@@ -35,7 +37,7 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
           <FlaskConical className="h-4 w-4 text-info" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-info">
+          <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-info">
             {stats?.inProgress ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">Currently processing</p>
@@ -47,7 +49,7 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
           <CheckCircle className="h-4 w-4 text-success" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-success">
+          <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
             {stats?.completed ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">Results available</p>
@@ -59,7 +61,7 @@ export const LabTestsOverview: FC<LabTestsOverviewProps> = ({ stats }) => {
           <AlertCircle className="h-4 w-4 text-destructive" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-destructive">
+          <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-destructive">
             {stats?.urgent ?? 0}
           </div>
           <p className="text-xs text-muted-foreground">High priority tests</p>

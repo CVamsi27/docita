@@ -54,7 +54,7 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
     >
       <div className="mx-auto flex max-w-7xl items-center gap-2 sm:justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -62,9 +62,9 @@ export function StickyCta({ appUrl }: StickyCtaProps) {
               14-day free trial is back.
             </div>
             <div className="truncate text-xs leading-5 text-muted-foreground sm:text-sm">
-              <span className="sm:hidden">Essential at ₹0, no card.</span>
+              <span className="sm:hidden">Essential at INR 0, no card.</span>
               <span className="hidden sm:inline">
-                Start Essential at ₹0 today, no credit card required.
+                Start Essential at INR 0 today, no credit card required.
               </span>
             </div>
           </div>

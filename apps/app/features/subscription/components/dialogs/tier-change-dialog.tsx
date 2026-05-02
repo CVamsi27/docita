@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import {
   Dialog,
@@ -12,18 +14,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowRight,
-  Building2,
-  CheckCircle,
-  Crown,
-  Loader2,
-  Rocket,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle, Crown, Rocket, Sparkles, Zap } from "lucide-react";
 import {
   PRICING_CURRENCY_CONFIG,
   type SupportedCurrency,
@@ -33,6 +24,8 @@ import {
   getUserFacingErrorMessage,
 } from "@workspace/types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
+import { useProrationPreview } from "@/hooks/api/use-billing";
+import { formatCurrency, formatPriceWithCurrency } from "@workspace/utils";
 
 interface TierChangeDialogProps {
   open: boolean;
@@ -70,14 +63,28 @@ export function TierChangeDialog({
   const { pricingConfig, isLoading: pricingLoading } =
     usePricingConfig(currency);
 
+  const { data: prorationPreview, isFetching: prorationLoading } =
+    useProrationPreview(selectedTier ?? "STARTER", billingCycle, {
+      enabled: open && !!selectedTier && selectedTier !== "ENTERPRISE",
+    });
+
   if (!selectedTier) return null;
 
   if (pricingLoading || !pricingConfig) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div
+            className="flex items-center justify-center py-8"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading pricing"
+          >
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              iconClassName="h-8 w-8"
+            />
           </div>
         </DialogContent>
       </Dialog>
@@ -111,15 +118,8 @@ export function TierChangeDialog({
   const selectedHasCustomPricing =
     selectedTier === "ENTERPRISE" || selectedPrice === "custom";
 
-  const formatPrice = (price: number | "custom") => {
-    if (price === "custom") return "Custom";
-    return new Intl.NumberFormat(currencyConfig.locale, {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: currencyConfig.decimalPlaces,
-      maximumFractionDigits: currencyConfig.decimalPlaces,
-    }).format(price);
-  };
+  const formatPrice = (price: number | "custom") =>
+    formatPriceWithCurrency(price, currency);
 
   const priceDiff =
     !currentHasCustomPricing &&
@@ -201,7 +201,7 @@ export function TierChangeDialog({
         ) : (
           <>
             <div className="grid gap-3 py-2 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
-              <div className="rounded-xl border bg-muted/30 p-4">
+              <div className="rounded-lg border bg-muted/30 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background">
                     <CurrentIcon className="h-4 w-4" />
@@ -224,7 +224,7 @@ export function TierChangeDialog({
                 )}
               </div>
 
-              <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
+              <div className="rounded-lg border border-primary/40 bg-primary/5 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-primary">
                     <SelectedIcon className="h-4 w-4" />
@@ -259,6 +259,40 @@ export function TierChangeDialog({
                     {billingCycle === "YEARLY" ? "/year" : "/month"}
                   </span>
                 </p>
+              </div>
+            )}
+
+            {selectedTier !== "ENTERPRISE" && (prorationLoading || prorationPreview) && (
+              <div className="rounded-lg border bg-muted/25 p-3 text-sm space-y-2">
+                {prorationLoading ? (
+                  <p className="text-muted-foreground">Calculating checkout amount…</p>
+                ) : prorationPreview ? (
+                  <>
+                    {prorationPreview.creditCents > 0 ? (
+                      <p className="text-muted-foreground">
+                        Credit from unused period:{" "}
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(prorationPreview.creditCents / 100, {
+                            currency,
+                            locale: currencyConfig.locale,
+                            fractionDigits: currencyConfig.decimalPlaces,
+                          })}
+                        </span>
+                      </p>
+                    ) : null}
+                    <p className="font-semibold">
+                      Due today:{" "}
+                      {formatCurrency(
+                        prorationPreview.finalAmountCents / 100,
+                        {
+                          currency,
+                          locale: currencyConfig.locale,
+                          fractionDigits: currencyConfig.decimalPlaces,
+                        },
+                      )}
+                    </p>
+                  </>
+                ) : null}
               </div>
             )}
 
@@ -309,8 +343,8 @@ export function TierChangeDialog({
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    Processing…
                   </>
                 ) : selectedTier === "ENTERPRISE" ? (
                   "Request Callback"

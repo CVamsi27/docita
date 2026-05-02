@@ -56,10 +56,6 @@ vi.mock("@/components/common/loaders/page-transition-loader", () => ({
   ),
 }));
 
-vi.mock("@/components/common/support-contact", () => ({
-  SupportContact: () => <div data-testid="support-contact" />,
-}));
-
 vi.mock("@/features/auth/components/PreDashboardShell", () => ({
   PreDashboardShell: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="pre-dashboard-shell">{children}</div>
@@ -160,7 +156,7 @@ describe("ChoosePathPage", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 });

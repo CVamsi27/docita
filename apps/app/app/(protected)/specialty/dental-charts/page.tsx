@@ -1,9 +1,13 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
-import { Smile, Search, Save, Loader2 } from "lucide-react";
+import { Smile, Search, Save, X } from "lucide-react";
 import { Feature } from "@workspace/types";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Card,
   CardContent,
@@ -13,10 +17,12 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { toast } from "sonner";
 import { useClinic } from "@/lib/clinic-context";
+import { formatDate } from "@/lib/formatters";
 import { usePatients } from "@/hooks/api/use-patients";
 import {
   usePatientAppointments,
@@ -86,61 +92,69 @@ export default function DentalChartsPage() {
 
   if (clinic?.type && clinic.type !== "DENTAL") {
     return (
-      <div className="mx-auto w-full max-w-2xl py-8 text-center space-y-4">
-        <Smile className="h-12 w-12 text-muted-foreground mx-auto" />
-        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Dental Charts</h1>
-        <p className="text-muted-foreground">
-          Dental charting is only available for dental facilities. Your facility is
-          configured as <strong>{clinic.type}</strong>
-        </p>
-      </div>
+      <AppPageScaffold
+        className="max-w-2xl"
+        header={
+          <PageHeader
+            title="Dental Charts"
+            description={
+              <>
+                Dental charting is only available for dental facilities. Your
+                facility is configured as <strong>{clinic.type}</strong>.
+              </>
+            }
+          />
+        }
+      >
+        <Card className="ui-card-surface p-10 text-center">
+          <Smile className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="ui-page-subtitle">
+            Switch your facility type to Dental to unlock interactive charting.
+          </p>
+        </Card>
+      </AppPageScaffold>
     );
   }
 
   return (
     <FeatureGate feature={Feature.CALENDAR_SLOTS} showLockedCard>
-      <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Smile className="h-5 w-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
-                Dental Charts
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                Interactive tooth charting and documentation
-              </p>
-            </div>
-          </div>
-          {selectedAppointmentId && (
-            <Button
-              data-testid="dental-chart-save-button"
-              onClick={handleSave}
-              disabled={!isDirty || isSaving}
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save Chart
-            </Button>
-          )}
-        </div>
+      <AppPageScaffold
+        className="max-w-5xl"
+        header={
+          <PageHeader
+            title="Dental Charts"
+            description="Interactive tooth charting and documentation."
+            actions={
+              selectedAppointmentId ? (
+                <Button
+                  data-testid="dental-chart-save-button"
+                  onClick={handleSave}
+                  disabled={!isDirty || isSaving}
+                >
+                  {isSaving ? (
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save Chart
+                </Button>
+              ) : null
+            }
+          />
+        }
+      >
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-4">
-            <Card>
+            <Card className="ui-card-surface">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Select Patient</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
                   <Input
-                    placeholder="Search by name or phone"
+                    placeholder="Enter name or phone"
                     data-testid="dental-chart-patient-search"
                     value={search}
                     onChange={(e) => {
@@ -148,14 +162,40 @@ export default function DentalChartsPage() {
                       setSelectedPatient(null);
                       setSelectedAppointmentId(null);
                     }}
-                    className="pl-9"
+                    className={search.trim() ? "pl-9 pr-10" : "pl-9"}
+                    aria-label="Search patients for dental chart"
                   />
+                  {search.trim() ? (
+                    <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                      <SymbolTooltip label="Clear search">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setSearch("");
+                            setSelectedPatient(null);
+                            setSelectedAppointmentId(null);
+                          }}
+                          aria-label="Clear search"
+                        >
+                          <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                        </Button>
+                      </SymbolTooltip>
+                    </div>
+                  ) : null}
                 </div>
 
                 {patientsLoading && search.length >= 2 && (
-                  <div className="space-y-2">
-                    <Skeleton className="h-9 w-full" />
-                    <Skeleton className="h-9 w-full" />
+                  <div
+                    className="space-y-2"
+                    role="status"
+                    aria-live="polite"
+                    aria-label="Loading patient search"
+                  >
+                    <Skeleton animation="wave" className="h-9 w-full" />
+                    <Skeleton animation="wave" className="h-9 w-full" />
                   </div>
                 )}
 
@@ -188,7 +228,7 @@ export default function DentalChartsPage() {
             </Card>
 
             {selectedPatient && (
-              <Card>
+              <Card className="ui-card-surface">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">Appointments</CardTitle>
                   <CardDescription className="text-xs">
@@ -197,9 +237,14 @@ export default function DentalChartsPage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {appointmentsLoading ? (
-                    <div className="space-y-2">
-                      <Skeleton className="h-16 w-full" />
-                      <Skeleton className="h-16 w-full" />
+                    <div
+                      className="space-y-2"
+                      role="status"
+                      aria-live="polite"
+                      aria-label="Loading appointments"
+                    >
+                      <Skeleton animation="wave" className="h-16 w-full" />
+                      <Skeleton animation="wave" className="h-16 w-full" />
                     </div>
                   ) : appointments.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-4">
@@ -224,7 +269,7 @@ export default function DentalChartsPage() {
                         >
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-medium">
-                              {new Date(appt.startTime).toLocaleDateString()}
+                              {formatDate(appt.startTime)}
                             </p>
                             {hasChart && (
                               <Badge variant="secondary" className="text-xs">
@@ -248,7 +293,7 @@ export default function DentalChartsPage() {
             {selectedAppointmentId ? (
               <DentalChartUI value={chartData} onChange={handleChartChange} />
             ) : (
-              <Card className="h-full min-h-[400px] flex items-center justify-center">
+              <Card className="ui-card-surface h-full min-h-[400px] flex items-center justify-center">
                 <CardContent className="text-center space-y-2 py-12">
                   <Smile className="h-12 w-12 text-muted-foreground/40 mx-auto" />
                   <p className="text-sm text-muted-foreground">
@@ -261,7 +306,7 @@ export default function DentalChartsPage() {
             )}
           </div>
         </div>
-      </div>
+      </AppPageScaffold>
     </FeatureGate>
   );
 }

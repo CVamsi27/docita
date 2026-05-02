@@ -89,11 +89,7 @@ export function WhatsAppBroadcastDialogUI({
         contentClassName="max-w-md"
       >
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            noValidate
-            className="space-y-4"
-          >
+          <div className="space-y-4">
             <FormField
               control={form.control}
               name="campaignName"
@@ -105,7 +101,7 @@ export function WhatsAppBroadcastDialogUI({
                 >
                   <FormControl>
                     <Input
-                      placeholder="e.g., Monthly Health Reminder"
+                      placeholder="Campaign name"
                       {...field}
                     />
                   </FormControl>
@@ -125,7 +121,7 @@ export function WhatsAppBroadcastDialogUI({
                   <div className="space-y-2">
                     <FormControl>
                       <Textarea
-                        placeholder="Enter your message..."
+                        placeholder="Enter message"
                         rows={4}
                         {...field}
                       />
@@ -172,7 +168,7 @@ export function WhatsAppBroadcastDialogUI({
                 </FormFieldGroup>
               )}
             />
-          </form>
+          </div>
         </Form>
       </CRUDDialog>
     </FeatureGuard>

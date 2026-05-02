@@ -21,8 +21,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Calendar as CalendarIcon, CalendarPlus, Check } from "lucide-react";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { FollowUpForm } from "@/features/appointments/components/sections/follow-up/FollowUpForm";
 import { QuickScheduleButtons } from "@/features/appointments/components/sections/follow-up/QuickScheduleButtons";
@@ -122,7 +123,6 @@ export function FollowUpSchedulerUI({
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
-          {}
           <QuickScheduleButtons
             quickSchedules={quickSchedules}
             onQuickSchedule={onQuickSchedule}
@@ -130,7 +130,6 @@ export function FollowUpSchedulerUI({
           />
 
           <div className="grid grid-cols-2 gap-4">
-            {}
             <div className="space-y-2">
               <Label>Date</Label>
               <Popover>
@@ -144,7 +143,7 @@ export function FollowUpSchedulerUI({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {selectedDate ? (
-                      format(selectedDate, "PPP")
+                      formatDate(selectedDate, "dd MMMM yyyy")
                     ) : (
                       <span>Choose a date</span>
                     )}
@@ -161,7 +160,6 @@ export function FollowUpSchedulerUI({
                 </PopoverContent>
               </Popover>
             </div>
-            {}
             <FollowUpForm
               followUpType={followUpType}
               onTypeChange={onTypeChange}
@@ -180,7 +178,6 @@ export function FollowUpSchedulerUI({
             />
           </div>
 
-          {}
           {selectedDate && (
             <FollowUpSummary
               selectedDate={selectedDate}
@@ -205,8 +202,8 @@ export function FollowUpSchedulerUI({
           >
             {loading ? (
               <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                Scheduling...
+                <DocitaLoadingIndicator variant="inline" decorative />
+                Scheduling…
               </>
             ) : (
               <>

@@ -1,3 +1,4 @@
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { fetchLandingJson } from "@/lib/public-api";
 
 export interface PlatformStats {
@@ -5,6 +6,11 @@ export interface PlatformStats {
   doctors: number;
   patients: number;
   prescriptions: number;
+}
+
+interface PlatformStatsCacheEntry {
+  expiresAt: number;
+  stats: PlatformStats | null;
 }
 
 export interface TierPricing {
@@ -107,6 +113,9 @@ export const FALLBACK_PRICING_CONFIG: PricingConfig = {
   tiers: FALLBACK_TIERS,
 };
 
+const PLATFORM_STATS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+let platformStatsCache: PlatformStatsCacheEntry | null = null;
+
 function isLiveLandingDataEnabled(): boolean {
   return import.meta.env["PUBLIC_ENABLE_LIVE_LANDING_DATA"] !== "false";
 }
@@ -123,6 +132,11 @@ export async function fetchPlatformStats(
 ): Promise<PlatformStats | null> {
   if (!isLiveLandingDataEnabled()) {
     return null;
+  }
+
+  const now = Date.now();
+  if (platformStatsCache && platformStatsCache.expiresAt > now) {
+    return platformStatsCache.stats;
   }
 
   try {
@@ -145,13 +159,24 @@ export async function fetchPlatformStats(
       return null;
     }
 
-    return {
+    const stats = {
       clinics,
       doctors,
       patients,
       prescriptions,
     };
+    platformStatsCache = {
+      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
+      stats,
+    };
+
+    return stats;
   } catch {
+    platformStatsCache = {
+      expiresAt: now + PLATFORM_STATS_CACHE_TTL_MS,
+      stats: null,
+    };
+
     return null;
   }
 }
@@ -199,7 +224,7 @@ export async function fetchPricingConfig(
 }
 
 export function formatStatValue(value: number): string {
-  return value.toLocaleString("en-IN");
+  return formatCountLocale(value);
 }
 
 export function formatTierPrice(
@@ -210,5 +235,5 @@ export function formatTierPrice(
     return "Custom";
   }
 
-  return `${symbol}${value.toLocaleString("en-IN")}`;
+  return `${symbol}${formatAmountLocale(value)}`;
 }

@@ -1,19 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-  Command as CommandIcon,
-  Save,
-  ClipboardList,
-  Stethoscope,
-  Target,
-  Pill,
-  HeartPulse,
-  Eye,
-} from "lucide-react";
+import { Command as CommandIcon, HeartPulse, Save } from "lucide-react";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import { useConsultationHydrate } from "@/features/consultation/state/useConsultationHydrate";
 import { useConsultationAutosave } from "@/features/consultation/state/useConsultationAutosave";
@@ -23,29 +21,40 @@ import {
   CommandPalette,
   type CommandPaletteAction,
 } from "@/features/consultation/workspace/chrome/CommandPalette";
-import { VitalsModal } from "@/features/consultation/components/modals/VitalsModal";
-import {
-  SectionRail,
-  SectionTabs,
-  useSectionsForClinic,
-} from "@/features/consultation/workspace/chrome/SectionRail";
+import { SectionRail, SectionTabs } from "@/features/consultation/workspace/chrome/SectionRail";
+import { resolveConsultationSectionFromUrl } from "@/features/consultation/rules/consultationTabRouting";
+import { getConsultationSectionsForClinic } from "@/features/consultation/workspace/consultation-section-registry";
+import { useConsultationVitals } from "@/features/consultation/workspace/consultation-vitals-context";
+import type { ConsultationSaveHandles } from "@/features/consultation/workspace/use-consultation-leave-navigation";
 import {
   AssessmentSection,
+  CardiologyExamSection,
   DentalSpecialtySection,
+  DermatologyExamSection,
   GrowthSpecialtySection,
+  GynecologyExamSection,
+  InvestigationsSection,
   ObjectiveSection,
   PlanSection,
+  PsychiatryExamSection,
   SubjectiveSection,
   VisionSpecialtySection,
 } from "@/features/consultation/workspace/sections";
 import { ConsultationSidebarContainer } from "@/features/consultation/components/ConsultationSidebarContainer";
-import type { Appointment, PatientWithMedicalHistory } from "@workspace/types";
+import {
+  CLINIC_TYPE_FEATURES,
+  type Appointment,
+  type ClinicType,
+  type PatientWithMedicalHistory,
+} from "@workspace/types";
+import { ConsultationWorkspaceProvider } from "@/features/consultation/workspace/consultation-workspace-context";
 
 interface ConsultationShellProps {
   appointmentData: Appointment & { patient?: PatientWithMedicalHistory };
   clinicType?: string;
   readOnly?: boolean;
   isSidebarOpen?: boolean;
+  saveHandlesRef?: RefObject<ConsultationSaveHandles | null>;
 }
 
 export function ConsultationShell({
@@ -53,18 +62,33 @@ export function ConsultationShell({
   clinicType,
   readOnly,
   isSidebarOpen = true,
+  saveHandlesRef,
 }: ConsultationShellProps) {
   const params = useParams();
   const appointmentId = params?.["id"] as string;
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { openVitals } = useConsultationVitals();
 
   useConsultationHydrate({
     appointmentId,
     appointmentData: appointmentData as unknown as Record<string, unknown>,
   });
 
-  const sections = useSectionsForClinic(clinicType);
+  const sections = useMemo(
+    () => getConsultationSectionsForClinic(clinicType),
+    [clinicType],
+  );
+
+  const clinicFeatures = useMemo(() => {
+    const key = (clinicType?.toUpperCase() ?? "GENERAL") as ClinicType;
+    return CLINIC_TYPE_FEATURES[key] ?? CLINIC_TYPE_FEATURES.GENERAL;
+  }, [clinicType]);
+
+  const sectionIdsKey = sections.map((s) => s.id).join(",");
+
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
 
   const { data: patient, isLoading: patientLoading } =
     usePatientWithMedicalHistory(appointmentData.patientId ?? "");
@@ -75,21 +99,24 @@ export function ConsultationShell({
       | PatientWithMedicalHistory
       | undefined);
 
-  const initialSectionFromUrl = searchParams?.get("section") ?? undefined;
-  const [activeSectionId, setActiveSectionId] = useState<string>(() => {
-    if (
-      initialSectionFromUrl &&
-      sections.some((s) => s.id === initialSectionFromUrl)
-    ) {
-      return initialSectionFromUrl;
-    }
-    return sections[0]?.id ?? "subjective";
-  });
+  const [activeSectionId, setActiveSectionId] = useState<string>(
+    () => sections[0]?.id ?? "subjective",
+  );
 
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+  const observerBumpRaf = useRef<number | null>(null);
+  const [observerEpoch, setObserverEpoch] = useState(0);
   const setSectionRef = useCallback(
     (id: string) => (el: HTMLElement | null) => {
       sectionRefs.current[id] = el;
+      if (el === null) return;
+      if (observerBumpRaf.current != null) {
+        cancelAnimationFrame(observerBumpRaf.current);
+      }
+      observerBumpRaf.current = requestAnimationFrame(() => {
+        observerBumpRaf.current = null;
+        setObserverEpoch((n) => n + 1);
+      });
     },
     [],
   );
@@ -101,6 +128,14 @@ export function ConsultationShell({
     patientId: appointmentData.patientId,
   });
 
+  useEffect(() => {
+    if (!saveHandlesRef) return;
+    saveHandlesRef.current = { flush, submitPrescriptions };
+    return () => {
+      saveHandlesRef.current = null;
+    };
+  }, [flush, saveHandlesRef, submitPrescriptions]);
+
   const selectSection = useCallback(
     (id: string) => {
       setActiveSectionId(id);
@@ -109,14 +144,64 @@ export function ConsultationShell({
         el.scrollIntoView({ behavior: "smooth", block: "start" });
       }
       const next = new URLSearchParams(searchParams?.toString() ?? "");
-      next.set("section", id);
+      next.delete("tab");
+      const firstId = sectionsRef.current[0]?.id ?? "subjective";
+      if (id !== firstId) {
+        next.set("section", id);
+      } else {
+        next.delete("section");
+      }
       router.replace(`?${next.toString()}`, { scroll: false });
     },
     [router, searchParams],
   );
 
+  const sectionQ = searchParams.get("section");
+  const tabQ = searchParams.get("tab");
+
   useEffect(() => {
-    const ids = sections.map((s) => s.id);
+    const resolved = resolveConsultationSectionFromUrl(
+      sectionQ,
+      tabQ,
+      clinicType,
+    );
+    const matchedResolved = resolved
+      ? sections.find((s) => s.id === resolved)
+      : undefined;
+    const defaultSectionId = sections[0]?.id ?? "subjective";
+    const valid = matchedResolved?.id ?? defaultSectionId;
+
+    setActiveSectionId(valid);
+
+    const next = new URLSearchParams(searchParams.toString());
+    let changed = false;
+    if (tabQ) {
+      next.delete("tab");
+      changed = true;
+    }
+    if (valid !== defaultSectionId) {
+      if (next.get("section") !== valid) {
+        next.set("section", valid);
+        changed = true;
+      }
+    } else if (next.has("section")) {
+      next.delete("section");
+      changed = true;
+    }
+    if (changed) {
+      router.replace(`?${next.toString()}`, { scroll: false });
+    }
+  }, [
+    sectionQ,
+    tabQ,
+    clinicType,
+    sectionIdsKey,
+    router,
+    searchParams,
+    sections,
+  ]);
+
+  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -125,24 +210,28 @@ export function ConsultationShell({
         const top = visible[0];
         if (!top) return;
         const id = top.target.getAttribute("data-section-id");
-        if (id && ids.includes(id)) {
-          setActiveSectionId((prev) => (prev === id ? prev : id));
+        const matched = id
+          ? sections.find((s) => s.id === id)
+          : undefined;
+        if (matched) {
+          setActiveSectionId((prev) =>
+            prev === matched.id ? prev : matched.id,
+          );
         }
       },
       { threshold: [0.25, 0.5, 0.75], rootMargin: "-120px 0px -60% 0px" },
     );
-    ids.forEach((id) => {
-      const el = sectionRefs.current[id];
+    sections.forEach((s) => {
+      const el = sectionRefs.current[s.id];
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, [sections]);
+  }, [sections, observerEpoch]);
 
   const isDirty = useConsultationDraft((s) => s.dirty);
   const saveState = useConsultationDraft((s) => s.saveState);
 
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [vitalsOpen, setVitalsOpen] = useState(false);
 
   const onSaveClick = useCallback(async () => {
     await flush({ force: true });
@@ -165,39 +254,32 @@ export function ConsultationShell({
     }, 300);
   }, []);
 
+  const letterNavMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const s of sections) {
+      map[s.letter.toLowerCase()] = s.id;
+    }
+    return map;
+  }, [sections]);
+
   const paletteActions = useMemo<CommandPaletteAction[]>(
     () => [
-      ...sections.map((section) => ({
-        id: `nav-${section.id}`,
-        label: `Go to ${section.label}`,
-        group: "Navigate" as const,
-        icon:
-          section.id === "subjective"
-            ? ClipboardList
-            : section.id === "objective"
-              ? Stethoscope
-              : section.id === "assessment"
-                ? Target
-                : section.id === "plan"
-                  ? Pill
-                  : Eye,
-        shortcut:
-          section.letter === "S"
-            ? "g s"
-            : section.letter === "O"
-              ? "g o"
-              : section.letter === "A"
-                ? "g a"
-                : section.letter === "P"
-                  ? "g p"
-                  : undefined,
-        onRun: () => selectSection(section.id),
-      })),
+      ...sections.map((section) => {
+        const Icon = section.icon;
+        const letter = section.letter.toLowerCase();
+        return {
+          id: `nav-${section.id}`,
+          label: `Go to ${section.label}`,
+          group: "Navigate" as const,
+          icon: Icon,
+          shortcut: `g ${letter}`,
+          onRun: () => selectSection(section.id),
+        };
+      }),
       {
         id: "add-complaint",
         label: "Add chief complaint",
         group: "Add",
-        icon: ClipboardList,
         shortcut: "n c",
         onRun: () => focusNewItem("c"),
       },
@@ -205,7 +287,6 @@ export function ConsultationShell({
         id: "add-diagnosis",
         label: "Add diagnosis",
         group: "Add",
-        icon: Target,
         shortcut: "n d",
         onRun: () => focusNewItem("d"),
       },
@@ -213,7 +294,6 @@ export function ConsultationShell({
         id: "add-medication",
         label: "Add medication",
         group: "Add",
-        icon: Pill,
         shortcut: "n m",
         onRun: () => focusNewItem("m"),
       },
@@ -223,7 +303,7 @@ export function ConsultationShell({
         group: "Action",
         icon: HeartPulse,
         shortcut: "v",
-        onRun: () => setVitalsOpen(true),
+        onRun: () => openVitals(),
       },
       ...(readOnly
         ? []
@@ -238,7 +318,7 @@ export function ConsultationShell({
             },
           ]),
     ],
-    [focusNewItem, onSaveClick, readOnly, sections, selectSection],
+    [focusNewItem, onSaveClick, openVitals, readOnly, sections, selectSection],
   );
 
   useEffect(() => {
@@ -269,7 +349,7 @@ export function ConsultationShell({
       }
       if (e.key.toLowerCase() === "v") {
         e.preventDefault();
-        setVitalsOpen(true);
+        openVitals();
         return;
       }
       if (e.key === "g" || e.key === "n") {
@@ -277,13 +357,7 @@ export function ConsultationShell({
         const sequenceHandler = (ev: KeyboardEvent) => {
           const key = ev.key.toLowerCase();
           if (mode === "g") {
-            const navMap: Record<string, string> = {
-              s: "subjective",
-              o: "objective",
-              a: "assessment",
-              p: "plan",
-            };
-            const id = navMap[key];
+            const id = letterNavMap[key];
             if (id && sections.some((sec) => sec.id === id)) {
               ev.preventDefault();
               selectSection(id);
@@ -304,7 +378,15 @@ export function ConsultationShell({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [focusNewItem, onSaveClick, readOnly, sections, selectSection]);
+  }, [
+    focusNewItem,
+    letterNavMap,
+    onSaveClick,
+    openVitals,
+    readOnly,
+    sections,
+    selectSection,
+  ]);
 
   const sectionComponents = useMemo(
     () => ({
@@ -345,6 +427,41 @@ export function ConsultationShell({
           readOnly={readOnly}
         />
       ),
+      "specialty-cardiology": (
+        <CardiologyExamSection
+          key="specialty-cardiology"
+          sectionRef={setSectionRef("specialty-cardiology")}
+          readOnly={readOnly}
+        />
+      ),
+      "specialty-dermatology": (
+        <DermatologyExamSection
+          key="specialty-dermatology"
+          sectionRef={setSectionRef("specialty-dermatology")}
+          readOnly={readOnly}
+        />
+      ),
+      "specialty-gynecology": (
+        <GynecologyExamSection
+          key="specialty-gynecology"
+          sectionRef={setSectionRef("specialty-gynecology")}
+          readOnly={readOnly}
+        />
+      ),
+      "specialty-psychiatry": (
+        <PsychiatryExamSection
+          key="specialty-psychiatry"
+          sectionRef={setSectionRef("specialty-psychiatry")}
+          readOnly={readOnly}
+        />
+      ),
+      "specialty-investigations": (
+        <InvestigationsSection
+          key="specialty-investigations"
+          sectionRef={setSectionRef("specialty-investigations")}
+          readOnly={readOnly}
+        />
+      ),
       assessment: (
         <AssessmentSection
           key="assessment"
@@ -364,7 +481,11 @@ export function ConsultationShell({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+    <ConsultationWorkspaceProvider
+      clinicFeatures={clinicFeatures}
+      sections={sections}
+    >
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
       <SectionRail
         sections={sections}
         activeSectionId={activeSectionId}
@@ -375,12 +496,15 @@ export function ConsultationShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <div
           className={cn(
-            "sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-background/95 px-3 py-2 backdrop-blur md:px-6",
+            "sticky top-0 z-10 flex items-center gap-3 border-b bg-background/95 px-3 py-2 backdrop-blur md:px-6",
+            readOnly ? "justify-end" : "justify-between md:justify-end",
           )}
         >
-          <div className="flex items-center gap-2 min-w-0">
-            <SaveStatusChip />
-          </div>
+          {!readOnly ? (
+            <div className="flex min-w-0 items-center md:hidden">
+              <SaveStatusChip />
+            </div>
+          ) : null}
           <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="outline"
@@ -447,17 +571,7 @@ export function ConsultationShell({
         onOpenChange={setPaletteOpen}
         actions={paletteActions}
       />
-
-      <VitalsModal
-        open={vitalsOpen}
-        onOpenChange={setVitalsOpen}
-        appointmentId={appointmentId}
-        patientName={
-          appointmentData.patient
-            ? `${appointmentData.patient.firstName} ${appointmentData.patient.lastName}`
-            : "Patient"
-        }
-      />
-    </div>
+      </div>
+    </ConsultationWorkspaceProvider>
   );
 }

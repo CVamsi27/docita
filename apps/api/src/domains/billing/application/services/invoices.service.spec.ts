@@ -348,7 +348,7 @@ describe('InvoicesService', () => {
 
     generatePdfMock.mockResolvedValue(Buffer.from('pdf'));
 
-    await service.generatePDF('inv-4');
+    await service.generatePDF('inv-4', 'clinic-1');
 
     expect(generatePdfMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -375,7 +375,7 @@ describe('InvoicesService', () => {
 
     generatePdfMock.mockResolvedValue(Buffer.from('pdf'));
 
-    await service.generatePDF('inv-5');
+    await service.generatePDF('inv-5', 'clinic-1');
 
     expect(generatePdfMock).toHaveBeenCalledWith(
       expect.objectContaining({

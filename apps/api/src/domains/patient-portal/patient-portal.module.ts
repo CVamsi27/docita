@@ -4,6 +4,7 @@ import { AuthModule } from '@/shared/modules/auth/auth/auth.module';
 import { AppConfigModule } from '@/shared/modules/config/config.module';
 import { WhatsappModule } from '@/shared/modules/messaging/whatsapp/whatsapp.module';
 import { PatientsModule } from '@/domains/patients/patients.module';
+import { AppointmentsModule } from '@/domains/appointments/appointments.module';
 
 import { PatientPortalAuthService } from './application/services/patient-portal-auth.service';
 import { PatientPortalContextService } from './application/services/patient-portal-context.service';
@@ -24,6 +25,7 @@ import { PATIENT_PORTAL_REPOSITORY_TOKEN } from './core/repositories/patient-por
     AppConfigModule,
     WhatsappModule,
     PatientsModule,
+    AppointmentsModule,
   ],
   controllers: [
     PatientPortalAuthController,

@@ -28,6 +28,7 @@ import { PageHeader } from "@workspace/ui/components/page-header";
 import { toast } from "sonner";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { formatDate } from "@/lib/formatters";
 
 export default function PatientProfilePage() {
   const [deletionReason, setDeletionReason] = useState("");
@@ -125,10 +126,10 @@ export default function PatientProfilePage() {
               </p>
               {consentSettings?.whatsappConsentAt && (
                 <p className="text-xs text-muted-foreground">
-                  Consent given on{" "}
-                  {new Date(
-                    consentSettings.whatsappConsentAt,
-                  ).toLocaleDateString()}
+                  Consent given on
+                  <span className="ml-1">
+                    {formatDate(consentSettings.whatsappConsentAt)}
+                  </span>
                 </p>
               )}
             </div>
@@ -155,7 +156,11 @@ export default function PatientProfilePage() {
                 purposes
               </p>
             </div>
-            <Checkbox id="storage-consent" checked={true} disabled />
+            <Checkbox
+              id="storage-consent"
+              checked={consentSettings?.dataStorageConsent ?? false}
+              disabled
+            />
           </div>
         </CardContent>
       </Card>
@@ -190,7 +195,7 @@ export default function PatientProfilePage() {
             </Label>
             <Textarea
               id="deletion-reason"
-              placeholder="Please tell us why you're deleting your account..."
+              placeholder="Enter deletion reason"
               value={deletionReason}
               onChange={(e) => setDeletionReason(e.target.value)}
               rows={3}
@@ -219,7 +224,7 @@ export default function PatientProfilePage() {
           >
             <Trash2 className="mr-2 h-4 w-4" />
             {requestDeletion.isPending
-              ? "Processing..."
+              ? "Processing…"
               : "Delete My Account & Data"}
           </Button>
         </CardContent>

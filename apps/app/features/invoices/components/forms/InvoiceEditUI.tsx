@@ -36,7 +36,7 @@ import { useBackNavigation } from "@/hooks/use-back-navigation";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency } from "@workspace/utils";
 
 interface InvoiceEditUIProps {
   invoiceId: string;
@@ -58,7 +58,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
   } = useInvoiceEditLogic(invoiceId);
 
   if (isLoading) {
-    return <LoadingState message="Loading invoice..." />;
+    return <LoadingState message="Loading invoice…" />;
   }
 
   if (!invoice) {
@@ -80,7 +80,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
       <div className="flex items-center gap-4">
         <BackButton fallback={invoiceFallback} label="Cancel" />
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Edit Invoice</h1>
+          <h1 className="ui-page-title">Edit Invoice</h1>
           <p className="text-muted-foreground">
             Make changes to invoice #{invoice.id}
           </p>
@@ -110,7 +110,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -212,7 +212,7 @@ export const InvoiceEditUI: FC<InvoiceEditUIProps> = ({ invoiceId }) => {
                   <FormItem>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter notes..."
+                        placeholder="Notes"
                         className="min-h-[100px]"
                         {...field}
                       />

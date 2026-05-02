@@ -43,12 +43,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import { useInvoicesLogic } from "@/features/invoices/hooks/use-invoices-logic";
+import {
+  DATE_FORMAT_OPTIONS_US_LONG,
+  formatDate,
+} from "@/lib/formatters";
 import Link from "next/link";
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { Invoice, Patient } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 type InvoiceWithPatient = Invoice & {
   patient?: Pick<Patient, "firstName" | "lastName">;
@@ -56,6 +65,7 @@ type InvoiceWithPatient = Invoice & {
 };
 
 export const InvoicesPageUI: FC = () => {
+  const clinicCurrency = useClinicCurrency();
   const {
     filteredInvoices,
     loading,
@@ -69,19 +79,8 @@ export const InvoicesPageUI: FC = () => {
     setSearchQuery,
   } = useInvoicesLogic();
 
-  const formatDate = (dateString: string | Date) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   const formatCurrency = (amount: number | undefined) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
-    }).format(amount || 0);
+    return clinicCurrency.formatCurrency(amount || 0);
   };
 
   return (
@@ -111,9 +110,7 @@ export const InvoicesPageUI: FC = () => {
     >
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-[var(--fs-md)] font-medium">
-            Filter &amp; Sort
-          </CardTitle>
+          <CardTitle className="text-[var(--fs-md)] font-medium">Filter &amp; Sort</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 md:flex-row">
@@ -135,7 +132,7 @@ export const InvoicesPageUI: FC = () => {
                 }}
               >
                 <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
@@ -150,7 +147,7 @@ export const InvoicesPageUI: FC = () => {
             <div className="flex flex-1 items-center gap-2 md:max-w-xs">
               <Input
                 type="search"
-                placeholder="Search patient name..."
+                placeholder="Enter patient name"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -178,13 +175,13 @@ export const InvoicesPageUI: FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Invoice History</CardTitle>
+          <CardTitle className="ui-section-title">Invoice History</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <LoadingState message="Loading invoices..." />
+            <LoadingState message="Loading invoices…" />
           ) : (
-            <div className="overflow-x-auto rounded-md border">
+            <div className="ui-card-surface overflow-x-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -212,7 +209,13 @@ export const InvoicesPageUI: FC = () => {
                         </span>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {invoice.createdAt ? formatDate(invoice.createdAt) : "N/A"}
+                        {invoice.createdAt
+                          ? formatDate(
+                              invoice.createdAt,
+                              "en-US",
+                              DATE_FORMAT_OPTIONS_US_LONG,
+                            )
+                          : "N/A"}
                       </TableCell>
                       <TableCell>
                         {formatCurrency(invoice.totalAmount ?? invoice.total)}
@@ -222,12 +225,19 @@ export const InvoicesPageUI: FC = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Open menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">
+                              Invoice actions
+                            </TooltipContent>
+                          </Tooltip>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem asChild>

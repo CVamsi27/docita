@@ -11,6 +11,8 @@ export interface ClinicUpdateData {
   tier?: string;
   intelligenceAddon?: string;
   subscriptionStatus?: string;
+  /** ISO 8601; null clears the client deadline after payment or expiry. */
+  subscriptionGraceUntil?: string | null;
 }
 
 export interface IClinicOperations {

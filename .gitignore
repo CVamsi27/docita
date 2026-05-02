@@ -55,6 +55,7 @@ out
 
 # Local upload artifacts
 /uploads
+/artifacts
 
 # Turbo cache
 .turbo
@@ -80,6 +81,9 @@ apps/api/src/seed-admin.ts
 *.tmp
 .idea
 .vscode
+
+# Cursor / local agent config
+.cursor/mcp.json
 
 # Vercel
 .vercel

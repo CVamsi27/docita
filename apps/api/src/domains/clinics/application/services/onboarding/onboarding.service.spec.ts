@@ -151,7 +151,8 @@ describe('OnboardingService', () => {
     logOnboardingEvent: jest.fn().mockImplementation(async () => undefined),
   };
   const mockUploadsService = {
-    updateSession: jest.fn(),
+    createSession: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
+    updateSession: jest.fn<(...args: unknown[]) => Promise<unknown>>(),
   };
   const mockAppConfigService = {
     getRazorpayKeyId: jest.fn(() => 'rzp_test_key'),
@@ -447,22 +448,18 @@ describe('OnboardingService', () => {
         id: 'sess_123',
         purpose: 'GENERAL',
         status: 'pending',
+        uploadSecret: 'opaque-upload-secret',
       };
 
-      mockPrismaService.uploadSession.create.mockImplementation(
-        async () => created,
-      );
+      mockUploadsService.createSession.mockResolvedValue(created);
 
       const result = await service.createSlaSignatureSession(onboardingId);
 
       expect(result).toEqual(created);
-      expect(mockPrismaService.uploadSession.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            purpose: 'GENERAL',
-          }),
-        }),
-      );
+      expect(mockUploadsService.createSession).toHaveBeenCalledWith({
+        expiresInMinutes: 20,
+        purpose: 'GENERAL',
+      });
     });
 
     it('getSlaSignatureSessionStatus marks uploaded when fileUrl exists', async () => {
@@ -533,6 +530,7 @@ describe('OnboardingService', () => {
         'onb_abc',
         'sess_3',
         file,
+        'upload-secret-value',
       );
 
       expect(result).toEqual(
@@ -546,6 +544,7 @@ describe('OnboardingService', () => {
         file,
         expect.objectContaining({
           onboardingId: 'onb_abc',
+          uploadSecret: 'upload-secret-value',
         }),
       );
       expect(mockPrismaService.uploadSession.update).toHaveBeenCalledWith(

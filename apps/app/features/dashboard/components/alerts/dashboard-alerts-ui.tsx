@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { AlertCircle, Bell, ChevronRight, X } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 
 export interface AlertItem {
@@ -23,6 +26,8 @@ export interface DashboardAlertsUIProps {
   completedAppointments: number;
   onDismissAlert: (id: string) => void;
   className?: string;
+  /** When false, hides the thin progress row (e.g. Today urgent-only mode). */
+  showProgressBar?: boolean;
 }
 
 export function DashboardAlertsUI({
@@ -32,6 +37,7 @@ export function DashboardAlertsUI({
   completedAppointments,
   onDismissAlert,
   className,
+  showProgressBar = true,
 }: DashboardAlertsUIProps) {
   if (alerts.length === 0) {
     return null;
@@ -87,21 +93,23 @@ export function DashboardAlertsUI({
               </Button>
             )}
             {alert.dismissible && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                onClick={() => onDismissAlert(alert.id)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
+              <SymbolTooltip label="Dismiss alert">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => onDismissAlert(alert.id)}
+                  aria-label="Dismiss alert"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </SymbolTooltip>
             )}
           </div>
         </div>
       ))}
 
-      {}
-      {todayAppointments > 0 && (
+      {showProgressBar && todayAppointments > 0 && (
         <div className="flex items-center gap-3 px-1">
           <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
@@ -158,14 +166,17 @@ export function AlertStripUI({
           </Button>
         )}
         {onDismiss && (
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6"
-            onClick={onDismiss}
-          >
-            <X className="h-3 w-3" />
-          </Button>
+          <SymbolTooltip label="Dismiss">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6"
+              onClick={onDismiss}
+              aria-label="Dismiss"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </SymbolTooltip>
         )}
       </div>
     </div>

@@ -9,6 +9,7 @@ import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
+import { cn } from "@workspace/ui/lib/utils";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   Table,
@@ -27,9 +28,13 @@ import {
   Eye,
   FileText,
   Search,
+  X,
 } from "lucide-react";
+import { EmptyState } from "@workspace/ui/components/empty-state";
+import { Skeleton } from "@workspace/ui/components/skeleton";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import type { Document } from "@workspace/types";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import { SortConfig, SortKey } from "@/features/documents/hooks/use-documents-logic";
 
 interface DocumentsPageUIProps {
@@ -90,11 +95,10 @@ export function DocumentsPageUI({
         return "secondary";
       case "xray":
       case "x-ray":
-        return "outline";
       case "scan":
       case "mri":
       case "ct":
-        return "destructive";
+        return "outline";
       default:
         return "secondary";
     }
@@ -111,13 +115,33 @@ export function DocumentsPageUI({
     >
       <div className="flex items-center gap-4">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden />
           <Input
-            placeholder="Search by patient, file name, or type..."
-            className="pl-9 bg-background"
+            placeholder="Enter patient, file name, or type"
+            className={cn(
+              "bg-background pl-9",
+              searchQuery.trim() ? "pr-10" : "",
+            )}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search documents"
           />
+          {searchQuery.trim() ? (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+              <SymbolTooltip label="Clear search">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                </Button>
+              </SymbolTooltip>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -128,7 +152,71 @@ export function DocumentsPageUI({
             A list of all documents uploaded for patients
           </CardDescription>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent className="overflow-x-hidden">
+          {loading ? (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-muted/50">
+                  <TableHead className="hidden md:table-cell">
+                    Document ID
+                  </TableHead>
+                  <TableHead>File Name</TableHead>
+                  <TableHead>Patient</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <TableRow key={`doc-skel-${i}`} className="hover:bg-transparent">
+                    <TableCell className="hidden md:table-cell">
+                      <Skeleton animation="wave" className="h-4 w-20 font-mono" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Skeleton
+                          animation="wave"
+                          className="h-4 w-4 shrink-0 rounded-sm"
+                        />
+                        <Skeleton
+                          animation="wave"
+                          className="h-4 max-w-[200px] flex-1"
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton animation="wave" className="h-4 w-28" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Skeleton animation="wave" className="h-6 w-20 rounded-full" />
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Skeleton animation="wave" className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton
+                          animation="wave"
+                          className="h-8 w-8 rounded-md"
+                        />
+                        <Skeleton
+                          animation="wave"
+                          className="h-8 w-8 rounded-md"
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : documents.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title="No documents found"
+              description="Upload documents from a patient record or import flow to see them listed here."
+            />
+          ) : (
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-muted/50">
@@ -149,26 +237,7 @@ export function DocumentsPageUI({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    Loading documents...
-                  </TableCell>
-                </TableRow>
-              ) : documents.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    No documents found.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                documents.map((document) => (
+              {documents.map((document) => (
                   <TableRow key={document.id} className="hover:bg-muted/50">
                     <TableCell className="font-mono text-sm hidden md:table-cell">
                       {(document.id || "").slice(0, 8).toUpperCase()}
@@ -192,51 +261,56 @@ export function DocumentsPageUI({
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      {format(new Date(document.createdAt), "MMM d, yyyy")}
+                      {formatDate(document.createdAt, "MMM d, yyyy")}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleView(document)}
-                        className="gap-1.5"
-                        title="View document"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span className="hidden sm:inline">View</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownload(document)}
-                        className="gap-1.5"
-                        title="Download document"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">Download</span>
-                      </Button>
-                      {document.url && (
+                      <SymbolTooltip label="View document">
                         <Button
                           variant="ghost"
                           size="sm"
-                          asChild
+                          onClick={() => handleView(document)}
                           className="gap-1.5"
                         >
-                          <a
-                            href={document.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
+                          <Eye className="h-4 w-4" />
+                          <span className="hidden sm:inline">View</span>
                         </Button>
+                      </SymbolTooltip>
+                      <SymbolTooltip label="Download document">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownload(document)}
+                          className="gap-1.5"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span className="hidden sm:inline">Download</span>
+                        </Button>
+                      </SymbolTooltip>
+                      {document.url && (
+                        <SymbolTooltip label="Open in new tab">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="gap-1.5"
+                          >
+                            <a
+                              href={document.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Open document in new tab"
+                            >
+                              <ExternalLink className="h-4 w-4" aria-hidden />
+                            </a>
+                          </Button>
+                        </SymbolTooltip>
                       )}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
+                ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 

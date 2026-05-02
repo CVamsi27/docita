@@ -62,8 +62,8 @@ Cloudflare Workers (app/internal/landing) --> Render (NestJS API)
 
 ### Prerequisites
 
-- Node.js v20+
-- pnpm v10+
+- Node.js `>=22.12.0` (see root `package.json` `engines`)
+- pnpm `10.30.3` (see root `package.json` `packageManager`)
 - PostgreSQL
 
 ### Installation
@@ -118,6 +118,7 @@ pnpm test
 - [Zod Architecture](docs/zod-first-architecture.md) - Type system guide
 - [Turborepo Structure](docs/TURBOREPO_STANDARD_STRUCTURE.md) - Monorepo standards
 - [UI/UX Contract](docs/UI_UX_CONTRACT.md) - Shared page/state/motion standards for doctor app and portal
+- [AGENTS.md](AGENTS.md) - Mandatory rules for agents and contributors (typing, security, CI parity)
 
 ## Deployment
 
@@ -129,8 +130,8 @@ See [Deployment Strategy](docs/DEPLOYMENT.md) for current and future deployment 
 
 ## Staging
 
-- Use the `staging` branch for pre-production deploys.
-- Follow [Staging Setup](docs/STAGING.md) for the branch-level API, Cloudflare, and database configuration.
+- **`staging` mirrors `main`**: it should match production-bound code; feature work merges via PR into `main`, then automation fast-forwards `staging`.
+- Use staging deploy targets to validate the same tree as `main` (see [Staging Setup](docs/STAGING.md) for API, Cloudflare, and database configuration).
 
 ## License
 

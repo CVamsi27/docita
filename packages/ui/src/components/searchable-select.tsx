@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+
+import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import {
@@ -35,8 +37,8 @@ export function SearchableSelect({
   options,
   value,
   onValueChange,
-  placeholder = "Select an option...",
-  searchPlaceholder = "Search...",
+  placeholder = "Select an option…",
+  searchPlaceholder = "Search",
   emptyMessage = "No results found",
   loading = false,
   disabled = false,
@@ -44,6 +46,10 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (!open) setSearch("");
+  }, [open]);
 
   const selectedOption = options.find((opt) => opt.value === value);
 
@@ -83,13 +89,18 @@ export function SearchableSelect({
             placeholder={searchPlaceholder}
             value={search}
             onValueChange={setSearch}
+            showClearButton
           />
           <CommandList>
             {loading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  Loading...
+              <div
+                className="flex items-center justify-center gap-2 py-6"
+                role="status"
+                aria-live="polite"
+              >
+                <DocitaLoadingIndicator variant="inline" decorative />
+                <span className="text-sm text-muted-foreground">
+                  Loading…
                 </span>
               </div>
             ) : filteredOptions.length === 0 ? (

@@ -98,13 +98,17 @@ export const usePaymentHistory = () =>
 export const useProrationPreview = (
   tier: SubscriptionBillingPreviewQuery["tier"],
   cycle: SubscriptionBillingPreviewQuery["cycle"],
+  options?: { enabled?: boolean },
 ) =>
   useAPIQuery<SubscriptionBillingPreviewResponse>(
     ["proration-preview", tier, cycle],
     `/subscription/billing/preview?tier=${tier}&cycle=${cycle}`,
     {
       select: (data) => subscriptionBillingPreviewResponseSchema.parse(data),
-      enabled: !!tier && !!cycle,
+      enabled:
+        !!tier &&
+        !!cycle &&
+        (options?.enabled !== undefined ? options.enabled : true),
       staleTime: 1000 * 60,
     },
   );

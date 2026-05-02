@@ -1,4 +1,3 @@
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { Bed, CheckCircle2, Users } from "lucide-react";
 import {
   Card,
@@ -14,6 +13,7 @@ import { LoadingState } from "@workspace/ui/components/empty-state";
 import { StatGrid, type StatItem } from "@workspace/ui/components/stat-grid";
 import { AdmissionModal } from "@/features/ipd/components/modals/admission-modal";
 import type { AdmitPatientRequest, Admission } from "@workspace/types";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 interface BedInfo {
   id: string;
@@ -65,8 +65,10 @@ export function BedManagementUI({
   searchQuery,
   setSearchQuery,
 }: BedManagementUIProps) {
+  const { formatCurrency } = useClinicCurrency();
+
   if (isLoading) {
-    return <LoadingState message="Loading bed status..." className="min-h-[40vh]" />;
+    return <LoadingState message="Loading bed status…" className="min-h-[40vh]" />;
   }
 
   const {
@@ -120,7 +122,7 @@ export function BedManagementUI({
             <div className="flex flex-wrap gap-2">
               <Input
                 type="search"
-                placeholder="Search patients, beds..."
+                placeholder="Enter patient or bed"
                 className="w-full sm:w-64"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -153,7 +155,7 @@ export function BedManagementUI({
             <CardHeader className="bg-muted/50 pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle>{ward.name}</CardTitle>
-                <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase">
+                <span className="badge-info border px-2.5 py-0.5 text-xs font-medium uppercase">
                   {ward.type}
                 </span>
               </div>
@@ -170,11 +172,9 @@ export function BedManagementUI({
                         Room {room.roomNumber}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                          {new Intl.NumberFormat("en-IN", {
-                            style: "currency",
-                            currency: DEFAULT_CURRENCY,
-                            maximumFractionDigits: 0,
-                          }).format(room.charges)}
+                          {formatCurrency(room.charges, {
+                            fractionDigits: 0,
+                          })}
                           /day
                       </span>
                     </div>

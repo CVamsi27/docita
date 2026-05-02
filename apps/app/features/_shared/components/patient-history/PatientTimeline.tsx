@@ -90,8 +90,8 @@ export function PatientTimeline({
                 className={cn(
                   "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border transition-colors",
                   isSelected
-                    ? "bg-primary/10 border-primary/30 text-primary"
-                    : "bg-muted border-transparent text-muted-foreground hover:text-foreground",
+                    ? "bg-foreground text-background border-border/40 shadow-sm"
+                    : "bg-background/60 text-muted-foreground border-border/40 hover:bg-muted/60 hover:text-foreground",
                 )}
               >
                 <Icon className={cn("h-3 w-3", isSelected ? "" : config.color)} />
@@ -149,7 +149,7 @@ export function PatientTimeline({
             onClick={onLoadMore}
             disabled={isLoading}
           >
-            {isLoading ? "Loading more..." : "Load More"}
+            {isLoading ? "Loading more…" : "Load More"}
           </Button>
         </div>
       )}

@@ -181,6 +181,7 @@ describe('InventoryService', () => {
 
       expect(repo.addMovementAndUpdateQuantity).toHaveBeenCalledWith(
         'item-1',
+        'clinic-1',
         expect.objectContaining({ type: 'IN', quantity: 10 }),
         10,
       );
@@ -198,6 +199,7 @@ describe('InventoryService', () => {
 
       expect(repo.addMovementAndUpdateQuantity).toHaveBeenCalledWith(
         'item-1',
+        'clinic-1',
         expect.anything(),
         -5,
       );

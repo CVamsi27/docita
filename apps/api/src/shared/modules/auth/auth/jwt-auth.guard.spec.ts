@@ -1,8 +1,15 @@
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { IS_PUBLIC_KEY } from './public.decorator';
+import { IS_UPLOAD_SESSION_SECRET_ROUTE_KEY } from './upload-session-secret-route.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 function createContext(): ExecutionContext {
@@ -13,21 +20,41 @@ function createContext(): ExecutionContext {
 }
 
 describe('JwtAuthGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let guard: JwtAuthGuard;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([]),
     };
     guard = new JwtAuthGuard(asType<Reflector>(reflector));
   });
 
   it('allows public routes without invoking passport guard', () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === IS_PUBLIC_KEY) return true;
-      return false;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      IS_PUBLIC_KEY,
+      true,
+      false,
+    );
+
+    const parentCanActivate = jest.spyOn(
+      Object.getPrototypeOf(JwtAuthGuard.prototype),
+      'canActivate',
+    );
+
+    const allowed = guard.canActivate(createContext());
+    expect(allowed).toBe(true);
+    expect(parentCanActivate).not.toHaveBeenCalled();
+
+    parentCanActivate.mockRestore();
+  });
+
+  it('allows upload-session-secret routes without invoking passport guard', () => {
+    mockGetAllAndOverrideKeyMap(reflector.getAllAndOverride, [
+      [IS_PUBLIC_KEY, false],
+      [IS_UPLOAD_SESSION_SECRET_ROUTE_KEY, true],
+    ]);
 
     const parentCanActivate = jest.spyOn(
       Object.getPrototypeOf(JwtAuthGuard.prototype),
@@ -42,7 +69,12 @@ describe('JwtAuthGuard', () => {
   });
 
   it('delegates to passport guard for non-public routes', () => {
-    reflector.getAllAndOverride.mockReturnValue(false);
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      IS_PUBLIC_KEY,
+      false,
+      false,
+    );
     const parentCanActivate = jest
       .spyOn(Object.getPrototypeOf(JwtAuthGuard.prototype), 'canActivate')
       .mockReturnValue(true);

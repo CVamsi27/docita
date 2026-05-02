@@ -6,6 +6,7 @@ import { cn } from "@workspace/ui/lib/utils";
 
 export interface FormFieldGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: string;
+  htmlFor?: string;
   required?: boolean;
   error?: string;
   hint?: string;
@@ -14,6 +15,7 @@ export interface FormFieldGroupProps extends React.HTMLAttributes<HTMLDivElement
 
 export function FormFieldGroup({
   label,
+  htmlFor,
   required,
   error,
   hint,
@@ -25,6 +27,7 @@ export function FormFieldGroup({
     <div className="space-y-2" {...props}>
       {label && (
         <Label
+          htmlFor={htmlFor}
           className={cn(
             required && "after:content-['_*'] after:text-destructive",
           )}

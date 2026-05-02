@@ -25,6 +25,11 @@ import {
   IPaymentGateway,
   PAYMENT_GATEWAY_TOKEN,
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
+import {
+  finalizePayableAmountPaise,
+  SubscriptionCheckoutPricingService,
+} from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 export interface ActivateSubscriptionRequest {
   clinicId: string;
@@ -35,6 +40,12 @@ export interface ActivateSubscriptionRequest {
   cycle: string;
   skipPaymentVerification?: boolean;
   verifiedAmountCents?: number;
+}
+
+export interface ApplyPlanChangeWithoutPaymentParams {
+  clinicId: string;
+  tier: string;
+  cycle: string;
 }
 
 type SubscriptionPaymentRecord = {
@@ -60,7 +71,81 @@ export class ActivateSubscriptionUseCase {
     private readonly paymentGateway: IPaymentGateway,
     private readonly pricingService: SubscriptionPricingService,
     private readonly featureFlagService: FeatureFlagService,
+    private readonly checkoutPricing: SubscriptionCheckoutPricingService,
+    private readonly configService: AppConfigService,
   ) {}
+
+  async applyPlanChangeWithoutPayment(
+    params: ApplyPlanChangeWithoutPaymentParams,
+  ): Promise<void> {
+    const tier = ClinicTier.fromString(params.tier);
+    const cycle = BillingCycle.fromString(params.cycle);
+    const clinicOffer = await this.featureFlagService.getClinicPricingOffer(
+      params.clinicId,
+    );
+    const offerPercent = clinicOffer?.percentOff ?? 0;
+    const currencyCode = this.configService.getCurrencyCode();
+
+    const subscription = await this.subscriptionRepo.findByClinicId(
+      params.clinicId,
+    );
+    const breakdown = this.checkoutPricing.compute(
+      subscription,
+      tier,
+      cycle,
+      offerPercent,
+    );
+    const payableAmount = finalizePayableAmountPaise(
+      breakdown.finalAmountCents,
+      currencyCode,
+    );
+
+    if (payableAmount !== 0) {
+      throw new BadRequestException(
+        'This plan change requires payment through checkout',
+      );
+    }
+
+    const listPriceCents = this.pricingService.calculatePrice(
+      tier,
+      cycle,
+      offerPercent,
+    );
+
+    await this.persistActivatedSubscription({
+      clinicId: params.clinicId,
+      tier,
+      cycle,
+      listPriceCents,
+      subscription,
+      creditsConsumed: breakdown.accountCreditsAppliedCents,
+    });
+
+    const featureUpdates: Record<string, boolean> = {};
+    if (!tier.isStarter()) {
+      featureUpdates['WHATSAPP'] = true;
+      featureUpdates['PAYMENT_LINKS'] = true;
+      featureUpdates['WHATSAPP_REMINDERS'] = true;
+    }
+
+    await this.clinicOps.updateTierAndFeatures(
+      params.clinicId,
+      tier.value,
+      SubscriptionStatusEnum.ACTIVE,
+      featureUpdates,
+    );
+
+    await this.clinicOps.emitUpdate(params.clinicId, {
+      clinicId: params.clinicId,
+      tier: tier.value,
+      subscriptionStatus: SubscriptionStatusEnum.ACTIVE,
+      subscriptionGraceUntil: null,
+    });
+
+    this.logger.log(
+      `Subscription plan applied without payment for clinic ${params.clinicId}: ${tier.value} ${cycle.value}`,
+    );
+  }
 
   async execute(request: ActivateSubscriptionRequest): Promise<void> {
     const tier = ClinicTier.fromString(request.tier);
@@ -70,10 +155,22 @@ export class ActivateSubscriptionUseCase {
     );
     const offerPercent = clinicOffer?.percentOff ?? 0;
 
-    let subscription = await this.subscriptionRepo.findByClinicId(
+    const subscription = await this.subscriptionRepo.findByClinicId(
       request.clinicId,
     );
-    const priceCents = this.pricingService.calculatePrice(
+    const currencyCode = this.configService.getCurrencyCode();
+    const breakdown = this.checkoutPricing.compute(
+      subscription,
+      tier,
+      cycle,
+      offerPercent,
+    );
+    const payableAmount = finalizePayableAmountPaise(
+      breakdown.finalAmountCents,
+      currencyCode,
+    );
+
+    const listPriceCents = this.pricingService.calculatePrice(
       tier,
       cycle,
       offerPercent,
@@ -87,9 +184,9 @@ export class ActivateSubscriptionUseCase {
       throw new BadRequestException('Payment order not found for this clinic');
     }
 
-    if (payment.amountCents !== priceCents) {
+    if (payment.amountCents !== payableAmount) {
       throw new BadRequestException(
-        'Payment amount does not match selected plan',
+        'Payment amount does not match checkout quote',
       );
     }
 
@@ -124,26 +221,14 @@ export class ActivateSubscriptionUseCase {
       );
     }
 
-    if (!subscription) {
-      subscription = new Subscription({
-        id: crypto.randomUUID(),
-        clinicId: request.clinicId,
-        plan: tier,
-        billingCycle: cycle,
-        basePriceCents: priceCents,
-        status: new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE),
-        currentPeriodStart: new Date(),
-        currentPeriodEnd: this.calculatePeriodEnd(new Date(), cycle),
-        autoPayEnabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        version: 1,
-      });
-    } else {
-      subscription.activatePaidPlan(tier, cycle, priceCents);
-    }
-
-    await this.subscriptionRepo.save(subscription);
+    const saved = await this.persistActivatedSubscription({
+      clinicId: request.clinicId,
+      tier,
+      cycle,
+      listPriceCents,
+      subscription,
+      creditsConsumed: breakdown.accountCreditsAppliedCents,
+    });
 
     await this.subscriptionRepo.updatePaymentStatus(
       request.razorpayOrderId,
@@ -151,7 +236,7 @@ export class ActivateSubscriptionUseCase {
       {
         paymentId: request.razorpayPaymentId,
         signature: request.razorpaySignature,
-        subscriptionId: subscription.id,
+        subscriptionId: saved.id,
       },
     );
 
@@ -173,11 +258,47 @@ export class ActivateSubscriptionUseCase {
       clinicId: request.clinicId,
       tier: tier.value,
       subscriptionStatus: SubscriptionStatusEnum.ACTIVE,
+      subscriptionGraceUntil: null,
     });
 
     this.logger.log(
       `Subscription activated for clinic ${request.clinicId}: ${tier.value} ${cycle.value}`,
     );
+  }
+
+  private async persistActivatedSubscription(params: {
+    clinicId: string;
+    tier: ClinicTier;
+    cycle: BillingCycle;
+    listPriceCents: number;
+    subscription: Subscription | null;
+    creditsConsumed: number;
+  }): Promise<Subscription> {
+    let subscription = params.subscription;
+    const { tier, cycle, listPriceCents } = params;
+
+    if (!subscription) {
+      subscription = new Subscription({
+        id: crypto.randomUUID(),
+        clinicId: params.clinicId,
+        plan: tier,
+        billingCycle: cycle,
+        basePriceCents: listPriceCents,
+        status: new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE),
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: this.calculatePeriodEnd(new Date(), cycle),
+        autoPayEnabled: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        version: 1,
+      });
+    } else {
+      subscription.deductCreditsApplied(params.creditsConsumed);
+      subscription.activatePaidPlan(tier, cycle, listPriceCents);
+    }
+
+    await this.subscriptionRepo.save(subscription);
+    return subscription;
   }
 
   private calculatePeriodEnd(start: Date, cycle: BillingCycle): Date {

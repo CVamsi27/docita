@@ -3,7 +3,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { PatientPortalMetricsService } from './patient-portal-metrics.service';
 import { CreatePatientMetricValueDto } from '@/domains/patients/application/dto/patient-metrics.dto';
 import { PatientMetricsService } from '@/domains/patients/application/services/patientMetrics.service';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 
 describe('PatientPortalMetricsService', () => {
   type MetricCategory = {

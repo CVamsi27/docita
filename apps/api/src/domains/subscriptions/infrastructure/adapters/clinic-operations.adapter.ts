@@ -101,6 +101,10 @@ export class ClinicOperationsAdapter implements IClinicOperations {
         intelligenceAddon: data.intelligenceAddon,
         tier: toClinicTier(data.tier),
         subscriptionStatus: toSubscriptionStatus(data.subscriptionStatus),
+        subscriptionGraceUntil:
+          data.subscriptionGraceUntil === undefined
+            ? undefined
+            : data.subscriptionGraceUntil,
       };
 
       this.paymentGateway.emitClinicUpdate(clinicId, wsData);

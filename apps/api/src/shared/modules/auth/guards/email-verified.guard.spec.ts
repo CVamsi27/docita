@@ -1,7 +1,12 @@
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 import { SKIP_EMAIL_VERIFICATION_KEY } from './email-verified.guard';
 import { EmailVerifiedGuard } from './email-verified.guard';
@@ -19,12 +24,15 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('EmailVerifiedGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let guard: EmailVerifiedGuard;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
+        [SKIP_EMAIL_VERIFICATION_KEY, false],
+      ]),
     };
     guard = new EmailVerifiedGuard(asType<Reflector>(reflector));
   });
@@ -50,10 +58,12 @@ describe('EmailVerifiedGuard', () => {
   });
 
   it('skips verification for public routes', () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === IS_PUBLIC_KEY) return true;
-      return false;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      IS_PUBLIC_KEY,
+      true,
+      false,
+    );
 
     expect(
       guard.canActivate(
@@ -63,10 +73,12 @@ describe('EmailVerifiedGuard', () => {
   });
 
   it('skips verification when skip metadata is set', () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === SKIP_EMAIL_VERIFICATION_KEY) return true;
-      return false;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      SKIP_EMAIL_VERIFICATION_KEY,
+      true,
+      false,
+    );
 
     expect(
       guard.canActivate(

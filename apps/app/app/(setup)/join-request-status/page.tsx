@@ -8,11 +8,10 @@ import { Card } from '@workspace/ui/components/card';
 import { Button } from '@workspace/ui/components/button';
 import { Alert, AlertDescription, AlertTitle } from '@workspace/ui/components/alert';
 import { Badge } from '@workspace/ui/components/badge';
+import { DATE_FORMATS, formatDate, formatDistanceToNow } from '@workspace/utils';
 import { toast } from 'sonner';
 import { typedApi } from '@/lib/api-client';
-import { formatDistanceToNow, format } from 'date-fns';
 import { PageTransitionLoader } from '@/components/common/loaders/page-transition-loader';
-import { SupportContact } from "@/components/common/support-contact";
 import { useAuth } from '@/lib/auth-context';
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { PreDashboardShell } from '@/features/auth/components/PreDashboardShell';
@@ -49,7 +48,7 @@ export default function JoinRequestStatusPage() {
     onSuccess: () => {
       toast.success('Request withdrawn successfully');
       queryClient.invalidateQueries({ queryKey: ['my-join-request'] });
-      setRedirectMessage('Returning to choose path...');
+      setRedirectMessage('Returning to choose path…');
       router.replace('/choose-path');
     },
     onError: () => {
@@ -63,19 +62,19 @@ export default function JoinRequestStatusPage() {
     if (isLoading) return;
 
     if (!user) {
-      setRedirectMessage('Redirecting to login...');
+      setRedirectMessage('Redirecting to login…');
       router.replace('/login?next=/join-request-status');
       return;
     }
 
     if (user.clinicId || user.onboardingStep === 'COMPLETED') {
-      setRedirectMessage('Your request is complete. Taking you to the dashboard...');
+      setRedirectMessage('Your request is complete. Taking you to the dashboard…');
       router.replace('/dashboard');
       return;
     }
 
     if (!request) {
-      setRedirectMessage('No active request found. Returning to choose path...');
+      setRedirectMessage('No active request found. Returning to choose path…');
       router.replace('/choose-path');
     }
   }, [request, isLoading, router, user]);
@@ -86,14 +85,14 @@ export default function JoinRequestStatusPage() {
     if (request.status === 'APPROVED') {
       void (async () => {
         await refreshUser();
-        setRedirectMessage('Your request was approved. Taking you to the dashboard...');
+        setRedirectMessage('Your request was approved. Taking you to the dashboard…');
         router.replace('/dashboard');
       })();
       return;
     }
 
     if (request.status === 'REJECTED') {
-      setRedirectMessage('Your request was not approved. Returning to choose path...');
+      setRedirectMessage('Your request was not approved. Returning to choose path…');
       router.replace('/choose-path');
     }
   }, [request, refreshUser, router]);
@@ -101,21 +100,21 @@ export default function JoinRequestStatusPage() {
   if (redirectMessage) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
+        title="Redirecting…"
         description={redirectMessage}
       />
     );
   }
 
   if (isLoading) {
-    return <PageTransitionLoader title="Loading request status..." />;
+    return <PageTransitionLoader title="Loading request status…" />;
   }
 
   if (!request || request.status !== 'PENDING') {
     return (
       <PageTransitionLoader
-        title="Updating status..."
-        description="Checking the latest review decision..."
+        title="Updating status…"
+        description="Checking the latest review decision…"
       />
     );
   }
@@ -151,13 +150,13 @@ export default function JoinRequestStatusPage() {
       currentStep="join-request-status"
       contentMaxWidth="max-w-2xl"
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
         <BackButton
           fallback="/choose-path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
         />
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Join Request Status</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="ui-page-title">Join Request Status</h1>
+        <p className="ui-page-subtitle">
           Your request is being reviewed by the facility administrator
         </p>
       </div>
@@ -166,21 +165,24 @@ export default function JoinRequestStatusPage() {
         className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
         style={{ animationDelay: "100ms" }}
       >
-        <Card className="p-5 sm:p-6 bg-card/80 backdrop-blur-sm shadow-xl">
+        <Card className="ui-card-surface p-5 sm:p-6">
           <div className="flex items-start gap-3 sm:gap-4 mb-6">
             <div className={`p-3 rounded-full shrink-0 ${getStatusColor()} border`}>
               {getStatusIcon()}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-semibold mb-1">
+              <h2 className="ui-section-title mb-1">
                 Request Under Review
               </h2>
-              <p className="text-sm text-muted-foreground">
-                You requested to join{' '}
-                <span className="font-semibold text-foreground">
+              <p className="ui-page-subtitle">
+                You requested to join
+                <span className="ml-1 font-semibold text-foreground">
                   {request.clinic.name}
-                </span>{' '}
-                as a <span className="font-semibold text-foreground">{request.requestedRole}</span>
+                </span>
+                <span className="ml-1">as a</span>
+                <span className="ml-1 font-semibold text-foreground">
+                  {request.requestedRole}
+                </span>
               </p>
             </div>
             <Badge variant="secondary" className="text-xs px-2.5 py-1 shrink-0">
@@ -193,10 +195,10 @@ export default function JoinRequestStatusPage() {
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Submitted</p>
                 <p className="text-sm font-medium">
-                  {formatDistanceToNow(new Date(request.requestedAt), { addSuffix: true })}
+                  {formatDistanceToNow(request.requestedAt)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {format(new Date(request.requestedAt), 'PPpp')}
+                  {formatDate(request.requestedAt, DATE_FORMATS.DATETIME_MEDIUM)}
                 </p>
               </div>
 
@@ -204,10 +206,10 @@ export default function JoinRequestStatusPage() {
                 <div>
                   <p className="text-xs text-muted-foreground mb-1">Expires</p>
                   <p className="text-sm font-medium">
-                    {formatDistanceToNow(new Date(request.expiresAt), { addSuffix: true })}
+                    {formatDistanceToNow(request.expiresAt)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {format(new Date(request.expiresAt), 'PPpp')}
+                    {formatDate(request.expiresAt, DATE_FORMATS.DATETIME_MEDIUM)}
                   </p>
                 </div>
               )}
@@ -239,12 +241,10 @@ export default function JoinRequestStatusPage() {
               onClick={() => withdrawMutation.mutate(request.id)}
               disabled={withdrawMutation.isPending}
             >
-              {withdrawMutation.isPending ? 'Withdrawing...' : 'Withdraw Request'}
+              {withdrawMutation.isPending ? 'Withdrawing…' : 'Withdraw Request'}
             </Button>
           </div>
         </Card>
-
-        <SupportContact className="text-sm" />
       </div>
     </PreDashboardShell>
   );

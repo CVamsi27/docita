@@ -1,6 +1,12 @@
+import type { ReactElement } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BackButton } from "./back-button";
+import { TooltipProvider } from "./tooltip";
+
+function renderWithTooltips(ui: ReactElement) {
+  return render(<TooltipProvider delayDuration={0}>{ui}</TooltipProvider>);
+}
 
 describe("BackButton", () => {
   it("renders default label and calls onBack when clicked", () => {
@@ -23,7 +29,9 @@ describe("BackButton", () => {
   });
 
   it("renders icon-only with an accessible aria-label", () => {
-    render(<BackButton onBack={() => {}} iconOnly ariaLabel="Go back" />);
+    renderWithTooltips(
+      <BackButton onBack={() => {}} iconOnly ariaLabel="Go back" />,
+    );
 
     const button = screen.getByRole("button", { name: "Go back" });
     expect(button).toBeInTheDocument();

@@ -49,7 +49,7 @@ export function UnifiedTimelineContainer({
   };
 
   if (isLoading && !data) {
-    return <DataState status="loading" loadingMessage="Loading timeline..." />;
+    return <DataState status="loading" loadingMessage="Loading timeline…" />;
   }
 
   if (isError) {

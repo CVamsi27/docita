@@ -1,4 +1,7 @@
+"use client";
+
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import {
   Card,
   CardContent,
@@ -29,7 +32,18 @@ export function DentalChartUI({
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
 
   if (isLoading || !constants) {
-    return <Skeleton className="h-[400px] w-full rounded-xl" />;
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label="Loading dental chart"
+      >
+        <Skeleton
+          animation="wave"
+          className="h-[400px] w-full rounded-lg"
+        />
+      </div>
+    );
   }
 
   const { teethQuadrants: TEETH_QUADRANTS, toothConditions: TOOTH_CONDITIONS } =
@@ -75,24 +89,27 @@ export function DentalChartUI({
       TOOTH_CONDITIONS[0];
     const isSelected = selectedTooth === toothId;
 
+    const toothLabel = `Tooth ${toothId}: ${condition.label}`;
+
     return (
-      <button
-        key={toothId}
-        type="button"
-        onClick={() => handleToothClick(toothId)}
-        className={cn(
-          "h-12 w-10 flex flex-col items-center justify-center rounded-md border text-xs font-medium transition-colors duration-150",
-          condition.color,
-          isSelected ? "ring-2 ring-primary ring-offset-2" : "",
-          readOnly ? "cursor-default" : "cursor-pointer hover:shadow-sm",
-        )}
-        title={`Tooth ${toothId}: ${condition.label}`}
-      >
-        <span className="text-[var(--fs-2xs)] text-muted-foreground">{toothId}</span>
-        <div
-          className={`w-3 h-3 rounded-full mt-1 ${getConditionColor(condition.value)}`}
-        />
-      </button>
+      <SymbolTooltip key={toothId} label={toothLabel} side="top">
+        <button
+          type="button"
+          onClick={() => handleToothClick(toothId)}
+          className={cn(
+            "h-12 w-10 flex flex-col items-center justify-center rounded-md border text-xs font-medium transition-colors duration-150",
+            condition.color,
+            isSelected ? "ring-2 ring-primary ring-offset-2" : "",
+            readOnly ? "cursor-default" : "cursor-pointer hover:shadow-sm",
+          )}
+          aria-label={toothLabel}
+        >
+          <span className="text-[var(--fs-2xs)] text-muted-foreground">{toothId}</span>
+          <div
+            className={`w-3 h-3 rounded-full mt-1 ${getConditionColor(condition.value)}`}
+          />
+        </button>
+      </SymbolTooltip>
     );
   };
 
@@ -117,7 +134,7 @@ export function DentalChartUI({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 items-center p-6 bg-muted/50 rounded-xl border border-muted">
+      <div className="flex flex-col gap-4 items-center p-6 bg-muted/50 rounded-lg border border-muted">
         <div className="flex gap-8">
           <div className="flex gap-1">
             {TEETH_QUADRANTS.UR.map(renderTooth)}
@@ -180,7 +197,7 @@ export function DentalChartUI({
               <Label>Notes</Label>
               <textarea
                 className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Specific notes for this tooth..."
+                placeholder="Tooth notes"
                 value={getToothData(selectedTooth).notes}
                 onChange={(e) => updateToothNotes(e.target.value)}
               />

@@ -8,6 +8,7 @@ import {
   CLINIC_OPERATIONS_TOKEN,
 } from '@/domains/subscriptions/application/ports/clinic-operations.port';
 import { SubscriptionStatusEnum } from '@/domains/subscriptions/core/value-objects';
+import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
 
 @Injectable()
 export class EnterGracePeriodUseCase {
@@ -27,7 +28,7 @@ export class EnterGracePeriodUseCase {
       throw new NotFoundException(`Subscription ${subscriptionId} not found`);
     }
 
-    subscription.enterGracePeriod();
+    subscription.enterGracePeriod(computeSubscriptionGraceDeadline());
     await this.subscriptionRepo.save(subscription);
 
     await this.clinicOps.updateTierAndFeatures(
@@ -41,6 +42,8 @@ export class EnterGracePeriodUseCase {
       clinicId: subscription.clinicId,
       tier: subscription.getPlan().value,
       subscriptionStatus: SubscriptionStatusEnum.GRACE,
+      subscriptionGraceUntil:
+        subscription.getGraceUntil()?.toISOString() ?? null,
     });
 
     this.logger.log(

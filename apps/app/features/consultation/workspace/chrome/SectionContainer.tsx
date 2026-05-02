@@ -7,6 +7,7 @@ interface SectionContainerProps {
   id: string;
   letter: string;
   title: string;
+  subtitle?: string;
   description?: string;
   children: ReactNode;
   actions?: ReactNode;
@@ -17,7 +18,7 @@ export const SectionContainer = forwardRef<
   HTMLElement,
   SectionContainerProps
 >(function SectionContainer(
-  { id, letter, title, description, children, actions, className },
+  { id, letter, title, subtitle, description, children, actions, className },
   ref,
 ) {
   return (
@@ -27,14 +28,14 @@ export const SectionContainer = forwardRef<
       data-section-id={id}
       aria-labelledby={`${id}-title`}
       className={cn(
-        "scroll-mt-24 rounded-2xl border bg-background shadow-sm",
+        "scroll-mt-24 rounded-[var(--radius)] border border-border/70 bg-background shadow-sm",
         className,
       )}
     >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 md:px-5 md:py-4">
         <div className="flex items-center gap-3 min-w-0">
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-sm font-bold text-primary"
             aria-hidden="true"
           >
             {letter}
@@ -46,11 +47,16 @@ export const SectionContainer = forwardRef<
             >
               {title}
             </h2>
-            {description && (
+            {subtitle ? (
+              <p className="mt-0.5 text-sm font-medium text-muted-foreground">
+                {subtitle}
+              </p>
+            ) : null}
+            {description ? (
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {description}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
         {actions && (

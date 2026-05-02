@@ -363,4 +363,55 @@ describe('AuditService', () => {
       expect(Array.isArray(result)).toBe(true);
     });
   });
+
+  describe('getRecentAuditSummary', () => {
+    it('clamps the limit and maps actor names', async () => {
+      const createdAt = new Date('2026-04-24T10:00:00.000Z');
+
+      jest.spyOn(prismaService.auditLog, 'findMany').mockResolvedValue([
+        {
+          id: 'audit-1',
+          action: 'DATA_SUBJECT_REQUEST_CREATED',
+          createdAt,
+          user: { name: 'Dr. Rao' },
+        },
+        {
+          id: 'audit-2',
+          action: 'DATA_SUBJECT_REQUEST_UPDATED',
+          createdAt,
+          user: null,
+        },
+      ]);
+
+      const result = await service.getRecentAuditSummary('clinic-1', 50);
+
+      expect(prismaService.auditLog.findMany).toHaveBeenCalledWith({
+        where: { clinicId: 'clinic-1' },
+        orderBy: { createdAt: 'desc' },
+        take: 25,
+        select: {
+          id: true,
+          action: true,
+          createdAt: true,
+          user: {
+            select: { name: true },
+          },
+        },
+      });
+      expect(result).toEqual([
+        {
+          id: 'audit-1',
+          action: 'DATA_SUBJECT_REQUEST_CREATED',
+          createdAt: '2026-04-24T10:00:00.000Z',
+          actor: { name: 'Dr. Rao' },
+        },
+        {
+          id: 'audit-2',
+          action: 'DATA_SUBJECT_REQUEST_UPDATED',
+          createdAt: '2026-04-24T10:00:00.000Z',
+          actor: undefined,
+        },
+      ]);
+    });
+  });
 });

@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { render } from "@/test/render-with-tooltip";
 import { describe, expect, it, vi } from "vitest";
 import type { Appointment, Patient } from "@workspace/types";
 import { TimeSlotRow } from "./TimeSlotRow";

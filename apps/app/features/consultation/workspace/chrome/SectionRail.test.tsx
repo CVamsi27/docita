@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClipboardList, Stethoscope, Target } from "lucide-react";
+import { ClipboardList, Pill, Stethoscope, Target } from "lucide-react";
 import {
   SectionRail,
   SectionTabs,
@@ -29,6 +29,13 @@ const SECTIONS: ConsultationSection[] = [
     label: "Assessment",
     shortLabel: "Assessment",
     icon: Target,
+  },
+  {
+    id: "plan",
+    letter: "P",
+    label: "Plan",
+    shortLabel: "Plan",
+    icon: Pill,
   },
 ];
 
@@ -75,9 +82,41 @@ describe("SectionRail", () => {
       />,
     );
     const subj = screen.getByRole("button", { name: /Subjective/i });
-    expect(subj.textContent).toMatch(/Documented/i);
+    expect(subj.textContent).toMatch(/Started/i);
     const assess = screen.getByRole("button", { name: /Assessment/i });
-    expect(assess.textContent).toMatch(/Pending/i);
+    expect(assess.textContent).toMatch(/Empty/i);
+  });
+
+  it("marks Plan documented when follow-up plan is entered", () => {
+    useConsultationDraft.getState().setFollowUpPlan("Follow-up in 2 weeks");
+    render(
+      <SectionRail
+        sections={SECTIONS}
+        activeSectionId="subjective"
+        onSelect={() => {}}
+      />,
+    );
+    const plan = screen.getByRole("button", { name: /Plan/i });
+    expect(plan.textContent).toMatch(/Started/i);
+  });
+
+  it("marks Objective documented when musculoskeletal notes exist", () => {
+    useConsultationDraft.getState().setExamination((prev) => ({
+      ...prev,
+      systemic: {
+        ...prev.systemic,
+        musculoskeletal: "Limited ROM left knee",
+      },
+    }));
+    render(
+      <SectionRail
+        sections={SECTIONS}
+        activeSectionId="subjective"
+        onSelect={() => {}}
+      />,
+    );
+    const objective = screen.getByRole("button", { name: /Objective/i });
+    expect(objective.textContent).toMatch(/Started/i);
   });
 });
 

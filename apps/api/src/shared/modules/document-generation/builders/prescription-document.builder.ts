@@ -1,3 +1,4 @@
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { BaseDocumentBuilder } from './base-document.builder';
 
 export interface Medication {
@@ -39,7 +40,7 @@ export class PrescriptionDocumentBuilder extends BaseDocumentBuilder {
       .addParagraph(`Phone: ${data.clinic.phone}`)
 
       .addHeading(`Prescription #${data.prescriptionNumber}`, 2)
-      .addParagraph(`Date: ${data.date.toLocaleDateString()}`)
+      .addParagraph(`Date: ${formatDate(data.date, DATE_FORMATS.DATE_MEDIUM)}`)
 
       .addHeading('Prescribed By', 2)
       .addParagraph(data.doctor.name)

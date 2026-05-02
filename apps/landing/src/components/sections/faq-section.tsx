@@ -25,7 +25,7 @@ const faqs = [
   {
     question: "What does guided setup include?",
     answer:
-      "Guided setup can include Excel import, patient list cleanup, prescription format configuration, clinic letterhead, doctor signature, WhatsApp message templates, billing basics, and staff walkthroughs. Starter setup begins from ₹4,999 after reviewing the current workflow.",
+      "Guided setup can include Excel import, patient list cleanup, prescription format configuration, clinic letterhead, doctor signature, WhatsApp message templates, billing basics, and staff walkthroughs. Starter setup begins from INR 4,999 after reviewing the current workflow.",
   },
   {
     question: "What happens if I exceed my plan limits?",
@@ -41,42 +41,48 @@ const faqs = [
 
 export function FaqSection() {
   return (
-    <section className="landing-section bg-muted/30" id="faq">
-      <div className="mx-auto max-w-3xl">
-        <SectionHeading
-          align="center"
-          size="section"
-          title="Frequently Asked Questions"
-          description="Everything you need to know about Docita"
-          className="mb-16"
-        />
+    <section
+      className="landing-faq-shell landing-section scroll-mt-24 bg-muted/30"
+      id="faq"
+    >
+      <div className="ui-page-shell relative z-10">
+        <div className="mx-auto max-w-3xl">
+          <SectionHeading
+            align="center"
+            size="section"
+            eyebrow="FAQ"
+            title="Frequently Asked Questions"
+            description="Everything you need to know about Docita"
+            className="mb-12"
+          />
 
-        <div className="space-y-4">
-          {faqs.map((faq) => (
-            <details
-              key={faq.question}
-              className="group rounded-lg border bg-background px-6 py-4 shadow-sm transition-shadow open:shadow-md"
-            >
-              <summary className="cursor-pointer list-none text-left font-medium outline-none">
-                <span className="flex items-center justify-between gap-4">
-                  <span>{faq.question}</span>
-                  <span className="text-muted-foreground transition-transform group-open:rotate-45">
-                    +
+          <div className="space-y-4">
+            {faqs.map((faq) => (
+              <details
+                key={faq.question}
+                className="landing-faq-details group px-6 py-4"
+              >
+                <summary className="cursor-pointer list-none text-left text-base font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2">
+                  <span className="flex items-center justify-between gap-4">
+                    <span>{faq.question}</span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-lg font-normal text-muted-foreground transition-transform duration-200 group-open:rotate-45">
+                      +
+                    </span>
                   </span>
-                </span>
-              </summary>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                {faq.answer}
-              </p>
-            </details>
-          ))}
-        </div>
+                </summary>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
+          </div>
 
-        <div className="text-center mt-12">
-          <p className="text-muted-foreground mb-4">Still have questions?</p>
-          <Button asChild variant="outline">
-            <a href="/contact">Contact Support</a>
-          </Button>
+          <div className="mt-12 text-center">
+            <p className="mb-4 text-muted-foreground">Still have questions?</p>
+            <Button asChild variant="outline">
+              <a href="/contact">Contact Support</a>
+            </Button>
+          </div>
         </div>
       </div>
     </section>

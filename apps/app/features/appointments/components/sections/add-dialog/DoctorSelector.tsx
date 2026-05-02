@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
@@ -14,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Loader2 } from "lucide-react";
+
 import type { CreateAppointmentInput, Doctor } from "@workspace/types";
 
 interface DoctorSelectorProps {
@@ -47,7 +48,7 @@ export function DoctorSelector({
             <SelectContent>
               {doctorsLoading ? (
                 <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <DocitaLoadingIndicator variant="inline" decorative />
                 </div>
               ) : (
                 doctors.map((doctor) => (

@@ -1,6 +1,11 @@
+import type { ReactElement } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProtectedLayout from "./layout";
+
+vi.mock("@workspace/ui/components/tooltip", () => ({
+  SymbolTooltip: ({ children }: { children: ReactElement }) => children,
+}));
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -152,7 +157,7 @@ describe("ProtectedLayout", () => {
 
     expect(
       screen.getByTestId("page-transition-loader"),
-    ).toHaveTextContent("Redirecting...");
+    ).toHaveTextContent("Redirecting…");
   });
 
   it("shows the desktop top bar on the consultation dashboard route", async () => {

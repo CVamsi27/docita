@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -12,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { buildCsrfHeaders } from "@/lib/csrf";
 import { apiFetch } from "@/lib/api-client";
 import { appQueryKeys } from "@/lib/query-keys";
@@ -25,19 +27,27 @@ function OnboardingSlaUploadInner() {
     () => searchParams.get("onboardingId"),
     [searchParams],
   );
-  const sessionId = useMemo(() => searchParams.get("sessionId"), [searchParams]);
+  const sessionId = useMemo(
+    () => searchParams.get("sessionId"),
+    [searchParams],
+  );
+  const uploadSecret = useMemo(
+    () => searchParams.get("uploadSecret"),
+    [searchParams],
+  );
 
   const [uploadComplete, setUploadComplete] = useState(false);
   const [alreadyUploaded, setAlreadyUploaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const statusQuery = useQuery({
-    queryKey: onboardingId && sessionId
-      ? appQueryKeys.onboarding.signatureSession(onboardingId, sessionId)
-      : appQueryKeys.onboarding.signatureSession("missing", "missing"),
-    enabled: Boolean(onboardingId && sessionId),
+    queryKey:
+      onboardingId && sessionId
+        ? appQueryKeys.onboarding.signatureSession(onboardingId, sessionId)
+        : appQueryKeys.onboarding.signatureSession("missing", "missing"),
+    enabled: Boolean(onboardingId && sessionId && uploadSecret?.trim()),
     queryFn: async () => {
-      if (!onboardingId || !sessionId) {
+      if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
         throw new Error(
           "This signature link is incomplete. Please open the full link again.",
         );
@@ -58,24 +68,28 @@ function OnboardingSlaUploadInner() {
     retry: false,
   });
 
-  const getCompletedSignatureState = (data: {
-    status?: string;
-    uploaded?: boolean;
-    fileUrl?: string | null;
-  } | undefined) => {
+  const getCompletedSignatureState = (
+    data:
+      | {
+          status?: string;
+          uploaded?: boolean;
+          fileUrl?: string | null;
+        }
+      | undefined,
+  ) => {
     const status = data?.status?.toLowerCase();
 
     return Boolean(
       data?.uploaded ||
-        data?.fileUrl ||
-        status === "uploaded" ||
-        status === "completed",
+      data?.fileUrl ||
+      status === "uploaded" ||
+      status === "completed",
     );
   };
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!onboardingId || !sessionId) {
+      if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
         throw new Error(
           "This signature link is incomplete. Please open the full link again.",
         );
@@ -87,7 +101,9 @@ function OnboardingSlaUploadInner() {
         `/onboarding/${onboardingId}/sla-signature-session/${sessionId}`,
         {
           method: "POST",
-          headers: buildCsrfHeaders(),
+          headers: buildCsrfHeaders({
+            "X-Upload-Secret": uploadSecret.trim(),
+          }),
           body: formData,
         },
       );
@@ -95,7 +111,7 @@ function OnboardingSlaUploadInner() {
   });
 
   useEffect(() => {
-    if (!onboardingId || !sessionId) {
+    if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
       setError(
         "This signature link is incomplete. Please open the full link again.",
       );
@@ -110,10 +126,10 @@ function OnboardingSlaUploadInner() {
       setAlreadyUploaded(true);
       setUploadComplete(true);
     }
-  }, [onboardingId, sessionId, statusQuery.data]);
+  }, [onboardingId, sessionId, uploadSecret, statusQuery.data]);
 
   const handleUpload = async (file: File) => {
-    if (!onboardingId || !sessionId) return;
+    if (!onboardingId || !sessionId || !uploadSecret?.trim()) return;
     setError(null);
 
     try {
@@ -172,8 +188,8 @@ function OnboardingSlaUploadInner() {
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
         <Card className="w-full max-w-md">
           <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Checking signature link...
+            <DocitaLoadingIndicator variant="inline" decorative />
+            Checking signature link…
           </CardContent>
         </Card>
       </div>
@@ -206,7 +222,7 @@ function OnboardingSlaUploadInner() {
     );
   }
 
-  if (!onboardingId || !sessionId) {
+  if (!onboardingId || !sessionId || !uploadSecret?.trim()) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
         <Card className="w-full max-w-md">
@@ -235,7 +251,8 @@ function OnboardingSlaUploadInner() {
         <CardHeader>
           <CardTitle>Upload SLA Signature</CardTitle>
           <CardDescription>
-            Draw or upload your signature to authorise the Docita Service Level Agreement.
+            Draw or upload your signature to authorise the Docita Service Level
+            Agreement.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -253,7 +270,7 @@ function OnboardingSlaUploadInner() {
             selectImageButtonLabel="Select Image"
             changeImageButtonLabel="Change Image"
             uploadButtonLabel="Upload Signature"
-            uploadingButtonLabel="Uploading..."
+            uploadingButtonLabel="Uploading…"
           />
         </CardContent>
       </Card>
@@ -267,9 +284,18 @@ export default function OnboardingSlaUploadPage() {
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
           <Card className="w-full max-w-md">
-            <CardContent className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading signature link...
+            <CardContent
+              className="flex flex-col items-center justify-center gap-3 py-10 text-center text-sm text-muted-foreground"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading signature link"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-10 w-10 text-primary"
+              />
+              <p>Loading signature link…</p>
             </CardContent>
           </Card>
         </div>

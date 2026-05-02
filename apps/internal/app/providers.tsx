@@ -7,6 +7,7 @@ import { type ReactNode, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { APIRequestError } from "@workspace/data-access";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
+import { TooltipProvider } from "@workspace/ui/components/tooltip";
 
 const TOAST_DURATION_MS = 5000;
 const TOAST_VISIBLE_COUNT = Number.POSITIVE_INFINITY;
@@ -38,10 +39,12 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
+          <TooltipProvider delayDuration={300}>
+            <NavigationHistoryProvider>{children}</NavigationHistoryProvider>
+          </TooltipProvider>
           <Toaster
             closeButton
             duration={TOAST_DURATION_MS}

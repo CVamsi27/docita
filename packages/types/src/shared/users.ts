@@ -674,6 +674,8 @@ export const userSchema = z.object({
   hospitalRole: hospitalRoleSchema.optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
+  registrationCouncil: z.string().optional(),
+  registrationStateCode: z.string().optional(),
   licenseNumber: z.string().optional(),
   licenseExpiry: z.string().or(z.date()).optional(),
   signatureUrl: z.string().optional(),

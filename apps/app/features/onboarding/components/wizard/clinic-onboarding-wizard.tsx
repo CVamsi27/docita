@@ -29,7 +29,7 @@ export function ClinicOnboardingWizard() {
   if (isFinalizingRedirect) {
     return (
       <PageTransitionLoader
-        title="Finalizing your registration..."
+        title="Finalizing your registration…"
         description="Taking you to your next step"
         fullscreen={false}
       />
@@ -39,7 +39,7 @@ export function ClinicOnboardingWizard() {
   if (isLoading || !user) {
     return (
       <PageTransitionLoader
-        title="Preparing onboarding..."
+        title="Preparing onboarding…"
         description="Checking your account and saved progress"
         fullscreen={false}
       />

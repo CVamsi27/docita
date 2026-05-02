@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { Calendar, Edit, Mail, MapPin, Phone, Shield } from "lucide-react";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 
 interface PatientProfileHeaderUIProps {
   firstName: string;
@@ -32,11 +32,11 @@ export function PatientProfileHeaderUI({
   onEdit,
 }: PatientProfileHeaderUIProps) {
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-6 md:rounded-3xl md:p-8">
+    <div className="ui-card-surface p-4 sm:p-6 md:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
         <div className="flex flex-col items-center md:items-start gap-4 md:gap-6 md:flex-row">
           <Avatar className="h-20 w-20 border-4 border-background md:h-32 md:w-32">
-            <AvatarFallback className="text-2xl md:text-4xl bg-primary/10 text-primary font-light">
+            <AvatarFallback className="border border-border/70 bg-background/70 text-2xl font-light text-foreground md:text-4xl">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -44,7 +44,7 @@ export function PatientProfileHeaderUI({
           <div className="space-y-3 md:space-y-4 text-center md:text-left">
             <div>
               <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="ui-page-title text-[var(--fs-2xl)] md:text-[var(--fs-4xl)]">
                   {firstName} {lastName}
                 </h1>
                 <div className="flex items-center gap-2">
@@ -67,9 +67,11 @@ export function PatientProfileHeaderUI({
                   <Calendar className="h-4 w-4 opacity-70" />
                   <span>
                     DOB:{" "}
-                    {dateOfBirth
-                      ? format(new Date(dateOfBirth), "MMM d, yyyy")
-                      : "N/A"}
+                    <span className="text-foreground">
+                      {dateOfBirth
+                        ? formatDate(dateOfBirth, "MMM d, yyyy")
+                        : "N/A"}
+                    </span>
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">

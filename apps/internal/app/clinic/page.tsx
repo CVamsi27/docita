@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
@@ -59,8 +60,17 @@ export default function ClinicDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div
+        className="flex flex-col items-center justify-center gap-3 py-12"
+        role="status"
+        aria-live="polite"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
+        <p className="text-sm text-muted-foreground">Loading facility details…</p>
       </div>
     );
   }
@@ -75,7 +85,6 @@ export default function ClinicDashboard() {
 
       {clinic ? (
         <>
-          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -100,7 +109,6 @@ export default function ClinicDashboard() {
             </CardContent>
           </Card>
 
-          {}
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -108,7 +116,9 @@ export default function ClinicDashboard() {
                 <Stethoscope className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{clinic.doctors}</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                  {clinic.doctors}
+                </div>
               </CardContent>
             </Card>
 
@@ -120,7 +130,9 @@ export default function ClinicDashboard() {
                 <User className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{clinic.receptionists}</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                  {clinic.receptionists}
+                </div>
               </CardContent>
             </Card>
 
@@ -132,7 +144,7 @@ export default function ClinicDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {clinic.doctors + clinic.receptionists}
                 </div>
               </CardContent>

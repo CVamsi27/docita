@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
-import { CreditCard, Loader2, Info, ShieldCheck } from "lucide-react";
+import { CreditCard, Info, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -20,7 +22,9 @@ import { api } from "@/lib/api-client";
 import { getSupportContactText } from "@/lib/support-contact";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { isPaymentCanceledError, useRazorpay } from "@/hooks/use-razorpay";
+import { BRAND_PRIMARY_HEX } from "@/lib/branding";
 import type { TierName } from "@workspace/types";
+import { formatAmountLocale } from "@workspace/utils";
 
 interface PaymentDetails {
   autoPay: boolean;
@@ -39,7 +43,6 @@ interface PaymentStepProps {
   clinicEmail?: string;
   clinicPhone?: string;
   tier?: string;
-  onStartTrial?: () => void;
 }
 
 
@@ -54,7 +57,6 @@ export function PaymentStep({
   clinicEmail,
   clinicPhone,
   tier,
-  onStartTrial,
 }: PaymentStepProps) {
   const [autoPay, setAutoPay] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -130,7 +132,7 @@ export function PaymentStep({
           email: clinicEmail,
           contact: clinicPhone,
         },
-        theme: { color: "#3b82f6" },
+        theme: { color: BRAND_PRIMARY_HEX },
         modal: {
           ondismiss: () => {
             setIsProcessing(false);
@@ -159,7 +161,7 @@ export function PaymentStep({
         <CardDescription>
           {isFree
             ? "Your selected plan has no upfront cost"
-            : "Complete payment to activate your subscription. You won't be charged until your trial ends."}
+            : "Complete payment to activate your subscription."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -197,8 +199,13 @@ export function PaymentStep({
           {/* Total */}
           <div className="bg-muted/50 p-4 rounded-lg flex items-center justify-between">
             <span className="font-semibold">Total Due Today:</span>
-            <span className="text-xl font-bold">
-              {isFree ? "Free" : `${currencySymbol}${total.toLocaleString()}`}
+            <span className="ui-section-title text-[var(--fs-2xl)] leading-none tabular-nums">
+              {isFree
+                ? "Free"
+                : `${currencySymbol}${formatAmountLocale(total, "en-IN", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}`}
             </span>
           </div>
 
@@ -210,8 +217,8 @@ export function PaymentStep({
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  Processing…
                 </>
               ) : isFree ? (
                 <>
@@ -235,23 +242,6 @@ export function PaymentStep({
               Back
             </Button>
           </div>
-
-          {tier === "ESSENTIAL" && onStartTrial && (
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">
-                Not ready to pay?
-              </p>
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                onClick={onStartTrial}
-                disabled={isProcessing}
-              >
-                Start 14-day free trial instead →
-              </Button>
-            </div>
-          )}
 
           <div className="flex justify-center gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="h-3 w-3" />

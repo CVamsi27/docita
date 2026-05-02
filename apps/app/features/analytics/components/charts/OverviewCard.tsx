@@ -28,7 +28,9 @@ export const OverviewCard = ({
       <Icon className="h-4 w-4 text-muted-foreground" />
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+        {value}
+      </div>
       {growth !== undefined ? (
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           {growth > 0 ? (

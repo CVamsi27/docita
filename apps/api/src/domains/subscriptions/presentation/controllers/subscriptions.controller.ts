@@ -22,8 +22,11 @@ import {
   ProcessWebhookUseCase,
 } from '@/domains/subscriptions/application/use-cases';
 import { SubscriptionsQueryService } from '@/domains/subscriptions/application/services/subscriptions-query.service';
-import { ProratingService } from '@/domains/subscriptions/core/services';
-import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
+import {
+  finalizePayableAmountPaise,
+  SubscriptionCheckoutPricingService,
+} from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
+import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { UsageTrackingService } from '@/domains/billing/core/services/usage-tracking.service';
 import {
   ClinicTier,
@@ -74,8 +77,8 @@ export class SubscriptionsController {
     private readonly resumeSubscriptionPaymentUseCase: ResumeSubscriptionPaymentUseCase,
     private readonly processWebhookUseCase: ProcessWebhookUseCase,
     private readonly queryService: SubscriptionsQueryService,
-    private readonly proratingService: ProratingService,
-    private readonly pricingService: SubscriptionPricingService,
+    private readonly checkoutPricingService: SubscriptionCheckoutPricingService,
+    private readonly configService: AppConfigService,
     private readonly usageTrackingService: UsageTrackingService,
     private readonly subscriptionPaymentPdfService: SubscriptionPaymentPdfService,
   ) {}
@@ -112,6 +115,7 @@ export class SubscriptionsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_SUBSCRIPTION_BILLING))
   @Post('checkout')
   async createCheckout(
     @Request() req: RequestWithUser,
@@ -273,60 +277,39 @@ export class SubscriptionsController {
   ) {
     if (!req.user?.clinicId) throw new Error('Clinic ID not found');
     const { tier, cycle } = query;
-    const subscription = await this.queryService.getSubscriptionDetails(
+    const subscriptionEntity = await this.queryService.findSubscriptionEntity(
       req.user.clinicId,
     );
     const pricingOffer = await this.queryService.getClinicPricingOffer(
       req.user.clinicId,
     );
+    const offerPercent = pricingOffer?.percentOff ?? 0;
     const newTier = ClinicTier.fromString(tier);
     const newCycle = BillingCycle.fromString(cycle);
-    const newPriceCents = this.pricingService.calculatePrice(
+    const currencyCode = this.configService.getCurrencyCode();
+
+    const breakdown = this.checkoutPricingService.compute(
+      subscriptionEntity,
       newTier,
       newCycle,
-      pricingOffer?.percentOff ?? 0,
+      offerPercent,
     );
 
-    if (!subscription) {
-      return subscriptionBillingPreviewResponseSchema.parse({
-        currentTier: null,
-        newTier: tier,
-        currentCycle: null,
-        newCycle: cycle,
-        creditCents: 0,
-        chargeCents: newPriceCents,
-        daysRemaining: 0,
-        billingCycleDays: newCycle.isYearly() ? 365 : 30,
-        finalAmountCents: newPriceCents,
-      });
-    }
-
-    const currentTierObj = ClinicTier.fromString(subscription.tier);
-    const currentCycleObj = BillingCycle.fromString(subscription.billingCycle);
-    const currentPriceCents = this.pricingService.calculatePrice(
-      currentTierObj,
-      currentCycleObj,
-      pricingOffer?.percentOff ?? 0,
-    );
-    const daysRemaining = subscription.daysRemaining;
-    const billingCycleDays = currentCycleObj.isYearly() ? 365 : 30;
-    const proration = this.proratingService.createProratedPreview(
-      currentPriceCents,
-      newPriceCents,
-      daysRemaining,
-      billingCycleDays,
+    const payableFinal = finalizePayableAmountPaise(
+      breakdown.finalAmountCents,
+      currencyCode,
     );
 
     return subscriptionBillingPreviewResponseSchema.parse({
-      currentTier: subscription.tier,
-      newTier: tier,
-      currentCycle: subscription.billingCycle,
-      newCycle: cycle,
-      creditCents: proration.credit,
-      chargeCents: proration.charge,
-      daysRemaining,
-      billingCycleDays,
-      finalAmountCents: proration.netAmount,
+      currentTier: breakdown.currentTier,
+      newTier: breakdown.newTier,
+      currentCycle: breakdown.currentCycle,
+      newCycle: breakdown.newCycle,
+      creditCents: breakdown.creditCents,
+      chargeCents: breakdown.chargeCents,
+      daysRemaining: breakdown.daysRemaining,
+      billingCycleDays: breakdown.billingCycleDays,
+      finalAmountCents: payableFinal,
     });
   }
 

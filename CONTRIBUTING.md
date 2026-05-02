@@ -6,8 +6,8 @@ Thank you for your interest in contributing to Docita! This document provides gu
 
 ### Prerequisites
 
-- **Node.js**: v20 or higher
-- **pnpm**: v10+ (This project uses pnpm for package management)
+- **Node.js**: `>=22.12.0` (match root `package.json` `engines`)
+- **pnpm**: `10.30.3` (match root `package.json` `packageManager`)
 - **Docker**: Required for running the database and other services locally if not using cloud providers.
 
 ### Installation
@@ -87,11 +87,15 @@ This is a Monorepo managed by **Turborepo**.
     Before pushing, ensure your code passes standard checks:
 
     ```bash
-    pnpm check:hygiene # Ensure generated/runtime artifacts are not tracked
-    pnpm lint    # Check for linting errors
-    pnpm build   # Verify build consistency
-    pnpm test    # Run tests
+    pnpm check:hygiene    # Ensure generated/runtime artifacts are not tracked
+    pnpm verify:standard # Structure, contracts, prisma boundary (when broad changes)
+    pnpm knip             # Unused deps/exports; CI runs this when the diff touches apps/packages/scripts, manifests, or knip.json (see scripts/detect-workflow-scope.mjs)
+    pnpm lint             # Lint
+    pnpm build            # Verify build consistency when impact is broad
+    pnpm test             # Tests for touched areas
     ```
+
+    Coding-agent rules, typing discipline, and the full checklist live in [`AGENTS.md`](AGENTS.md).
 
 ### Repository Hygiene
 
@@ -142,6 +146,7 @@ This project uses **two different test frameworks** optimized for their respecti
 - Native integration with NestJS dependency injection, decorators, Guards, and Interceptors
 - Established ecosystem and patterns for backend testing
 - Official NestJS documentation standardizes on Jest
+- When specs stub `Reflector#getAllAndOverride`, use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/TESTING.md` (Backend unit tests).
 
 **Running API tests:**
 

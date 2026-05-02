@@ -114,7 +114,11 @@ export class DoctorsController {
     }
     return this.doctorsService.update(
       id,
-      { registrationNumber: dto.registrationNumber },
+      {
+        registrationNumber: dto.registrationNumber,
+        registrationCouncil: dto.registrationCouncil,
+        registrationStateCode: dto.registrationStateCode,
+      },
       req.user?.clinicId || undefined,
     );
   }

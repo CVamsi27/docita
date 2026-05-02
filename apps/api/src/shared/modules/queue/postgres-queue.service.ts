@@ -11,6 +11,8 @@ import {
 } from './queue.interface';
 
 const POLL_INTERVAL_MS = 2000;
+const STALE_ACTIVE_TIMEOUT_MS = 10 * 60 * 1000;
+const RECOVERY_DELAY_MS = 30 * 1000;
 
 interface QueueJobRow {
   id: string;
@@ -85,9 +87,12 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
     const handler = this.handlers.get(name);
     if (!handler) return;
 
-    const rows = await this.prisma.runUnrestricted(
-      async () =>
-        this.prisma.$queryRaw<QueueJobRow[]>`
+    await this.recoverStaleActiveJobs(name);
+
+    const rows =
+      (await this.prisma.runUnrestricted(
+        async () =>
+          this.prisma.$queryRaw<QueueJobRow[]>`
         UPDATE "QueueJob"
         SET status = 'ACTIVE', "processedAt" = NOW(), "updatedAt" = NOW()
         WHERE id = (
@@ -101,7 +106,7 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
         )
         RETURNING *
       `,
-    );
+      )) ?? [];
 
     if (!rows.length) return;
 
@@ -149,6 +154,51 @@ export class PostgresQueueService implements IQueueProvider, OnModuleDestroy {
           `Job ${row.id} (${name}) permanently failed after ${nextAttemptsMade} attempts: ${failedReason}`,
         );
       }
+    }
+  }
+
+  private async recoverStaleActiveJobs(name: string): Promise<void> {
+    const staleBefore = new Date(Date.now() - STALE_ACTIVE_TIMEOUT_MS);
+    const delayedUntil = new Date(Date.now() + RECOVERY_DELAY_MS);
+
+    const delayedRows =
+      (await this.prisma.runUnrestricted(
+        async () =>
+          this.prisma.$queryRaw<Array<{ id: string }>>`
+          UPDATE "QueueJob"
+          SET status = 'DELAYED',
+              "attemptsMade" = "attemptsMade" + 1,
+              "failedReason" = NULL,
+              "delayedUntil" = ${delayedUntil},
+              "updatedAt" = NOW()
+          WHERE name = ${name}
+            AND status = 'ACTIVE'
+            AND "processedAt" < ${staleBefore}
+            AND "attemptsMade" < "maxAttempts"
+          RETURNING id
+        `,
+      )) ?? [];
+
+    const failedRows =
+      (await this.prisma.runUnrestricted(
+        async () =>
+          this.prisma.$queryRaw<Array<{ id: string }>>`
+          UPDATE "QueueJob"
+          SET status = 'FAILED',
+              "failedReason" = 'Recovered stale ACTIVE job after timeout',
+              "updatedAt" = NOW()
+          WHERE name = ${name}
+            AND status = 'ACTIVE'
+            AND "processedAt" < ${staleBefore}
+            AND "attemptsMade" >= "maxAttempts"
+          RETURNING id
+        `,
+      )) ?? [];
+
+    if (delayedRows.length > 0 || failedRows.length > 0) {
+      this.logger.warn(
+        `Recovered stale ACTIVE jobs for ${name}: delayed=${delayedRows.length}, failed=${failedRows.length}`,
+      );
     }
   }
 

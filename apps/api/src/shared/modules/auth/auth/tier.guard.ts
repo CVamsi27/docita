@@ -19,6 +19,11 @@ import {
   IntelligenceAddon,
   ClinicTier,
 } from '@workspace/db';
+import { bypassesSessionGuards } from './auth-route-metadata.util';
+import {
+  isBillingAdminRole,
+  isSubscriptionPastGraceDeadline,
+} from '@/shared/modules/auth/utils/subscription-hard-lock.util';
 
 @Injectable()
 export class TierGuard implements CanActivate {
@@ -28,6 +33,10 @@ export class TierGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    if (bypassesSessionGuards(this.reflector, context)) {
+      return true;
+    }
+
     const requiredTier = this.reflector.getAllAndOverride<Tier>(TIER_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -59,6 +68,11 @@ export class TierGuard implements CanActivate {
         intelligenceAddon: true,
         features: true,
         subscriptionStatus: true,
+        subscription: {
+          select: {
+            graceUntil: true,
+          },
+        },
       },
     });
 
@@ -70,9 +84,26 @@ export class TierGuard implements CanActivate {
     }
 
     if (
-      clinic.subscriptionStatus !== SubscriptionStatus.ACTIVE &&
-      clinic.subscriptionStatus !== SubscriptionStatus.TRIALING
+      isSubscriptionPastGraceDeadline({
+        subscriptionStatus: clinic.subscriptionStatus,
+        graceUntil: clinic.subscription?.graceUntil,
+      }) &&
+      !isBillingAdminRole(user.role)
     ) {
+      throw new ForbiddenException(
+        'Workspace access is limited until billing is resolved.',
+      );
+    }
+
+    const allowedSubscriptionStatuses = new Set<SubscriptionStatus>([
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.TRIALING,
+      SubscriptionStatus.PAST_DUE,
+      SubscriptionStatus.GRACE,
+      SubscriptionStatus.PAUSED,
+    ]);
+
+    if (!allowedSubscriptionStatuses.has(clinic.subscriptionStatus)) {
       throw new ForbiddenException(
         'Subscription is not active. Please renew your subscription.',
       );

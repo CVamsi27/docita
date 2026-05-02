@@ -1,7 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { setupTestUser } from "./utils/patient-helpers";
 import { seedSession } from "./utils/session";
-import { expectPageHeader, expectRoute } from "./utils/ui-contracts";
+import {
+  expectDashboardQueueSectionReady,
+  expectPageHeader,
+  expectProtectedWorkspaceLoaded,
+  expectRoute,
+  isDashboardQueueSectionVisible,
+} from "./utils/ui-contracts";
 
 test.describe("Dashboard", () => {
   let user: Awaited<ReturnType<typeof setupTestUser>> | null = null;
@@ -22,24 +28,47 @@ test.describe("Dashboard", () => {
       },
     });
     await page.goto("/dashboard", { waitUntil: "networkidle" });
+    await expectProtectedWorkspaceLoaded(page);
   });
 
   test("should load dashboard with all sections", async ({ page }) => {
     await expectRoute(page, /\/dashboard/);
     await expectPageHeader(page, { title: /Good (morning|afternoon|evening)/i });
+    await expectDashboardQueueSectionReady(page);
+    if (await isDashboardQueueSectionVisible(page)) {
+      await expect(
+        page.getByRole("heading", { name: "Today's queue" }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Overview" }),
+      ).toBeVisible();
+    } else {
+      await expect(
+        page.getByText("Welcome to Docita", { exact: true }),
+      ).toBeVisible();
+    }
 
+    const sidebar = page.getByRole("complementary");
     // Navigation contract: sidebar key items should exist.
-    await expect(page.getByRole("link", { name: "Patients", exact: true })).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Appointments", exact: true }),
+      sidebar.getByRole("link", { name: "Patients", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Consultation", exact: true }),
+      sidebar.getByRole("link", { name: "Appointments", exact: true }),
+    ).toBeVisible();
+    await expect(
+      sidebar.getByRole("link", { name: "Consultation", exact: true }),
     ).toBeVisible();
   });
 
   test("should navigate to patients page from sidebar", async ({ page }) => {
-    await page.getByRole("link", { name: "Patients", exact: true }).click();
-    await expect(page).toHaveURL(/\/patients/);
+    await expectDashboardQueueSectionReady(page);
+    const patients = page
+      .getByRole("complementary")
+      .getByRole("link", { name: "Patients", exact: true });
+    await Promise.all([
+      page.waitForURL(/\/patients/, { timeout: 30000 }),
+      patients.click(),
+    ]);
   });
 });

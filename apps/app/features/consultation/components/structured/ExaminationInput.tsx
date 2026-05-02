@@ -112,7 +112,7 @@ export function ExaminationInput({
       label: "Cardiovascular",
       short: "CVS",
       icon: <Heart className="h-4 w-4 text-destructive" />,
-      placeholder: "e.g. S1 S2 heard, no murmurs, regular rhythm",
+      placeholder: "Cardiovascular",
       value: data.systemic.cvs,
     },
     {
@@ -120,7 +120,7 @@ export function ExaminationInput({
       label: "Respiratory",
       short: "RS",
       icon: <Wind className="h-4 w-4 text-info" />,
-      placeholder: "e.g. B/L air entry clear, no added sounds",
+      placeholder: "Respiratory",
       value: data.systemic.rs,
     },
     {
@@ -128,7 +128,7 @@ export function ExaminationInput({
       label: "Per Abdomen",
       short: "P/A",
       icon: <Activity className="h-4 w-4 text-warning" />,
-      placeholder: "e.g. Soft, non-tender, no organomegaly",
+      placeholder: "Per abdomen",
       value: data.systemic.pa,
     },
     {
@@ -136,7 +136,7 @@ export function ExaminationInput({
       label: "CNS & Other",
       short: "CNS",
       icon: <FileText className="h-4 w-4 text-primary" />,
-      placeholder: "CNS findings, cranial nerves, higher mental functions",
+      placeholder: "CNS findings",
       value: data.systemic.cns,
     },
   ] as const;
@@ -198,7 +198,7 @@ export function ExaminationInput({
               id="exam-general-notes"
               value={data.general.notes}
               onChange={(e) => updateGeneral("notes", e.target.value)}
-              placeholder="Additional general examination findings..."
+              placeholder="Examination findings"
               readOnly={readOnly}
               className="min-h-16 resize-y"
             />

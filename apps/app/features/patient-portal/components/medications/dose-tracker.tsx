@@ -11,7 +11,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { Check, Clock, X } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import { usePortalDoseHistory, useRecordPortalDose } from "@/hooks/api/use-patient-portal";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -136,10 +136,7 @@ export function DoseTracker({
                         <Icon className={`h-3.5 w-3.5 ${config.color}`} />
                       </div>
                       <span className="text-muted-foreground">
-                        {format(
-                          new Date(doseRecord.scheduledAt),
-                          "d MMM, h:mm a",
-                        )}
+                        {formatDate(doseRecord.scheduledAt, "d MMM, hh:mm a")}
                       </span>
                     </div>
                     <Badge

@@ -42,14 +42,17 @@ export function AppShell({
         {topBar ? (
           <div
             data-app-shell-topbar=""
-            className="sticky top-0 z-30 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75"
+            className="sticky top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/82"
           >
             {topBar}
           </div>
         ) : null}
         <main
           data-app-shell-main=""
-          className={cn("min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8", mainClassName)}
+          className={cn(
+            "min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8 lg:px-8",
+            mainClassName,
+          )}
         >
           {children}
         </main>
