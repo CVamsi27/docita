@@ -6,9 +6,10 @@ import { Breadcrumbs, type BreadcrumbItem } from "@workspace/ui/components/bread
 import { TopBar } from "@workspace/ui/components/top-bar";
 import { Button } from "@workspace/ui/components/button";
 import { Kbd } from "@workspace/ui/components/kbd";
-import { Bell, Plus, Search, Sparkles } from "lucide-react";
+import { Bell, Search, Sparkles } from "lucide-react";
 import { breadcrumbsFor } from "@/app/(protected)/route-meta";
 import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
+import { QuickAddPopover } from "@/features/_shared/components/navigation/quick-add-popover";
 
 export function DesktopTopBar() {
   const pathname = usePathname() ?? "";
@@ -58,16 +59,7 @@ export function DesktopTopBar() {
           >
             <Search className="size-4" aria-hidden />
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={openPalette}
-            aria-label="Quick add"
-            data-testid="topbar-quick-add"
-          >
-            <Plus className="size-4" aria-hidden />
-          </Button>
+          <QuickAddPopover />
           <Button
             type="button"
             variant="ghost"

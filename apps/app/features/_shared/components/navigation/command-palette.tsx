@@ -166,6 +166,16 @@ export function CommandPalette() {
     }
   }, [doctorQueue.data, router, startConsultation]);
 
+  useEffect(() => {
+    const startFromEvent = () => {
+      void handleStartConsultation();
+    };
+    window.addEventListener("docita:start-consultation", startFromEvent);
+    return () => {
+      window.removeEventListener("docita:start-consultation", startFromEvent);
+    };
+  }, [handleStartConsultation]);
+
   const actions = useMemo<CommandPaletteAction[]>(() => {
     const out: CommandPaletteAction[] = [];
 

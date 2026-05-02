@@ -60,4 +60,30 @@ test.describe("Origin-inspired sidebar + Ask AI", () => {
       page.getByRole("dialog", { name: /ask ai/i }),
     ).toBeVisible();
   });
+
+  test("topbar quick-add reveals an explicit four-action popover", async ({
+    page,
+  }) => {
+    const trigger = page.getByTestId("topbar-quick-add");
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+    const popover = page.getByTestId("quick-add-popover");
+    await expect(popover).toBeVisible();
+    await expect(popover.getByTestId("quick-add-new-patient")).toBeVisible();
+    await expect(
+      popover.getByTestId("quick-add-new-appointment"),
+    ).toBeVisible();
+    await expect(popover.getByTestId("quick-add-new-invoice")).toBeVisible();
+    await expect(
+      popover.getByTestId("quick-add-start-consultation"),
+    ).toBeVisible();
+  });
+
+  test("quick-add new patient routes to /patients?action=new", async ({
+    page,
+  }) => {
+    await page.getByTestId("topbar-quick-add").click();
+    await page.getByTestId("quick-add-new-patient").click();
+    await expect(page).toHaveURL(/\/patients\?action=new$/);
+  });
 });
