@@ -40,7 +40,14 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
   - frontend forms via React Hook Form + `zodResolver`
   - API response parsing via `schema.parse()`
 
-### 3.2 Prisma boundary
+### 3.2 HTTP contract parity (API and clients)
+
+- For each HTTP route, request and response bodies must be defined once in `packages/types` and reused by the API (DTOs) and by `packages/data-access` (or equivalent clients).
+- Do not add fields to responses “for convenience” if clients do not consume them; prefer focused schemas (`.pick()`, `.omit()`, separate response schemas) so payloads stay minimal and typing stays honest.
+- Do not fork divergent TypeScript interfaces for the same endpoint; derive from the shared Zod schema.
+- When introducing list or detail variants, compose from shared base schemas rather than duplicating field lists.
+
+### 3.3 Prisma boundary
 
 - `@prisma/client` must never leak outside:
   - `packages/db`
@@ -49,7 +56,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Map Prisma models to domain objects inside repositories.
 - Validate boundary with `pnpm check:prisma-boundary`.
 
-### 3.3 Layering and separation
+### 3.4 Layering and separation
 
 - Controllers stay thin (orchestration only).
 - Services own business logic.
@@ -113,9 +120,11 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Remove comments that only restate the code; keep comments that explain non-obvious intent, security/compliance constraints, or invariant “why.”
 - If a comment prescribes missing work in code you are changing, implement it and delete the comment instead of extending the backlog.
 
-### 7.3 General code hygiene
+### 7.3 General code hygiene and typing
 
 - No new `any` unless explicitly justified and constrained; prefer Zod-inferred and domain types from `packages/types`.
+- Replace lingering `unknown` at boundaries with narrowing: Zod `safeParse`, custom type guards, or explicit discriminated unions—not permanent `unknown`-typed values flowing through the app.
+- Do not use type escape hatches (`as any`, unchecked casts to widen types, double assertions) except where the platform truly lacks types; then isolate in a single guarded helper with a one-line rationale.
 - Avoid `@ts-expect-error`, `@ts-ignore`, and broad `eslint-disable` comments—fix the root cause (types, dependency arrays, or API shape). Only suppress with a narrow scope and a one-line rationale when the ecosystem leaves no alternative.
 - At boundaries (`catch`, webhook payloads, untyped JSON), use `unknown` and narrow immediately with guards or Zod `safeParse`; do not use `any` or permanent `Record<string, unknown>` where a schema already exists.
 - Remove dead code and commented-out blocks.
@@ -147,6 +156,20 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Ensure UI remains readable and usable on desktop and mobile.
 - Validate critical flows where typography/spacing changed.
 
+### 8.4 Motion and visual consistency
+
+- Keep animations minimal (short durations, purpose-driven feedback such as loading/success); avoid decorative or distracting motion.
+- Prefer consistent spacing, radii, and components from `@workspace/ui` for a clean, modern clinical product surface.
+
+### 8.5 Form placeholders
+
+- Use either the field label alone as placeholder text or the pattern `Enter ` followed by the label (for example `Enter phone number`), not generic filler such as “Type here” or lorem-style text.
+
+### 8.6 Clinical workflows and design artifacts
+
+- Optimize flows for busy clinicians: fewer steps to reach today’s schedule, active consultation, prescriptions/labs, and patient summary; keep primary actions visible without excessive nesting.
+- When UX planning artifacts exist under `artifacts/` at the repo root, under `docs/artifacts/`, or in another team-approved location, align navigation, density, and terminology with those artifacts; do not invent divergent patterns without updating the artifacts or recording an explicit product decision elsewhere in docs.
+
 ## 9) Development Workflows
 
 ### 9.1 New feature flow
@@ -167,6 +190,14 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 5. Regenerate Prisma client (`pnpm db:generate`).
 6. Do not rely on broad seed shortcuts for core medical code refresh; use the API medical-code sync job where applicable.
 
+### 9.3 Database queries and performance
+
+- Prefer selective `select`/`include` over loading full graphs when handlers only need a subset of fields.
+- Avoid N+1 patterns: use appropriate `include`, batched queries, or explicit joins consistent with repository patterns.
+- Add or adjust indexes when queries filter or sort on columns under realistic data volume; validate with `@workspace/db` guardrails (`db:analyze-indexes`, `db:check-query-plans`, etc.) when changing hot paths.
+- Use pagination for large lists; avoid unbounded `findMany` in request paths.
+- Normalize for integrity and update consistency; denormalize only with a documented read-performance rationale and a single source of truth for updates.
+
 ## 10) Testing and Verification
 
 - Test strategy:
@@ -177,6 +208,7 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
   - API uses Jest
   - Frontend uses Vitest
   - E2E uses Playwright
+- End-to-end tests must stay aligned with real routes, auth, and selectors: update Playwright specs when navigation, feature flags, or critical flows change; add coverage when adding new clinician-critical journeys.
 - API specs that stub NestJS `Reflector#getAllAndOverride` should use `@/test-utils` keyed helpers (`createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, `mockGetAllAndOverrideKeyBranch`); see `docs/TESTING.md` (Backend unit tests).
 - For large or consolidated pull requests, prefer this baseline before push:
   - `pnpm lint`
@@ -207,8 +239,10 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Keep documentation concise, current, and non-duplicative.
 - Update docs when behavior or architecture changes.
 - Avoid generated/runtime artifacts in git (`playwright-report`, `test-results`, logs, etc.).
-- Avoid temporary/untracked project junk (`.txt`, `.log`, scratch artifacts) unless explicitly required.
+- Remove stray `*.log` and scratch `*.txt` files from the working tree; do not commit them. Legitimate text fixtures belong next to tests with clear naming.
+- Avoid temporary/untracked project junk unless explicitly required.
 - Run `pnpm check:hygiene` and `pnpm verify:standard` when needed.
+- Periodically remove unused modules, duplicate implementations, and orphaned assets; prefer consolidation into shared packages when the behavior is cross-cutting.
 
 ## 11.1) Deployment workflow scope
 
@@ -216,7 +250,8 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - Production deployment workflows must use path-based filtering so only the deployable apps affected by the change are released.
 - The production deploy workflow currently targets the API and the worker independently; keep those deploy paths and jobs scoped separately.
 - Include relevant shared packages, lockfiles, build scripts, and infra manifests in those path filters so dependent apps still deploy when their runtime inputs change.
-- Fly.io API deployments must be driven by [`fly.toml`](/Users/vamsikrishnachandaluri/repos/docita/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
+- When a new package becomes a runtime dependency of `apps/api` or `apps/worker`, update both [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) `on.push.paths` and the deploy detection logic in [`scripts/detect-workflow-scope.mjs`](scripts/detect-workflow-scope.mjs) so migrations and Fly deploys still trigger when appropriate.
+- Fly.io API deployments must be driven by [`fly.toml`](fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Fly.io worker deployments must be driven by [`apps/worker/fly.toml`](apps/worker/fly.toml), including the resolved app name and config path, instead of duplicating those values elsewhere in CI.
 - Staging API deployments are handled by Render auto-deploys from the `staging` branch; GitHub Actions should not add a separate deploy hook for the staging API.
 - Cloudflare frontend deployments are not handled by GitHub Actions in this repository; manage their auto-deploy behavior through Cloudflare watch-path settings instead.
@@ -246,7 +281,8 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 
 1. `git fetch origin`
 2. `git checkout main && git pull origin main`
-3. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`, or a scoped consolidation branch such as `fix/consolidate-all-into-one-pr`)
+3. `git fetch origin staging` (optional; confirms remote refs are current)
+4. `git checkout -b <type>/<short-description>` (for example `feat/`, `fix/`, `docs/`, or a scoped consolidation branch such as `fix/consolidate-all-into-one-pr`)
 
 Open a **pull request into `main`**. Consolidation or umbrella branches must still be created from up-to-date `main`, not from `staging`.
 
@@ -259,14 +295,31 @@ Open a **pull request into `main`**. Consolidation or umbrella branches must sti
 
 Use a branch from **up-to-date `main`**, merge via PR **into `main`**, and let the `main` → `staging` sync automation update staging.
 
-## 12) Design Principles
+## 12) Design Principles, Patterns, and Performance
 
-- Apply SOLID and clean layering pragmatically:
-  - Single responsibility for modules/classes.
-  - Dependency injection over direct instantiation.
-  - Open/closed design for extensible workflows.
-  - Interface segregation for focused contracts.
-- Prefer repository and factory patterns for persistence and complex object creation flows.
+### 12.1 SOLID (pragmatic)
+
+- **S**ingle responsibility: one module owns one reason to change.
+- **O**pen/closed: extend behavior via new types/strategies rather than editing core switches when feasible.
+- **L**iskov: substitutable implementations honor the same contracts (especially repository and client interfaces).
+- **I**nterface segregation: small, focused ports instead of fat god-interfaces.
+- **D**ependency inversion: depend on abstractions (repositories, queues, clocks) injected at the edge.
+
+### 12.2 KISS and DRY
+
+- Prefer the simplest design that meets requirements and tests; avoid speculative abstraction.
+- DRY shared validation and transport shapes via Zod in `packages/types`, not via copy-pasted DTO classes.
+
+### 12.3 Common patterns
+
+- **Repository** for persistence and Prisma mapping.
+- **Factory/builder** for complex aggregates or seeded test data where it reduces duplication safely.
+- **Application services** orchestrate use cases; domain objects encode invariants where the codebase already uses them.
+
+### 12.4 Performance expectations
+
+- **Frontend**: code-split heavy routes; lazy-load rare panels where patterns already exist; right-size React Query `staleTime`/`gcTime`; avoid rerenders from unstable callbacks and oversized context; prefer shared UI primitives to reduce bundle duplication; run `pnpm perf:budget:warn` / `pnpm perf:budget:enforce` when changing bundles.
+- **Backend**: bound query cost per request (pagination, selective fields); avoid synchronous fan-out; cache only with explicit TTL and invalidation strategy where already introduced; measure hot paths before micro-optimizing.
 
 ## 13) Commands Reference
 
@@ -301,13 +354,16 @@ Before finalizing changes:
 
 - Work is on a **branch created from `main`** (after pull), not on `main` or `staging` directly; PRs target **`main`**.
 - Architecture/layer boundaries are respected.
+- HTTP handlers and clients share Zod-defined shapes; payloads omit unused fields.
 - No security or tenant/auth guard regressions.
 - No PHI plaintext logging or secret leakage.
 - No console logging, emoji noise, or dead code.
 - Imports use aliases (`@/...` and `@workspace/...`) instead of deep relative paths.
 - TODO/FIXME-style comments are resolved or removed from touched areas; redundant comments are removed per section 7.2.
+- No unnecessary `any`, unchecked `unknown`, or type escape hatches outside isolated, justified helpers.
 - Typographic hierarchy is preserved (headings > body > sub-points).
-- Changed behavior is covered by appropriate tests/checks.
+- Changed behavior is covered by appropriate tests/checks; E2E routes and selectors updated when flows move.
 - When your change is Knip-relevant per the CI scope detector, `pnpm knip` passes locally and the Knip step runs in CI; otherwise run Knip locally before merging if you touched dependencies or exports.
+- `pnpm lint`, targeted `check-types`, tests, and Knip (when applicable) pass before push.
 - Relevant local tests/builds were run and passed before the final push.
 - If CI was red, the corresponding local workflow commands were run and passed before the final push.
