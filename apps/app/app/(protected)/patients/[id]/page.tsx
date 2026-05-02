@@ -8,6 +8,7 @@ import {
 } from "@/features/patients/components";
 import { PatientDetailTabs } from "@/features/patients/components/details/PatientDetailTabs";
 import { PatientHeaderActions } from "@/features/patients/components/details/PatientHeaderActions";
+import { PatientAdvisorRail } from "@/features/patients/components/details/patient-advisor-rail";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { DataState } from "@workspace/ui/components/data-state";
 import { User } from "lucide-react";
@@ -110,25 +111,30 @@ export default function PatientDetailPage() {
         }
       />
 
-      <div className="space-y-6 py-6">
-        <EditPatientDialog
-          patient={patient}
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          onPatientUpdated={() => handleRefetch()}
-        />
-
-        <Suspense fallback={<PatientDetailTabLoadingShell />}>
-          <PatientDetailTabs
+      <div className="grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-6">
+          <EditPatientDialog
             patient={patient}
-            patientId={patient.id}
-            appointments={appointments}
-            statistics={statistics}
-            canEditPatient={canEditPatient}
-            canRecordPatientVitals={canRecordPatientVitals}
-            onScheduleVisit={handleScheduleVisit}
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            onPatientUpdated={() => handleRefetch()}
           />
-        </Suspense>
+
+          <Suspense fallback={<PatientDetailTabLoadingShell />}>
+            <PatientDetailTabs
+              patient={patient}
+              patientId={patient.id}
+              appointments={appointments}
+              statistics={statistics}
+              canEditPatient={canEditPatient}
+              canRecordPatientVitals={canRecordPatientVitals}
+              onScheduleVisit={handleScheduleVisit}
+            />
+          </Suspense>
+        </div>
+        <div className="hidden lg:block">
+          <PatientAdvisorRail patient={patient} />
+        </div>
       </div>
     </AppPageScaffold>
   );
