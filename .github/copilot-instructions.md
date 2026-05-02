@@ -42,6 +42,7 @@ Apply these rules when generating or editing code in this repository.
 - Add/adjust tests for changed behavior.
 - Prefer focused tests nearest the changed code.
 - For user flows, update E2E when applicable.
+- API guard specs: stub `Reflector#getAllAndOverride` via `@/test-utils` keyed helpers (`docs/TESTING.md`, Backend unit tests).
 
 ## 7) Documentation Rules
 
@@ -53,5 +54,8 @@ Apply these rules when generating or editing code in this repository.
 Before finalizing, ensure:
 
 - lint/typecheck/tests are green,
+- `pnpm knip` passes when your change affects dependencies or exports; CI runs Knip only for Knip-relevant paths (see `AGENTS.md` sections 7.4 and 10),
 - no debug artifacts are added,
 - user-impact and rollout risk are clearly described.
+
+Authoritative agent rules live in `AGENTS.md` (typing, comments, Knip, verification).

@@ -1,4 +1,4 @@
-import { DEFAULT_CURRENCY } from '@workspace/utils';
+import { DEFAULT_CURRENCY, formatCurrency } from '@workspace/utils';
 
 export class SubscriptionPrice {
   readonly paise: number;
@@ -47,12 +47,10 @@ export class SubscriptionPrice {
   }
 
   format(): string {
-    return new Intl.NumberFormat(undefined, {
-      style: 'currency',
+    return formatCurrency(this.getAmount(), {
       currency: this.currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(this.getAmount());
+      fractionDigits: 2,
+    });
   }
 
   equals(other: SubscriptionPrice): boolean {

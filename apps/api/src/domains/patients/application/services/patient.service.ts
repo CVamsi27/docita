@@ -59,16 +59,11 @@ export class PatientService {
     return patient;
   }
 
-  async getPatient(id: string, clinicId?: string): Promise<Patient> {
-    const patient = await this.patientRepository.findById(id);
+  async getPatient(id: string, clinicId: string): Promise<Patient> {
+    const patient = await this.patientRepository.findById(id, clinicId);
     if (!patient) {
       throw new NotFoundException(`Patient with ID ${id} not found`);
     }
-
-    if (clinicId && patient.clinicId !== clinicId) {
-      throw new NotFoundException(`Patient with ID ${id} not found`);
-    }
-
     return patient;
   }
 
@@ -79,7 +74,7 @@ export class PatientService {
   async updatePatient(
     id: string,
     data: PatientDomainUpdateInput,
-    clinicId?: string,
+    clinicId: string,
   ): Promise<Patient> {
     const patient = await this.getPatient(id, clinicId);
     const mrn = this.normalizeMrn(data.mrn);
@@ -88,16 +83,15 @@ export class PatientService {
     patient.updateProfile({ ...data, mrn });
 
     await this.patientRepository.update(patient);
-    const updated = await this.patientRepository.findById(id);
+    const updated = await this.patientRepository.findById(id, clinicId);
     if (!updated) {
       throw new NotFoundException(`Patient with ID ${id} not found`);
     }
     return updated;
   }
 
-  async deletePatient(id: string, clinicId?: string): Promise<void> {
-    // Ensure the patient exists and belongs to the current clinic (tenant isolation)
+  async deletePatient(id: string, clinicId: string): Promise<void> {
     await this.getPatient(id, clinicId);
-    await this.patientRepository.delete(id);
+    await this.patientRepository.delete(id, clinicId);
   }
 }

@@ -91,14 +91,10 @@ export function MedicineReminderDialogUI({
       description="Configure automatic WhatsApp reminders for patient medications"
       isLoading={isLoading}
       onSubmit={form.handleSubmit(handleSubmit)}
-      submitLabel={isLoading ? "Creating..." : "Create Reminder"}
+      submitLabel={isLoading ? "Creating…" : "Create Reminder"}
     >
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          noValidate
-          className="space-y-4"
-        >
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="medicineName"
@@ -109,7 +105,7 @@ export function MedicineReminderDialogUI({
                 error={form.formState.errors.medicineName?.message}
               >
                 <FormControl>
-                  <Input placeholder="e.g., Aspirin, Metformin" {...field} />
+                  <Input placeholder="Medication name" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -125,7 +121,7 @@ export function MedicineReminderDialogUI({
                 error={form.formState.errors.dosage?.message}
               >
                 <FormControl>
-                  <Input placeholder="e.g., 500mg, 1 tablet, 5ml" {...field} />
+                  <Input placeholder="Dosage" {...field} />
                 </FormControl>
               </FormFieldGroup>
             )}
@@ -145,7 +141,7 @@ export function MedicineReminderDialogUI({
                 >
                   <FormControl>
                     <SelectTrigger id="frequency">
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue placeholder="Frequency" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -186,7 +182,7 @@ export function MedicineReminderDialogUI({
               >
                 <FormControl>
                   <Input
-                    placeholder="+1234567890 (optional - auto-detected if empty)"
+                    placeholder="Phone number"
                     {...field}
                     value={field.value || ""}
                   />
@@ -194,7 +190,7 @@ export function MedicineReminderDialogUI({
               </FormFieldGroup>
             )}
           />
-        </form>
+        </div>
       </Form>
     </CRUDDialog>
   );

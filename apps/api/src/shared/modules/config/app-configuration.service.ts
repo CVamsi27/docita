@@ -440,6 +440,10 @@ export class AppConfigService {
     return this.getConfig().API_LOG_MODE;
   }
 
+  getQueueBackend(): 'memory' | 'postgres' {
+    return this.getConfig().QUEUE_BACKEND;
+  }
+
   getDoctorVerificationConfig() {
     return {
       apiUrl: this.getConfig().DOCTOR_VERIFICATION_API_URL,

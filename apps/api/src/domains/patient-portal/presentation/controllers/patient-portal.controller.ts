@@ -20,6 +20,8 @@ import { PatientPortalContextService } from '@/domains/patient-portal/applicatio
 import { PatientTimelineService } from '@/domains/patients/application/services/patient-timeline.service';
 import { parsePaginationInt } from '@/common/utils/string.utils';
 import { MedicationDoseService } from '@/domains/patients/application/services/medication-dose.service';
+import { AppointmentRequestService } from '@/domains/appointments/application/services/appointment-request.service';
+import { PatientAppointmentRequestCreateDto } from '@/domains/appointments/application/dto/appointments.dto';
 
 @ApiTags('patient-portal')
 @Controller('patient-portal')
@@ -33,6 +35,7 @@ export class PatientPortalController {
     private readonly contextService: PatientPortalContextService,
     private readonly timelineService: PatientTimelineService,
     private readonly medicationDoseService: MedicationDoseService,
+    private readonly appointmentRequestService: AppointmentRequestService,
   ) {}
 
   @Get('dashboard')
@@ -70,6 +73,22 @@ export class PatientPortalController {
     @Param('id') id: string,
   ) {
     return this.portalService.getAppointmentById(req.user!.id, id);
+  }
+
+  @Post('appointments/request')
+  @ApiOperation({ summary: 'Request a new appointment' })
+  async requestAppointment(
+    @Request() req: RequestWithUser,
+    @Body() body: PatientAppointmentRequestCreateDto,
+  ) {
+    const { patientId, clinicId } = await this.contextService.getPatientContext(
+      req.user!.id,
+    );
+    return this.appointmentRequestService.createPatientRequest(
+      patientId,
+      clinicId,
+      body,
+    );
   }
 
   @Get('prescriptions')

@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -36,6 +38,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import {
+  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -44,13 +47,13 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
-import { CreditCard, Loader2, TrendingUp } from "lucide-react";
+import { CreditCard, TrendingUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Clinic {
@@ -138,17 +141,15 @@ export default function PaymentProcessingPage() {
   );
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-  const formatCurrency = (
-    amount: number,
-    currency: string = DEFAULT_CURRENCY,
-  ) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
   const { token, isInternal, isLoading } = useAuth();
-  const form = useForm<PaymentFormData>();
+  const form = useForm<PaymentFormData>({
+    defaultValues: {
+      paymentMethod: "razorpay",
+      amount: "",
+      newTier: "",
+      paymentNotes: "",
+    },
+  });
   const clinicsQuery = useQuery({
     queryKey: internalQueryKeys.internal.clinics(),
     queryFn: async () => {
@@ -219,6 +220,7 @@ export default function PaymentProcessingPage() {
         amount:
           nextPricing.find((t) => t.tier === clinic.tier)?.price?.toString() ??
           data.pricing.toString(),
+        paymentNotes: "",
       });
       setShowPaymentDialog(true);
     } catch {
@@ -242,7 +244,12 @@ export default function PaymentProcessingPage() {
       toast.success("Payment processed and tier updated successfully");
       setShowPaymentDialog(false);
       await clinicsQuery.refetch();
-      form.reset();
+      form.reset({
+        paymentMethod: "razorpay",
+        amount: "",
+        newTier: "",
+        paymentNotes: "",
+      });
     },
   });
 
@@ -271,8 +278,17 @@ export default function PaymentProcessingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex min-h-screen items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading payment processing"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -294,12 +310,20 @@ export default function PaymentProcessingPage() {
       />
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div
+          className="flex items-center justify-center py-12"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading tier pricing"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-8 w-8 text-muted-foreground"
+          />
         </div>
       ) : (
         <>
-          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {tierPricing && tierPricing.length > 0 ? (
               tierPricing.map((tier) => (
@@ -311,7 +335,7 @@ export default function PaymentProcessingPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <p className="text-2xl font-bold">
+                      <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                         {tier.price === 0 ? "Free" : formatCurrency(tier.price)}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -340,7 +364,6 @@ export default function PaymentProcessingPage() {
             )}
           </div>
 
-          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -417,7 +440,6 @@ export default function PaymentProcessingPage() {
         </>
       )}
 
-      {}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -430,176 +452,183 @@ export default function PaymentProcessingPage() {
           </DialogHeader>
 
           {tierInfo && (
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              noValidate
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Current Tier
-                  </p>
-                  <Badge className={getTierBadgeColor(tierInfo.currentTier)}>
-                    {tierInfo.currentTier}
-                  </Badge>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                noValidate
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Current Tier
+                    </p>
+                    <Badge className={getTierBadgeColor(tierInfo.currentTier)}>
+                      {tierInfo.currentTier}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Current Price
+                    </p>
+                    <p className="text-lg font-semibold">
+                      {formatCurrency(
+                        selectedTierPricing.find(
+                          (t) => t.tier === tierInfo.currentTier,
+                        )?.price ?? tierInfo.pricing,
+                        {
+                          currency:
+                            selectedClinic?.currency || DEFAULT_CURRENCY,
+                          fractionDigits: 0,
+                        },
+                      )}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Current Price
-                  </p>
-                  <p className="text-lg font-semibold">
-                    {formatCurrency(
-                      selectedTierPricing.find(
-                        (t) => t.tier === tierInfo.currentTier,
-                      )?.price ?? tierInfo.pricing,
-                      selectedClinic?.currency || DEFAULT_CURRENCY,
-                    )}
-                  </p>
-                </div>
-              </div>
 
-              <FormField
-                control={form.control}
-                name="newTier"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Upgrade to Tier</FormLabel>
-                    <Select
-                      value={field.value ?? ""}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        const tierData = (
-                          selectedTierPricing.length > 0
+                <FormField
+                  control={form.control}
+                  name="newTier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Upgrade to Tier</FormLabel>
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          const tierData = (
+                            selectedTierPricing.length > 0
+                              ? selectedTierPricing
+                              : tierPricing
+                          ).find((t) => t.tier === value);
+                          if (tierData) {
+                            form.setValue("amount", tierData.price.toString());
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(selectedTierPricing.length > 0
                             ? selectedTierPricing
                             : tierPricing
-                        ).find((t) => t.tier === value);
-                        if (tierData) {
-                          form.setValue("amount", tierData.price.toString());
-                        }
-                      }}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(selectedTierPricing.length > 0
-                          ? selectedTierPricing
-                          : tierPricing
-                        ).map((tier) => (
-                          <SelectItem key={tier.tier} value={tier.tier}>
-                            {tier.tier} -{" "}
-                            {formatCurrency(
-                              tier.price,
-                              selectedClinic?.currency || DEFAULT_CURRENCY,
-                            )}
-                            /{tier.billingCycle}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Select the new tier for this facility
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Amount ({selectedClinic?.currency || DEFAULT_CURRENCY})
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        {...field}
-                        disabled
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Amount will be auto-calculated based on selected tier
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="paymentMethod"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Method</FormLabel>
-                    <Select
-                      value={field.value ?? "razorpay"}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="razorpay">Razorpay</SelectItem>
-                        <SelectItem value="stripe">Stripe</SelectItem>
-                        <SelectItem value="bank_transfer">
-                          Bank Transfer
-                        </SelectItem>
-                        <SelectItem value="manual">Manual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="paymentNotes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Notes (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Add any notes about this payment..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex gap-3 justify-end pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowPaymentDialog(false)}
-                  disabled={processPaymentMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={processPaymentMutation.isPending}
-                >
-                  {processPaymentMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ).map((tier) => (
+                            <SelectItem key={tier.tier} value={tier.tier}>
+                              {tier.tier} -{" "}
+                              {formatCurrency(tier.price, {
+                                currency:
+                                  selectedClinic?.currency || DEFAULT_CURRENCY,
+                                fractionDigits: 0,
+                              })}
+                              /{tier.billingCycle}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select the new tier for this facility
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  {processPaymentMutation.isPending
-                    ? "Processing..."
-                    : "Process Payment"}
-                </Button>
-              </div>
-            </form>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Amount ({selectedClinic?.currency || DEFAULT_CURRENCY})
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Amount"
+                          {...field}
+                          disabled
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Amount will be auto-calculated based on selected tier
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method</FormLabel>
+                      <Select
+                        value={field.value ?? "razorpay"}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="razorpay">Razorpay</SelectItem>
+                          <SelectItem value="stripe">Stripe</SelectItem>
+                          <SelectItem value="bank_transfer">
+                            Bank Transfer
+                          </SelectItem>
+                          <SelectItem value="manual">Manual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="paymentNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Notes (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Payment notes"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex gap-3 justify-end pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowPaymentDialog(false)}
+                    disabled={processPaymentMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={processPaymentMutation.isPending}
+                  >
+                    {processPaymentMutation.isPending && (
+                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    )}
+                    {processPaymentMutation.isPending
+                      ? "Processing…"
+                      : "Process Payment"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           )}
         </DialogContent>
       </Dialog>

@@ -225,6 +225,7 @@ export class LeaveService {
       'EARNED',
       'COMP_OFF',
       'UNPAID',
+      'HOLIDAY',
     ] as const;
 
     return leaveTypes.map((lt) => {

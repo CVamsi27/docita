@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -30,24 +32,10 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Label } from "@workspace/ui/components/label";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Eye,
-  Filter,
-  Lightbulb,
-  Loader2,
-  MessageSquare,
-  RefreshCw,
-  Star,
-  ThumbsDown,
-  ThumbsUp,
-  Trash2,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Eye, Filter, Lightbulb, MessageSquare, RefreshCw, Star, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
+import { formatDate } from "@workspace/utils";
 import { Feedback, feedbackAPI, FeedbackFilters } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { format } from "date-fns";
 import { internalQueryKeys } from "@/lib/query-keys";
 
 const STATUS_OPTIONS = [
@@ -214,7 +202,6 @@ export default function FeedbackPage() {
         }
       />
 
-      {}
       {stats && (
         <div className="grid gap-4 md:grid-cols-5">
           <Card>
@@ -225,7 +212,9 @@ export default function FeedbackPage() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                {stats.total}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {stats.recentFeedback} in last 7 days
               </p>
@@ -239,7 +228,7 @@ export default function FeedbackPage() {
               <Star className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {stats.averageRating.toFixed(1)}
               </div>
               {renderStars(Math.round(stats.averageRating))}
@@ -251,7 +240,7 @@ export default function FeedbackPage() {
               <AlertCircle className="h-4 w-4 text-info" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-info">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-info">
                 {stats.byStatus.NEW || 0}
               </div>
               <p className="text-xs text-muted-foreground">Awaiting review</p>
@@ -263,7 +252,7 @@ export default function FeedbackPage() {
               <Clock className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-primary">
                 {stats.byStatus.IN_PROGRESS || 0}
               </div>
               <p className="text-xs text-muted-foreground">Being addressed</p>
@@ -275,7 +264,7 @@ export default function FeedbackPage() {
               <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                 {stats.byStatus.RESOLVED || 0}
               </div>
               <p className="text-xs text-muted-foreground">Completed</p>
@@ -284,7 +273,6 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      {}
       {stats && (
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -375,7 +363,6 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      {}
       {showFilters && (
         <Card>
           <CardContent className="pt-6">
@@ -392,7 +379,7 @@ export default function FeedbackPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All statuses" />
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All statuses</SelectItem>
@@ -416,7 +403,7 @@ export default function FeedbackPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="All categories" />
+                    <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All categories</SelectItem>
@@ -440,7 +427,7 @@ export default function FeedbackPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Any rating" />
+                    <SelectValue placeholder="Rating" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Any rating</SelectItem>
@@ -492,7 +479,6 @@ export default function FeedbackPage() {
         </Card>
       )}
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle>All Feedback</CardTitle>
@@ -500,8 +486,17 @@ export default function FeedbackPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div
+              className="flex justify-center py-8"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading feedback"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-muted-foreground"
+              />
             </div>
           ) : feedbacks.length === 0 ? (
             <EmptyState
@@ -514,7 +509,7 @@ export default function FeedbackPage() {
               {feedbacks.map((feedback) => (
                 <div
                   key={feedback.id}
-                  className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start justify-between p-4 border border-border/70 rounded-[var(--radius)] hover:bg-muted/50 transition-colors"
                 >
                   <div className="space-y-2 flex-1">
                     <div className="flex items-center gap-2">
@@ -528,7 +523,7 @@ export default function FeedbackPage() {
                         {feedback.clinic.name}
                       </span>
                       <span className="text-muted-foreground">
-                        {format(new Date(feedback.createdAt), "MMM d, yyyy")}
+                        {formatDate(feedback.createdAt, "MMM d, yyyy")}
                       </span>
                     </div>
                     {feedback.generalComments && (
@@ -582,7 +577,6 @@ export default function FeedbackPage() {
         </CardContent>
       </Card>
 
-      {}
       <Dialog
         open={!!selectedFeedback}
         onOpenChange={() => setSelectedFeedback(null)}
@@ -603,7 +597,6 @@ export default function FeedbackPage() {
               </DialogHeader>
 
               <div className="space-y-6">
-                {}
                 <div className="flex items-center gap-4">
                   <div>
                     <Label className="text-muted-foreground">
@@ -623,15 +616,14 @@ export default function FeedbackPage() {
                   <div>
                     <Label className="text-muted-foreground">Submitted</Label>
                     <p className="text-sm">
-                      {format(
-                        new Date(selectedFeedback.createdAt),
-                        "MMM d, yyyy 'at' h:mm a",
+                      {formatDate(
+                        selectedFeedback.createdAt,
+                        "dd MMM yyyy, hh:mm a",
                       )}
                     </p>
                   </div>
                 </div>
 
-                {}
                 {selectedFeedback.goodFeatures.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-success">
@@ -646,14 +638,13 @@ export default function FeedbackPage() {
                       ))}
                     </div>
                     {selectedFeedback.goodFeaturesReason && (
-                      <p className="text-sm surface-success p-3 rounded-lg">
+                      <p className="text-sm surface-success p-3 rounded-[var(--radius)]">
                         {selectedFeedback.goodFeaturesReason}
                       </p>
                     )}
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.badFeatures.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-destructive">
@@ -668,14 +659,13 @@ export default function FeedbackPage() {
                       ))}
                     </div>
                     {selectedFeedback.badFeaturesReason && (
-                      <p className="text-sm surface-danger p-3 rounded-lg">
+                      <p className="text-sm surface-danger p-3 rounded-[var(--radius)]">
                         {selectedFeedback.badFeaturesReason}
                       </p>
                     )}
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.improvementAreas.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-warning">
@@ -690,41 +680,38 @@ export default function FeedbackPage() {
                       ))}
                     </div>
                     {selectedFeedback.improvementReason && (
-                      <p className="text-sm surface-warning p-3 rounded-lg">
+                      <p className="text-sm surface-warning p-3 rounded-[var(--radius)]">
                         {selectedFeedback.improvementReason}
                       </p>
                     )}
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.featureRequests && (
                   <div className="space-y-2">
                     <Label>Feature Requests</Label>
-                    <p className="text-sm bg-muted p-3 rounded-lg">
+                    <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                       {selectedFeedback.featureRequests}
                     </p>
                   </div>
                 )}
 
-                {}
                 {selectedFeedback.generalComments && (
                   <div className="space-y-2">
                     <Label>General Comments</Label>
-                    <p className="text-sm bg-muted p-3 rounded-lg">
+                    <p className="text-sm bg-muted p-3 rounded-[var(--radius)]">
                       {selectedFeedback.generalComments}
                     </p>
                   </div>
                 )}
 
-                {}
                 <div className="border-t pt-4 space-y-4">
                   <div className="space-y-2">
                     <Label>Admin Notes</Label>
                     <Textarea
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
-                      placeholder="Add notes about this feedback..."
+                      placeholder="Feedback notes"
                       className="min-h-20"
                     />
                   </div>
@@ -746,7 +733,7 @@ export default function FeedbackPage() {
                         disabled={updateStatusMutation.isPending}
                       >
                         {updateStatusMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <DocitaLoadingIndicator variant="inline" decorative />
                         ) : (
                           opt.label
                         )}

@@ -12,7 +12,10 @@ import { useLocalStorage } from "@workspace/hooks";
 import { usePermissions } from "@/hooks/use-permissions";
 import { AlertItem, DashboardAlertsUI } from "./dashboard-alerts-ui";
 
+export type DashboardAlertDensity = "full" | "urgent-only";
+
 interface DashboardAlertsContainerProps {
+  density?: DashboardAlertDensity;
   todayAppointments: number;
   completedAppointments: number;
   pendingReports: number;
@@ -24,6 +27,7 @@ interface DashboardAlertsContainerProps {
 }
 
 export function DashboardAlertsContainer({
+  density = "full",
   todayAppointments,
   completedAppointments,
   pendingReports,
@@ -48,19 +52,21 @@ export function DashboardAlertsContainer({
     const now = new Date();
     const hour = now.getHours();
 
-    if (hour < 12 && todayAppointments > 0) {
-      items.push({
-        id: "morning-overview",
-        type: "info",
-        icon: Calendar,
-        title: `Good morning! You have ${todayAppointments} appointment${todayAppointments !== 1 ? "s" : ""} today`,
-        description:
-          patientsWaiting > 0
-            ? `${patientsWaiting} patient${patientsWaiting !== 1 ? "s" : ""} currently waiting`
-            : undefined,
-        action: { label: "View Schedule", href: "/consultation" },
-        dismissible: true,
-      });
+    if (density === "full") {
+      if (hour < 12 && todayAppointments > 0) {
+        items.push({
+          id: "morning-overview",
+          type: "info",
+          icon: Calendar,
+          title: `Good morning! You have ${todayAppointments} appointment${todayAppointments !== 1 ? "s" : ""} today`,
+          description:
+            patientsWaiting > 0
+              ? `${patientsWaiting} patient${patientsWaiting !== 1 ? "s" : ""} currently waiting`
+              : undefined,
+          action: { label: "View Schedule", href: "/consultation" },
+          dismissible: true,
+        });
+      }
     }
 
     if (patientsWaiting > 3) {
@@ -74,7 +80,7 @@ export function DashboardAlertsContainer({
       });
     }
 
-    if (nextPatientName && nextPatientId) {
+    if (density === "full" && nextPatientName && nextPatientId) {
       items.push({
         id: "next-patient",
         type: "info",
@@ -95,7 +101,7 @@ export function DashboardAlertsContainer({
         icon: FileText,
         title: `${pendingReports} report${pendingReports !== 1 ? "s" : ""} pending coding`,
         action: { label: "Review", href: "/coding-queue" },
-        dismissible: true,
+        dismissible: density === "full",
       });
     }
 
@@ -105,49 +111,56 @@ export function DashboardAlertsContainer({
         type: "urgent",
         icon: UserPlus,
         title: `${pendingJoinRequests} join request${pendingJoinRequests !== 1 ? "s" : ""} waiting for approval`,
-        description: "Open the review queue to approve or reject new staff requests",
-        action: { label: "Review requests", href: "/settings/team/join-requests" },
-        dismissible: true,
+        description:
+          "Open the review queue to approve or reject new staff requests",
+        action: {
+          label: "Review requests",
+          href: "/settings/team/join-requests",
+        },
+        dismissible: density === "full",
       });
     }
 
-    if (progressPercentage === 50 && todayAppointments >= 4) {
-      items.push({
-        id: "halfway-done",
-        type: "success",
-        icon: CheckCircle2,
-        title: "Halfway through today's schedule!",
-        description: `${completedAppointments} of ${todayAppointments} appointments completed`,
-        dismissible: true,
-      });
-    }
+    if (density === "full") {
+      if (progressPercentage === 50 && todayAppointments >= 4) {
+        items.push({
+          id: "halfway-done",
+          type: "success",
+          icon: CheckCircle2,
+          title: "Halfway through today's schedule!",
+          description: `${completedAppointments} of ${todayAppointments} appointments completed`,
+          dismissible: true,
+        });
+      }
 
-    if (progressPercentage === 100 && todayAppointments > 0) {
-      items.push({
-        id: "all-done",
-        type: "success",
-        icon: CheckCircle2,
-        title: "All appointments completed for today!",
-        description: "Great work!",
-        dismissible: true,
-      });
-    }
+      if (progressPercentage === 100 && todayAppointments > 0) {
+        items.push({
+          id: "all-done",
+          type: "success",
+          icon: CheckCircle2,
+          title: "All appointments completed for today!",
+          description: "Great work!",
+          dismissible: true,
+        });
+      }
 
-    if (hour >= 17 && completedAppointments < todayAppointments) {
-      const remaining = todayAppointments - completedAppointments;
-      items.push({
-        id: "eod-reminder",
-        type: "warning",
-        icon: Clock,
-        title: `${remaining} appointment${remaining !== 1 ? "s" : ""} remaining`,
-        description: "End of day approaching",
-        action: { label: "View Queue", href: "/consultation" },
-        dismissible: true,
-      });
+      if (hour >= 17 && completedAppointments < todayAppointments) {
+        const remaining = todayAppointments - completedAppointments;
+        items.push({
+          id: "eod-reminder",
+          type: "warning",
+          icon: Clock,
+          title: `${remaining} appointment${remaining !== 1 ? "s" : ""} remaining`,
+          description: "End of day approaching",
+          action: { label: "View Queue", href: "/consultation" },
+          dismissible: true,
+        });
+      }
     }
 
     return items.filter((alert) => !dismissedAlerts.includes(alert.id));
   }, [
+    density,
     todayAppointments,
     completedAppointments,
     pendingReports,
@@ -165,7 +178,9 @@ export function DashboardAlertsContainer({
       return alerts.filter(
         (alert) =>
           alert.action?.label !== "Start Consultation" &&
-          alert.action?.label !== "Open Queue",
+          alert.action?.label !== "Open Queue" &&
+          alert.action?.label !== "View Schedule" &&
+          alert.action?.label !== "View Queue",
       );
     }
     return alerts;
@@ -183,6 +198,7 @@ export function DashboardAlertsContainer({
       completedAppointments={completedAppointments}
       onDismissAlert={handleDismissAlert}
       className={className}
+      showProgressBar={density === "full"}
     />
   );
 }

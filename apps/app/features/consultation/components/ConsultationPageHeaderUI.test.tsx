@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@workspace/ui/components/tooltip";
 import { ConsultationPageHeaderUI } from "./ConsultationPageHeaderUI";
+
+function renderWithUiProviders(ui: ReactElement) {
+  return render(<TooltipProvider>{ui}</TooltipProvider>);
+}
 
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({
@@ -8,17 +14,29 @@ vi.mock("@tanstack/react-query", () => ({
   }),
 }));
 
-vi.mock("./modals/VitalsModal", () => ({
-  VitalsModal: () => null,
+vi.mock("@/features/consultation/workspace/consultation-vitals-context", () => ({
+  useConsultationVitals: () => ({ openVitals: vi.fn() }),
 }));
 
 vi.mock("./modals/BillingModal", () => ({
   BillingModal: () => null,
 }));
 
+vi.mock("./ConsultationTimerContainer", () => ({
+  ConsultationTimerContainer: () => null,
+}));
+
+vi.mock("@/features/consultation/workspace/chrome/SaveStatusChip", () => ({
+  SaveStatusChip: () => (
+    <span data-testid="consultation-save-status" role="status">
+      Saved
+    </span>
+  ),
+}));
+
 describe("ConsultationPageHeaderUI", () => {
   it("hides edit actions in read-only mode", () => {
-    render(
+    renderWithUiProviders(
       <ConsultationPageHeaderUI
         patientName="Asha Rao"
         appointmentDate="2026-04-18T10:00:00.000Z"
@@ -37,5 +55,22 @@ describe("ConsultationPageHeaderUI", () => {
     expect(
       screen.queryByRole("button", { name: /Invoice/i }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("consultation-save-status"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows draft save status when the consultation is editable", () => {
+    renderWithUiProviders(
+      <ConsultationPageHeaderUI
+        patientName="Asha Rao"
+        appointmentDate="2026-04-18T10:00:00.000Z"
+        appointmentId="apt-1"
+        readOnly={false}
+        onBack={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("consultation-save-status")).toBeInTheDocument();
   });
 });

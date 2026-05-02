@@ -36,6 +36,15 @@ describe('AppointmentsController', () => {
     endTime: new Date(),
     status: 'scheduled',
     type: 'consultation',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    version: 1,
+  };
+
+  const mockAppointmentList = {
+    items: [mockAppointment],
+    hasMore: false,
+    count: 1,
   };
 
   const createRequest = (
@@ -79,20 +88,20 @@ describe('AppointmentsController', () => {
 
   describe('findAll', () => {
     it('should return appointments for the clinic', async () => {
-      mockAppointmentsService.listAppointments.mockResolvedValue([
-        mockAppointment,
-      ]);
+      mockAppointmentsService.listAppointments.mockResolvedValue(
+        mockAppointmentList,
+      );
 
       const result = await controller.findAll(mockAuthRequest, {});
 
-      expect(result).toEqual([mockAppointment]);
+      expect(result).toEqual(mockAppointmentList);
       expect(mockAppointmentsService.listAppointments).toHaveBeenCalled();
     });
 
     it('should pass query parameters', async () => {
-      mockAppointmentsService.listAppointments.mockResolvedValue([
-        mockAppointment,
-      ]);
+      mockAppointmentsService.listAppointments.mockResolvedValue(
+        mockAppointmentList,
+      );
 
       await controller.findAll(mockAuthRequest, {
         date: '2025-11-28',
@@ -102,9 +111,9 @@ describe('AppointmentsController', () => {
     });
 
     it('should force doctor access to their own appointments when a different doctorId is requested', async () => {
-      mockAppointmentsService.listAppointments.mockResolvedValue([
-        mockAppointment,
-      ]);
+      mockAppointmentsService.listAppointments.mockResolvedValue(
+        mockAppointmentList,
+      );
 
       await controller.findAll(mockAuthRequest, { doctorId: 'doctor-999' });
 
@@ -116,9 +125,9 @@ describe('AppointmentsController', () => {
     });
 
     it('should scope doctor access to their own appointments when doctorId is not provided', async () => {
-      mockAppointmentsService.listAppointments.mockResolvedValue([
-        mockAppointment,
-      ]);
+      mockAppointmentsService.listAppointments.mockResolvedValue(
+        mockAppointmentList,
+      );
 
       await controller.findAll(mockAuthRequest, {});
 
@@ -131,9 +140,9 @@ describe('AppointmentsController', () => {
     });
 
     it('should allow admin-doctor to request appointments for any doctor', async () => {
-      mockAppointmentsService.listAppointments.mockResolvedValue([
-        mockAppointment,
-      ]);
+      mockAppointmentsService.listAppointments.mockResolvedValue(
+        mockAppointmentList,
+      );
 
       await controller.findAll(
         createRequest({
@@ -151,9 +160,9 @@ describe('AppointmentsController', () => {
     });
 
     it('should allow receptionist to request appointments for any doctor', async () => {
-      mockAppointmentsService.listAppointments.mockResolvedValue([
-        mockAppointment,
-      ]);
+      mockAppointmentsService.listAppointments.mockResolvedValue(
+        mockAppointmentList,
+      );
 
       await controller.findAll(
         createRequest({

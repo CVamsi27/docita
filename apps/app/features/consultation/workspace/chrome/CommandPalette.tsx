@@ -61,9 +61,10 @@ export function CommandPalette({
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium">
         <CommandInput
-          placeholder="Jump to section, add item, run action..."
+          placeholder="Enter command"
           value={query}
           onValueChange={setQuery}
+          showClearButton
         />
         <CommandList>
           <CommandEmpty>No matching commands.</CommandEmpty>

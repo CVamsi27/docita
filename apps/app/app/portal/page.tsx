@@ -26,7 +26,11 @@ export default function PortalDashboardPage() {
 
   const whatsappConsentStatus = consentSettings?.whatsappConsent
     ? "Granted"
-    : "Not Granted";
+    : "Not granted";
+
+  const dataStorageConsentStatus = consentSettings?.dataStorageConsent
+    ? "Granted"
+    : "Not granted";
 
   return (
     <AppPageScaffold
@@ -39,7 +43,7 @@ export default function PortalDashboardPage() {
     >
       <DataState
         status={isLoading ? "loading" : isError ? "error" : "success"}
-        loadingMessage="Loading your dashboard..."
+        loadingMessage="Loading your dashboard…"
         errorMessage="We could not load your health overview. Please try again."
         onRetry={() => void refetch()}
       >
@@ -52,7 +56,7 @@ export default function PortalDashboardPage() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dashboard?.summary.upcomingAppointmentsCount || 0}
               </div>
             </CardContent>
@@ -66,7 +70,7 @@ export default function PortalDashboardPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dashboard?.summary.activePrescriptionsCount || 0}
               </div>
             </CardContent>
@@ -80,7 +84,7 @@ export default function PortalDashboardPage() {
               <Receipt className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {dashboard?.summary.outstandingInvoicesCount || 0}
               </div>
             </CardContent>
@@ -92,17 +96,17 @@ export default function PortalDashboardPage() {
             <CardTitle className="text-base">Consent & Data Privacy</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
+            <p className="ui-page-subtitle">
               Review your consent form and privacy preferences.
             </p>
             <div className="grid gap-2 text-sm md:grid-cols-2">
               <p>
-                <span className="font-medium">WhatsApp Consent:</span>{" "}
-                {whatsappConsentStatus}
+                <span className="font-medium">WhatsApp Consent:</span>
+                <span className="ml-1">{whatsappConsentStatus}</span>
               </p>
               <p>
-                <span className="font-medium">Data Storage Consent:</span>{" "}
-                Granted
+                <span className="font-medium">Data Storage Consent:</span>
+                <span className="ml-1">{dataStorageConsentStatus}</span>
               </p>
             </div>
             <div className="flex gap-2">

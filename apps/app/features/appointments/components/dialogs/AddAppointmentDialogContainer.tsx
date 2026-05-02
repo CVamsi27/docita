@@ -57,7 +57,7 @@ export function AddAppointmentDialogContainer({
   const appointmentTypeOptions = useFormOptions("appointmentType");
   const mergedAppointmentTypeOptions = useMemo<SelectOption[]>(() => {
     const fallbackOptions: SelectOption[] = [
-      { value: "other", label: "Other / Custom" },
+      { value: "other", label: "Other" },
     ];
 
     const merged = [...appointmentTypeOptions];

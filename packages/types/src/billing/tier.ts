@@ -963,20 +963,6 @@ export function getReferralRewardByCurrency(
   return REFERRAL_REWARDS_BY_CURRENCY[currency][tier];
 }
 
-export function formatPriceWithCurrency(
-  amount: number | "custom",
-  currency: SupportedCurrency = "INR",
-): string {
-  if (amount === "custom") return "Custom";
-  const config = PRICING_CURRENCY_CONFIG[currency];
-  return new Intl.NumberFormat(config.locale, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: config.decimalPlaces,
-    maximumFractionDigits: config.decimalPlaces,
-  }).format(amount);
-}
-
 export const tierInfoSchema = z.object({
   name: z.string(),
   description: z.string(),

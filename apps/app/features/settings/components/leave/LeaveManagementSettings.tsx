@@ -1,7 +1,11 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useMemo, useState } from "react";
-import { format } from "date-fns";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { formatDate } from "@workspace/utils";
 import { toast } from "sonner";
 import {
   Card,
@@ -29,7 +33,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { Loader2, Plus, Check, X, Ban } from "lucide-react";
+import { Plus, Check, X, Ban } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useClinicMembers } from "@/hooks/api/use-settings";
 import {
@@ -42,9 +46,26 @@ import {
   useLeavePlans,
   useCreateLeavePlan,
 } from "@/hooks/api/use-leaves";
-import { LeaveType, StaffLeave, LeavePlan } from "@workspace/types";
+import {
+  LeaveType,
+  StaffLeave,
+  LeavePlan,
+  createLeaveRequestSchema,
+} from "@workspace/types";
+import type { z } from "zod";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form";
+import { leavePlanDialogSchema } from "@/features/settings/schemas/leave-plan-dialog.schema";
+import type { LeavePlanDialogFormValues } from "@/features/settings/schemas/leave-plan-dialog.schema";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 
 const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   CASUAL: "Casual",
@@ -52,6 +73,7 @@ const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   EARNED: "Earned",
   COMP_OFF: "Comp Off",
   UNPAID: "Unpaid",
+  HOLIDAY: "Holiday",
 };
 
 const STATUS_VARIANT: Record<
@@ -66,6 +88,21 @@ const STATUS_VARIANT: Record<
 
 const isAdminRole = (role?: string) =>
   role === "ADMIN" || role === "ADMIN_DOCTOR";
+
+type ApplyLeaveFormValues = z.infer<typeof createLeaveRequestSchema>;
+
+const defaultApplyLeaveValues: ApplyLeaveFormValues = {
+  leaveType: "CASUAL",
+  startDate: "",
+  endDate: "",
+  reason: "",
+  staffId: undefined,
+};
+
+const defaultLeavePlanValues: LeavePlanDialogFormValues = {
+  leaveType: "CASUAL",
+  annualQuota: 12,
+};
 
 export function LeaveManagementSettings() {
   const { user } = useAuth();
@@ -97,79 +134,64 @@ export function LeaveManagementSettings() {
   const [rejectingLeaveId, setRejectingLeaveId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const [applyForm, setApplyForm] = useState({
-    leaveType: "" as LeaveType | "",
-    startDate: "",
-    endDate: "",
-    reason: "",
-    staffId: "",
+  const applyLeaveForm = useForm<ApplyLeaveFormValues>({
+    resolver: zodResolver(createLeaveRequestSchema),
+    defaultValues: defaultApplyLeaveValues,
   });
 
-  const [planForm, setPlanForm] = useState({
-    leaveType: "" as LeaveType | "",
-    annualQuota: "",
-    carryForward: false,
-    maxCarryForward: "0",
+  const leavePlanForm = useForm<LeavePlanDialogFormValues>({
+    resolver: zodResolver(leavePlanDialogSchema),
+    defaultValues: defaultLeavePlanValues,
   });
 
-  const handleApplyLeave = async () => {
-    if (!applyForm.leaveType || !applyForm.startDate || !applyForm.endDate) {
-      showUserFacingErrorToast(
-        "Choose a leave type, start date, and end date before submitting",
-      );
-      return;
-    }
+  const submitApplyLeave = applyLeaveForm.handleSubmit(async (data) => {
     try {
       await applyLeaveMutation.mutateAsync({
-        leaveType: applyForm.leaveType as LeaveType,
-        startDate: applyForm.startDate,
-        endDate: applyForm.endDate,
-        reason: applyForm.reason || undefined,
-        staffId: userIsAdmin && applyForm.staffId ? applyForm.staffId : undefined,
+        leaveType: data.leaveType,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        reason: data.reason?.trim() || undefined,
+        staffId:
+          userIsAdmin && data.staffId?.trim()
+            ? data.staffId.trim()
+            : undefined,
       });
       toast.success("Leave request submitted");
       setApplyDialogOpen(false);
-      setApplyForm({ leaveType: "", startDate: "", endDate: "", reason: "", staffId: "" });
+      applyLeaveForm.reset(defaultApplyLeaveValues);
       refetch();
     } catch {
       showUserFacingErrorToast(
         "We could not submit this leave request. Please try again.",
       );
     }
-  };
+  });
 
-  const handleCreatePlan = async () => {
-    if (!planForm.leaveType || !planForm.annualQuota) {
-      showUserFacingErrorToast(
-        "Choose a leave type and annual quota before saving the plan",
-      );
-      return;
-    }
+  const submitLeavePlan = leavePlanForm.handleSubmit(async (data) => {
     try {
       await createPlanMutation.mutateAsync({
-        leaveType: planForm.leaveType as LeaveType,
-        annualQuota: parseInt(planForm.annualQuota, 10),
-        carryForward: planForm.carryForward,
-        maxCarryForward: parseInt(planForm.maxCarryForward, 10) || 0,
+        leaveType: data.leaveType,
+        annualQuota: data.annualQuota,
+        carryForward: false,
+        maxCarryForward: 0,
         isActive: true,
       });
       toast.success("Leave plan saved");
       setPlanDialogOpen(false);
-      setPlanForm({
-        leaveType: "",
-        annualQuota: "",
-        carryForward: false,
-        maxCarryForward: "0",
-      });
+      leavePlanForm.reset(defaultLeavePlanValues);
     } catch {
       showUserFacingErrorToast(
         "We could not save this leave plan. Please try again.",
       );
     }
-  };
+  });
 
   return (
     <div className="space-y-6">
+      <p className="text-sm text-muted-foreground max-w-3xl">
+        Submit leave here when your clinic tracks quotas and approvals. To block
+        the scheduling calendar immediately, use Time away under Availability.
+      </p>
       {balance.length > 0 && (
         <Card>
           <CardHeader>
@@ -185,7 +207,9 @@ export function LeaveManagementSettings() {
                   <p className="text-xs text-muted-foreground mb-1">
                     {LEAVE_TYPE_LABELS[b.leaveType]}
                   </p>
-                  <p className="text-2xl font-bold">{b.remaining}</p>
+                  <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                    {b.remaining}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     of {b.annualQuota} days
                   </p>
@@ -205,7 +229,13 @@ export function LeaveManagementSettings() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Leave Plans</CardTitle>
-            <Button size="sm" onClick={() => setPlanDialogOpen(true)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                leavePlanForm.reset(defaultLeavePlanValues);
+                setPlanDialogOpen(true);
+              }}
+            >
               <Plus className="h-4 w-4 mr-1" />
               Configure Plan
             </Button>
@@ -252,7 +282,7 @@ export function LeaveManagementSettings() {
             {userIsAdmin && staffMembers.length > 0 && (
               <Select value={staffFilter} onValueChange={setStaffFilter}>
                 <SelectTrigger className="w-44 h-8 text-xs">
-                  <SelectValue placeholder="Filter by staff" />
+                  <SelectValue placeholder="Staff" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All staff</SelectItem>
@@ -264,7 +294,13 @@ export function LeaveManagementSettings() {
                 </SelectContent>
               </Select>
             )}
-            <Button size="sm" onClick={() => setApplyDialogOpen(true)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                applyLeaveForm.reset(defaultApplyLeaveValues);
+                setApplyDialogOpen(true);
+              }}
+            >
               <Plus className="h-4 w-4 mr-1" />
               Apply for Leave
             </Button>
@@ -272,8 +308,19 @@ export function LeaveManagementSettings() {
         </CardHeader>
         <CardContent>
           {leavesLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <div
+              className="space-y-3 py-2"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading leave requests"
+            >
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton
+                  key={i}
+                  animation="wave"
+                  className="h-16 w-full rounded-lg"
+                />
+              ))}
             </div>
           ) : leaves.length === 0 ? (
             <p className="text-sm text-muted-foreground">No leave requests</p>
@@ -303,114 +350,161 @@ export function LeaveManagementSettings() {
           <DialogHeader>
             <DialogTitle>Apply for Leave</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            {userIsAdmin && staffMembers.length > 0 && (
-              <div className="space-y-1.5">
-                <Label>On behalf of (optional)</Label>
-                <Select
-                  value={applyForm.staffId || "self"}
-                  onValueChange={(v) =>
-                    setApplyForm((f) => ({
-                      ...f,
-                      staffId: v === "self" ? "" : v,
-                    }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select staff member" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="self">Myself</SelectItem>
-                    {staffMembers.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>
-                        {m.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <Label>Leave Type</Label>
-              <Select
-                value={applyForm.leaveType}
-                onValueChange={(v) =>
-                  setApplyForm((f) => ({ ...f, leaveType: v as LeaveType }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map((lt) => (
-                    <SelectItem key={lt} value={lt}>
-                      {LEAVE_TYPE_LABELS[lt]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Start Date</Label>
-                <DatePicker
-                  value={applyForm.startDate || undefined}
-                  onChange={(date) =>
-                    setApplyForm((f) => ({
-                      ...f,
-                      startDate: date?.toISOString().slice(0, 10) ?? "",
-                      endDate:
-                        f.endDate &&
-                        date &&
-                        new Date(f.endDate) < date
-                          ? ""
-                          : f.endDate,
-                    }))
-                  }
+          <Form {...applyLeaveForm}>
+            <form onSubmit={submitApplyLeave} className="space-y-4 py-2">
+              {userIsAdmin && staffMembers.length > 0 && (
+                <FormField
+                  control={applyLeaveForm.control}
+                  name="staffId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>On behalf of (optional)</FormLabel>
+                      <Select
+                        value={field.value || "self"}
+                        onValueChange={(v) =>
+                          field.onChange(v === "self" ? undefined : v)
+                        }
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Staff member" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="self">Myself</SelectItem>
+                          {staffMembers.map((m) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label>End Date</Label>
-                <DatePicker
-                  value={applyForm.endDate || undefined}
-                  minDate={
-                    applyForm.startDate ? new Date(applyForm.startDate) : undefined
-                  }
-                  onChange={(date) =>
-                    setApplyForm((f) => ({
-                      ...f,
-                      endDate: date?.toISOString().slice(0, 10) ?? "",
-                    }))
-                  }
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Reason (optional)</Label>
-              <Textarea
-                value={applyForm.reason}
-                onChange={(e) =>
-                  setApplyForm((f) => ({ ...f, reason: e.target.value }))
-                }
-                placeholder="Brief reason for leave..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setApplyDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleApplyLeave}
-              disabled={applyLeaveMutation.isPending}
-            >
-              {applyLeaveMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              Submit Request
-            </Button>
-          </DialogFooter>
+              <FormField
+                control={applyLeaveForm.control}
+                name="leaveType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Leave Type</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Leave type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map(
+                          (lt) => (
+                            <SelectItem key={lt} value={lt}>
+                              {LEAVE_TYPE_LABELS[lt]}
+                            </SelectItem>
+                          ),
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={applyLeaveForm.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value || undefined}
+                          onChange={(date) => {
+                            const next =
+                              date?.toISOString().slice(0, 10) ?? "";
+                            field.onChange(next);
+                            const end = applyLeaveForm.getValues("endDate");
+                            if (
+                              end &&
+                              date &&
+                              new Date(end) < new Date(next)
+                            ) {
+                              applyLeaveForm.setValue("endDate", "");
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={applyLeaveForm.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value || undefined}
+                          minDate={
+                            applyLeaveForm.watch("startDate")
+                              ? new Date(applyLeaveForm.watch("startDate"))
+                              : undefined
+                          }
+                          onChange={(date) =>
+                            field.onChange(
+                              date?.toISOString().slice(0, 10) ?? "",
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={applyLeaveForm.control}
+                name="reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Reason (optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Reason for leave"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setApplyDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={applyLeaveMutation.isPending}
+                >
+                  {applyLeaveMutation.isPending && (
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                  )}
+                  Submit Request
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
@@ -421,54 +515,83 @@ export function LeaveManagementSettings() {
             <DialogHeader>
               <DialogTitle>Configure Leave Plan</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="space-y-1.5">
-                <Label>Leave Type</Label>
-                <Select
-                  value={planForm.leaveType}
-                  onValueChange={(v) =>
-                    setPlanForm((f) => ({ ...f, leaveType: v as LeaveType }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map((lt) => (
-                      <SelectItem key={lt} value={lt}>
-                        {LEAVE_TYPE_LABELS[lt]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Annual Quota (days)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={365}
-                  value={planForm.annualQuota}
-                  onChange={(e) =>
-                    setPlanForm((f) => ({ ...f, annualQuota: e.target.value }))
-                  }
+            <Form {...leavePlanForm}>
+              <form onSubmit={submitLeavePlan} className="space-y-4 py-2">
+                <FormField
+                  control={leavePlanForm.control}
+                  name="leaveType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Leave Type</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Leave type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(Object.keys(LEAVE_TYPE_LABELS) as LeaveType[]).map(
+                            (lt) => (
+                              <SelectItem key={lt} value={lt}>
+                                {LEAVE_TYPE_LABELS[lt]}
+                              </SelectItem>
+                            ),
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setPlanDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreatePlan}
-                disabled={createPlanMutation.isPending}
-              >
-                {createPlanMutation.isPending && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
-                Save Plan
-              </Button>
-            </DialogFooter>
+                <FormField
+                  control={leavePlanForm.control}
+                  name="annualQuota"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Annual Quota (days)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={365}
+                          {...field}
+                          value={Number.isFinite(field.value) ? field.value : ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === ""
+                                ? NaN
+                                : Number(e.target.value),
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPlanDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createPlanMutation.isPending}
+                  >
+                    {createPlanMutation.isPending && (
+                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                    )}
+                    Save Plan
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       )}
@@ -485,7 +608,7 @@ export function LeaveManagementSettings() {
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Provide a reason..."
+                placeholder="Enter rejection reason"
                 rows={3}
               />
             </div>
@@ -573,8 +696,8 @@ function LeaveRequestRow({
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          {format(new Date(leave.startDate as string), "MMM d, yyyy")} -{" "}
-          {format(new Date(leave.endDate as string), "MMM d, yyyy")}
+          {formatDate(leave.startDate as string, "MMM d, yyyy")} -{" "}
+          {formatDate(leave.endDate as string, "MMM d, yyyy")}
         </p>
         {leave.reason && (
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
@@ -598,7 +721,7 @@ function LeaveRequestRow({
               disabled={approveMutation.isPending}
             >
               {approveMutation.isPending ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
               ) : (
                 <Check className="h-3 w-3" />
               )}
@@ -625,7 +748,7 @@ function LeaveRequestRow({
               disabled={cancelMutation.isPending}
             >
               {cancelMutation.isPending ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
               ) : (
                 <Ban className="h-3 w-3" />
               )}
@@ -667,7 +790,7 @@ function RejectButton({
       disabled={rejectMutation.isPending}
     >
       {rejectMutation.isPending && (
-        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+        <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
       )}
       Reject Leave
     </Button>

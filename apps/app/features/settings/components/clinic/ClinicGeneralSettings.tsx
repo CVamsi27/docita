@@ -19,6 +19,7 @@ import {
 } from "@workspace/ui/components/card";
 import { FormFieldGroup } from "@workspace/ui/components";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Form, FormControl, FormField } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -87,8 +88,7 @@ export function ClinicGeneralSettings() {
           "CLINIC",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clinic]);
+  }, [clinic, form]);
 
   const handleSubmit = (data: ClinicSettingsFormValues) => {
     updateClinic(data, {
@@ -107,14 +107,18 @@ export function ClinicGeneralSettings() {
 
   if (isLoading) {
     return (
-      <Card >
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading facility information"
+      >
         <CardHeader>
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="h-4 w-64 mt-1" />
+          <Skeleton animation="wave" className="h-6 w-40" />
+          <Skeleton animation="wave" className="h-4 w-64 mt-1" />
         </CardHeader>
         <CardContent className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
+            <Skeleton key={i} animation="wave" className="h-10 w-full" />
           ))}
         </CardContent>
       </Card>
@@ -122,7 +126,7 @@ export function ClinicGeneralSettings() {
   }
 
   return (
-    <Card >
+    <Card>
       <CardHeader>
         <CardTitle>{facilityLabel} Information</CardTitle>
         <CardDescription>Basic settings and information</CardDescription>
@@ -137,16 +141,18 @@ export function ClinicGeneralSettings() {
               <code className="text-sm font-mono font-semibold tracking-wider text-foreground">
                 {clinic.referralCode}
               </code>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0"
-                onClick={handleCopyCode}
-                title={`Copy ${facilityLabel.toLowerCase()} code`}
-              >
-                {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-              </Button>
+              <SymbolTooltip label={`Copy ${facilityLabel.toLowerCase()} code`}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={handleCopyCode}
+                  aria-label={`Copy ${facilityLabel.toLowerCase()} code`}
+                >
+                  {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+                </Button>
+              </SymbolTooltip>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Share this code with team members so they can find and join your{" "}
@@ -166,11 +172,14 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label={`${facilityLabel} Name`}
+                  htmlFor="clinic-name"
                   required
                   error={form.formState.errors.name?.message}
                 >
-                  <FormControl>
+                  <FormControl id="clinic-name">
                     <Input
+                      id="clinic-name"
+                      autoComplete="organization"
                       placeholder={`Enter ${facilityLabel.toLowerCase()} name`}
                       {...field}
                     />
@@ -184,8 +193,8 @@ export function ClinicGeneralSettings() {
               name="facilityLabel"
               render={({ field }) => (
                 <FormFieldGroup
-                  label="Display as"
-                  hint="Controls whether the app shows Clinic or Hospital in key headings"
+                  label="Facility type (how we refer to your organization)"
+                  hint="Shown in navigation and join flows. Default is Clinic unless you choose Hospital."
                 >
                   <FormControl>
                     <Select
@@ -195,7 +204,7 @@ export function ClinicGeneralSettings() {
                       }
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select display label" />
+                        <SelectValue placeholder="Clinic or Hospital" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="CLINIC">Clinic</SelectItem>
@@ -213,11 +222,17 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Address"
+                  htmlFor="clinic-address"
                   required
                   error={form.formState.errors.address?.message}
                 >
-                  <FormControl>
-                    <Input placeholder="Enter address" {...field} />
+                  <FormControl id="clinic-address">
+                    <Input
+                      id="clinic-address"
+                      autoComplete="street-address"
+                      placeholder="Enter address"
+                      {...field}
+                    />
                   </FormControl>
                 </FormFieldGroup>
               )}
@@ -229,11 +244,17 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="Phone Number"
+                  htmlFor="clinic-phone"
                   required
                   error={form.formState.errors.phone?.message}
                 >
-                  <FormControl>
-                    <Input placeholder="Enter phone number" {...field} />
+                  <FormControl id="clinic-phone">
+                    <Input
+                      id="clinic-phone"
+                      autoComplete="tel"
+                      placeholder="Enter phone number"
+                      {...field}
+                    />
                   </FormControl>
                 </FormFieldGroup>
               )}
@@ -245,12 +266,15 @@ export function ClinicGeneralSettings() {
               render={({ field }) => (
                 <FormFieldGroup
                   label="GSTIN"
+                  htmlFor="clinic-gstin"
                   error={form.formState.errors.gstin?.message}
                   hint="Needed for GST invoices on paid Indian plans. Keep this aligned with your tax registration."
                 >
-                  <FormControl>
+                  <FormControl id="clinic-gstin">
                     <Input
-                      placeholder="27ABCDE1234F1Z5"
+                      id="clinic-gstin"
+                      autoComplete="off"
+                      placeholder="GST number"
                       {...field}
                       value={field.value || ""}
                     />
@@ -260,7 +284,7 @@ export function ClinicGeneralSettings() {
             />
 
             <Button className="w-full" type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : "Save Changes"}
+              {isPending ? "Saving…" : "Save Changes"}
             </Button>
           </form>
         </Form>

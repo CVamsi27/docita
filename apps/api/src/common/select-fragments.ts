@@ -281,6 +281,8 @@ export const DOCTOR_CARD_SELECT = {
   hospitalRole: true,
   qualification: true,
   registrationNumber: true,
+  registrationCouncil: true,
+  registrationStateCode: true,
   verificationStatus: true,
   verificationReason: true,
   verificationCheckedAt: true,

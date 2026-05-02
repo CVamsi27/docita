@@ -57,7 +57,7 @@ export const AIAssistantUI: FC<AIAssistantUIProps> = ({ state, handlers }) => {
             actions={
               <Badge
                 variant="secondary"
-                className="bg-linear-to-r from-destructive to-primary text-white"
+                className="tier-intelligence border"
               >
                 <Sparkles className="h-3 w-3 mr-1" />
                 Docita Intelligence

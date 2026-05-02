@@ -97,7 +97,7 @@ export function PatientAllergies({
             <div className="relative flex-1">
               <Plus className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="New allergy, e.g. Penicillin"
+                placeholder="Allergy name"
                 value={newAllergy}
                 onChange={(e) => onNewAllergyChange(e.target.value)}
                 onKeyDown={(e) => {
@@ -209,7 +209,7 @@ export function PatientAllergies({
             <div className="space-y-2">
               <Label>Reaction</Label>
               <Input
-                placeholder="Reaction, e.g. Anaphylaxis, rash, hives, swelling"
+                placeholder="Reaction"
                 value={editingAllergy?.reaction || ""}
                 onChange={(e) =>
                   onEditingAllergyChange({

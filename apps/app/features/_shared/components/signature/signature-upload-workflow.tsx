@@ -1,11 +1,13 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs";
-import { AlertCircle, Image as ImageIcon, Loader2, Pencil, Upload } from "lucide-react";
+import { AlertCircle, Image as ImageIcon, Pencil, Upload } from "lucide-react";
 import { SignaturePad, SignaturePreview } from "@/components/signature-canvas";
 import {
   dataUrlToFile,
@@ -43,7 +45,7 @@ export function SignatureUploadWorkflow({
   selectImageButtonLabel = "Select Image",
   changeImageButtonLabel = "Change Image",
   uploadButtonLabel = "Upload Signature",
-  uploadingButtonLabel = "Uploading...",
+  uploadingButtonLabel = "Uploading…",
 }: SignatureUploadWorkflowProps) {
   const [uploadMethod, setUploadMethod] = useState<"draw" | "upload">("draw");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -137,7 +139,7 @@ export function SignatureUploadWorkflow({
               {autoUploadOnDraw ? (
                 uploading ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative />
                     {uploadingButtonLabel}
                   </div>
                 ) : null
@@ -149,7 +151,7 @@ export function SignatureUploadWorkflow({
                 >
                   {uploading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                       {uploadingButtonLabel}
                     </>
                   ) : (
@@ -191,7 +193,7 @@ export function SignatureUploadWorkflow({
 
           {previewUrl && (
             <div className="space-y-3">
-              <div className="rounded-lg border bg-white p-4">
+              <div className="rounded-lg border bg-background p-4">
                 <Image
                   src={previewUrl}
                   alt="Signature preview"
@@ -209,7 +211,7 @@ export function SignatureUploadWorkflow({
               >
                 {uploading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                     {uploadingButtonLabel}
                   </>
                 ) : (

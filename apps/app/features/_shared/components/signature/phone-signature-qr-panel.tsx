@@ -1,7 +1,9 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Button } from "@workspace/ui/components/button";
-import { CheckCircle2, Loader2, QrCode, RefreshCw } from "lucide-react";
+import { CheckCircle2, QrCode, RefreshCw } from "lucide-react";
 import { QrCodeCard } from "@/features/_shared/components/signature/qr-code-card";
 
 interface PhoneSignatureQrPanelProps {
@@ -38,7 +40,7 @@ export function PhoneSignatureQrPanel({
   onCopyLink,
   missingContextMessage,
   steps = DEFAULT_STEPS,
-  waitingText = "Waiting for signature from your phone...",
+  waitingText = "Waiting for signature from your phone…",
   successTitle = "Signature received from your phone",
   successDescription = "Your signature has been saved successfully",
 }: PhoneSignatureQrPanelProps) {
@@ -76,7 +78,7 @@ export function PhoneSignatureQrPanel({
         <div className="space-y-2.5">
           {steps.map((step, index) => (
             <div key={step} className="flex items-start gap-3">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border/70 bg-background/70 text-xs font-bold text-primary">
                 {index + 1}
               </span>
               <p className="text-sm text-muted-foreground pt-0.5">{step}</p>
@@ -87,8 +89,8 @@ export function PhoneSignatureQrPanel({
 
       {loading ? (
         <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Generating QR code...
+          <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+          Generating QR code…
         </div>
       ) : null}
 
@@ -108,27 +110,31 @@ export function PhoneSignatureQrPanel({
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             {polling ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3.5 w-3.5" />
                 {waitingText}
               </>
             ) : (
               <span>Scan the QR code with your phone camera</span>
             )}
           </div>
-          <button
+          <Button
             type="button"
-            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
             onClick={onRefreshStatus}
           >
             Refresh status (optional)
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
             onClick={onCopyLink}
           >
             Copy link instead
-          </button>
+          </Button>
         </div>
       ) : null}
     </>

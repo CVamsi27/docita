@@ -1,5 +1,10 @@
 import { API_URL } from "./api-config";
-import { getAPIClient } from "@workspace/data-access";
+import {
+  getAPIClient,
+  type APIClient,
+  type APIError,
+  type RequestConfig,
+} from "@workspace/data-access";
 import { API_ROUTES } from "@workspace/types";
 import { appSession } from "./session";
 import { handleApiClientError } from "./api-client-error-handler";
@@ -9,7 +14,7 @@ const client = getAPIClient({
   getToken: () => appSession.getToken(),
   timeout: 30000,
   retries: 3,
-  onRequest: (config) => {
+  onRequest: (config: RequestConfig): RequestConfig => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
     if (mutating.includes((config.method ?? "GET").toUpperCase())) {
       const csrfToken = appSession.getCsrfToken();
@@ -19,10 +24,15 @@ const client = getAPIClient({
     }
     return config;
   },
-  onError: handleApiClientError,
+  onError: (error: APIError) => handleApiClientError(error),
 });
 
-export const api = {
+type AppApiClient = Pick<
+  APIClient,
+  "get" | "post" | "put" | "patch" | "delete" | "validate"
+>;
+
+export const api: AppApiClient = {
   get: client.get,
   post: client.post,
   put: client.put,
@@ -31,7 +41,7 @@ export const api = {
   validate: client.validate,
 };
 
-export const apiFetch = client.request;
+export const apiFetch: APIClient["request"] = client.request;
 export const apiFetchWithSchema = client.validate;
 
 export const typedApi = {

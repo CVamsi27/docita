@@ -13,7 +13,7 @@ export function BulkImportStepUpload({
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
           <Upload className="h-6 w-6" />
         </div>
         <h3 className="font-semibold">Upload Data</h3>
@@ -21,7 +21,7 @@ export function BulkImportStepUpload({
           Upload your filled CSV file here.
         </p>
       </div>
-      <label className="flex flex-col items-center justify-center w-full h-48 rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
+      <label className="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-[var(--radius)] border-2 border-dashed border-muted-foreground/25 transition-all hover:border-border/80 hover:bg-muted/50">
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           <Upload className="h-10 w-10 text-muted-foreground mb-3" />
           <p className="mb-2 text-sm text-muted-foreground">

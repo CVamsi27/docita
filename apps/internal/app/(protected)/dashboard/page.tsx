@@ -185,8 +185,8 @@ export default function InternalDashboard() {
   return (
     <div className="space-y-8">
       {isLoading && (
-        <div className="surface-warning rounded-lg p-4">
-          <p className="text-sm">Loading authentication...</p>
+        <div className="surface-warning rounded-[var(--radius)] p-4">
+          <p className="text-sm">Loading authentication…</p>
         </div>
       )}
       {hasError && (
@@ -213,7 +213,7 @@ export default function InternalDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {formatCurrency(billing.mrr)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -229,7 +229,7 @@ export default function InternalDashboard() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                 {billing.activeSubscriptions}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -279,7 +279,7 @@ export default function InternalDashboard() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.clinics}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.clinics}</div>
             {renderTrend(trends.clinicsThisMonth)}
           </CardContent>
         </Card>
@@ -289,7 +289,7 @@ export default function InternalDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.doctors}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.doctors}</div>
             {renderTrend(trends.doctorsThisMonth)}
           </CardContent>
         </Card>
@@ -301,7 +301,7 @@ export default function InternalDashboard() {
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.patients}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.patients}</div>
             {renderTrend(trends.patientsThisMonth)}
           </CardContent>
         </Card>
@@ -313,7 +313,7 @@ export default function InternalDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.invoices}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.invoices}</div>
             {renderTrend(trends.invoicesPercentChange, true)}
           </CardContent>
         </Card>
@@ -323,7 +323,7 @@ export default function InternalDashboard() {
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.prescriptions}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{stats.prescriptions}</div>
             {renderTrend(trends.prescriptionsPercentChange, true)}
           </CardContent>
         </Card>
@@ -340,7 +340,7 @@ export default function InternalDashboard() {
             </div>
             <div className="relative w-full md:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search facilities..." className="pl-8" />
+              <Input placeholder="Enter facility name" className="pl-8" />
             </div>
           </div>
         </CardHeader>

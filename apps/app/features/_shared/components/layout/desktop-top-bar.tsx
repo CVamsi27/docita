@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Breadcrumbs, type BreadcrumbItem } from "@workspace/ui/components/breadcrumbs";
 import { TopBar } from "@workspace/ui/components/top-bar";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Button } from "@workspace/ui/components/button";
 import { Kbd } from "@workspace/ui/components/kbd";
 import { Search } from "lucide-react";
@@ -46,7 +45,6 @@ export function DesktopTopBar() {
             </span>
             <Kbd>⌘K</Kbd>
           </Button>
-          <ThemeToggle />
         </>
       }
     />

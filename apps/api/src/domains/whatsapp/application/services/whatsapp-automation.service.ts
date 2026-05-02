@@ -5,6 +5,7 @@ import {
   WHATSAPP_REPOSITORY_TOKEN,
 } from '@/domains/whatsapp/application/ports/whatsapp.repository.port';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
+import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
 
 @Injectable()
 export class WhatsAppAutomationService {
@@ -104,8 +105,8 @@ export class WhatsAppAutomationService {
         patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
         clinicName: appointment.clinic?.name ?? '',
         doctorName: appointment.doctor.name,
-        date: appointment.startTime.toLocaleDateString(),
-        time: appointment.startTime.toLocaleTimeString(),
+        date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
+        time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
       },
     });
   }
@@ -141,8 +142,8 @@ export class WhatsAppAutomationService {
       variables: {
         patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
         clinicName: appointment.clinic?.name ?? '',
-        date: appointment.startTime.toLocaleDateString(),
-        time: appointment.startTime.toLocaleTimeString(),
+        date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
+        time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
       },
     });
   }

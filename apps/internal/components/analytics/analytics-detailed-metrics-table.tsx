@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
+import { formatAmountLocale } from "@workspace/utils";
 
 export interface DetailedMetricsRow {
   period: string;
@@ -28,7 +29,7 @@ function AnalyticsDetailedMetricsTableComponent({
   rows,
 }: AnalyticsDetailedMetricsTableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-hidden">
       <Table>
         <TableHeader className="border-b border-border">
           <TableRow>
@@ -50,13 +51,21 @@ function AnalyticsDetailedMetricsTableComponent({
                 {row.period}
               </TableCell>
               <TableCell className="text-right text-foreground">
-                ₹{row.revenue.toLocaleString()}
+                ₹
+                {formatAmountLocale(row.revenue, "en-IN", {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })}
               </TableCell>
               <TableCell className="text-right text-muted-foreground">
                 {row.invoices}
               </TableCell>
               <TableCell className="text-right text-muted-foreground">
-                ₹{(row.avgAmount || 0).toFixed(2)}
+                ₹
+                {formatAmountLocale(row.avgAmount || 0, "en-IN", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </TableCell>
               <TableCell className="text-right text-muted-foreground">
                 {row.appointments}

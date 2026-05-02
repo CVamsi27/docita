@@ -6,7 +6,7 @@ import {
   EmailSendResult,
   EMAIL_PROVIDER,
 } from './providers/email-provider.interface';
-import { escapeHtml } from '@workspace/utils';
+import { DATE_FORMATS, escapeHtml, formatDateTime } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 
 @Injectable()
@@ -100,14 +100,10 @@ export class EmailService {
     appointmentDate: Date,
     clinicName: string,
   ): Promise<EmailSendResult> {
-    const formattedDate = appointmentDate.toLocaleDateString('en-IN', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const formattedDate = formatDateTime(
+      appointmentDate,
+      DATE_FORMATS.DATETIME_WEEKDAY_LONG,
+    );
 
     const safePatientName = escapeHtml(patientName);
     const safeDoctorName = escapeHtml(doctorName);

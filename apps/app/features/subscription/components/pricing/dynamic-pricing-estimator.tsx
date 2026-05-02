@@ -20,8 +20,16 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
 import { useDebounce } from "@workspace/hooks";
-import type { SupportedCurrency, TierName } from "@workspace/types";
-import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from "@workspace/utils";
+import {
+  PRICING_CURRENCY_CONFIG,
+  type SupportedCurrency,
+  type TierName,
+} from "@workspace/types";
+import {
+  CURRENCY_OPTIONS,
+  DEFAULT_CURRENCY,
+  formatAmountLocale,
+} from "@workspace/utils";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import {
   DEFAULT_PRICING_USAGE_INPUTS,
@@ -135,6 +143,13 @@ export function DynamicPricingEstimator({
   );
 
   const { estimate, isLoading } = useEstimate(debouncedEstimateParams);
+
+  const amtFmt = PRICING_CURRENCY_CONFIG[selectedCurrency];
+  const fmtMoney = (value: number) =>
+    formatAmountLocale(value, amtFmt.locale, {
+      minimumFractionDigits: amtFmt.decimalPlaces,
+      maximumFractionDigits: amtFmt.decimalPlaces,
+    });
 
   const tiers = (pricingConfig?.tiers || [])
     .map((tierInfo) => tierInfo.id)
@@ -271,7 +286,7 @@ export function DynamicPricingEstimator({
           consultations, team users, and WhatsApp messages.
         </div>
 
-        <div className="rounded-xl border overflow-hidden">
+        <div className="rounded-lg border overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 bg-card border-b">
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -283,13 +298,13 @@ export function DynamicPricingEstimator({
             </div>
             {isLoading ? (
               <Badge variant="outline" className="animate-pulse">
-                Calculating...
+                Calculating…
               </Badge>
             ) : shownTotal !== null && estimate ? (
               <div className="text-right">
-                <span className="text-2xl font-bold text-foreground">
+                <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-foreground">
                   {estimate.currency.symbol}
-                  {shownTotal.toLocaleString()}
+                  {fmtMoney(shownTotal)}
                 </span>
                 <span className="text-sm text-muted-foreground ml-1">
                   /{effectiveBillingCycle === "yearly" ? "yr" : "mo"}
@@ -304,33 +319,33 @@ export function DynamicPricingEstimator({
             <div className="divide-y bg-muted/10">
               <EstimateRow
                 label="Base plan"
-                value={`${estimate.currency.symbol}${estimate.breakdown.basePrice.toLocaleString()}`}
+                value={`${estimate.currency.symbol}${fmtMoney(estimate.breakdown.basePrice)}`}
               />
               {estimate.breakdown.overageTotal > 0 && (
                 <EstimateRow
                   label="Usage overage"
-                  value={`${estimate.currency.symbol}${estimate.breakdown.overageTotal.toLocaleString()}`}
+                  value={`${estimate.currency.symbol}${fmtMoney(estimate.breakdown.overageTotal)}`}
                   sublabel
                 />
               )}
               {estimate.breakdown.overages.consultations.charge > 0 && (
                 <EstimateRow
                   label="Consultations overage"
-                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.consultations.charge.toLocaleString()}`}
+                  value={`${estimate.currency.symbol}${fmtMoney(estimate.breakdown.overages.consultations.charge)}`}
                   indent
                 />
               )}
               {estimate.breakdown.overages.users.charge > 0 && (
                 <EstimateRow
                   label="Team overage"
-                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.users.charge.toLocaleString()}`}
+                  value={`${estimate.currency.symbol}${fmtMoney(estimate.breakdown.overages.users.charge)}`}
                   indent
                 />
               )}
               {estimate.breakdown.overages.whatsappMessages.charge > 0 && (
                 <EstimateRow
                   label="WhatsApp overage"
-                  value={`${estimate.currency.symbol}${estimate.breakdown.overages.whatsappMessages.charge.toLocaleString()}`}
+                  value={`${estimate.currency.symbol}${fmtMoney(estimate.breakdown.overages.whatsappMessages.charge)}`}
                   indent
                 />
               )}
@@ -339,14 +354,14 @@ export function DynamicPricingEstimator({
                   <span className="text-muted-foreground">Monthly total</span>
                   <span className="font-semibold">
                     {estimate.currency.symbol}
-                    {estimate.totalMonthly.toLocaleString()}
+                    {fmtMoney(estimate.totalMonthly)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1.5">
                   <span className="text-muted-foreground">Yearly total (2 months free)</span>
                   <span className="font-semibold">
                     {estimate.currency.symbol}
-                    {estimate.totalYearly.toLocaleString()}
+                    {fmtMoney(estimate.totalYearly)}
                   </span>
                 </div>
               </div>

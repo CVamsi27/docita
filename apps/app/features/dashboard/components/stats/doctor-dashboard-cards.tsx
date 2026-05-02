@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
+import { formatTime } from "@/lib/formatters";
 import {
   Card,
   CardContent,
@@ -17,7 +17,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Clock, Play, Stethoscope, Users } from "lucide-react";
 
-import { DashboardAppointment } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { useStartConsultation } from "@/hooks/api/use-appointments";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -29,8 +29,8 @@ interface QueueStats {
 }
 
 interface DoctorDashboardCardsProps {
-  currentPatient?: DashboardAppointment | null;
-  nextPatients: DashboardAppointment[];
+  currentPatient?: AppointmentListItem | null;
+  nextPatients: AppointmentListItem[];
   queueStats: QueueStats;
   estimatedWaitTime: number;
 }
@@ -69,7 +69,7 @@ export function DoctorDashboardCardsUI({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center text-primary">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
                 <Stethoscope className="h-5 w-5" />
               </div>
               <div>
@@ -84,7 +84,7 @@ export function DoctorDashboardCardsUI({
               </div>
             </div>
             {currentPatient && (
-              <Badge variant="default" className="bg-primary">
+              <Badge className="badge-info border px-2.5 py-0.5 font-medium">
                 In Progress
               </Badge>
             )}
@@ -94,7 +94,7 @@ export function DoctorDashboardCardsUI({
           {currentPatient ? (
             <div className="flex items-center gap-3 sm:gap-4">
               <Avatar className="h-10 w-10 sm:h-14 sm:w-14 shrink-0">
-                <AvatarFallback className="bg-linear-to-br from-primary/30 to-primary/10 text-primary text-base sm:text-lg font-medium">
+                <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-base sm:text-lg font-medium">
                   {currentPatient.patient?.firstName?.[0]}
                   {currentPatient.patient?.lastName?.[0]}
                 </AvatarFallback>
@@ -106,12 +106,16 @@ export function DoctorDashboardCardsUI({
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground capitalize truncate">
                   {humanizeUiLabel(currentPatient.type)} •{" "}
-                  {format(new Date(currentPatient.startTime), "h:mm a")}
+                  {formatTime(currentPatient.startTime, "en-IN", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })}
                 </p>
               </div>
               <Button
                 size="default"
-                className="gap-2 shadow-sm shadow-primary/20 shrink-0"
+                className="gap-2 shrink-0"
                 onClick={() => router.push(`/consultation/${currentPatient.id}`)}
               >
                 <Play className="h-4 w-4" />
@@ -134,7 +138,7 @@ export function DoctorDashboardCardsUI({
                 >
                   <Play className="h-4 w-4" />
                   {startingAppointmentId === nextPatients[0].id
-                    ? "Starting..."
+                    ? "Starting…"
                     : "Start Next Patient"}
                 </Button>
               )}
@@ -146,7 +150,7 @@ export function DoctorDashboardCardsUI({
       <Card className="border border-border shadow-sm bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-info/20 to-info/10 flex items-center justify-center text-info">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70 text-info">
               <Users className="h-5 w-5" />
             </div>
             <div>
@@ -163,24 +167,24 @@ export function DoctorDashboardCardsUI({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-xl bg-warning/10">
-              <p className="text-2xl font-bold text-warning">
+            <div className="p-3 rounded-[var(--radius)] bg-warning/10">
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-warning">
                 {queueStats.waiting}
               </p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Waiting
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-info/10">
-              <p className="text-2xl font-bold text-info">
+            <div className="p-3 rounded-[var(--radius)] bg-info/10">
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-info">
                 {queueStats.inProgress}
               </p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Active
               </p>
             </div>
-            <div className="p-3 rounded-xl bg-success/10">
-              <p className="text-2xl font-bold text-success">
+            <div className="p-3 rounded-[var(--radius)] bg-success/10">
+              <p className="text-[var(--fs-2xl)] font-semibold tabular-nums text-success">
                 {queueStats.completed}
               </p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">

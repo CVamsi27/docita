@@ -1,18 +1,18 @@
 import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
-import type { PatientTimelineResponse, PatientSnapshot, ActiveMedication, MedicationAdherenceSummary } from "@workspace/types";
+import type {
+  ActiveMedication,
+  AppointmentRequestResponse,
+  MedicationAdherenceSummary,
+  PatientAppointmentRequestCreate,
+  PatientSnapshot,
+  PatientTimelineResponse,
+} from "@workspace/types";
 
 interface UpdatePatientProfileBodyDto {
   phoneNumber?: string;
   email?: string;
   address?: string;
   whatsappConsent?: boolean;
-}
-
-interface RequestAppointmentBodyDto {
-  reason: string;
-  preferredDate?: string;
-  preferredTime?: string;
-  notes?: string;
 }
 
 export const usePatientPortalDashboard = () =>
@@ -59,9 +59,13 @@ export const usePatientPortalAppointmentById = (appointmentId: string) =>
   );
 
 export const useRequestAppointment = () =>
-  useAPIMutation<Record<string, unknown>, RequestAppointmentBodyDto>(
+  useAPIMutation<AppointmentRequestResponse, PatientAppointmentRequestCreate>(
     "/patient-portal/appointments/request",
     "POST",
+    {
+      invalidateKeys: [["patient-portal", "appointments"]],
+      suppressGlobalErrorToast: true,
+    },
   );
 
 export const usePatientPortalPrescriptions = (filters?: {
@@ -116,6 +120,7 @@ export const usePatientConsentSettings = () =>
     whatsappConsent: boolean;
     whatsappConsentAt: string | null;
     isFirstLogin: boolean;
+    dataStorageConsent: boolean;
   }>(["patient-portal", "consent"], "/patient-portal/consent");
 
 export const useUpdatePatientConsent = () =>

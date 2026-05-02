@@ -75,7 +75,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "lucide-react",
       "recharts",
-      "date-fns",
       "@tanstack/react-query",
       "@workspace/ui",
       "@workspace/hooks",

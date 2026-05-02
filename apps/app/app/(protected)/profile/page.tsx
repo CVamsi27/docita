@@ -61,7 +61,7 @@ export default function ProfilePage() {
         />
       }
     >
-      <Card className="border-border shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle>Personal Information</CardTitle>
           <CardDescription>Update your personal details here</CardDescription>
@@ -73,7 +73,7 @@ export default function ProfilePage() {
               id="name"
               value={formData.name}
               onChange={handleNameChange}
-              placeholder="Your name"
+              placeholder="Full name"
               disabled={isSaving}
             />
           </div>
@@ -91,7 +91,7 @@ export default function ProfilePage() {
               disabled={isSaving || updateProfileMutation.isPending}
             >
               {isSaving || updateProfileMutation.isPending
-                ? "Saving..."
+                ? "Saving…"
                 : "Save Changes"}
             </Button>
           </div>

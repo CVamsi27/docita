@@ -60,7 +60,7 @@ describe("AppointmentCalendarSkeleton", () => {
 
   it("renders all skeleton elements with animation", () => {
     const { container } = render(<AppointmentCalendarSkeleton />);
-    const animatedElements = container.querySelectorAll(".animate-pulse");
+    const animatedElements = container.querySelectorAll(".animate-shimmer");
 
     expect(animatedElements.length).toBeGreaterThan(40);
   });

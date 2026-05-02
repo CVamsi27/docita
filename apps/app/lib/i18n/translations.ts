@@ -64,7 +64,7 @@ const translations: Record<AppLocale, Record<TranslationKey, string>> = {
     bedManagement: "Bed Management",
     plan: "Plan",
     upgrade: "Upgrade",
-    loading: "Loading...",
+    loading: "Loading…",
     offlineBanner:
       "You are offline. Saved pages may still work. Actions will resume after you reconnect.",
   },
@@ -96,7 +96,7 @@ const translations: Record<AppLocale, Record<TranslationKey, string>> = {
     bedManagement: "बेड मैनेजमेंट",
     plan: "प्लान",
     upgrade: "अपग्रेड",
-    loading: "लोड हो रहा है...",
+    loading: "लोड हो रहा है…",
     offlineBanner:
       "You are offline. Saved pages may still work. Actions will resume after you reconnect.",
   },

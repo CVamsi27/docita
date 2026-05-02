@@ -1,6 +1,11 @@
+import type { ReactElement } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthPageContainer } from "./AuthPageContainer";
+
+vi.mock("@workspace/ui/components/tooltip", () => ({
+  SymbolTooltip: ({ children }: { children: ReactElement }) => children,
+}));
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -83,12 +88,12 @@ describe("AuthPageContainer", () => {
     expect(mocks.checkEmail).not.toHaveBeenCalled();
   });
 
-  it("hides the branding panel on the email step and shows it after continue", async () => {
+  it("keeps the branding panel visible on the email step and after continue", async () => {
     mocks.checkEmail.mockResolvedValue(false);
 
     render(<AuthPageContainer />);
 
-    expect(screen.queryByTestId("auth-branding-panel")).not.toBeInTheDocument();
+    expect(screen.getByTestId("auth-branding-panel")).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: "new@example.com" },
@@ -96,8 +101,9 @@ describe("AuthPageContainer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
     expect(
-      await screen.findByTestId("auth-branding-panel"),
+      await screen.findByText("Create your account"),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("auth-branding-panel")).toBeInTheDocument();
   });
 
   it("shows a clear message when the email lookup fails", async () => {
@@ -198,7 +204,7 @@ describe("AuthPageContainer", () => {
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(
-      "Redirecting...",
+      "Redirecting…",
     );
   });
 });

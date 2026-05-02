@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file defines mandatory operating rules for coding agents working in this repository.
-It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.github/copilot-instructions.md`.
+It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-instructions.md`.
 
 ## 1) Scope and Priority
 
@@ -122,11 +122,11 @@ It adapts and consolidates guidance from `CLAUDE.md`, `CONTRIBUTING.md`, and `.g
 
 ### 7.3 General code hygiene and typing
 
-- No `any`; use Zod-inferred and domain types from `packages/types`.
+- No new `any` unless explicitly justified and constrained; prefer Zod-inferred and domain types from `packages/types`.
 - Replace lingering `unknown` at boundaries with narrowing: Zod `safeParse`, custom type guards, or explicit discriminated unions—not permanent `unknown`-typed values flowing through the app.
 - Do not use type escape hatches (`as any`, unchecked casts to widen types, double assertions) except where the platform truly lacks types; then isolate in a single guarded helper with a one-line rationale.
 - Avoid `@ts-expect-error`, `@ts-ignore`, and broad `eslint-disable` comments—fix the root cause (types, dependency arrays, or API shape). Only suppress with a narrow scope and a one-line rationale when the ecosystem leaves no alternative.
-- At external boundaries (webhooks, third-party JSON), parse with Zod or narrow `unknown` immediately; do not leave unconstrained `Record<string, unknown>` where a schema exists.
+- At boundaries (`catch`, webhook payloads, untyped JSON), use `unknown` and narrow immediately with guards or Zod `safeParse`; do not use `any` or permanent `Record<string, unknown>` where a schema already exists.
 - Remove dead code and commented-out blocks.
 - No emojis in code, comments, or commit messages.
 - Prefer small cohesive functions and descriptive naming.

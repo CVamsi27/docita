@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { loginUser, setupTestUser } from "./utils/patient-helpers";
 import { expectPageHeader, expectRoute } from "./utils/ui-contracts";
 
-test.describe("Upgrade Page", () => {
+test.describe("Subscription billing (settings)", () => {
   let user: Awaited<ReturnType<typeof setupTestUser>> | null = null;
 
   test.beforeAll(async ({ request }) => {
@@ -14,10 +14,12 @@ test.describe("Upgrade Page", () => {
     await loginUser(page, user);
   });
 
-  test("should display upgrade page with current plan", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+  test("should display subscription billing with current plan", async ({
+    page,
+  }) => {
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
-    await expectRoute(page, /\/upgrade/);
+    await expectRoute(page, /\/settings/);
     await expectPageHeader(page, { title: /Upgrade|Billing|Subscription/i });
     await expect(page.getByText("Current Plan").first()).toBeVisible();
     await expect(page.getByText("Current usage")).toBeVisible();
@@ -28,7 +30,7 @@ test.describe("Upgrade Page", () => {
   test("should show all four plan options with feature details", async ({
     page,
   }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await expect(page.getByRole("heading", { name: "Starter" })).toBeVisible();
     await expect(
@@ -47,7 +49,7 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should display tier cards with pricing", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await expect(page.getByRole("button", { name: "Monthly" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Yearly" })).toBeVisible();
@@ -57,7 +59,7 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should open contact sales from Enterprise", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await page
       .getByRole("button", { name: /Contact Sales/i })
@@ -68,7 +70,7 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should show billing history button", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await expect(
       page.getByRole("button", { name: /Billing History/i }),
@@ -76,7 +78,7 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should open billing history dialog", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await page.getByRole("button", { name: /Billing History/i }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
@@ -84,9 +86,20 @@ test.describe("Upgrade Page", () => {
   });
 
   test("should toggle monthly/yearly pricing", async ({ page }) => {
-    await page.goto("/upgrade", { waitUntil: "networkidle" });
+    await page.goto("/settings?tab=subscription", { waitUntil: "networkidle" });
 
     await page.getByRole("button", { name: "Yearly" }).click();
     await expect(page.getByRole("button", { name: "Yearly" })).toBeVisible();
+  });
+
+  test("should render billing locked page when visited directly", async ({
+    page,
+  }) => {
+    await page.goto("/billing-locked", { waitUntil: "networkidle" });
+
+    await expect(page.getByText(/Workspace access paused/i)).toBeVisible();
+    await expect(
+      page.getByText(/subscription billing must be resolved/i),
+    ).toBeVisible();
   });
 });

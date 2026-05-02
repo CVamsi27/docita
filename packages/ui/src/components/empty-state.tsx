@@ -2,7 +2,9 @@
 
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
-import { ChevronRight, Loader2, LucideIcon } from "lucide-react";
+import { ChevronRight, LucideIcon } from "lucide-react";
+
+import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 
 export interface EmptyStateProps {
   icon: LucideIcon;
@@ -34,7 +36,7 @@ export function EmptyState({
         className,
       )}
     >
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
+      <div className="mx-auto flex size-16 items-center justify-center rounded-lg border border-border/70 bg-muted/40">
         <Icon className="h-8 w-8 text-muted-foreground/50" />
       </div>
       <div className="ui-copy-stack">
@@ -83,12 +85,12 @@ export function SectionHeader({
   return (
     <div
       className={cn(
-        "flex flex-row items-center justify-between space-y-0 pb-4",
+        "flex flex-row items-center justify-between gap-3 pb-4",
         className,
       )}
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="h-5 w-5" />
         </div>
         <div className="ui-copy-stack">
@@ -133,13 +135,13 @@ export interface LoadingStateProps {
 }
 
 const sizeClasses = {
-  sm: { icon: "h-6 w-6", text: "text-sm" },
-  default: { icon: "h-8 w-8", text: "text-base" },
+  sm: { icon: "h-8 w-8", text: "text-sm" },
+  default: { icon: "h-10 w-10", text: "text-base" },
   lg: { icon: "h-12 w-12", text: "text-lg" },
 };
 
 export function LoadingState({
-  message = "Loading...",
+  message = "Loading…",
   className,
   size = "default",
 }: LoadingStateProps) {
@@ -151,9 +153,15 @@ export function LoadingState({
         "ui-section-stack py-8 text-center text-muted-foreground",
         className,
       )}
+      role="status"
+      aria-live="polite"
     >
-      <Loader2
-        className={cn(sizes.icon, "mx-auto animate-spin text-primary")}
+      <DocitaLoadingIndicator
+        variant="section"
+        className="gap-3"
+        iconClassName={sizes.icon}
+        withStatusRole={false}
+        iconAlt=""
       />
       <p className={sizes.text}>{message}</p>
     </div>

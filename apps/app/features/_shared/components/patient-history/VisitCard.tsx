@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import type { TimelineEvent, TimelineEventType } from "@workspace/types";
 
 export const EVENT_TYPE_CONFIG: Record<
@@ -128,9 +128,9 @@ export function VisitCard({ event, mode, defaultExpanded = false }: VisitCardPro
 
   const dateStr = (() => {
     const d = new Date(event.date);
-    if (mode === "compact") return format(d, "d MMM");
-    if (mode === "portal") return format(d, "EEEE, d MMMM yyyy");
-    return format(d, "EEE, d MMM yyyy");
+    if (mode === "compact") return formatDate(d, "d MMM");
+    if (mode === "portal") return formatDate(d, "EEEE, d MMMM yyyy");
+    return formatDate(d, "EEE, d MMM yyyy");
   })();
 
   const meta = event.metadata as Record<string, unknown>;

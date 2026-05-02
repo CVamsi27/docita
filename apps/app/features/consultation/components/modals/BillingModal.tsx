@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
@@ -8,6 +10,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { DatePicker } from "@workspace/ui/components/date-picker";
@@ -18,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { formatCurrency } from "@workspace/utils";
 import { toast } from "sonner";
 import { useCreateInvoice } from "@/hooks/api/use-billing";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
@@ -74,12 +78,7 @@ export function BillingModal({
   }, [defaultConsultationFee, hasCustomizedDefaultFee]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(n);
+    formatCurrency(n, { currency, fractionDigits: 2 });
 
   const calculations = useMemo(() => {
     const subtotal = items.reduce(
@@ -220,7 +219,7 @@ export function BillingModal({
                 onChange={(date) =>
                   setDueDate(date?.toISOString().slice(0, 10) ?? "")
                 }
-                placeholder="Select due date"
+                placeholder="Due date"
                 className="w-40 h-8"
               />
             </div>
@@ -282,14 +281,17 @@ export function BillingModal({
                   </div>
                   <div className="sm:col-span-1 flex items-center justify-center">
                     {items.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeItem(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      <SymbolTooltip label="Remove line item">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeItem(index)}
+                          aria-label="Remove line item"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </SymbolTooltip>
                     )}
                   </div>
                 </div>
@@ -365,7 +367,7 @@ export function BillingModal({
                 </Label>
                 <Select value={paymentMode} onValueChange={setPaymentMode}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select mode" />
+                    <SelectValue placeholder="Payment mode" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="CASH">Cash</SelectItem>
@@ -397,7 +399,7 @@ export function BillingModal({
               )}
               <div className="border-t pt-3 mt-2 flex justify-between items-center">
                 <span className="font-semibold">Grand Total</span>
-                <span className="text-2xl font-bold">
+                <span className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {fmt(calculations.total)}
                 </span>
               </div>
@@ -414,7 +416,7 @@ export function BillingModal({
             disabled={createInvoice.isPending}
             className="w-32"
           >
-            {createInvoice.isPending ? "Generating..." : "Generate Invoice"}
+            {createInvoice.isPending ? "Generating…" : "Generate Invoice"}
           </Button>
         </DialogFooter>
       </DialogContent>

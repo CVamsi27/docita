@@ -55,6 +55,7 @@ const toStringOrUndefined = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;
 
 const MAX_REQUEST_BODY_KEYS = 20;
+const MAX_VALIDATION_FIELDS = 10;
 
 function summarizeRequestBody(
   body: unknown,
@@ -68,6 +69,30 @@ function summarizeRequestBody(
     redacted: true,
     keyCount: keys.length,
     keys: keys.slice(0, MAX_REQUEST_BODY_KEYS),
+  };
+}
+
+function getRequestId(request: Request): string | undefined {
+  const headerValue = request.headers['x-request-id'];
+  if (typeof headerValue === 'string' && headerValue.length > 0) {
+    return headerValue;
+  }
+  if (Array.isArray(headerValue) && typeof headerValue[0] === 'string') {
+    return headerValue[0];
+  }
+  return undefined;
+}
+
+function summarizeValidationIssues(issues: ZodIssue[]): {
+  issueCount: number;
+  fields: string[];
+} {
+  const fields = [...new Set(issues.map((issue) => issue.path.join('.')))]
+    .filter(Boolean)
+    .slice(0, MAX_VALIDATION_FIELDS);
+  return {
+    issueCount: issues.length,
+    fields,
   };
 }
 
@@ -120,10 +145,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       details = formattedErrors;
       message = 'Validation failed. Please check the highlighted fields.';
 
-      this.logger.error(
-        'Zod Validation Error Details',
-        JSON.stringify(formattedErrors, null, 2),
-      );
+      const summary = summarizeValidationIssues(zodError.errors);
+      this.logger.warn('[AllExceptionsFilter] Validation error', {
+        requestId: getRequestId(request),
+        path: request.path,
+        method: request.method,
+        issueCount: summary.issueCount,
+        fields: summary.fields,
+      });
     } else if (
       exception instanceof ForbiddenException ||
       exception instanceof UnauthorizedException

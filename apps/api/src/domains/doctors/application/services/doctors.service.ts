@@ -1,17 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import {
-  Specialization,
-  HospitalRole,
-  Role,
-  UploadSessionPurpose,
-} from '@workspace/db';
+import { Specialization, HospitalRole, Role } from '@workspace/db';
 import {
   DOCTOR_LIST_SELECT,
   DOCTOR_CARD_SELECT,
 } from '@/common/select-fragments';
 import { DoctorVerificationService } from './doctor-verification.service';
+import { SignatureUploadService } from './signature-upload.service';
 import { StoredFileUrlResolverService } from '@/domains/documents/application/services/stored-file-url-resolver.service';
 
 interface CreateDoctorData {
@@ -37,6 +33,8 @@ interface UpdateDoctorData {
   hospitalRole?: HospitalRole;
   qualification?: string;
   registrationNumber?: string;
+  registrationCouncil?: string | null;
+  registrationStateCode?: string | null;
   licenseNumber?: string;
   licenseExpiry?: Date;
   signatureUrl?: string;
@@ -85,6 +83,7 @@ export class DoctorsService {
   constructor(
     private prisma: PrismaService,
     private doctorVerificationService: DoctorVerificationService,
+    private readonly signatureUploadService: SignatureUploadService,
     private readonly storedFileUrlResolver: StoredFileUrlResolverService,
   ) {}
 
@@ -124,6 +123,8 @@ export class DoctorsService {
         select: {
           ...DOCTOR_LIST_SELECT,
           registrationNumber: true,
+          registrationCouncil: true,
+          registrationStateCode: true,
           verificationStatus: true,
           verificationReason: true,
           verificationCheckedAt: true,
@@ -156,6 +157,8 @@ export class DoctorsService {
           hospitalRole: doctor.hospitalRole,
           qualification: doctor.qualification,
           registrationNumber: doctor.registrationNumber,
+          registrationCouncil: doctor.registrationCouncil,
+          registrationStateCode: doctor.registrationStateCode,
           verificationStatus: doctor.verificationStatus,
           verificationReason: doctor.verificationReason,
           verificationCheckedAt: doctor.verificationCheckedAt,
@@ -181,6 +184,8 @@ export class DoctorsService {
           hospitalRole: doctor.hospitalRole,
           qualification: doctor.qualification,
           registrationNumber: doctor.registrationNumber,
+          registrationCouncil: doctor.registrationCouncil,
+          registrationStateCode: doctor.registrationStateCode,
           verificationStatus: doctor.verificationStatus,
           verificationReason: doctor.verificationReason,
           verificationCheckedAt: doctor.verificationCheckedAt,
@@ -210,6 +215,8 @@ export class DoctorsService {
         hospitalRole: true,
         qualification: true,
         registrationNumber: true,
+        registrationCouncil: true,
+        registrationStateCode: true,
         licenseNumber: true,
         licenseExpiry: true,
         signatureUrl: true,
@@ -332,6 +339,8 @@ export class DoctorsService {
       hospitalRole,
       qualification,
       registrationNumber,
+      registrationCouncil,
+      registrationStateCode,
       licenseNumber,
       licenseExpiry,
       signatureUrl,
@@ -352,6 +361,10 @@ export class DoctorsService {
     if (qualification !== undefined) updateData.qualification = qualification;
     if (registrationNumber !== undefined)
       updateData.registrationNumber = registrationNumber;
+    if (registrationCouncil !== undefined)
+      updateData.registrationCouncil = registrationCouncil;
+    if (registrationStateCode !== undefined)
+      updateData.registrationStateCode = registrationStateCode;
     if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
     if (licenseExpiry !== undefined) updateData.licenseExpiry = licenseExpiry;
     if (signatureUrl !== undefined) {
@@ -387,6 +400,8 @@ export class DoctorsService {
         hospitalRole: true,
         qualification: true,
         registrationNumber: true,
+        registrationCouncil: true,
+        registrationStateCode: true,
         licenseNumber: true,
         signatureUrl: true,
         signatureUploadedAt: true,
@@ -409,6 +424,8 @@ export class DoctorsService {
 
     if (
       registrationNumber !== undefined ||
+      registrationCouncil !== undefined ||
+      registrationStateCode !== undefined ||
       licenseNumber !== undefined ||
       name !== undefined
     ) {
@@ -431,16 +448,7 @@ export class DoctorsService {
   async createSignatureUploadSession(id: string, clinicId?: string) {
     if (clinicId) await this.findOne(id, clinicId);
 
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-
-    return this.prisma.uploadSession.create({
-      data: {
-        expiresAt,
-        purpose: UploadSessionPurpose.DOCTOR_SIGNATURE,
-        doctorId: id,
-      },
-    });
+    return this.signatureUploadService.generateUploadToken(id);
   }
 
   async reverifyDoctor(id: string, clinicId?: string) {

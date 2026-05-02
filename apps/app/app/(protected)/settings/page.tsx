@@ -45,7 +45,7 @@ export default function SettingsPage() {
   return (
     <Suspense
       fallback={
-        <LoadingState message="Loading settings..." className="min-h-[40vh]" />
+        <LoadingState message="Loading settings…" className="min-h-[40vh]" />
       }
     >
       <SettingsContent />

@@ -2,6 +2,7 @@ import {
   Bed,
   Bell,
   Boxes,
+  CalendarClock,
   CalendarDays,
   FileInput,
   Files,
@@ -32,6 +33,12 @@ export const navItems: NavItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     label: "Dashboard",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+  },
+  {
+    href: "/today",
+    icon: CalendarClock,
+    label: "Today",
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
   {
@@ -122,7 +129,7 @@ export const FIXED_NAV_HREFS = new Set(["/dashboard", "/settings"]);
 
 export const mobileOnlyNavItems: NavItem[] = [
   {
-    href: "/settings?tab=notification-feed",
+    href: "/settings?tab=notifications",
     icon: Bell,
     label: "Notifications",
   },

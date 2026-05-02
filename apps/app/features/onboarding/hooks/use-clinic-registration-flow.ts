@@ -29,7 +29,6 @@ interface PlanPricing {
 }
 
 interface PlanSelectionOptions {
-  isCoreTrial?: boolean;
   currency?: string;
 }
 
@@ -66,7 +65,8 @@ function isRestartableOnboardingError(error: unknown): boolean {
     return error.statusCode === 400 || error.statusCode === 404;
   }
 
-  const rawMessage = error instanceof Error ? error.message : String(error ?? "");
+  const rawMessage =
+    error instanceof Error ? error.message : String(error ?? "");
   return RESTARTABLE_ONBOARDING_ERROR.test(rawMessage);
 }
 
@@ -102,7 +102,8 @@ function getPersistedOnboardingId(): string | null {
 }
 
 function getPersistedFormData(): ClinicRegistrationData {
-  if (typeof sessionStorage === "undefined") return defaultClinicRegistrationData;
+  if (typeof sessionStorage === "undefined")
+    return defaultClinicRegistrationData;
   try {
     const raw = sessionStorage.getItem(SESSION_FORM_DATA_KEY);
     if (!raw) return defaultClinicRegistrationData;
@@ -138,12 +139,14 @@ function getPersistedFormData(): ClinicRegistrationData {
 export function useClinicRegistrationFlow() {
   const { user, refreshUser } = useAuth();
   const [step, setStepState] = useState<number>(() => getPersistedStep());
-  const [onboardingId, setOnboardingIdState] = useState<string | null>(() => getPersistedOnboardingId());
+  const [onboardingId, setOnboardingIdState] = useState<string | null>(() =>
+    getPersistedOnboardingId(),
+  );
   const validatedOnboardingIdRef = useRef<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const { openCheckout } = useRazorpay();
-  const [formData, setFormData] = useState<ClinicRegistrationData>(
-    () => getPersistedFormData(),
+  const [formData, setFormData] = useState<ClinicRegistrationData>(() =>
+    getPersistedFormData(),
   );
 
   useEffect(() => {
@@ -156,7 +159,11 @@ export function useClinicRegistrationFlow() {
 
   const setStep = useCallback((n: number) => {
     setStepState(n);
-    try { sessionStorage.setItem(SESSION_KEY, String(n)); } catch { /* ignore */ }
+    try {
+      sessionStorage.setItem(SESSION_KEY, String(n));
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const setOnboardingId = useCallback((id: string | null) => {
@@ -165,7 +172,9 @@ export function useClinicRegistrationFlow() {
     try {
       if (id) sessionStorage.setItem(SESSION_ONBOARDING_ID_KEY, id);
       else sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const restartOnboarding = useCallback(() => {
@@ -195,57 +204,60 @@ export function useClinicRegistrationFlow() {
     return initData.onboardingId;
   }, [setOnboardingId]);
 
-  const ensureOnboardingId = useCallback(async (
-    options?: EnsureOnboardingIdOptions,
-  ): Promise<string> => {
-    const forceRefresh = options?.forceRefresh === true;
-    if (forceRefresh) {
-      // Force refresh is used on critical transitions (for example QR signature setup)
-      // where stale in-memory backend sessions can break progress. Always mint a new
-      // onboarding session to guarantee server-side consistency.
+  const ensureOnboardingId = useCallback(
+    async (options?: EnsureOnboardingIdOptions): Promise<string> => {
+      const forceRefresh = options?.forceRefresh === true;
+      if (forceRefresh) {
+        // Force refresh is used on critical transitions (for example QR signature setup)
+        // where stale in-memory backend sessions can break progress. Always mint a new
+        // onboarding session to guarantee server-side consistency.
+        return initializeOnboardingId();
+      }
+
+      if (onboardingId) {
+        if (validatedOnboardingIdRef.current === onboardingId) {
+          return onboardingId;
+        }
+
+        try {
+          await apiFetch(`/onboarding/${onboardingId}/progress`, {
+            method: "GET",
+            headers: buildJsonHeaders(),
+            cache: "no-store",
+          });
+
+          validatedOnboardingIdRef.current = onboardingId;
+          return onboardingId;
+        } catch (error) {
+          if (
+            error instanceof ApiError &&
+            error.statusCode !== 400 &&
+            error.statusCode !== 404
+          ) {
+            throw new Error(
+              "We could not continue setup right now. Please try again.",
+            );
+          }
+
+          if (!isRestartableOnboardingError(error)) {
+            throw error;
+          }
+        }
+
+        // Persisted onboardingId may exist in browser storage while in-memory API session was cleared.
+        setOnboardingId(null);
+      }
+
       return initializeOnboardingId();
-    }
-
-    if (onboardingId) {
-      if (validatedOnboardingIdRef.current === onboardingId) {
-        return onboardingId;
-      }
-
-      try {
-        await apiFetch(`/onboarding/${onboardingId}/progress`, {
-          method: "GET",
-          headers: buildJsonHeaders(),
-          cache: "no-store",
-        });
-
-        validatedOnboardingIdRef.current = onboardingId;
-        return onboardingId;
-      } catch (error) {
-        if (
-          error instanceof ApiError &&
-          error.statusCode !== 400 &&
-          error.statusCode !== 404
-        ) {
-          throw new Error("We could not continue setup right now. Please try again.");
-        }
-
-        if (!isRestartableOnboardingError(error)) {
-          throw error;
-        }
-      }
-
-      // Persisted onboardingId may exist in browser storage while in-memory API session was cleared.
-      setOnboardingId(null);
-    }
-
-    return initializeOnboardingId();
-  }, [initializeOnboardingId, onboardingId, setOnboardingId]);
+    },
+    [initializeOnboardingId, onboardingId, setOnboardingId],
+  );
 
   const uploadSlaSignature = useCallback(
     async (file: File): Promise<string> => {
       const currentOnboardingId = await ensureOnboardingId();
 
-      const sessionData = await apiFetch<{ id: string }>(
+      const sessionData = await apiFetch<{ id: string; uploadSecret: string }>(
         `/onboarding/${currentOnboardingId}/sla-signature-session`,
         {
           method: "POST",
@@ -261,7 +273,9 @@ export function useClinicRegistrationFlow() {
         `/onboarding/${currentOnboardingId}/sla-signature-session/${sessionData.id}`,
         {
           method: "POST",
-          headers: buildCsrfHeaders(),
+          headers: buildCsrfHeaders({
+            "X-Upload-Secret": sessionData.uploadSecret,
+          }),
           body: uploadData,
         },
       );
@@ -271,10 +285,13 @@ export function useClinicRegistrationFlow() {
     [ensureOnboardingId],
   );
 
-  const setClinicDetails = useCallback((data: ClinicDetails) => {
-    setFormData((prev) => ({ ...prev, clinicDetails: data }));
-    setStep(2);
-  }, [setStep]);
+  const setClinicDetails = useCallback(
+    (data: ClinicDetails) => {
+      setFormData((prev) => ({ ...prev, clinicDetails: data }));
+      setStep(2);
+    },
+    [setStep],
+  );
 
   const setPlanSelection = useCallback(
     async (
@@ -286,8 +303,6 @@ export function useClinicRegistrationFlow() {
       const price =
         billingCycle === "YEARLY" ? pricing.yearly : pricing.monthly;
 
-      const isCoreTrial =
-        tier === "ESSENTIAL" && options?.isCoreTrial !== false;
       const resolvedCurrency = options?.currency || DEFAULT_CURRENCY;
 
       setFormData((prev) => ({
@@ -297,7 +312,7 @@ export function useClinicRegistrationFlow() {
           billingCycle,
           price: typeof price === "number" ? price : 0,
           currency: resolvedCurrency,
-          isCoreTrial,
+          isCoreTrial: false,
         },
       }));
 
@@ -306,7 +321,7 @@ export function useClinicRegistrationFlow() {
         return;
       }
 
-      if (tier === "STARTER" || isCoreTrial) {
+      if (tier === "STARTER") {
         setFormData((prev) => ({
           ...prev,
           paymentDetails: {
@@ -394,11 +409,14 @@ export function useClinicRegistrationFlow() {
     [ensureOnboardingId, formData.clinicDetails, openCheckout, user, setStep],
   );
 
-  const setTeamMembers = useCallback(async (members: TeamMember[]) => {
-    setFormData((prev) => ({ ...prev, teamMembers: members }));
-    await ensureOnboardingId();
-    setStep(4);
-  }, [setStep, ensureOnboardingId]);
+  const setTeamMembers = useCallback(
+    async (members: TeamMember[]) => {
+      setFormData((prev) => ({ ...prev, teamMembers: members }));
+      await ensureOnboardingId();
+      setStep(4);
+    },
+    [setStep, ensureOnboardingId],
+  );
 
   const goBackFromCompliance = useCallback(() => {
     setStep(3);
@@ -491,7 +509,9 @@ export function useClinicRegistrationFlow() {
             autoPay: formData.paymentDetails?.autoPay,
             skipPayment: formData.paymentDetails?.skipPayment,
           },
-          teamMembers: formData.teamMembers,
+          staffSetup: {
+            staffMembers: formData.teamMembers,
+          },
         };
 
         const currentOnboardingId = await ensureOnboardingId();
@@ -532,21 +552,20 @@ export function useClinicRegistrationFlow() {
           // Refresh in-memory auth state so pages using `useAuth` update immediately
           try {
             await refreshUser();
-          } catch {
-            // fallback: noop
-          }
+          } catch {}
         }
 
         toast.success("Registration Successful", {
-          description: "Your facility has been registered. Redirecting...",
+          description: "Your facility has been registered. Redirecting…",
         });
 
-        // Clear session persistence on successful completion
         try {
           sessionStorage.removeItem(SESSION_KEY);
           sessionStorage.removeItem(SESSION_ONBOARDING_ID_KEY);
           sessionStorage.removeItem(SESSION_FORM_DATA_KEY);
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
 
         onSuccess();
       } catch (error) {
@@ -570,7 +589,27 @@ export function useClinicRegistrationFlow() {
         );
       }
     },
-    [ensureOnboardingId, formData.clinicDetails, formData.paymentDetails?.autoPay, formData.paymentDetails?.cardLast4, formData.paymentDetails?.cardNumber, formData.paymentDetails?.razorpayOrderId, formData.paymentDetails?.razorpayPaymentId, formData.paymentDetails?.razorpaySignature, formData.paymentDetails?.skipPayment, formData.planSelection.billingCycle, formData.planSelection.currency, formData.planSelection.tier, formData.teamMembers, refreshUser, restartOnboarding, setStep, user?.email, user?.name, user?.role],
+    [
+      ensureOnboardingId,
+      formData.clinicDetails,
+      formData.paymentDetails?.autoPay,
+      formData.paymentDetails?.cardLast4,
+      formData.paymentDetails?.cardNumber,
+      formData.paymentDetails?.razorpayOrderId,
+      formData.paymentDetails?.razorpayPaymentId,
+      formData.paymentDetails?.razorpaySignature,
+      formData.paymentDetails?.skipPayment,
+      formData.planSelection.billingCycle,
+      formData.planSelection.currency,
+      formData.planSelection.tier,
+      formData.teamMembers,
+      refreshUser,
+      restartOnboarding,
+      setStep,
+      user?.email,
+      user?.name,
+      user?.role,
+    ],
   );
 
   return {

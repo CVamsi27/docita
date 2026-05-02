@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   Sheet,
   SheetContent,
@@ -18,7 +18,7 @@ import {
 import { LoadingState } from "@workspace/ui/components/empty-state";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { ArrowDownLeft, ArrowUpRight, History, Package } from "lucide-react";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 export interface InventoryMovement {
   id: string;
@@ -54,6 +54,8 @@ export function InventoryItemDetailsUI({
   isLoading,
   onOpenChange,
 }: InventoryItemDetailsUIProps) {
+  const { formatCurrency } = useClinicCurrency();
+
   if (!open) return null;
 
   return (
@@ -70,7 +72,7 @@ export function InventoryItemDetailsUI({
         </SheetHeader>
 
         {isLoading ? (
-          <LoadingState message="Loading item details..." />
+          <LoadingState message="Loading item details…" />
         ) : item ? (
           <div className="flex-1 flex flex-col gap-6 overflow-hidden">
             <div className="grid gap-4 p-4 border rounded-lg bg-muted/20">
@@ -99,11 +101,9 @@ export function InventoryItemDetailsUI({
                     Purchase Price
                   </span>
                   <span className="font-medium">
-                    {new Intl.NumberFormat("en-IN", {
-                      style: "currency",
-                      currency: DEFAULT_CURRENCY,
-                      maximumFractionDigits: 0,
-                    }).format(item.purchasePrice || 0)}
+                    {formatCurrency(item.purchasePrice || 0, {
+                      fractionDigits: 0,
+                    })}
                   </span>
                 </div>
                 <div>
@@ -111,11 +111,9 @@ export function InventoryItemDetailsUI({
                     Selling Price
                   </span>
                   <span className="font-medium">
-                    {new Intl.NumberFormat("en-IN", {
-                      style: "currency",
-                      currency: DEFAULT_CURRENCY,
-                      maximumFractionDigits: 0,
-                    }).format(item.sellingPrice || 0)}
+                    {formatCurrency(item.sellingPrice || 0, {
+                      fractionDigits: 0,
+                    })}
                   </span>
                 </div>
                 <div>
@@ -132,7 +130,7 @@ export function InventoryItemDetailsUI({
                   </span>
                   <span className="font-medium">
                     {item.expiryDate
-                      ? format(new Date(item.expiryDate), "PPP")
+                      ? formatDate(item.expiryDate, "dd MMMM yyyy")
                       : "N/A"}
                   </span>
                 </div>
@@ -185,10 +183,7 @@ export function InventoryItemDetailsUI({
                                 </span>
                               </TableCell>
                               <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                                {format(
-                                  new Date(movement.createdAt),
-                                  "MMM d, yyyy",
-                                )}
+                                {formatDate(movement.createdAt, "MMM d, yyyy")}
                               </TableCell>
                               <TableCell className="text-right text-xs text-muted-foreground max-w-[150px] truncate">
                                 {movement.notes || "-"}

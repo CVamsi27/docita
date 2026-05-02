@@ -1,11 +1,18 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Calendar, FileText, Loader2, Search, User, X } from "lucide-react";
+import { AlertTriangle, Calendar, FileText, Search, User, X } from "lucide-react";
 import { useDebounce } from "@workspace/hooks/use-debounce";
+import { sanitizeUserFacingMessage } from "@workspace/types";
 import { appQueryKeys } from "@/lib/query-keys";
+import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Input } from "@workspace/ui/components/input";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   searchGlobal,
   type SearchResult,
@@ -37,7 +44,13 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
 
   const debouncedQuery = useDebounce(query, 300);
   const searchEnabled = debouncedQuery.length >= 2;
-  const { data, isFetching: isLoading } = useQuery({
+  const {
+    data,
+    isFetching: isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: appQueryKeys.search.global(debouncedQuery),
     queryFn: () => searchGlobal(debouncedQuery),
     enabled: searchEnabled,
@@ -121,13 +134,12 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md">
-      {}
       <div className="relative">
         <Search
           className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
           aria-hidden="true"
         />
-        <input
+        <Input
           ref={inputRef}
           type="text"
           value={query}
@@ -138,10 +150,8 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search patients, appointments... (⌘K)"
-          className="w-full pl-10 pr-10 py-2 border border-border rounded-lg
-                     focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
-                     bg-muted/40 hover:bg-background transition-colors"
+          placeholder="Enter patient, appointment, or prescription"
+          className="h-10 pl-10 pr-10 bg-muted/40 hover:bg-background"
           aria-label="Global search"
           aria-expanded={isOpen}
           aria-controls="search-results"
@@ -151,31 +161,64 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           role="combobox"
         />
         {query && (
-          <button
-            onClick={() => {
-              setQuery("");
-              inputRef.current?.focus();
-            }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded"
-            aria-label="Clear search"
-          >
-            <X className="h-4 w-4 text-muted-foreground" />
-          </button>
+          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+            <SymbolTooltip label="Clear search">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setQuery("");
+                  inputRef.current?.focus();
+                }}
+                className="h-7 w-7"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </SymbolTooltip>
+          </div>
         )}
       </div>
 
-      {}
-      {isOpen && (query.length >= 2 || results.length > 0) && (
+      {isOpen && (query.length >= 2 || results.length > 0 || isError) && (
         <div
           id="search-results"
           role="listbox"
-          className="absolute top-full mt-2 w-full bg-background border border-border
-                     rounded-lg shadow-lg max-h-80 overflow-y-auto z-50"
+          className="absolute top-full z-50 mt-2 w-full max-h-80 overflow-y-auto ui-card-surface shadow-lg"
         >
           {isLoading ? (
-            <div className="flex items-center justify-center p-4 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              Searching...
+            <div
+              className="flex items-center justify-center p-4 text-muted-foreground"
+              role="status"
+              aria-live="polite"
+            >
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" iconClassName="h-5 w-5" />
+              Searching…
+            </div>
+          ) : isError ? (
+            <div
+              className="flex flex-col items-center gap-2 p-4 text-center text-destructive"
+              role="alert"
+              aria-live="assertive"
+              data-testid="global-search-error"
+            >
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              <p className="text-sm">
+                {sanitizeUserFacingMessage(
+                  error instanceof Error ? error.message : "",
+                  "We could not run this search. Please try again.",
+                )}
+              </p>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => {
+                  void refetch();
+                }}
+              >
+                Try again
+              </Button>
             </div>
           ) : results.length > 0 ? (
             <ul className="py-2">
@@ -188,11 +231,18 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => handleResultClick(result)}
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer
-                               ${index === selectedIndex ? "bg-info/10" : "hover:bg-muted/60"}`}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-3 px-4 py-3",
+                      index === selectedIndex
+                        ? "bg-muted/60"
+                        : "hover:bg-muted/60",
+                    )}
                   >
                     <div
-                      className={`p-2 rounded-full ${typeColors[result.type]}`}
+                      className={cn(
+                        "rounded-full border px-2 py-2",
+                        typeColors[result.type],
+                      )}
                     >
                       <Icon className="h-4 w-4" />
                     </div>

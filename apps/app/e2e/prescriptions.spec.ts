@@ -8,11 +8,11 @@ test.describe("Prescriptions", () => {
   let patientId: string = "";
   let doctorId: string;
   let appointmentId: string | null = null;
-  let prescriptionEndpointAvailable = true;
+  let suiteAvailable = true;
+  let suiteSkipReason = "";
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-
       const email = `doctor${Date.now()}@test.com`;
       const password = "Test@123456";
       const registerRes = await request.post(`${API_URL}/auth/register`, {
@@ -26,8 +26,8 @@ test.describe("Prescriptions", () => {
       });
 
       if (!registerRes.ok()) {
-        
-        prescriptionEndpointAvailable = false;
+        suiteAvailable = false;
+        suiteSkipReason = `auth/register unavailable (status ${registerRes.status()})`;
         return;
       }
 
@@ -46,11 +46,10 @@ test.describe("Prescriptions", () => {
         },
       });
 
-      if (!clinicRes.ok()) {
-
-        prescriptionEndpointAvailable = false;
-        return;
-      }
+      expect(
+        clinicRes.ok(),
+        `clinic bootstrap failed: ${clinicRes.status()}`,
+      ).toBeTruthy();
 
       const clinic = await clinicRes.json();
       _clinicId = clinic.id;
@@ -65,18 +64,13 @@ test.describe("Prescriptions", () => {
           },
         });
 
-        if (!assignRes.ok()) {
-
-        } else {
-
+        if (assignRes.ok()) {
           const loginRes = await request.post(`${API_URL}/auth/login`, {
             data: { email, password },
           });
           if (loginRes.ok()) {
             const loginData = await loginRes.json();
             authToken = loginData.access_token;
-          } else {
-            
           }
         }
       }
@@ -91,91 +85,75 @@ test.describe("Prescriptions", () => {
           phoneNumber: `9${Math.floor(Math.random() * 1e9)}`.padEnd(10, "0"),
         },
       });
-      if (patientRes.ok()) {
-        const patient = await patientRes.json();
-        patientId = patient.id;
+      expect(
+        patientRes.ok(),
+        `patient bootstrap failed: ${patientRes.status()}`,
+      ).toBeTruthy();
+      const patient = await patientRes.json();
+      patientId = patient.id;
 
-        const apptRes = await request.post(`${API_URL}/appointments`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-          data: {
-            patientId,
-            doctorId,
-            clinicId: _clinicId,
-            startTime: new Date().toISOString(),
-            endTime: new Date(Date.now() + 1800000).toISOString(),
-            type: "consultation",
-            status: "completed",
-          },
-        });
+      const apptRes = await request.post(`${API_URL}/appointments`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        data: {
+          patientId,
+          doctorId,
+          clinicId: _clinicId,
+          startTime: new Date().toISOString(),
+          endTime: new Date(Date.now() + 1800000).toISOString(),
+          type: "consultation",
+          status: "completed",
+        },
+      });
+      expect(
+        apptRes.ok(),
+        `appointment bootstrap failed: ${apptRes.status()}`,
+      ).toBeTruthy();
+      appointmentId = (await apptRes.json()).id;
 
-        if (apptRes.ok()) {
-          appointmentId = (await apptRes.json()).id;
-
-          const presRes = await request.post(`${API_URL}/prescriptions`, {
-            headers: { Authorization: `Bearer ${authToken}` },
-            data: {
-              appointmentId: appointmentId,
-              patientId,
-              doctorId,
-              medications: [
-                {
-                  name: "Test Med",
-                  dosage: "500mg",
-                  frequency: "QD",
-                  duration: "7 days",
-                },
-              ],
+      const presRes = await request.post(`${API_URL}/prescriptions`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+        data: {
+          appointmentId,
+          patientId,
+          doctorId,
+          medications: [
+            {
+              name: "Test Med",
+              dosage: "500mg",
+              frequency: "QD",
+              duration: "7 days",
             },
-          });
-
-          if (!presRes.ok()) {
-
-          }
-        } else {
-
-        }
-      }
-
-      if (patientId) {
-        const now = new Date();
-        const start = new Date(now.getTime() + 5 * 60 * 1000).toISOString();
-        const end = new Date(now.getTime() + 35 * 60 * 1000).toISOString();
-        const apptRes = await request.post(`${API_URL}/appointments`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-          data: {
-            patientId,
-            doctorId,
-            startTime: start,
-            endTime: end,
-            status: "scheduled",
-            type: "consultation",
-          },
-        });
-        if (apptRes.ok()) {
-          const appt = await apptRes.json();
-          appointmentId = appt.id;
-        }
-      }
+          ],
+        },
+      });
+      expect(
+        presRes.ok(),
+        `prescription seed failed: ${presRes.status()}`,
+      ).toBeTruthy();
 
       const testRes = await request.get(`${API_URL}/prescriptions`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-      prescriptionEndpointAvailable = testRes.ok();
-      if (!prescriptionEndpointAvailable) {
-        
+      if (!testRes.ok()) {
+        suiteAvailable = false;
+        suiteSkipReason = `GET /prescriptions unavailable (status ${testRes.status()})`;
       }
-    } catch {
-
-      prescriptionEndpointAvailable = false;
+    } catch (error) {
+      suiteAvailable = false;
+      suiteSkipReason = `bootstrap threw: ${(error as Error).message}`;
     }
   });
 
-  test("should create prescription successfully", async ({ request }) => {
+  test.beforeEach(() => {
+    test.skip(
+      !suiteAvailable,
+      `prescriptions API not provisioned: ${suiteSkipReason}`,
+    );
+  });
 
-    if (!prescriptionEndpointAvailable || !patientId) {
-      test.skip();
-    }
+  test("should create prescription successfully", async ({ request }) => {
+    expect(patientId, "patient bootstrap did not yield an id").toBeTruthy();
 
     const now = new Date();
     const start = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
@@ -191,11 +169,10 @@ test.describe("Prescriptions", () => {
         type: "consultation",
       },
     });
-
-    if (!apptRes.ok()) {
-
-      test.skip();
-    }
+    expect(
+      apptRes.ok(),
+      `POST /appointments failed: ${apptRes.status()}`,
+    ).toBeTruthy();
 
     const specificAppointmentId = (await apptRes.json()).id;
 
@@ -216,11 +193,10 @@ test.describe("Prescriptions", () => {
         ],
       },
     });
-
-    if (!prescRes.ok()) {
-      
-      test.skip();
-    }
+    expect(
+      prescRes.ok(),
+      `POST /prescriptions failed: ${prescRes.status()}`,
+    ).toBeTruthy();
 
     const presc = await prescRes.json();
     expect(presc.id).toBeDefined();
@@ -228,28 +204,22 @@ test.describe("Prescriptions", () => {
   });
 
   test("should fetch prescription list", async ({ request }) => {
-    if (!prescriptionEndpointAvailable) {
-      test.skip();
-    }
-
     const prescList = await request.get(`${API_URL}/prescriptions`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (!prescList.ok()) {
-
-      test.skip();
-    }
+    expect(
+      prescList.ok(),
+      `GET /prescriptions failed: ${prescList.status()}`,
+    ).toBeTruthy();
 
     const prescs = await prescList.json();
-    expect(Array.isArray(prescs) || prescs === null).toBeTruthy();
+    expect(
+      Array.isArray(prescs) || (prescs && Array.isArray(prescs.items)),
+    ).toBeTruthy();
   });
 
   test("should fetch specific prescription", async ({ request }) => {
-
-    if (!prescriptionEndpointAvailable || !patientId) {
-      test.skip();
-    }
+    expect(patientId, "patient bootstrap did not yield an id").toBeTruthy();
 
     const now = new Date();
     const start = new Date(now.getTime() + 120 * 60 * 1000).toISOString();
@@ -265,8 +235,10 @@ test.describe("Prescriptions", () => {
         type: "consultation",
       },
     });
-
-    expect(apptRes.ok()).toBeTruthy();
+    expect(
+      apptRes.ok(),
+      `POST /appointments failed: ${apptRes.status()}`,
+    ).toBeTruthy();
     const specificAppointmentId = (await apptRes.json()).id;
 
     const createRes = await request.post(`${API_URL}/prescriptions`, {
@@ -286,35 +258,30 @@ test.describe("Prescriptions", () => {
         ],
       },
     });
-
-    if (!createRes.ok()) {
-      
-      test.skip();
-    }
+    expect(
+      createRes.ok(),
+      `POST /prescriptions failed: ${createRes.status()}`,
+    ).toBeTruthy();
 
     const presc = await createRes.json();
 
     const fetchRes = await request.get(`${API_URL}/prescriptions/${presc.id}`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (!fetchRes.ok()) {
-
-      test.skip();
-    }
+    expect(
+      fetchRes.ok(),
+      `GET /prescriptions/:id failed: ${fetchRes.status()}`,
+    ).toBeTruthy();
 
     const fetched = await fetchRes.json();
-
     expect(fetched.id).toBe(presc.id);
-
   });
 
   test("should navigate to prescription details", async ({
     page,
     request: requestContext,
   }) => {
-
-    if (!prescriptionEndpointAvailable) test.skip();
+    expect(patientId, "patient bootstrap did not yield an id").toBeTruthy();
 
     const now = new Date();
     const start = new Date(now.getTime() + 180 * 60 * 1000).toISOString();
@@ -331,28 +298,31 @@ test.describe("Prescriptions", () => {
         type: "consultation",
       },
     });
+    expect(
+      apptRes.ok(),
+      `POST /appointments failed: ${apptRes.status()}`,
+    ).toBeTruthy();
 
-    if (!apptRes.ok()) {
-      
-
-    } else {
-      const appt = await apptRes.json();
-      await requestContext.post(`${API_URL}/prescriptions`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-        data: {
-          appointmentId: appt.id,
-          diagnosis: "Test Diagnosis for Nav",
-          medications: [
-            {
-              name: "Test Med",
-              dosage: "10mg",
-              frequency: "daily",
-              duration: "7 days",
-            },
-          ],
-        },
-      });
-    }
+    const appt = await apptRes.json();
+    const seedRes = await requestContext.post(`${API_URL}/prescriptions`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+      data: {
+        appointmentId: appt.id,
+        diagnosis: "Test Diagnosis for Nav",
+        medications: [
+          {
+            name: "Test Med",
+            dosage: "10mg",
+            frequency: "daily",
+            duration: "7 days",
+          },
+        ],
+      },
+    });
+    expect(
+      seedRes.ok(),
+      `POST /prescriptions (nav seed) failed: ${seedRes.status()}`,
+    ).toBeTruthy();
 
     await page.addInitScript(
       ({ token, uid, cid }) => {
@@ -381,12 +351,6 @@ test.describe("Prescriptions", () => {
 
     await page.goto("/prescriptions", { waitUntil: "networkidle" });
 
-    const url = page.url();
-
-    if (url.includes("/login")) {
-
-    }
-
     const table = page.locator("table tbody");
     await expect(table).toBeVisible({ timeout: 15000 });
 
@@ -398,7 +362,6 @@ test.describe("Prescriptions", () => {
     if ((await viewButton.count()) > 0 && (await viewButton.isVisible())) {
       await viewButton.click();
     } else {
-
       await row.click();
     }
 

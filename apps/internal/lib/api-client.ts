@@ -1,4 +1,8 @@
-import { getAPIClient } from "@workspace/data-access";
+import {
+  type APIError,
+  getAPIClient,
+  type RequestConfig,
+} from "@workspace/data-access";
 import { API_URL } from "@/lib/api-config";
 import { internalSession } from "@/lib/session";
 
@@ -13,7 +17,7 @@ export function setAuthLogoutCallback(
 export const client = getAPIClient({
   baseURL: API_URL,
   getToken: () => internalSession.getToken(),
-  onRequest: (config) => {
+  onRequest: (config: RequestConfig): RequestConfig => {
     const mutating = ["POST", "PUT", "PATCH", "DELETE"];
     if (mutating.includes((config.method ?? "GET").toUpperCase())) {
       const csrfToken = internalSession.getCsrfToken();
@@ -23,7 +27,7 @@ export const client = getAPIClient({
     }
     return config;
   },
-  onError: async (error) => {
+  onError: async (error: APIError) => {
     if (error.status === 401) {
       // Only attempt token refresh when we actually have an authenticated
       // session token. This prevents login failures from triggering refresh

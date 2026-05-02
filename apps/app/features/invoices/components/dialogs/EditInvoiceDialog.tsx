@@ -6,6 +6,7 @@ import { useUpdateInvoice } from "@/hooks/api/use-billing";
 import { useFormOptions } from "@/lib/app-config-context";
 import { CRUDDialog } from "@workspace/ui/components/crud-dialog";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Label } from "@workspace/ui/components/label";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -17,8 +18,8 @@ import {
 } from "@workspace/ui/components/select";
 import { Plus, X } from "lucide-react";
 import type { Invoice, InvoiceItem, Patient } from "@workspace/types";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 type InvoiceWithPatient = Invoice & { patient: Patient };
 
@@ -35,6 +36,7 @@ export function EditInvoiceDialog({
   onOpenChange,
   onInvoiceUpdated,
 }: EditInvoiceDialogProps) {
+  const { formatCurrency } = useClinicCurrency();
   const lastInvoiceIdRef = useRef<string | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>(() => invoice?.items || []);
   const [status, setStatus] = useState<Invoice["status"]>(
@@ -120,7 +122,7 @@ export function EditInvoiceDialog({
       description={`Update invoice details for ${patientName}`}
       isLoading={loading}
       onSubmit={handleSubmit}
-      submitLabel={loading ? "Saving..." : "Save Changes"}
+      submitLabel={loading ? "Saving…" : "Save Changes"}
       contentClassName="max-w-6xl max-h-[90vh] overflow-y-auto"
     >
       <div className="space-y-4">
@@ -128,7 +130,7 @@ export function EditInvoiceDialog({
           <Label>Status</Label>
           <Select value={status} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Select status" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               {invoiceStatusOptions.map((option) => (
@@ -199,15 +201,18 @@ export function EditInvoiceDialog({
                     }
                   />
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeItem(index)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <SymbolTooltip label="Remove line item">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeItem(index)}
+                    className="text-destructive hover:text-destructive"
+                    aria-label="Remove line item"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </SymbolTooltip>
               </div>
             ))}
             {items.length === 0 && (
@@ -220,11 +225,8 @@ export function EditInvoiceDialog({
 
         <div className="flex items-center justify-end gap-4 p-4 bg-muted/30 rounded-lg">
           <span className="text-lg font-medium">Total:</span>
-          <span className="text-2xl font-bold text-primary">
-            {new Intl.NumberFormat("en-IN", {
-              style: "currency",
-              currency: DEFAULT_CURRENCY,
-            }).format(calculateTotal())}
+          <span className="ui-section-title text-[var(--fs-2xl)] text-primary tabular-nums">
+            {formatCurrency(calculateTotal(), { currency: invoice?.currency })}
           </span>
         </div>
       </div>

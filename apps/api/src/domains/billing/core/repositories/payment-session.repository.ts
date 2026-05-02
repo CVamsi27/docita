@@ -17,15 +17,22 @@ export interface PaymentSessionDetail extends PaymentSession {
 
 export interface IPaymentSessionRepository {
   create(data: Prisma.PaymentSessionCreateInput): Promise<PaymentSession>;
-  findById(id: string): Promise<PaymentSessionDetail | null>;
+  findById(id: string, clinicId: string): Promise<PaymentSessionDetail | null>;
+  /**
+   * Lookup by provider-session-id is intentionally not clinic-scoped because
+   * provider webhooks deliver the session id without tenant context. Callers
+   * MUST verify the resolved `clinicId` against the action they are about to
+   * perform before mutating any related state.
+   */
   findByProviderSessionId(
     providerSessionId: string,
   ): Promise<PaymentSessionDetail | null>;
   update(
     id: string,
     data: Prisma.PaymentSessionUpdateInput,
+    clinicId: string,
   ): Promise<PaymentSession>;
-  delete(id: string): Promise<void>;
+  delete(id: string, clinicId: string): Promise<void>;
   findPendingReminders(): Promise<PaymentSessionDetail[]>;
 }
 

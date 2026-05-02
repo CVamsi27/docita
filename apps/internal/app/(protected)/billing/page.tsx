@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   billingAPI,
@@ -8,6 +10,13 @@ import {
   SubscriptionOverview,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import {
+  DEFAULT_CURRENCY,
+  differenceInDays,
+  formatCurrency,
+  formatDate,
+  formatDistanceToNow,
+} from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -49,25 +58,7 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import {
-  Activity,
-  AlertTriangle,
-  ArrowDownRight,
-  ArrowUpRight,
-  Building2,
-  CalendarPlus,
-  Clock,
-  CreditCard,
-  DollarSign,
-  Loader2,
-  Mail,
-  RefreshCw,
-  TrendingDown,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import { differenceInDays, format, formatDistanceToNow } from "date-fns";
-
+import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CalendarPlus, Clock, CreditCard, DollarSign, Mail, RefreshCw, TrendingDown, TrendingUp, Users } from "lucide-react";
 const statusColors: Record<string, string> = {
   ACTIVE: "badge-success",
   TRIAL: "badge-info",
@@ -189,19 +180,19 @@ export default function BillingDashboard() {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = "INR") => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   if (loading) {
     return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex h-[80vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading billing dashboard"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -241,7 +232,6 @@ export default function BillingDashboard() {
         </CardContent>
       </Card>
 
-      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -251,14 +241,17 @@ export default function BillingDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(metrics?.mrr || 0)}
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {formatCurrency(metrics?.mrr || 0, {
+                currency: DEFAULT_CURRENCY,
+                fractionDigits: 0,
+              })}
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-success">
                 <ArrowUpRight className="inline h-3 w-3" /> MRR
-              </span>{" "}
-              from active subscriptions
+              </span>
+              <span className="ml-1">from active subscriptions</span>
             </p>
           </CardContent>
         </Card>
@@ -271,8 +264,11 @@ export default function BillingDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(metrics?.arr || 0)}
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+              {formatCurrency(metrics?.arr || 0, {
+                currency: DEFAULT_CURRENCY,
+                fractionDigits: 0,
+              })}
             </div>
             <p className="text-xs text-muted-foreground">
               Projected annual revenue
@@ -288,7 +284,7 @@ export default function BillingDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {metrics?.activeSubscriptions || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -305,7 +301,7 @@ export default function BillingDashboard() {
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {((metrics?.churnRate || 0) * 100).toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground">
@@ -331,7 +327,6 @@ export default function BillingDashboard() {
         </Card>
       </div>
 
-      {}
       {((metrics?.expiringSubscriptions?.length || 0) > 0 ||
         (metrics?.gracePeriodSubscriptions?.length || 0) > 0) && (
         <div className="grid gap-4 md:grid-cols-2">
@@ -353,18 +348,15 @@ export default function BillingDashboard() {
                     metrics.expiringSubscriptions.slice(0, 3).map((sub) => (
                       <div
                         key={sub.id}
-                        className="flex items-center justify-between rounded-lg border p-3"
+                        className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
                       >
                         <div>
                           <p className="font-medium">{sub.clinic.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            Expires{" "}
-                            {formatDistanceToNow(
-                              new Date(sub.currentPeriodEnd),
-                              {
-                                addSuffix: true,
-                              },
-                            )}
+                            Expires
+                            <span className="ml-1">
+                            {formatDistanceToNow(sub.currentPeriodEnd)}
+                            </span>
                           </p>
                         </div>
                         <Button
@@ -400,16 +392,13 @@ export default function BillingDashboard() {
                     metrics.gracePeriodSubscriptions.slice(0, 3).map((sub) => (
                       <div
                         key={sub.id}
-                        className="flex items-center justify-between rounded-lg border p-3"
+                        className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
                       >
                         <div>
                           <p className="font-medium">{sub.clinic.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {differenceInDays(
-                              new Date(sub.currentPeriodEnd),
-                              new Date(),
-                            )}{" "}
-                            days remaining
+                            {differenceInDays(sub.currentPeriodEnd, new Date())}
+                            <span className="ml-1">days remaining</span>
                           </p>
                         </div>
                         <Button
@@ -434,7 +423,6 @@ export default function BillingDashboard() {
         </div>
       )}
 
-      {}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -510,7 +498,6 @@ export default function BillingDashboard() {
         </Card>
       </div>
 
-      {}
       <Tabs defaultValue="subscriptions" className="space-y-4">
         <TabsList>
           <TabsTrigger value="subscriptions">
@@ -528,12 +515,11 @@ export default function BillingDashboard() {
         </TabsList>
 
         <TabsContent value="subscriptions" className="space-y-4">
-          {}
           <div className="flex flex-wrap gap-4">
             <div className="w-40">
               <Select value={tierFilter} onValueChange={setTierFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by tier" />
+                  <SelectValue placeholder="Tier" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Tiers</SelectItem>
@@ -548,7 +534,7 @@ export default function BillingDashboard() {
             <div className="w-48">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
@@ -578,7 +564,6 @@ export default function BillingDashboard() {
             </div>
           </div>
 
-          {}
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -644,16 +629,16 @@ export default function BillingDashboard() {
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">
-                            {formatCurrency(
-                              subscription.amount,
-                              subscription.currency,
-                            )}
+                            {formatCurrency(subscription.amount, {
+                              currency: subscription.currency,
+                              fractionDigits: 0,
+                            })}
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">
-                            {format(
-                              new Date(subscription.currentPeriodEnd),
+                            {formatDate(
+                              subscription.currentPeriodEnd,
                               "MMM d, yyyy",
                             )}
                           </span>
@@ -735,8 +720,8 @@ export default function BillingDashboard() {
                       <TableRow key={payment.id}>
                         <TableCell>
                           <span className="text-sm">
-                            {format(
-                              new Date(payment.paidAt || payment.createdAt),
+                            {formatDate(
+                              payment.paidAt || payment.createdAt,
                               "MMM d, yyyy HH:mm",
                             )}
                           </span>
@@ -758,7 +743,10 @@ export default function BillingDashboard() {
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">
-                            {formatCurrency(payment.amount, payment.currency)}
+                            {formatCurrency(payment.amount, {
+                              currency: payment.currency,
+                              fractionDigits: 0,
+                            })}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -821,7 +809,10 @@ export default function BillingDashboard() {
                               }}
                             >
                               <span className="text-xs text-primary-foreground font-medium">
-                                {formatCurrency(data.revenue)}
+                                {formatCurrency(data.revenue, {
+                                  currency: DEFAULT_CURRENCY,
+                                  fractionDigits: 0,
+                                })}
                               </span>
                             </div>
                           </div>
@@ -836,7 +827,6 @@ export default function BillingDashboard() {
         </TabsContent>
       </Tabs>
 
-      {}
       <Dialog
         open={extendGraceDialog.open}
         onOpenChange={(open) => setExtendGraceDialog({ open })}
@@ -845,8 +835,10 @@ export default function BillingDashboard() {
           <DialogHeader>
             <DialogTitle>Extend Grace Period</DialogTitle>
             <DialogDescription>
-              Extend the grace period for{" "}
-              {extendGraceDialog.subscription?.clinic.name}
+              Extend the grace period for
+              <span className="ml-1">
+                {extendGraceDialog.subscription?.clinic.name}
+              </span>
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -873,7 +865,7 @@ export default function BillingDashboard() {
               Cancel
             </Button>
             <Button onClick={handleExtendGracePeriod} disabled={sending}>
-              {sending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {sending && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
               Extend
             </Button>
           </DialogFooter>

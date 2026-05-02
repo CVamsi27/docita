@@ -2,7 +2,7 @@ import { ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 import { Request } from 'express';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { IpRateLimitService } from '@/shared/modules/services/ip-rate-limit.service';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { IpRateLimitGuard } from './ip-rate-limit.guard';
 
 type RequestWithClientIp = Request & { clientIp?: string };

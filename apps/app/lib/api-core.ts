@@ -5,11 +5,12 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { APIRequestError } from "@workspace/data-access";
+import { APIRequestError, type RequestConfig } from "@workspace/data-access";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import { API_URL } from "./api-config";
 import { apiFetch } from "./api-client";
 import { ApiError } from "./errors";
+import type { z } from "zod";
 
 export { API_URL };
 
@@ -124,7 +125,7 @@ function toRecord(value: unknown): Record<string, unknown> | null {
 
 export async function fetchAPI<T>(
   endpoint: string,
-  options?: RequestInit,
+  options?: RequestConfig,
 ): Promise<T> {
   try {
     return await apiFetch<T>(endpoint, options);
@@ -132,7 +133,8 @@ export async function fetchAPI<T>(
     if (error instanceof APIRequestError) {
       throw new ApiError(
         getUserFacingErrorMessage(error, {
-          fallback: "Please review the information on this screen and try again",
+          fallback:
+            "Please review the information on this screen and try again",
         }),
         error.status ?? 500,
         error.code ?? "API_ERROR",
@@ -144,7 +146,8 @@ export async function fetchAPI<T>(
     }
     throw new ApiError(
       getUserFacingErrorMessage(error, {
-        fallback: "We could not load this right now. Please refresh or try again.",
+        fallback:
+          "We could not load this right now. Please refresh or try again.",
         context: "load",
       }),
       500,
@@ -181,11 +184,36 @@ export function useAPIQuery<T>(
   endpoint: string,
   options?: Omit<UseQueryOptions<T, ApiError>, "queryKey" | "queryFn">,
 ) {
-  const inferredStaleTime = options?.staleTime === undefined ? inferStaleTime(key) : undefined;
+  const inferredStaleTime =
+    options?.staleTime === undefined ? inferStaleTime(key) : undefined;
   return useQuery<T, ApiError>({
     queryKey: key,
     queryFn: () => fetchAPI<T>(endpoint),
-    ...(inferredStaleTime !== undefined ? { staleTime: inferredStaleTime } : {}),
+    ...(inferredStaleTime !== undefined
+      ? { staleTime: inferredStaleTime }
+      : {}),
+    ...options,
+  });
+}
+
+export function useAPIQueryValidated<TSchema extends z.ZodTypeAny>(
+  key: readonly (string | number | Record<string, unknown>)[],
+  endpoint: string,
+  schema: TSchema,
+  options?: Omit<
+    UseQueryOptions<z.infer<TSchema>, ApiError>,
+    "queryKey" | "queryFn"
+  >,
+) {
+  const inferredStaleTime =
+    options?.staleTime === undefined ? inferStaleTime(key) : undefined;
+
+  return useQuery<z.infer<TSchema>, ApiError>({
+    queryKey: key,
+    queryFn: async () => schema.parse(await fetchAPI(endpoint)),
+    ...(inferredStaleTime !== undefined
+      ? { staleTime: inferredStaleTime }
+      : {}),
     ...options,
   });
 }
@@ -193,10 +221,16 @@ export function useAPIQuery<T>(
 export function useAPIMutation<TData, TVariables>(
   endpointOrFn: string | ((vars: TVariables) => string),
   method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST",
-  options?: Omit<UseMutationOptions<TData, ApiError, TVariables>, "mutationFn"> & {
-    invalidateKeys?: readonly (
-      readonly (string | number | Record<string, unknown>)[]
-    )[];
+  options?: Omit<
+    UseMutationOptions<TData, ApiError, TVariables>,
+    "mutationFn"
+  > & {
+    invalidateKeys?: readonly (readonly (
+      | string
+      | number
+      | Record<string, unknown>
+    )[])[];
+    suppressGlobalErrorToast?: boolean;
   },
 ) {
   const queryClient = useQueryClient();
@@ -210,6 +244,7 @@ export function useAPIMutation<TData, TVariables>(
       return fetchAPI<TData>(endpoint, {
         method,
         body: variables ? JSON.stringify(variables) : undefined,
+        suppressGlobalErrorToast: options?.suppressGlobalErrorToast,
       });
     },
     ...options,

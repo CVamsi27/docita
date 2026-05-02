@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
+import { formatCountLocale } from "@workspace/utils";
 import { useAuth } from "@/lib/auth";
 import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api";
 import { internalQueryKeys } from "@/lib/query-keys";
@@ -21,7 +23,6 @@ import {
   Clock,
   Cpu,
   Database,
-  RefreshCw,
   Server,
   Wifi,
   XCircle,
@@ -113,11 +114,20 @@ export default function PerformancePage() {
       <div className="space-y-6">
         <PageHeader
           title="Performance"
-          description="Loading live performance metrics..."
+          description="Loading live performance metrics…"
           size="compact"
         />
-        <div className="flex items-center justify-center h-40">
-          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div
+          className="flex h-40 flex-col items-center justify-center gap-2"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading performance metrics"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-8 w-8 text-muted-foreground"
+          />
         </div>
       </div>
     );
@@ -156,11 +166,11 @@ export default function PerformancePage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
               {runtime.uptime.formatted}
             </div>
             <p className="text-xs text-muted-foreground">
-              {runtime.uptime.seconds.toLocaleString()} seconds
+              {formatCountLocale(runtime.uptime.seconds)} seconds
             </p>
           </CardContent>
         </Card>
@@ -172,7 +182,7 @@ export default function PerformancePage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageResponseTime}ms</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{averageResponseTime}ms</div>
             <p className="text-xs text-muted-foreground">
               Monitoring average from the last hour
             </p>
@@ -184,7 +194,7 @@ export default function PerformancePage() {
             <Wifi className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{requestsPerMinute}</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{requestsPerMinute}</div>
             <p className="text-xs text-muted-foreground">
               Derived from live request counts
             </p>
@@ -196,7 +206,7 @@ export default function PerformancePage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
               {health.requestsLastHour > 0
                 ? (
                     (health.errorsLastHour / health.requestsLastHour) *
@@ -206,7 +216,7 @@ export default function PerformancePage() {
               %
             </div>
             <p className="text-xs text-muted-foreground">
-              {health.errorsLastHour.toLocaleString()} errors in the last hour
+              {formatCountLocale(health.errorsLastHour)} errors in the last hour
             </p>
           </CardContent>
         </Card>
@@ -219,7 +229,7 @@ export default function PerformancePage() {
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{totalCpuSeconds}s</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{totalCpuSeconds}s</div>
             <p className="text-xs text-muted-foreground">
               User {appHealth?.checks.cpu.user.toFixed(2) ?? "0.00"}s, system{" "}
               {appHealth?.checks.cpu.system.toFixed(2) ?? "0.00"}s
@@ -232,7 +242,7 @@ export default function PerformancePage() {
             <Server className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{heapUsagePercent}%</div>
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{heapUsagePercent}%</div>
             <Progress value={heapUsagePercent} className="h-2" />
             <p className="text-xs text-muted-foreground">
               RSS {runtime.memory.rss} MB, heap {runtime.memory.heapUsed} of{" "}
@@ -248,7 +258,7 @@ export default function PerformancePage() {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">
+            <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
               {database.queryResponseTimeMs}ms
             </div>
             <div className="flex items-center gap-2">
@@ -268,7 +278,7 @@ export default function PerformancePage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border p-4">
+            <div className="rounded-[var(--radius)] border border-border/70 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(appHealth?.status ?? "unknown")}
@@ -282,7 +292,7 @@ export default function PerformancePage() {
                 {getStatusBadge(appHealth?.status ?? "unknown")}
               </div>
             </div>
-            <div className="rounded-lg border p-4">
+            <div className="rounded-[var(--radius)] border border-border/70 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(

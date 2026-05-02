@@ -1,4 +1,5 @@
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+"use client";
+
 import React, { FC } from "react";
 import dynamic from "next/dynamic";
 import {
@@ -11,6 +12,8 @@ import { Calendar, DollarSign, Users } from "lucide-react";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { LoadingState } from "@workspace/ui/components/empty-state";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
   Feature,
   FeatureGate,
@@ -24,27 +27,61 @@ import type {
 } from "@/features/analytics/hooks/use-analytics-logic";
 import { OverviewCard } from "./charts/OverviewCard";
 import { AnalyticsUpgradeState } from "./charts/AnalyticsUpgradeState";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+
+function AnalyticsChartCellLoading() {
+  return (
+    <div
+      className="flex min-h-[260px] flex-col items-center justify-center gap-4 rounded-lg border border-border/50 bg-card/30 p-6"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading chart"
+    >
+      <DocitaLoadingIndicator
+        variant="section"
+        withStatusRole={false}
+        iconClassName="h-9 w-9"
+      />
+      <div className="w-full space-y-2">
+        <Skeleton animation="wave" className="mx-auto h-3 w-24" />
+        <Skeleton animation="wave" className="h-36 w-full rounded-md" />
+      </div>
+    </div>
+  );
+}
 
 const TrendsBarChart = dynamic(
   () => import("./charts/TrendsCharts").then((module) => module.TrendsBarChart),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <AnalyticsChartCellLoading />,
+  },
 );
 
 const TrendsPieChart = dynamic(
   () => import("./charts/TrendsCharts").then((module) => module.TrendsPieChart),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <AnalyticsChartCellLoading />,
+  },
 );
 
 const RevenueBarChart = dynamic(
   () =>
     import("./charts/RevenueCharts").then((module) => module.RevenueBarChart),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <AnalyticsChartCellLoading />,
+  },
 );
 
 const RevenuePieChart = dynamic(
   () =>
     import("./charts/RevenueCharts").then((module) => module.RevenuePieChart),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <AnalyticsChartCellLoading />,
+  },
 );
 
 const ComplianceDashboard = dynamic(
@@ -52,7 +89,10 @@ const ComplianceDashboard = dynamic(
     import("./charts/ComplianceDashboard").then(
       (module) => module.ComplianceDashboard,
     ),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <AnalyticsChartCellLoading />,
+  },
 );
 
 interface AnalyticsPageUIProps {
@@ -80,16 +120,14 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
   activeTab,
   onTabChange,
 }) => {
+  const clinicCurrency = useClinicCurrency();
+
   if (isLoading) {
-    return <LoadingState message="Loading analytics..." className="min-h-[60vh]" />;
+    return <LoadingState message="Loading analytics…" className="min-h-[60vh]" />;
   }
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: DEFAULT_CURRENCY,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    clinicCurrency.formatCurrency(amount, { fractionDigits: 0 });
 
   return (
     <FeatureGate
@@ -136,7 +174,7 @@ export const AnalyticsPageUI: FC<AnalyticsPageUIProps> = ({
           onValueChange={(nextTab) => onTabChange(nextTab as AnalyticsTab)}
           className="space-y-4"
         >
-          <TabsList className="w-full sm:w-auto overflow-x-auto">
+          <TabsList className="w-full sm:w-auto overflow-x-hidden flex flex-wrap">
             <TabsTrigger value="disease-trends">Disease Trends</TabsTrigger>
             <TabsTrigger value="cpt-revenue">CPT Revenue</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>

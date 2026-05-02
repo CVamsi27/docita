@@ -6,6 +6,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Pencil } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { client } from "@/lib/api-client";
 import {
   Select,
@@ -161,14 +162,16 @@ export function EditClinicDialog({
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setOpen(true)}
-        aria-label="Edit facility"
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
+      <SymbolTooltip label="Edit facility">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setOpen(true)}
+          aria-label="Edit facility"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </SymbolTooltip>
       <CRUDDialog
         open={open}
         onOpenChange={handleOpenChange}
@@ -176,9 +179,9 @@ export function EditClinicDialog({
         description="Update facility details and status"
         isLoading={loading}
         onSubmit={handleSubmit}
-        submitLabel={loading ? "Updating..." : "Update Facility"}
+        submitLabel={loading ? "Updating…" : "Update Facility"}
       >
-        <form className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -250,7 +253,7 @@ export function EditClinicDialog({
                     }
                   }}
                   placeholder="Enter phone number"
-                  className="flex min-h-[5rem] min-w-0 flex-col gap-2 rounded-xl border border-input bg-background/60 p-3 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-10 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[9.5rem] [&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-lg [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
+                  className="flex min-h-[5rem] min-w-0 flex-col gap-2 rounded-[var(--radius)] border border-input bg-background/60 p-3 text-sm shadow-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring/50 sm:flex-row sm:items-center sm:gap-3 sm:min-h-10 [&_.PhoneInputCountry]:flex [&_.PhoneInputCountry]:w-full [&_.PhoneInputCountry]:shrink-0 [&_.PhoneInputCountry]:items-center sm:[&_.PhoneInputCountry]:w-[9.5rem] [&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputCountrySelect]:rounded-[var(--radius)] [&_.PhoneInputCountrySelect]:bg-background [&_.PhoneInputCountrySelect]:text-sm [&_.PhoneInputCountrySelect]:text-muted-foreground sm:[&_.PhoneInputCountrySelect]:w-full [&_.PhoneInputInput]:min-w-0 [&_.PhoneInputInput]:w-full [&_.PhoneInputInput]:flex-1 [&_.PhoneInputInput]:bg-transparent [&_.PhoneInputInput]:outline-none"
                   aria-invalid={!!fieldErrors.phone}
                   aria-describedby={
                     fieldErrors.phone ? "edit-clinic-phone-error" : undefined
@@ -274,7 +277,7 @@ export function EditClinicDialog({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select tier" />
+                    <SelectValue placeholder="Tier" />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABLE_TIERS.map((tier) => (
@@ -296,7 +299,7 @@ export function EditClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select facility type" />
+                  <SelectValue placeholder="Facility type" />
                 </SelectTrigger>
                 <SelectContent>
                   {CLINIC_TYPE_OPTIONS.map((type) => (
@@ -348,7 +351,7 @@ export function EditClinicDialog({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
@@ -357,7 +360,7 @@ export function EditClinicDialog({
               </Select>
             </div>
           </div>
-        </form>
+        </div>
       </CRUDDialog>
     </>
   );

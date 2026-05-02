@@ -22,6 +22,8 @@ import {
 } from '@/domains/subscriptions/core/value-objects';
 import { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/constants/subscription-lockout.constants';
 
 @Injectable()
 export class ProcessWebhookUseCase {
@@ -36,6 +38,7 @@ export class ProcessWebhookUseCase {
     private readonly paymentGateway: IPaymentGateway,
     private readonly activateSubscription: ActivateSubscriptionUseCase,
     private readonly adminAlerts: AdminAlertsService,
+    private readonly prisma: PrismaService,
   ) {}
   private readNoteString(
     notes: Record<string, unknown> | undefined,
@@ -151,6 +154,7 @@ export class ProcessWebhookUseCase {
       clinicId,
       tier: tier.value,
       subscriptionStatus: SubscriptionStatusEnum.ACTIVE,
+      subscriptionGraceUntil: null,
     });
 
     await this.adminAlerts.sendAdminAlert({
@@ -185,6 +189,20 @@ export class ProcessWebhookUseCase {
       subscription.activate();
       subscription.currentPeriodEnd = periodEnd;
       await this.subscriptionRepo.save(subscription);
+
+      await this.clinicOps.updateTierAndFeatures(
+        clinicId,
+        subscription.getPlan().value,
+        SubscriptionStatusEnum.ACTIVE,
+        {},
+      );
+
+      await this.clinicOps.emitUpdate(clinicId, {
+        clinicId,
+        tier: subscription.getPlan().value,
+        subscriptionStatus: SubscriptionStatusEnum.ACTIVE,
+        subscriptionGraceUntil: null,
+      });
     }
 
     await this.subscriptionRepo.savePayment({
@@ -220,13 +238,36 @@ export class ProcessWebhookUseCase {
     if (!clinicId) return;
 
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
+    const graceUntil = computeSubscriptionGraceDeadline();
     if (subscription) {
+      try {
+        subscription.enterPastDue(graceUntil);
+        await this.subscriptionRepo.save(subscription);
+      } catch {
+        await this.prisma.subscription.updateMany({
+          where: { clinicId },
+          data: {
+            status: 'PAST_DUE',
+            graceUntil,
+          },
+        });
+      }
+
       await this.clinicOps.updateTierAndFeatures(
         clinicId,
         subscription.getPlan().value,
         'PAST_DUE',
         {},
       );
+
+      await this.clinicOps.emitUpdate(clinicId, {
+        clinicId,
+        tier: subscription.getPlan().value,
+        subscriptionStatus: 'PAST_DUE',
+        subscriptionGraceUntil:
+          subscription.getGraceUntil()?.toISOString() ??
+          graceUntil.toISOString(),
+      });
     }
 
     await this.adminAlerts.sendAdminAlert({
@@ -250,7 +291,7 @@ export class ProcessWebhookUseCase {
 
     const subscription = await this.subscriptionRepo.findByClinicId(clinicId);
     if (subscription) {
-      subscription.enterGracePeriod();
+      subscription.enterGracePeriod(computeSubscriptionGraceDeadline());
       await this.subscriptionRepo.save(subscription);
       await this.clinicOps.updateTierAndFeatures(
         clinicId,
@@ -258,6 +299,14 @@ export class ProcessWebhookUseCase {
         SubscriptionStatusEnum.GRACE,
         {},
       );
+
+      await this.clinicOps.emitUpdate(clinicId, {
+        clinicId,
+        tier: subscription.getPlan().value,
+        subscriptionStatus: SubscriptionStatusEnum.GRACE,
+        subscriptionGraceUntil:
+          subscription.getGraceUntil()?.toISOString() ?? null,
+      });
     }
 
     await this.adminAlerts.sendAdminAlert({

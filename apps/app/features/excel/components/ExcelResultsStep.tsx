@@ -30,7 +30,6 @@ export const ExcelResultsStep = ({
 
   return (
     <div className="space-y-6">
-      {}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
@@ -39,7 +38,9 @@ export const ExcelResultsStep = ({
                 <Users className="h-6 w-6 text-info" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{result.total}</p>
+                <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                  {result.total}
+                </p>
                 <p className="text-sm text-muted-foreground">Total Rows</p>
               </div>
             </div>
@@ -53,7 +54,7 @@ export const ExcelResultsStep = ({
                 <CheckCircle2 className="h-6 w-6 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-success">
+                <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {result.success}
                 </p>
                 <p className="text-sm text-muted-foreground">Imported</p>
@@ -69,7 +70,7 @@ export const ExcelResultsStep = ({
                 <AlertCircle className="h-6 w-6 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-warning">
+                <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-warning">
                   {result.duplicates}
                 </p>
                 <p className="text-sm text-muted-foreground">Duplicates</p>
@@ -85,7 +86,7 @@ export const ExcelResultsStep = ({
                 <XCircle className="h-6 w-6 text-destructive" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-destructive">
+                <p className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-destructive">
                   {result.failed}
                 </p>
                 <p className="text-sm text-muted-foreground">Failed</p>
@@ -95,7 +96,6 @@ export const ExcelResultsStep = ({
         </Card>
       </div>
 
-      {}
       {(result.errors.length > 0 || result.duplicateDetails.length > 0) && (
         <Card>
           <CardHeader>
@@ -154,7 +154,6 @@ export const ExcelResultsStep = ({
         </Card>
       )}
 
-      {}
       <div className="flex gap-4">
         <Button onClick={() => router.push("/patients")}>
           <Check className="mr-2 h-4 w-4" />

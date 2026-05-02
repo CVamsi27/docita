@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/application/use-cases/notify-expiring-subscriptions.use-case';
-import { ExpireSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/expire-subscription.use-case';
+import { NotifySubscriptionGraceDeadlineUseCase } from '@/domains/subscriptions/application/use-cases/notify-subscription-grace-deadline.use-case';
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
 import { BillingCycle, ClinicTier, SubscriptionStatus } from '@workspace/db';
@@ -17,7 +17,7 @@ export class SubscriptionReminderScheduler {
 
   constructor(
     private readonly notifyUseCase: NotifyExpiringSubscriptionsUseCase,
-    private readonly expireUseCase: ExpireSubscriptionUseCase,
+    private readonly notifyGraceDeadlineUseCase: NotifySubscriptionGraceDeadlineUseCase,
     private readonly graceUseCase: EnterGracePeriodUseCase,
     private readonly prisma: PrismaService,
     private readonly adminAlerts: AdminAlertsService,
@@ -116,6 +116,22 @@ export class SubscriptionReminderScheduler {
           dedupeWindowMs: 12 * 60 * 60 * 1000,
         });
       }
+
+      const graceSchedules = [
+        { offsetDays: 3, type: 'grace_deadline_3d' },
+        { offsetDays: 1, type: 'grace_deadline_1d' },
+        { offsetDays: 0, type: 'grace_deadline_today' },
+      ];
+      await this.prisma.runUnrestricted(async () => {
+        for (const schedule of graceSchedules) {
+          const targetDate = new Date(now);
+          targetDate.setDate(targetDate.getDate() + schedule.offsetDays);
+          await this.notifyGraceDeadlineUseCase.execute({
+            targetDate,
+            reminderType: schedule.type,
+          });
+        }
+      });
     } catch (error) {
       if (this.isDatabaseAuthError(error)) {
         this.databaseAccessDisabled = true;
@@ -204,19 +220,6 @@ export class SubscriptionReminderScheduler {
 
         for (const sub of lapsed) {
           await this.graceUseCase.execute(sub.id);
-        }
-
-        const graceExpired = await this.prisma.subscription.findMany({
-          where: {
-            currentPeriodEnd: {
-              lt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-            },
-            status: 'GRACE',
-          },
-        });
-
-        for (const sub of graceExpired) {
-          await this.expireUseCase.execute(sub.id);
         }
       });
     } catch (error) {

@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import {
   Card,
   CardContent,
@@ -9,14 +10,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Badge } from "@workspace/ui/components/badge";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Lightbulb,
-  Loader2,
-  Pill,
-  Sparkles,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Lightbulb, Pill, Sparkles } from "lucide-react";
 import type {
   DrugInteraction,
   PrescriptionSuggestion,
@@ -45,7 +39,7 @@ export const PrescriptionAssistantTab = ({
             Symptoms / Chief Complaint
           </label>
           <Textarea
-            placeholder="e.g., Sore throat, fever for 3 days, difficulty swallowing..."
+            placeholder="Enter symptoms or chief complaint"
             value={state.symptoms}
             onChange={(e) => handlers.setSymptoms(e.target.value)}
             rows={3}
@@ -54,7 +48,7 @@ export const PrescriptionAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Working Diagnosis</label>
           <Input
-            placeholder="e.g., Acute Pharyngitis"
+            placeholder="Working diagnosis"
             value={state.diagnosis}
             onChange={(e) => handlers.setDiagnosis(e.target.value)}
           />
@@ -64,7 +58,7 @@ export const PrescriptionAssistantTab = ({
             Current Medications (for interaction check)
           </label>
           <Textarea
-            placeholder="e.g., Warfarin 5mg daily, Lisinopril 10mg daily..."
+            placeholder="Enter current medications"
             value={state.currentMedications}
             onChange={(e) => handlers.setCurrentMedications(e.target.value)}
             rows={2}
@@ -73,7 +67,7 @@ export const PrescriptionAssistantTab = ({
         <div className="space-y-2">
           <label className="text-sm font-medium">Known Allergies</label>
           <Input
-            placeholder="e.g., Penicillin, Sulfa drugs..."
+            placeholder="Known allergies"
             value={state.allergies}
             onChange={(e) => handlers.setAllergies(e.target.value)}
           />
@@ -85,8 +79,8 @@ export const PrescriptionAssistantTab = ({
         >
           {state.isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analyzing...
+              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+              Analyzing…
             </>
           ) : (
             <>
@@ -135,7 +129,7 @@ const DrugInteractionsList = ({
         {interactions.map((interaction, idx) => (
           <div
             key={idx}
-            className="p-3 rounded-lg bg-white dark:bg-background border"
+            className="p-3 rounded-lg bg-background border"
           >
             <div className="flex items-center gap-2 mb-1">
               <Badge

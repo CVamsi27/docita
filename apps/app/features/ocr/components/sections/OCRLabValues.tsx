@@ -51,7 +51,7 @@ export const OCRLabValues = ({
                     },
                   })
                 }
-                placeholder="100"
+                placeholder="Glucose"
               />
             </div>
             <div className="space-y-2">
@@ -74,7 +74,7 @@ export const OCRLabValues = ({
                     },
                   })
                 }
-                placeholder="13.5"
+                placeholder="Hemoglobin"
               />
             </div>
             <div className="space-y-2">
@@ -97,7 +97,7 @@ export const OCRLabValues = ({
                     },
                   })
                 }
-                placeholder="0.8"
+                placeholder="Creatinine"
               />
             </div>
           </div>

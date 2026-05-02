@@ -5,11 +5,11 @@ const API_URL = process.env["API_URL"] || "http://localhost:3001/api/v1";
 test.describe("Inventory Management", () => {
   let authToken: string;
   let clinicId: string;
-  let serverAvailable = true;
+  let suiteAvailable = true;
+  let suiteSkipReason = "";
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-
       const registerRes = await request.post(`${API_URL}/auth/register`, {
         data: {
           email: `doctor${Date.now()}@test.com`,
@@ -22,7 +22,8 @@ test.describe("Inventory Management", () => {
       });
 
       if (!registerRes.ok()) {
-        serverAvailable = false;
+        suiteAvailable = false;
+        suiteSkipReason = `auth/register unavailable (status ${registerRes.status()})`;
         return;
       }
 
@@ -42,58 +43,72 @@ test.describe("Inventory Management", () => {
           zipCode: "66666",
         },
       });
+      expect(
+        clinicRes.ok(),
+        `clinic bootstrap failed: ${clinicRes.status()}`,
+      ).toBeTruthy();
 
       const clinic = await clinicRes.json();
       clinicId = clinic.id;
-    } catch {
-      serverAvailable = false;
+    } catch (error) {
+      suiteAvailable = false;
+      suiteSkipReason = `bootstrap threw: ${(error as Error).message}`;
     }
+  });
+
+  test.beforeEach(() => {
+    test.skip(
+      !suiteAvailable,
+      `inventory API not provisioned: ${suiteSkipReason}`,
+    );
   });
 
   test("should fetch inventory items", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const inventoryRes = await request.get(`${API_URL}/inventory`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (inventoryRes.ok()) {
-      const inventory = await inventoryRes.json();
-      expect(Array.isArray(inventory) || inventory).toBeDefined();
-    }
+    expect(
+      inventoryRes.ok(),
+      `GET /inventory failed: ${inventoryRes.status()}`,
+    ).toBeTruthy();
+    const inventory = await inventoryRes.json();
+    expect(inventory).toBeDefined();
   });
 
   test("should fetch inventory stats", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const statsRes = await request.get(`${API_URL}/inventory/stats`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (statsRes.ok()) {
-      const stats = await statsRes.json();
-      expect(stats).toBeDefined();
-    }
+    expect(
+      statsRes.ok(),
+      `GET /inventory/stats failed: ${statsRes.status()}`,
+    ).toBeTruthy();
+    const stats = await statsRes.json();
+    expect(stats).toBeDefined();
   });
 
   test("should fetch low stock items", async ({ request }) => {
     const lowStockRes = await request.get(`${API_URL}/inventory/low-stock`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (lowStockRes.ok()) {
-      const items = await lowStockRes.json();
-      expect(Array.isArray(items) || items).toBeDefined();
-    }
+    expect(
+      lowStockRes.ok(),
+      `GET /inventory/low-stock failed: ${lowStockRes.status()}`,
+    ).toBeTruthy();
+    const items = await lowStockRes.json();
+    expect(items).toBeDefined();
   });
 
   test("should fetch expiring items", async ({ request }) => {
     const expiringRes = await request.get(`${API_URL}/inventory/expiring`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (expiringRes.ok()) {
-      const items = await expiringRes.json();
-      expect(Array.isArray(items) || items).toBeDefined();
-    }
+    expect(
+      expiringRes.ok(),
+      `GET /inventory/expiring failed: ${expiringRes.status()}`,
+    ).toBeTruthy();
+    const items = await expiringRes.json();
+    expect(items).toBeDefined();
   });
 
   test("should create inventory item", async ({ request }) => {
@@ -110,11 +125,12 @@ test.describe("Inventory Management", () => {
         clinicId,
       },
     });
-
-    if (itemRes.ok()) {
-      const item = await itemRes.json();
-      expect(item.id).toBeDefined();
-      expect(item.name).toBe("Bandages");
-    }
+    expect(
+      itemRes.ok(),
+      `POST /inventory failed: ${itemRes.status()}`,
+    ).toBeTruthy();
+    const item = await itemRes.json();
+    expect(item.id).toBeDefined();
+    expect(item.name).toBe("Bandages");
   });
 });

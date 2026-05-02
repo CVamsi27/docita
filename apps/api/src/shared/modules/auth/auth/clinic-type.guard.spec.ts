@@ -3,9 +3,28 @@ import { Reflector } from '@nestjs/core';
 import { ClinicType } from '@workspace/db';
 import { FacilityType } from '@workspace/types';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { CLINIC_TYPES_KEY, FACILITY_TYPES_KEY } from './clinic-type.decorator';
 import { ClinicTypeGuard, FacilityTypeGuard } from './clinic-type.guard';
+
+function mockRequiredClinicTypes(
+  mock: MockedReflectorGetAllAndOverride,
+  types: ClinicType[] | undefined,
+): void {
+  mockGetAllAndOverrideKeyMap(mock, [[CLINIC_TYPES_KEY, types]]);
+}
+
+function mockRequiredFacilityTypes(
+  mock: MockedReflectorGetAllAndOverride,
+  types: FacilityType[] | undefined,
+): void {
+  mockGetAllAndOverrideKeyMap(mock, [[FACILITY_TYPES_KEY, types]]);
+}
 
 function createContext(user: unknown): ExecutionContext {
   return asType<ExecutionContext>({
@@ -20,7 +39,7 @@ function createContext(user: unknown): ExecutionContext {
 }
 
 describe('ClinicTypeGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     clinic: {
       findUnique: jest.MockedFunction<
@@ -33,7 +52,10 @@ describe('ClinicTypeGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([
+        [CLINIC_TYPES_KEY, undefined],
+        [FACILITY_TYPES_KEY, undefined],
+      ]),
     };
     prisma = {
       clinic: {
@@ -52,10 +74,7 @@ describe('ClinicTypeGuard', () => {
 
   describe('clinic type checks', () => {
     it('allows request when no clinic type metadata is set', async () => {
-      reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-        if (key === CLINIC_TYPES_KEY) return undefined;
-        return undefined;
-      });
+      mockRequiredClinicTypes(reflector.getAllAndOverride, undefined);
 
       await expect(
         clinicTypeGuard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -64,10 +83,9 @@ describe('ClinicTypeGuard', () => {
     });
 
     it('blocks request when user has no clinic', async () => {
-      reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-        if (key === CLINIC_TYPES_KEY) return [ClinicType.GENERAL];
-        return undefined;
-      });
+      mockRequiredClinicTypes(reflector.getAllAndOverride, [
+        ClinicType.GENERAL,
+      ]);
 
       await expect(
         clinicTypeGuard.canActivate(createContext({})),
@@ -75,7 +93,9 @@ describe('ClinicTypeGuard', () => {
     });
 
     it('blocks request when clinic is not found', async () => {
-      reflector.getAllAndOverride.mockReturnValue([ClinicType.GENERAL]);
+      mockRequiredClinicTypes(reflector.getAllAndOverride, [
+        ClinicType.GENERAL,
+      ]);
       prisma.clinic.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -84,7 +104,7 @@ describe('ClinicTypeGuard', () => {
     });
 
     it('blocks request when clinic type does not match required type', async () => {
-      reflector.getAllAndOverride.mockReturnValue([ClinicType.DENTAL]);
+      mockRequiredClinicTypes(reflector.getAllAndOverride, [ClinicType.DENTAL]);
       prisma.clinic.findUnique.mockResolvedValue({
         type: ClinicType.GENERAL,
         name: 'Main Clinic',
@@ -96,7 +116,7 @@ describe('ClinicTypeGuard', () => {
     });
 
     it('allows request when clinic type matches required type', async () => {
-      reflector.getAllAndOverride.mockReturnValue([
+      mockRequiredClinicTypes(reflector.getAllAndOverride, [
         ClinicType.GENERAL,
         ClinicType.DENTAL,
       ]);
@@ -113,10 +133,7 @@ describe('ClinicTypeGuard', () => {
 
   describe('facility type checks', () => {
     it('allows request when no facility type metadata is set', async () => {
-      reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-        if (key === FACILITY_TYPES_KEY) return undefined;
-        return undefined;
-      });
+      mockRequiredFacilityTypes(reflector.getAllAndOverride, undefined);
 
       await expect(
         facilityTypeGuard.canActivate(createContext({ clinicId: 'clinic-1' })),
@@ -125,10 +142,9 @@ describe('ClinicTypeGuard', () => {
     });
 
     it('blocks request when facility type does not match', async () => {
-      reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-        if (key === FACILITY_TYPES_KEY) return [FacilityType.HOSPITAL];
-        return undefined;
-      });
+      mockRequiredFacilityTypes(reflector.getAllAndOverride, [
+        FacilityType.HOSPITAL,
+      ]);
       prisma.clinic.findUnique.mockResolvedValue({
         facilityType: FacilityType.CLINIC,
         name: 'Main Clinic',
@@ -140,10 +156,9 @@ describe('ClinicTypeGuard', () => {
     });
 
     it('allows request when facility type matches', async () => {
-      reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-        if (key === FACILITY_TYPES_KEY) return [FacilityType.CLINIC];
-        return undefined;
-      });
+      mockRequiredFacilityTypes(reflector.getAllAndOverride, [
+        FacilityType.CLINIC,
+      ]);
       prisma.clinic.findUnique.mockResolvedValue({
         facilityType: FacilityType.CLINIC,
         name: 'Main Clinic',

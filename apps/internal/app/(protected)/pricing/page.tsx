@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   billingAPI,
@@ -19,6 +21,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { DatePicker } from "@workspace/ui/components/date-picker";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Tabs,
   TabsContent,
@@ -34,7 +37,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { Badge } from "@workspace/ui/components/badge";
-import { Loader2, Plus, Save, Sparkles, Trash2 } from "lucide-react";
+import { Plus, Save, Sparkles, Trash2 } from "lucide-react";
 
 interface EditableTierRow extends TierPricingRow {
   isDirty?: boolean;
@@ -289,24 +292,30 @@ export default function PricingPage() {
 
   if (isLoading || !token) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex min-h-[60vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading pricing"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Pricing Management</h1>
-        <p className="text-muted-foreground text-sm">
-          Manage tier pricing centrally and create facility-specific offers for
-          requested hospitals.
-        </p>
-      </div>
+      <PageHeader
+        title="Pricing Management"
+        description="Manage tier pricing centrally and create facility-specific offers for requested hospitals."
+      />
 
       {saveError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+        <div className="surface-danger rounded-md px-4 py-2 text-sm">
           {saveError}
         </div>
       )}
@@ -329,15 +338,15 @@ export default function PricingPage() {
             <CardContent>
               {isLoadingTiers ? (
                 <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Loading tiers...
+                  <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+                  Loading tiers…
                 </div>
               ) : tiers.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   No tier pricing rows found. Run the seed script first.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -460,7 +469,7 @@ export default function PricingPage() {
                               onClick={() => saveTier(tier)}
                             >
                               {savingId === tier.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
                               ) : (
                                 <Save className="h-3 w-3" />
                               )}
@@ -524,7 +533,7 @@ export default function PricingPage() {
                     disabled={isLoadingClinics}
                   >
                     <option value="">
-                      {isLoadingClinics ? "Loading facilities..." : "Select facility"}
+                      {isLoadingClinics ? "Loading" : "Facility"}
                     </option>
                     {clinicOptions.map((clinic) => (
                       <option key={clinic.id} value={clinic.id}>
@@ -543,7 +552,7 @@ export default function PricingPage() {
                         title: e.target.value,
                       }))
                     }
-                    placeholder="3 months free"
+                    placeholder="Offer title"
                   />
                 </div>
                 <div className="space-y-2">
@@ -585,7 +594,7 @@ export default function PricingPage() {
                         validUntil: date?.toISOString().slice(0, 10) ?? "",
                       }))
                     }
-                    placeholder="Select date"
+                    placeholder="Date"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
@@ -598,7 +607,7 @@ export default function PricingPage() {
                         description: e.target.value,
                       }))
                     }
-                    placeholder="In exchange for weekly feedback"
+                    placeholder="Description"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-3">
@@ -611,7 +620,7 @@ export default function PricingPage() {
                         notes: e.target.value,
                       }))
                     }
-                    placeholder="Requested by founder / approved by sales"
+                    placeholder="Internal notes"
                   />
                 </div>
               </div>
@@ -625,7 +634,7 @@ export default function PricingPage() {
                 </Button>
                 <Button onClick={saveOffer} disabled={savingId !== null}>
                   {savingId === offerForm.clinicId ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative />
                   ) : (
                     <Plus className="h-4 w-4" />
                   )}
@@ -646,8 +655,8 @@ export default function PricingPage() {
             <CardContent>
               {isLoadingOffers ? (
                 <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Loading offers...
+                  <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+                  Loading offers…
                 </div>
               ) : offers.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
@@ -658,7 +667,7 @@ export default function PricingPage() {
                   {offers.map((offer) => (
                     <div
                       key={offer.id}
-                      className="rounded-lg border bg-background p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                      className="rounded-[var(--radius)] border border-border/70 bg-background p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">

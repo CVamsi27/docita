@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
@@ -36,24 +38,16 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Label } from "@workspace/ui/components/label";
-import {
-  Award,
-  Building2,
-  Eye,
-  GraduationCap,
-  Loader2,
-  Search,
-  ShieldCheck,
-  ShieldX,
-  Stethoscope,
-} from "lucide-react";
+import { Award, Building2, Eye, GraduationCap, Search, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
+import { formatInternalListDate } from "@/lib/format-display-date";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
+  getDoctorVerificationPublicNote,
   HOSPITAL_ROLE_LABELS,
   type HospitalRole,
   type Specialization,
@@ -144,13 +138,6 @@ export default function DoctorsPage() {
   const getVerificationLabel = (status?: Doctor["verificationStatus"]) => {
     if (!status) return "Unverified";
     return status.charAt(0) + status.slice(1).toLowerCase();
-  };
-
-  const formatDate = (value?: string) => {
-    if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleDateString("en-IN");
   };
 
   const clinicsQuery = useQuery({
@@ -252,7 +239,6 @@ export default function DoctorsPage() {
         size="compact"
       />
 
-      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -260,7 +246,7 @@ export default function DoctorsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search doctors by name, email, or specialization..."
+                  placeholder="Enter name, email, or specialization"
                   value={doctorSearch}
                   onChange={(e) => setDoctorSearch(e.target.value)}
                   className="pl-9"
@@ -269,7 +255,7 @@ export default function DoctorsPage() {
             </div>
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Select facility" />
+                <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Facilities</SelectItem>
@@ -285,7 +271,6 @@ export default function DoctorsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -295,8 +280,17 @@ export default function DoctorsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div
+              className="flex items-center justify-center py-8"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading doctors"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-muted-foreground"
+              />
             </div>
           ) : filteredDoctors.length === 0 ? (
             <EmptyState
@@ -405,7 +399,6 @@ export default function DoctorsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -420,7 +413,6 @@ export default function DoctorsPage() {
 
           {selectedDoctor && (
             <div className="space-y-6">
-              {}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Email</Label>
@@ -483,7 +475,7 @@ export default function DoctorsPage() {
                     Last Verification
                   </Label>
                   <p className="font-medium">
-                    {formatDate(selectedDoctor.verificationCheckedAt)}
+                    {formatInternalListDate(selectedDoctor.verificationCheckedAt)}
                   </p>
                 </div>
                 <div>
@@ -491,7 +483,7 @@ export default function DoctorsPage() {
                     Signature Uploaded
                   </Label>
                   <p className="font-medium">
-                    {formatDate(selectedDoctor.signatureUploadedAt)}
+                    {formatInternalListDate(selectedDoctor.signatureUploadedAt)}
                   </p>
                 </div>
                 <div>
@@ -510,17 +502,15 @@ export default function DoctorsPage() {
                   </Label>
                   <p className="font-medium">
                     {selectedDoctor.consultationFee
-                      ? new Intl.NumberFormat("en-IN", {
-                          style: "currency",
+                      ? formatCurrency(selectedDoctor.consultationFee, {
                           currency: DEFAULT_CURRENCY,
-                          maximumFractionDigits: 0,
-                        }).format(selectedDoctor.consultationFee)
+                          fractionDigits: 0,
+                        })
                       : "-"}
                   </p>
                 </div>
               </div>
 
-              {}
               {selectedDoctor.bio && (
                 <div>
                   <Label className="text-muted-foreground">Biography</Label>
@@ -528,16 +518,22 @@ export default function DoctorsPage() {
                 </div>
               )}
 
-              {selectedDoctor.verificationReason && (
-                <div>
-                  <Label className="text-muted-foreground">
-                    Verification Note
-                  </Label>
-                  <p className="mt-1">{selectedDoctor.verificationReason}</p>
-                </div>
-              )}
+              {(() => {
+                const verificationPublicNote = getDoctorVerificationPublicNote(
+                  selectedDoctor.verificationStatus,
+                  selectedDoctor.verificationReason,
+                );
+                if (!verificationPublicNote) return null;
+                return (
+                  <div>
+                    <Label className="text-muted-foreground">
+                      Verification note
+                    </Label>
+                    <p className="mt-1">{verificationPublicNote}</p>
+                  </div>
+                );
+              })()}
 
-              {}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <GraduationCap className="h-5 w-5 text-primary" />
@@ -580,7 +576,6 @@ export default function DoctorsPage() {
                 )}
               </div>
 
-              {}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Award className="h-5 w-5 text-primary" />
@@ -611,9 +606,7 @@ export default function DoctorsPage() {
                               {cert.expiryDate && (
                                 <p className="text-xs text-muted-foreground mt-1">
                                   Expires:{" "}
-                                  {new Date(
-                                    cert.expiryDate,
-                                  ).toLocaleDateString()}
+                                  {formatInternalListDate(cert.expiryDate)}
                                 </p>
                               )}
                             </div>
@@ -629,7 +622,6 @@ export default function DoctorsPage() {
                 )}
               </div>
 
-              {}
               {Array.isArray(selectedDoctor.additionalSpecializations) &&
                 selectedDoctor.additionalSpecializations.length > 0 && (
                   <div>

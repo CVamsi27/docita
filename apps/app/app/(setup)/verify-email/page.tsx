@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
 import { sanitizeUserFacingMessage } from "@workspace/types";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -11,7 +13,6 @@ import {
 } from "@/lib/auth-context";
 import { logger } from "@/lib/logger";
 import { API_URL } from "@/lib/api-config";
-import { SupportContact } from "@/components/common/support-contact";
 import { PreDashboardShell } from "@/features/auth/components/PreDashboardShell";
 import { BackButton } from "@/components/common/navigation/back-button";
 
@@ -100,13 +101,20 @@ function VerifyEmailInner() {
 
   return (
     <PreDashboardShell currentStep="verify-email">
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="ui-card-surface space-y-6 p-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         {state === "loading" && (
-          <div className="flex flex-col items-center gap-4 py-4">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="text-muted-foreground text-sm">
-              Verifying your email...
-            </p>
+          <div
+            className="flex flex-col items-center gap-4 py-4"
+            role="status"
+            aria-live="polite"
+            aria-label="Verifying email"
+          >
+            <DocitaLoadingIndicator
+              variant="section"
+              withStatusRole={false}
+              iconClassName="h-10 w-10 text-primary"
+            />
+            <p className="ui-page-subtitle">Verifying your email…</p>
           </div>
         )}
 
@@ -124,9 +132,9 @@ function VerifyEmailInner() {
                 <XCircle className="h-8 w-8 text-destructive" />
               </div>
             </div>
-            <div className="text-center space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight">Verification failed</h1>
-              <p className="text-muted-foreground text-sm">
+            <div className="text-center ui-copy-stack">
+              <h1 className="ui-page-title">Verification failed</h1>
+              <p className="ui-page-subtitle">
                 {state === "missing"
                   ? "No verification link was found. Please use the link from your email."
                   : errorMessage}
@@ -151,8 +159,6 @@ function VerifyEmailInner() {
           </div>
         )}
       </div>
-
-      <SupportContact />
     </PreDashboardShell>
   );
 }
@@ -162,10 +168,19 @@ export default function VerifyEmailPage() {
     <Suspense
       fallback={
         <PreDashboardShell currentStep="verify-email">
-          <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-8 shadow-xl space-y-6">
-            <div className="flex flex-col items-center gap-4 py-4">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="text-muted-foreground text-sm">Loading…</p>
+          <div className="ui-card-surface space-y-6 p-8">
+            <div
+              className="flex flex-col items-center gap-4 py-4"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading email verification"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-10 w-10 text-primary"
+              />
+              <p className="ui-page-subtitle">Loading verification…</p>
             </div>
           </div>
         </PreDashboardShell>

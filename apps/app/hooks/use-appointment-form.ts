@@ -3,7 +3,12 @@ import { toast } from "sonner";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePatient, usePatients } from "@/hooks/api/use-patients";
-import { useDoctors, useDoctorSchedules } from "@/hooks/api/use-settings";
+import {
+  useDoctors,
+  useDoctorSchedules,
+  useUnavailableDoctorIdsForDate,
+  useDoctorAvailabilitySlots,
+} from "@/hooks/api/use-settings";
 import { useCreateAppointment } from "@/hooks/api/use-appointments";
 import {
   Appointment,
@@ -23,6 +28,35 @@ interface UseAppointmentFormProps {
   startHour?: number;
   endHour?: number;
   open?: boolean;
+}
+
+function mergeCalendarDateWithScheduleStart(
+  selectedDate: Date,
+  doctorSchedules: Array<{ dayOfWeek: string; startTime: string; isActive: boolean }>,
+  fallbackHour: number,
+): string {
+  const days = [
+    "SUNDAY",
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+  ] as const;
+  const dayName = days[selectedDate.getDay()];
+  const schedule = doctorSchedules.find(
+    (s) => s.dayOfWeek === dayName && s.isActive,
+  );
+  const hourMinute = schedule?.startTime.split(":").map(Number) ?? [
+    fallbackHour,
+    0,
+  ];
+  const h = hourMinute[0] ?? fallbackHour;
+  const m = hourMinute[1] ?? 0;
+  const d = new Date(selectedDate);
+  d.setHours(h, m, 0, 0);
+  return toLocalISOString(d, { timezone: DEFAULT_TIMEZONE });
 }
 
 export function useAppointmentForm({
@@ -58,7 +92,20 @@ export function useAppointmentForm({
 
   const { data: doctors = [], isLoading: doctorsLoading } = useDoctors();
 
-  const filteredDoctors = doctors;
+  const { data: unavailableResponse } = useUnavailableDoctorIdsForDate(
+    selectedDate,
+    { enabled: Boolean(open && selectedDate) },
+  );
+
+  const unavailableIds = useMemo(
+    () => new Set(unavailableResponse?.doctorIds ?? []),
+    [unavailableResponse?.doctorIds],
+  );
+
+  const filteredDoctors = useMemo(
+    () => doctors.filter((d) => !unavailableIds.has(d.id)),
+    [doctors, unavailableIds],
+  );
 
   const { mutateAsync: createAppointment, isPending: loading } =
     useCreateAppointment();
@@ -71,7 +118,9 @@ export function useAppointmentForm({
     let defaultStart = "";
 
     if (selectedDate) {
-      defaultStart = toLocalISOString(selectedDate, {
+      const interim = new Date(selectedDate);
+      interim.setHours(startHour, 0, 0, 0);
+      defaultStart = toLocalISOString(interim, {
         timezone: DEFAULT_TIMEZONE,
       });
     } else {
@@ -105,7 +154,8 @@ export function useAppointmentForm({
 
     let defaultDoctorId = "";
     if (user?.role === "DOCTOR" || user?.role === "ADMIN_DOCTOR") {
-      defaultDoctorId = user.id || "";
+      defaultDoctorId =
+        user.id && !unavailableIds.has(user.id) ? user.id : "";
     } else if (filteredDoctors.length > 0) {
       defaultDoctorId = filteredDoctors[0]?.id || "";
     }
@@ -127,6 +177,7 @@ export function useAppointmentForm({
     user?.clinicId,
     user?.role,
     filteredDoctors,
+    unavailableIds,
     startHour,
     endHour,
   ]);
@@ -142,6 +193,11 @@ export function useAppointmentForm({
   const { data: doctorSchedules = [] } = useDoctorSchedules(
     watchedDoctorId || undefined,
   );
+
+  const { data: slots } = useDoctorAvailabilitySlots(selectedDate, watchedDoctorId, {
+    enabled: Boolean(open && selectedDate && watchedDoctorId),
+  });
+
   const hasAutoSelectedTimeRef = useRef(false);
 
   useEffect(() => {
@@ -211,20 +267,58 @@ export function useAppointmentForm({
     }
   }, [open, watchedDoctorId, doctorSchedules, selectedDate, form]);
 
-  const lastPreselectedPatientIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!open || !selectedDate || !watchedDoctorId) return;
+
+    const startTimeState = form.getFieldState("startTime");
+    if (startTimeState.isDirty) return;
+
+    if (slots && slots.length > 0) {
+      const first = slots.find(
+        (s) => s.doctorId === watchedDoctorId && s.isAvailable,
+      );
+      if (first) {
+        const parts = first.time.split(":").map((x) => parseInt(x, 10));
+        const h = parts[0] ?? startHour;
+        const mi = parts[1] ?? 0;
+        const d = new Date(selectedDate);
+        d.setHours(h, mi, 0, 0);
+        form.setValue(
+          "startTime",
+          toLocalISOString(d, { timezone: DEFAULT_TIMEZONE }),
+          { shouldDirty: false },
+        );
+        return;
+      }
+    }
+
+    const fallback = mergeCalendarDateWithScheduleStart(
+      selectedDate,
+      doctorSchedules,
+      startHour,
+    );
+    if (fallback) {
+      form.setValue("startTime", fallback, { shouldDirty: false });
+    }
+  }, [
+    open,
+    selectedDate,
+    watchedDoctorId,
+    slots,
+    doctorSchedules,
+    startHour,
+    form,
+  ]);
 
   useEffect(() => {
     if (!open || !selectedDate) return;
+    const currentId = form.getValues("doctorId");
+    if (!currentId || !unavailableIds.has(currentId)) return;
+    const nextId = filteredDoctors[0]?.id ?? "";
+    form.setValue("doctorId", nextId, { shouldDirty: false });
+  }, [open, selectedDate, unavailableIds, filteredDoctors, form]);
 
-    const start = new Date(selectedDate);
-    start.setHours(startHour, 0, 0, 0);
-    const localISOTime = toLocalISOString(start, { timezone: DEFAULT_TIMEZONE });
-
-    const startTimeState = form.getFieldState("startTime");
-    if (!startTimeState.isDirty) {
-      form.setValue("startTime", localISOTime, { shouldDirty: false });
-    }
-  }, [open, selectedDate, startHour, form]);
+  const lastPreselectedPatientIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!open) return;

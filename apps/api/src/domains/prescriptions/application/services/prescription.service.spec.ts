@@ -169,7 +169,7 @@ describe('PrescriptionsService', () => {
     findByIdMock.mockResolvedValue(prescription);
     generatePdfMock.mockResolvedValue(Buffer.from('pdf'));
 
-    await service.generatePDF('rx-1');
+    await service.generatePDF('rx-1', 'clinic-1');
 
     expect(generatePdfMock).toHaveBeenCalledWith(
       expect.objectContaining({

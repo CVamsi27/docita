@@ -1,12 +1,14 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { JsonValue } from '@workspace/types';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { runWithTenant } from '@/common/middleware/tenant.middleware';
 import {
   IDoctorVerificationRepository,
   DOCTOR_VERIFICATION_REPOSITORY_TOKEN,
 } from '@/domains/doctors/core/repositories/doctor-verification.repository.interface';
+
 type VerificationResult = {
   status: DoctorVerificationStatus;
   source: string;
@@ -24,6 +26,7 @@ type VerificationProviderResponse = {
   data?: JsonValue;
 };
 
+/** Verification uses the configured HTTP provider; extend with jurisdiction-specific logic when council APIs are integrated. */
 @Injectable()
 export class DoctorVerificationService {
   private readonly logger = new Logger(DoctorVerificationService.name);
@@ -68,6 +71,8 @@ export class DoctorVerificationService {
       id: doctor.id,
       name: doctor.name,
       registrationNumber: doctor.registrationNumber,
+      registrationCouncil: doctor.registrationCouncil ?? undefined,
+      registrationStateCode: doctor.registrationStateCode ?? undefined,
       licenseNumber: doctor.licenseNumber ?? undefined,
     });
 
@@ -114,7 +119,10 @@ export class DoctorVerificationService {
     if (expiryDate < now) {
       return {
         valid: false,
-        reason: `Medical license expired on ${expiryDate.toLocaleDateString()}`,
+        reason: `Medical license expired on ${formatDate(
+          expiryDate,
+          DATE_FORMATS.DATE_MEDIUM,
+        )}`,
       };
     }
 
@@ -135,6 +143,8 @@ export class DoctorVerificationService {
     id: string;
     name: string;
     registrationNumber: string;
+    registrationCouncil?: string;
+    registrationStateCode?: string;
     licenseNumber?: string;
   }): Promise<VerificationResult> {
     const licenseCheck = await this.checkLicenseExpiry(input.id);
@@ -149,11 +159,14 @@ export class DoctorVerificationService {
     const { apiUrl, apiKey } = this.configService.getDoctorVerificationConfig();
 
     if (!apiUrl) {
+      this.logger.warn(
+        'Doctor verification skipped: DOCTOR_VERIFICATION_API_URL is not configured',
+      );
       return {
         status: DoctorVerificationStatus.FAILED,
         source: 'NMC',
         reason:
-          'Government verification provider is not configured. Set DOCTOR_VERIFICATION_API_URL.',
+          'Registration verification is temporarily unavailable. Please try again later.',
       };
     }
 
@@ -171,6 +184,8 @@ export class DoctorVerificationService {
           doctorId: input.id,
           name: input.name,
           registrationNumber: input.registrationNumber,
+          registrationCouncil: input.registrationCouncil,
+          registrationStateCode: input.registrationStateCode,
           licenseNumber: input.licenseNumber,
         }),
         signal: controller.signal,
@@ -179,10 +194,14 @@ export class DoctorVerificationService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        this.logger.warn(
+          `Doctor verification provider returned HTTP ${response.status}`,
+        );
         return {
           status: DoctorVerificationStatus.FAILED,
           source: 'NMC',
-          reason: `Verification provider error (${response.status})`,
+          reason:
+            'Registration verification is temporarily unavailable. Please try again later.',
         };
       }
 
@@ -208,13 +227,14 @@ export class DoctorVerificationService {
         data: payload.data,
       };
     } catch (error) {
+      this.logger.warn(
+        `Doctor verification request failed: ${error instanceof Error ? error.message : 'unknown error'}`,
+      );
       return {
         status: DoctorVerificationStatus.FAILED,
         source: 'NMC',
         reason:
-          error instanceof Error
-            ? `Verification request failed: ${error.message}`
-            : 'Verification request failed',
+          'Registration verification is temporarily unavailable. Please try again later.',
       };
     }
   }

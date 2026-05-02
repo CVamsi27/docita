@@ -160,6 +160,7 @@ export const useLabTestOrders = (filters?: {
   search?: string;
   status?: string;
   date?: string;
+  patientId?: string;
 }) =>
   useAPIQuery<LabTestOrder[]>(
     ["lab-test-orders", filters || {}],

@@ -1,7 +1,12 @@
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import {
   CLINIC_SCOPED_KEY,
   ClinicScopedGuard,
@@ -21,21 +26,23 @@ function createContext(request: Record<string, unknown>): ExecutionContext {
 }
 
 describe('ClinicScopedGuard', () => {
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let guard: ClinicScopedGuard;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: createKeyedReflectorMock([]),
     };
     guard = new ClinicScopedGuard(asType<Reflector>(reflector));
   });
 
   it('marks request as empty when clinic is missing and returnEmptyOnMissing is true', () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === CLINIC_SCOPED_KEY) return { returnEmptyOnMissing: true };
-      return undefined;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      CLINIC_SCOPED_KEY,
+      { returnEmptyOnMissing: true },
+      undefined,
+    );
     const request: Record<string, unknown> = {};
 
     const allowed = guard.canActivate(createContext(request));
@@ -45,10 +52,12 @@ describe('ClinicScopedGuard', () => {
   });
 
   it('uses custom paramName and allows request', () => {
-    reflector.getAllAndOverride.mockImplementation((key: unknown) => {
-      if (key === CLINIC_SCOPED_KEY) return { paramName: 'facilityId' };
-      return undefined;
-    });
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      CLINIC_SCOPED_KEY,
+      { paramName: 'facilityId' },
+      undefined,
+    );
     const request = {
       query: { facilityId: 'clinic-1' },
     };

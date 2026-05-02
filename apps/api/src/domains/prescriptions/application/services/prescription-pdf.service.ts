@@ -13,6 +13,7 @@ import {
   PDFHospitalConfig,
   resolvePdfCodePair,
 } from '@workspace/types';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import PDFDocument from 'pdfkit';
 
 export interface PrescriptionData {
@@ -137,12 +138,7 @@ export class PrescriptionPdfService extends BasePdfService {
         .font('Helvetica-Bold')
         .fillColor(context.theme.titleTextColor)
         .text(
-          `Next Visit: ${data.nextVisit.toLocaleDateString('en-IN', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}`,
+          `Next Visit: ${formatDate(data.nextVisit, DATE_FORMATS.DATE_FULL)}`,
           context.margin,
           currentY,
         );

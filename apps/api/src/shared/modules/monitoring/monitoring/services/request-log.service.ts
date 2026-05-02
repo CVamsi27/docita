@@ -13,6 +13,7 @@ export class RequestLogService implements OnModuleDestroy {
   private flushTimer: NodeJS.Timeout | null = null;
   private persistenceDisabled = false;
   private flushInProgress = false;
+  private loggedPersistenceDisabledReason = false;
 
   constructor(
     private prisma: PrismaService,
@@ -79,33 +80,40 @@ export class RequestLogService implements OnModuleDestroy {
 
     try {
       this.flushInProgress = true;
-      await this.prisma.apiRequest.createMany({
-        data: requestsToFlush.map((req) => ({
-          clinicId: req.clinicId,
-          userId: req.userId,
-          method: req.method,
-          path: req.path,
-          statusCode: req.statusCode,
-          duration: req.duration,
-          requestSize: req.requestSize,
-          responseSize: req.responseSize,
-          userAgent: req.userAgent,
-          ip: req.ip,
-          error: req.error,
-          errorStack: req.errorStack,
-          metadata: req.metadata as Prisma.InputJsonValue,
-        })),
-        skipDuplicates: true,
+      await this.prisma.runUnrestricted(async () => {
+        await this.prisma.apiRequest.createMany({
+          data: requestsToFlush.map((req) => ({
+            clinicId: req.clinicId,
+            userId: req.userId,
+            method: req.method,
+            path: req.path,
+            statusCode: req.statusCode,
+            duration: req.duration,
+            requestSize: req.requestSize,
+            responseSize: req.responseSize,
+            userAgent: req.userAgent,
+            ip: req.ip,
+            error: req.error,
+            errorStack: req.errorStack,
+            metadata: req.metadata as Prisma.InputJsonValue,
+          })),
+          skipDuplicates: true,
+        });
       });
 
       this.requestBuffer.splice(0, requestsToFlush.length);
       this.logger.debug(`Flushed ${requestsToFlush.length} requests`);
     } catch (error) {
       if (this.isDatabaseAuthError(error)) {
-        this.persistenceDisabled = true;
-        this.requestBuffer = [];
-        this.logger.warn(
+        this.disablePersistence(
           'Disabling request-log database persistence due to database authentication failure. Verify DATABASE_URL credentials.',
+        );
+        return;
+      }
+
+      if (this.isMissingApiRequestTableError(error)) {
+        this.disablePersistence(
+          'Disabling request-log database persistence because monitoring tables are missing. Run Prisma migrations (the migration that creates "ApiRequest").',
         );
         return;
       }
@@ -114,6 +122,18 @@ export class RequestLogService implements OnModuleDestroy {
     } finally {
       this.flushInProgress = false;
     }
+  }
+
+  private disablePersistence(message: string): void {
+    this.persistenceDisabled = true;
+    this.requestBuffer = [];
+
+    if (this.loggedPersistenceDisabledReason) {
+      return;
+    }
+
+    this.loggedPersistenceDisabledReason = true;
+    this.logger.warn(message);
   }
 
   private isDatabaseAuthError(error: unknown): boolean {
@@ -137,6 +157,53 @@ export class RequestLogService implements OnModuleDestroy {
       message.includes('database credentials') ||
       message.includes('password authentication failed')
     );
+  }
+
+  private isMissingApiRequestTableError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const candidate = error as {
+      code?: unknown;
+      message?: unknown;
+      meta?: unknown;
+    };
+
+    const code = typeof candidate.code === 'string' ? candidate.code : '';
+
+    // Prisma known error for "table does not exist".
+    // Common when migrations weren't applied (e.g. "ApiRequest" is missing).
+    if (code === 'P2021' || code === 'P1014') {
+      return true;
+    }
+
+    const message =
+      typeof candidate.message === 'string'
+        ? candidate.message.toLowerCase()
+        : '';
+
+    // Postgres: 42P01 = undefined_table
+    // Prisma may surface the raw DB error string.
+    if (
+      message.includes('42p01') ||
+      message.includes('undefined_table') ||
+      message.includes('does not exist') ||
+      message.includes('relation "apirequest" does not exist') ||
+      message.includes('relation "ApiRequest" does not exist'.toLowerCase())
+    ) {
+      return true;
+    }
+
+    // Some Prisma errors include a `meta.table` field.
+    if (candidate.meta && typeof candidate.meta === 'object') {
+      const meta = candidate.meta as { table?: unknown };
+      if (typeof meta.table === 'string' && meta.table === 'ApiRequest') {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   async getRequestStats(

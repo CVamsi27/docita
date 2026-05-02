@@ -209,13 +209,19 @@ export class PatientPortalService {
   }
 
   async getConsent(userId: string) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
+    const { patientId, clinicId } =
+      await this.contextService.getPatientContext(userId);
     const patient = await this.repository.getPatientProfile(patientId);
+    const dataStorageConsent = await this.repository.hasActiveTreatmentConsent(
+      patientId,
+      clinicId,
+    );
 
     return {
       whatsappConsent: patient?.whatsappConsent ?? false,
       whatsappConsentAt: patient?.whatsappConsentAt ?? null,
       isFirstLogin: false,
+      dataStorageConsent,
     };
   }
 
@@ -223,7 +229,8 @@ export class PatientPortalService {
     userId: string,
     data: { whatsappConsent?: boolean; dataStorageConsent?: boolean },
   ) {
-    const { patientId } = await this.contextService.getPatientContext(userId);
+    const { patientId, clinicId } =
+      await this.contextService.getPatientContext(userId);
 
     const updateData: Record<string, unknown> = {};
     if (data.whatsappConsent !== undefined) {
@@ -232,11 +239,16 @@ export class PatientPortalService {
     }
 
     const updated = await this.repository.updatePatient(patientId, updateData);
+    const dataStorageConsent = await this.repository.hasActiveTreatmentConsent(
+      patientId,
+      clinicId,
+    );
 
     return {
       whatsappConsent: updated.whatsappConsent,
       whatsappConsentAt: updated.whatsappConsentAt,
       isFirstLogin: false,
+      dataStorageConsent,
     };
   }
 

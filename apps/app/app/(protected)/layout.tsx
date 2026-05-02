@@ -22,12 +22,13 @@ import type { ImperativePanelHandle } from "@workspace/ui/components/resizable";
 import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
 import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
-import type { User } from "@workspace/types";
+import type { TierName, User } from "@workspace/types";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import {
   AlertTriangle,
   LockKeyhole,
@@ -40,11 +41,18 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { canAccessTarget } from "@/lib/access-policy";
+import { getTierInfo } from "@/lib/tier-config";
+import { formatDate } from "@/lib/formatters";
 import { getAccessTargetForPath } from "@/lib/access-routes";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
+import {
+  isBillingAdminRole,
+  isPastSubscriptionGraceDeadline,
+} from "@/lib/subscription-lockout";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
-const SUBSCRIPTION_ALLOWED_PATHS = ["/upgrade", "/settings", "/login"];
+const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
 
 function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
@@ -99,7 +107,7 @@ function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
   if (isCheckingVerification || shouldRedirectToVerify) {
     return (
       <PageTransitionLoader
-        title="Checking your profile..."
+        title="Checking your profile…"
         description="Verifying your doctor profile before loading your workspace"
       />
     );
@@ -110,11 +118,25 @@ function DoctorVerificationGuard({ children }: { children: React.ReactNode }) {
 
 function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   const { clinic } = useClinic();
+  const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     if (!clinic) return;
+    const pastGrace = isPastSubscriptionGraceDeadline(clinic);
+    const billingAdmin = isBillingAdminRole(user?.role);
+
+    if (
+      pastGrace &&
+      !billingAdmin &&
+      !pathname?.startsWith("/billing-locked") &&
+      !pathname?.startsWith("/login")
+    ) {
+      router.replace("/billing-locked");
+      return;
+    }
+
     const status = clinic.subscriptionStatus;
     const isExpired = status === "EXPIRED";
     const isBlocked = isExpired;
@@ -122,9 +144,9 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
       isBlocked &&
       !SUBSCRIPTION_ALLOWED_PATHS.some((p) => pathname?.startsWith(p))
     ) {
-      router.replace("/upgrade");
+      router.replace(SUBSCRIPTION_SETTINGS_PATH);
     }
-  }, [clinic, pathname, router]);
+  }, [clinic, pathname, router, user?.role]);
 
   return <>{children}</>;
 }
@@ -170,14 +192,20 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
 }
 
 function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
+  const pathname = usePathname();
   const canGoBack = useCanGoBack();
+  const isConsultationDetailRoute = Boolean(
+    pathname && /^\/consultation\/[^/]+/.test(pathname),
+  );
   return (
     <header
       className="flex h-14 items-center gap-2 border-b bg-background px-3 md:hidden"
       aria-label="Mobile navigation"
     >
       <SidebarMobileTrigger onClick={onMenuClick} />
-      {canGoBack ? (
+      {isConsultationDetailRoute ? (
+        <div className="min-w-0 flex-1" aria-hidden="true" />
+      ) : canGoBack ? (
         <BackButton fallback="/dashboard" iconOnly className="px-2" />
       ) : (
         <div className="flex h-10 items-center">
@@ -185,7 +213,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
         </div>
       )}
       <div className="ml-auto flex items-center gap-1">
-        <ThemeToggle />
+        <ThemeToggleWithAppearanceSync />
       </div>
     </header>
   );
@@ -202,25 +230,39 @@ function SubscriptionLockNotice() {
 
   const isExpired = status === "EXPIRED";
   const isGrace = status === "GRACE";
+  const isPastDue = status === "PAST_DUE";
+  const isPaused = status === "PAUSED";
   const isTrialing = status === "TRIALING";
+  const trialTierLabel =
+    clinic?.tier && typeof clinic.tier === "string"
+      ? getTierInfo(clinic.tier as TierName).name
+      : "subscription";
   const trialEnd = clinic?.trialEndsAt ? new Date(clinic.trialEndsAt) : null;
   const trialEndText =
     trialEnd && Number.isFinite(trialEnd.getTime())
-      ? trialEnd.toLocaleDateString("en-IN")
+      ? formatDate(trialEnd, "en-IN")
       : null;
   const title = isExpired
     ? "Subscription Expired: Workspace Locked"
-    : isGrace
+    : isGrace || isPastDue || isPaused
       ? "Payment Grace Period: Access Restricted"
       : isTrialing
         ? "Trial Active: Payment Not Completed"
         : "Payment Required";
   const description = isExpired
-    ? "This facility is locked until payment is completed. You can still open billing and upgrade pages to restore access."
+    ? "This facility is locked until payment is completed. You can still open billing under Settings, Subscription to restore access."
     : isGrace
       ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
+      : isPastDue
+        ? "Your payment is overdue. Resolve payment now to keep Docita access active."
+        : isPaused
+          ? "This subscription is paused. Resolve billing to restore full access."
       : isTrialing
-        ? `Your Essential trial is active${trialEndText ? ` until ${trialEndText}` : ""}. Add payment to keep paid features after the trial ends.`
+        ? `Your ${trialTierLabel} trial is active${trialEndText ? ` until ${trialEndText}` : ""}. ${
+            clinic?.tier === "STARTER"
+              ? "Upgrade to a paid plan when you need higher limits."
+              : "Add payment to keep full access after the trial ends."
+          }`
         : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
 
   return (
@@ -250,10 +292,14 @@ function SubscriptionLockNotice() {
           <Button
             size="sm"
             variant={isExpired ? "secondary" : "outline"}
-            onClick={() => router.push("/upgrade")}
+            onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
             className="self-start sm:self-auto"
           >
-            {isTrialing ? "Add Payment" : "Resolve Payment"}
+            {isTrialing && clinic?.tier === "STARTER"
+              ? "View plans"
+              : isTrialing
+                ? "Add Payment"
+                : "Resolve Payment"}
           </Button>
         </AlertDescription>
       </Alert>
@@ -283,24 +329,24 @@ export default function ProtectedLayout({
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
-      setRedirectMessage("Your session is missing. Redirecting to login...");
+      setRedirectMessage("Your session is missing. Redirecting to login…");
       router.replace("/login");
       return;
     }
     if (user.emailVerified === false) {
-      setRedirectMessage("Please verify your email before continuing...");
+      setRedirectMessage("Please verify your email before continuing…");
       router.replace("/verify-email-sent");
       return;
     }
     if (!user.clinicId) {
       if (user.onboardingStep === "JOINING_CLINIC") {
-        setRedirectMessage("Taking you to your join request status...");
+        setRedirectMessage("Taking you to your join request status…");
         router.replace("/join-request-status");
       } else if (user.onboardingStep === "CREATING_CLINIC") {
-        setRedirectMessage("Taking you back to onboarding...");
+        setRedirectMessage("Taking you back to onboarding…");
         router.replace("/onboarding");
       } else {
-        setRedirectMessage("Taking you to facility setup...");
+        setRedirectMessage("Taking you to facility setup…");
         router.replace("/choose-path");
       }
     }
@@ -333,28 +379,41 @@ export default function ProtectedLayout({
 
   if (isLoading) {
     return (
-      <div className="flex h-screen overflow-hidden bg-background">
+      <div
+        className="flex h-screen overflow-hidden bg-background"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading workspace"
+      >
         <div className="hidden md:flex w-[18%] min-w-[200px] flex-col border-r p-4 gap-4">
-          <Skeleton className="h-8 w-32" />
+          <Skeleton animation="wave" className="h-8 w-32" />
           <div className="flex flex-col gap-2 mt-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-9 w-full rounded-md" />
+              <Skeleton
+                key={i}
+                animation="wave"
+                className="h-9 w-full rounded-md"
+              />
             ))}
           </div>
         </div>
         <div className="flex-1 flex flex-col">
           <div className="h-14 border-b flex items-center px-6 gap-4 md:hidden">
-            <Skeleton className="h-8 w-8 rounded-md" />
-            <Skeleton className="h-6 w-24" />
+            <Skeleton animation="wave" className="h-8 w-8 rounded-md" />
+            <Skeleton animation="wave" className="h-6 w-24" />
           </div>
           <div className="flex-1 p-4 md:p-6 flex flex-col gap-4">
-            <Skeleton className="h-8 w-48" />
+            <Skeleton animation="wave" className="h-8 w-48" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-28 rounded-xl" />
+                <Skeleton
+                  key={i}
+                  animation="wave"
+                  className="h-28 rounded-lg"
+                />
               ))}
             </div>
-            <Skeleton className="h-64 rounded-xl" />
+            <Skeleton animation="wave" className="h-64 rounded-lg" />
           </div>
         </div>
       </div>
@@ -364,8 +423,8 @@ export default function ProtectedLayout({
   if (redirectMessage || !user || !user.clinicId) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
-        description={redirectMessage ?? "Preparing your workspace..."}
+        title="Redirecting…"
+        description={redirectMessage ?? "Preparing your workspace…"}
       />
     );
   }
@@ -408,30 +467,37 @@ export default function ProtectedLayout({
                   </ResizablePanel>
                   <div className="relative hidden md:flex overflow-visible">
                     <ResizableHandle onDragging={setIsDragging} />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const next = !isCollapsed;
-                        setIsCollapsed(next);
-                        if (next) {
-                          sidebarPanelRef.current?.collapse();
-                        } else {
-                          sidebarPanelRef.current?.expand();
-                        }
-                      }}
-                      aria-label={
+                    <SymbolTooltip
+                      label={
                         isCollapsed ? "Expand sidebar" : "Collapse sidebar"
                       }
+                      side="right"
                     >
-                      {isCollapsed ? (
-                        <PanelLeftOpen className="h-3 w-3 shrink-0" />
-                      ) : (
-                        <PanelLeftClose className="h-3 w-3 shrink-0" />
-                      )}
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-7 left-1/2 z-30 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-0 bg-transparent p-0 text-muted-foreground shadow-none transition-colors hover:cursor-pointer hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const next = !isCollapsed;
+                          setIsCollapsed(next);
+                          if (next) {
+                            sidebarPanelRef.current?.collapse();
+                          } else {
+                            sidebarPanelRef.current?.expand();
+                          }
+                        }}
+                        aria-label={
+                          isCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                        }
+                      >
+                        {isCollapsed ? (
+                          <PanelLeftOpen className="h-3 w-3 shrink-0" />
+                        ) : (
+                          <PanelLeftClose className="h-3 w-3 shrink-0" />
+                        )}
+                      </Button>
+                    </SymbolTooltip>
                   </div>
                   <ResizablePanel defaultSize={82}>
                     <div className="flex h-full flex-col overflow-hidden">

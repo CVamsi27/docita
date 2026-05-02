@@ -59,6 +59,11 @@ export interface IPatientPortalRepository {
 
   getPatientProfile(patientId: string): Promise<PatientProfile | null>;
 
+  hasActiveTreatmentConsent(
+    patientId: string,
+    clinicId: string,
+  ): Promise<boolean>;
+
   updatePatient(
     patientId: string,
     data: Record<string, unknown>,

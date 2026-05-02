@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { HandleWebhookUseCase } from './handle-webhook.use-case';
 import { IWhatsAppRepository } from '../ports/whatsapp.repository.port';
-import { asType } from '@/test-utils/as-type';
+import { asType } from '@/test-utils';
 import { SupportWhatsAppInboxService } from '@/shared/modules/support-whatsapp';
 import {
   WhatsAppMessage,

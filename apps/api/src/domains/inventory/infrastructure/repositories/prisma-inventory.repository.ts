@@ -51,22 +51,41 @@ export class PrismaInventoryRepository implements IInventoryRepository {
   async updateItem(
     id: string,
     data: Prisma.InventoryItemUpdateInput,
+    clinicId: string,
   ): Promise<InventoryItem> {
-    return this.prisma.inventoryItem.update({ where: { id }, data });
+    const result = await this.prisma.inventoryItem.updateMany({
+      where: { id, clinicId },
+      data: data as Prisma.InventoryItemUpdateManyMutationInput,
+    });
+    if (result.count === 0) {
+      throw new Error(`Inventory item ${id} not found`);
+    }
+    const refreshed = await this.prisma.inventoryItem.findFirst({
+      where: { id, clinicId },
+    });
+    if (!refreshed) {
+      throw new Error(`Inventory item ${id} not found`);
+    }
+    return refreshed;
   }
 
   async addMovementAndUpdateQuantity(
     itemId: string,
+    clinicId: string,
     movementData: Prisma.InventoryMovementCreateInput,
     quantityDelta: number,
   ): Promise<InventoryMovement> {
-    const [movement] = await this.prisma.$transaction([
+    const [movement, updateResult] = await this.prisma.$transaction([
       this.prisma.inventoryMovement.create({ data: movementData }),
-      this.prisma.inventoryItem.update({
-        where: { id: itemId },
+      this.prisma.inventoryItem.updateMany({
+        where: { id: itemId, clinicId },
         data: { quantity: { increment: quantityDelta } },
       }),
     ]);
+
+    if (updateResult.count === 0) {
+      throw new Error(`Inventory item ${itemId} not found`);
+    }
 
     return movement;
   }

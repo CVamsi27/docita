@@ -88,7 +88,7 @@ export function PatientBadgeUI({
       >
         <Avatar className={sizes.avatar}>
           {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+          <AvatarFallback className="border border-border/70 bg-background/70 text-foreground font-medium">
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -112,12 +112,7 @@ export function PatientBadgeUI({
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-1">
-                    <p className="font-medium">Known Allergies:</p>
-                    <ul className="list-disc pl-4">
-                      {allergiesArray.map((allergy, i) => (
-                        <li key={i}>{allergy}</li>
-                      ))}
-                    </ul>
+                    <p>Allergies</p>
                   </div>
                 </TooltipContent>
               </Tooltip>

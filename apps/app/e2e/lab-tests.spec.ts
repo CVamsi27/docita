@@ -6,11 +6,11 @@ test.describe("Lab Tests", () => {
   let authToken: string;
   let clinicId: string;
   let patientId: string;
-  let serverAvailable = true;
+  let suiteAvailable = true;
+  let suiteSkipReason = "";
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-
       const registerRes = await request.post(`${API_URL}/auth/register`, {
         data: {
           email: `doctor${Date.now()}@test.com`,
@@ -23,7 +23,8 @@ test.describe("Lab Tests", () => {
       });
 
       if (!registerRes.ok()) {
-        serverAvailable = false;
+        suiteAvailable = false;
+        suiteSkipReason = `auth/register unavailable (status ${registerRes.status()})`;
         return;
       }
 
@@ -43,6 +44,10 @@ test.describe("Lab Tests", () => {
           zipCode: "55555",
         },
       });
+      expect(
+        clinicRes.ok(),
+        `clinic bootstrap failed: ${clinicRes.status()}`,
+      ).toBeTruthy();
 
       const clinic = await clinicRes.json();
       clinicId = clinic.id;
@@ -57,47 +62,60 @@ test.describe("Lab Tests", () => {
           dateOfBirth: "1992-03-20",
         },
       });
+      expect(
+        patientRes.ok(),
+        `patient bootstrap failed: ${patientRes.status()}`,
+      ).toBeTruthy();
 
       const patient = await patientRes.json();
       patientId = patient.id;
-    } catch {
-      serverAvailable = false;
+    } catch (error) {
+      suiteAvailable = false;
+      suiteSkipReason = `bootstrap threw: ${(error as Error).message}`;
     }
+  });
+
+  test.beforeEach(() => {
+    test.skip(
+      !suiteAvailable,
+      `lab-tests API not provisioned: ${suiteSkipReason}`,
+    );
   });
 
   test("should fetch lab test catalog", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const catalogRes = await request.get(`${API_URL}/lab-tests/catalog`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (catalogRes.ok()) {
-      const catalog = await catalogRes.json();
-      expect(Array.isArray(catalog) || catalog).toBeDefined();
-    }
+    expect(
+      catalogRes.ok(),
+      `GET /lab-tests/catalog failed: ${catalogRes.status()}`,
+    ).toBeTruthy();
+    const catalog = await catalogRes.json();
+    expect(catalog).toBeDefined();
   });
 
   test("should fetch lab test orders", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const ordersRes = await request.get(`${API_URL}/lab-tests/orders`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (ordersRes.ok()) {
-      const orders = await ordersRes.json();
-      expect(Array.isArray(orders) || orders).toBeDefined();
-    }
+    expect(
+      ordersRes.ok(),
+      `GET /lab-tests/orders failed: ${ordersRes.status()}`,
+    ).toBeTruthy();
+    const orders = await ordersRes.json();
+    expect(orders).toBeDefined();
   });
 
   test("should fetch lab test order stats", async ({ request }) => {
     const statsRes = await request.get(`${API_URL}/lab-tests/orders/stats`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (statsRes.ok()) {
-      const stats = await statsRes.json();
-      expect(stats).toBeDefined();
-    }
+    expect(
+      statsRes.ok(),
+      `GET /lab-tests/orders/stats failed: ${statsRes.status()}`,
+    ).toBeTruthy();
+    const stats = await statsRes.json();
+    expect(stats).toBeDefined();
   });
 
   test("should create lab test order", async ({ request }) => {
@@ -110,10 +128,11 @@ test.describe("Lab Tests", () => {
         clinicId,
       },
     });
-
-    if (orderRes.ok()) {
-      const order = await orderRes.json();
-      expect(order.id).toBeDefined();
-    }
+    expect(
+      orderRes.ok(),
+      `POST /lab-tests/orders failed: ${orderRes.status()}`,
+    ).toBeTruthy();
+    const order = await orderRes.json();
+    expect(order.id).toBeDefined();
   });
 });

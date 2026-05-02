@@ -19,9 +19,11 @@ import {
   ArrowUpDown,
   Calendar,
   Pencil,
+  Stethoscope,
   UserPlus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 
 type PatientsSortConfig = {
   key: keyof Patient | "fullName";
@@ -48,6 +50,7 @@ interface PatientsPageUIProps {
   canGoNext: boolean;
   onPrevPage: () => void;
   onNextPage: () => void;
+  onOpenConsultationQueue?: () => void;
 }
 
 export function PatientsPageUI({
@@ -70,6 +73,7 @@ export function PatientsPageUI({
   canGoNext,
   onPrevPage,
   onNextPage,
+  onOpenConsultationQueue,
 }: PatientsPageUIProps) {
   const getAriaSort = (column: keyof Patient | "fullName") => {
     if (sortConfig?.key !== column) {
@@ -95,10 +99,24 @@ export function PatientsPageUI({
         title="Patients"
         description="Manage your patient records and history"
         actions={
-          <Button onClick={onAddPatient} className="gap-2">
-            <UserPlus className="h-4 w-4" />
-            Add Patient
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenConsultationQueue ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onOpenConsultationQueue}
+                className="gap-2"
+              >
+                <Stethoscope className="h-4 w-4" />
+                <span className="hidden sm:inline">Consultation queue</span>
+                <span className="sm:hidden">Queue</span>
+              </Button>
+            ) : null}
+            <Button onClick={onAddPatient} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add Patient
+            </Button>
+          </div>
         }
       />
 
@@ -107,7 +125,7 @@ export function PatientsPageUI({
           <div className="mb-6 flex items-center gap-4">
             <div className="max-w-sm flex-1">
               <DebouncedSearchInput
-                placeholder="Search by name or phone"
+                placeholder="Enter name or phone"
                 className="bg-background"
                 value={searchQuery}
                 onChange={onSearchChange}
@@ -121,12 +139,12 @@ export function PatientsPageUI({
           </div>
 
           {error && (
-            <div className="mb-6 rounded-md border border-destructive/20 bg-destructive/10 p-4">
+            <div className="surface-danger mb-6 rounded-[var(--radius)] p-4">
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-md border border-border">
+          <div className="ui-card-surface overflow-x-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-muted/50">
@@ -159,14 +177,41 @@ export function PatientsPageUI({
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24">
-                      <div className="space-y-2 px-4">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-2/3" />
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 8 }).map((_, row) => (
+                    <TableRow key={`skeleton-${row}`} className="hover:bg-transparent">
+                      <TableCell>
+                        <Skeleton
+                          variant="circular"
+                          animation="wave"
+                          className="h-8 w-8"
+                        />
+                      </TableCell>
+                      <TableCell className="max-w-[160px] sm:max-w-xs">
+                        <Skeleton animation="wave" className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="space-y-2">
+                          <Skeleton animation="wave" className="h-4 w-36" />
+                          <Skeleton animation="wave" className="h-3 w-44" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Skeleton animation="wave" className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Skeleton
+                            animation="wave"
+                            className="h-8 w-20 rounded-md"
+                          />
+                          <Skeleton
+                            animation="wave"
+                            className="h-8 w-9 rounded-md"
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : filteredPatients.length === 0 ? (
                   <TableRow>
                     <TableCell
@@ -204,8 +249,8 @@ export function PatientsPageUI({
                         }}
                       >
                         <TableCell>
-                          <Avatar className="h-8 w-8 bg-primary/10 text-primary">
-                            <AvatarFallback className="bg-primary/10 text-primary">
+                          <Avatar className="h-8 w-8 border border-border/70 bg-background/70 text-foreground">
+                            <AvatarFallback className="border border-border/70 bg-background/70 text-foreground">
                               {patient.firstName.charAt(0)}
                               {patient.lastName.charAt(0)}
                             </AvatarFallback>
@@ -227,35 +272,37 @@ export function PatientsPageUI({
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 gap-1.5"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (patientId) {
-                                  onSchedulePatient(patientId);
-                                }
-                              }}
-                              disabled={!patientId}
-                              title="Schedule appointment"
-                            >
-                              <Calendar className="h-4 w-4" />
-                              <span className="hidden sm:inline">Schedule</span>
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 gap-1.5"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEditPatient(patient);
-                              }}
-                              title="Edit patient"
-                            >
-                              <Pencil className="h-4 w-4" />
-                              <span className="hidden sm:inline">Edit</span>
-                            </Button>
+                            <SymbolTooltip label="Schedule appointment">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-1.5"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (patientId) {
+                                    onSchedulePatient(patientId);
+                                  }
+                                }}
+                                disabled={!patientId}
+                              >
+                                <Calendar className="h-4 w-4" />
+                                <span className="hidden sm:inline">Schedule</span>
+                              </Button>
+                            </SymbolTooltip>
+                            <SymbolTooltip label="Edit patient">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 gap-1.5"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onEditPatient(patient);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                <span className="hidden sm:inline">Edit</span>
+                              </Button>
+                            </SymbolTooltip>
                           </div>
                         </TableCell>
                       </TableRow>

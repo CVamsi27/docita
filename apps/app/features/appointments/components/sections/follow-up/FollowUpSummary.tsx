@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import {
   Bell,
   Calendar as CalendarIcon,
@@ -37,7 +37,7 @@ export function FollowUpSummary({
       <div className="flex flex-wrap gap-2">
         <Badge variant="outline" className="gap-1">
           <CalendarIcon className="h-3 w-3" />
-          {format(selectedDate, "MMM d, yyyy")}
+          {formatDate(selectedDate, "MMM d, yyyy")}
         </Badge>
         <Badge variant="outline" className="gap-1">
           <Clock className="h-3 w-3" />

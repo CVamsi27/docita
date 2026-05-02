@@ -276,17 +276,10 @@ export class InvoicesService {
     });
   }
 
-  async findOne(id: string, clinicId?: string): Promise<InvoiceDetail> {
-    const invoice = await this.repository.findById(id);
+  async findOne(id: string, clinicId: string): Promise<InvoiceDetail> {
+    const invoice = await this.repository.findById(id, clinicId);
     if (!invoice) {
       throw new NotFoundException(`Invoice ${id} not found`);
-    }
-
-    if (clinicId) {
-      const invoiceClinicId = invoice.clinicId ?? invoice.patient?.clinic?.id;
-      if (invoiceClinicId && invoiceClinicId !== clinicId) {
-        throw new NotFoundException(`Invoice ${id} not found`);
-      }
     }
     return invoice;
   }
@@ -378,7 +371,7 @@ export class InvoicesService {
   async update(
     id: string,
     data: { status?: InvoiceStatus; total?: number; items?: InvoiceItem[] },
-    clinicId?: string,
+    clinicId: string,
   ): Promise<InvoiceDetail> {
     const existing = await this.findOne(id, clinicId);
 
@@ -451,19 +444,19 @@ export class InvoicesService {
       };
     }
 
-    return this.repository.update(id, updateData);
+    return this.repository.update(id, updateData, clinicId);
   }
 
   async getClaimReadiness(
     id: string,
-    clinicId?: string,
+    clinicId: string,
   ): Promise<ClaimReadinessResult> {
     return this.claimValidationService.evaluateClaimReadiness(id, clinicId);
   }
 
   async submitClaim(
     id: string,
-    clinicId?: string,
+    clinicId: string,
   ): Promise<{
     invoiceId: string;
     claimReady: true;
@@ -481,11 +474,11 @@ export class InvoicesService {
     };
   }
 
-  async remove(id: string): Promise<void> {
-    await this.repository.delete(id);
+  async remove(id: string, clinicId: string): Promise<void> {
+    await this.repository.delete(id, clinicId);
   }
 
-  async generatePDF(id: string, clinicId?: string): Promise<Buffer> {
+  async generatePDF(id: string, clinicId: string): Promise<Buffer> {
     const invoice = await this.findOne(id, clinicId);
 
     const items = parseInvoiceItems(invoice.items);
@@ -587,7 +580,7 @@ export class InvoicesService {
 
   async getPdf(
     id: string,
-    clinicId?: string,
+    clinicId: string,
   ): Promise<
     { type: 'url'; url: string } | { type: 'buffer'; buffer: Buffer }
   > {
@@ -630,7 +623,7 @@ export class InvoicesService {
 
   async uploadAndPersist(
     id: string,
-    clinicId: string | undefined,
+    clinicId: string,
     buffer: Buffer,
     invoice: InvoiceDetail,
   ): Promise<{ storedKey: string; generatedAt: Date }> {
@@ -654,11 +647,15 @@ export class InvoicesService {
       },
     );
 
-    await this.repository.update(id, {
-      pdfUrl: storedKey,
-      pdfGeneratedAt: generatedAt,
-      pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
-    });
+    await this.repository.update(
+      id,
+      {
+        pdfUrl: storedKey,
+        pdfGeneratedAt: generatedAt,
+        pdfTemplateVersion: CURRENT_PDF_TEMPLATE_VERSION,
+      },
+      clinicId,
+    );
 
     return { storedKey, generatedAt };
   }

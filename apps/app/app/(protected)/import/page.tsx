@@ -26,6 +26,7 @@ import {
 } from "@/features/_shared/components/auth/feature-gate";
 import { Feature, Tier } from "@/lib/stores/permission-store";
 import { BulkImportDialog } from "@/features/dialogs/components/BulkImportDialogContainer";
+import { BulletStepList } from "@/components/common/bullet-step-list";
 
 export default function ImportPage() {
   const [showBulkImport, setShowBulkImport] = useState(false);
@@ -55,24 +56,15 @@ export default function ImportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                Auto-detect column mappings
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                Clean phone numbers & names
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                Duplicate detection by phone & name
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-success" />
-                Preview before importing
-              </li>
-            </ul>
+            <BulletStepList
+              bulletClassName="bg-success"
+              items={[
+                "Auto-detect column mappings",
+                "Clean phone numbers & names",
+                "Duplicate detection by phone & name",
+                "Preview before importing",
+              ]}
+            />
             <Link href="/import/excel">
               <Button className="w-full">
                 <Upload className="mr-2 h-4 w-4" />
@@ -98,24 +90,15 @@ export default function ImportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                AI handwriting recognition
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Extract medications & dosages
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Auto-enhance scanned images
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Review & correct extracted data
-              </li>
-            </ul>
+            <BulletStepList
+              bulletClassName="bg-primary"
+              items={[
+                "AI handwriting recognition",
+                "Extract medications & dosages",
+                "Auto-enhance scanned images",
+                "Review & correct extracted data",
+              ]}
+            />
             <FeatureGate
               feature={Feature.OCR_BASIC}
               fallback={
@@ -152,25 +135,15 @@ export default function ImportPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-info" />
-              Import 5 entity types (patient, prescription, doctor, lab-test,
-              inventory)
-            </li>
-            <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-info" />
-              Batch processing with error collection
-            </li>
-            <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-info" />
-              Download CSV templates per entity type
-            </li>
-            <li className="flex items-center gap-2">
-              <div className="h-1.5 w-1.5 rounded-full bg-info" />
-              Real-time progress tracking
-            </li>
-          </ul>
+          <BulletStepList
+            bulletClassName="bg-info"
+            items={[
+              "Import 5 entity types (patient, prescription, doctor, lab-test, inventory)",
+              "Batch processing with error collection",
+              "Download CSV templates per entity type",
+              "Real-time progress tracking",
+            ]}
+          />
           <Button onClick={() => setShowBulkImport(true)} className="w-full">
             <Upload className="mr-2 h-4 w-4" />
             Start Bulk Import
@@ -185,7 +158,7 @@ export default function ImportPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
-            <strong>Excel Import:</strong> Make sure your file has headers in
+            <strong>Excel Import: </strong> Make sure your file has headers in
             the first row. Common column names like &quot;First Name&quot;,
             &quot;Phone Number&quot;, etc. will be automatically detected.
           </p>

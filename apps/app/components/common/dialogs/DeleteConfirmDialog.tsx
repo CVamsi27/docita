@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog";
 import { Button } from "@workspace/ui/components/button";
-import { Loader2 } from "lucide-react";
+
 
 export interface DeleteConfirmDialogProps {
   open: boolean;
@@ -42,7 +43,7 @@ export const DeleteConfirmDialog = ({
           Cancel
         </Button>
         <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
           Delete
         </Button>
       </DialogFooter>

@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useMemo, useState } from "react";
 import { z } from "zod";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -124,7 +126,7 @@ export function CancelAppointmentDialog({
               <Textarea
                 value={otherReason}
                 onChange={(e) => setOtherReason(e.target.value)}
-                placeholder="Short reason"
+                placeholder="Cancellation reason"
                 className="min-h-[90px]"
               />
             </div>
@@ -149,7 +151,7 @@ export function CancelAppointmentDialog({
             disabled={isLoading}
             className="gap-2"
           >
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading && <DocitaLoadingIndicator variant="inline" decorative />}
             Cancel Appointment
           </Button>
         </DialogFooter>

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  consultationDraftNeedsLeaveGuard,
   hashDiagnosesForSync,
   useConsultationDraft,
 } from "./useConsultationDraft";
@@ -65,6 +66,32 @@ describe("useConsultationDraft", () => {
     expect(state.saveState).toBe("error");
     expect(state.lastError).toBe("offline");
     expect(state.dirty).toBe(true);
+  });
+});
+
+describe("consultationDraftNeedsLeaveGuard", () => {
+  it("is true when dirty, saving, or error", () => {
+    expect(
+      consultationDraftNeedsLeaveGuard({ dirty: true, saveState: "idle" }),
+    ).toBe(true);
+    expect(
+      consultationDraftNeedsLeaveGuard({ dirty: false, saveState: "saving" }),
+    ).toBe(true);
+    expect(
+      consultationDraftNeedsLeaveGuard({ dirty: false, saveState: "error" }),
+    ).toBe(true);
+  });
+
+  it("is false when clean and not in-flight", () => {
+    expect(
+      consultationDraftNeedsLeaveGuard({ dirty: false, saveState: "idle" }),
+    ).toBe(false);
+    expect(
+      consultationDraftNeedsLeaveGuard({ dirty: false, saveState: "saved" }),
+    ).toBe(false);
+    expect(
+      consultationDraftNeedsLeaveGuard({ dirty: false, saveState: "dirty" }),
+    ).toBe(false);
   });
 });
 

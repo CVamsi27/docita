@@ -90,15 +90,17 @@ export interface IPrescriptionRepository {
   findAll(
     params: PrescriptionSearchParams,
   ): Promise<Prescription[] | PaginatedResult<Prescription>>;
-  findById(id: string): Promise<PrescriptionDetail | null>;
+  findById(id: string, clinicId: string): Promise<PrescriptionDetail | null>;
   create(data: Prisma.PrescriptionCreateInput): Promise<Prescription>;
   update(
     id: string,
     data: Prisma.PrescriptionUpdateInput,
+    clinicId: string,
   ): Promise<Prescription>;
-  delete(id: string): Promise<void>;
+  delete(id: string, clinicId: string): Promise<void>;
   findPatientWithAllergies(
     patientId: string,
+    clinicId: string,
   ): Promise<PatientWithAllergies | null>;
   findDoctorCompliance(
     doctorId: string,

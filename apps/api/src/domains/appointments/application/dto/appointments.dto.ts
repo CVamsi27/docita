@@ -1,13 +1,22 @@
 import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
 import {
   appointmentCancelRequestSchema,
   appointmentRescheduleRequestSchema,
   appointmentResponseSchema,
+  appointmentRequestListResponseSchema,
   createAppointmentRequestSchema,
+  approveAppointmentRequestSchema,
+  bookFollowUpRequestSchema,
+  createFollowUpRequestSchema,
   diagnosesSyncRequestSchema,
   diagnosesSyncResponseSchema,
+  followUpResponseSchema,
+  listAppointmentRequestsQuerySchema,
   listAppointmentsQuerySchema,
+  listAppointmentsResponseSchema,
+  listFollowUpsQuerySchema,
+  patientAppointmentRequestCreateSchema,
+  rejectAppointmentRequestSchema,
   updateAppointmentRequestSchema,
   vitalSignSchema,
 } from '@workspace/types';
@@ -43,14 +52,40 @@ export class AppointmentResponseDto extends createZodDto(
   appointmentResponseSchema,
 ) {}
 
-const PaginatedAppointmentResponseSchema = z.object({
-  items: z.array(appointmentResponseSchema),
-  nextCursor: z.string().optional(),
-  hasMore: z.boolean(),
-  count: z.number().optional(),
-});
+export class CreateFollowUpDto extends createZodDto(
+  createFollowUpRequestSchema,
+) {}
+
+export class ListFollowUpsQueryDto extends createZodDto(
+  listFollowUpsQuerySchema,
+) {}
+
+export class BookFollowUpDto extends createZodDto(bookFollowUpRequestSchema) {}
+
+export class FollowUpResponseDto extends createZodDto(followUpResponseSchema) {}
+
+export class PatientAppointmentRequestCreateDto extends createZodDto(
+  patientAppointmentRequestCreateSchema,
+) {}
+
+export class ListAppointmentRequestsQueryDto extends createZodDto(
+  listAppointmentRequestsQuerySchema,
+) {}
+
+export class ApproveAppointmentRequestDto extends createZodDto(
+  approveAppointmentRequestSchema,
+) {}
+
+export class RejectAppointmentRequestDto extends createZodDto(
+  rejectAppointmentRequestSchema,
+) {}
+
+export class AppointmentRequestListResponseDto extends createZodDto(
+  appointmentRequestListResponseSchema,
+) {}
+
 export class PaginatedAppointmentResponseDto extends createZodDto(
-  PaginatedAppointmentResponseSchema,
+  listAppointmentsResponseSchema,
 ) {}
 
 export class VitalSignResponseDto extends createZodDto(vitalSignSchema) {}

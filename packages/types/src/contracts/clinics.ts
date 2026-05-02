@@ -123,11 +123,45 @@ export const createClinicReceptionistRequestSchema = z.object({
   role: z.enum(["RECEPTIONIST", "NURSE"]).optional(),
 });
 
+const clinicMemberInviteRoleSchema = z.enum([
+  "DOCTOR",
+  "NURSE",
+  "RECEPTIONIST",
+  "ADMIN",
+  "ADMIN_DOCTOR",
+]);
+
+export const createClinicMemberRequestSchema = z
+  .object({
+    name: z.string().min(1),
+    email: z.string().email(),
+    password: z.string().min(8),
+    phoneNumber: z.string().optional(),
+    role: clinicMemberInviteRoleSchema,
+    specialization: z.string().optional(),
+    qualification: z.string().optional(),
+    registrationNumber: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      (data.role === "DOCTOR" || data.role === "ADMIN_DOCTOR") &&
+      !data.registrationNumber?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["registrationNumber"],
+        message: "Enter the medical registration number",
+      });
+    }
+  });
+
 export const updateClinicMemberRequestSchema = z.object({
   name: z.string().min(1).optional(),
   email: z.string().email().optional(),
   phoneNumber: z.string().optional(),
-  role: z.enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN_DOCTOR"]).optional(),
+  role: z
+    .enum(["DOCTOR", "NURSE", "RECEPTIONIST", "ADMIN", "ADMIN_DOCTOR"])
+    .optional(),
   specialization: z.string().optional(),
   qualification: z.string().optional(),
   registrationNumber: z.string().optional(),
@@ -157,6 +191,9 @@ export type CreateClinicDoctorRequest = z.infer<
 >;
 export type CreateClinicReceptionistRequest = z.infer<
   typeof createClinicReceptionistRequestSchema
+>;
+export type CreateClinicMemberRequest = z.infer<
+  typeof createClinicMemberRequestSchema
 >;
 export type UpdateClinicMemberRequest = z.infer<
   typeof updateClinicMemberRequestSchema

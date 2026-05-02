@@ -30,4 +30,34 @@ const TooltipContent = React.forwardRef<
 ));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
+export interface SymbolTooltipProps {
+  /** Tooltip body; keep concise for icon-only controls. */
+  label: React.ReactNode;
+  children: React.ReactElement;
+  side?: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>["side"];
+  contentClassName?: string;
+  delayDuration?: number;
+}
+
+/**
+ * Wraps a single interactive or focusable child with the app tooltip surface
+ * (Radix + design tokens). Prefer this over the native `title` attribute.
+ */
+export function SymbolTooltip({
+  label,
+  children,
+  side = "top",
+  contentClassName,
+  delayDuration,
+}: SymbolTooltipProps) {
+  return (
+    <Tooltip delayDuration={delayDuration}>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side={side} className={contentClassName}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };

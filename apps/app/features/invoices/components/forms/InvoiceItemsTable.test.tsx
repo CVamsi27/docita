@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
+import { render } from "@/test/render-with-tooltip";
 import { describe, expect, it, vi } from "vitest";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 
@@ -28,7 +29,7 @@ describe("InvoiceItemsTable", () => {
     expect(screen.getByDisplayValue("Consultation")).toBeInTheDocument();
     expect(screen.getByText("Healthcare exempt")).toBeInTheDocument();
     expect(screen.getByDisplayValue("0")).toBeDisabled();
-    expect(screen.getByPlaceholderText("9993")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("HSN code")).toBeInTheDocument();
     expect(screen.getByText("Rs 500")).toBeInTheDocument();
   });
 
@@ -51,7 +52,7 @@ describe("InvoiceItemsTable", () => {
     fireEvent.change(screen.getByDisplayValue("18"), {
       target: { value: "12" },
     });
-    fireEvent.change(screen.getByPlaceholderText("9993"), {
+    fireEvent.change(screen.getByPlaceholderText("HSN code"), {
       target: { value: "9983" },
     });
 

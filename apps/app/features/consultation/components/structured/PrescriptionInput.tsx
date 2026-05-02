@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import {
   Select,
@@ -89,11 +90,11 @@ export function PrescriptionInput({
         {medications.map((med, index) => (
           <div
             key={index}
-            className="p-3 bg-muted/20 border rounded-lg space-y-2 transition-colors hover:bg-muted/30"
+            className="p-3 bg-muted/20 border border-border/70 rounded-[var(--radius)] space-y-2 transition-colors hover:bg-muted/30"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-full">
+                <div className="rounded-full border border-border/70 bg-background/70 p-1.5">
                   <Pill className="h-4 w-4 text-primary" />
                 </div>
                 <span className="text-sm font-medium">
@@ -101,22 +102,24 @@ export function PrescriptionInput({
                 </span>
               </div>
               {!readOnly && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => removeMedication(index)}
-                  title="Remove medication"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <SymbolTooltip label="Remove medication">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => removeMedication(index)}
+                    aria-label="Remove medication"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </SymbolTooltip>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="col-span-1 md:col-span-4">
                 <Input
-                  placeholder="Medication Name (e.g. Amoxicillin 500mg)"
+                  placeholder="Medication name"
                   value={med.name}
                   onChange={(e) =>
                     updateMedication(index, "name", e.target.value)
@@ -127,7 +130,7 @@ export function PrescriptionInput({
               </div>
               <div className="col-span-1 md:col-span-2">
                 <Input
-                  placeholder="Dosage (e.g. 1 tab)"
+                  placeholder="Dosage"
                   value={med.dosage}
                   onChange={(e) =>
                     updateMedication(index, "dosage", e.target.value)
@@ -138,7 +141,7 @@ export function PrescriptionInput({
               </div>
               <div className="col-span-1 md:col-span-2">
                 <Input
-                  placeholder="Freq (e.g. BID)"
+                  placeholder="Frequency"
                   value={med.frequency}
                   onChange={(e) =>
                     updateMedication(index, "frequency", e.target.value)
@@ -197,7 +200,7 @@ export function PrescriptionInput({
               </div>
               <div className="col-span-1 md:col-span-12">
                 <Input
-                  placeholder="Instructions (e.g. Take after food)"
+                  placeholder="Instructions"
                   value={med.instructions || ""}
                   onChange={(e) =>
                     updateMedication(index, "instructions", e.target.value)
@@ -223,7 +226,7 @@ export function PrescriptionInput({
       )}
 
       {medications.length === 0 && readOnly && (
-        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+        <div className="text-center py-8 text-muted-foreground border border-dashed rounded-[var(--radius)]">
           No medications prescribed.
         </div>
       )}

@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,10 +13,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { Skeleton } from "@workspace/ui/components/skeleton";
 import { Label } from "@workspace/ui/components/label";
 import { Switch } from "@workspace/ui/components/switch";
 import { Button } from "@workspace/ui/components/button";
-import { Bell, Loader2, Smartphone } from "lucide-react";
+import { Bell, Smartphone } from "lucide-react";
 import {
   ClinicAppSettings,
   useClinicSettings,
@@ -74,9 +77,6 @@ export function NotificationSettings() {
       {
         pushNotifications: data.inAppNotifications,
         whatsappAppointmentReminders: data.whatsappNotifications,
-        whatsappFollowUpMessages: data.whatsappNotifications,
-        whatsappBirthdayWishes: data.whatsappNotifications,
-        whatsappMedicineReminders: data.whatsappNotifications,
       },
       {
         onSuccess: () => {
@@ -95,15 +95,27 @@ export function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading notification settings"
+      >
+        <CardHeader>
+          <Skeleton animation="wave" className="h-6 w-56" />
+          <Skeleton animation="wave" className="mt-2 h-4 w-full max-w-md" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
+          <Skeleton animation="wave" className="h-12 w-full rounded-lg" />
+          <Skeleton animation="wave" className="h-10 w-32" />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card >
+      <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-warning" />
@@ -175,7 +187,7 @@ export function NotificationSettings() {
               />
 
               <Button className="w-full" type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Save Preferences
               </Button>
             </form>

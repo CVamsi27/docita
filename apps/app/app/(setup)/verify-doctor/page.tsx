@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Circle, Loader2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
@@ -14,6 +16,7 @@ import { ApiError } from "@/lib/errors";
 import {
   sanitizeUserFacingMessage,
   type Clinic,
+  type UpdateDoctorRegistrationRequest,
   type User,
 } from "@workspace/types";
 import { PageTransitionLoader } from "@/components/common/loaders/page-transition-loader";
@@ -27,6 +30,8 @@ export default function VerifyDoctorPage() {
   const { user, refreshUser, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [registrationNumber, setRegistrationNumber] = useState("");
+  const [registrationCouncil, setRegistrationCouncil] = useState("");
+  const [registrationStateCode, setRegistrationStateCode] = useState("");
   const [registrationError, setRegistrationError] = useState<string | null>(
     null,
   );
@@ -55,7 +60,7 @@ export default function VerifyDoctorPage() {
 
   const updateDoctorRegistration = useAPIMutation<
     User,
-    { registrationNumber: string }
+    UpdateDoctorRegistrationRequest
   >(`/doctors/${user?.id}/registration-number`, "PUT", {
     invalidateKeys: [["doctor-profile", user?.id ?? ""]],
   });
@@ -67,6 +72,12 @@ export default function VerifyDoctorPage() {
 
   const profile = doctorProfile ?? user;
   const hasSignature = !!profile?.signatureUrl;
+
+  useEffect(() => {
+    if (!doctorProfile) return;
+    setRegistrationCouncil(doctorProfile.registrationCouncil ?? "");
+    setRegistrationStateCode(doctorProfile.registrationStateCode ?? "");
+  }, [doctorProfile]);
   const hasSavedRegistration = !!profile?.registrationNumber;
   const hasDraftRegistration = registrationNumber.trim().length > 0;
   const hasRegistrationProgress = hasSavedRegistration || hasDraftRegistration;
@@ -157,9 +168,15 @@ export default function VerifyDoctorPage() {
     setIsSavingReg(true);
     setRegistrationError(null);
     try {
-      await updateDoctorRegistration.mutateAsync({
+      const payload: UpdateDoctorRegistrationRequest = {
         registrationNumber: registrationNumber.trim(),
-      });
+      };
+      const council = registrationCouncil.trim();
+      const region = registrationStateCode.trim();
+      if (council) payload.registrationCouncil = council;
+      if (region) payload.registrationStateCode = region;
+
+      await updateDoctorRegistration.mutateAsync(payload);
       await refetch();
       toast.success("Registration number saved");
       setRegistrationNumber("");
@@ -241,7 +258,7 @@ export default function VerifyDoctorPage() {
   if (isRedirecting) {
     return (
       <PageTransitionLoader
-        title="Redirecting to dashboard..."
+        title="Redirecting to dashboard…"
         description="Finalizing your verification state"
       />
     );
@@ -255,8 +272,17 @@ export default function VerifyDoctorPage() {
     canContinue
   ) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex min-h-screen items-center justify-center bg-background px-4"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading doctor verification"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-10 w-10 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -270,7 +296,8 @@ export default function VerifyDoctorPage() {
     },
     {
       label: "Medical Registration Number",
-      description: "Your council registration number for verification",
+      description:
+        "Registration number and jurisdiction details for council verification",
       done: hasRegistrationProgress,
       required: true,
     },
@@ -283,11 +310,9 @@ export default function VerifyDoctorPage() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-            Profile Verification
-          </h1>
+          <h1 className="ui-page-title">Profile Verification</h1>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="ui-page-subtitle">
           Complete your profile before accessing the dashboard. This ensures
           patient safety and regulatory compliance.
         </p>
@@ -297,12 +322,14 @@ export default function VerifyDoctorPage() {
         className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
         style={{ animationDelay: "100ms" }}
       >
-        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-4 shadow-md">
+        <div className="ui-card-surface p-4">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium">Setup Progress</span>
+            <span className="ui-section-title text-[var(--fs-sm)]">
+              Setup Progress
+            </span>
             <span className="text-xs text-muted-foreground">
-              {completedCount} of {steps.filter((s) => s.required).length}{" "}
-              required
+              {completedCount} of {steps.filter((s) => s.required).length}
+              <span className="ml-1">required</span>
             </span>
           </div>
           <div className="space-y-2">
@@ -333,7 +360,7 @@ export default function VerifyDoctorPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
+        <div className="ui-card-surface space-y-3 p-5">
           <div className="flex items-center gap-2">
             {hasSignature ? (
               <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -351,7 +378,7 @@ export default function VerifyDoctorPage() {
                 Signature uploaded successfully.
               </div>
               {resolvedProfileSignatureUrl && (
-                <div className="rounded-lg border bg-white p-4 flex items-center justify-center min-h-[100px]">
+                <div className="rounded-lg border bg-background p-4 flex items-center justify-center min-h-[100px]">
                   <img
                     src={resolvedProfileSignatureUrl}
                     alt="Your uploaded signature"
@@ -361,10 +388,10 @@ export default function VerifyDoctorPage() {
               )}
               <p className="text-xs text-muted-foreground">
                 This signature will appear on prescriptions and medical
-                documents.{" "}
+                documents.
                 <a
                   href="/settings?tab=doctor-profile"
-                  className="text-primary underline-offset-2 hover:underline"
+                  className="ml-1 text-primary underline-offset-2 hover:underline"
                 >
                   Re-upload in Settings
                 </a>
@@ -386,7 +413,7 @@ export default function VerifyDoctorPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center rounded-lg border bg-white p-4 min-h-[100px]">
+                  <div className="flex items-center justify-center rounded-lg border bg-background p-4 min-h-[100px]">
                     <img
                       src={resolvedOnboardingSignatureUrl}
                       alt="Onboarding signature preview"
@@ -405,8 +432,8 @@ export default function VerifyDoctorPage() {
                     >
                       {isApplyingOnboardingSignature ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Applying...
+                          <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                          Applying…
                         </>
                       ) : (
                         "Use onboarding signature"
@@ -480,7 +507,7 @@ export default function VerifyDoctorPage() {
           )}
         </div>
 
-        <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-5 shadow-md space-y-3">
+        <div className="ui-card-surface space-y-3 p-5">
           <div className="flex items-center gap-2">
             {hasRegistrationProgress ? (
               <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
@@ -492,50 +519,119 @@ export default function VerifyDoctorPage() {
             </h2>
           </div>
           {hasSavedRegistration ? (
-            <p className="text-sm text-muted-foreground">
-              Saved:{" "}
-              <span className="font-medium text-foreground">
-                {profile?.registrationNumber}
-              </span>
-            </p>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                Saved:
+                <span className="ml-1 font-medium text-foreground">
+                  {profile?.registrationNumber}
+                </span>
+              </p>
+              {(profile?.registrationCouncil || profile?.registrationStateCode) && (
+                <p className="text-xs">
+                  {profile?.registrationCouncil ? (
+                    <>
+                      Council:
+                      <span className="ml-1 font-medium text-foreground">
+                        {profile.registrationCouncil}
+                      </span>
+                    </>
+                  ) : null}
+                  {profile?.registrationStateCode ? (
+                    <>
+                      <span className={profile?.registrationCouncil ? " ml-2" : ""}>
+                        Region:
+                        <span className="ml-1 font-medium text-foreground">
+                          {profile.registrationStateCode}
+                        </span>
+                      </span>
+                    </>
+                  ) : null}
+                </p>
+              )}
+              <p className="text-xs">
+                Verification timing depends on your council. You can continue once
+                your registration number is saved.
+              </p>
+            </div>
           ) : (
-            <div className="space-y-2">
-              <Label
-                htmlFor="registration-number"
-                className="text-xs text-muted-foreground"
-              >
-                Enter your medical council registration number
-              </Label>
-              <div className="relative">
-                <Input
-                  id="registration-number"
-                  placeholder="e.g. MH-12345"
-                  value={registrationNumber}
-                  onChange={(e) => {
-                    setRegistrationNumber(e.target.value);
-                    if (registrationError) {
-                      setRegistrationError(null);
-                    }
-                  }}
-                  onBlur={() => {
-                    if (!registrationNumber.trim() || isSavingReg) return;
-                    void handleSaveRegistration();
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key !== "Enter") return;
-                    event.preventDefault();
-                    if (!registrationNumber.trim() || isSavingReg) return;
-                    void handleSaveRegistration();
-                  }}
-                  aria-invalid={registrationError ? true : false}
-                  className={`pr-10 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
-                />
-                {isSavingReg ? (
-                  <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-                ) : null}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="registration-number"
+                  className="text-xs text-muted-foreground"
+                >
+                  Medical council registration number
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="registration-number"
+                    placeholder="Registration number"
+                    value={registrationNumber}
+                    onChange={(e) => {
+                      setRegistrationNumber(e.target.value);
+                      if (registrationError) {
+                        setRegistrationError(null);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                    aria-invalid={registrationError ? true : false}
+                    className={`pr-10 ${registrationError ? "border-destructive focus-visible:ring-destructive/40" : ""}`}
+                  />
+                  {isSavingReg ? (
+                    <DocitaLoadingIndicator variant="inline" decorative className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" />
+                  ) : null}
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="registration-council"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Issuing council (optional)
+                  </Label>
+                  <Input
+                    id="registration-council"
+                    placeholder="Medical council"
+                    value={registrationCouncil}
+                    onChange={(e) => setRegistrationCouncil(e.target.value)}
+                    onBlur={() => {
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="registration-region"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Region code (optional)
+                  </Label>
+                  <Input
+                    id="registration-region"
+                    placeholder="State code"
+                    value={registrationStateCode}
+                    onChange={(e) => setRegistrationStateCode(e.target.value)}
+                    onBlur={() => {
+                      if (!registrationNumber.trim() || isSavingReg) return;
+                      void handleSaveRegistration();
+                    }}
+                  />
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Press Enter or click outside the field to save.
+                Save runs when you leave the registration number field or press
+                Enter there. Optional fields are sent with the same save.
               </p>
               {registrationError && (
                 <p className="text-xs text-destructive">{registrationError}</p>

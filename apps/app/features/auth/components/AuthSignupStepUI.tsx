@@ -1,8 +1,12 @@
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+"use client";
+
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+import { Eye, EyeOff } from "lucide-react";
 import { ErrorBanner } from "@/components/common/error-banner";
 import { FormField } from "@/components/common/form-field";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
@@ -145,22 +149,25 @@ export function AuthSignupStepUI({
                   : undefined
               }
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
-              onClick={onTogglePassword}
+            <SymbolTooltip
+              label={showPassword ? "Hide password" : "Show password"}
+              side="left"
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-              <span className="sr-only">
-                {showPassword ? "Hide password" : "Show password"}
-              </span>
-            </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
+                onClick={onTogglePassword}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </SymbolTooltip>
           </div>
           {hasFieldError(fieldErrors, "password") && (
             <InlineFieldError
@@ -199,22 +206,25 @@ export function AuthSignupStepUI({
                   : undefined
               }
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
-              onClick={onTogglePassword}
+            <SymbolTooltip
+              label={showPassword ? "Hide password" : "Show password"}
+              side="left"
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-              <span className="sr-only">
-                {showPassword ? "Hide password" : "Show password"}
-              </span>
-            </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-foreground"
+                onClick={onTogglePassword}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </SymbolTooltip>
           </div>
           {hasFieldError(fieldErrors, "confirmPassword") && (
             <InlineFieldError
@@ -320,8 +330,8 @@ export function AuthSignupStepUI({
       >
         {loading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Creating account...
+            <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+            Creating account…
           </>
         ) : (
           "Create Account"

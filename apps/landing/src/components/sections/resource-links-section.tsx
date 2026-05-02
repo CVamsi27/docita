@@ -8,36 +8,37 @@ const resources = [
     icon: Upload,
     title: "Paper to Cloud",
     description:
-      "A one-page explanation of how Docita moves clinics from paper files and spreadsheets into a live workflow.",
+      "How clinics move from registers and Excel into a live workflow.",
     href: "/paper-to-cloud",
   },
   {
     icon: MessageSquare,
     title: "WhatsApp Workflows",
     description:
-      "A focused page on reminders, prescriptions, receipts, and follow-up communication for Indian clinics.",
+      "Reminders, prescriptions, and follow-ups without leaving Docita.",
     href: "/whatsapp-workflows",
   },
   {
     icon: Shield,
     title: "Trust and Hosting",
     description:
-      "Current backend hosting, data residency, privacy posture, and the trust claims we are comfortable making today.",
+      "Hosting, residency posture, and what we publish for compliance reviews.",
     href: "/trust",
   },
 ];
 
 export function ResourceLinksSection() {
   return (
-    <section className="landing-section bg-background">
+    <section className="landing-section scroll-mt-24 bg-background">
       <div className="ui-page-shell">
         <SectionHeading
           align="center"
           size="section"
-          title="Sales assets built into the site"
-          description="Use these pages in founder-led demos, WhatsApp shares, and local outreach without overexplaining the product every time."
-          className="mb-12"
-          descriptionClassName="mx-auto max-w-2xl"
+          eyebrow="Guides"
+          title="Deep dives you can share"
+          description="Short standalone pages for demos, WhatsApp forwards, and procurement questions."
+          className="mb-10"
+          descriptionClassName="mx-auto max-w-xl"
         />
 
         <div className="grid gap-4 lg:grid-cols-3">
@@ -45,21 +46,23 @@ export function ResourceLinksSection() {
             <a
               key={resource.title}
               href={resource.href}
-              className="group rounded-3xl border border-border/70 bg-muted/30 p-6 transition-transform duration-200 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/5"
+              className="landing-resource-link group"
             >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-                <resource.icon className="h-5 w-5 text-primary" />
+              <div className="relative z-[1]">
+                <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-primary/15 bg-primary/8 shadow-sm">
+                  <resource.icon className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground sm:text-lg">
+                  {resource.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {resource.description}
+                </p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                  Open page
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
               </div>
-              <h3 className="text-lg font-semibold text-foreground">
-                {resource.title}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {resource.description}
-              </p>
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                Open page
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
             </a>
           ))}
         </div>

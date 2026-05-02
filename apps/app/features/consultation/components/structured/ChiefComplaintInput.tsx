@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
@@ -97,9 +100,9 @@ export function ChiefComplaintInput({
   return (
     <div className="space-y-3">
       {!readOnly && (
-        <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+        <div className="rounded-[var(--radius)] border border-border/70 bg-muted/20 px-3 py-2">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-primary/10 p-1.5 text-primary">
+            <div className="rounded-full border border-border/70 bg-background/70 p-1.5 text-primary">
               <Activity className="h-4 w-4" />
             </div>
             <div className="space-y-0.5">
@@ -128,10 +131,10 @@ export function ChiefComplaintInput({
           return (
             <div
               key={item.id || index}
-              className={`space-y-3 rounded-xl border p-3 transition-colors ${
+              className={`space-y-3 rounded-[var(--radius)] border p-3 transition-colors ${
                 isPrimary
                   ? "border-primary/30 bg-primary/5"
-                  : "border-border bg-card hover:bg-muted/20"
+                  : "border-border/70 bg-card hover:bg-muted/20"
               }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -162,14 +165,23 @@ export function ChiefComplaintInput({
                     {hasComplaint ? "Recorded" : "Needs symptom"}
                   </span>
                   {!readOnly && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => removeItem(index)}
+                    <SymbolTooltip
+                      label={
+                        isPrimary
+                          ? "Remove primary complaint"
+                          : "Remove additional complaint"
+                      }
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => removeItem(index)}
+                        aria-label="Remove complaint"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </SymbolTooltip>
                   )}
                 </div>
               </div>
@@ -189,7 +201,7 @@ export function ChiefComplaintInput({
                 </div>
                 <Input
                   id={`chief-complaint-${index}`}
-                  placeholder="e.g. Fever with chills, headache, abdominal pain"
+                  placeholder="Symptom or concern"
                   value={item.complaint}
                   onChange={(e) =>
                     updateItem(index, "complaint", e.target.value)
@@ -211,7 +223,7 @@ export function ChiefComplaintInput({
                     id={`duration-value-${index}`}
                     type="number"
                     min="1"
-                    placeholder="How long?"
+                    placeholder="Duration"
                     value={item.durationValue}
                     onChange={(e) =>
                       updateItem(index, "durationValue", e.target.value)
@@ -274,7 +286,7 @@ export function ChiefComplaintInput({
                 </Label>
                 <Textarea
                   id={`complaint-notes-${index}`}
-                  placeholder="Optional context: progression, triggers, associated symptoms, or patient wording"
+                  placeholder="Clinical notes"
                   value={item.notes || ""}
                   onChange={(e) => updateItem(index, "notes", e.target.value)}
                   readOnly={readOnly}
@@ -298,7 +310,7 @@ export function ChiefComplaintInput({
       )}
 
       {items.length === 0 && readOnly && (
-        <div className="rounded-2xl border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
+        <div className="rounded-lg border border-dashed border-border bg-muted/10 px-6 py-10 text-center">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Activity className="h-4 w-4" />
           </div>

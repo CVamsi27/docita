@@ -5,4 +5,14 @@ export * from "./rules/consultationRules";
 export * from "./components";
 
 export { ConsultationShell } from "./workspace/ConsultationShell";
+export type { ConsultationProgrammaticNavigate } from "./workspace/consultation-leave-navigation-context";
+export {
+  ConsultationLeaveNavigationProvider,
+  useConsultationProgrammaticNavigate,
+  useOptionalConsultationProgrammaticNavigate,
+} from "./workspace/consultation-leave-navigation-context";
+export {
+  CONSULTATION_LEAVE_GUARD_SKIP_ATTR,
+  isSameConsultationAppointmentPathname,
+} from "./workspace/use-consultation-leave-navigation";
 export { useConsultationDraft } from "./state/useConsultationDraft";

@@ -33,6 +33,9 @@ describe("getAccessTargetForPath", () => {
     expect(getAccessTargetForPath("/dashboard")).toBe(
       APP_ACCESS_TARGETS.PAGE_DASHBOARD,
     );
+    expect(getAccessTargetForPath("/today")).toBe(
+      APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+    );
     expect(getAccessTargetForPath("/settings/compliance")).toBe(
       APP_ACCESS_TARGETS.PAGE_SETTINGS,
     );
@@ -62,6 +65,12 @@ describe("getAccessTargetForPath", () => {
   it("maps upgrade route correctly", () => {
     expect(getAccessTargetForPath("/upgrade")).toBe(
       APP_ACCESS_TARGETS.PAGE_UPGRADE,
+    );
+  });
+
+  it("maps billing-locked to dashboard access (all staff)", () => {
+    expect(getAccessTargetForPath("/billing-locked")).toBe(
+      APP_ACCESS_TARGETS.PAGE_DASHBOARD,
     );
   });
 

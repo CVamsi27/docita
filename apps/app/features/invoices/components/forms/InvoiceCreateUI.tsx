@@ -35,7 +35,7 @@ import { BackButton } from "@/components/common/navigation/back-button";
 import { InvoiceItemsTable } from "./InvoiceItemsTable";
 import { InvoiceSubtotal } from "./InvoiceSubtotal";
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency } from "@workspace/utils";
 
 export const InvoiceCreateUI: FC = () => {
   const {
@@ -59,7 +59,7 @@ export const InvoiceCreateUI: FC = () => {
       <div className="flex items-center gap-4">
         <BackButton fallback="/invoices" label="Cancel" />
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">New Invoice</h1>
+          <h1 className="ui-page-title">New Invoice</h1>
           <p className="text-muted-foreground">
             Create a new invoice for a patient
           </p>
@@ -101,7 +101,7 @@ export const InvoiceCreateUI: FC = () => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -203,7 +203,7 @@ export const InvoiceCreateUI: FC = () => {
                   <FormItem>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter notes..."
+                        placeholder="Notes"
                         className="min-h-[100px]"
                         {...field}
                       />

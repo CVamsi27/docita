@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
 import { type PatientTag, PatientTagManagerUI } from "./PatientTagManagerUI";
+import { DEFAULT_TAG_COLOR_VAR } from "./tag-colors";
 import { useClinicSettings } from "@/hooks/api/use-settings";
 import { ClinicFeatureService } from "@/lib/services/clinic-feature.service";
 import type { ClinicType } from "@workspace/types";
@@ -18,7 +19,7 @@ export function PatientTagManagerContainer({
   const [open, setOpen] = useState(false);
   const [tags, setTags] = useState<PatientTag[]>([]);
   const [newTag, setNewTag] = useState("");
-  const [newColor, setNewColor] = useState("#3b82f6");
+  const [newColor, setNewColor] = useState(DEFAULT_TAG_COLOR_VAR);
   const [loading, setLoading] = useState(false);
 
   const { data: clinic } = useClinicSettings();
@@ -53,7 +54,7 @@ export function PatientTagManagerContainer({
       });
       await loadTags();
       setNewTag("");
-      setNewColor("#3b82f6");
+      setNewColor(DEFAULT_TAG_COLOR_VAR);
       onTagsUpdated?.();
     } catch (err) {
       showUserFacingErrorToast(

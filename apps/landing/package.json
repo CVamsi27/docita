@@ -16,25 +16,27 @@
   },
   "dependencies": {
     "@workspace/ui": "workspace:*",
+    "@workspace/utils": "workspace:*",
     "lucide-react": "^0.475.0",
+    "motion": "^12.38.0",
     "react": "19.2.1",
     "react-dom": "19.2.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "@tailwindcss/vite": "~4.1.11",
-    "tailwindcss": "~4.1.11",
-    "vite": "^6.4.2",
     "@astrojs/cloudflare": "^12.6.0",
     "@astrojs/react": "^4.4.0",
     "@playwright/test": "^1.48.2",
+    "@tailwindcss/vite": "~4.1.11",
     "@types/node": "^20.19.9",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@workspace/eslint-config": "workspace:^",
     "astro": "^5.8.1",
     "eslint": "^9.32.0",
+    "tailwindcss": "~4.1.11",
     "typescript": "^5.9.2",
+    "vite": "^6.4.2",
     "wrangler": "^4.71.0"
   }
 }

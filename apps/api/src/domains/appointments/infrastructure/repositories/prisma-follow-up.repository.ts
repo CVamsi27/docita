@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { Prisma } from '@workspace/db';
+import { FollowUpStatus, Prisma } from '@workspace/db';
 import {
   IFollowUpRepository,
   FollowUpWithRelations,
@@ -16,6 +16,44 @@ export class PrismaFollowUpRepository implements IFollowUpRepository {
 
   async create(data: Prisma.FollowUpUncheckedCreateInput) {
     return this.prisma.followUp.create({ data });
+  }
+
+  async findForClinic(params: {
+    clinicId: string;
+    statuses?: FollowUpStatus[];
+    from?: Date;
+    to?: Date;
+    take: number;
+  }): Promise<FollowUpWithRelations[]> {
+    const where: Prisma.FollowUpWhereInput = {
+      clinicId: params.clinicId,
+    };
+    if (params.statuses?.length) {
+      where.status = { in: params.statuses };
+    }
+    if (params.from || params.to) {
+      where.scheduledDate = {
+        ...(params.from ? { gte: params.from } : {}),
+        ...(params.to ? { lte: params.to } : {}),
+      };
+    }
+
+    return this.getReadClient().followUp.findMany({
+      where,
+      include: {
+        patient: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phoneNumber: true,
+          },
+        },
+        doctor: { select: { id: true, name: true } },
+      },
+      orderBy: { scheduledDate: 'asc' },
+      take: params.take,
+    }) as Promise<FollowUpWithRelations[]>;
   }
 
   async findUpcoming(

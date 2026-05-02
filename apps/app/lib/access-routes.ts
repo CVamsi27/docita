@@ -7,10 +7,16 @@ interface RouteAccessRule {
 
 const ROUTE_ACCESS_RULES: RouteAccessRule[] = [
   { pathPrefix: "/dashboard", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
+  { pathPrefix: "/today", target: APP_ACCESS_TARGETS.PAGE_DASHBOARD },
+  {
+    pathPrefix: "/billing-locked",
+    target: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+  },
   { pathPrefix: "/settings", target: APP_ACCESS_TARGETS.PAGE_SETTINGS },
   { pathPrefix: "/profile", target: APP_ACCESS_TARGETS.PAGE_PROFILE },
   { pathPrefix: "/patients", target: APP_ACCESS_TARGETS.PAGE_PATIENTS },
   { pathPrefix: "/appointments", target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS },
+  { pathPrefix: "/follow-ups", target: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS },
   { pathPrefix: "/consultation", target: APP_ACCESS_TARGETS.PAGE_CONSULTATION },
   { pathPrefix: "/prescriptions", target: APP_ACCESS_TARGETS.PAGE_PRESCRIPTIONS },
   { pathPrefix: "/lab-tests", target: APP_ACCESS_TARGETS.PAGE_LAB_TESTS },

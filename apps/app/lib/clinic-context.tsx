@@ -216,6 +216,16 @@ export function ClinicProvider({ children }: { children: React.ReactNode }) {
             : prev,
         );
       }
+      if (data.subscriptionGraceUntil !== undefined) {
+        setClinicState((prev) =>
+          prev
+            ? {
+                ...prev,
+                subscriptionGraceUntil: data.subscriptionGraceUntil,
+              }
+            : prev,
+        );
+      }
     }
   });
 
@@ -260,4 +270,8 @@ export function useClinic() {
     throw new Error("useClinic must be used within a ClinicProvider");
   }
   return context;
+}
+
+export function useOptionalClinic() {
+  return useContext(ClinicContext);
 }

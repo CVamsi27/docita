@@ -59,11 +59,11 @@ export function WhatsappSection() {
             </p>
           </div>
           <div className="order-1 lg:order-2 flex justify-center">
-            <div className="relative w-full max-w-[280px] aspect-[1/2] rounded-[2.5rem] sm:rounded-[3rem] border-8 border-card bg-card shadow-2xl overflow-hidden">
+            <div className="relative w-full max-w-[280px] aspect-[1/2] rounded-[2.5rem] sm:rounded-[3rem] border-8 border-card bg-card shadow-lg overflow-hidden">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-card rounded-b-xl z-20" />
               <div className="w-full h-full bg-muted/40 overflow-hidden flex flex-col">
                 <div className="bg-primary p-4 pt-12 text-primary-foreground flex items-center gap-3 shadow-md z-10">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
                     <Stethoscope className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -74,7 +74,7 @@ export function WhatsappSection() {
                   </div>
                 </div>
                 <div className="flex-1 p-4 space-y-4 overflow-hidden">
-                  <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-xs">
+                  <div className="bg-background p-3 rounded-[var(--radius)] rounded-tl-none shadow-sm max-w-[85%] text-xs border border-border/60">
                     <p>
                       Hello Ananya, your appointment is confirmed for tomorrow at
                       10:00 AM.
@@ -83,14 +83,14 @@ export function WhatsappSection() {
                       09:30 AM
                     </div>
                   </div>
-                  <div className="bg-success/20 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs">
+                  <div className="bg-success/15 p-3 rounded-[var(--radius)] rounded-tr-none shadow-sm max-w-[85%] ml-auto text-xs border border-success/20">
                     <p>Thank you doctor! I&apos;ll be there</p>
                     <div className="mt-1 text-[10px] text-foreground/80 text-right">
                       09:32 AM
                     </div>
                   </div>
-                  <div className="bg-white p-2 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-xs">
-                    <div className="flex items-center gap-3 bg-muted p-2 rounded mb-2">
+                  <div className="bg-background p-2 rounded-[var(--radius)] rounded-tl-none shadow-sm max-w-[85%] text-xs border border-border/60">
+                    <div className="flex items-center gap-3 bg-muted p-2 rounded-[var(--radius)] mb-2">
                       <FileText className="h-8 w-8 text-destructive" />
                       <div>
                         <div className="font-medium">Prescription.pdf</div>

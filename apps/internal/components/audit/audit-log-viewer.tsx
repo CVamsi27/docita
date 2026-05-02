@@ -11,6 +11,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
@@ -22,8 +23,17 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { toast } from "sonner";
+import { formatInternalTimestamp } from "@/lib/format-display-date";
 import { client } from "@/lib/api-client";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { Input } from "@workspace/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 
 interface AuditLog {
   id: string;
@@ -111,7 +121,7 @@ export function AuditLogViewer() {
     ];
 
     const rows = logs.map((log) => [
-      new Date(log.createdAt).toLocaleString(),
+      formatInternalTimestamp(log.createdAt),
       log.userId,
       log.actionType,
       log.resourceType || "-",
@@ -159,30 +169,31 @@ export function AuditLogViewer() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Audit Logs</h2>
+          <h2 className="ui-page-title">Audit Logs</h2>
           <p className="text-muted-foreground">
             System-wide audit trail (Real-time, updates every 30s)
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => {
-              logsQuery.refetch().catch(() => {
-                showUserFacingErrorToast(
-                  "We could not load these audit logs. Please try again.",
-                );
-              });
-            }}
-            disabled={isLoading}
-            variant="ghost"
-            size="icon"
-            title="Refresh"
-            aria-label="Refresh audit logs"
-          >
-            <RefreshCw
-              className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
-            />
-          </Button>
+          <SymbolTooltip label="Refresh audit logs">
+            <Button
+              onClick={() => {
+                logsQuery.refetch().catch(() => {
+                  showUserFacingErrorToast(
+                    "We could not load these audit logs. Please try again.",
+                  );
+                });
+              }}
+              disabled={isLoading}
+              variant="ghost"
+              size="icon"
+              aria-label="Refresh audit logs"
+            >
+              <RefreshCw
+                className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
+              />
+            </Button>
+          </SymbolTooltip>
           <Button
             onClick={() => setShowFilters(!showFilters)}
             variant="outline"
@@ -200,7 +211,7 @@ export function AuditLogViewer() {
       </div>
 
       {showFilters && (
-        <div className="bg-muted/30 border border-border rounded-lg p-4 space-y-4">
+        <div className="bg-muted/30 border border-border/70 rounded-[var(--radius)] p-4 space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
@@ -213,7 +224,7 @@ export function AuditLogViewer() {
                   onChange={(date) =>
                     setSelectedDate(date?.toISOString().slice(0, 10) ?? "")
                   }
-                  placeholder="Select date"
+                  placeholder="Date"
                   className="flex-1"
                 />
               </div>
@@ -223,32 +234,36 @@ export function AuditLogViewer() {
               <label className="block text-sm font-medium text-foreground mb-1">
                 Action Type
               </label>
-              <select
+              <Select
                 value={selectedActionType}
-                onChange={(e) => setSelectedActionType(e.target.value)}
-                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                onValueChange={setSelectedActionType}
               >
-                <option value="">All Actions</option>
-                {actionTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Action" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Actions</SelectItem>
+                  {actionTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
                 User ID
               </label>
-              <div className="flex items-center gap-2">
-                <UserIcon className="h-4 w-4 text-muted-foreground" />
-                <input
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
                   type="text"
                   value={selectedUserId}
                   onChange={(e) => setSelectedUserId(e.target.value)}
-                  placeholder="Filter by user ID"
-                  className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                  placeholder="User ID"
+                  className="pl-9"
                 />
               </div>
             </div>
@@ -262,7 +277,7 @@ export function AuditLogViewer() {
         </div>
       )}
 
-      <div className="border border-border rounded-lg overflow-hidden">
+      <div className="border border-border/70 rounded-[var(--radius)] overflow-hidden">
         {errorMessage && (
           <div
             role="alert"
@@ -274,14 +289,14 @@ export function AuditLogViewer() {
         )}
         {isLoading && logs.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
-            Loading audit logs...
+            Loading audit logs…
           </div>
         ) : logs.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             No audit logs found
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-hidden">
             <Table>
               <TableHeader className="bg-muted/40 border-b border-border">
                 <TableRow>
@@ -313,7 +328,7 @@ export function AuditLogViewer() {
                   <React.Fragment key={log.id}>
                     <TableRow className="hover:bg-muted/50 transition-colors">
                       <TableCell className="px-4 py-3 text-foreground">
-                        {new Date(log.createdAt).toLocaleString()}
+                        {formatInternalTimestamp(log.createdAt)}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-foreground font-mono text-xs">
                         {log.userId}
@@ -348,22 +363,30 @@ export function AuditLogViewer() {
                         {log.ipAddress || "-"}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-center">
-                        <Button
-                          onClick={() => toggleRowExpand(log.id)}
-                          variant="ghost"
-                          size="icon"
-                          aria-label={
+                        <SymbolTooltip
+                          label={
                             expandedRows.has(log.id)
-                              ? `Collapse details for log ${log.id}`
-                              : `Expand details for log ${log.id}`
+                              ? "Collapse details"
+                              : "Expand details"
                           }
                         >
-                          <ChevronDown
-                            className={`h-4 w-4 transition-transform ${
-                              expandedRows.has(log.id) ? "rotate-180" : ""
-                            }`}
-                          />
-                        </Button>
+                          <Button
+                            onClick={() => toggleRowExpand(log.id)}
+                            variant="ghost"
+                            size="icon"
+                            aria-label={
+                              expandedRows.has(log.id)
+                                ? `Collapse details for log ${log.id}`
+                                : `Expand details for log ${log.id}`
+                            }
+                          >
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${
+                                expandedRows.has(log.id) ? "rotate-180" : ""
+                              }`}
+                            />
+                          </Button>
+                        </SymbolTooltip>
                       </TableCell>
                     </TableRow>
 
@@ -388,7 +411,7 @@ export function AuditLogViewer() {
                                   <p className="text-sm font-semibold text-foreground mb-2">
                                     Changes
                                   </p>
-                                  <pre className="text-xs bg-background rounded p-2 overflow-x-auto border border-border">
+                                  <pre className="text-xs bg-background rounded p-2 overflow-x-hidden whitespace-pre-wrap break-words border border-border">
                                     {JSON.stringify(log.changes, null, 2)}
                                   </pre>
                                 </div>
@@ -411,7 +434,7 @@ export function AuditLogViewer() {
                                   <p className="text-sm font-semibold text-foreground mb-2">
                                     Metadata
                                   </p>
-                                  <pre className="text-xs bg-background rounded p-2 overflow-x-auto border border-border">
+                                  <pre className="text-xs bg-background rounded p-2 overflow-x-hidden whitespace-pre-wrap break-words border border-border">
                                     {JSON.stringify(log.metadata, null, 2)}
                                   </pre>
                                 </div>
@@ -428,7 +451,7 @@ export function AuditLogViewer() {
         )}
       </div>
 
-      <div className="bg-accent/40 border border-border rounded-lg p-3 text-sm text-foreground">
+      <div className="bg-accent/40 border border-border/70 rounded-[var(--radius)] p-3 text-sm text-foreground">
         Showing {logs.length} audit log entries. Page auto-refreshes every 30
         seconds. All sensitive actions (user updates, payments, admin
         operations) are logged for compliance.

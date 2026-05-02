@@ -27,69 +27,78 @@ export class ReferralService {
   }
 
   async applyReferralCreditsOnFirstPayment(clinicId: string): Promise<void> {
-    const paymentCount = await this.prisma.subscriptionPayment.count({
-      where: {
-        clinicId,
-        status: 'paid',
-      },
-    });
-
-    if (paymentCount > 1) {
-      return;
-    }
-
-    const referral = await this.prisma.referral.findFirst({
-      where: {
-        referredClinicId: clinicId,
-        status: 'SIGNED_UP',
-        creditApplied: false,
-      },
-      include: {
-        referrerClinic: true,
-      },
-    });
-
-    if (!referral) {
-      return;
-    }
-
-    const referrerCredits = referral.referrerClinic?.referralCreditsMonths || 0;
-    if (referrerCredits >= MAX_REFERRAL_CREDITS_PER_YEAR) {
-      this.logger.warn(
-        `Referrer ${referral.referrerClinicId} has reached credit cap`,
-      );
-      return;
-    }
-
-    await this.prisma.$transaction([
-      this.prisma.clinic.update({
-        where: { id: referral.referrerClinicId },
-        data: {
-          referralCreditsMonths: {
-            increment: 1,
-          },
+    await this.prisma.$transaction(async (tx) => {
+      const paymentCount = await tx.subscriptionPayment.count({
+        where: {
+          clinicId,
+          status: 'paid',
         },
-      }),
-      this.prisma.referralCredit.create({
-        data: {
-          clinicId: referral.referrerClinicId,
-          referralId: referral.id,
-          creditMonths: 1,
+      });
+
+      if (paymentCount > 1) {
+        return;
+      }
+
+      const referral = await tx.referral.findFirst({
+        where: {
+          referredClinicId: clinicId,
+          status: 'SIGNED_UP',
+          creditApplied: false,
         },
-      }),
-      this.prisma.referral.update({
-        where: { id: referral.id },
+        include: {
+          referrerClinic: true,
+        },
+      });
+
+      if (!referral) {
+        return;
+      }
+
+      const referrerCredits =
+        referral.referrerClinic?.referralCreditsMonths || 0;
+      if (referrerCredits >= MAX_REFERRAL_CREDITS_PER_YEAR) {
+        this.logger.warn(
+          `Referrer ${referral.referrerClinicId} has reached credit cap`,
+        );
+        return;
+      }
+
+      const flipped = await tx.referral.updateMany({
+        where: {
+          id: referral.id,
+          status: 'SIGNED_UP',
+          creditApplied: false,
+        },
         data: {
           status: 'CONVERTED',
           creditApplied: true,
           convertedAt: new Date(),
         },
-      }),
-    ]);
+      });
 
-    this.logger.log(
-      `Applied referral credit to clinic ${referral.referrerClinicId} from referral ${referral.id}`,
-    );
+      if (flipped.count === 0) {
+        return;
+      }
+
+      await tx.clinic.update({
+        where: { id: referral.referrerClinicId },
+        data: {
+          referralCreditsMonths: { increment: 1 },
+        },
+      });
+
+      await tx.referralCredit.create({
+        data: {
+          clinicId: referral.referrerClinicId,
+          referralId: referral.id,
+          creditMonths: 1,
+        },
+      });
+
+      this.logger.log(
+        `Applied referral credit to clinic ${referral.referrerClinicId} from referral ${referral.id}`,
+      );
+    });
   }
 
   async getReferralCredits(clinicId: string) {

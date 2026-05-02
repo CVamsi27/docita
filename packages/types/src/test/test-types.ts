@@ -1,4 +1,4 @@
-
+/// <reference types="jest" />
 
 export interface MockBullJob<T = unknown> {
   id: string | number;
@@ -66,13 +66,13 @@ export interface MockPrismaDelegate<T = unknown> {
 }
 
 export interface MockPrismaClient {
-  $connect: jest.Mock<Promise<void>, []>;
-  $disconnect: jest.Mock<Promise<void>, []>;
-  $executeRaw: jest.Mock<Promise<number>, [unknown]>;
-  $queryRaw: jest.Mock<Promise<unknown[]>, [unknown]>;
-  $transaction: jest.Mock<Promise<unknown[]>, [unknown[]]>;
-  $use: jest.Mock<void, [unknown]>;
-  [model: string]: MockPrismaDelegate | jest.Mock<unknown, unknown[]>;
+  $connect: jest.Mock;
+  $disconnect: jest.Mock;
+  $executeRaw: jest.Mock;
+  $queryRaw: jest.Mock;
+  $transaction: jest.Mock;
+  $use: jest.Mock;
+  [model: string]: MockPrismaDelegate | jest.Mock;
 }
 
 export interface MockRequest {
@@ -139,17 +139,4 @@ export interface TestAppointmentData {
   status?: string;
   type?: string;
   duration?: number;
-}
-
-declare global {
-  // This test-only augmentation intentionally mirrors Jest's namespace shape.
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace jest {
-    interface Mock<T = unknown, _Y extends unknown[] = unknown[]> {
-      mockResolvedValueOnce(value: T): this;
-      mockResolvedValue(value: T): this;
-      mockRejectedValueOnce(value: Error | string): this;
-      mockRejectedValue(value: Error | string): this;
-    }
-  }
 }

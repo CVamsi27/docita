@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import type { Medication, Patient } from "@workspace/types";
 
 interface DoctorInfo {
@@ -57,12 +57,12 @@ export function PrescriptionDocument({
                 <img
                   src={clinicInfo.logo}
                   alt="Facility Logo"
-                  className="h-20 w-20 object-contain rounded-xl"
+                  className="h-20 w-20 object-contain rounded-lg"
                 />
               </div>
             ) : null}
             <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-bold text-primary leading-tight">
+              <h1 className="ui-page-title text-primary leading-[var(--lh-tight)]">
                 {clinicInfo?.name ?? ""}
               </h1>
               {clinicInfo?.address && (
@@ -129,7 +129,7 @@ export function PrescriptionDocument({
               Date
             </p>
             <p className="font-semibold">
-              {format(new Date(prescription.createdAt), "dd MMMM yyyy")}
+              {formatDate(prescription.createdAt, "dd MMMM yyyy")}
             </p>
           </div>
         </div>

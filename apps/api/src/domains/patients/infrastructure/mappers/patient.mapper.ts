@@ -1,13 +1,13 @@
-import { Patient as PrismaPatient } from '@workspace/db';
 import {
   patientPersistenceRecordSchema,
   patientPersistenceWriteSchema,
+  type PatientPersistenceRecord,
   type PatientPersistenceWrite,
 } from '@workspace/types';
 import { Patient } from '@/domains/patients/core/entities/patient.entity';
 
 export class PatientMapper {
-  static toDomain(raw: PrismaPatient): Patient {
+  static toDomain(raw: PatientPersistenceRecord): Patient {
     const parsed = patientPersistenceRecordSchema.parse(raw);
     const metadata =
       parsed.customData &&

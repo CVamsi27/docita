@@ -158,6 +158,11 @@ export interface TeamMember {
   email: string;
   role: "DOCTOR" | "NURSE" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
   name?: string;
+  password?: string;
+  phoneNumber?: string;
+  specialization?: string;
+  qualification?: string;
+  registrationNumber?: string;
 }
 
 export interface PlanSelection {
@@ -184,7 +189,7 @@ export const defaultClinicRegistrationData: ClinicRegistrationData = {
     billingCycle: "MONTHLY",
     price: 0,
     currency: DEFAULT_CURRENCY,
-    isCoreTrial: true,
+    isCoreTrial: false,
   },
   paymentDetails: {},
   teamMembers: [],

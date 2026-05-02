@@ -8,6 +8,7 @@ import {
   clinicResponseSchema,
   listClinicsResponseSchema,
   createClinicDoctorRequestSchema,
+  createClinicMemberRequestSchema,
   createClinicReceptionistRequestSchema,
   updateClinicMemberRequestSchema,
 } from '@workspace/types';
@@ -46,6 +47,12 @@ export class ClinicCreateDoctorDto extends createZodDto(CreateDoctorSchema) {}
 
 export class ClinicCreateReceptionistDto extends createZodDto(
   createClinicReceptionistRequestSchema,
+) {}
+
+export const CreateClinicMemberSchema = createClinicMemberRequestSchema;
+
+export class ClinicCreateMemberDto extends createZodDto(
+  CreateClinicMemberSchema,
 ) {}
 
 export const UpdateMemberSchema = updateClinicMemberRequestSchema;

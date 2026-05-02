@@ -54,14 +54,18 @@ export interface IAppointmentRepository {
   findAll(
     params: AppointmentSearchParams,
   ): Promise<PaginatedResult<AppointmentListItem>>;
-  findById(id: string): Promise<Appointment | null>;
+  findById(id: string, clinicId: string): Promise<Appointment | null>;
   save(appointment: Appointment): Promise<void>;
   update(appointment: Appointment): Promise<void>;
-  delete(id: string): Promise<void>;
+  delete(id: string, clinicId: string): Promise<void>;
 
-  findByPatientId(patientId: string): Promise<Appointment[]>;
-  findByDoctorId(doctorId: string, date: Date): Promise<Appointment[]>;
-  exists(id: string): Promise<boolean>;
+  findByPatientId(patientId: string, clinicId: string): Promise<Appointment[]>;
+  findByDoctorId(
+    doctorId: string,
+    date: Date,
+    clinicId: string,
+  ): Promise<Appointment[]>;
+  exists(id: string, clinicId: string): Promise<boolean>;
 
   findAppointmentsForSlots(
     clinicId: string,

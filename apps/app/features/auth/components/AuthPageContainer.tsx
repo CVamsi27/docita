@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Shield } from "lucide-react";
 import { useAuth, type User } from "@/lib/auth-context";
 import { formatLoginLockoutMessage } from "@/lib/auth-lockout";
 import { ApiValidationError } from "@/lib/api-error";
@@ -21,7 +20,7 @@ const STEP_TITLES: Record<AuthStep, string> = {
 };
 
 const STEP_DESCRIPTIONS: Record<AuthStep, string> = {
-  email: "Enter your email to continue",
+  email: "Use your work email to sign in or create an account",
   login: "Sign in to your workspace",
   signup: "Get started with Docita",
 };
@@ -266,8 +265,8 @@ export function AuthPageContainer() {
   if (isRedirecting) {
     return (
       <PageTransitionLoader
-        title="Redirecting..."
-        description="Taking you to your workspace..."
+        title="Redirecting…"
+        description="Taking you to your workspace…"
       />
     );
   }
@@ -277,22 +276,22 @@ export function AuthPageContainer() {
       currentStep={step}
       contentMaxWidth={contentMaxWidth}
       contentAlignment={contentAlignment}
-      showBrandingPanel={step !== "email"}
+      showBrandingPanel
       showProgress={step === "signup"}
     >
       <div
         className={[
-          "animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-1",
+          "animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack",
           step === "signup" ? "text-center lg:text-left" : "text-center",
         ].join(" ")}
       >
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{STEP_TITLES[step]}</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="ui-page-title">{STEP_TITLES[step]}</h1>
+        <p className="ui-page-subtitle">
           {STEP_DESCRIPTIONS[step]}
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
+      <div className="ui-card-surface p-6 sm:p-8">
         <div
           key={step}
           className="animate-in fade-in slide-in-from-right-4 duration-500"
@@ -349,17 +348,6 @@ export function AuthPageContainer() {
             />
           )}
         </div>
-      </div>
-
-      <div className="lg:hidden flex justify-center gap-6 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          Data Encrypted
-        </span>
-        <span className="flex items-center gap-1">
-          <Lock className="h-3 w-3" />
-          Privacy Controls
-        </span>
       </div>
     </PreDashboardShell>
   );

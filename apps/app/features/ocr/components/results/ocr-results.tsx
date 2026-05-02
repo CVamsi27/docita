@@ -1,6 +1,7 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { OCRHeader } from "@/features/ocr/components/sections/OCRHeader";
 import { OCRPatientInfo } from "@/features/ocr/components/sections/OCRPatientInfo";
 import { OCRClinicalFindings } from "@/features/ocr/components/sections/OCRClinicalFindings";
@@ -99,8 +100,8 @@ export const OCRResults = ({
           <Button className="w-full mt-4" onClick={onSave} disabled={isSaving}>
             {isSaving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving
-                Record...
+                <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
+                Saving record…
               </>
             ) : (
               <>

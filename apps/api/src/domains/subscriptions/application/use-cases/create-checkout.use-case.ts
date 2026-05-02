@@ -11,13 +11,17 @@ import {
   IPaymentGateway,
   PAYMENT_GATEWAY_TOKEN,
 } from '@/domains/subscriptions/application/ports/payment-gateway.port';
-import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 import {
   ClinicTier,
   BillingCycle,
 } from '@/domains/subscriptions/core/value-objects';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { FeatureFlagService } from '@/shared/modules/services/feature-flag.service';
+import {
+  finalizePayableAmountPaise,
+  SubscriptionCheckoutPricingService,
+} from '@/domains/subscriptions/application/services/subscription-checkout-pricing.service';
+import { ActivateSubscriptionUseCase } from '@/domains/subscriptions/application/use-cases/activate-subscription.use-case';
 
 export interface CreateCheckoutRequest {
   clinicId: string;
@@ -31,6 +35,7 @@ export interface CheckoutResponse {
   amountCents: number;
   currency: string;
   razorpayKeyId: string;
+  completedWithoutPayment?: boolean;
 }
 
 @Injectable()
@@ -44,7 +49,8 @@ export class CreateCheckoutUseCase {
     private readonly clinicOps: IClinicOperations,
     @Inject(PAYMENT_GATEWAY_TOKEN)
     private readonly paymentGateway: IPaymentGateway,
-    private readonly pricingService: SubscriptionPricingService,
+    private readonly checkoutPricing: SubscriptionCheckoutPricingService,
+    private readonly activateSubscription: ActivateSubscriptionUseCase,
     private readonly configService: AppConfigService,
     private readonly featureFlagService: FeatureFlagService,
   ) {}
@@ -60,6 +66,37 @@ export class CreateCheckoutUseCase {
     );
     const offerPercent = clinicOffer?.percentOff ?? 0;
 
+    const currencyCode = this.configService.getCurrencyCode();
+
+    const subscription = await this.subscriptionRepo.findByClinicId(
+      request.clinicId,
+    );
+    const breakdown = this.checkoutPricing.compute(
+      subscription,
+      tier,
+      cycle,
+      offerPercent,
+    );
+    const amountCents = finalizePayableAmountPaise(
+      breakdown.finalAmountCents,
+      currencyCode,
+    );
+
+    if (amountCents === 0) {
+      await this.activateSubscription.applyPlanChangeWithoutPayment({
+        clinicId: request.clinicId,
+        tier: tier.value,
+        cycle: cycle.value,
+      });
+      return {
+        orderId: '',
+        amountCents: 0,
+        currency: currencyCode,
+        razorpayKeyId: this.configService.getRazorpayKeyId() || '',
+        completedWithoutPayment: true,
+      };
+    }
+
     if (!customerId) {
       customerId = await this.paymentGateway.createCustomer({
         email: clinic.email,
@@ -69,13 +106,6 @@ export class CreateCheckoutUseCase {
       });
       await this.clinicOps.updateRazorpayCustomerId(clinic.id, customerId);
     }
-
-    const amountCents = this.pricingService.calculatePrice(
-      tier,
-      cycle,
-      offerPercent,
-    );
-    const currencyCode = this.configService.getCurrencyCode();
 
     const description = `${tier.value} ${cycle.value} subscription`;
     const reusable = await this.subscriptionRepo.findReusablePendingCheckout({

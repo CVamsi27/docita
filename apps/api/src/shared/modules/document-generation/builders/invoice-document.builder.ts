@@ -1,3 +1,4 @@
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { BaseDocumentBuilder } from './base-document.builder';
 
 export interface InvoiceData {
@@ -30,8 +31,12 @@ export interface InvoiceData {
 export class InvoiceDocumentBuilder extends BaseDocumentBuilder {
   buildFromData(data: InvoiceData): this {
     this.addHeading(`Invoice #${data.invoiceNumber}`, 1)
-      .addParagraph(`Date: ${data.invoiceDate.toLocaleDateString()}`)
-      .addParagraph(`Due: ${data.dueDate.toLocaleDateString()}`)
+      .addParagraph(
+        `Date: ${formatDate(data.invoiceDate, DATE_FORMATS.DATE_MEDIUM)}`,
+      )
+      .addParagraph(
+        `Due: ${formatDate(data.dueDate, DATE_FORMATS.DATE_MEDIUM)}`,
+      )
 
       .addHeading('Invoice From', 2)
       .addParagraph(data.clinic.name)

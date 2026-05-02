@@ -1,5 +1,6 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Button } from "@workspace/ui/components/button";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,11 +30,11 @@ import {
 } from "@workspace/ui/components/command";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 
 import { LabTest, Patient } from "@workspace/types";
 import { CreateLabTestOrderInput } from "@/features/lab-tests/hooks/use-lab-tests-logic";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
 
 interface OrderLabTestDialogProps {
   open: boolean;
@@ -78,6 +79,8 @@ export function OrderLabTestDialog({
   selectedPatient,
   selectedTest,
 }: OrderLabTestDialogProps) {
+  const { formatCurrency } = useClinicCurrency();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -101,7 +104,10 @@ export function OrderLabTestDialog({
                   <FormLabel>Patient</FormLabel>
                   <Popover
                     open={patientComboboxOpen}
-                    onOpenChange={setPatientComboboxOpen}
+                    onOpenChange={(nextOpen) => {
+                      setPatientComboboxOpen(nextOpen);
+                      if (!nextOpen) setPatientSearch("");
+                    }}
                     modal={true}
                   >
                     <PopoverTrigger asChild>
@@ -118,7 +124,7 @@ export function OrderLabTestDialog({
                         >
                           {selectedPatient
                             ? `${selectedPatient.firstName} ${selectedPatient.lastName}`
-                            : "Search patient by name..."}
+                            : "Search patient by name…"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
@@ -129,23 +135,24 @@ export function OrderLabTestDialog({
                     >
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Search patient by name..."
+                          placeholder="Enter patient name"
                           value={patientSearch}
                           onValueChange={setPatientSearch}
+                          showClearButton
                         />
                         <CommandList>
                           {patientsLoading ? (
                             <div className="flex items-center justify-center py-6">
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <DocitaLoadingIndicator variant="inline" decorative />
                               <span className="ml-2 text-sm text-muted-foreground">
-                                Searching...
+                                Searching…
                               </span>
                             </div>
                           ) : patients.length === 0 ? (
                             <CommandEmpty>
                               {patientSearch
                                 ? "No patient found"
-                                : "Type to search patients..."}
+                                : "Type to search patients…"}
                             </CommandEmpty>
                           ) : (
                             <CommandGroup>
@@ -197,7 +204,10 @@ export function OrderLabTestDialog({
                   <FormLabel>Test</FormLabel>
                   <Popover
                     open={testComboboxOpen}
-                    onOpenChange={setTestComboboxOpen}
+                    onOpenChange={(nextOpen) => {
+                      setTestComboboxOpen(nextOpen);
+                      if (!nextOpen) setTestSearch("");
+                    }}
                     modal={true}
                   >
                     <PopoverTrigger asChild>
@@ -214,7 +224,7 @@ export function OrderLabTestDialog({
                         >
                           {selectedTest
                             ? selectedTest.name
-                            : "Search test by name..."}
+                            : "Search test by name…"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </FormControl>
@@ -225,16 +235,17 @@ export function OrderLabTestDialog({
                     >
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Search test by name..."
+                          placeholder="Enter test name"
                           value={testSearch}
                           onValueChange={setTestSearch}
+                          showClearButton
                         />
                         <CommandList>
                           {catalogLoading ? (
                             <div className="flex items-center justify-center py-6">
-                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <DocitaLoadingIndicator variant="inline" decorative />
                               <span className="ml-2 text-sm text-muted-foreground">
-                                Loading tests...
+                                Loading tests…
                               </span>
                             </div>
                           ) : testCatalog.length === 0 ? (
@@ -269,11 +280,9 @@ export function OrderLabTestDialog({
                                       <span className="text-xs text-muted-foreground">
                                         {test.category}
                                         {test.price &&
-                                          ` • ${new Intl.NumberFormat("en-IN", {
-                                            style: "currency",
-                                            currency: DEFAULT_CURRENCY,
-                                            maximumFractionDigits: 0,
-                                          }).format(test.price)}`}
+                                          ` • ${formatCurrency(test.price, {
+                                            fractionDigits: 0,
+                                          })}`}
                                       </span>
                                     </div>
                                   </div>
@@ -297,7 +306,7 @@ export function OrderLabTestDialog({
                   <FormLabel>Notes</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter any additional notes..."
+                      placeholder="Enter lab notes"
                       {...field}
                     />
                   </FormControl>
@@ -315,8 +324,8 @@ export function OrderLabTestDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isCreating} className="gap-2">
-                {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isCreating ? "Creating..." : "Order Test"}
+                {isCreating && <DocitaLoadingIndicator variant="inline" decorative />}
+                {isCreating ? "Creating…" : "Order Test"}
               </Button>
             </DialogFooter>
           </form>

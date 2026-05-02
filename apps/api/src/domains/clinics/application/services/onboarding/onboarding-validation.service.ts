@@ -63,24 +63,17 @@ export class OnboardingValidationService {
 
     if (data.planSelection && data.planSelection.tier !== ClinicTier.STARTER) {
       const currency = this.resolveCurrency(data.planSelection.currency);
-      const isEssentialFreeTrial =
-        data.planSelection.tier === ClinicTier.ESSENTIAL &&
-        data.paymentDetails?.skipPayment === true;
 
       const hasProcessedPayment =
         !!data.paymentDetails?.razorpayPaymentId ||
         (!!data.paymentDetails?.cardLast4 &&
           data.paymentDetails?.skipPayment !== true);
 
-      if (!hasProcessedPayment && !isEssentialFreeTrial) {
+      if (!hasProcessedPayment) {
         errors.push('Payment details are required for paid plans');
       }
 
-      if (
-        currency === 'INR' &&
-        !isEssentialFreeTrial &&
-        !data.clinicDetails?.gstin
-      ) {
+      if (currency === 'INR' && !data.clinicDetails?.gstin) {
         errors.push(
           'GSTIN is required for paid Indian plans so we can issue GST invoices',
         );

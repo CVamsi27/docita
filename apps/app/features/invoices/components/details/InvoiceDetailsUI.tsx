@@ -53,7 +53,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
   } = useInvoiceDetailsLogic(invoiceId, { autoPrint: shouldAutoPrint });
 
   if (isLoading) {
-    return <LoadingState message="Loading invoice details..." />;
+    return <LoadingState message="Loading invoice details…" />;
   }
 
   if (error || !invoice) {
@@ -81,7 +81,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <BackButton fallback="/invoices" className="shrink-0" />
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+          <h1 className="ui-page-title text-[var(--fs-xl)] sm:text-[var(--fs-2xl)]">
             Invoice #{(invoice.id ?? "").substring(0, 8).toUpperCase()}
           </h1>
           <StatusBadge status={invoice.status} />
@@ -98,7 +98,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
             disabled={isDownloading}
           >
             <Download className="h-4 w-4 mr-2" />
-            {isDownloading ? "Preparing..." : "Download"}
+            {isDownloading ? "Preparing…" : "Download"}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -150,7 +150,7 @@ export const InvoiceDetailsUI: FC<InvoiceDetailsUIProps> = ({ invoiceId }) => {
               <div className="w-56 text-center">
                 <p className="text-sm font-medium mb-2">Authorized Signature</p>
                 {authorizedSignatureUrl ? (
-                  <div className="mb-2 flex justify-center">
+                  <div className="mb-2 flex justify-center rounded-md bg-background px-3 py-2">
                     <img
                       src={authorizedSignatureUrl}
                       alt="Authorized Signature"

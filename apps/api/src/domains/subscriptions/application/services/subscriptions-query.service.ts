@@ -6,6 +6,7 @@ import {
   IClinicOperations,
 } from '@/domains/subscriptions/application/ports';
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
+import type { Subscription } from '@/domains/subscriptions/core/entities/subscription.entity';
 import {
   TIER_LIMITS,
   TIER_INFO,
@@ -94,6 +95,10 @@ export class SubscriptionsQueryService {
 
   async getClinicPricingOffer(clinicId: string) {
     return this.featureFlagService.getClinicPricingOffer(clinicId);
+  }
+
+  async findSubscriptionEntity(clinicId: string): Promise<Subscription | null> {
+    return this.subscriptionRepo.findByClinicId(clinicId);
   }
 
   async getSubscriptionDetails(clinicId: string) {

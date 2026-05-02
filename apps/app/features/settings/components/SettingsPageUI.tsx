@@ -1,8 +1,14 @@
-import { Search, Settings } from "lucide-react";
+import { Search, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { Input } from "@workspace/ui/components/input";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { Skeleton } from "@workspace/ui/components/skeleton";
+import { cn } from "@workspace/ui/lib/utils";
 import { BackButton } from "@/components/common/navigation/back-button";
+import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { PageHeader } from "@workspace/ui/components/page-header";
 import {
   Tabs,
   TabsContent,
@@ -22,6 +28,7 @@ import {
   PrescriptionDefaultsSettingsContainer,
   QueueSettings,
 } from "@/features/settings/components";
+import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
 import { SettingsProfileHeader } from "./profile/SettingsProfileHeader";
 
 interface SettingsTabItem {
@@ -44,9 +51,29 @@ interface SettingsPageUIProps {
   firstMatchingTab?: string;
 }
 
-const lazyPanelFallback = (
-  <div className="h-24 rounded-md bg-muted/30 animate-pulse" />
-);
+function LazySettingsPanelFallback() {
+  return (
+    <div
+      className="space-y-4 py-4"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading settings section"
+    >
+      <div className="flex items-center gap-3">
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8"
+        />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton animation="wave" className="h-4 w-40" />
+          <Skeleton animation="wave" className="h-4 w-full max-w-sm" />
+        </div>
+      </div>
+      <Skeleton animation="wave" className="h-32 w-full rounded-lg" />
+    </div>
+  );
+}
 
 const SubscriptionSettingsLazy = dynamic(
   () =>
@@ -55,7 +82,7 @@ const SubscriptionSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -66,7 +93,7 @@ const MemberManagementSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -77,7 +104,18 @@ const DoctorAvailabilitySettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
+  },
+);
+
+const DoctorTimeAwaySettingsLazy = dynamic(
+  () =>
+    import("./management/DoctorTimeAwaySettings").then(
+      (mod) => mod.DoctorTimeAwaySettings,
+    ),
+  {
+    ssr: false,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -88,7 +126,7 @@ const LeaveManagementSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -99,7 +137,7 @@ const DoctorProfileSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -110,7 +148,29 @@ const DangerZoneSettingsLazy = dynamic(
     ),
   {
     ssr: false,
-    loading: () => lazyPanelFallback,
+    loading: () => <LazySettingsPanelFallback />,
+  },
+);
+
+const ComplianceSettingsLazy = dynamic(
+  () =>
+    import("@/features/settings/components/compliance/ComplianceSettingsPanel").then(
+      (mod) => mod.ComplianceSettingsPanel,
+    ),
+  {
+    ssr: false,
+    loading: () => <LazySettingsPanelFallback />,
+  },
+);
+
+const JoinRequestsSettingsLazy = dynamic(
+  () =>
+    import("@/features/settings/components/management/JoinRequestsSettingsPanel").then(
+      (mod) => mod.JoinRequestsSettingsPanel,
+    ),
+  {
+    ssr: false,
+    loading: () => <LazySettingsPanelFallback />,
   },
 );
 
@@ -126,35 +186,48 @@ export function SettingsPageUI({
   );
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 pb-24">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0 space-y-3">
-          <BackButton fallback="/dashboard" label="Back to Dashboard" />
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-              <Settings className="h-5 w-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
-                Settings
-              </h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                Manage your facility preferences and configurations
-              </p>
-            </div>
+    <AppPageScaffold
+      className="pb-24"
+      header={
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <PageHeader
+            breadcrumbs={<BackButton fallback="/dashboard" label="Back to Dashboard" />}
+            title="Settings"
+            description="Manage your facility preferences and configurations."
+          />
+          <div className="relative w-full md:w-72 md:shrink-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Input
+              id="settings-search"
+              name="settingsSearch"
+              type="search"
+              autoComplete="off"
+              aria-label="Search settings"
+              placeholder="Enter search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={cn("pl-9", searchQuery.trim() && "pr-10")}
+            />
+            {searchQuery.trim() ? (
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                <SymbolTooltip label="Clear search">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </Button>
+                </SymbolTooltip>
+              </div>
+            ) : null}
           </div>
         </div>
-
-        <div className="relative w-full md:w-72 md:shrink-0">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search settings..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
+      }
+    >
 
       <SettingsProfileHeader />
 
@@ -164,7 +237,7 @@ export function SettingsPageUI({
         className="flex flex-col items-start gap-6 md:flex-row lg:gap-10"
       >
         <aside className="w-full shrink-0 md:sticky md:top-4 md:w-56 lg:w-64">
-          <TabsList className="flex h-auto w-full flex-row gap-0.5 overflow-x-auto bg-transparent p-0 pb-1 md:flex-col md:items-stretch md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <TabsList className="flex h-auto w-full flex-row flex-wrap gap-0.5 overflow-x-hidden bg-transparent p-0 pb-1 md:flex-col md:flex-nowrap md:items-stretch md:overflow-visible md:pb-0">
             {filteredTabs.map((category, categoryIndex) => {
               const isDangerCategory = category.category === "Danger Zone";
               return (
@@ -189,8 +262,8 @@ export function SettingsPageUI({
                         value={item.value}
                         className={cn(
                           "shrink-0 md:shrink md:w-full justify-start px-3 py-2.5 gap-2 md:gap-3",
-                          "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                          "rounded-lg whitespace-nowrap",
+                          "data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm",
+                          "rounded-[var(--radius)] whitespace-normal",
                           isDangerItem
                             ? "hover:bg-destructive/5 hover:text-destructive transition-colors"
                             : "hover:bg-muted/50 transition-colors",
@@ -228,14 +301,6 @@ export function SettingsPageUI({
             </TabsContent>
           )}
 
-          {visibleTabValues.has("subscription") && (
-            <TabsContent value="subscription" className="mt-0 space-y-6">
-              <RoleGuard requiredPermission="manageBilling">
-                <SubscriptionSettingsLazy />
-              </RoleGuard>
-            </TabsContent>
-          )}
-
           {visibleTabValues.has("members") && (
             <TabsContent value="members" className="mt-0 space-y-6">
               <RoleGuard requiredPermission="manageStaff">
@@ -244,10 +309,37 @@ export function SettingsPageUI({
             </TabsContent>
           )}
 
+          {visibleTabValues.has("join-requests") && (
+            <TabsContent value="join-requests" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageStaff">
+                <JoinRequestsSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
+
+          {visibleTabValues.has("subscription") && (
+            <TabsContent value="subscription" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageBilling">
+                <SubscriptionSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
+
+          {visibleTabValues.has("compliance") && (
+            <TabsContent value="compliance" className="mt-0 space-y-6">
+              <RoleGuard requiredPermission="manageClinic">
+                <ComplianceSettingsLazy />
+              </RoleGuard>
+            </TabsContent>
+          )}
+
           {visibleTabValues.has("availability") && (
             <TabsContent value="availability" className="mt-0 space-y-6">
               <RoleGuard requiredRole="DOCTOR">
-                <DoctorAvailabilitySettingsLazy />
+                <div className="space-y-6">
+                  <DoctorAvailabilitySettingsLazy />
+                  <DoctorTimeAwaySettingsLazy />
+                </div>
               </RoleGuard>
             </TabsContent>
           )}
@@ -306,6 +398,12 @@ export function SettingsPageUI({
             </TabsContent>
           )}
 
+          {visibleTabValues.has("help-support") && (
+            <TabsContent value="help-support" className="mt-0 space-y-6">
+              <HelpSupportSettingsPanel />
+            </TabsContent>
+          )}
+
           {visibleTabValues.has("leave") && (
             <TabsContent value="leave" className="mt-0 space-y-6">
               <RoleGuard requiredRole="DOCTOR">
@@ -329,6 +427,6 @@ export function SettingsPageUI({
           )}
         </div>
       </Tabs>
-    </div>
+    </AppPageScaffold>
   );
 }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 
 export interface PDFClinicInfo {
   name: string;
@@ -204,12 +205,10 @@ export class PDFGeneratorService {
               .fontSize(10)
               .font('Helvetica-Bold')
               .text(
-                `Next Visit: ${data.nextVisit.toLocaleDateString('en-IN', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}`,
+                `Next Visit: ${formatDate(
+                  data.nextVisit,
+                  DATE_FORMATS.DATE_FULL,
+                )}`,
                 ctx.margin,
                 ctx.currentY,
               );
@@ -306,11 +305,7 @@ export class PDFGeneratorService {
               .fontSize(10)
               .font('Helvetica')
               .text(
-                `Due Date: ${data.dueDate.toLocaleDateString('en-IN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}`,
+                `Due Date: ${formatDate(data.dueDate, DATE_FORMATS.DATE_LONG)}`,
                 ctx.margin,
                 ctx.currentY,
               );
@@ -505,11 +500,7 @@ export class PDFGeneratorService {
 
     doc.fontSize(9).font('Helvetica').fillColor('#4a5568');
 
-    const dateStr = (date ?? new Date()).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    const dateStr = formatDate(date ?? new Date(), DATE_FORMATS.DATE_LONG);
 
     if (documentId) {
       doc.text(

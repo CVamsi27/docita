@@ -13,7 +13,6 @@ export async function seedSession(
         localStorage.setItem("docita_token", token);
         localStorage.setItem("docita_user", JSON.stringify(user));
       } catch {
-        // ignore
       }
     },
     { token: params.token, user: params.user },

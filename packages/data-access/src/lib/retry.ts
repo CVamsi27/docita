@@ -1,4 +1,4 @@
-import type { APIError } from "@/lib/types";
+import type { APIError } from "./types";
 
 export function shouldRetry(error: APIError): boolean {
   if (error.isNetworkError || error.isTimeout) {

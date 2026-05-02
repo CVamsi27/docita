@@ -21,18 +21,14 @@ import {
 } from "@workspace/ui/components/select";
 import { Badge } from "@workspace/ui/components/badge";
 import {
+  SymbolTooltip,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
-
-interface TeamMember {
-  email: string;
-  role: "DOCTOR" | "NURSE" | "RECEPTIONIST" | "ADMIN" | "ADMIN_DOCTOR";
-  name?: string;
-}
+import type { TeamMember } from "@/features/onboarding/components/types";
 
 interface TeamInviteStepProps {
   onComplete: (members: TeamMember[]) => void;
@@ -72,6 +68,20 @@ const ROLE_OPTIONS = [
   },
 ];
 
+const createEmptyMember = (): TeamMember => ({
+  email: "",
+  role: "DOCTOR",
+  name: "",
+  password: "",
+  phoneNumber: "",
+  specialization: "",
+  qualification: "",
+  registrationNumber: "",
+});
+
+const isDoctorRole = (role: TeamMember["role"]) =>
+  role === "DOCTOR" || role === "ADMIN_DOCTOR";
+
 export function TeamInviteStep({
   onComplete,
   onSkip,
@@ -80,17 +90,36 @@ export function TeamInviteStep({
   ownerEmail,
   ownerRole = "ADMIN",
 }: TeamInviteStepProps) {
-  const [members, setMembers] = useState<TeamMember[]>([
-    { email: "", role: "DOCTOR", name: "" },
-  ]);
+  const [members, setMembers] = useState<TeamMember[]>([createEmptyMember()]);
   const [emailErrors, setEmailErrors] = useState<Record<number, string>>({});
 
   const hasRowContent = (member: TeamMember) =>
-    member.email.trim() !== "" || (member.name?.trim() ?? "") !== "";
+    member.email.trim() !== "" ||
+    (member.name?.trim() ?? "") !== "" ||
+    (member.password?.trim() ?? "") !== "" ||
+    (member.phoneNumber?.trim() ?? "") !== "" ||
+    (member.specialization?.trim() ?? "") !== "" ||
+    (member.qualification?.trim() ?? "") !== "" ||
+    (member.registrationNumber?.trim() ?? "") !== "";
+
+  const getMemberIssue = (member: TeamMember, index: number) => {
+    if (!hasRowContent(member)) return null;
+    if (!member.name?.trim()) return "Enter the member's name";
+    if (!member.email.trim()) return "Enter the member's email";
+    if (!member.email.includes("@")) return "Enter a valid email address";
+    if (emailErrors[index]) return emailErrors[index];
+    if (!member.password?.trim() || member.password.trim().length < 8) {
+      return "Use a temporary password with at least 8 characters";
+    }
+    if (isDoctorRole(member.role) && !member.registrationNumber?.trim()) {
+      return "Enter the medical registration number";
+    }
+    return null;
+  };
 
   const addMember = () => {
     if (members.length < maxMembers) {
-      setMembers([...members, { email: "", role: "DOCTOR", name: "" }]);
+      setMembers([...members, createEmptyMember()]);
     }
   };
 
@@ -100,7 +129,7 @@ export function TeamInviteStep({
 
     if (hasRowContent(member)) {
       const updated = [...members];
-      updated[index] = { ...updated[index], email: "", name: "" };
+      updated[index] = createEmptyMember();
       setMembers(updated);
       setEmailErrors((prev) => {
         const next = { ...prev };
@@ -155,28 +184,41 @@ export function TeamInviteStep({
   };
 
   const handleSubmit = () => {
-    const validMembers = members.filter(
-      (m) =>
-        m.email.trim() !== "" &&
-        m.email.includes("@") &&
-        !emailErrors[members.indexOf(m)],
-    );
+    const validMembers = members.flatMap((member, index) => {
+      if (getMemberIssue(member, index) || !hasRowContent(member)) return [];
+      return [
+        {
+          ...member,
+          email: member.email.trim(),
+          name: member.name?.trim(),
+          password: member.password?.trim(),
+          phoneNumber: member.phoneNumber?.trim() || undefined,
+          specialization: isDoctorRole(member.role)
+            ? member.specialization?.trim() || undefined
+            : undefined,
+          qualification: isDoctorRole(member.role)
+            ? member.qualification?.trim() || undefined
+            : undefined,
+          registrationNumber: isDoctorRole(member.role)
+            ? member.registrationNumber?.trim() || undefined
+            : undefined,
+        },
+      ];
+    });
     onComplete(validMembers);
   };
 
-  const hasValidMembers = members.some(
-    (m) => m.email.trim() !== "" && m.email.includes("@"),
+  const validMembers = members.filter(
+    (member, index) => !getMemberIssue(member, index) && hasRowContent(member),
   );
 
-  const validMembers = members.filter(
-    (m) => m.email.trim() !== "" && m.email.includes("@"),
-  );
+  const hasValidMembers = validMembers.length > 0;
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
             <UserPlus className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -189,7 +231,7 @@ export function TeamInviteStep({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="rounded-lg border bg-muted/20 p-4 space-y-2">
+        <div className="ui-panel-muted p-4 space-y-2">
           <p className="text-sm font-medium">Team guidance</p>
           <p className="text-xs text-muted-foreground">
             Your logged-in account is the clinic owner during onboarding. You
@@ -202,7 +244,7 @@ export function TeamInviteStep({
             Settings
           </p>
           {(ownerName || ownerEmail) && (
-            <div className="rounded-md border bg-background px-3 py-2">
+            <div className="rounded-[var(--radius)] border border-border/70 bg-background/70 px-3 py-2">
               <p className="text-xs text-muted-foreground">
                 Clinic Owner (already added)
               </p>
@@ -225,7 +267,7 @@ export function TeamInviteStep({
 
         <div className="space-y-4">
           {members.map((member, index) => (
-            <div key={index} className={cn("grid gap-4 rounded-lg border p-4")}>
+            <div key={index} className={cn("grid gap-4 rounded-[var(--radius)] border border-border/70 p-4")}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -235,25 +277,45 @@ export function TeamInviteStep({
                     This member will be invited during onboarding
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeMember(index)}
-                  disabled={members.length === 1 && !hasRowContent(member)}
-                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                  aria-label={`Remove member ${index + 1}`}
-                  title={
+                <SymbolTooltip
+                  label={
                     hasRowContent(member)
                       ? "Clear member details"
                       : "Remove member"
                   }
+                  side="left"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeMember(index)}
+                    disabled={members.length === 1 && !hasRowContent(member)}
+                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                    aria-label={`Remove member ${index + 1}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </SymbolTooltip>
               </div>
 
               <div className="grid items-start gap-4 sm:grid-cols-2">
+                <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                  <Label htmlFor={`name-${index}`} className="leading-6">
+                    Name
+                  </Label>
+                  <Input
+                    id={`name-${index}`}
+                    placeholder="Full name"
+                    value={member.name ?? ""}
+                    onChange={(e) =>
+                      updateMember(index, "name", e.target.value)
+                    }
+                    className="h-11 sm:h-11"
+                  />
+                  <div className="min-h-4" />
+                </div>
+
                 <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
                   <Label htmlFor={`email-${index}`} className="leading-6">
                     Email
@@ -261,13 +323,13 @@ export function TeamInviteStep({
                   <Input
                     id={`email-${index}`}
                     type="email"
-                    placeholder="Member email address"
+                    placeholder="Email"
                     value={member.email}
                     onChange={(e) =>
                       updateMember(index, "email", e.target.value)
                     }
                     className={cn(
-                      "h-11 sm:h-11 rounded-xl",
+                      "h-11 sm:h-11 rounded-lg",
                       emailErrors[index] && "border-destructive",
                     )}
                     aria-invalid={!!emailErrors[index]}
@@ -280,7 +342,44 @@ export function TeamInviteStep({
                     )}
                   </div>
                 </div>
+              </div>
 
+              <div className="grid items-start gap-4 sm:grid-cols-2">
+                <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                  <Label htmlFor={`phone-${index}`} className="leading-6">
+                    Phone
+                  </Label>
+                  <Input
+                    id={`phone-${index}`}
+                    placeholder="Phone number"
+                    value={member.phoneNumber ?? ""}
+                    onChange={(e) =>
+                      updateMember(index, "phoneNumber", e.target.value)
+                    }
+                    className="h-11 rounded-lg sm:h-11"
+                  />
+                  <div className="min-h-4" />
+                </div>
+
+                <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                  <Label htmlFor={`password-${index}`} className="leading-6">
+                    Temporary Password
+                  </Label>
+                  <Input
+                    id={`password-${index}`}
+                    type="password"
+                    placeholder="Enter password"
+                    value={member.password ?? ""}
+                    onChange={(e) =>
+                      updateMember(index, "password", e.target.value)
+                    }
+                    className="h-11 rounded-lg sm:h-11"
+                  />
+                  <div className="min-h-4" />
+                </div>
+              </div>
+
+              <div className="grid items-start gap-4 sm:grid-cols-2">
                 <div className="group/role relative grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
                   <div className="flex items-center justify-between leading-6">
                     <Label htmlFor={`role-${index}`} className="leading-6">
@@ -300,23 +399,9 @@ export function TeamInviteStep({
                         <TooltipContent
                           side="top"
                           align="end"
-                          className="max-w-[320px] p-3"
+                          className="p-2"
                         >
-                          <p className="text-sm font-medium text-foreground">
-                            Team roles and significance
-                          </p>
-                          <div className="mt-2 space-y-2">
-                            {ROLE_OPTIONS.map((role) => (
-                              <div key={role.value} className="space-y-0.5">
-                                <p className="text-xs font-medium text-foreground">
-                                  {role.label}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {role.description}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
+                          <p>Role</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -329,9 +414,9 @@ export function TeamInviteStep({
                   >
                     <SelectTrigger
                       id={`role-${index}`}
-                      className="w-full rounded-xl px-4 h-11 sm:h-11 data-[size=default]:h-11 data-[size=default]:sm:h-11"
+                      className="w-full rounded-lg px-4 h-11 sm:h-11 data-[size=default]:h-11 data-[size=default]:sm:h-11"
                     >
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder="Role" />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLE_OPTIONS.map((opt) => (
@@ -349,7 +434,80 @@ export function TeamInviteStep({
                     }
                   </p>
                 </div>
+
+                {isDoctorRole(member.role) && (
+                  <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                    <Label
+                      htmlFor={`registrationNumber-${index}`}
+                      className="leading-6"
+                    >
+                      Registration #
+                    </Label>
+                    <Input
+                      id={`registrationNumber-${index}`}
+                      placeholder="Registration number"
+                      value={member.registrationNumber ?? ""}
+                      onChange={(e) =>
+                        updateMember(
+                          index,
+                          "registrationNumber",
+                          e.target.value,
+                        )
+                      }
+                      className="h-11 rounded-lg sm:h-11"
+                    />
+                    <div className="min-h-4" />
+                  </div>
+                )}
               </div>
+
+              {isDoctorRole(member.role) && (
+                <div className="grid items-start gap-4 sm:grid-cols-2">
+                  <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                    <Label
+                      htmlFor={`specialization-${index}`}
+                      className="leading-6"
+                    >
+                      Specialization
+                    </Label>
+                    <Input
+                      id={`specialization-${index}`}
+                      placeholder="Cardiology"
+                      value={member.specialization ?? ""}
+                      onChange={(e) =>
+                        updateMember(index, "specialization", e.target.value)
+                      }
+                      className="h-11 rounded-lg sm:h-11"
+                    />
+                    <div className="min-h-4" />
+                  </div>
+
+                  <div className="grid grid-rows-[1.5rem_2.75rem_auto] gap-2">
+                    <Label
+                      htmlFor={`qualification-${index}`}
+                      className="leading-6"
+                    >
+                      Qualification
+                    </Label>
+                    <Input
+                      id={`qualification-${index}`}
+                      placeholder="Qualification"
+                      value={member.qualification ?? ""}
+                      onChange={(e) =>
+                        updateMember(index, "qualification", e.target.value)
+                      }
+                      className="h-11 rounded-lg sm:h-11"
+                    />
+                    <div className="min-h-4" />
+                  </div>
+                </div>
+              )}
+
+              {getMemberIssue(member, index) && (
+                <p className="text-xs text-destructive">
+                  {getMemberIssue(member, index)}
+                </p>
+              )}
             </div>
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatPickerIsoDate } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { Label } from "@workspace/ui/components/label";
@@ -29,8 +29,8 @@ export function QuickScheduleButtons({
             className={cn(
               "text-xs",
               selectedDate &&
-                format(selectedDate, "yyyy-MM-dd") ===
-                  format(schedule.getValue(), "yyyy-MM-dd") &&
+                formatPickerIsoDate(selectedDate) ===
+                  formatPickerIsoDate(schedule.getValue()) &&
                 "border-primary bg-primary/5",
             )}
           >

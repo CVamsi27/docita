@@ -12,7 +12,8 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
-import { BookOpen, CheckCircle2, FileText, Search } from "lucide-react";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
+import { BookOpen, CheckCircle2, FileText, Search, X } from "lucide-react";
 
 export const MedicalCodingSearch: FC<{
   searchQuery?: string;
@@ -34,13 +35,30 @@ export const MedicalCodingSearch: FC<{
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
-            placeholder="Search by code or description..."
+            placeholder="Enter code or description"
             value={searchQuery}
             onChange={(e) => onSearchChange?.(e.target.value)}
-            className="pl-10"
+            className={searchQuery.trim() ? "pl-10 pr-10" : "pl-10"}
+            aria-label="Search medical codes"
           />
+          {searchQuery.trim() ? (
+            <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+              <SymbolTooltip label="Clear search">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => onSearchChange?.("")}
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                </Button>
+              </SymbolTooltip>
+            </div>
+          ) : null}
         </div>
         {results.length > 0 ? (
           <div className="space-y-2">

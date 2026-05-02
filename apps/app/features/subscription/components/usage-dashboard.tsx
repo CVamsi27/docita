@@ -1,9 +1,20 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCurrentUsage } from "@/hooks/api/use-pricing";
-import { PRICING_CURRENCY_SYMBOLS } from "@workspace/types";
-import { useLocaleCurrency } from "@/hooks/use-locale-currency";
-import { Loader2, AlertTriangle, TrendingUp } from "lucide-react";
+import {
+  PRICING_CURRENCY_CONFIG,
+  PRICING_CURRENCY_SYMBOLS,
+  type SupportedCurrency,
+} from "@workspace/types";
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
+import { useClinicCurrency } from "@/hooks/use-clinic-currency";
+import {
+  formatLocaleDateShortMonth,
+  formatLocaleDateShortMonthYear,
+} from "@/lib/formatters";
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@workspace/ui/components/card";
 import { Progress } from "@workspace/ui/components/progress";
 import { Badge } from "@workspace/ui/components/badge";
@@ -17,6 +28,8 @@ interface UsageMeterProps {
   unit: string;
   overageRate?: number;
   currencySymbol?: string;
+  amountLocale: string;
+  amountFractionDigits: number;
 }
 
 function UsageMeter({
@@ -26,7 +39,9 @@ function UsageMeter({
   overage,
   unit,
   overageRate,
-  currencySymbol = "₹",
+  currencySymbol = "",
+  amountLocale,
+  amountFractionDigits,
 }: UsageMeterProps) {
   const pct = included > 0 ? Math.min(100, (current / included) * 100) : 0;
   const isOver = overage > 0;
@@ -39,14 +54,14 @@ function UsageMeter({
         <div className="flex items-center gap-2">
           {isOver && (
             <Badge variant="destructive" className="text-xs h-5">
-              +{overage} over
+              +{formatCountLocale(overage)} over
             </Badge>
           )}
           {isWarning && (
             <AlertTriangle className="h-3.5 w-3.5 text-warning" />
           )}
           <span className={cn("text-muted-foreground", isOver && "text-destructive")}>
-            {current.toLocaleString()} / {included.toLocaleString()} {unit}
+            {formatCountLocale(current)} / {formatCountLocale(included)} {unit}
           </span>
         </div>
       </div>
@@ -60,7 +75,17 @@ function UsageMeter({
       />
       {isOver && overageRate !== undefined && (
         <p className="text-xs text-destructive">
-          {currencySymbol}{(overage * overageRate).toLocaleString()} overage this period ({overage} × {currencySymbol}{overageRate}/{unit})
+          {currencySymbol}
+          {formatAmountLocale(overage * overageRate, amountLocale, {
+            minimumFractionDigits: amountFractionDigits,
+            maximumFractionDigits: amountFractionDigits,
+          })}{" "}
+          overage this period ({formatCountLocale(overage)} × {currencySymbol}
+          {formatAmountLocale(overageRate, amountLocale, {
+            minimumFractionDigits: amountFractionDigits,
+            maximumFractionDigits: amountFractionDigits,
+          })}
+          /{unit})
         </p>
       )}
     </div>
@@ -69,16 +94,28 @@ function UsageMeter({
 
 export function UsageDashboard() {
   const { usage, isLoading } = useCurrentUsage();
-  const { currency } = useLocaleCurrency();
+  const { currency, locale } = useClinicCurrency();
+  const currencyCfg = PRICING_CURRENCY_CONFIG[currency as SupportedCurrency];
+  const amountFractionDigits = currencyCfg?.decimalPlaces ?? 2;
+  const amountLocale = currencyCfg?.locale ?? locale;
   const symbol =
     PRICING_CURRENCY_SYMBOLS[
       currency as keyof typeof PRICING_CURRENCY_SYMBOLS
-    ] ?? "₹";
+    ] ?? currency;
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <div
+        className="flex justify-center p-8"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading usage"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -90,15 +127,8 @@ export function UsageDashboard() {
     ([, warning]) => warning.threshold !== null,
   );
 
-  const periodStart = new Date(usage.period.start).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-  });
-  const periodEnd = new Date(usage.period.end).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const periodStart = formatLocaleDateShortMonth(usage.period.start);
+  const periodEnd = formatLocaleDateShortMonthYear(usage.period.end);
 
   return (
     <Card className="border-none shadow-sm">
@@ -115,7 +145,11 @@ export function UsageDashboard() {
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Estimated overage</p>
               <p className="text-sm font-semibold text-destructive">
-                {symbol}{totalOverageCost.toLocaleString()}
+                {symbol}
+                {formatAmountLocale(totalOverageCost, amountLocale, {
+                  minimumFractionDigits: amountFractionDigits,
+                  maximumFractionDigits: amountFractionDigits,
+                })}
               </p>
             </div>
           )}
@@ -137,6 +171,8 @@ export function UsageDashboard() {
           unit="consults"
           overageRate={usage.rates.consultations}
           currencySymbol={symbol}
+          amountLocale={amountLocale}
+          amountFractionDigits={amountFractionDigits}
         />
         <UsageMeter
           label="Team Members"
@@ -146,6 +182,8 @@ export function UsageDashboard() {
           unit="users"
           overageRate={usage.rates.users}
           currencySymbol={symbol}
+          amountLocale={amountLocale}
+          amountFractionDigits={amountFractionDigits}
         />
         <UsageMeter
           label="WhatsApp Messages"
@@ -155,6 +193,8 @@ export function UsageDashboard() {
           unit="msgs"
           overageRate={usage.rates.whatsappMessages}
           currencySymbol={symbol}
+          amountLocale={amountLocale}
+          amountFractionDigits={amountFractionDigits}
         />
         {totalOverageCost === 0 && (
           <p className="text-xs text-center text-muted-foreground pt-1">

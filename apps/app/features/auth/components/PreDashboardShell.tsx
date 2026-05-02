@@ -2,11 +2,16 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { Lock, LogOut, Shield } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
+import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
 import { cn } from "@workspace/ui/lib/utils";
+import { SupportContact } from "@/components/common/support-contact";
+import {
+  SUPPORT_WHATSAPP_MESSAGE_DEFAULT,
+  SUPPORT_WHATSAPP_MESSAGE_ONBOARDING,
+} from "@/lib/support-contact";
 import { AuthBrandingPanel } from "./AuthBrandingPanel";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthBrandingStep } from "@/features/auth/types/auth";
@@ -55,6 +60,11 @@ interface PreDashboardShellProps {
    * step and existing-account login step).
    */
   showProgress?: boolean;
+  /**
+   * Overrides the footer WhatsApp prefilled text. When omitted, `currentStep === "onboarding"`
+   * uses the onboarding template; all other steps use the generic default.
+   */
+  supportWhatsappMessage?: string;
 }
 
 export function PreDashboardShell({
@@ -65,11 +75,17 @@ export function PreDashboardShell({
   showSignOut = false,
   showBrandingPanel = true,
   showProgress = true,
+  supportWhatsappMessage,
 }: PreDashboardShellProps) {
   const router = useRouter();
   const { logout, user } = useAuth();
   const meta = STEP_META[currentStep];
   const stepNumber = meta.index + 1;
+  const footerWhatsappMessage =
+    supportWhatsappMessage ??
+    (currentStep === "onboarding"
+      ? SUPPORT_WHATSAPP_MESSAGE_ONBOARDING
+      : SUPPORT_WHATSAPP_MESSAGE_DEFAULT);
 
   useEffect(() => {
     if (
@@ -93,23 +109,11 @@ export function PreDashboardShell({
 
       {/* Right panel keeps its own scroll so the branding rail stays fixed */}
       <div className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto overflow-x-hidden">
-        {/* Radial ambient glow */}
-        <div
-          className="pointer-events-none absolute inset-0 z-0"
-          style={{
-            background:
-              "radial-gradient(ellipse at 65% 35%, oklch(var(--primary) / 0.05) 0%, transparent 65%)",
-          }}
-          aria-hidden="true"
-        />
-
         {/* Sticky top bar — stays visible while scrolling */}
         <div className="sticky top-0 z-20 flex items-center justify-between px-4 pt-4 pb-2 bg-background/80 backdrop-blur-sm">
-          {/* Mobile logo */}
-          <div className="lg:hidden">
+          <div className={cn(showBrandingPanel ? "lg:hidden" : "")}>
             <DocitaLogo />
           </div>
-          <div className="hidden lg:block" />
 
           <div className="flex items-center gap-2">
             {showSignOut && (
@@ -123,7 +127,7 @@ export function PreDashboardShell({
                 Sign out
               </Button>
             )}
-            <ThemeToggle />
+            <ThemeToggleWithAppearanceSync />
           </div>
         </div>
 
@@ -165,6 +169,24 @@ export function PreDashboardShell({
             ) : null}
 
             {children}
+          </div>
+          <div className="flex justify-center gap-6 px-4 pb-2 text-xs text-muted-foreground lg:hidden">
+            <span className="flex items-center gap-1">
+              <Shield className="h-3 w-3 shrink-0" aria-hidden />
+              Data Encrypted
+            </span>
+            <span className="flex items-center gap-1">
+              <Lock className="h-3 w-3 shrink-0" aria-hidden />
+              Privacy Controls
+            </span>
+          </div>
+          <div className="w-full max-w-2xl px-4 pb-6">
+            <SupportContact
+              layout="stack"
+              variant="footer"
+              className="w-full"
+              whatsappMessage={footerWhatsappMessage}
+            />
           </div>
         </div>
       </div>

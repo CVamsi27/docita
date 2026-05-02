@@ -34,10 +34,7 @@ export function NextTierPromotion({
   if (!nextTierInfo) return null;
 
   return (
-    <Card className="relative overflow-hidden border-2 border-primary/30 bg-linear-to-br from-primary/10 via-primary/5 to-background dark:from-primary/20 dark:via-primary/10 dark:to-background/50">
-      {}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 dark:bg-primary/20" />
-
+    <Card className="border-primary/30 bg-primary/5">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -57,7 +54,7 @@ export function NextTierPromotion({
           </div>
           <Button
             onClick={onContactSales}
-            className="bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg"
+            className="shadow-sm"
           >
             Upgrade Now
           </Button>
@@ -77,7 +74,7 @@ export function NextTierPromotion({
                   key={feature}
                   className="flex items-center gap-3 p-3 rounded-lg bg-background/50 dark:bg-muted/50 border border-border/50"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 bg-background/70 dark:bg-background/70">
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
                   <span className="text-sm font-medium">{details.name}</span>

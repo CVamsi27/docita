@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import {
   Card,
   CardContent,
@@ -64,14 +65,17 @@ export function ConsentBanner() {
               <Shield className="h-5 w-5 text-primary" />
               <CardTitle>Privacy & Consent</CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setDismissed(true)}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <SymbolTooltip label="Dismiss">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDismissed(true)}
+                className="h-6 w-6 p-0"
+                aria-label="Dismiss consent banner"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
           </div>
           <CardDescription>
             Welcome to the Patient Portal! Please review and accept our privacy
@@ -137,7 +141,7 @@ export function ConsentBanner() {
             disabled={updateConsent.isPending}
             className="flex-1"
           >
-            {updateConsent.isPending ? "Saving..." : "Save Preferences"}
+            {updateConsent.isPending ? "Saving…" : "Save Preferences"}
           </Button>
         </CardFooter>
       </Card>

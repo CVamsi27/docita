@@ -1,25 +1,32 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  EmptyState as SharedEmptyState,
+  LoadingState as SharedLoadingState,
+} from "@workspace/ui/components/empty-state";
 import { cn } from "@workspace/ui/lib/utils";
 
 export const LoadingSpinner = ({ className }: { className?: string }) => (
-  <div className={cn("flex items-center justify-center h-full", className)}>
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-  </div>
+  <SharedLoadingState
+    message="Loading chart…"
+    className={cn("h-full", className)}
+  />
 );
 
 export const EmptyState = ({
-  icon: Icon,
+  icon,
   label,
   sublabel,
 }: {
-  icon: React.ElementType;
+  icon: LucideIcon;
   label: string;
   sublabel?: string;
 }) => (
-  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-    <Icon className="h-12 w-12 mb-4 opacity-50" />
-    <p>{label}</p>
-    {sublabel && <p className="text-sm">{sublabel}</p>}
-  </div>
+  <SharedEmptyState
+    icon={icon}
+    title={label}
+    description={sublabel}
+    className="h-full"
+  />
 );
 
 export const COLORS = [

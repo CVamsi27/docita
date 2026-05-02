@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { format } from "date-fns";
 import { Calendar, ChevronRight, Clock, Play } from "lucide-react";
+import { formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -9,6 +11,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { cn } from "@workspace/ui/lib/utils";
 import { EmptyState } from "@workspace/ui/components/empty-state";
@@ -16,10 +19,10 @@ import { StatusBadge } from "@workspace/ui/components/status-badge";
 import { ViewAllLinkUI } from "@/features/dashboard/components/layout/view-all-link-ui";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 
-import { DashboardAppointment } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 
 export interface TodayScheduleUIProps {
-  appointments: DashboardAppointment[];
+  appointments: AppointmentListItem[];
 }
 
 export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
@@ -28,9 +31,11 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center text-primary">
-              <Clock className="h-4 w-4" />
-            </div>
+            <SymbolTooltip label="Today's appointments">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background/70 text-primary">
+                <Clock className="h-4 w-4" aria-hidden />
+              </div>
+            </SymbolTooltip>
             <div>
               <CardTitle className="text-base font-semibold">
                 Today&apos;s Schedule
@@ -79,7 +84,6 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     "hover:bg-muted/60 hover:border-border/50",
                   )}
                 >
-                  {}
                   <div className="flex flex-col items-center justify-center min-w-10 sm:min-w-12 text-center">
                     <p
                       className={cn(
@@ -87,14 +91,13 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                         apt.status === "in-progress" && "text-primary",
                       )}
                     >
-                      {format(new Date(apt.startTime), "h:mm")}
+                      {formatDate(apt.startTime, "hh:mm")}
                     </p>
                     <p className="text-xs text-muted-foreground uppercase">
-                      {format(new Date(apt.startTime), "a")}
+                      {formatDate(apt.startTime, "a")}
                     </p>
                   </div>
 
-                  {}
                   <div className="relative h-10 flex items-center">
                     <div className="w-px h-full bg-border" />
                     {apt.status === "in-progress" && (
@@ -105,9 +108,8 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     )}
                   </div>
 
-                  {}
                   <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarFallback className="bg-linear-to-br from-primary/20 to-primary/5 text-primary text-xs font-medium">
+                    <AvatarFallback className="border border-border/70 bg-background/70 text-foreground text-xs font-medium">
                       {apt.patient?.firstName?.[0]}
                       {apt.patient?.lastName?.[0]}
                     </AvatarFallback>
@@ -122,23 +124,31 @@ export function TodayScheduleUI({ appointments }: TodayScheduleUIProps) {
                     </p>
                   </div>
 
-                  {}
                   <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <span className="hidden sm:block"><StatusBadge status={apt.status} /></span>
+                    <span className="hidden sm:block">
+                      <StatusBadge status={apt.status} />
+                    </span>
                     {(apt.status === "scheduled" ||
                       apt.status === "in-progress") && (
-                      <Button
-                        size="icon"
-                        variant={
-                          apt.status === "in-progress" ? "default" : "ghost"
+                      <SymbolTooltip
+                        label={
+                          apt.status === "in-progress"
+                            ? "Continue consultation"
+                            : "Open consultation"
                         }
-                        className={cn(
-                          "h-7 w-7 sm:h-8 sm:w-8",
-                          apt.status === "in-progress" && "shadow-sm",
-                        )}
                       >
-                        <Play className="h-3 w-3" />
-                      </Button>
+                        <span
+                          className={cn(
+                            "inline-flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg border border-transparent",
+                            apt.status === "in-progress"
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "bg-muted/50 text-muted-foreground group-hover:bg-muted",
+                          )}
+                          aria-hidden
+                        >
+                          <Play className="h-3 w-3" />
+                        </span>
+                      </SymbolTooltip>
                     )}
                   </div>
                 </Link>

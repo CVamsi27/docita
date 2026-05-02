@@ -13,7 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { format, isSameDay } from "date-fns";
+import {
+  formatDate,
+  formatPickerIsoDate,
+  isSameLocalCalendarDay,
+} from "@workspace/utils";
 
 interface Doctor {
   id: string;
@@ -24,6 +28,9 @@ interface Doctor {
 interface AppointmentsCalendarUIProps {
   date: Date | undefined;
   onDateSelect: (date: Date | undefined) => void;
+  calendarMonth: Date;
+  onCalendarMonthChange: (month: Date) => void;
+  appointmentCountsByDay: Map<string, number>;
   canViewAllDoctors: boolean;
   doctorsList: Doctor[];
   selectedDoctorId: string | undefined;
@@ -33,13 +40,18 @@ interface AppointmentsCalendarUIProps {
 export function AppointmentsCalendarUI({
   date,
   onDateSelect,
+  calendarMonth,
+  onCalendarMonthChange,
+  appointmentCountsByDay,
   canViewAllDoctors,
   doctorsList,
   selectedDoctorId,
   onDoctorSelect,
 }: AppointmentsCalendarUIProps) {
   const selectedDate = date ?? new Date();
-  const isTodaySelected = isSameDay(selectedDate, new Date());
+  const isTodaySelected = isSameLocalCalendarDay(selectedDate, new Date());
+
+  const hasAnyMonthIndicators = appointmentCountsByDay.size > 0;
 
   return (
     <Card className="h-fit overflow-hidden border-border/60 bg-card/95 shadow-sm">
@@ -49,8 +61,8 @@ export function AppointmentsCalendarUI({
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Selected date
             </p>
-            <CardTitle className="mt-0.5 truncate text-lg">
-              {format(selectedDate, "EEE, d MMM yyyy")}
+            <CardTitle className="mt-1 truncate text-xl font-semibold tracking-tight">
+              {formatDate(selectedDate, "EEE, d MMM yyyy")}
             </CardTitle>
           </div>
           <Button
@@ -73,7 +85,7 @@ export function AppointmentsCalendarUI({
             }
           >
             <SelectTrigger className="h-9 w-full text-sm">
-              <SelectValue placeholder="All Doctors" />
+              <SelectValue placeholder="Doctor" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Doctors</SelectItem>
@@ -87,17 +99,37 @@ export function AppointmentsCalendarUI({
         )}
       </CardHeader>
 
-      <CardContent className="p-0">
-        <div className="p-4">
+      <CardContent className="space-y-3 p-0 pb-4">
+        <div className="border-b border-border/40 px-4 pt-4">
           <Calendar
             mode="single"
             required
+            month={calendarMonth}
+            onMonthChange={onCalendarMonthChange}
             selected={selectedDate}
             onSelect={onDateSelect}
-            className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(7)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_table]:w-full [&_td]:p-0.5"
+            modifiers={{
+              hasAppointments: (day) =>
+                (appointmentCountsByDay.get(formatPickerIsoDate(day)) ?? 0) > 0,
+            }}
+            modifiersClassNames={{
+              hasAppointments:
+                "[&_button]:relative [&_button]:after:absolute [&_button]:after:bottom-1 [&_button]:after:left-1/2 [&_button]:after:h-1 [&_button]:after:w-1 [&_button]:after:-translate-x-1/2 [&_button]:after:rounded-full [&_button]:after:bg-primary [&_button]:after:content-['']",
+            }}
+            captionLayout="dropdown"
+            className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(8)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_table]:w-full [&_td]:p-0.5"
             classNames={{ root: "w-full max-w-full" }}
           />
         </div>
+        {hasAnyMonthIndicators ? (
+          <div className="flex items-center gap-2 px-5 text-xs text-muted-foreground">
+            <span
+              className="inline-block size-2 shrink-0 rounded-full bg-primary"
+              aria-hidden
+            />
+            <span>Day has scheduled appointments</span>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

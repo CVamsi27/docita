@@ -36,7 +36,7 @@ export function FaqSection() {
 
   return (
     <div className="max-w-3xl mx-auto w-full">
-      <h2 className="text-2xl font-bold text-center mb-8">
+      <h2 className="ui-section-title mb-8 text-center text-[var(--fs-2xl)]">
         Frequently Asked Questions
       </h2>
       <Accordion type="single" collapsible className="w-full">

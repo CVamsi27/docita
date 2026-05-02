@@ -1,22 +1,17 @@
-
-
-import { isAfter, isBefore, isToday, parseISO } from "date-fns";
+import {
+  calculateAge as getAgeInYears,
+  formatCurrency,
+  isFuture,
+  isPast,
+  isToday,
+} from "@workspace/utils";
 
 export const dateRules = {
-  isValidFutureDate: (date: Date | string): boolean => {
-    const dateObj = typeof date === "string" ? parseISO(date) : date;
-    return isAfter(dateObj, new Date());
-  },
+  isValidFutureDate: (date: Date | string): boolean => isFuture(date),
 
-  isValidPastDate: (date: Date | string): boolean => {
-    const dateObj = typeof date === "string" ? parseISO(date) : date;
-    return isBefore(dateObj, new Date());
-  },
+  isValidPastDate: (date: Date | string): boolean => isPast(date),
 
-  isToday: (date: Date | string): boolean => {
-    const dateObj = typeof date === "string" ? parseISO(date) : date;
-    return isToday(dateObj);
-  },
+  isToday: (date: Date | string): boolean => isToday(date),
 
   isWithinBusinessHours: (
     date: Date,
@@ -84,15 +79,7 @@ export const permissionRules = {
 
 export const medicalRules = {
   calculateAge: (dateOfBirth: Date | string): number => {
-    const dob =
-      typeof dateOfBirth === "string" ? parseISO(dateOfBirth) : dateOfBirth;
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDiff = today.getMonth() - dob.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
-    return age;
+    return getAgeInYears(dateOfBirth) ?? 0;
   },
 
   isMinor: (age: number): boolean => {
@@ -119,10 +106,9 @@ export const medicalRules = {
 
 export const formattingRules = {
   formatCurrency: (amount: number, currency: string = "INR"): string => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
+    return formatCurrency(amount, {
       currency,
-    }).format(amount);
+    });
   },
 
   formatPercentage: (value: number, decimals: number = 1): string => {

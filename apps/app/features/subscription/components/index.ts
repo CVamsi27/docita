@@ -1,3 +1,4 @@
+export * from "./billing-subscription-workspace";
 export * from "./cards/current-plan-card";
 export * from "./cards/tier-card";
 export * from "./banners/trial-offer-banner";

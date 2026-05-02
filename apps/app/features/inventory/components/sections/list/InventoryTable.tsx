@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Table,
@@ -9,6 +11,7 @@ import {
 } from "@workspace/ui/components/table";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Eye, Package } from "lucide-react";
 import { EmptyState, LoadingState } from "@workspace/ui/components/empty-state";
 import {
@@ -20,6 +23,10 @@ import {
 } from "@workspace/ui/components/card";
 import type { InventoryItem } from "@workspace/types";
 import type { StockStatus } from "@/features/inventory/hooks/use-inventory-logic";
+import {
+  DATE_FORMAT_OPTIONS_US_SHORT,
+  formatDateSafe,
+} from "@/lib/formatters";
 
 interface InventoryTableProps {
   items: InventoryItem[];
@@ -34,15 +41,6 @@ export function InventoryTable({
   onViewItem,
   getStockStatus,
 }: InventoryTableProps) {
-  const formatDate = (dateVal?: string | Date | null) => {
-    if (!dateVal) return "-";
-    return new Date(dateVal).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -54,9 +52,9 @@ export function InventoryTable({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <LoadingState message="Loading inventory..." />
+          <LoadingState message="Loading inventory…" />
         ) : (
-          <div className="rounded-md border overflow-x-auto">
+          <div className="rounded-md border overflow-x-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -96,19 +94,26 @@ export function InventoryTable({
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {formatDate(item.expiryDate)}
+                        {formatDateSafe(
+                          item.expiryDate,
+                          "en-US",
+                          DATE_FORMAT_OPTIONS_US_SHORT,
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onViewItem(item.id);
-                          }}
-                        >
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        </Button>
+                        <SymbolTooltip label="View item details">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onViewItem(item.id);
+                            }}
+                            aria-label="View item details"
+                          >
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </SymbolTooltip>
                       </TableCell>
                     </TableRow>
                   );

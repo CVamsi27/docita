@@ -1,6 +1,8 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { useMemo } from "react";
-import { format } from "date-fns";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { formatDate } from "@workspace/utils";
+import { formatLocalHalfHourSlotKey } from "@/features/appointments/hooks/use-appointments-logic";
+import { CalendarDays } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -9,7 +11,7 @@ import {
 } from "@workspace/ui/components/card";
 import { EmptyState } from "@workspace/ui/components/empty-state";
 import { ErrorState } from "@workspace/ui/components/error-state";
-import { Appointment, Patient } from "@workspace/types";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { TimeSlotRow } from "@/features/appointments/components/forms/TimeSlotRow";
 
 interface AppointmentsListUIProps {
@@ -19,7 +21,7 @@ interface AppointmentsListUIProps {
   onRetry?: () => void;
   doctorsList: { id: string; name: string }[];
   selectedDoctorId: string | undefined;
-  filteredAppointments: (Appointment & { patient?: Patient })[];
+  filteredAppointments: AppointmentListItem[];
   hasMoreAppointments?: boolean;
   isToday?: boolean;
   currentTimeSlot?: string;
@@ -71,9 +73,19 @@ export function AppointmentsListUI({
   if (loading) {
     return (
       <Card className="border-border/60 bg-card/80 shadow-sm">
-        <CardContent className="py-16 text-center text-muted-foreground">
-          <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary" />
-          <p>Loading appointments...</p>
+        <CardContent
+          className="py-16 text-center text-muted-foreground"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading appointments"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            className="mx-auto mb-3"
+            iconClassName="h-8 w-8 text-primary"
+          />
+          <p className="text-sm">Loading appointments…</p>
         </CardContent>
       </Card>
     );
@@ -98,7 +110,8 @@ export function AppointmentsListUI({
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <div className="min-w-0">
             <CardTitle className="text-lg">
-              Appointments for {format(date ?? new Date(), "MMMM d, yyyy")}
+              Appointments for{" "}
+              {formatDate(date ?? new Date(), "MMMM d, yyyy")}
             </CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {selectedDoctorName
@@ -126,7 +139,7 @@ export function AppointmentsListUI({
               icon={CalendarDays}
               title="No appointments scheduled"
               description={emptyStateDescription}
-              className="min-h-[220px] rounded-xl border border-dashed border-border bg-muted/20"
+              className="min-h-[220px] rounded-lg border border-dashed border-border bg-muted/20"
             />
           ) : (
             <div className="space-y-2.5">
@@ -137,7 +150,8 @@ export function AppointmentsListUI({
                     isToday &&
                     currentTimeSlotRef &&
                     currentTimeSlot &&
-                    format(new Date(apt.startTime), "HH:mm") === currentTimeSlot
+                    formatLocalHalfHourSlotKey(new Date(apt.startTime)) ===
+                      currentTimeSlot
                       ? currentTimeSlotRef
                       : undefined
                   }

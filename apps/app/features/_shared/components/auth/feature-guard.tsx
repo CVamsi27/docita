@@ -19,6 +19,7 @@ import {
   TierName,
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 interface FeatureGuardProps {
   feature: Feature | string;
@@ -38,7 +39,6 @@ function FeatureLockedCard({
   customTitle,
   customDescription,
 }: FeatureLockedCardProps) {
-
   const featureEnum = Object.values(Feature).includes(feature as Feature)
     ? (feature as Feature)
     : null;
@@ -56,8 +56,7 @@ function FeatureLockedCard({
       : "Upgrade your plan to access this feature");
 
   return (
-    <Card className="surface-warning relative overflow-hidden border-2">
-      <div className="absolute top-0 left-0 w-32 h-32 bg-warning/20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2" />
+    <Card className="surface-warning border">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-warning">
           <Lock className="h-5 w-5" />
@@ -71,9 +70,9 @@ function FeatureLockedCard({
         <Button
           asChild
           size="sm"
-          className="gap-2 bg-linear-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          className="gap-2"
         >
-          <Link href="/upgrade">
+          <Link href={SUBSCRIPTION_SETTINGS_PATH}>
             <Sparkles className="h-4 w-4" />
             Upgrade Plan
           </Link>

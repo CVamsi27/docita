@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import SignatureCanvas from 'react-signature-canvas';
 import { Button } from '@workspace/ui/components/button';
+import { SymbolTooltip } from '@workspace/ui/components/tooltip';
 import { Card } from '@workspace/ui/components/card';
 import { Check, Eraser, Redo2, Trash2, Undo2 } from 'lucide-react';
 
@@ -110,7 +111,7 @@ export function SignaturePad({ onSave, onCancel, className }: SignatureCanvasPro
             </label>
             <div
               ref={containerRef}
-              className="border-2 border-dashed border-muted-foreground/30 rounded-lg overflow-hidden bg-white"
+              className="overflow-hidden rounded-lg border-2 border-dashed border-muted-foreground/30 bg-background"
               style={{ touchAction: 'none' }}
             >
               <SignatureCanvas
@@ -135,26 +136,30 @@ export function SignaturePad({ onSave, onCancel, className }: SignatureCanvasPro
           </div>
 
           <div className="flex gap-2 justify-end flex-wrap">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={undo}
-              disabled={historyIndex < 0}
-              title="Undo"
-            >
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={redo}
-              disabled={historyIndex >= history.length - 1}
-              title="Redo"
-            >
-              <Redo2 className="h-4 w-4" />
-            </Button>
+            <SymbolTooltip label="Undo">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={undo}
+                disabled={historyIndex < 0}
+                aria-label="Undo"
+              >
+                <Undo2 className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
+            <SymbolTooltip label="Redo">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={redo}
+                disabled={historyIndex >= history.length - 1}
+                aria-label="Redo"
+              >
+                <Redo2 className="h-4 w-4" />
+              </Button>
+            </SymbolTooltip>
             <Button
               type="button"
               variant="outline"
@@ -193,7 +198,7 @@ export function SignaturePreview({ dataUrl, onEdit, onRemove }: SignaturePreview
       <div className="space-y-4">
         <div>
           <label className="text-sm font-medium mb-2 block">Signature Preview</label>
-          <div className="border rounded-lg p-4 bg-white">
+          <div className="rounded-lg border bg-background p-4">
             <Image
               src={dataUrl}
               alt="Signature preview"

@@ -35,11 +35,13 @@ describe("EmptyState", () => {
 describe("LoadingState", () => {
   it("renders a default loading message", () => {
     render(<LoadingState />);
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByText("Loading…")).toBeInTheDocument();
   });
 
   it("renders a custom message", () => {
-    render(<LoadingState message="Fetching patients..." />);
-    expect(screen.getByText("Fetching patients...")).toBeInTheDocument();
+    render(<LoadingState message="Fetching patients…" />);
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByText("Fetching patients…")).toBeInTheDocument();
   });
 });

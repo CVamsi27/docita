@@ -19,6 +19,8 @@ import {
   type PatientDomainUpdateInput,
   patientDomainCreateSchema,
   patientDomainUpdateSchema,
+  listPatientsResponseSchema,
+  patientResponseSchema,
 } from '@workspace/types';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
@@ -41,6 +43,14 @@ import {
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ))
 export class PatientsController {
   constructor(private readonly patientService: PatientService) {}
+
+  private toPatientResponse(value: unknown) {
+    const candidate =
+      typeof value === 'object' && value && 'toPlain' in value
+        ? (value as { toPlain: () => unknown }).toPlain()
+        : value;
+    return patientResponseSchema.parse(candidate);
+  }
 
   private normalizeCreateBody(
     body: CreatePatientDto,
@@ -65,9 +75,10 @@ export class PatientsController {
     @Request() req: RequestWithUser,
     @Body() body: CreatePatientDto,
   ) {
-    return this.patientService.createPatient(
+    const created = await this.patientService.createPatient(
       this.normalizeCreateBody(body, req.user!.clinicId!),
     );
+    return this.toPatientResponse(created);
   }
 
   @Get()
@@ -81,19 +92,28 @@ export class PatientsController {
     @Query() query: ListPatientsQueryDto,
   ) {
     const { search, gender, page, limit } = query;
-    return this.patientService.listPatients({
+    const result = await this.patientService.listPatients({
       clinicId: req.user!.clinicId!,
       search,
       gender,
       page: page ?? 1,
       limit: limit ?? 20,
     });
+
+    return listPatientsResponseSchema.parse({
+      items: result.items.map((patient) => this.toPatientResponse(patient)),
+      total: result.total,
+    });
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get patient by ID' })
   async findOne(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.patientService.getPatient(id, req.user!.clinicId!);
+    const patient = await this.patientService.getPatient(
+      id,
+      req.user!.clinicId!,
+    );
+    return this.toPatientResponse(patient);
   }
 
   @Patch(':id')
@@ -104,11 +124,12 @@ export class PatientsController {
     @Param('id') id: string,
     @Body() body: UpdatePatientDto,
   ) {
-    return this.patientService.updatePatient(
+    const updated = await this.patientService.updatePatient(
       id,
       this.normalizeUpdateBody(body),
       req.user!.clinicId!,
     );
+    return this.toPatientResponse(updated);
   }
 
   @Delete(':id')

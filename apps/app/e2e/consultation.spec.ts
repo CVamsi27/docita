@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   API_URL,
   loginUser,
@@ -6,7 +6,22 @@ import {
   UserData,
 } from "./utils/patient-helpers";
 
+async function openConsultationEditor(page: Page, id: string) {
+  await page.goto(`/consultation/${id}`, {
+    waitUntil: "domcontentloaded",
+    timeout: 90_000,
+  });
+  await expect(page).toHaveURL(new RegExp(`/consultation/${id}(?:\\?|$)`), {
+    timeout: 25_000,
+  });
+  await expect(
+    page.locator('main[aria-label="Consultation workspace"] #hpi'),
+  ).toBeVisible({ timeout: 25_000 });
+}
+
 test.describe("Consultation Flow", () => {
+  test.describe.configure({ timeout: 180_000 });
+
   let user: UserData;
   let patientId: string;
   let appointmentId: string;
@@ -27,9 +42,6 @@ test.describe("Consultation Flow", () => {
         clinicId: user.clinicId,
       },
     });
-    if (!patientRes.ok()) {
-
-    }
     expect(patientRes.ok()).toBeTruthy();
     const patient = await patientRes.json();
     patientId = patient.id;
@@ -53,16 +65,12 @@ test.describe("Consultation Flow", () => {
         status: "scheduled",
       },
     });
-    if (!apptRes.ok()) {
-
-    }
     expect(apptRes.ok()).toBeTruthy();
     const appointment = await apptRes.json();
     appointmentId = appointment.id;
   });
 
   test.beforeEach(async ({ page }) => {
-    test.setTimeout(120000); 
     await loginUser(page, user);
   });
 
@@ -70,11 +78,7 @@ test.describe("Consultation Flow", () => {
     page,
   }) => {
 
-    await page.goto(`/consultation/${appointmentId}`);
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
-
-    await expect(page.locator("body")).toBeVisible({ timeout: 10000 });
+    await openConsultationEditor(page, appointmentId);
 
     const addComplaintBtn = page.locator('button:has-text("Add Complaint")');
     if (await addComplaintBtn.isVisible()) {
@@ -88,18 +92,19 @@ test.describe("Consultation Flow", () => {
 
     }
 
-    const diagnosisTab = page.locator('button:has-text("Diagnosis")');
-    if (await diagnosisTab.isVisible()) {
-      await diagnosisTab.click();
+    const assessmentTab = page.getByRole("button", { name: /Assessment/i });
+    if (await assessmentTab.isVisible()) {
+      await assessmentTab.click();
     }
 
     const addDiagnosisBtn = page.locator('button:has-text("Add Diagnosis")');
     if (await addDiagnosisBtn.isVisible()) {
       await addDiagnosisBtn.click();
-      const conditionInput = page.locator('input[placeholder*="Condition"]');
+      const assessment = page.getByRole("region", { name: /Assessment/i });
+      await assessment.scrollIntoViewIfNeeded();
+      const conditionInput = assessment.getByPlaceholder("Condition name");
       await expect(conditionInput).toBeVisible();
       await conditionInput.fill("Migraine");
-
     }
 
     const saveButton = page.locator('button:has-text("Save Notes")');
@@ -122,5 +127,102 @@ test.describe("Consultation Flow", () => {
         new RegExp(`/consultation/${appointmentId}$`),
       );
     }
+  });
+
+  test("maps legacy tab query to section in URL", async ({ page }) => {
+    await page.goto(`/consultation/${appointmentId}?tab=treatment`, {
+      waitUntil: "domcontentloaded",
+      timeout: 90_000,
+    });
+    await expect(page).toHaveURL(/section=plan/, { timeout: 20_000 });
+  });
+
+  test("shows leave confirmation when draft is dirty", async ({ page }) => {
+    await openConsultationEditor(page, appointmentId);
+
+    const hpi = page.locator("#hpi");
+    await expect(hpi).toBeVisible({ timeout: 15000 });
+    await hpi.fill("Leave guard integration test note");
+
+    await page.getByRole("button", { name: "Back" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: /Leave consultation/i }),
+    ).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole("button", { name: "Stay" }).click();
+    await expect(page).toHaveURL(new RegExp(`/consultation/${appointmentId}`));
+  });
+
+  test("leave without saving navigates away from consultation workspace", async ({
+    page,
+  }) => {
+    await openConsultationEditor(page, appointmentId);
+
+    const hpi = page.locator("#hpi");
+    await expect(hpi).toBeVisible({ timeout: 15000 });
+    await hpi.fill("Leave without saving end-to-end test note");
+
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect(
+      page.getByRole("heading", { name: /Leave consultation/i }),
+    ).toBeVisible({ timeout: 5000 });
+
+    await expect(
+      page.getByRole("button", { name: "Leave without saving" }),
+    ).toBeEnabled({ timeout: 20_000 });
+    await page.getByRole("button", { name: "Leave without saving" }).click();
+
+    await expect(page).toHaveURL(/\/consultation\/?(\?.*)?$/, { timeout: 25_000 });
+    await expect(page).not.toHaveURL(
+      new RegExp(`/consultation/${appointmentId}(?:/|\\?|$)`),
+    );
+  });
+
+  test("sidebar in-app link opens leave dialog when draft is dirty", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await openConsultationEditor(page, appointmentId);
+
+    const hpi = page.locator("#hpi");
+    await expect(hpi).toBeVisible({ timeout: 15000 });
+    await hpi.fill("Sidebar leave guard integration test");
+
+    const dashboardLink = page.locator("aside a[href=\"/dashboard\"]").first();
+    await expect(dashboardLink).toBeVisible({ timeout: 10000 });
+    await dashboardLink.click();
+
+    await expect(
+      page.getByRole("heading", { name: /Leave consultation/i }),
+    ).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole("button", { name: "Stay" }).click();
+    await expect(page).toHaveURL(new RegExp(`/consultation/${appointmentId}`));
+  });
+
+  test("save and leave navigates away from consultation workspace", async ({
+    page,
+  }) => {
+    await openConsultationEditor(page, appointmentId);
+
+    const hpi = page.locator("#hpi");
+    await expect(hpi).toBeVisible({ timeout: 15000 });
+    await hpi.fill("Save and leave end-to-end test note");
+
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect(
+      page.getByRole("heading", { name: /Leave consultation/i }),
+    ).toBeVisible({ timeout: 5000 });
+
+    await expect(
+      page.getByRole("button", { name: "Save and leave" }),
+    ).toBeEnabled({ timeout: 20_000 });
+    await page.getByRole("button", { name: "Save and leave" }).click();
+
+    await expect(page).toHaveURL(/\/consultation\/?(\?.*)?$/, { timeout: 25_000 });
+    await expect(page).not.toHaveURL(
+      new RegExp(`/consultation/${appointmentId}(?:/|\\?|$)`),
+    );
   });
 });

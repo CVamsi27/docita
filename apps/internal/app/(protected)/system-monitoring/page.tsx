@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { sanitizeUserFacingMessage } from "@workspace/types";
+import { DATE_FORMATS, formatCountLocale, formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
 import {
@@ -228,13 +229,13 @@ export default function SystemMonitoringPage() {
       },
       {
         label: "Requests",
-        value: `${requestsLastHour.toLocaleString()} last hour`,
+        value: `${formatCountLocale(requestsLastHour)} last hour`,
         status: requestsLastHour > 0 ? "healthy" : "warning",
         description: "Traffic captured by the monitoring pipeline",
       },
       {
         label: "Errors",
-        value: `${errorsLastHour.toLocaleString()} last hour`,
+        value: `${formatCountLocale(errorsLastHour)} last hour`,
         status: errorsLastHour > 0 ? "warning" : "healthy",
         description: `Current error rate: ${errorRate}%`,
       },
@@ -255,8 +256,17 @@ export default function SystemMonitoringPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex h-64 flex-col items-center justify-center gap-2"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading system monitoring"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -307,12 +317,12 @@ export default function SystemMonitoringPage() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {performance ? performance.uptime.formatted : "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {performance
-                    ? `${performance.uptime.seconds.toLocaleString()} seconds`
+                    ? `${formatCountLocale(performance.uptime.seconds)} seconds`
                     : "Waiting for live metrics"}
                 </p>
               </CardContent>
@@ -325,7 +335,7 @@ export default function SystemMonitoringPage() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {liveResponseTime.toFixed(2)}ms
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -341,8 +351,8 @@ export default function SystemMonitoringPage() {
                 <Wifi className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {requestsLastHour.toLocaleString()}
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
+                  {formatCountLocale(requestsLastHour)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Live traffic observed in the last 60 minutes
@@ -357,11 +367,11 @@ export default function SystemMonitoringPage() {
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {errorRate}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {errorsLastHour.toLocaleString()} errors in the last hour
+                  {formatCountLocale(errorsLastHour)} errors in the last hour
                 </p>
               </CardContent>
             </Card>
@@ -376,7 +386,7 @@ export default function SystemMonitoringPage() {
                 <Server className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="text-2xl font-bold">{heapUsagePercent}%</div>
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{heapUsagePercent}%</div>
                 <Progress value={heapUsagePercent} className="h-2" />
                 <p className="text-xs text-muted-foreground">
                   {performance
@@ -391,7 +401,7 @@ export default function SystemMonitoringPage() {
                 <Cpu className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {monitoringHealth
                     ? `${(monitoringHealth.cpuUsage.user + monitoringHealth.cpuUsage.system).toFixed(2)}s`
                     : "N/A"}
@@ -411,7 +421,7 @@ export default function SystemMonitoringPage() {
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {database ? `${database.queryResponseTimeMs}ms` : "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -427,7 +437,7 @@ export default function SystemMonitoringPage() {
                 <ShieldCheck className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope ? tenantScope.scopedModels : "N/A"}
                 </div>
                 <div className="flex items-center gap-2">
@@ -452,7 +462,7 @@ export default function SystemMonitoringPage() {
                 {healthSummary?.map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-lg border p-4 flex items-start justify-between gap-4"
+                    className="rounded-[var(--radius)] border border-border/70 p-4 flex items-start justify-between gap-4"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -482,7 +492,7 @@ export default function SystemMonitoringPage() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-success">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)] text-success">
                   {performance?.uptime.formatted ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -498,7 +508,7 @@ export default function SystemMonitoringPage() {
                 <Server className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {performance?.node.version ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -516,7 +526,7 @@ export default function SystemMonitoringPage() {
                 <Wifi className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {monitoringHealth
                     ? (monitoringHealth.requestsLastHour / 60).toFixed(2)
                     : "0.00"}
@@ -534,7 +544,7 @@ export default function SystemMonitoringPage() {
                 <Database className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {database?.status ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -602,7 +612,7 @@ export default function SystemMonitoringPage() {
                   {slowestEndpoints.slice(0, 5).map((endpoint) => (
                     <div
                       key={`${endpoint.method}-${endpoint.path}`}
-                      className="rounded-lg border p-3"
+                      className="rounded-[var(--radius)] border border-border/70 p-3"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="font-medium">
@@ -632,7 +642,11 @@ export default function SystemMonitoringPage() {
                     <div key={bucket.minute} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span>
-                          {format(new Date(`${bucket.minute}:00Z`), "HH:mm")}
+                          {formatDate(
+                            new Date(`${bucket.minute}:00Z`),
+                            DATE_FORMATS.TIME_SHORT,
+                            { timezone: "UTC" },
+                          )}
                         </span>
                         <span>{bucket.count}</span>
                       </div>
@@ -665,12 +679,12 @@ export default function SystemMonitoringPage() {
                 {responseBuckets.map((bucket) => (
                   <div
                     key={bucket.range}
-                    className="rounded-lg border p-3 text-center"
+                    className="rounded-[var(--radius)] border border-border/70 p-3 text-center"
                   >
                     <p className="text-xs text-muted-foreground">
                       {bucket.range}
                     </p>
-                    <p className="mt-2 text-xl font-semibold">{bucket.count}</p>
+                    <p className="mt-2 text-[var(--fs-xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">{bucket.count}</p>
                   </div>
                 ))}
               </div>
@@ -685,7 +699,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Scoped</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope?.scopedModels ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -698,7 +712,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Direct</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope?.directScopedModels ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -711,7 +725,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Relation</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScope?.relationScopedModels ?? "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -724,7 +738,7 @@ export default function SystemMonitoringPage() {
                 <CardTitle className="text-sm font-medium">Issues</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
                   {tenantScopeIssueCount}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -883,7 +897,10 @@ export default function SystemMonitoringPage() {
                     <span className="text-muted-foreground">
                       Last checked:{" "}
                       {appHealth.timestamp
-                        ? format(new Date(appHealth.timestamp), "PPpp")
+                        ? formatDate(
+                            appHealth.timestamp,
+                            DATE_FORMATS.DATETIME_LONG,
+                          )
                         : "N/A"}
                     </span>
                   </div>
@@ -904,7 +921,7 @@ export default function SystemMonitoringPage() {
                         ([serviceName, checkData]) => (
                           <div
                             key={serviceName}
-                            className="flex items-center justify-between rounded-lg border p-3"
+                            className="flex items-center justify-between rounded-[var(--radius)] border border-border/70 p-3"
                           >
                             <div className="flex items-center gap-3">
                               {getStatusIcon(checkData.status as string)}

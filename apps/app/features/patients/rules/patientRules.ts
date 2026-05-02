@@ -1,10 +1,10 @@
 import type { Patient, User } from "@workspace/types";
-import { differenceInYears } from "date-fns";
 import {
+  calculateAge,
   DEFAULT_COUNTRY_CODE,
   normalizeCountryCode,
 } from "@workspace/utils";
-import { CLINIC_ADMIN_ROLES } from "@/lib/permissions";
+import { CLINIC_ADMIN_ROLES, hasPermission } from "@/lib/permissions";
 import {
   getCountryCallingCode,
   isPossiblePhoneNumber,
@@ -24,8 +24,8 @@ type PatientDateLike = {
 export const isPatientMinor = (patient: Patient): boolean => {
   if (!patient.dateOfBirth) return false;
 
-  const age = differenceInYears(new Date(), new Date(patient.dateOfBirth));
-  return age < 18;
+  const age = calculateAge(patient.dateOfBirth);
+  return age !== null && age < 18;
 };
 
 export const requiresGuardianConsent = (patient: Patient): boolean => {
@@ -33,7 +33,6 @@ export const requiresGuardianConsent = (patient: Patient): boolean => {
 };
 
 export const canDeletePatient = (_patient: Patient, user: User): boolean => {
-
   if (!CLINIC_ADMIN_ROLES.has(user.role as "ADMIN" | "ADMIN_DOCTOR"))
     return false;
 
@@ -41,11 +40,10 @@ export const canDeletePatient = (_patient: Patient, user: User): boolean => {
 };
 
 export const canEditPatient = (user: User): boolean => {
-  return ["admin", "doctor", "receptionist"].includes(user.role);
+  return hasPermission(user.role, "editPatient");
 };
 
 export const canViewPatient = (user: User): boolean => {
-
   return !!user;
 };
 
@@ -55,7 +53,7 @@ export const getPatientDisplayName = (patient: PatientNameLike): string => {
 
 export const getPatientAge = (patient: PatientDateLike): number | null => {
   if (!patient.dateOfBirth) return null;
-  return differenceInYears(new Date(), new Date(patient.dateOfBirth));
+  return calculateAge(patient.dateOfBirth);
 };
 
 export const getPatientAgeDisplay = (patient: PatientDateLike): string => {

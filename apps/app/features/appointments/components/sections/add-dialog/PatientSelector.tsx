@@ -1,3 +1,4 @@
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import React from "react";
 import { FieldValues, Path, PathValue, UseFormReturn } from "react-hook-form";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@workspace/ui/components/popover";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Check, ChevronsUpDown, Loader2, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 import type { Patient } from "@workspace/types";
 
@@ -38,6 +39,7 @@ export function PatientSelector<T extends FieldValues>({
   setPatientComboboxOpen,
 }: PatientSelectorProps<T>) {
   const [activeIndex, setActiveIndex] = React.useState(-1);
+  const hasSearch = patientSearch.trim().length > 0;
 
   const selectablePatients = React.useMemo(
     () => patients.filter((p) => typeof p.id === "string" && p.id.length > 0),
@@ -105,12 +107,12 @@ export function PatientSelector<T extends FieldValues>({
                     type="button"
                     aria-expanded={patientComboboxOpen}
                     className={cn(
-                      "min-h-11 w-full justify-between gap-3",
+                      "min-h-11 w-full justify-between gap-3 aria-invalid:border-destructive aria-invalid:bg-destructive/5 aria-invalid:ring-destructive/20",
                       !field.value && "text-muted-foreground",
                     )}
                   >
                     <span className="truncate text-left">
-                      {selectedLabel ?? "Patient"}
+                      {selectedLabel ?? "Search and select a patient"}
                     </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -124,7 +126,7 @@ export function PatientSelector<T extends FieldValues>({
                   <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Search patients"
+                    placeholder="Patient name"
                     value={patientSearch}
                     onChange={(event) => setPatientSearch(event.target.value)}
                     onKeyDown={handleInputKeyDown}
@@ -136,13 +138,22 @@ export function PatientSelector<T extends FieldValues>({
                 <div className="max-h-[280px] overflow-y-auto p-1">
                   {patientsLoading ? (
                     <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Searching...</span>
+                      <DocitaLoadingIndicator variant="inline" decorative />
+                      <span>Searching…</span>
                     </div>
                   ) : selectablePatients.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-muted-foreground">
-                      No patients found
-                    </p>
+                    <div className="px-4 py-6 text-center">
+                      <p className="text-sm font-medium text-foreground">
+                        {hasSearch
+                          ? "No matching patients"
+                          : "Start typing to search patients"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {hasSearch
+                          ? "Check the spelling or phone number and try again."
+                          : "Search results will appear here."}
+                      </p>
+                    </div>
                   ) : (
                     <ul role="listbox" className="space-y-0.5">
                       {selectablePatients.map((patient, index) => {

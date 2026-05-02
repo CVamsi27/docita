@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   usePrescriptionDefaults,
   useUpdatePrescriptionDefaults,
@@ -20,40 +22,80 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import { FileText, Save } from "lucide-react";
 import { Checkbox } from "@workspace/ui/components/checkbox";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@workspace/ui/components/form";
+import {
+  prescriptionDefaultsFormSchema,
+  type PrescriptionDefaultsFormValues,
+} from "@/features/settings/schemas/prescription-defaults-form.schema";
 
-export interface PrescriptionDefaultsSettings {
-  defaultInstructions: string;
-  defaultFooterText: string;
-  includeClinicHeader: boolean;
-  includeDoctorSignature: boolean;
-  includeQRCode: boolean;
-}
+export function PrescriptionDefaultsSettings() {
+  const {
+    data: initialSettings,
+    isLoading: loading,
+    refetch,
+  } = usePrescriptionDefaults();
+  const { mutate: updateSettings, isPending: saving } =
+    useUpdatePrescriptionDefaults();
 
-export interface PrescriptionDefaultsSettingsUIProps {
-  settings: PrescriptionDefaultsSettings;
-  loading: boolean;
-  saving: boolean;
-  onSettingsChange: (settings: PrescriptionDefaultsSettings) => void;
-  onSave: () => void;
-}
+  const form = useForm<PrescriptionDefaultsFormValues>({
+    resolver: zodResolver(prescriptionDefaultsFormSchema),
+    defaultValues: {
+      defaultInstructions: "",
+      defaultFooterText: "",
+      includeClinicHeader: true,
+      includeDoctorSignature: true,
+      includeQRCode: false,
+    },
+  });
 
-export function PrescriptionDefaultsSettingsUI({
-  settings,
-  loading,
-  saving,
-  onSettingsChange,
-  onSave,
-}: PrescriptionDefaultsSettingsUIProps) {
+  useEffect(() => {
+    if (initialSettings) {
+      form.reset({
+        defaultInstructions: initialSettings.defaultInstructions ?? "",
+        defaultFooterText: initialSettings.defaultFooterText ?? "",
+        includeClinicHeader: initialSettings.includeClinicHeader ?? true,
+        includeDoctorSignature: initialSettings.includeDoctorSignature ?? true,
+        includeQRCode: initialSettings.includeQRCode ?? false,
+      });
+    }
+  }, [initialSettings, form]);
+
+  const onSubmit = (values: PrescriptionDefaultsFormValues) => {
+    updateSettings(values, {
+      onSuccess: () => {
+        toast.success("Prescription defaults have been updated successfully");
+        refetch();
+      },
+      onError: (error) => {
+        showUserFacingErrorToast(
+          error,
+          "We could not save your prescription defaults. Please try again.",
+          "save",
+        );
+      },
+    });
+  };
+
   if (loading) {
     return (
-      <Card>
+      <Card
+        role="status"
+        aria-live="polite"
+        aria-label="Loading prescription defaults"
+      >
         <CardHeader>
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-4 w-64 mt-1" />
+          <Skeleton animation="wave" className="h-5 w-48" />
+          <Skeleton animation="wave" className="mt-1 h-4 w-64" />
         </CardHeader>
         <CardContent className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full" />
+            <Skeleton key={i} animation="wave" className="h-10 w-full" />
           ))}
         </CardContent>
       </Card>
@@ -71,162 +113,139 @@ export function PrescriptionDefaultsSettingsUI({
           Set default values for all prescriptions
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="defaultInstructions">Default Instructions</Label>
-          <Textarea
-            id="defaultInstructions"
-            value={settings.defaultInstructions}
-            onChange={(e) =>
-              onSettingsChange({
-                ...settings,
-                defaultInstructions: e.target.value,
-              })
-            }
-            placeholder="e.g., Take medicines after food, Drink plenty of water, etc."
-            rows={4}
-          />
-          <p className="text-xs text-muted-foreground">
-            These instructions will be pre-filled in every new prescription
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="defaultFooterText">Footer Text</Label>
-          <Textarea
-            id="defaultFooterText"
-            value={settings.defaultFooterText}
-            onChange={(e) =>
-              onSettingsChange({
-                ...settings,
-                defaultFooterText: e.target.value,
-              })
-            }
-            placeholder="e.g., For any queries, please contact us at..."
-            rows={3}
-          />
-          <p className="text-xs text-muted-foreground">
-            This text will appear at the bottom of every prescription
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <Label>Prescription Options</Label>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="includeClinicHeader"
-              checked={settings.includeClinicHeader}
-              onCheckedChange={(checked) =>
-                onSettingsChange({
-                  ...settings,
-                  includeClinicHeader: checked as boolean,
-                })
-              }
+      <CardContent>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            noValidate
+            className="space-y-6"
+          >
+            <FormField
+              control={form.control}
+              name="defaultInstructions"
+              render={({ field }) => (
+                <FormItem>
+                  <Label htmlFor="defaultInstructions">Default Instructions</Label>
+                  <FormControl>
+                    <Textarea
+                      id="defaultInstructions"
+                      placeholder="Enter default instructions"
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    These instructions will be pre-filled in every new prescription
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <label
-              htmlFor="includeClinicHeader"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Include clinic header with logo and contact details
-            </label>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="includeDoctorSignature"
-              checked={settings.includeDoctorSignature}
-              onCheckedChange={(checked) =>
-                onSettingsChange({
-                  ...settings,
-                  includeDoctorSignature: checked as boolean,
-                })
-              }
+            <FormField
+              control={form.control}
+              name="defaultFooterText"
+              render={({ field }) => (
+                <FormItem>
+                  <Label htmlFor="defaultFooterText">Footer Text</Label>
+                  <FormControl>
+                    <Textarea
+                      id="defaultFooterText"
+                      placeholder="Enter contact message"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    This text will appear at the bottom of every prescription
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            <label
-              htmlFor="includeDoctorSignature"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Include doctor&apos;s signature and registration number
-            </label>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="includeQRCode"
-              checked={settings.includeQRCode}
-              onCheckedChange={(checked) =>
-                onSettingsChange({
-                  ...settings,
-                  includeQRCode: checked as boolean,
-                })
-              }
-            />
-            <label
-              htmlFor="includeQRCode"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Include QR code for verification
-            </label>
-          </div>
-        </div>
+            <div className="space-y-4">
+              <Label>Prescription Options</Label>
 
-        <div className="flex justify-end pt-4">
-          <Button onClick={onSave} disabled={saving} className="gap-2">
-            <Save className="h-4 w-4" />
-            {saving ? "Saving..." : "Save Defaults"}
-          </Button>
-        </div>
+              <FormField
+                control={form.control}
+                name="includeClinicHeader"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        id="includeClinicHeader"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <label
+                      htmlFor="includeClinicHeader"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Include clinic header with logo and contact details
+                    </label>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="includeDoctorSignature"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        id="includeDoctorSignature"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <label
+                      htmlFor="includeDoctorSignature"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Include doctor&apos;s signature and registration number
+                    </label>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="includeQRCode"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        id="includeQRCode"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <label
+                      htmlFor="includeQRCode"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Include QR code for verification
+                    </label>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button type="submit" disabled={saving} className="gap-2">
+                <Save className="h-4 w-4" />
+                {saving ? "Saving…" : "Save Defaults"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
 }
 
-export function PrescriptionDefaultsSettingsContainer() {
-  const {
-    data: initialSettings,
-    isLoading: loading,
-    refetch,
-  } = usePrescriptionDefaults();
-  const { mutate: updateSettings, isPending: saving } =
-    useUpdatePrescriptionDefaults();
-  const [settings, setSettings] = useState<PrescriptionDefaultsSettings>({
-    defaultInstructions: "",
-    defaultFooterText: "",
-    includeClinicHeader: true,
-    includeDoctorSignature: true,
-    includeQRCode: false,
-  });
-
-  useEffect(() => {
-    if (initialSettings) {
-      setSettings(initialSettings);
-    }
-  }, [initialSettings]);
-
-  const handleSave = () => {
-    updateSettings(settings, {
-      onSuccess: () => {
-        toast.success("Prescription defaults have been updated successfully");
-        refetch();
-      },
-      onError: (error) => {
-        showUserFacingErrorToast(
-          error,
-          "We could not save your prescription defaults. Please try again.",
-          "save",
-        );
-      },
-    });
-  };
-
-  return (
-    <PrescriptionDefaultsSettingsUI
-      settings={settings}
-      loading={loading}
-      saving={saving}
-      onSettingsChange={setSettings}
-      onSave={handleSave}
-    />
-  );
-}
+export const PrescriptionDefaultsSettingsContainer =
+  PrescriptionDefaultsSettings;

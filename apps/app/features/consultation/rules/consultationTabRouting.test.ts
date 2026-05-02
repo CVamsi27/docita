@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildConsultationRoute,
   getConsultationTabIds,
+  legacyTabToSectionId,
   normalizeConsultationTab,
+  resolveConsultationSectionFromUrl,
 } from "./consultationTabRouting";
 
 describe("consultationTabRouting", () => {
@@ -28,13 +30,32 @@ describe("consultationTabRouting", () => {
     expect(getConsultationTabIds("PEDIATRIC")).toContain("growth-chart");
   });
 
-  it("builds prescription edit route to treatment tab", () => {
+  it("builds prescription edit route to plan section", () => {
     const route = buildConsultationRoute("apt-1", {
       tab: "treatment",
       from: "prescription",
     });
 
-    expect(route).toBe("/consultation/apt-1?tab=treatment&from=prescription");
+    expect(route).toBe("/consultation/apt-1?section=plan&from=prescription");
+  });
+
+  it("maps legacy tab to section id", () => {
+    expect(legacyTabToSectionId("treatment")).toBe("plan");
+    expect(legacyTabToSectionId("dental-chart", "DENTAL")).toBe(
+      "specialty-dental",
+    );
+    expect(resolveConsultationSectionFromUrl(null, "prescription")).toBe(
+      "plan",
+    );
+    expect(resolveConsultationSectionFromUrl("assessment", null)).toBe(
+      "assessment",
+    );
+    expect(
+      legacyTabToSectionId("investigations", "GENERAL"),
+    ).toBe("specialty-investigations");
+    expect(legacyTabToSectionId("cardiology-exam", "CARDIOLOGY")).toBe(
+      "specialty-cardiology",
+    );
   });
 });
 

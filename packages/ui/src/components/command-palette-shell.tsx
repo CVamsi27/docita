@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 import {
   CommandDialog,
@@ -41,6 +41,12 @@ export function CommandPaletteShell({
   emptyText = "No matching commands",
   groupOrder,
 }: CommandPaletteShellProps) {
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (!open) setQuery("");
+  }, [open]);
+
   const grouped = useMemo(() => {
     const map = new Map<string, CommandPaletteAction[]>();
     for (const action of actions) {
@@ -61,7 +67,12 @@ export function CommandPaletteShell({
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder={placeholder} />
+      <CommandInput
+        placeholder={placeholder}
+        value={query}
+        onValueChange={setQuery}
+        showClearButton
+      />
       <CommandList>
         <CommandEmpty>{emptyText}</CommandEmpty>
         {grouped.map(([group, entries]) => (

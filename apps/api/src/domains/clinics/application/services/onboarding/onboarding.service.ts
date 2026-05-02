@@ -121,14 +121,9 @@ export class OnboardingService {
       throw new BadRequestException('Onboarding session not found or expired');
     }
 
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 20);
-
-    return this.prisma.uploadSession.create({
-      data: {
-        expiresAt,
-        purpose: UploadSessionPurpose.GENERAL,
-      },
+    return this.uploadsService.createSession({
+      expiresInMinutes: 20,
+      purpose: UploadSessionPurpose.GENERAL,
     });
   }
 
@@ -136,6 +131,7 @@ export class OnboardingService {
     onboardingId: string,
     sessionId: string,
     file: Express.Multer.File,
+    uploadSecret: string,
     context?: {
       modifiedBy?: string;
       modifiedByRole?: string;
@@ -170,6 +166,7 @@ export class OnboardingService {
       authMethod: context?.modifiedBy ? 'session-auth' : 'onboarding-session',
       ipAddress: context?.ipAddress,
       userAgent: context?.userAgent,
+      uploadSecret,
     });
 
     // One-time onboarding signature links should not be reused after upload.

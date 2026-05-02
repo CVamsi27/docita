@@ -6,6 +6,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { AlertCircle, Lightbulb, TrendingUp, X } from "lucide-react";
 import { cn } from "@workspace/ui/lib/utils";
 
@@ -57,14 +58,17 @@ export function ClinicalSuggestionsUI({
             <Lightbulb className="h-4 w-4 text-info" />
             Clinical Decision Support
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onHide}
-            className="h-6 w-6 p-0"
-          >
-            <X className="h-3 w-3" />
-          </Button>
+          <SymbolTooltip label="Hide clinical suggestions">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onHide}
+              className="h-6 w-6 p-0"
+              aria-label="Hide clinical suggestions"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </SymbolTooltip>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
           AI-suggested actions based on chief complaint
@@ -74,7 +78,7 @@ export function ClinicalSuggestionsUI({
         {suggestions.map((suggestion, index) => (
           <div
             key={index}
-            className="flex items-start gap-3 p-3 bg-white border rounded-lg hover:shadow-sm transition-shadow"
+            className="flex items-start gap-3 p-3 bg-background border rounded-lg hover:shadow-sm transition-shadow"
           >
             <div className="text-lg mt-0.5">{typeIcons[suggestion.type]}</div>
             <div className="flex-1 space-y-1">
@@ -113,14 +117,17 @@ export function ClinicalSuggestionsUI({
                   Apply
                 </Button>
               )}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onDismiss(suggestion.text)}
-                className="h-7 w-7 p-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
+              <SymbolTooltip label="Dismiss suggestion">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onDismiss(suggestion.text)}
+                  className="h-7 w-7 p-0"
+                  aria-label="Dismiss suggestion"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </SymbolTooltip>
             </div>
           </div>
         ))}

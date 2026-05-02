@@ -11,6 +11,11 @@ import {
 } from '@nestjs/common';
 import { RequestWithUser } from '@/common/types/common.types';
 import { FollowUpService } from '@/domains/appointments/application/services/follow-up.service';
+import {
+  BookFollowUpDto,
+  CreateFollowUpDto,
+  ListFollowUpsQueryDto,
+} from '@/domains/appointments/application/dto/appointments.dto';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { RequireFeature } from '@/shared/modules/auth/auth/tier.decorator';
@@ -31,13 +36,7 @@ export class FollowUpController {
   async createFollowUp(
     @Req() req: RequestWithUser,
     @Param('id') appointmentId: string,
-    @Body()
-    body: {
-      patientId: string;
-      doctorId: string;
-      scheduledDate: string;
-      reason: string;
-    },
+    @Body() body: CreateFollowUpDto,
   ) {
     return this.followUpService.create({
       ...body,
@@ -49,25 +48,28 @@ export class FollowUpController {
   @Get('follow-ups')
   async getUpcomingFollowUps(
     @Req() req: RequestWithUser,
-    @Query('appointmentId') appointmentId?: string,
+    @Query() query: ListFollowUpsQueryDto,
   ) {
     const clinicId = req.user!.clinicId!;
-    if (appointmentId) {
-      return this.followUpService.findForAppointment(appointmentId, clinicId);
+    if (query.appointmentId) {
+      return this.followUpService.findForAppointment(
+        query.appointmentId,
+        clinicId,
+      );
     }
-    return this.followUpService.findUpcoming(clinicId);
+    return this.followUpService.findForClinic(clinicId, query);
   }
 
   @Patch('follow-ups/:id/book')
   async bookFollowUp(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
-    @Body('bookedAppointmentId') bookedAppointmentId: string,
+    @Body() body: BookFollowUpDto,
   ) {
     return this.followUpService.book(
       id,
       req.user!.clinicId!,
-      bookedAppointmentId,
+      body.bookedAppointmentId,
     );
   }
 

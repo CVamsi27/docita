@@ -47,7 +47,7 @@ export const SmartTasksTab = ({ state, handlers }: SmartTasksTabProps) => (
           <label className="text-sm font-medium">Task Type</label>
           <Select value={state.taskType} onValueChange={handlers.setTaskType}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a task type..." />
+              <SelectValue placeholder="Task type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="follow-up">Schedule Follow-ups</SelectItem>

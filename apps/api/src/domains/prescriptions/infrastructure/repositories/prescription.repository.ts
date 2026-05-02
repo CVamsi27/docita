@@ -93,9 +93,12 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
     });
   }
 
-  async findById(id: string): Promise<PrescriptionDetail | null> {
-    const result = await this.getReadClient().prescription.findUnique({
-      where: { id },
+  async findById(
+    id: string,
+    clinicId: string,
+  ): Promise<PrescriptionDetail | null> {
+    const result = await this.getReadClient().prescription.findFirst({
+      where: { id, patient: { clinicId } },
       include: {
         medications: true,
         patient: {
@@ -159,23 +162,38 @@ export class PrismaPrescriptionRepository implements IPrescriptionRepository {
   async update(
     id: string,
     data: Prisma.PrescriptionUpdateInput,
+    clinicId: string,
   ): Promise<Prescription> {
-    return await this.prisma.prescription.update({
-      where: { id },
-      data,
+    const result = await this.prisma.prescription.updateMany({
+      where: { id, patient: { clinicId } },
+      data: data as Prisma.PrescriptionUpdateManyMutationInput,
+    });
+    if (result.count === 0) {
+      throw new Error(`Prescription ${id} not found`);
+    }
+
+    const refreshed = await this.prisma.prescription.findFirst({
+      where: { id, patient: { clinicId } },
       include: { medications: true },
     });
+    if (!refreshed) {
+      throw new Error(`Prescription ${id} not found`);
+    }
+    return refreshed;
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.prescription.delete({ where: { id } });
+  async delete(id: string, clinicId: string): Promise<void> {
+    await this.prisma.prescription.deleteMany({
+      where: { id, patient: { clinicId } },
+    });
   }
 
   async findPatientWithAllergies(
     patientId: string,
+    clinicId: string,
   ): Promise<PatientWithAllergies | null> {
-    const patient = await this.getReadClient().patient.findUnique({
-      where: { id: patientId },
+    const patient = await this.getReadClient().patient.findFirst({
+      where: { id: patientId, clinicId },
       select: {
         id: true,
         patientAllergies: {

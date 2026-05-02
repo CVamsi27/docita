@@ -32,45 +32,96 @@ This document covers the comprehensive end-to-end (E2E) testing infrastructure f
 
 ### Frontend E2E Tests (Playwright)
 
-**Location**: `apps/app/e2e/`
+**Location**: `apps/app/e2e/` — configuration: `apps/app/playwright.config.ts`
 
-**Files**:
+#### Doctor app testing matrix
 
-- `auth.spec.ts` - Login/logout and authentication flows
-- `verify-doctor.spec.ts` - Doctor verification redirect and completion flow
-- `clinic-registration.spec.ts` - Onboarding wizard with signature upload
-- `critical-flows.spec.ts` - Auth, isolation, and high-risk business flow checks
-- `patients.spec.ts` - Patient creation, search, and list display
-- `playwright.config.ts` - Playwright configuration
+Use this split so expectations stay maintainable (full per-widget coverage is not a goal).
+
+| Layer | Purpose | Typical specs / tooling |
+| ----- | ------- | ------------------------- |
+| **E2E smoke** | Authenticated route renders, no hard failure; guards redirect correctly | `health.spec.ts`, `nav-routes-smoke.spec.ts` (parameterized top-level nav), selected single-page checks |
+| **E2E journeys** | Minimal-click critical workflows (patient, appointment, consultation, billing, WhatsApp) | `critical-flows.spec.ts`, `appointments.spec.ts`, `consultation.spec.ts`, `smart-auth.spec.ts`, `whatsapp.spec.ts`, `upgrade.spec.ts` |
+| **Accessibility (axe)** | Catch regressions against WCAG-oriented rules | `accessibility.spec.ts` (public + authenticated audits where stable) |
+| **Vitest** | Component logic, rules, hooks — not every static label | `apps/app/**/*.test.ts(x)` (run `pnpm --filter @docita/app test`) |
+
+**Command palette (doctor app):** press **⌘K** / **Ctrl+K**, or **/** when focus is not in a text field, to jump to nav destinations and quick actions (`features/_shared/components/navigation/command-palette.tsx`).
+
+CI runs a **subset** of Playwright on `main` (see below). Run `pnpm --filter @docita/app test:e2e` locally for the full suite before merging broad UI changes.
+
+#### Playwright spec files (doctor app)
+
+Shared helpers: `e2e/utils/patient-helpers.ts` (includes `patientDetailPath()` / `PATIENTS_LIST_PATH` aligned with Next routes), `e2e/utils/ui-contracts.ts`, `e2e/utils/session.ts`.
+
+| Spec | Focus |
+| ---- | ----- |
+| `accessibility.spec.ts` | axe audits for key routes |
+| `analytics.spec.ts` | Analytics UI |
+| `appointments.spec.ts` | Calendar / scheduling flows |
+| `auth.spec.ts` | Login shell and token-backed navigation |
+| `clinic-registration.spec.ts` | Clinic onboarding wizard |
+| `clinics.spec.ts` | Clinic-related UI |
+| `consultation.spec.ts` | Consultation workspace |
+| `critical-flows.spec.ts` | High-risk API + UI business flows |
+| `dashboard.spec.ts` | Dashboard entry and shortcuts |
+| `dental-charts.spec.ts` | Dental specialty charts |
+| `documents.spec.ts` | Documents page |
+| `health.spec.ts` | Lightweight smoke / readiness |
+| `inventory.spec.ts` | Inventory |
+| `invoices.spec.ts` | Invoices |
+| `lab-tests.spec.ts` | Lab tests |
+| `medical-coding.spec.ts` | Medical coding |
+| `mobile-forms.spec.ts` | Mobile form usability |
+| `nav-routes-smoke.spec.ts` | Parameterized smoke for main nav routes |
+| `patient-history-crud.spec.ts` | Patient profile medical history |
+| `patient-history-edge-cases.spec.ts` | Patient history edge cases |
+| `patients.spec.ts` | Patients list and CRUD |
+| `prescriptions.spec.ts` | Prescriptions |
+| `queue.spec.ts` | Queue / waiting |
+| `settings.spec.ts` | Settings surfaces |
+| `smart-auth.spec.ts` | Email-first login and signup branching |
+| `subscription.spec.ts` | Subscription lockout / billing-locked |
+| `upgrade.spec.ts` | Subscription tab / upgrade UI |
+| `verify-doctor.spec.ts` | Doctor verification gate |
+| `whatsapp.spec.ts` | WhatsApp inbox |
 
 **Features**:
 
-- ✅ Browser automation (Chrome, Firefox, Safari)
-- ✅ Happy path + critical error scenarios
-- ✅ Form validation testing
-- ✅ API integration from frontend
-- ✅ Screenshot and trace on failure
+- Chromium project by default (`playwright.config.ts`); trace on first retry; screenshots on failure
+- API-backed setup via `setupTestUser` / `loginUser` where tests need a real clinic and JWT
+- Screenshot and trace on failure
 
 ### CI/CD Pipeline (GitHub Actions)
 
-**Location**: `.github/workflows/test.yml`
+**Locations**:
+
+- `.github/workflows/ci.yml` — lint, typecheck, unit tests, and repository standards (including Knip when scope matches)
+- `.github/workflows/frontend-critical-e2e.yml` — focused Playwright lane for the doctor app (on pushes to `main` under scoped paths)
+- `.github/workflows/api-e2e.yml` — NestJS Jest E2E against PostgreSQL where configured
+
+**`frontend-critical-e2e.yml` Playwright scope** (intentionally narrow for runtime):
+
+- `e2e/clinic-registration.spec.ts`
+- `e2e/verify-doctor.spec.ts`
+- `e2e/auth.spec.ts`
+- `e2e/critical-flows.spec.ts`
+
+Runs **not** included there by default: `nav-routes-smoke.spec.ts`, `accessibility.spec.ts`, and other feature suites (`appointments.spec.ts`, `consultation.spec.ts`, …). Run those locally with `pnpm --filter @docita/app test:e2e`, or add a separate workflow job when you need broader regression coverage.
 
 **Features**:
 
-- ✅ Multi-lane Playwright CI (smoke + onboarding/verify + auth/tenant critical)
-- ✅ PostgreSQL service container for backend tests
-- ✅ Automatic test report uploads
-- ✅ Coverage reporting
-- ✅ Concurrency control to prevent duplicate runs
+- ✅ Path-filtered jobs so unrelated edits do not burn CI minutes
+- ✅ PostgreSQL service containers where E2E workflows require a database
+- ✅ Concurrency control on key workflows
 
 ## Setup Instructions
 
 ### Prerequisites
 
-- Node.js 20+
-- pnpm 10.4.1+
-- PostgreSQL 16+ (for local testing)
-- Docker (optional, for running PostgreSQL in Docker)
+- Node.js `>=22.12.0` (match root `package.json` `engines`)
+- pnpm `10.30.3` (match root `package.json` `packageManager`)
+- PostgreSQL 16+ reachable from `DATABASE_URL` in the repo `.env` (local testing)
+- Docker (optional, for running PostgreSQL locally)
 
 ### Installation
 
@@ -120,6 +171,10 @@ pnpm --filter @docita/api test:e2e:cov
 pnpm --filter @docita/api test:e2e -- auth.e2e-spec.ts
 ```
 
+### Backend unit tests (API / Jest)
+
+Specs live next to sources under `apps/api/src/**/*.spec.ts`. Guards and decorators that call NestJS `Reflector#getAllAndOverride` should stub it through `@/test-utils`: `createKeyedReflectorMock`, `mockGetAllAndOverrideKeyMap`, and `mockGetAllAndOverrideKeyBranch`, using the same metadata key constants the implementation reads (for example `IS_PUBLIC_KEY`, tier keys). Keyed maps avoid brittle `mockReturnValueOnce` ordering on a bare `jest.fn()`.
+
 ### Frontend E2E Tests
 
 ```bash
@@ -137,6 +192,24 @@ pnpm --filter @docita/app test:e2e:debug
 
 # View test report after run
 pnpm --filter @docita/app test:e2e:report
+```
+
+### Doctor app subscription / billing E2E (`upgrade.spec.ts`, `subscription.spec.ts`)
+
+These specs register a user via the API and drive the Next.js app at `http://localhost:3000`. **PostgreSQL must be running** and migrations applied for the API (`http://localhost:3001` by default) or registration returns `500` / `ECONNREFUSED` from Prisma.
+
+```bash
+# From repo root: ensure DATABASE_URL in .env points at a live Postgres, then:
+pnpm db:deploy
+
+# Terminal 1 — API
+pnpm --filter @docita/api run dev
+
+# Terminal 2 — App
+pnpm --filter @docita/app run dev
+
+# Terminal 3 — focused Playwright run
+cd apps/app && pnpm exec playwright test e2e/upgrade.spec.ts --project=chromium
 ```
 
 ### Run All Tests
@@ -449,16 +522,11 @@ lsof -ti:3001 | xargs kill -9
 
 ## Next Steps
 
-### Phase 2 (Future)
+### Ongoing hardening
 
-After core auth & patient flows are solid:
-
-- [ ] Add appointment booking E2E tests
-- [ ] Add invoice & billing flow tests
-- [ ] Add multi-doctor clinic scenarios
-- [ ] Add admin panel tests (defer)
-- [ ] Add performance benchmarks
-- [ ] Add visual regression testing
+- Expand axe coverage when new high-traffic routes ship; keep authenticated audits resilient (timeouts, seeded data).
+- Add Vitest for complex new dialogs and rules modules alongside Playwright journeys.
+- Optional: visual regression for [`ui-contract`](../apps/app/app/(tools)/visual-test/ui-contract/page.tsx) if design-system churn increases.
 
 ### Metrics to Track
 

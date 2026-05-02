@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   StorageProvider,
@@ -13,6 +19,13 @@ interface UploadSessionContext {
   authMethod?: string;
   ipAddress?: string;
   userAgent?: string;
+  uploadSecret?: string;
+}
+
+export interface CreateUploadSessionOptions {
+  expiresInMinutes?: number;
+  purpose?: UploadSessionPurpose;
+  doctorId?: string | null;
 }
 
 @Injectable()
@@ -22,20 +35,112 @@ export class UploadsService {
     private storageProvider: StorageProvider,
   ) {}
 
-  async createSession() {
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+  private hashUploadSecret(plaintext: string): string {
+    return createHash('sha256').update(plaintext, 'utf8').digest('hex');
+  }
 
-    return this.prisma.uploadSession.create({
+  private assertUploadSecretValid(
+    uploadSecretHash: string | null,
+    uploadSecret: string | undefined,
+  ): void {
+    if (!uploadSecretHash) {
+      throw new BadRequestException(
+        'This upload session is no longer valid. Create a new upload session.',
+      );
+    }
+
+    const trimmed = uploadSecret?.trim();
+    if (!trimmed) {
+      throw new UnauthorizedException(
+        'Upload credentials are required (X-Upload-Secret header).',
+      );
+    }
+
+    const expected = Buffer.from(uploadSecretHash, 'hex');
+    const candidate = Buffer.from(this.hashUploadSecret(trimmed), 'hex');
+
+    if (
+      expected.length !== candidate.length ||
+      !timingSafeEqual(expected, candidate)
+    ) {
+      throw new UnauthorizedException('Invalid upload credentials');
+    }
+  }
+
+  private validateSessionReadyForUpload(
+    session: {
+      uploadSecretHash: string | null;
+      expiresAt: Date;
+      status: string;
+      fileUrl: string | null;
+    },
+    uploadSecret: string | undefined,
+  ): void {
+    this.assertUploadSecretValid(session.uploadSecretHash, uploadSecret);
+
+    if (session.expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException('This upload link has expired');
+    }
+
+    if (session.status === 'uploaded' || session.fileUrl) {
+      throw new BadRequestException('This upload link has already been used');
+    }
+  }
+
+  /**
+   * Validates session id + upload secret before multipart handling (guard layer).
+   * `updateSession` performs the same checks again for defense in depth.
+   */
+  async assertReadyForUpload(id: string, uploadSecret: string): Promise<void> {
+    const session = await this.prisma.uploadSession.findFirst({
+      where: { id },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    this.validateSessionReadyForUpload(session, uploadSecret);
+  }
+
+  async createSession(options?: CreateUploadSessionOptions) {
+    const plaintextSecret = randomBytes(32).toString('base64url');
+    const uploadSecretHash = this.hashUploadSecret(plaintextSecret);
+
+    const expiresAt = new Date();
+    expiresAt.setMinutes(
+      expiresAt.getMinutes() + (options?.expiresInMinutes ?? 15),
+    );
+
+    const created = await this.prisma.uploadSession.create({
       data: {
         expiresAt,
+        purpose: options?.purpose ?? UploadSessionPurpose.GENERAL,
+        ...(options?.doctorId
+          ? { doctorId: options.doctorId }
+          : { doctorId: undefined }),
+        uploadSecretHash,
       },
     });
+
+    return {
+      ...created,
+      uploadSecret: plaintextSecret,
+    };
   }
 
   async getSession(id: string) {
     const session = await this.prisma.uploadSession.findFirst({
       where: { id },
+      select: {
+        id: true,
+        status: true,
+        fileUrl: true,
+        purpose: true,
+        doctorId: true,
+        createdAt: true,
+        expiresAt: true,
+      },
     });
 
     if (!session) {
@@ -57,6 +162,8 @@ export class UploadsService {
     if (!session) {
       throw new NotFoundException('Session not found');
     }
+
+    this.validateSessionReadyForUpload(session, context?.uploadSecret);
 
     const modifiedAt = new Date().toISOString();
     const fileUrl = await this.storageProvider.upload(file, 'documents', {
@@ -88,6 +195,15 @@ export class UploadsService {
 
     const updated = await this.prisma.uploadSession.findFirst({
       where: { id },
+      select: {
+        id: true,
+        status: true,
+        fileUrl: true,
+        purpose: true,
+        doctorId: true,
+        createdAt: true,
+        expiresAt: true,
+      },
     });
     if (!updated) {
       throw new NotFoundException('Session not found');

@@ -5,6 +5,9 @@ import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
+import { cn } from "@workspace/ui/lib/utils";
+import { getStatusColor } from "@workspace/ui/components/status-badge";
+import type { StatusType } from "@workspace/ui/components/status-badge";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
 import { LoadingState } from "@workspace/ui/components/empty-state";
@@ -18,6 +21,8 @@ import {
   AppointmentsPageHeaderUI,
   CancelAppointmentDialog,
 } from "@/features/appointments/components";
+import { AppointmentRequestsPanel } from "@/features/appointments/components/sections/AppointmentRequestsPanel";
+import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +32,9 @@ function AppointmentsContent() {
   const {
     date,
     setDate,
+    calendarMonth,
+    onCalendarMonthChange,
+    appointmentCountsByDay,
     checkingIn,
     cancelDialogOpen,
     setCancelDialogOpen,
@@ -82,12 +90,12 @@ function AppointmentsContent() {
     );
 
     return [
-      { label: "Total", value: counts.total, tone: "border-border/60 bg-background/70" },
-      { label: "Scheduled", value: counts.scheduled, tone: "border-primary/20 bg-primary/5 text-primary" },
-      { label: "Confirmed", value: counts.confirmed, tone: "border-info/20 bg-info/5 text-info" },
-      { label: "Checked in", value: counts["checked-in"], tone: "border-success/20 bg-success/5 text-success" },
-      { label: "In progress", value: counts["in-progress"], tone: "border-warning/20 bg-warning/5 text-warning" },
-      { label: "Completed", value: counts.completed, tone: "border-muted/60 bg-muted/40 text-muted-foreground" },
+      { label: "Total", value: counts.total, status: "info" as StatusType },
+      { label: "Scheduled", value: counts.scheduled, status: "scheduled" },
+      { label: "Confirmed", value: counts.confirmed, status: "confirmed" },
+      { label: "Checked in", value: counts["checked-in"], status: "success" },
+      { label: "In progress", value: counts["in-progress"], status: "in-progress" },
+      { label: "Completed", value: counts.completed, status: "completed" },
     ];
   }, [filteredAppointments]);
 
@@ -96,19 +104,17 @@ function AppointmentsContent() {
       feature={Feature.CALENDAR_SLOTS}
       fallback={
         <AppPageScaffold>
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-card/50 p-8 text-center min-h-[50vh]">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/70 bg-card/50 p-8 text-center min-h-[50vh]">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-border/70 bg-background/70">
               <CalendarDays className="h-7 w-7 text-primary" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold mb-2">
-              Appointment Scheduling
-            </h2>
-            <p className="text-sm md:text-base text-muted-foreground mb-5 max-w-md">
+            <h2 className="ui-section-title mb-2">Appointment Scheduling</h2>
+            <p className="ui-page-subtitle mb-5 max-w-md">
               Manage patient appointments with an intuitive calendar. Upgrade
               to Core tier to unlock this feature.
             </p>
             <Button asChild>
-              <Link href="/settings?tab=subscription">Upgrade to Core</Link>
+              <Link href={SUBSCRIPTION_SETTINGS_PATH}>Upgrade to Core</Link>
             </Button>
           </div>
         </AppPageScaffold>
@@ -129,12 +135,18 @@ function AppointmentsContent() {
           {appointmentSummary.map((item) => (
             <div
               key={item.label}
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm ${item.tone}`}
+              className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-sm"
             >
-              <span className="text-xs font-medium uppercase tracking-wide opacity-70">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {item.label}
               </span>
-              <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs">
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "rounded-full border-0 px-2 py-0 text-xs font-medium",
+                  getStatusColor(item.status),
+                )}
+              >
                 {item.value}
               </Badge>
             </div>
@@ -145,6 +157,9 @@ function AppointmentsContent() {
           <AppointmentsCalendarUI
             date={date}
             onDateSelect={setDate}
+            calendarMonth={calendarMonth}
+            onCalendarMonthChange={onCalendarMonthChange}
+            appointmentCountsByDay={appointmentCountsByDay}
             canViewAllDoctors={canViewAllDoctors || false}
             doctorsList={doctorsList}
             selectedDoctorId={selectedDoctorId}
@@ -178,6 +193,8 @@ function AppointmentsContent() {
             currentUserId={user?.id}
           />
         </div>
+
+        <AppointmentRequestsPanel />
       </AppPageScaffold>
 
       <CancelAppointmentDialog
@@ -204,7 +221,7 @@ function AppointmentsContent() {
 export default function AppointmentsPage() {
   return (
     <Suspense
-      fallback={<LoadingState message="Loading appointments..." className="py-16" />}
+      fallback={<LoadingState message="Loading appointments…" className="py-16" />}
     >
       <AppointmentsContent />
     </Suspense>

@@ -62,7 +62,7 @@ export function AppointmentFormFields({
             <FormLabel>Notes (optional)</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Anything the team should know before the visit"
+                placeholder="Visit notes"
                 className="min-h-24 resize-none"
                 {...field}
               />

@@ -2,6 +2,14 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { Role } from '@workspace/db';
+import { ALLOW_NO_CLINIC_KEY } from '@/shared/modules/auth/auth/allow-no-clinic.decorator';
+import { IS_PUBLIC_KEY } from '@/shared/modules/auth/auth/public.decorator';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyMap,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
 import { TenantGuard } from './tenant.guard';
 
 function createContext(request: Record<string, unknown>): ExecutionContext {
@@ -10,35 +18,45 @@ function createContext(request: Record<string, unknown>): ExecutionContext {
   return context;
 }
 
+function mockTenantMetadataFlags(
+  mock: MockedReflectorGetAllAndOverride,
+  flags: { isPublic: boolean; allowNoClinic: boolean },
+): void {
+  mockGetAllAndOverrideKeyMap(mock, [
+    [IS_PUBLIC_KEY, flags.isPublic],
+    [ALLOW_NO_CLINIC_KEY, flags.allowNoClinic],
+  ]);
+}
+
 describe('TenantGuard', () => {
-  let reflector: Reflector;
-  let getAllAndOverrideMock: jest.MockedFunction<
-    Reflector['getAllAndOverride']
-  >;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let guard: TenantGuard;
 
   beforeEach(() => {
-    reflector = Object.create(Reflector.prototype) as Reflector;
-    getAllAndOverrideMock = jest.fn() as jest.MockedFunction<
-      Reflector['getAllAndOverride']
-    >;
-    reflector.getAllAndOverride = getAllAndOverrideMock;
-    guard = new TenantGuard(reflector);
+    reflector = {
+      getAllAndOverride: createKeyedReflectorMock([
+        [IS_PUBLIC_KEY, false],
+        [ALLOW_NO_CLINIC_KEY, false],
+      ]),
+    };
+    guard = new TenantGuard(asType<Reflector>(reflector));
   });
 
   it('should allow public route', () => {
-    getAllAndOverrideMock
-      .mockReturnValueOnce(true) // isPublic
-      .mockReturnValueOnce(false); // allowNoClinic
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
+      isPublic: true,
+      allowNoClinic: false,
+    });
 
     const allowed = guard.canActivate(createContext({}));
     expect(allowed).toBe(true);
   });
 
   it('should allow INTERNAL without clinicId', () => {
-    getAllAndOverrideMock
-      .mockReturnValueOnce(false) // isPublic
-      .mockReturnValueOnce(false); // allowNoClinic
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
+      isPublic: false,
+      allowNoClinic: false,
+    });
 
     const allowed = guard.canActivate(
       createContext({ user: { role: Role.INTERNAL, clinicId: null } }),
@@ -47,9 +65,10 @@ describe('TenantGuard', () => {
   });
 
   it('should allow no-clinic route when AllowNoClinic is set', () => {
-    getAllAndOverrideMock
-      .mockReturnValueOnce(false) // isPublic
-      .mockReturnValueOnce(true); // allowNoClinic
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
+      isPublic: false,
+      allowNoClinic: true,
+    });
 
     const allowed = guard.canActivate(
       createContext({ user: { role: Role.DOCTOR, clinicId: null } }),
@@ -58,9 +77,10 @@ describe('TenantGuard', () => {
   });
 
   it('should reject authenticated user without clinic for clinic-scoped route', () => {
-    getAllAndOverrideMock
-      .mockReturnValueOnce(false) // isPublic
-      .mockReturnValueOnce(false); // allowNoClinic
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
+      isPublic: false,
+      allowNoClinic: false,
+    });
 
     expect(() =>
       guard.canActivate(
@@ -70,9 +90,10 @@ describe('TenantGuard', () => {
   });
 
   it('should reject clinic mismatch from params/query/body', () => {
-    getAllAndOverrideMock
-      .mockReturnValueOnce(false) // isPublic
-      .mockReturnValueOnce(false); // allowNoClinic
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
+      isPublic: false,
+      allowNoClinic: false,
+    });
 
     expect(() =>
       guard.canActivate(
@@ -87,9 +108,10 @@ describe('TenantGuard', () => {
   });
 
   it('should allow matching clinicId across request parts', () => {
-    getAllAndOverrideMock
-      .mockReturnValueOnce(false) // isPublic
-      .mockReturnValueOnce(false); // allowNoClinic
+    mockTenantMetadataFlags(reflector.getAllAndOverride, {
+      isPublic: false,
+      allowNoClinic: false,
+    });
 
     const allowed = guard.canActivate(
       createContext({

@@ -23,6 +23,7 @@ export interface SubscriptionProps {
   autoPayEnabled: boolean;
   discounts?: DiscountAggregate;
   creditsCents?: number;
+  graceUntil?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   version: number;
@@ -44,6 +45,7 @@ export class Subscription {
   private autoPayEnabled: boolean;
   private discounts: DiscountAggregate;
   private creditsCents: number;
+  private graceUntil: Date | null;
   readonly createdAt: Date;
   public updatedAt: Date;
   public version: number;
@@ -64,6 +66,7 @@ export class Subscription {
     this.autoPayEnabled = props.autoPayEnabled;
     this.discounts = props.discounts || new DiscountAggregate();
     this.creditsCents = props.creditsCents || 0;
+    this.graceUntil = props.graceUntil ?? null;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.version = props.version;
@@ -102,6 +105,20 @@ export class Subscription {
 
   getCredits(): SubscriptionPrice {
     return new SubscriptionPrice(this.creditsCents);
+  }
+
+  getGraceUntil(): Date | null {
+    return this.graceUntil;
+  }
+
+  deductCreditsApplied(amountCents: number): void {
+    const n = Math.round(amountCents);
+    if (n <= 0) {
+      return;
+    }
+    const applied = Math.min(this.creditsCents, n);
+    this.creditsCents -= applied;
+    this.updatedAt = new Date();
   }
 
   isAutoPayEnabled(): boolean {
@@ -154,16 +171,25 @@ export class Subscription {
 
   activate() {
     this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);
+    this.graceUntil = null;
     this.updatedAt = new Date();
   }
 
   expire() {
     this.status = this.status.transitionTo(SubscriptionStatusEnum.EXPIRED);
+    this.graceUntil = null;
     this.updatedAt = new Date();
   }
 
-  enterGracePeriod() {
+  enterGracePeriod(graceUntil: Date) {
     this.status = this.status.transitionTo(SubscriptionStatusEnum.GRACE);
+    this.graceUntil = graceUntil;
+    this.updatedAt = new Date();
+  }
+
+  enterPastDue(graceUntil: Date) {
+    this.status = this.status.transitionTo(SubscriptionStatusEnum.PAST_DUE);
+    this.graceUntil = graceUntil;
     this.updatedAt = new Date();
   }
 
@@ -199,6 +225,7 @@ export class Subscription {
     }
     this.currentPeriodEnd = nextEnd;
     this.status = new SubscriptionStatus(SubscriptionStatusEnum.ACTIVE);
+    this.graceUntil = null;
     this.updatedAt = new Date();
   }
 }

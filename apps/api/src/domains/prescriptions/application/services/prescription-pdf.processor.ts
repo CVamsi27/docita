@@ -68,6 +68,7 @@ export class PrescriptionPdfProcessor implements OnModuleInit {
           const { storedKey } =
             await this.prescriptionsService.uploadAndPersist(
               documentId,
+              clinicId,
               buffer,
               prescription,
             );

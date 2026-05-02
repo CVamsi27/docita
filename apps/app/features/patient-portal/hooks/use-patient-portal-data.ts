@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import {
-  type AppointmentWithRelations,
+  type AppointmentListItem,
   usePatientAppointments,
 } from "@/hooks/api/use-appointments";
 import { usePatient } from "@/hooks/api/use-patients";
@@ -14,27 +14,7 @@ import type {
 } from "@/features/patient-portal/types/patient-portal-types";
 import { summarizePortalSnapshot } from "@/features/patient-portal/rules/patient-portal-rules";
 
-type AppointmentWithPortalRelations = AppointmentWithRelations & {
-  id: string;
-  startTime: string;
-  status?: string;
-  clinicName?: string;
-  clinic?: {
-    id?: string;
-    name?: string | null;
-  } | null;
-  prescription?: {
-    id: string;
-    createdAt?: string;
-    medications?: Array<{ name?: string | null }>;
-  } | null;
-  invoice?: {
-    id: string;
-    total?: number;
-    status?: string;
-    createdAt?: string;
-  } | null;
-};
+type AppointmentWithPortalRelations = AppointmentListItem;
 
 function mapAppointmentStatus(
   status: string | undefined,
@@ -64,6 +44,10 @@ function mapInvoiceStatus(
     return "OVERDUE";
   }
   return "PENDING";
+}
+
+function toIsoString(value: string | Date): string {
+  return value instanceof Date ? value.toISOString() : value;
 }
 
 export function usePatientPortalData(patientId?: string | null) {
@@ -113,7 +97,7 @@ export function usePatientPortalData(patientId?: string | null) {
         id: item.id,
         doctorName: item.doctor?.name ?? "",
         clinicName: item.clinicName ?? item.clinic?.name ?? "",
-        scheduledAt: item.startTime,
+        scheduledAt: toIsoString(item.startTime),
         status: mapAppointmentStatus(item.status),
       }));
 
@@ -131,7 +115,9 @@ export function usePatientPortalData(patientId?: string | null) {
           id: item.prescription?.id || item.id,
           title: medicationName,
           prescribedBy: item.doctor?.name ?? "",
-          issuedAt: item.prescription?.createdAt || item.startTime,
+          issuedAt: item.prescription?.createdAt
+            ? toIsoString(item.prescription.createdAt)
+            : toIsoString(item.startTime),
           status: prescriptionStatus,
         };
       });
@@ -153,7 +139,10 @@ export function usePatientPortalData(patientId?: string | null) {
       invoiceMap.set(item.invoice.id, {
         id: item.invoice.id,
         amount: item.invoice.total || 0,
-        dueAt: item.invoice.createdAt || item.startTime,
+        currency: item.invoice.currency,
+        dueAt: item.invoice.createdAt
+          ? toIsoString(item.invoice.createdAt)
+          : toIsoString(item.startTime),
         status: mappedStatus,
       });
     }

@@ -1,5 +1,12 @@
 import { expect, Page } from "@playwright/test";
 
+/** Resolves after `(protected)/layout` finishes its initial auth/clinic load shell. */
+export async function expectProtectedWorkspaceLoaded(page: Page) {
+  await page
+    .getByRole("status", { name: "Loading workspace" })
+    .waitFor({ state: "hidden", timeout: 90000 });
+}
+
 export async function expectPageHeader(
   page: Page,
   params: { title: RegExp | string; description?: RegExp | string },
@@ -21,6 +28,36 @@ export async function expectPageHeader(
 export async function expectRoute(page: Page, path: RegExp | string) {
   await expect(page).toHaveURL(path);
   await expect(page.locator("body")).toBeVisible();
+}
+
+/**
+ * Waits for dashboard UI after loading (not skeleton).
+ * Fresh E2E clinics often hit the empty state (no patients yet), so we accept
+ * either the queue band or the welcome empty view.
+ */
+export async function expectDashboardQueueSectionReady(page: Page) {
+  const queue = page.locator("#dashboard-queue-heading");
+  // EmptyState titles render as paragraph copy, not role="heading".
+  const welcomeEmpty = page.getByText("Welcome to Docita", { exact: true });
+  const todayEmpty = page.getByText("Start with your first patient", {
+    exact: true,
+  });
+  const loadError = page.getByText("We could not load your dashboard");
+  const todayLoadError = page.getByText(
+    "We could not load today's workspace",
+  );
+
+  await Promise.race([
+    queue.waitFor({ state: "visible", timeout: 60000 }),
+    welcomeEmpty.waitFor({ state: "visible", timeout: 60000 }),
+    todayEmpty.waitFor({ state: "visible", timeout: 60000 }),
+    loadError.waitFor({ state: "visible", timeout: 60000 }),
+    todayLoadError.waitFor({ state: "visible", timeout: 60000 }),
+  ]);
+}
+
+export async function isDashboardQueueSectionVisible(page: Page) {
+  return page.locator("#dashboard-queue-heading").isVisible();
 }
 
 export async function expectDataState(

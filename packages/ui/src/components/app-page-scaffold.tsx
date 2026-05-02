@@ -6,6 +6,8 @@ interface AppPageScaffoldProps {
   header?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  /** Optional class on the header wrapper (spacing, borders). */
+  headerClassName?: string;
   contentClassName?: string;
   density?: "default" | "compact" | "spacious";
 }
@@ -29,6 +31,7 @@ export function AppPageScaffold({
   header,
   children,
   className,
+  headerClassName,
   contentClassName,
   density = "default",
 }: AppPageScaffoldProps) {
@@ -36,7 +39,9 @@ export function AppPageScaffold({
 
   return (
     <section className={cn("ui-page-shell", className)}>
-      {header ? <div className={classes.header}>{header}</div> : null}
+      {header ? (
+        <div className={cn(classes.header, headerClassName)}>{header}</div>
+      ) : null}
       <div className={cn("min-w-0", classes.content, contentClassName)}>
         {children}
       </div>

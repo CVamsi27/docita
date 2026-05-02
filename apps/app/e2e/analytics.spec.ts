@@ -5,11 +5,11 @@ const API_URL = process.env["API_URL"] || "http://localhost:3001/api/v1";
 test.describe("Analytics", () => {
   let authToken: string;
   let _clinicId: string;
-  let serverAvailable = true;
+  let suiteAvailable = true;
+  let suiteSkipReason = "";
 
   test.beforeAll(async ({ request }: { request: APIRequestContext }) => {
     try {
-
       const registerRes = await request.post(`${API_URL}/auth/register`, {
         data: {
           email: `doctor${Date.now()}@test.com`,
@@ -22,7 +22,8 @@ test.describe("Analytics", () => {
       });
 
       if (!registerRes.ok()) {
-        serverAvailable = false;
+        suiteAvailable = false;
+        suiteSkipReason = `auth/register unavailable (status ${registerRes.status()})`;
         return;
       }
 
@@ -43,76 +44,89 @@ test.describe("Analytics", () => {
         },
       });
 
+      expect(
+        clinicRes.ok(),
+        `clinic bootstrap failed: ${clinicRes.status()}`,
+      ).toBeTruthy();
+
       const clinic = await clinicRes.json();
       _clinicId = clinic.id;
-    } catch {
-      serverAvailable = false;
+    } catch (error) {
+      suiteAvailable = false;
+      suiteSkipReason = `bootstrap threw: ${(error as Error).message}`;
     }
+  });
+
+  test.beforeEach(() => {
+    test.skip(
+      !suiteAvailable,
+      `analytics API not provisioned: ${suiteSkipReason}`,
+    );
   });
 
   test("should fetch analytics overview", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const analyticsRes = await request.get(`${API_URL}/analytics/overview`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (analyticsRes.ok()) {
-      const analytics = await analyticsRes.json();
-      expect(analytics).toBeDefined();
-    }
+    expect(
+      analyticsRes.ok(),
+      `GET /analytics/overview failed: ${analyticsRes.status()}`,
+    ).toBeTruthy();
+    const analytics = await analyticsRes.json();
+    expect(analytics).toBeDefined();
   });
 
   test("should fetch revenue analytics", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const revenueRes = await request.get(`${API_URL}/analytics/revenue`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (revenueRes.ok()) {
-      const revenue = await revenueRes.json();
-      expect(revenue).toBeDefined();
-    }
+    expect(
+      revenueRes.ok(),
+      `GET /analytics/revenue failed: ${revenueRes.status()}`,
+    ).toBeTruthy();
+    const revenue = await revenueRes.json();
+    expect(revenue).toBeDefined();
   });
 
   test("should fetch patients analytics", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const patientsRes = await request.get(`${API_URL}/analytics/patients`, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
-
-    if (patientsRes.ok()) {
-      const patients = await patientsRes.json();
-      expect(patients).toBeDefined();
-    }
+    expect(
+      patientsRes.ok(),
+      `GET /analytics/patients failed: ${patientsRes.status()}`,
+    ).toBeTruthy();
+    const patients = await patientsRes.json();
+    expect(patients).toBeDefined();
   });
 
   test("should fetch appointments analytics", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const appointmentsRes = await request.get(
       `${API_URL}/analytics/appointments`,
       {
         headers: { Authorization: `Bearer ${authToken}` },
       },
     );
-
-    if (appointmentsRes.ok()) {
-      const appointments = await appointmentsRes.json();
-      expect(appointments).toBeDefined();
-    }
+    expect(
+      appointmentsRes.ok(),
+      `GET /analytics/appointments failed: ${appointmentsRes.status()}`,
+    ).toBeTruthy();
+    const appointments = await appointmentsRes.json();
+    expect(appointments).toBeDefined();
   });
 
   test("should fetch top diagnoses", async ({ request }) => {
-    test.skip(!serverAvailable, "API server not running");
     const diagnosesRes = await request.get(
       `${API_URL}/analytics/top-diagnoses`,
       {
         headers: { Authorization: `Bearer ${authToken}` },
       },
     );
-
-    if (diagnosesRes.ok()) {
-      const diagnoses = await diagnosesRes.json();
-      expect(diagnoses).toBeDefined();
-    }
+    expect(
+      diagnosesRes.ok(),
+      `GET /analytics/top-diagnoses failed: ${diagnosesRes.status()}`,
+    ).toBeTruthy();
+    const diagnoses = await diagnosesRes.json();
+    expect(diagnoses).toBeDefined();
   });
 });

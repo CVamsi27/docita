@@ -11,16 +11,18 @@ import { ConfirmProvider } from "@/hooks/use-confirm";
 import { TooltipProvider } from "@workspace/ui/components/tooltip";
 import { DialogStackProvider } from "@workspace/ui/components/dialog-stack";
 import { NavigationHistoryProvider } from "@/providers/navigation-history-provider";
+import { AppearanceController } from "@/features/_shared/components/layout/appearance-controller";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="system"
       enableSystem
       disableTransitionOnChange
       enableColorScheme
     >
+      <AppearanceController />
       <TierConfigProvider>
         <AppConfigProvider>
           <TooltipProvider delayDuration={300}>

@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
@@ -36,18 +38,13 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Label } from "@workspace/ui/components/label";
-import {
-  Edit2,
-  Eye,
-  Loader2,
-  Plus,
-  Search,
-  Shield,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { Edit2, Eye, Plus, Search, Shield, Trash2, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
+import {
+  formatInternalListDate,
+  formatInternalTimestamp,
+} from "@/lib/format-display-date";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
 import { toast } from "sonner";
@@ -284,7 +281,6 @@ export default function AdminsPage() {
         size="compact"
       />
 
-      {}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -292,7 +288,7 @@ export default function AdminsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search admins by name or email..."
+                  placeholder="Enter name or email"
                   value={adminSearch}
                   onChange={(e) => setAdminSearch(e.target.value)}
                   className="pl-9"
@@ -301,7 +297,7 @@ export default function AdminsPage() {
             </div>
             <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger className="w-full md:w-[250px]">
-                <SelectValue placeholder="Select facility" />
+                <SelectValue placeholder="Facility" />
               </SelectTrigger>
               <SelectContent>
                 {Array.isArray(clinics) &&
@@ -320,7 +316,6 @@ export default function AdminsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -330,8 +325,17 @@ export default function AdminsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div
+              className="flex items-center justify-center py-8"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading admins"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-muted-foreground"
+              />
             </div>
           ) : filteredAdmins.length === 0 ? (
             <EmptyState
@@ -375,7 +379,7 @@ export default function AdminsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(admin.createdAt).toLocaleDateString()}
+                      {formatInternalListDate(admin.createdAt)}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -411,7 +415,6 @@ export default function AdminsPage() {
         </CardContent>
       </Card>
 
-      {}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -449,7 +452,7 @@ export default function AdminsPage() {
               <div>
                 <Label className="text-muted-foreground">Created</Label>
                 <p className="font-medium">
-                  {new Date(selectedAdmin.createdAt).toLocaleString()}
+                  {formatInternalTimestamp(selectedAdmin.createdAt)}
                 </p>
               </div>
             </div>
@@ -457,7 +460,6 @@ export default function AdminsPage() {
         </DialogContent>
       </Dialog>
 
-      {}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -488,7 +490,7 @@ export default function AdminsPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@clinic.com"
+                placeholder="Email"
                 value={createForm.email}
                 onChange={(e) =>
                   setCreateForm({ ...createForm, email: e.target.value })
@@ -501,7 +503,7 @@ export default function AdminsPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter a strong password"
+                placeholder="Enter password"
                 value={createForm.password}
                 onChange={(e) =>
                   setCreateForm({ ...createForm, password: e.target.value })
@@ -514,7 +516,7 @@ export default function AdminsPage() {
               <Input
                 id="phoneNumber"
                 type="tel"
-                placeholder="+91 XXXXX XXXXX"
+                placeholder="Phone number"
                 value={createForm.phoneNumber}
                 onChange={(e) =>
                   setCreateForm({ ...createForm, phoneNumber: e.target.value })
@@ -534,7 +536,7 @@ export default function AdminsPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select admin type" />
+                  <SelectValue placeholder="Admin type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">
@@ -575,7 +577,7 @@ export default function AdminsPage() {
                 Cancel
               </Button>
               <Button onClick={handleCreateAdmin} disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {saving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Create Admin
               </Button>
             </div>
@@ -583,7 +585,6 @@ export default function AdminsPage() {
         </DialogContent>
       </Dialog>
 
-      {}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -612,7 +613,7 @@ export default function AdminsPage() {
               <Input
                 id="edit-email"
                 type="email"
-                placeholder="admin@clinic.com"
+                placeholder="Email"
                 value={editForm.email}
                 onChange={(e) =>
                   setEditForm({ ...editForm, email: e.target.value })
@@ -625,7 +626,7 @@ export default function AdminsPage() {
               <Input
                 id="edit-phoneNumber"
                 type="tel"
-                placeholder="+91 XXXXX XXXXX"
+                placeholder="Phone number"
                 value={editForm.phoneNumber}
                 onChange={(e) =>
                   setEditForm({ ...editForm, phoneNumber: e.target.value })
@@ -645,7 +646,7 @@ export default function AdminsPage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select admin type" />
+                  <SelectValue placeholder="Admin type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">
@@ -663,7 +664,7 @@ export default function AdminsPage() {
                 Cancel
               </Button>
               <Button onClick={handleSaveAdmin} disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {saving && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Save Changes
               </Button>
             </div>

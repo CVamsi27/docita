@@ -72,7 +72,7 @@ export function ConsultationTimerUI({
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Consultation duration</p>
+            <p>Consultation timer</p>
           </TooltipContent>
         </Tooltip>
 
@@ -84,7 +84,7 @@ export function ConsultationTimerUI({
               </p>
               <p
                 className={cn(
-                  "text-3xl font-bold font-mono tabular-nums",
+                  "text-[var(--fs-3xl)] font-semibold font-mono tabular-nums leading-[var(--lh-tight)]",
                   getTimeColor(),
                 )}
               >
@@ -119,7 +119,7 @@ export function ConsultationTimerUI({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  {isRunning ? "Pause timer" : "Resume timer"}
+                  {isRunning ? "Pause" : "Resume"}
                 </TooltipContent>
               </Tooltip>
 

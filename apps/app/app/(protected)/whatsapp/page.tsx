@@ -11,48 +11,85 @@ import {
 import { MessageSquare, Send, Settings, Users } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
+import { DataState } from "@workspace/ui/components/data-state";
 import { PageHeader } from "@workspace/ui/components/page-header";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert";
 import { useWhatsappStats } from "@/hooks/api/use-whatsapp";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
+import { StatTile } from "@workspace/ui";
+import { formatCountLocale } from "@workspace/utils";
+import { whatsappOptInRatePercent } from "@/features/whatsapp/lib/whatsapp-opt-in-rate";
 
 export default function WhatsAppPage() {
-  const { data: stats } = useWhatsappStats();
+  const { data: stats, isLoading, isError, refetch } = useWhatsappStats();
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
   const subscriberCount = stats?.subscribers || 0;
   const totalPatients = stats?.totalPatients || 0;
-  const optInRate =
-    totalPatients > 0 ? Math.round((subscriberCount / totalPatients) * 100) : 0;
+  const optInRate = whatsappOptInRatePercent(subscriberCount, totalPatients);
+
+  const header = (
+    <PageHeader
+      title="WhatsApp Integration"
+      description="Manage your facility's WhatsApp Business API settings and automation."
+      actions={
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsSettingsDialogOpen(true)}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Manage Settings
+          </Button>
+          <Button onClick={() => setIsBroadcastDialogOpen(true)}>
+            <Send className="mr-2 h-4 w-4" />
+            Create Campaign
+          </Button>
+        </div>
+      }
+    />
+  );
 
   return (
     <FeatureGuard feature="WHATSAPP_MESSAGING">
-      <AppPageScaffold
-        className="max-w-5xl"
-        header={
-          <PageHeader
-            title="WhatsApp Integration"
-            description="Manage your facility's WhatsApp Business API settings and automation."
-            actions={
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsSettingsDialogOpen(true)}
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Manage Settings
-                </Button>
-                <Button onClick={() => setIsBroadcastDialogOpen(true)}>
-                  <Send className="mr-2 h-4 w-4" />
-                  Create Campaign
-                </Button>
-              </div>
-            }
+      <AppPageScaffold className="max-w-5xl" header={header}>
+        {isLoading && !stats ? (
+          <DataState
+            status="loading"
+            loadingMessage="Loading WhatsApp stats…"
           />
-        }
-      >
+        ) : null}
+
+        {isError ? (
+          <DataState
+            status="error"
+            className="min-h-[40vh]"
+            errorMessage="We could not load WhatsApp stats. Please try again."
+            onRetry={() => refetch()}
+          />
+        ) : null}
+
+        {!isLoading && !isError && stats && totalPatients === 0 ? (
+          <Alert className="mb-4 border-info/40 bg-info/10">
+            <AlertTitle>No patients on file yet</AlertTitle>
+            <AlertDescription>
+              Add patients with mobile numbers to reach them on WhatsApp. Use{" "}
+              <span className="font-medium text-foreground">
+                Manage Settings
+              </span>{" "}
+              when your Meta Business integration is ready.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {!isLoading && !isError ? (
         <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -69,7 +106,7 @@ export default function WhatsAppPage() {
                 <div className="h-2.5 w-2.5 rounded-full bg-success animate-pulse" />
                 Active
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="ui-helper-text">
                 Your bot is currently handling patient queries, appointment
                 confirmations, and reminders.
               </p>
@@ -85,13 +122,14 @@ export default function WhatsAppPage() {
               <CardDescription>Send announcements to patients</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="ui-helper-text">
                 Send health tips, facility updates, or holiday notices to your
-                patient list.
+                patient list. Use the
+                <span className="mx-1 font-medium text-foreground">
+                  Create Campaign
+                </span>
+                control above when you are ready.
               </p>
-              <Button className="w-full" onClick={() => setIsBroadcastDialogOpen(true)}>
-                Create Campaign
-              </Button>
             </CardContent>
           </Card>
 
@@ -116,43 +154,37 @@ export default function WhatsAppPage() {
                 <span>Birthday Wishes</span>
                 <span className="text-muted-foreground">Off</span>
               </div>
-              <Button
-                variant="outline"
-                className="w-full mt-2"
-                onClick={() => setIsSettingsDialogOpen(true)}
-              >
-                Manage Settings
-              </Button>
+              <p className="ui-helper-text pt-1">
+                Open
+                <span className="mx-1 font-medium text-foreground">
+                  Manage Settings
+                </span>
+                above to change templates and triggers.
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Subscribers
-              </CardTitle>
-              <CardDescription>Patient opt-in status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {subscriberCount.toLocaleString()}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Patients with phone numbers
-              </p>
-              <div className="mt-4 h-2 w-full bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-success"
-                  style={{ width: `${optInRate}%` }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {optInRate}% have phone numbers
-              </p>
-            </CardContent>
-          </Card>
+          <StatTile
+            label="Subscribers"
+            value={formatCountLocale(subscriberCount)}
+            description="Patients with phone numbers on file"
+            icon={<Users className="h-4 w-4" aria-hidden />}
+            footer={
+              <>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-success"
+                    style={{ width: `${optInRate}%` }}
+                  />
+                </div>
+                <p className="ui-helper-text mt-1 text-[var(--fs-xs)]">
+                  {optInRate}% have phone numbers
+                </p>
+              </>
+            }
+          />
         </div>
+        ) : null}
 
         <WhatsAppBroadcastDialog
           isOpen={isBroadcastDialogOpen}

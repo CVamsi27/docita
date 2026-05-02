@@ -1,41 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { countryCodeToCurrency as resolveCurrencyForCountry } from "@workspace/utils";
 
-type SupportedCurrency = "INR" | "USD" | "EUR" | "GBP" | "AUD";
+type SupportedCurrency =
+  | "INR"
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "AUD"
+  | "CAD"
+  | "SGD"
+  | "AED"
+  | "ZAR";
 
 const CACHE_KEY = "docita_currency";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-
-const COUNTRY_TO_CURRENCY: Record<string, SupportedCurrency> = {
-  IN: "INR",
-  GB: "GBP",
-  AU: "AUD",
-  NZ: "AUD",
-  AT: "EUR",
-  BE: "EUR",
-  CY: "EUR",
-  EE: "EUR",
-  FI: "EUR",
-  FR: "EUR",
-  DE: "EUR",
-  GR: "EUR",
-  HR: "EUR",
-  IE: "EUR",
-  IT: "EUR",
-  LV: "EUR",
-  LT: "EUR",
-  LU: "EUR",
-  MT: "EUR",
-  NL: "EUR",
-  PT: "EUR",
-  SK: "EUR",
-  SI: "EUR",
-  ES: "EUR",
-  US: "USD",
-  CA: "USD",
-  MX: "USD",
-};
 
 function readCache(): SupportedCurrency | null {
   try {
@@ -77,6 +57,18 @@ export function guessCurrencyFromTimezone(): SupportedCurrency {
     if (tz.startsWith("Australia/") || tz.startsWith("Pacific/Auckland")) {
       return "AUD";
     }
+    if (tz.startsWith("America/Toronto") || tz.startsWith("America/Vancouver")) {
+      return "CAD";
+    }
+    if (tz.startsWith("Asia/Singapore")) {
+      return "SGD";
+    }
+    if (tz.startsWith("Asia/Dubai")) {
+      return "AED";
+    }
+    if (tz.startsWith("Africa/Johannesburg")) {
+      return "ZAR";
+    }
     if (tz.startsWith("Europe/London") || tz === "GB") {
       return "GBP";
     }
@@ -87,14 +79,13 @@ export function guessCurrencyFromTimezone(): SupportedCurrency {
       return "USD";
     }
   } catch {
-    // ignore
   }
 
   return "USD";
 }
 
 export function countryCodeToCurrency(code: string): SupportedCurrency {
-  return COUNTRY_TO_CURRENCY[code.toUpperCase()] ?? "USD";
+  return resolveCurrencyForCountry(code) as SupportedCurrency;
 }
 
 export function useDetectedCurrency() {

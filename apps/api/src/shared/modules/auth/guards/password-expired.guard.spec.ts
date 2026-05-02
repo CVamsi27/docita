@@ -1,8 +1,16 @@
 import { ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { asType } from '@/test-utils/as-type';
-import { PasswordExpiredGuard } from './password-expired.guard';
+import {
+  asType,
+  createKeyedReflectorMock,
+  mockGetAllAndOverrideKeyBranch,
+  type MockedReflectorGetAllAndOverride,
+} from '@/test-utils';
+import {
+  PasswordExpiredGuard,
+  SKIP_PASSWORD_EXPIRY_KEY,
+} from './password-expired.guard';
 
 function createContext(user: unknown): ExecutionContext {
   return asType<ExecutionContext>({
@@ -18,7 +26,7 @@ function createContext(user: unknown): ExecutionContext {
 
 describe('PasswordExpiredGuard', () => {
   type UserLookupResult = { passwordExpiresAt: Date | null } | null;
-  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
+  let reflector: { getAllAndOverride: MockedReflectorGetAllAndOverride };
   let prisma: {
     $queryRaw: jest.MockedFunction<
       (...args: unknown[]) => Promise<UserLookupResult[]>
@@ -28,7 +36,9 @@ describe('PasswordExpiredGuard', () => {
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue(false),
+      getAllAndOverride: createKeyedReflectorMock([
+        [SKIP_PASSWORD_EXPIRY_KEY, false],
+      ]),
     };
 
     prisma = {
@@ -52,7 +62,12 @@ describe('PasswordExpiredGuard', () => {
   });
 
   it('skips guard when skip metadata is enabled', async () => {
-    reflector.getAllAndOverride.mockReturnValue(true);
+    mockGetAllAndOverrideKeyBranch(
+      reflector.getAllAndOverride,
+      SKIP_PASSWORD_EXPIRY_KEY,
+      true,
+      false,
+    );
 
     await expect(
       guard.canActivate(createContext({ sub: 'user-123' })),

@@ -1,4 +1,5 @@
-import { Loader2 } from "lucide-react";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { z } from "zod";
 import type { UseFormReturn } from "react-hook-form";
 import { createAppointmentSchema, Doctor, Patient } from "@workspace/types";
@@ -13,6 +14,7 @@ import { AppointmentFormFields } from "@/features/appointments/components/sectio
 import { PatientSelector } from "@/features/appointments/components/sections/add-dialog/PatientSelector";
 import { DoctorSelector } from "@/features/appointments/components/sections/add-dialog/DoctorSelector";
 import { TimeSlotPicker } from "@/features/appointments/components/sections/add-dialog/TimeSlotPicker";
+import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface AddAppointmentDialogUIProps {
   open: boolean;
@@ -70,9 +72,18 @@ export function AddAppointmentDialogUI({
   startHour,
   endHour,
 }: AddAppointmentDialogUIProps) {
-  const handleSubmit = form.handleSubmit((data) => {
-    onSubmit(data, () => onOpenChange(false));
-  });
+  const handleSubmit = form.handleSubmit(
+    (data) => {
+      onSubmit(data, () => onOpenChange(false));
+    },
+    () => {
+      showUserFacingErrorToast(
+        "Please check the highlighted fields and try again.",
+        "Please check the highlighted fields and try again.",
+        "form",
+      );
+    },
+  );
 
   return (
     <FormDialog
@@ -137,7 +148,7 @@ export function AddAppointmentDialogUI({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
               Schedule
             </Button>
           </div>
