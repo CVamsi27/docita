@@ -1,5 +1,6 @@
 "use client";
 
+import dynamicImport from "next/dynamic";
 import { Suspense, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,7 +11,6 @@ import { cn } from "@workspace/ui/lib/utils";
 import { getStatusColor } from "@workspace/ui/components/status-badge";
 import type { StatusType } from "@workspace/ui/components/status-badge";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
-import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
 import { DataState } from "@workspace/ui/components/data-state";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
@@ -20,13 +20,38 @@ import {
   AppointmentsCalendarUI,
   AppointmentsListUI,
   AppointmentsPageHeaderUI,
-  CancelAppointmentDialog,
 } from "@/features/appointments/components";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
-import { AppointmentRequestsPanel } from "@/features/appointments/components/sections/AppointmentRequestsPanel";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
-export const dynamic = "force-dynamic";
+const CancelAppointmentDialog = dynamicImport(
+  () =>
+    import(
+      "@/features/appointments/components/dialogs/CancelAppointmentDialog"
+    ).then((m) => ({ default: m.CancelAppointmentDialog })),
+  { ssr: false },
+);
+
+const ConfirmationDialog = dynamicImport(
+  () =>
+    import("@workspace/ui/components/confirmation-dialog").then((m) => ({
+      default: m.ConfirmationDialog,
+    })),
+  { ssr: false },
+);
+
+const AppointmentRequestsPanel = dynamicImport(
+  () =>
+    import(
+      "@/features/appointments/components/sections/AppointmentRequestsPanel"
+    ).then((m) => ({ default: m.AppointmentRequestsPanel })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mt-6 h-24 rounded-lg border border-border/40 bg-muted/30" />
+    ),
+  },
+);
 
 function AppointmentsContent() {
   const { state, handlers } = useAppointmentsLogic();
