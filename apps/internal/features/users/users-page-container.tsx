@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -33,8 +35,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Eye, Loader2, Search, Users } from "lucide-react";
+import { Eye, Search, Users } from "lucide-react";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
+import {
+  formatInternalListDate,
+  formatInternalTimestamp,
+} from "@/lib/format-display-date";
 import { ROLE_CONFIG } from "./types";
 import { getRoleBadgeColor } from "./utils";
 import { useUsersData } from "./use-users-data";
@@ -159,9 +165,14 @@ export function UsersPageContainer() {
             <div
               className="flex items-center justify-center py-8"
               role="status"
+              aria-live="polite"
               aria-label="Loading team members"
             >
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-primary"
+              />
             </div>
           ) : filteredUsers.length === 0 ? (
             <EmptyState
@@ -210,7 +221,7 @@ export function UsersPageContainer() {
                         {user.phoneNumber || "-"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {formatInternalListDate(user.createdAt)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -346,7 +357,7 @@ export function UsersPageContainer() {
                   Joined
                 </p>
                 <p className="text-sm font-semibold mt-1">
-                  {new Date(selectedUser.createdAt).toLocaleString()}
+                  {formatInternalTimestamp(selectedUser.createdAt)}
                 </p>
               </div>
             </div>

@@ -199,7 +199,7 @@ export function ContactInquiryForm() {
               className="w-full sm:w-auto"
             >
               <Send className="mr-2 h-4 w-4" />
-              {isSubmitting ? "Sending..." : "Request setup"}
+              {isSubmitting ? "Sending…" : "Request setup"}
             </Button>
           </form>
         )}

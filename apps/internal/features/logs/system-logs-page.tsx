@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { formatDate } from "@workspace/utils";
 import { RefreshCw } from "lucide-react";
 import { getUserFacingErrorMessage } from "@workspace/types";
 import { useAuth } from "@/lib/auth";
@@ -393,7 +393,7 @@ export function SystemLogsPage({
             {loading ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center">
-                  Loading logs...
+                  Loading logs…
                 </TableCell>
               </TableRow>
             ) : logs.length === 0 ? (
@@ -406,7 +406,7 @@ export function SystemLogsPage({
               logs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell className="font-mono text-xs">
-                    {format(new Date(log.timestamp), "MMM d, HH:mm:ss.SSS")}
+                    {formatDate(log.timestamp, "dd MMM yyyy, HH:mm:ss.SSS")}
                   </TableCell>
                   <TableCell>{getLevelBadge(log.level)}</TableCell>
                   <TableCell className="font-medium">{log.module}</TableCell>

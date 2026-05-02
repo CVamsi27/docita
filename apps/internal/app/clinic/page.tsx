@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
@@ -59,8 +60,17 @@ export default function ClinicDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div
+        className="flex flex-col items-center justify-center gap-3 py-12"
+        role="status"
+        aria-live="polite"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
+        <p className="text-sm text-muted-foreground">Loading facility details…</p>
       </div>
     );
   }

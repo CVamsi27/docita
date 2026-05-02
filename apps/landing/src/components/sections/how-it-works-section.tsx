@@ -1,7 +1,15 @@
 "use client";
 
+import { motion, useReducedMotion } from "motion/react";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { SectionHeading } from "@workspace/ui/components/section-heading";
+import { cn } from "@workspace/ui/lib/utils";
+
+import {
+  landingFadeUpVariants,
+  landingInViewViewport,
+  landingStaggerContainer,
+} from "@/lib/motion-prefs";
 import {
   ClipboardList,
   FileSpreadsheet,
@@ -11,22 +19,39 @@ import {
 } from "lucide-react";
 
 export function HowItWorksSection() {
+  const reduce = useReducedMotion();
+  const stepVariant = landingFadeUpVariants(reduce ?? false);
+  const rowVariants = landingStaggerContainer(reduce ?? false, 0.05, 0.04);
+
   return (
-    <section className="landing-section relative overflow-hidden bg-muted/30">
+    <section
+      id="workflow"
+      className="landing-workflow-shell landing-section landing-section-compact landing-section-divider-angle-top scroll-mt-24 relative bg-muted/30"
+    >
       <div className="ui-page-shell relative z-10">
         <SectionHeading
           align="center"
           size="section"
+          eyebrow="Rollout"
           title="A rollout your front desk can actually adopt"
           description="Start from the records and habits your clinic already has, then move day-to-day operations into one reliable workflow."
-          className="mb-16"
+          className="mb-12"
           descriptionClassName="mx-auto max-w-2xl"
         />
 
         <div className="relative">
-          <div className="absolute top-1/2 left-0 hidden h-px w-full -translate-y-1/2 bg-border lg:block" />
+          <div
+            className="landing-workflow-connector absolute top-1/2 left-0 hidden h-[2px] w-full -translate-y-1/2 lg:block"
+            aria-hidden
+          />
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5 relative z-10">
+          <motion.div
+            className="relative z-10 grid gap-8 md:grid-cols-2 lg:grid-cols-5"
+            variants={rowVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={landingInViewViewport}
+          >
             {[
               {
                 step: "01",
@@ -59,14 +84,16 @@ export function HowItWorksSection() {
                 icon: Receipt,
               },
             ].map((item, i) => (
-              <div key={i} className="relative group">
+              <motion.div key={i} variants={stepVariant} className="relative group">
                 <Card
                   interaction="interactive"
-                  className="h-full border-border/70 bg-background/95 text-center shadow-lg transition-transform duration-300 group-hover:-translate-y-1"
+                  className={cn(
+                    "landing-step-card landing-step-card-hover h-full text-center shadow-lg",
+                  )}
                   density="spacious"
                 >
-                  <CardContent className="relative flex h-full flex-col items-center ui-section-stack px-8">
-                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-background/70 transition-transform duration-300 group-hover:scale-110">
+                  <CardContent className="relative z-[1] flex h-full flex-col items-center ui-section-stack px-8">
+                    <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/15 bg-primary/8 shadow-sm motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105">
                       <item.icon className="h-6 w-6 text-primary" />
                     </div>
                     <div className="absolute top-4 right-4 select-none text-[var(--fs-3xl)] font-semibold text-muted/20 md:text-[var(--fs-4xl)]">
@@ -78,9 +105,9 @@ export function HowItWorksSection() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

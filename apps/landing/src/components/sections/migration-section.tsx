@@ -31,17 +31,30 @@ const rolloutPoints = [
   },
 ];
 
-export function MigrationSection() {
+interface MigrationSectionProps {
+  /** Visual band for alternating homepage rhythm */
+  tone?: "default" | "soft";
+}
+
+export function MigrationSection({ tone = "default" }: MigrationSectionProps) {
+  const surface =
+    tone === "soft" ? "landing-band-soft" : "bg-background";
   return (
-    <section className="landing-section bg-background" id="migration">
-      <div className="ui-page-shell grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)] lg:items-center">
+    <section
+      className={`landing-migration-shell landing-section scroll-mt-24 ${surface}`}
+      id="migration"
+    >
+      <div className="ui-page-shell relative z-10 grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)] lg:items-center">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm text-primary">
-            <Clock3 className="h-4 w-4" />
-            <span className="font-medium">Rollout target: first value in 48 hours</span>
+            <Clock3 className="h-4 w-4 shrink-0" />
+            <span className="font-mono text-xs font-medium leading-snug sm:text-sm">
+              Rollout target: first value in 48 hours
+            </span>
           </div>
           <SectionHeading
             size="section"
+            eyebrow="Migration"
             title="A migration story small clinics can say yes to"
             description="Docita is leading with migration and usability, not with asking clinics to change everything overnight. The first job is getting existing records and everyday operations into one calmer workflow."
             className="mb-6"

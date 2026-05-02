@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -14,7 +16,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { PageHeader } from "@workspace/ui/components/page-header";
-import { Loader2, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { toast } from "sonner";
@@ -217,7 +219,7 @@ export default function CreateReceptionistPage() {
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
                 Create Receptionist
               </Button>
             </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -45,13 +47,13 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
-import { CreditCard, Loader2, TrendingUp } from "lucide-react";
+import { CreditCard, TrendingUp } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface Clinic {
@@ -139,15 +141,6 @@ export default function PaymentProcessingPage() {
   );
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-  const formatCurrency = (
-    amount: number,
-    currency: string = DEFAULT_CURRENCY,
-  ) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
   const { token, isInternal, isLoading } = useAuth();
   const form = useForm<PaymentFormData>({
     defaultValues: {
@@ -285,8 +278,17 @@ export default function PaymentProcessingPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex min-h-screen items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading payment processing"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -308,8 +310,17 @@ export default function PaymentProcessingPage() {
       />
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div
+          className="flex items-center justify-center py-12"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading tier pricing"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-8 w-8 text-muted-foreground"
+          />
         </div>
       ) : (
         <>
@@ -465,7 +476,11 @@ export default function PaymentProcessingPage() {
                         selectedTierPricing.find(
                           (t) => t.tier === tierInfo.currentTier,
                         )?.price ?? tierInfo.pricing,
-                        selectedClinic?.currency || DEFAULT_CURRENCY,
+                        {
+                          currency:
+                            selectedClinic?.currency || DEFAULT_CURRENCY,
+                          fractionDigits: 0,
+                        },
                       )}
                     </p>
                   </div>
@@ -503,10 +518,11 @@ export default function PaymentProcessingPage() {
                           ).map((tier) => (
                             <SelectItem key={tier.tier} value={tier.tier}>
                               {tier.tier} -{" "}
-                              {formatCurrency(
-                                tier.price,
-                                selectedClinic?.currency || DEFAULT_CURRENCY,
-                              )}
+                              {formatCurrency(tier.price, {
+                                currency:
+                                  selectedClinic?.currency || DEFAULT_CURRENCY,
+                                fractionDigits: 0,
+                              })}
                               /{tier.billingCycle}
                             </SelectItem>
                           ))}
@@ -604,10 +620,10 @@ export default function PaymentProcessingPage() {
                     disabled={processPaymentMutation.isPending}
                   >
                     {processPaymentMutation.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                     )}
                     {processPaymentMutation.isPending
-                      ? "Processing..."
+                      ? "Processing…"
                       : "Process Payment"}
                   </Button>
                 </div>

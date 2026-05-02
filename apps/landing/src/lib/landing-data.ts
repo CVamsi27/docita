@@ -1,3 +1,4 @@
+import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { fetchLandingJson } from "@/lib/public-api";
 
 export interface PlatformStats {
@@ -223,7 +224,7 @@ export async function fetchPricingConfig(
 }
 
 export function formatStatValue(value: number): string {
-  return value.toLocaleString();
+  return formatCountLocale(value);
 }
 
 export function formatTierPrice(
@@ -234,5 +235,5 @@ export function formatTierPrice(
     return "Custom";
   }
 
-  return `${symbol}${value.toLocaleString()}`;
+  return `${symbol}${formatAmountLocale(value)}`;
 }

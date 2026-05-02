@@ -8,37 +8,317 @@
 
 .landing-hero-origin {
   min-height: calc(100svh - 4rem);
+  isolation: isolate;
   background:
+    radial-gradient(
+      100% 70% at 8% 0%,
+      color-mix(in oklch, var(--primary) 14%, transparent),
+      transparent 50%
+    ),
     linear-gradient(
-      180deg,
-      color-mix(in oklch, var(--surface-tint) 68%, var(--background)) 0%,
-      color-mix(in oklch, var(--background) 88%, var(--primary) 12%) 52%,
-      var(--background) 100%
+      188deg,
+      color-mix(in oklch, var(--surface-tint) 55%, var(--background)) 0%,
+      var(--background) 42%,
+      color-mix(in oklch, var(--background) 92%, var(--muted) 8%) 100%
     ),
     url("/grid.svg");
-  background-position:
-    center,
-    center top;
+  background-position: center, center, center top;
+  background-size: auto, auto, 680px auto;
 }
 
 .dark .landing-hero-origin {
   background:
+    radial-gradient(
+      95% 65% at 10% 0%,
+      color-mix(in oklch, var(--primary) 18%, transparent),
+      transparent 48%
+    ),
     linear-gradient(
-      180deg,
-      color-mix(in oklch, var(--surface-tint) 74%, var(--background)) 0%,
-      color-mix(in oklch, var(--background) 94%, var(--primary) 6%) 52%,
-      var(--background) 100%
+      188deg,
+      color-mix(in oklch, var(--surface-tint) 42%, var(--background)) 0%,
+      var(--background) 48%,
+      color-mix(in oklch, var(--background) 94%, var(--foreground) 6%) 100%
     ),
     url("/grid.svg");
-  background-position:
-    center,
-    center top;
+  background-position: center, center, center top;
+  background-size: auto, auto, 680px auto;
+}
+
+.landing-hero-editorial {
+  border-bottom: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+}
+
+.landing-hero-mesh {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.42;
+  background-image:
+    repeating-linear-gradient(
+      -28deg,
+      color-mix(in oklch, var(--foreground) 5.5%, transparent) 0 1px,
+      transparent 1px 14px
+    ),
+    repeating-linear-gradient(
+      28deg,
+      color-mix(in oklch, var(--primary) 5%, transparent) 0 1px,
+      transparent 1px 18px
+    );
+  mask-image: radial-gradient(
+    85% 75% at 70% 35%,
+    black 0%,
+    transparent 75%
+  );
+}
+
+.dark .landing-hero-mesh {
+  opacity: 0.28;
+}
+
+.landing-hero-vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    78% 70% at 50% 38%,
+    transparent 0%,
+    color-mix(in oklch, var(--background) 14%, transparent) 100%
+  );
+}
+
+.landing-hero-display {
+  font-weight: 600;
+}
+
+.landing-hero-display-line1 {
+  font-size: clamp(2.35rem, 0.85rem + 5vw, 4.35rem);
+  line-height: 0.94;
+  letter-spacing: -0.048em;
+}
+
+.landing-hero-display-line2 {
+  font-size: clamp(1.05rem, 0.42rem + 2vw, 1.6rem);
+  line-height: 1.28;
+  letter-spacing: -0.024em;
+  font-weight: 500;
+  background: linear-gradient(
+    102deg,
+    color-mix(in oklch, var(--primary) 88%, var(--foreground) 12%) 0%,
+    color-mix(in oklch, var(--info) 82%, var(--foreground) 18%) 42%,
+    color-mix(in oklch, var(--success) 72%, var(--foreground) 28%) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dark .landing-hero-display-line2 {
+  background: linear-gradient(
+    102deg,
+    color-mix(in oklch, var(--primary) 92%, white 8%) 0%,
+    color-mix(in oklch, var(--info) 85%, white 6%) 48%,
+    color-mix(in oklch, var(--success) 78%, white 8%) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.landing-hero-kicker {
+  border-left: 3px solid color-mix(in oklch, var(--primary) 65%, transparent);
+  padding-left: 1rem;
+}
+
+.landing-hero-lede {
+  max-width: 36rem;
+}
+
+.landing-hero-brutal-frame {
+  border-radius: calc(var(--radius) + 10px);
+  padding: 3px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklch, var(--primary) 45%, var(--border)),
+    color-mix(in oklch, var(--foreground) 18%, var(--border))
+  );
+  box-shadow:
+    10px 10px 0 color-mix(in oklch, var(--foreground) 10%, var(--primary)),
+    0 28px 72px color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+.dark .landing-hero-brutal-frame {
+  box-shadow:
+    10px 10px 0 color-mix(in oklch, var(--primary) 42%, transparent),
+    0 32px 80px rgba(0, 0, 0, 0.45);
+}
+
+.landing-hero-cta-primary {
+  box-shadow: 6px 6px 0 color-mix(in oklch, var(--primary) 42%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-hero-cta-primary {
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .landing-hero-cta-primary:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0 color-mix(in oklch, var(--primary) 48%, transparent);
+  }
+}
+
+.landing-hero-cta-secondary:hover {
+  border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+}
+
+.landing-command-bar-editorial {
+  border-radius: calc(var(--radius) + 2px);
+  border: 2px solid color-mix(in oklch, var(--foreground) 8%, var(--border));
+  background-color: color-mix(in oklch, var(--background) 72%, transparent);
+  padding: 0.65rem 0.85rem;
+  box-shadow: 4px 4px 0 color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+
+.dark .landing-command-bar-editorial {
+  box-shadow: 4px 4px 0 color-mix(in oklch, var(--primary) 22%, transparent);
+}
+
+.landing-chip-glow {
+  border-color: color-mix(in oklch, var(--primary) 22%, var(--border));
+  background-color: color-mix(in oklch, var(--background) 65%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 12%, transparent),
+    0 10px 40px color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.landing-command-bar-glow {
+  border-color: color-mix(in oklch, var(--primary) 18%, var(--border));
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 10%, transparent),
+    0 18px 56px color-mix(in oklch, var(--primary) 12%, transparent),
+    inset 0 1px 0 color-mix(in oklch, oklch(1 0 0) 35%, transparent);
+}
+
+.landing-hero-mock-card {
+  position: relative;
+  border-radius: calc(var(--radius) + 2px);
+  border: 1px solid color-mix(in oklch, var(--border) 65%, transparent);
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--card) 92%, var(--primary) 8%) 0%,
+    var(--card) 38%,
+    color-mix(in oklch, var(--card) 94%, var(--muted) 6%) 100%
+  );
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 55%, transparent) inset,
+    0 24px 64px color-mix(in oklch, var(--foreground) 8%, transparent);
+}
+
+.dark .landing-hero-mock-card {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--card) 88%, var(--primary) 12%) 0%,
+    var(--card) 45%,
+    color-mix(in oklch, var(--card) 90%, var(--muted) 10%) 100%
+  );
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 8%, transparent) inset,
+    0 28px 72px rgba(0, 0, 0, 0.35);
+}
+
+.landing-hero-mock-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  border-radius: calc(var(--radius) + 2px) calc(var(--radius) + 2px) 0 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--primary) 70%, transparent),
+    color-mix(in oklch, var(--info) 65%, transparent),
+    color-mix(in oklch, var(--success) 55%, transparent)
+  );
+  opacity: 0.85;
+}
+
+.landing-site-header {
+  border-bottom-color: color-mix(in oklch, var(--primary) 14%, var(--border));
+  box-shadow:
+    0 1px 0 color-mix(in oklch, var(--primary) 6%, transparent),
+    0 18px 48px color-mix(in oklch, var(--foreground) 4%, transparent);
+}
+
+.landing-features-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-features-shell::before {
+  content: "";
+  position: absolute;
+  width: 140%;
+  height: 55%;
+  top: -32%;
+  left: 50%;
+  translate: -50% 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklch, var(--primary) 14%, transparent),
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.landing-features-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grid.svg");
+  background-size: 720px auto;
+  background-position: center top;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+.dark .landing-features-shell::after {
+  opacity: 0.07;
+}
+
+.landing-cta-sheen {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-cta-sheen::before {
+  content: "";
+  position: absolute;
+  inset: -30% -20%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklch, oklch(1 0 0) 18%, transparent),
+    transparent 100%
+  );
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 html,
 body {
   max-width: 100%;
   overflow-x: hidden;
+}
+
+body.landing-surface {
+  background-image: radial-gradient(
+    130% 90% at 50% -12%,
+    color-mix(in oklch, var(--surface-tint) 38%, transparent),
+    transparent 58%
+  );
 }
 
 img,
@@ -68,6 +348,155 @@ canvas {
 
 .landing-section-soft {
   background-color: color-mix(in oklch, var(--surface-tint) 36%, transparent);
+}
+
+.landing-band-muted {
+  background-color: color-mix(in oklch, var(--muted) 42%, transparent);
+}
+
+.landing-band-soft {
+  background-color: color-mix(in oklch, var(--surface-tint) 44%, transparent);
+}
+
+.landing-bento-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .landing-bento-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-bento-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-rows: minmax(108px, auto);
+  }
+}
+
+.landing-bento-cell {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--radius) + 8px);
+  border: 1px solid color-mix(in oklch, var(--border) 68%, transparent);
+  padding: 1.35rem 1.45rem;
+  padding-left: 1.35rem;
+  text-decoration: none;
+  color: inherit;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklch, var(--card) 88%, var(--cell-tint, var(--muted)) 12%)
+      0%,
+    color-mix(in oklch, var(--card) 94%, transparent) 100%
+  );
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 45%, transparent) inset,
+    0 14px 40px color-mix(in oklch, var(--foreground) 5%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.landing-bento-cell::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  bottom: 1rem;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    var(--cell-accent-a, var(--primary)),
+    var(--cell-accent-b, var(--info))
+  );
+  opacity: 0.35;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.landing-bento-cell::after {
+  content: "";
+  position: absolute;
+  inset: -40% -20%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklch, var(--cell-tint, var(--primary)) 16%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  pointer-events: none;
+}
+
+.landing-bento-cell--queue {
+  --cell-tint: var(--warning);
+  --cell-accent-a: color-mix(in oklch, var(--warning) 85%, var(--foreground));
+  --cell-accent-b: color-mix(in oklch, var(--pending) 70%, var(--foreground));
+}
+
+.landing-bento-cell--emr {
+  --cell-tint: var(--primary);
+  --cell-accent-a: var(--primary);
+  --cell-accent-b: color-mix(in oklch, var(--info) 80%, var(--primary));
+}
+
+.landing-bento-cell--appointments {
+  --cell-tint: var(--info);
+  --cell-accent-a: var(--info);
+  --cell-accent-b: color-mix(in oklch, var(--processing) 75%, var(--info));
+}
+
+.landing-bento-cell--prescriptions {
+  --cell-tint: var(--success);
+  --cell-accent-a: var(--success);
+  --cell-accent-b: color-mix(in oklch, var(--chart-3) 70%, var(--success));
+}
+
+.landing-bento-cell--billing {
+  --cell-tint: var(--muted);
+  --cell-accent-a: color-mix(in oklch, var(--foreground) 35%, var(--muted));
+  --cell-accent-b: var(--primary);
+}
+
+.landing-bento-cell--whatsapp {
+  --cell-tint: var(--success);
+  --cell-accent-a: color-mix(in oklch, var(--success) 90%, var(--chart-4));
+  --cell-accent-b: var(--info);
+}
+
+.dark .landing-bento-cell {
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 6%, transparent) inset,
+    0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-bento-cell {
+    transition:
+      border-color 0.24s ease,
+      box-shadow 0.24s ease;
+  }
+
+  /* No translateY here: bento cells use Motion for scroll-in; hover uses shadow only to avoid transform conflicts. */
+  .landing-bento-cell:hover {
+    border-color: color-mix(in oklch, var(--primary) 28%, var(--border));
+    box-shadow:
+      0 1px 0 color-mix(in oklch, oklch(1 0 0) 50%, transparent) inset,
+      0 22px 56px color-mix(in oklch, var(--primary) 14%, transparent);
+  }
+
+  .landing-bento-cell:hover::before {
+    opacity: 1;
+    transform: scaleY(1.02);
+  }
+
+  .landing-bento-cell:hover::after {
+    opacity: 1;
+  }
 }
 
 .landing-card {
@@ -111,18 +540,32 @@ canvas {
 }
 
 .landing-product-stage {
-  border: 1px solid color-mix(in oklch, var(--border) 76%, transparent);
-  border-radius: calc(var(--radius) + 4px);
+  position: relative;
+  border: 1px solid color-mix(in oklch, var(--primary) 14%, var(--border));
+  border-radius: calc(var(--radius) + 6px);
   background:
+    radial-gradient(
+      120% 90% at 10% 0%,
+      color-mix(in oklch, var(--primary) 10%, transparent),
+      transparent 55%
+    ),
     linear-gradient(
-      180deg,
-      color-mix(in oklch, var(--background) 74%, transparent),
-      color-mix(in oklch, var(--muted) 52%, transparent)
+      185deg,
+      color-mix(in oklch, var(--background) 78%, var(--card) 22%) 0%,
+      color-mix(in oklch, var(--muted) 42%, transparent) 100%
     );
-  padding: 0.75rem;
+  padding: 0.85rem;
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.06),
-    0 28px 90px rgba(15, 23, 42, 0.14);
+    0 0 0 1px color-mix(in oklch, var(--primary) 8%, transparent),
+    0 28px 90px color-mix(in oklch, var(--foreground) 10%, transparent),
+    inset 0 1px 0 color-mix(in oklch, oklch(1 0 0) 40%, transparent);
+}
+
+.dark .landing-product-stage {
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 18%, transparent),
+    0 32px 96px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 color-mix(in oklch, oklch(1 0 0) 8%, transparent);
 }
 
 @media (min-width: 640px) {
@@ -142,6 +585,395 @@ canvas {
     padding-block: 5rem; /* py-20 */
   }
 }
+
+.landing-section.landing-section-compact {
+  padding-block: 2.75rem;
+}
+
+@media (min-width: 640px) {
+  .landing-section.landing-section-compact {
+    padding-block: 4.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-section.landing-section-compact {
+    padding-block: 5rem;
+  }
+}
+
+.landing-workflow-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-workflow-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    115% 65% at 50% -18%,
+    color-mix(in oklch, var(--primary) 11%, transparent),
+    transparent 58%
+  );
+  pointer-events: none;
+}
+
+.landing-workflow-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/grid.svg");
+  background-size: 640px auto;
+  background-position: center 25%;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+.dark .landing-workflow-shell::after {
+  opacity: 0.065;
+}
+
+.landing-workflow-connector {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklch, var(--primary) 40%, var(--border)) 22%,
+    color-mix(in oklch, var(--info) 35%, var(--border)) 52%,
+    color-mix(in oklch, var(--primary) 38%, var(--border)) 78%,
+    transparent 100%
+  );
+  box-shadow: 0 0 24px color-mix(in oklch, var(--primary) 12%, transparent);
+}
+
+.landing-step-card {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in oklch, var(--primary) 14%, var(--border)) !important;
+  background: linear-gradient(
+    168deg,
+    color-mix(in oklch, var(--card) 93%, var(--primary) 7%) 0%,
+    color-mix(in oklch, var(--card) 97%, transparent) 38%,
+    color-mix(in oklch, var(--muted) 22%, var(--card)) 100%
+  ) !important;
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 42%, transparent) inset,
+    0 18px 44px color-mix(in oklch, var(--foreground) 5%, transparent);
+}
+
+.dark .landing-step-card {
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 7%, transparent) inset,
+    0 22px 52px rgba(0, 0, 0, 0.28);
+}
+
+.landing-step-card::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  translate: -50% 0;
+  width: 58%;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--primary) 60%, transparent),
+    transparent
+  );
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-step-card-hover {
+    transition:
+      border-color 0.26s ease,
+      box-shadow 0.26s ease;
+  }
+
+  /* Hover lift removed: step row uses Motion scroll-in on the wrapper. */
+  .landing-step-card-hover:hover {
+    border-color: color-mix(in oklch, var(--primary) 32%, var(--border)) !important;
+    box-shadow:
+      0 1px 0 color-mix(in oklch, oklch(1 0 0) 48%, transparent) inset,
+      0 26px 60px color-mix(in oklch, var(--primary) 14%, transparent);
+  }
+}
+
+.landing-trust-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-trust-shell::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 55%;
+  top: 0;
+  left: 0;
+  background: radial-gradient(
+    85% 90% at 50% 0%,
+    color-mix(in oklch, var(--success) 10%, transparent),
+    transparent 72%
+  );
+  pointer-events: none;
+}
+
+.landing-trust-mini {
+  border-radius: calc(var(--radius) + 4px);
+  border: 1px solid color-mix(in oklch, var(--success) 28%, var(--border));
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--card) 88%, var(--success) 12%) 0%,
+    color-mix(in oklch, var(--muted) 30%, var(--card)) 100%
+  );
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 38%, transparent) inset,
+    0 14px 32px color-mix(in oklch, var(--foreground) 5%, transparent);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.landing-trust-mini:hover {
+  border-color: color-mix(in oklch, var(--success) 42%, var(--border));
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 45%, transparent) inset,
+    0 18px 40px color-mix(in oklch, var(--success) 12%, transparent);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-trust-mini:hover {
+    transform: none;
+  }
+}
+
+.landing-trust-feature-card {
+  border-color: color-mix(in oklch, var(--success) 16%, var(--border)) !important;
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--card) 91%, var(--success) 9%) 0%,
+    var(--card) 100%
+  ) !important;
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 35%, transparent) inset,
+    0 12px 28px color-mix(in oklch, var(--foreground) 4%, transparent);
+}
+
+.landing-faq-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-faq-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    90% 55% at 50% -10%,
+    color-mix(in oklch, var(--primary) 7%, transparent),
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.landing-faq-details {
+  border: 1px solid color-mix(in oklch, var(--border) 72%, transparent);
+  border-radius: calc(var(--radius) + 2px);
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--card) 97%, var(--primary) 3%) 0%,
+    var(--card) 100%
+  );
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 40%, transparent) inset,
+    0 10px 28px color-mix(in oklch, var(--foreground) 4%, transparent);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.22s ease;
+}
+
+.landing-faq-details[open] {
+  border-color: color-mix(in oklch, var(--primary) 26%, var(--border));
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 42%, transparent) inset,
+    0 18px 40px color-mix(in oklch, var(--primary) 10%, transparent);
+}
+
+.landing-faq-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.landing-pricing-shell {
+  position: relative;
+}
+
+.landing-pricing-shell::before {
+  content: "";
+  position: absolute;
+  width: min(56rem, 100%);
+  height: 42%;
+  top: -8%;
+  left: 50%;
+  translate: -50% 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklch, var(--primary) 14%, transparent),
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing-pricing-featured {
+  border-color: color-mix(in oklch, var(--primary) 38%, var(--border)) !important;
+  background: linear-gradient(
+    185deg,
+    color-mix(in oklch, var(--card) 88%, var(--primary) 12%) 0%,
+    var(--card) 48%,
+    color-mix(in oklch, var(--card) 96%, var(--muted) 4%) 100%
+  ) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 14%, transparent),
+    0 26px 60px color-mix(in oklch, var(--primary) 16%, transparent),
+    inset 0 1px 0 color-mix(in oklch, oklch(1 0 0) 45%, transparent);
+}
+
+.landing-migration-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-migration-shell::before {
+  content: "";
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  top: -25%;
+  right: -18%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklch, var(--primary) 9%, transparent),
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.landing-resource-link {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: calc(var(--radius) + 4px);
+  border: 1px solid color-mix(in oklch, var(--border) 68%, transparent);
+  background: linear-gradient(
+    168deg,
+    var(--card) 0%,
+    color-mix(in oklch, var(--card) 92%, var(--primary) 8%) 100%
+  );
+  padding: 1.25rem 1.35rem;
+  text-decoration: none;
+  color: inherit;
+  box-shadow:
+    0 1px 0 color-mix(in oklch, oklch(1 0 0) 40%, transparent) inset,
+    0 14px 36px color-mix(in oklch, var(--foreground) 4%, transparent);
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s ease;
+}
+
+.landing-resource-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--primary) 55%, transparent),
+    transparent
+  );
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-resource-link:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklch, var(--primary) 28%, var(--border));
+    box-shadow:
+      0 1px 0 color-mix(in oklch, oklch(1 0 0) 48%, transparent) inset,
+      0 22px 48px color-mix(in oklch, var(--primary) 12%, transparent);
+  }
+}
+
+.landing-ai-snapshot {
+  border-color: color-mix(in oklch, var(--primary) 22%, var(--border)) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 10%, transparent),
+    0 22px 56px color-mix(in oklch, var(--foreground) 6%, transparent),
+    inset 0 1px 0 color-mix(in oklch, oklch(1 0 0) 35%, transparent);
+}
+
+.dark .landing-ai-snapshot {
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--primary) 22%, transparent),
+    0 26px 64px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 color-mix(in oklch, oklch(1 0 0) 8%, transparent);
+}
+
+/* Section rhythm: clip-path transitions between major bands (no layout shift; skipped when reduced motion). */
+.landing-section-divider-wave-top {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-section-divider-wave-top::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: clamp(2rem, 4vw, 3rem);
+    transform: translateY(-52%);
+    background: color-mix(in oklch, var(--muted) 38%, var(--background));
+    clip-path: ellipse(72% 92% at 50% 0%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+.landing-section-divider-angle-top {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-section-divider-angle-top::before {
+    content: "";
+    position: absolute;
+    left: -8%;
+    right: -8%;
+    top: 0;
+    height: clamp(1.75rem, 3.5vw, 2.75rem);
+    transform: translateY(-36%);
+    background: linear-gradient(
+      188deg,
+      color-mix(in oklch, var(--background) 80%, var(--primary) 12%) 0%,
+      color-mix(in oklch, var(--muted) 42%, transparent) 100%
+    );
+    clip-path: polygon(0 100%, 100% 26%, 100% 100%, 0 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
 :root {
   --font-inter: "Inter";
   --font-jetbrains-mono: "JetBrains Mono";

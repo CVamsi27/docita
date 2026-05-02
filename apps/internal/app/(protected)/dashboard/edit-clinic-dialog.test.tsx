@@ -1,6 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@workspace/ui/components/tooltip";
 import { EditClinicDialog } from "./edit-clinic-dialog";
+
+function renderDialog(ui: ReactElement) {
+  return render(<TooltipProvider>{ui}</TooltipProvider>);
+}
 
 const apiMocks = vi.hoisted(() => ({
   patch: vi.fn(),
@@ -41,7 +47,7 @@ describe("EditClinicDialog", () => {
   });
 
   it("validates editable facility fields before saving", async () => {
-    render(<EditClinicDialog clinic={clinic} onClinicUpdated={vi.fn()} />);
+    renderDialog(<EditClinicDialog clinic={clinic} onClinicUpdated={vi.fn()} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Edit facility" }));
     fireEvent.change(screen.getByLabelText("Facility Name"), {
@@ -67,7 +73,7 @@ describe("EditClinicDialog", () => {
     apiMocks.patch.mockResolvedValue({});
     const onClinicUpdated = vi.fn();
 
-    render(
+    renderDialog(
       <EditClinicDialog
         clinic={clinic}
         onClinicUpdated={onClinicUpdated}

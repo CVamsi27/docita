@@ -1,8 +1,10 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { type FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, formatDistanceToNow } from "date-fns";
+import { DATE_FORMATS, formatDate, formatDistanceToNow } from "@workspace/utils";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -20,14 +22,7 @@ import {
 import { internalQueryKeys } from "@/lib/query-keys";
 import { supportAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import {
-  Inbox,
-  Loader2,
-  MessageSquare,
-  Phone,
-  Search,
-  Send,
-} from "lucide-react";
+import { Inbox, MessageSquare, Phone, Search, Send } from "lucide-react";
 
 const THREAD_LIMIT = 100;
 const THREAD_MESSAGES_LIMIT = 500;
@@ -284,7 +279,7 @@ export function SupportInboxPage() {
       {threadsLoading && (
         <Card>
           <CardContent className="p-6 text-sm text-muted-foreground">
-            Loading WhatsApp conversations...
+            Loading WhatsApp conversations…
           </CardContent>
         </Card>
       )}
@@ -378,9 +373,7 @@ export function SupportInboxPage() {
                           </p>
                         </div>
                         <div className="shrink-0 text-right text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(thread.lastMessageAt), {
-                            addSuffix: true,
-                          })}
+                          {formatDistanceToNow(thread.lastMessageAt)}
                         </div>
                       </div>
                     </button>
@@ -423,11 +416,11 @@ export function SupportInboxPage() {
                         <p>Support line: {selectedThread.supportPhoneNumber}</p>
                         <p>
                           Last activity{" "}
-                          {formatDistanceToNow(new Date(selectedThread.lastMessageAt), {
-                            addSuffix: true,
-                          })}
+                          {formatDistanceToNow(selectedThread.lastMessageAt)}
                           {" "}
-                          ({format(new Date(selectedThread.lastMessageAt), "PPpp")})
+                          (
+                          {formatDate(selectedThread.lastMessageAt, DATE_FORMATS.DATETIME_LONG)}
+                          )
                         </p>
                       </div>
                     </div>
@@ -448,8 +441,8 @@ export function SupportInboxPage() {
                   <div className="space-y-3">
                     {threadMessagesQuery.isLoading && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Loading conversation...
+                        <DocitaLoadingIndicator variant="inline" decorative />
+                        Loading conversation…
                       </div>
                     )}
 
@@ -501,12 +494,7 @@ export function SupportInboxPage() {
                                     </Badge>
                                     <span>{formatMessageType(message.messageType)}</span>
                                     <span>
-                                      {formatDistanceToNow(
-                                        new Date(message.receivedAt),
-                                        {
-                                          addSuffix: true,
-                                        },
-                                      )}
+                                      {formatDistanceToNow(message.receivedAt)}
                                     </span>
                                   </div>
                                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-foreground">
@@ -544,7 +532,7 @@ export function SupportInboxPage() {
                         className="gap-2"
                       >
                         {replyMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <DocitaLoadingIndicator variant="inline" decorative />
                         ) : (
                           <Send className="h-4 w-4" />
                         )}

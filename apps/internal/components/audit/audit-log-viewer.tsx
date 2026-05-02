@@ -11,6 +11,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Badge } from "@workspace/ui/components/badge";
 import { DatePicker } from "@workspace/ui/components/date-picker";
 import {
@@ -22,6 +23,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { toast } from "sonner";
+import { formatInternalTimestamp } from "@/lib/format-display-date";
 import { client } from "@/lib/api-client";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { Input } from "@workspace/ui/components/input";
@@ -119,7 +121,7 @@ export function AuditLogViewer() {
     ];
 
     const rows = logs.map((log) => [
-      new Date(log.createdAt).toLocaleString(),
+      formatInternalTimestamp(log.createdAt),
       log.userId,
       log.actionType,
       log.resourceType || "-",
@@ -173,24 +175,25 @@ export function AuditLogViewer() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => {
-              logsQuery.refetch().catch(() => {
-                showUserFacingErrorToast(
-                  "We could not load these audit logs. Please try again.",
-                );
-              });
-            }}
-            disabled={isLoading}
-            variant="ghost"
-            size="icon"
-            title="Refresh"
-            aria-label="Refresh audit logs"
-          >
-            <RefreshCw
-              className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
-            />
-          </Button>
+          <SymbolTooltip label="Refresh audit logs">
+            <Button
+              onClick={() => {
+                logsQuery.refetch().catch(() => {
+                  showUserFacingErrorToast(
+                    "We could not load these audit logs. Please try again.",
+                  );
+                });
+              }}
+              disabled={isLoading}
+              variant="ghost"
+              size="icon"
+              aria-label="Refresh audit logs"
+            >
+              <RefreshCw
+                className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`}
+              />
+            </Button>
+          </SymbolTooltip>
           <Button
             onClick={() => setShowFilters(!showFilters)}
             variant="outline"
@@ -286,7 +289,7 @@ export function AuditLogViewer() {
         )}
         {isLoading && logs.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
-            Loading audit logs...
+            Loading audit logs…
           </div>
         ) : logs.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
@@ -325,7 +328,7 @@ export function AuditLogViewer() {
                   <React.Fragment key={log.id}>
                     <TableRow className="hover:bg-muted/50 transition-colors">
                       <TableCell className="px-4 py-3 text-foreground">
-                        {new Date(log.createdAt).toLocaleString()}
+                        {formatInternalTimestamp(log.createdAt)}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-foreground font-mono text-xs">
                         {log.userId}
@@ -360,22 +363,30 @@ export function AuditLogViewer() {
                         {log.ipAddress || "-"}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-center">
-                        <Button
-                          onClick={() => toggleRowExpand(log.id)}
-                          variant="ghost"
-                          size="icon"
-                          aria-label={
+                        <SymbolTooltip
+                          label={
                             expandedRows.has(log.id)
-                              ? `Collapse details for log ${log.id}`
-                              : `Expand details for log ${log.id}`
+                              ? "Collapse details"
+                              : "Expand details"
                           }
                         >
-                          <ChevronDown
-                            className={`h-4 w-4 transition-transform ${
-                              expandedRows.has(log.id) ? "rotate-180" : ""
-                            }`}
-                          />
-                        </Button>
+                          <Button
+                            onClick={() => toggleRowExpand(log.id)}
+                            variant="ghost"
+                            size="icon"
+                            aria-label={
+                              expandedRows.has(log.id)
+                                ? `Collapse details for log ${log.id}`
+                                : `Expand details for log ${log.id}`
+                            }
+                          >
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${
+                                expandedRows.has(log.id) ? "rotate-180" : ""
+                              }`}
+                            />
+                          </Button>
+                        </SymbolTooltip>
                       </TableCell>
                     </TableRow>
 

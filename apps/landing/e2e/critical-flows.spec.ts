@@ -12,7 +12,9 @@ async function waitForContactFormHydration(page: Page) {
 test("homepage renders primary CTA", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Run your clinic with clarity." }),
+    page.getByRole("heading", {
+      name: "One rhythm for your whole OPD floor. Queue, chart, bill, follow up—without the shuffle.",
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Start clinic setup" }).first(),

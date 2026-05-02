@@ -95,7 +95,7 @@ const jsonLd = {
     {noIndex ? <meta name="robots" content="noindex,nofollow" /> : <meta name="robots" content="index,follow" />}
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   </head>
-  <body class="app-shell-bg min-h-screen bg-background font-sans text-foreground antialiased">
+  <body class="app-shell-bg landing-surface min-h-screen bg-background font-sans text-foreground antialiased">
     <SiteHeader />
     <main>
       <slot />

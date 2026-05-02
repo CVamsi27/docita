@@ -189,7 +189,7 @@ async function generateReport(results: AppAuditResult[]): Promise<void> {
   const jsonReportPath = path.join(reportDir, `baseline-${timestamp}.json`);
   fs.writeFileSync(jsonReportPath, JSON.stringify(results, null, 2));
 
-  let markdownReport = `# Accessibility Audit Report\n\n**Date:** ${new Date().toLocaleString()}\n\n`;
+  let markdownReport = `# Accessibility Audit Report\n\n**Date:** ${new Date().toISOString()}\n\n`;
 
   let totalViolations = 0;
   let totalCritical = 0;

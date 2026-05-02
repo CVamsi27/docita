@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   billingAPI,
@@ -35,7 +37,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table";
 import { Badge } from "@workspace/ui/components/badge";
-import { Loader2, Plus, Save, Sparkles, Trash2 } from "lucide-react";
+import { Plus, Save, Sparkles, Trash2 } from "lucide-react";
 
 interface EditableTierRow extends TierPricingRow {
   isDirty?: boolean;
@@ -290,8 +292,17 @@ export default function PricingPage() {
 
   if (isLoading || !token) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex min-h-[60vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading pricing"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -327,8 +338,8 @@ export default function PricingPage() {
             <CardContent>
               {isLoadingTiers ? (
                 <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Loading tiers...
+                  <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+                  Loading tiers…
                 </div>
               ) : tiers.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">
@@ -458,7 +469,7 @@ export default function PricingPage() {
                               onClick={() => saveTier(tier)}
                             >
                               {savingId === tier.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-3 w-3" />
                               ) : (
                                 <Save className="h-3 w-3" />
                               )}
@@ -623,7 +634,7 @@ export default function PricingPage() {
                 </Button>
                 <Button onClick={saveOffer} disabled={savingId !== null}>
                   {savingId === offerForm.clinicId ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <DocitaLoadingIndicator variant="inline" decorative />
                   ) : (
                     <Plus className="h-4 w-4" />
                   )}
@@ -644,8 +655,8 @@ export default function PricingPage() {
             <CardContent>
               {isLoadingOffers ? (
                 <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Loading offers...
+                  <DocitaLoadingIndicator variant="inline" decorative iconClassName="h-5 w-5" />
+                  Loading offers…
                 </div>
               ) : offers.length === 0 ? (
                 <p className="py-8 text-center text-sm text-muted-foreground">

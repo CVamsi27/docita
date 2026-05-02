@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { sanitizeUserFacingMessage } from "@workspace/types";
+import { DATE_FORMATS, formatCountLocale, formatDate } from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
 import {
@@ -228,13 +229,13 @@ export default function SystemMonitoringPage() {
       },
       {
         label: "Requests",
-        value: `${requestsLastHour.toLocaleString()} last hour`,
+        value: `${formatCountLocale(requestsLastHour)} last hour`,
         status: requestsLastHour > 0 ? "healthy" : "warning",
         description: "Traffic captured by the monitoring pipeline",
       },
       {
         label: "Errors",
-        value: `${errorsLastHour.toLocaleString()} last hour`,
+        value: `${formatCountLocale(errorsLastHour)} last hour`,
         status: errorsLastHour > 0 ? "warning" : "healthy",
         description: `Current error rate: ${errorRate}%`,
       },
@@ -255,8 +256,17 @@ export default function SystemMonitoringPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex h-64 flex-col items-center justify-center gap-2"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading system monitoring"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -312,7 +322,7 @@ export default function SystemMonitoringPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {performance
-                    ? `${performance.uptime.seconds.toLocaleString()} seconds`
+                    ? `${formatCountLocale(performance.uptime.seconds)} seconds`
                     : "Waiting for live metrics"}
                 </p>
               </CardContent>
@@ -342,7 +352,7 @@ export default function SystemMonitoringPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-                  {requestsLastHour.toLocaleString()}
+                  {formatCountLocale(requestsLastHour)}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Live traffic observed in the last 60 minutes
@@ -361,7 +371,7 @@ export default function SystemMonitoringPage() {
                   {errorRate}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {errorsLastHour.toLocaleString()} errors in the last hour
+                  {formatCountLocale(errorsLastHour)} errors in the last hour
                 </p>
               </CardContent>
             </Card>
@@ -632,7 +642,11 @@ export default function SystemMonitoringPage() {
                     <div key={bucket.minute} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span>
-                          {format(new Date(`${bucket.minute}:00Z`), "HH:mm")}
+                          {formatDate(
+                            new Date(`${bucket.minute}:00Z`),
+                            DATE_FORMATS.TIME_SHORT,
+                            { timezone: "UTC" },
+                          )}
                         </span>
                         <span>{bucket.count}</span>
                       </div>
@@ -883,7 +897,10 @@ export default function SystemMonitoringPage() {
                     <span className="text-muted-foreground">
                       Last checked:{" "}
                       {appHealth.timestamp
-                        ? format(new Date(appHealth.timestamp), "PPpp")
+                        ? formatDate(
+                            appHealth.timestamp,
+                            DATE_FORMATS.DATETIME_LONG,
+                          )
                         : "N/A"}
                     </span>
                   </div>

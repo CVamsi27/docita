@@ -65,7 +65,7 @@ export function StatsStrip() {
               />
               <div className="text-[var(--fs-4xl)] font-bold leading-none md:text-[var(--fs-5xl)]">
                 {isLoading
-                  ? "..."
+                  ? "…"
                   : stats
                     ? formatStatValue(stats[card.key])
                     : "—"}

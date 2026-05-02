@@ -6,6 +6,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Pencil } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { client } from "@/lib/api-client";
 import {
   Select,
@@ -161,14 +162,16 @@ export function EditClinicDialog({
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setOpen(true)}
-        aria-label="Edit facility"
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
+      <SymbolTooltip label="Edit facility">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setOpen(true)}
+          aria-label="Edit facility"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </SymbolTooltip>
       <CRUDDialog
         open={open}
         onOpenChange={handleOpenChange}
@@ -176,7 +179,7 @@ export function EditClinicDialog({
         description="Update facility details and status"
         isLoading={loading}
         onSubmit={handleSubmit}
-        submitLabel={loading ? "Updating..." : "Update Facility"}
+        submitLabel={loading ? "Updating…" : "Update Facility"}
       >
         <div className="space-y-6">
           <div className="space-y-4">

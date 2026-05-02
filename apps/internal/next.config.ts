@@ -35,7 +35,6 @@ let nextConfig: NextConfig = {
       "@workspace/ui",
       "lucide-react",
       "recharts",
-      "date-fns",
     ],
   },
 

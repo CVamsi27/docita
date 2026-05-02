@@ -12,7 +12,13 @@ import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
 import { SectionHeading } from "@workspace/ui/components/section-heading";
 
-export function AiAutomationSection() {
+interface AiAutomationSectionProps {
+  tone?: "default" | "muted";
+}
+
+export function AiAutomationSection({
+  tone = "default",
+}: AiAutomationSectionProps) {
   const roadmapItems = [
     {
       icon: ScanText,
@@ -48,23 +54,31 @@ export function AiAutomationSection() {
     },
   ];
 
-  return (
-    <section className="landing-section bg-background text-foreground relative overflow-hidden">
-      <div className="absolute inset-0 bg-muted/20" />
+  const surface =
+    tone === "muted" ? "landing-band-muted" : "bg-background";
+  const showWash = tone === "default";
 
-      <div className="mx-auto max-w-7xl relative z-10">
-        <div className="grid gap-16 lg:grid-cols-2 items-center">
+  return (
+    <section
+      className={`landing-section scroll-mt-24 text-foreground relative overflow-hidden ${surface}`}
+    >
+      {showWash ? (
+        <div className="absolute inset-0 bg-muted/20" aria-hidden />
+      ) : null}
+
+      <div className="ui-page-shell relative z-10">
+        <div className="grid items-center gap-16 lg:grid-cols-2">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm mb-6">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-2 text-sm shadow-sm">
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="font-medium text-primary">AI, rolled out carefully</span>
             </div>
             <SectionHeading
               size="section"
+              eyebrow="Intelligence"
               title="Keep AI narrow, reviewable, and useful"
               description="Docita is treating AI as workflow support, not as a substitute for clinical judgment. The current focus is OCR digitization and carefully-scoped assistance that teams can verify before use."
               className="mb-8"
-              descriptionClassName="text-xl leading-relaxed"
             />
 
             <div className="space-y-5">
@@ -102,7 +116,7 @@ export function AiAutomationSection() {
 
           <div className="relative">
             <div className="absolute -inset-4 rounded-xl border border-border/60 bg-muted/20" />
-            <Card className="relative bg-card border-border shadow-lg overflow-hidden">
+            <Card className="landing-ai-snapshot relative overflow-hidden border bg-card shadow-lg">
               <CardHeader className="border-b border-border bg-card/70">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-destructive/20 border border-destructive/40" />

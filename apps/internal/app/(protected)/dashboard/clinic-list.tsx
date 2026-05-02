@@ -91,7 +91,7 @@ export function ClinicList({
   if (loading) {
     return (
       <div className="flex h-24 items-center justify-center text-muted-foreground">
-        Loading facilities...
+        Loading facilities…
       </div>
     );
   }

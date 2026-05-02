@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { client, setAuthLogoutCallback } from "./api-client";
 import { API_URL, MAIN_APP_URL } from "./api-config";
 import { INTERNAL_USER_KEY, internalSession } from "./session";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
 interface User {
@@ -224,8 +225,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   if (!isMounted || isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-3"
+        role="status"
+        aria-label="Loading"
+      >
+        <DocitaLoadingIndicator variant="page" withStatusRole={false} />
+        <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     );
   }

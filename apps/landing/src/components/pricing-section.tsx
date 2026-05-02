@@ -1,6 +1,10 @@
+"use client";
+
 import { MessageSquare } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@workspace/ui/components/button";
+import { cn } from "@workspace/ui/lib/utils";
 import {
   Card,
   CardContent,
@@ -11,6 +15,11 @@ import {
 import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 import { FALLBACK_PRICING_CONFIG, formatTierPrice } from "@/lib/landing-data";
+import {
+  landingFadeUpVariants,
+  landingInViewViewport,
+  landingStaggerContainer,
+} from "@/lib/motion-prefs";
 
 interface PricingSectionProps {
   appUrl: string;
@@ -87,13 +96,17 @@ const setupStartPrice = formatTierPrice(
 );
 
 export function PricingSection({ appUrl }: PricingSectionProps) {
+  const reduce = useReducedMotion();
+  const cardVariant = landingFadeUpVariants(reduce ?? false);
+  const gridVariants = landingStaggerContainer(reduce ?? false, 0.07, 0.06);
+
   const orderedTiers = TIER_ORDER.map((id) =>
     FALLBACK_PRICING_CONFIG.tiers.find((tier) => tier.id === id),
   ).filter(Boolean);
 
   return (
     <section
-      className="landing-section relative overflow-hidden bg-muted/30"
+      className="landing-pricing-shell landing-section relative overflow-hidden bg-muted/30 landing-section-divider-angle-top"
       id="pricing"
     >
       <div
@@ -104,6 +117,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
         <SectionHeading
           align="center"
           size="section"
+          eyebrow="Plans"
           title="Pricing built for paid clinic rollouts"
           description="Start with a simple monthly plan, then add hands-on setup when the clinic needs import, templates, WhatsApp, and staff training."
           className="mb-4"
@@ -119,7 +133,13 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           Billed monthly. Annual plans include 2 months free.
         </p>
 
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <motion.div
+          className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
+          variants={gridVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={landingInViewViewport}
+        >
           {orderedTiers.map((tier, index) => {
             if (!tier) {
               return null;
@@ -129,12 +149,21 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
             const features = getFeaturesForTier(tier.id, tier.features);
 
             return (
+              <motion.div key={tier.id} variants={cardVariant}>
               <Card
-                key={tier.id}
-                className={`relative overflow-hidden border-border/70 ${
-                  isFeatured ? "shadow-sm ring-1 ring-primary/20" : ""
-                }`}
+                className={cn(
+                  "relative h-full overflow-hidden border-border/70",
+                  isFeatured
+                    ? "landing-pricing-featured ring-1 ring-primary/25"
+                    : "shadow-sm",
+                )}
               >
+                {isFeatured ? (
+                  <div
+                    className="h-[3px] w-full shrink-0 bg-gradient-to-r from-primary via-info to-success"
+                    aria-hidden
+                  />
+                ) : null}
                 <CardHeader className="pb-4">
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <CardTitle className="ui-section-title text-[var(--fs-2xl)]">
@@ -187,9 +216,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                   </Button>
                 </CardContent>
               </Card>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

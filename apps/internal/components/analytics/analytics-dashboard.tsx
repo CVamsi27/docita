@@ -1,18 +1,11 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Activity,
-  BarChart3,
-  Calendar,
-  DollarSign,
-  Download,
-  Loader2,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { Activity, BarChart3, Calendar, DollarSign, Download, TrendingUp, Users } from "lucide-react";
 import { API_URL } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -31,6 +24,7 @@ import { DatePicker } from "@workspace/ui/components/date-picker";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Section } from "@workspace/ui/components/section";
 import { cn } from "@workspace/ui/lib/utils";
+import { formatAmountLocale } from "@workspace/utils";
 import type { DetailedMetricsRow } from "@/components/analytics/analytics-detailed-metrics-table";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 
@@ -41,8 +35,18 @@ const AnalyticsDetailedMetricsTable = dynamic(
     ),
   {
     loading: () => (
-      <div className="ui-section-stack py-8 text-center text-muted-foreground">
-        <p>Loading detailed metrics...</p>
+      <div
+        className="ui-section-stack flex flex-col items-center gap-3 py-8 text-center text-muted-foreground"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading detailed metrics"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8"
+        />
+        <p className="text-sm">Loading detailed metrics…</p>
       </div>
     ),
     ssr: false,
@@ -259,8 +263,17 @@ export function AnalyticsDashboard() {
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex items-center justify-center py-12"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading analytics"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -454,7 +467,10 @@ export function AnalyticsDashboard() {
                     style={{
                       height: `${Math.round((item.revenue / maxRevenue) * 100)}%`,
                     }}
-                    title={`${item.month}: ₹${item.revenue.toLocaleString()}`}
+                    title={`${item.month}: ₹${formatAmountLocale(item.revenue, "en-IN", {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    })}`}
                   />
                   <span className="text-xs text-muted-foreground truncate w-full text-center">
                     {item.month.split(" ")[0]}

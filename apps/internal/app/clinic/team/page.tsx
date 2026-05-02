@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -34,9 +36,10 @@ import {
   FormGrid,
   FormSection,
 } from "@workspace/ui/components";
-import { Loader2, Pencil, Plus, Stethoscope, UserCheck } from "lucide-react";
+import { Pencil, Plus, Stethoscope, UserCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
+import { formatInternalListDate } from "@/lib/format-display-date";
 import { toast } from "sonner";
 import { SPECIALIZATION_LABELS } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -460,8 +463,17 @@ export default function TeamPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div
+              className="flex items-center justify-center py-8"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading team members"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-muted-foreground"
+              />
             </div>
           ) : members.length === 0 ? (
             <EmptyState
@@ -498,7 +510,7 @@ export default function TeamPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {new Date(member.createdAt).toLocaleDateString()}
+                      {formatInternalListDate(member.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

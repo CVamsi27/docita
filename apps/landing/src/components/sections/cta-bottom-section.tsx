@@ -6,8 +6,8 @@ import { SectionHeading } from "@workspace/ui/components/section-heading";
 
 export function CtaBottomSection() {
   return (
-    <section className="landing-section relative overflow-hidden bg-primary text-primary-foreground">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+    <section className="landing-cta-sheen landing-section relative overflow-hidden bg-primary text-primary-foreground">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.12]" />
       <div className="ui-page-shell relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           <SectionHeading
@@ -16,7 +16,7 @@ export function CtaBottomSection() {
             title="Ready to get one clinic workflow live?"
             description="Book a guided setup for patient records, prescriptions, billing, WhatsApp follow-up, and the first staff workflow."
             className="text-primary-foreground"
-            descriptionClassName="mx-auto mt-6 max-w-2xl text-primary-foreground/90 text-xl"
+            descriptionClassName="mx-auto mt-6 max-w-2xl text-primary-foreground/85 text-base leading-relaxed sm:text-lg"
           />
           <div className="mt-10 flex items-center justify-center gap-4">
             <Button

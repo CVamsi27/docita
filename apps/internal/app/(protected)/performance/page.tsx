@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { PageHeader } from "@workspace/ui/components/page-header";
 import { Progress } from "@workspace/ui/components/progress";
+import { formatCountLocale } from "@workspace/utils";
 import { useAuth } from "@/lib/auth";
 import { healthAPI, monitoringAPI, performanceAPI } from "@/lib/api";
 import { internalQueryKeys } from "@/lib/query-keys";
@@ -21,7 +23,6 @@ import {
   Clock,
   Cpu,
   Database,
-  RefreshCw,
   Server,
   Wifi,
   XCircle,
@@ -113,11 +114,20 @@ export default function PerformancePage() {
       <div className="space-y-6">
         <PageHeader
           title="Performance"
-          description="Loading live performance metrics..."
+          description="Loading live performance metrics…"
           size="compact"
         />
-        <div className="flex items-center justify-center h-40">
-          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div
+          className="flex h-40 flex-col items-center justify-center gap-2"
+          role="status"
+          aria-live="polite"
+          aria-label="Loading performance metrics"
+        >
+          <DocitaLoadingIndicator
+            variant="section"
+            withStatusRole={false}
+            iconClassName="h-8 w-8 text-muted-foreground"
+          />
         </div>
       </div>
     );
@@ -160,7 +170,7 @@ export default function PerformancePage() {
               {runtime.uptime.formatted}
             </div>
             <p className="text-xs text-muted-foreground">
-              {runtime.uptime.seconds.toLocaleString()} seconds
+              {formatCountLocale(runtime.uptime.seconds)} seconds
             </p>
           </CardContent>
         </Card>
@@ -206,7 +216,7 @@ export default function PerformancePage() {
               %
             </div>
             <p className="text-xs text-muted-foreground">
-              {health.errorsLastHour.toLocaleString()} errors in the last hour
+              {formatCountLocale(health.errorsLastHour)} errors in the last hour
             </p>
           </CardContent>
         </Card>

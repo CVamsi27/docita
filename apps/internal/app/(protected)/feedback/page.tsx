@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -30,24 +32,10 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Label } from "@workspace/ui/components/label";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Eye,
-  Filter,
-  Lightbulb,
-  Loader2,
-  MessageSquare,
-  RefreshCw,
-  Star,
-  ThumbsDown,
-  ThumbsUp,
-  Trash2,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Eye, Filter, Lightbulb, MessageSquare, RefreshCw, Star, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
+import { formatDate } from "@workspace/utils";
 import { Feedback, feedbackAPI, FeedbackFilters } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { format } from "date-fns";
 import { internalQueryKeys } from "@/lib/query-keys";
 
 const STATUS_OPTIONS = [
@@ -498,8 +486,17 @@ export default function FeedbackPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div
+              className="flex justify-center py-8"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading feedback"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-muted-foreground"
+              />
             </div>
           ) : feedbacks.length === 0 ? (
             <EmptyState
@@ -526,7 +523,7 @@ export default function FeedbackPage() {
                         {feedback.clinic.name}
                       </span>
                       <span className="text-muted-foreground">
-                        {format(new Date(feedback.createdAt), "MMM d, yyyy")}
+                        {formatDate(feedback.createdAt, "MMM d, yyyy")}
                       </span>
                     </div>
                     {feedback.generalComments && (
@@ -619,9 +616,9 @@ export default function FeedbackPage() {
                   <div>
                     <Label className="text-muted-foreground">Submitted</Label>
                     <p className="text-sm">
-                      {format(
-                        new Date(selectedFeedback.createdAt),
-                        "MMM d, yyyy 'at' h:mm a",
+                      {formatDate(
+                        selectedFeedback.createdAt,
+                        "dd MMM yyyy, hh:mm a",
                       )}
                     </p>
                   </div>
@@ -736,7 +733,7 @@ export default function FeedbackPage() {
                         disabled={updateStatusMutation.isPending}
                       >
                         {updateStatusMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <DocitaLoadingIndicator variant="inline" decorative />
                         ) : (
                           opt.label
                         )}

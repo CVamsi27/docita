@@ -53,7 +53,7 @@ export function DashboardPageContainer() {
     <div className="space-y-8">
       {!token && (
         <div className="surface-warning rounded-[var(--radius)] p-4">
-          <p className="text-sm">Loading authentication...</p>
+          <p className="text-sm">Loading authentication…</p>
         </div>
       )}
       <PageHeader

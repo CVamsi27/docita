@@ -204,7 +204,7 @@ export default function InternalLogin() {
                 )}
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Logging in..." : "Login"}
+                {loading ? "Logging in…" : "Login"}
               </Button>
             </form>
           </CardContent>

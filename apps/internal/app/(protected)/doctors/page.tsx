@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
@@ -36,22 +38,13 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { Label } from "@workspace/ui/components/label";
-import {
-  Award,
-  Building2,
-  Eye,
-  GraduationCap,
-  Loader2,
-  Search,
-  ShieldCheck,
-  ShieldX,
-  Stethoscope,
-} from "lucide-react";
+import { Award, Building2, Eye, GraduationCap, Search, ShieldCheck, ShieldX, Stethoscope } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
+import { formatInternalListDate } from "@/lib/format-display-date";
 import { internalQueryKeys } from "@/lib/query-keys";
 import { useInternalFiltersStore } from "@/lib/stores/internal-filters-store";
-import { DEFAULT_CURRENCY } from "@workspace/utils";
+import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import {
   getDoctorVerificationPublicNote,
@@ -145,13 +138,6 @@ export default function DoctorsPage() {
   const getVerificationLabel = (status?: Doctor["verificationStatus"]) => {
     if (!status) return "Unverified";
     return status.charAt(0) + status.slice(1).toLowerCase();
-  };
-
-  const formatDate = (value?: string) => {
-    if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "-";
-    return date.toLocaleDateString("en-IN");
   };
 
   const clinicsQuery = useQuery({
@@ -294,8 +280,17 @@ export default function DoctorsPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div
+              className="flex items-center justify-center py-8"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading doctors"
+            >
+              <DocitaLoadingIndicator
+                variant="section"
+                withStatusRole={false}
+                iconClassName="h-8 w-8 text-muted-foreground"
+              />
             </div>
           ) : filteredDoctors.length === 0 ? (
             <EmptyState
@@ -480,7 +475,7 @@ export default function DoctorsPage() {
                     Last Verification
                   </Label>
                   <p className="font-medium">
-                    {formatDate(selectedDoctor.verificationCheckedAt)}
+                    {formatInternalListDate(selectedDoctor.verificationCheckedAt)}
                   </p>
                 </div>
                 <div>
@@ -488,7 +483,7 @@ export default function DoctorsPage() {
                     Signature Uploaded
                   </Label>
                   <p className="font-medium">
-                    {formatDate(selectedDoctor.signatureUploadedAt)}
+                    {formatInternalListDate(selectedDoctor.signatureUploadedAt)}
                   </p>
                 </div>
                 <div>
@@ -507,11 +502,10 @@ export default function DoctorsPage() {
                   </Label>
                   <p className="font-medium">
                     {selectedDoctor.consultationFee
-                      ? new Intl.NumberFormat("en-IN", {
-                          style: "currency",
+                      ? formatCurrency(selectedDoctor.consultationFee, {
                           currency: DEFAULT_CURRENCY,
-                          maximumFractionDigits: 0,
-                        }).format(selectedDoctor.consultationFee)
+                          fractionDigits: 0,
+                        })
                       : "-"}
                   </p>
                 </div>
@@ -612,9 +606,7 @@ export default function DoctorsPage() {
                               {cert.expiryDate && (
                                 <p className="text-xs text-muted-foreground mt-1">
                                   Expires:{" "}
-                                  {new Date(
-                                    cert.expiryDate,
-                                  ).toLocaleDateString()}
+                                  {formatInternalListDate(cert.expiryDate)}
                                 </p>
                               )}
                             </div>

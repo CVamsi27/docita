@@ -186,7 +186,7 @@ export default function InternalDashboard() {
     <div className="space-y-8">
       {isLoading && (
         <div className="surface-warning rounded-[var(--radius)] p-4">
-          <p className="text-sm">Loading authentication...</p>
+          <p className="text-sm">Loading authentication…</p>
         </div>
       )}
       {hasError && (

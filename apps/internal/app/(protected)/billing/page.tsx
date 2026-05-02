@@ -1,5 +1,7 @@
 "use client";
 
+import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   billingAPI,
@@ -8,6 +10,13 @@ import {
   SubscriptionOverview,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import {
+  DEFAULT_CURRENCY,
+  differenceInDays,
+  formatCurrency,
+  formatDate,
+  formatDistanceToNow,
+} from "@workspace/utils";
 import {
   Card,
   CardContent,
@@ -49,25 +58,7 @@ import {
 } from "@workspace/ui/components/dialog";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import {
-  Activity,
-  AlertTriangle,
-  ArrowDownRight,
-  ArrowUpRight,
-  Building2,
-  CalendarPlus,
-  Clock,
-  CreditCard,
-  DollarSign,
-  Loader2,
-  Mail,
-  RefreshCw,
-  TrendingDown,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import { differenceInDays, format, formatDistanceToNow } from "date-fns";
-
+import { Activity, AlertTriangle, ArrowDownRight, ArrowUpRight, Building2, CalendarPlus, Clock, CreditCard, DollarSign, Mail, RefreshCw, TrendingDown, TrendingUp, Users } from "lucide-react";
 const statusColors: Record<string, string> = {
   ACTIVE: "badge-success",
   TRIAL: "badge-info",
@@ -189,19 +180,19 @@ export default function BillingDashboard() {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = "INR") => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   if (loading) {
     return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div
+        className="flex h-[80vh] items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading billing dashboard"
+      >
+        <DocitaLoadingIndicator
+          variant="section"
+          withStatusRole={false}
+          iconClassName="h-8 w-8 text-muted-foreground"
+        />
       </div>
     );
   }
@@ -251,7 +242,10 @@ export default function BillingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-              {formatCurrency(metrics?.mrr || 0)}
+              {formatCurrency(metrics?.mrr || 0, {
+                currency: DEFAULT_CURRENCY,
+                fractionDigits: 0,
+              })}
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-success">
@@ -271,7 +265,10 @@ export default function BillingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-[var(--fs-2xl)] font-semibold tabular-nums leading-[var(--lh-tight)]">
-              {formatCurrency(metrics?.arr || 0)}
+              {formatCurrency(metrics?.arr || 0, {
+                currency: DEFAULT_CURRENCY,
+                fractionDigits: 0,
+              })}
             </div>
             <p className="text-xs text-muted-foreground">
               Projected annual revenue
@@ -358,12 +355,7 @@ export default function BillingDashboard() {
                           <p className="text-sm text-muted-foreground">
                             Expires
                             <span className="ml-1">
-                            {formatDistanceToNow(
-                              new Date(sub.currentPeriodEnd),
-                              {
-                                addSuffix: true,
-                              },
-                            )}
+                            {formatDistanceToNow(sub.currentPeriodEnd)}
                             </span>
                           </p>
                         </div>
@@ -405,10 +397,7 @@ export default function BillingDashboard() {
                         <div>
                           <p className="font-medium">{sub.clinic.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {differenceInDays(
-                              new Date(sub.currentPeriodEnd),
-                              new Date(),
-                            )}
+                            {differenceInDays(sub.currentPeriodEnd, new Date())}
                             <span className="ml-1">days remaining</span>
                           </p>
                         </div>
@@ -640,16 +629,16 @@ export default function BillingDashboard() {
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">
-                            {formatCurrency(
-                              subscription.amount,
-                              subscription.currency,
-                            )}
+                            {formatCurrency(subscription.amount, {
+                              currency: subscription.currency,
+                              fractionDigits: 0,
+                            })}
                           </span>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">
-                            {format(
-                              new Date(subscription.currentPeriodEnd),
+                            {formatDate(
+                              subscription.currentPeriodEnd,
                               "MMM d, yyyy",
                             )}
                           </span>
@@ -731,8 +720,8 @@ export default function BillingDashboard() {
                       <TableRow key={payment.id}>
                         <TableCell>
                           <span className="text-sm">
-                            {format(
-                              new Date(payment.paidAt || payment.createdAt),
+                            {formatDate(
+                              payment.paidAt || payment.createdAt,
                               "MMM d, yyyy HH:mm",
                             )}
                           </span>
@@ -754,7 +743,10 @@ export default function BillingDashboard() {
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">
-                            {formatCurrency(payment.amount, payment.currency)}
+                            {formatCurrency(payment.amount, {
+                              currency: payment.currency,
+                              fractionDigits: 0,
+                            })}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -817,7 +809,10 @@ export default function BillingDashboard() {
                               }}
                             >
                               <span className="text-xs text-primary-foreground font-medium">
-                                {formatCurrency(data.revenue)}
+                                {formatCurrency(data.revenue, {
+                                  currency: DEFAULT_CURRENCY,
+                                  fractionDigits: 0,
+                                })}
                               </span>
                             </div>
                           </div>
@@ -870,7 +865,7 @@ export default function BillingDashboard() {
               Cancel
             </Button>
             <Button onClick={handleExtendGracePeriod} disabled={sending}>
-              {sending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {sending && <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />}
               Extend
             </Button>
           </DialogFooter>

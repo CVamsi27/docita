@@ -163,7 +163,7 @@ export function CreateClinicDialog({
         description="Create a new facility and its admin account"
         isLoading={loading}
         onSubmit={handleSubmit}
-        submitLabel={loading ? "Creating..." : "Create Facility"}
+        submitLabel={loading ? "Creating…" : "Create Facility"}
       >
         <div className="space-y-6">
           <div className="space-y-4">
