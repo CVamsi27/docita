@@ -101,6 +101,7 @@ export const EnvSchema = z.object({
     .int()
     .positive()
     .default(5_000_000),
+  RLS_ENABLED: z.coerce.boolean().default(false),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

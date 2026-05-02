@@ -469,6 +469,10 @@ export class AppConfigService {
     return resolveCurrencyFromLocale(acceptLanguage);
   }
 
+  isRlsEnabled(): boolean {
+    return this.getConfig().RLS_ENABLED;
+  }
+
   getTenantRateLimitDefaults(): {
     rps: number;
     rpm: number;
