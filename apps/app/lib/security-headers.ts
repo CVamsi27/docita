@@ -83,34 +83,59 @@ const IMAGE_SOURCES = [
     }
   });
 
-const SCRIPT_SOURCES = [
-  "'self'",
-  "'unsafe-inline'",
-  process.env["NODE_ENV"] === "development" ? "'unsafe-eval'" : undefined,
-  "https://checkout.razorpay.com",
-].filter((source): source is string => Boolean(source));
-
 const FRAME_SOURCES = [
   "'self'",
   "https://api.razorpay.com",
   "https://checkout.razorpay.com",
 ];
 
-export const CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  "form-action 'self'",
-  `img-src ${Array.from(new Set(IMAGE_SOURCES)).join(" ")}`,
-  "font-src 'self' data:",
-  "style-src 'self' 'unsafe-inline'",
-  `script-src ${Array.from(new Set(SCRIPT_SOURCES)).join(" ")}`,
-  `connect-src ${Array.from(new Set(CONNECT_SOURCES)).join(" ")}`,
-  `frame-src ${Array.from(new Set(FRAME_SOURCES)).join(" ")}`,
-  "worker-src 'self' blob:",
-  "manifest-src 'self'",
-].join("; ");
+interface CspOptions {
+  /** Per-request nonce. When supplied production policy drops 'unsafe-inline'. */
+  nonce?: string;
+  /** Forces production semantics regardless of NODE_ENV. */
+  isProduction?: boolean;
+}
+
+/**
+ * Build a Content-Security-Policy string. Preferred entry point for both
+ * the static `next.config.ts` headers (no nonce, dev fallback) and the
+ * per-request middleware (nonce + strict).
+ */
+export function buildContentSecurityPolicy(options: CspOptions = {}): string {
+  const isProduction =
+    options.isProduction ?? process.env["NODE_ENV"] === "production";
+  const nonce = options.nonce;
+
+  const scriptSources = [
+    "'self'",
+    nonce ? `'nonce-${nonce}'` : undefined,
+    nonce ? "'strict-dynamic'" : undefined,
+    !nonce ? "'unsafe-inline'" : undefined,
+    !isProduction ? "'unsafe-eval'" : undefined,
+    "https://checkout.razorpay.com",
+  ].filter((source): source is string => Boolean(source));
+
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "form-action 'self'",
+    `img-src ${Array.from(new Set(IMAGE_SOURCES)).join(" ")}`,
+    "font-src 'self' data:",
+    "style-src 'self' 'unsafe-inline'",
+    `script-src ${Array.from(new Set(scriptSources)).join(" ")}`,
+    `connect-src ${Array.from(new Set(CONNECT_SOURCES)).join(" ")}`,
+    `frame-src ${Array.from(new Set(FRAME_SOURCES)).join(" ")}`,
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    isProduction ? "upgrade-insecure-requests" : undefined,
+  ]
+    .filter((directive): directive is string => Boolean(directive))
+    .join("; ");
+}
+
+export const CONTENT_SECURITY_POLICY = buildContentSecurityPolicy();
 
 export const SECURITY_HEADERS = [
   {
@@ -136,5 +161,13 @@ export const SECURITY_HEADERS = [
   {
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(self), payment=(self)",
+  },
+  {
+    key: "Cross-Origin-Opener-Policy",
+    value: "same-origin",
+  },
+  {
+    key: "Cross-Origin-Resource-Policy",
+    value: "same-origin",
   },
 ] as const;

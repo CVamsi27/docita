@@ -178,8 +178,9 @@ export class LocalStorageProvider extends StorageProvider {
 
   async generateSignedUrl(
     objectKey: string,
-    _expiresInSeconds: number,
+    expiresInSeconds: number,
   ): Promise<string> {
+    this.assertSignedUrlTtl(expiresInSeconds);
     return this.getPublicUploadUrl(objectKey);
   }
 }
