@@ -7,12 +7,15 @@ import {
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
   Patient,
+  queueHealthSummarySchema,
+  securityMonitoringSummarySchema,
   SupportInquiry,
   SupportWhatsAppMessage,
   SupportWhatsAppReplyRequest,
   SupportWhatsAppThreadSummary,
   type TenantScopeDiagnostics,
   tenantScopeDiagnosticsSchema,
+  WebVitalsAggregateListSchema,
 } from "@workspace/types";
 type PerformanceHealthCheck = import("@workspace/types").HealthCheck;
 
@@ -158,6 +161,24 @@ export const monitoringAPI = {
     errorsDeleted: number;
     metricsDeleted: number;
   }> => client.post("/monitoring/cleanup", { daysToKeep }),
+  getWebVitalsAggregates: async (
+    startDate?: string,
+    endDate?: string,
+    page?: string,
+  ) =>
+    WebVitalsAggregateListSchema.parse(
+      await client.get("/monitoring/web-vitals", {
+        params: { startDate, endDate, page },
+      }),
+    ),
+  getSecuritySummary: async (startDate?: string, endDate?: string) =>
+    securityMonitoringSummarySchema.parse(
+      await client.get("/monitoring/security-summary", {
+        params: { startDate, endDate },
+      }),
+    ),
+  getQueueHealth: async () =>
+    queueHealthSummarySchema.parse(await client.get("/monitoring/queue-health")),
 };
 
 export const performanceAPI = {
