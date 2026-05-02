@@ -469,6 +469,19 @@ export class AppConfigService {
     return resolveCurrencyFromLocale(acceptLanguage);
   }
 
+  getTenantRateLimitDefaults(): {
+    rps: number;
+    rpm: number;
+    monthlyBudget: number;
+  } {
+    const config = this.getConfig();
+    return {
+      rps: config.TENANT_RATE_LIMIT_DEFAULT_RPS,
+      rpm: config.TENANT_RATE_LIMIT_DEFAULT_RPM,
+      monthlyBudget: config.TENANT_RATE_LIMIT_DEFAULT_MONTHLY_BUDGET,
+    };
+  }
+
   getPlatformTaxConfig() {
     const config = this.getConfig();
     return {

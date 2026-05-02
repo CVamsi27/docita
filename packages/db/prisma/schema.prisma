@@ -1057,6 +1057,23 @@ model Clinic {
   prescriptions            Prescription[]
   prescriptionTemplates    PrescriptionTemplate[]
   inventoryMovements       InventoryMovement[]
+  apiQuota                 ClinicApiQuota?
+}
+
+model ClinicApiQuota {
+  clinicId             String   @id
+  rps                  Int      @default(50)
+  rpm                  Int      @default(5000)
+  monthlyBudget        Int      @default(5000000)
+  currentMonthUsed     Int      @default(0)
+  currentMonthResetsAt DateTime
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+
+  @@index([currentMonthResetsAt])
 }
 
 model MetricCategory {

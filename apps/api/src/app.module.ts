@@ -62,6 +62,10 @@ import { RateLimitInterceptor } from './common/interceptors/rate-limit.intercept
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
 import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
 import { IdempotencyModule } from './shared/modules/idempotency';
+import {
+  TenantRateLimitGuard,
+  TenantRateLimitModule,
+} from './shared/modules/tenant-rate-limit';
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
@@ -124,6 +128,7 @@ import { IpdModule } from './domains/ipd/ipd.module';
     CommonServicesModule,
     CacheConfigModule,
     IdempotencyModule,
+    TenantRateLimitModule,
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [
@@ -185,6 +190,10 @@ import { IpdModule } from './domains/ipd/ipd.module';
     {
       provide: APP_GUARD,
       useClass: TenantGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TenantRateLimitGuard,
     },
     {
       provide: APP_GUARD,

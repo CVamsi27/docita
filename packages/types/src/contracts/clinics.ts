@@ -224,3 +224,29 @@ export type CreateJoinRequest = z.infer<typeof createJoinRequestSchema>;
 export type ApproveJoinRequest = z.infer<typeof approveJoinRequestSchema>;
 export type RejectJoinRequest = z.infer<typeof rejectJoinRequestSchema>;
 export type SearchClinicsQuery = z.infer<typeof searchClinicsQuerySchema>;
+
+export const clinicApiQuotaUpsertSchema = z.object({
+  rps: z.number().int().min(1).max(10_000),
+  rpm: z.number().int().min(1).max(1_000_000),
+  monthlyBudget: z.number().int().min(1).max(1_000_000_000),
+  notes: z.string().max(500).optional(),
+});
+
+export const clinicApiQuotaResponseSchema = z.object({
+  clinicId: z.string(),
+  rps: z.number().int(),
+  rpm: z.number().int(),
+  monthlyBudget: z.number().int(),
+  currentMonthUsed: z.number().int(),
+  currentMonthResetsAt: z.string(),
+  notes: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export type ClinicApiQuotaUpsertRequest = z.infer<
+  typeof clinicApiQuotaUpsertSchema
+>;
+export type ClinicApiQuotaResponse = z.infer<
+  typeof clinicApiQuotaResponseSchema
+>;
