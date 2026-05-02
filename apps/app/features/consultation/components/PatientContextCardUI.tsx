@@ -263,7 +263,9 @@ export function PatientContextCardUI({
                 size="sm"
                 className="flex-1 h-8 text-xs"
               >
-                <Link href={`/patients/${patient.id}?tab=prescriptions`}>
+                <Link
+                  href={`/patients/${patient.id}?tab=records&subtab=prescriptions`}
+                >
                   <Pill className="h-3 w-3 mr-1" />
                   Prescriptions
                 </Link>

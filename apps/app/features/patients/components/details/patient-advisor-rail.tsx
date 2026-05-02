@@ -79,7 +79,8 @@ export function PatientAdvisorRail({
         description: drugInteractions.slice(0, 2).join("; "),
         tone: "warning",
         actionLabel: "Review prescriptions",
-        onAction: () => router.push(`/patients/${patient.id}?tab=prescriptions`),
+        onAction: () =>
+          router.push(`/patients/${patient.id}?tab=records&subtab=prescriptions`),
       });
     }
 
@@ -92,7 +93,8 @@ export function PatientAdvisorRail({
           "Capture an updated consent before sharing records or starting a new procedure.",
         tone: "info",
         actionLabel: "Capture consent",
-        onAction: () => router.push(`/patients/${patient.id}?tab=documents`),
+        onAction: () =>
+          router.push(`/patients/${patient.id}?tab=records&subtab=documents`),
       });
     }
 

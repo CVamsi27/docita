@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JoinRequestStatusPage from "./page";
 
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   queryOptions: null as {
     queryKey?: unknown;
     retry?: boolean;
-    refetchInterval?: number;
+    refetchInterval?: number | false;
   } | null,
   query: {
     data: null as unknown,
@@ -23,6 +23,12 @@ const mocks = vi.hoisted(() => ({
   mutation: {
     mutate: vi.fn(),
     isPending: false,
+    onSuccess: undefined as undefined | (() => void),
+  },
+  user: {
+    id: "user-1",
+    clinicId: "clinic-1",
+    onboardingStep: "COMPLETED" as string | null | undefined,
   },
 }));
 
@@ -34,24 +40,38 @@ vi.mock("@tanstack/react-query", () => ({
   useQuery: (options: {
     queryKey?: unknown;
     retry?: boolean;
-    refetchInterval?: number;
+    refetchInterval?: number | false;
   }) => {
     mocks.queryOptions = options;
     return mocks.query;
   },
-  useMutation: () => mocks.mutation,
+  useMutation: (options: { onSuccess?: () => void }) => {
+    mocks.mutation.onSuccess = options.onSuccess;
+    return mocks.mutation;
+  },
   useQueryClient: () => mocks.queryClient,
 }));
 
 vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
-    user: {
-      id: "user-1",
-      clinicId: "clinic-1",
-      onboardingStep: "COMPLETED",
-    },
+    user: mocks.user,
     refreshUser: mocks.refreshUser,
   }),
+}));
+
+vi.mock("next/link", () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 vi.mock("@/lib/api-client", () => ({
@@ -100,8 +120,12 @@ describe("JoinRequestStatusPage", () => {
     mocks.router.push.mockReset();
     mocks.refreshUser.mockReset();
     mocks.queryOptions = null;
-    mocks.query.invalidateQueries?.mockReset?.();
-    mocks.mutation.mutate.mockReset();
+    mocks.queryClient.invalidateQueries.mockReset();
+    mocks.user = {
+      id: "user-1",
+      clinicId: "clinic-1",
+      onboardingStep: "COMPLETED",
+    };
     mocks.query = {
       data: null,
       isLoading: false,
@@ -109,6 +133,7 @@ describe("JoinRequestStatusPage", () => {
     mocks.mutation = {
       mutate: vi.fn(),
       isPending: false,
+      onSuccess: undefined,
     };
   });
 
@@ -125,5 +150,41 @@ describe("JoinRequestStatusPage", () => {
 
     expect(mocks.queryOptions?.retry).toBe(false);
     expect(mocks.queryOptions?.refetchInterval).toBe(10000);
+  });
+
+  it("shows the rejected terminal state with reason and recovery CTAs instead of redirecting", async () => {
+    mocks.user = {
+      id: "user-1",
+      clinicId: undefined,
+      onboardingStep: undefined,
+    };
+    mocks.query = {
+      data: {
+        id: "req-1",
+        status: "REJECTED",
+        requestedRole: "DOCTOR",
+        message: "I'm interested",
+        rejectionReason: "Doctor pool is full this quarter.",
+        requestedAt: new Date().toISOString(),
+        clinic: { id: "c-1", name: "Sunrise Clinic" },
+      },
+      isLoading: false,
+    };
+
+    render(<JoinRequestStatusPage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("join-request-terminal-rejected"),
+      ).toBeInTheDocument();
+    });
+    expect(mocks.router.replace).not.toHaveBeenCalledWith("/choose-path");
+    expect(screen.getByText(/Doctor pool is full this quarter\./)).toBeInTheDocument();
+    expect(
+      screen.getByTestId("join-request-try-different-clinic"),
+    ).toHaveAttribute("href", "/join-clinic");
+    expect(
+      screen.getByTestId("join-request-create-clinic"),
+    ).toHaveAttribute("href", "/choose-path");
   });
 });

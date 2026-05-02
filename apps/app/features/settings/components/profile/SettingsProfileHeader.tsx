@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { useAuth } from "@/lib/auth-context";
 import { useClinic } from "@/lib/clinic-context";
+import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 
 const ROLE_LABELS: Record<string, string> = {
   ADMIN_DOCTOR: "Admin Doctor",
@@ -34,30 +35,33 @@ export function SettingsProfileHeader() {
   const roleLabel = user.role ? (ROLE_LABELS[user.role] ?? user.role) : null;
 
   return (
-    <div className="ui-card-surface flex items-center gap-4 px-5 py-4">
-      <Avatar className="h-12 w-12">
-        <AvatarFallback className="border border-border/70 bg-background/70 text-sm font-semibold text-foreground">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
-      <div className="min-w-0 flex-1">
-        <p className="font-semibold text-foreground truncate">
-          {user.name ?? "Unknown"}
-        </p>
-        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+    <div className="space-y-3">
+      <div className="ui-card-surface flex items-center gap-4 px-5 py-4">
+        <Avatar className="h-12 w-12">
+          <AvatarFallback className="border border-border/70 bg-background/70 text-sm font-semibold text-foreground">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-foreground truncate">
+            {user.name ?? "Unknown"}
+          </p>
+          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+        </div>
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          {roleLabel && (
+            <Badge variant="secondary" className="text-xs">
+              {roleLabel}
+            </Badge>
+          )}
+          {clinic?.name && (
+            <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+              {clinic.name}
+            </span>
+          )}
+        </div>
       </div>
-      <div className="flex flex-col items-end gap-1.5 shrink-0">
-        {roleLabel && (
-          <Badge variant="secondary" className="text-xs">
-            {roleLabel}
-          </Badge>
-        )}
-        {clinic?.name && (
-          <span className="text-xs text-muted-foreground truncate max-w-[160px]">
-            {clinic.name}
-          </span>
-        )}
-      </div>
+      <SettingsAiChips scope="doctor-profile" />
     </div>
   );
 }

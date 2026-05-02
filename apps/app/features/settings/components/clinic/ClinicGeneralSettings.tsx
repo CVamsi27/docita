@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { getFacilityLabel } from "@workspace/utils";
+import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
 
 const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Facility Name"),
@@ -126,7 +127,9 @@ export function ClinicGeneralSettings() {
   }
 
   return (
-    <Card>
+    <div className="space-y-4">
+      <SettingsAiChips scope="clinic-general" />
+      <Card>
       <CardHeader>
         <CardTitle>{facilityLabel} Information</CardTitle>
         <CardDescription>Basic settings and information</CardDescription>
@@ -289,6 +292,7 @@ export function ClinicGeneralSettings() {
           </form>
         </Form>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }

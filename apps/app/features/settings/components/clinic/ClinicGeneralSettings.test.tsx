@@ -34,6 +34,10 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/features/settings/components/settings-ai-chips", () => ({
+  SettingsAiChips: () => null,
+}));
+
 vi.mock("@workspace/ui/components/select", () => ({
   Select: ({
     children,
