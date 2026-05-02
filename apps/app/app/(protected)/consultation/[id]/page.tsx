@@ -56,6 +56,25 @@ export default function ConsultationPage() {
     activeAppointmentId: appointmentId,
   });
 
+  const consultationReadOnly = appointmentData
+    ? isConsultationReadOnlyStatus(appointmentData.status)
+    : false;
+
+  const {
+    tryNavigateAway,
+    attemptNavigateToHref,
+    leaveDialogOpen,
+    onLeaveDialogOpenChange,
+    leaveBusy,
+    saveAndLeave,
+    leaveWithoutSaving,
+  } = useConsultationLeaveNavigation({
+    readOnly: consultationReadOnly,
+    fallbackRoute,
+    saveHandlesRef,
+    activeAppointmentId: appointmentId,
+  });
+
   if (loading) {
     return (
       <AppPageScaffold>
