@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { setupTestUser } from "./utils/patient-helpers";
+import { reuseSharedGeneralClinicUser } from "./utils/patient-helpers";
 import { seedSession } from "./utils/session";
 import {
   expectDashboardQueueSectionReady,
@@ -10,10 +10,11 @@ import {
 } from "./utils/ui-contracts";
 
 test.describe("Today workspace", () => {
-  let user: Awaited<ReturnType<typeof setupTestUser>> | null = null;
+  let user: Awaited<ReturnType<typeof reuseSharedGeneralClinicUser>> | null =
+    null;
 
   test.beforeAll(async ({ request }) => {
-    user = await setupTestUser(request);
+    user = await reuseSharedGeneralClinicUser(request);
   });
 
   test.beforeEach(async ({ page }) => {
@@ -27,7 +28,7 @@ test.describe("Today workspace", () => {
         clinicId: user.clinicId,
       },
     });
-    await page.goto("/today", { waitUntil: "networkidle" });
+    await page.goto("/today", { waitUntil: "domcontentloaded" });
     await expectProtectedWorkspaceLoaded(page);
   });
 
@@ -49,5 +50,20 @@ test.describe("Today workspace", () => {
         page.getByText("Start with your first patient", { exact: true }),
       ).toBeVisible();
     }
+  });
+
+  test("opens the Ask AI overlay scoped to today from the page header", async ({
+    page,
+  }) => {
+    await expectDashboardQueueSectionReady(page);
+    const trigger = page.getByTestId("today-ask-ai");
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+    await expect(
+      page.getByRole("dialog", { name: /ask ai/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/on today's workspace/i),
+    ).toBeVisible();
   });
 });

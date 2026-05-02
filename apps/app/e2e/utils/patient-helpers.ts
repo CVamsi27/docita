@@ -525,6 +525,25 @@ async function setupTestUserImpl(
   };
 }
 
+/**
+ * Reuse one GENERAL onboarded user per Playwright worker when several spec files
+ * each use `beforeAll` — avoids a second full onboarding if `setupTestUser`'s
+ * global cache is not shared across file boundaries for a given run.
+ */
+let sharedGeneralClinicUser: Promise<UserData> | null = null;
+
+export function reuseSharedGeneralClinicUser(
+  request: APIRequestContext,
+): Promise<UserData> {
+  if (!sharedGeneralClinicUser) {
+    sharedGeneralClinicUser = setupTestUser(request).catch((err: unknown) => {
+      sharedGeneralClinicUser = null;
+      throw err;
+    });
+  }
+  return sharedGeneralClinicUser;
+}
+
 export async function setupTestUser(
   request: APIRequestContext,
   requestHeaders: Record<string, string> = {},

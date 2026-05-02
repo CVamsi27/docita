@@ -8,20 +8,23 @@ import { DashboardSkeletonUI } from "@/features/dashboard/components/layout/dash
 import { DashboardRefreshControl } from "@/features/dashboard/components/layout/dashboard-refresh-control";
 import { TodayFollowUpsPanel } from "@/features/dashboard/components/follow-ups/today-follow-ups-panel";
 import { TodayScheduleUI } from "@/features/dashboard/components/schedule/today-schedule-ui";
+import { TodayAdvisorRail } from "@/features/dashboard/components/advisor/today-advisor-rail";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
 import { Feature } from "@/lib/stores/permission-store";
 import { useClinic } from "@/lib/clinic-context";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { Button } from "@workspace/ui/components/button";
 import { DataState } from "@workspace/ui/components/data-state";
 import { PageHeader } from "@workspace/ui/components/page-header";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, Sparkles } from "lucide-react";
 
 export default function TodayPage() {
   const { clinic } = useClinic();
   const { canStartConsultation } = usePermissions();
+  const { openOverlay } = useAskAi();
   const { state } = useDashboardLogic();
   const {
     stats,
@@ -53,14 +56,23 @@ export default function TodayPage() {
           isRefreshing={isRefreshing}
           onRefresh={refetchAll}
         />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            openOverlay({ id: "today", label: "on today's workspace" })
+          }
+          aria-label="Ask AI about today"
+          data-testid="today-ask-ai"
+        >
+          <Sparkles className="size-4" aria-hidden />
+          Ask AI
+        </Button>
         {canStartConsultation ? (
           <Button variant="default" size="sm" asChild>
             <Link href="/consultation">Open queue</Link>
           </Button>
         ) : null}
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/dashboard">Dashboard</Link>
-        </Button>
       </div>
     ),
     [
@@ -68,6 +80,7 @@ export default function TodayPage() {
       isRefreshing,
       refetchAll,
       canStartConsultation,
+      openOverlay,
     ],
   );
 
@@ -125,24 +138,34 @@ export default function TodayPage() {
 
   return (
     <AppPageScaffold header={header}>
-      <DashboardSharedWorkspace
-        mode="today"
-        todayAppointments={todayAppointments}
-        completedToday={completedToday}
-        inProgressToday={inProgressToday}
-        currentPatient={currentPatient}
-        nextPatients={nextPatients}
-        waitingCount={waitingCount}
-        pendingJoinRequests={pendingJoinRequests}
-        pendingReports={stats.pendingReports}
-        slotDurationMinutes={clinic?.slotDuration ?? 15}
-      >
-        <TodayFollowUpsPanel enabled={canAccess(Feature.CALENDAR_SLOTS)} />
-        <DashboardShortcutsSection pendingReports={stats.pendingReports} />
-        {canAccess(Feature.CALENDAR_SLOTS) ? (
-          <TodayScheduleUI appointments={todayAppointments} />
-        ) : null}
-      </DashboardSharedWorkspace>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0">
+          <DashboardSharedWorkspace
+            mode="today"
+            todayAppointments={todayAppointments}
+            completedToday={completedToday}
+            inProgressToday={inProgressToday}
+            currentPatient={currentPatient}
+            nextPatients={nextPatients}
+            waitingCount={waitingCount}
+            pendingJoinRequests={pendingJoinRequests}
+            pendingReports={stats.pendingReports}
+            slotDurationMinutes={clinic?.slotDuration ?? 15}
+          >
+            <TodayFollowUpsPanel enabled={canAccess(Feature.CALENDAR_SLOTS)} />
+            <DashboardShortcutsSection pendingReports={stats.pendingReports} />
+            {canAccess(Feature.CALENDAR_SLOTS) ? (
+              <TodayScheduleUI appointments={todayAppointments} />
+            ) : null}
+          </DashboardSharedWorkspace>
+        </div>
+        <TodayAdvisorRail
+          pendingJoinRequests={pendingJoinRequests}
+          pendingReports={stats.pendingReports}
+          waitingCount={waitingCount}
+          totalAppointments={todayAppointments.length}
+        />
+      </div>
     </AppPageScaffold>
   );
 }

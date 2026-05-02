@@ -171,7 +171,7 @@ export function useConsultationLeaveNavigation({
         return;
       }
       if (kind === "leaveDialogCompleted") {
-        router.replace(fallbackRoute);
+        router.push(fallbackRoute);
         return;
       }
       if (readInAppNavCount() > 1) {
@@ -234,8 +234,6 @@ export function useConsultationLeaveNavigation({
           pendingLeaveHistoryTrapsRef,
           peelingLeaveHistoryTrapsRef,
         );
-        pendingLinkNavigationHrefRef.current = null;
-        setLeaveDialogOpenInternal(false);
       }
     });
   }, [readOnly, activeAppointmentId]);
@@ -369,16 +367,8 @@ export function useConsultationLeaveNavigation({
         await handles.submitPrescriptions();
       }
       setLeaveDialogOpenInternal(false);
-      peelConsultationLeaveHistoryTraps(
-        pendingLeaveHistoryTrapsRef,
-        peelingLeaveHistoryTrapsRef,
-      );
-      const runNavigateAway = () => navigateAway("leaveDialogCompleted");
-      if (typeof window !== "undefined") {
-        window.setTimeout(runNavigateAway, 0);
-      } else {
-        runNavigateAway();
-      }
+      useConsultationDraft.getState().clearConsultationLeaveGuard();
+      navigateAway("leaveDialogCompleted");
     } finally {
       setLeaveBusy(false);
     }
@@ -386,10 +376,7 @@ export function useConsultationLeaveNavigation({
 
   const leaveWithoutSaving = useCallback(() => {
     setLeaveDialogOpenInternal(false);
-    peelConsultationLeaveHistoryTraps(
-      pendingLeaveHistoryTrapsRef,
-      peelingLeaveHistoryTrapsRef,
-    );
+    useConsultationDraft.getState().clearConsultationLeaveGuard();
     const runNavigateAway = () => navigateAway("leaveDialogCompleted");
     if (typeof window !== "undefined") {
       window.setTimeout(runNavigateAway, 0);

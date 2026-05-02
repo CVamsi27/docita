@@ -15,6 +15,7 @@ export function PatientsPageContainer() {
       <PatientsPageUI
         isLoading={state.isLoading}
         error={state.error}
+        onRetry={handlers.retry}
         searchQuery={state.searchQuery}
         sortConfig={state.sortConfig}
         filteredPatients={state.filteredPatients}

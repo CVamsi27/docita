@@ -23,6 +23,7 @@ export const useConsultationLogic = (appointmentId: string) => {
     data: appointmentData,
     isLoading: loading,
     isError,
+    refetch: refetchAppointment,
   } = useAppointment(appointmentId);
 
   const { data: clinic } = useClinicSettings();
@@ -137,6 +138,9 @@ export const useConsultationLogic = (appointmentId: string) => {
     handlers: {
       handleBack,
       handleSave,
+      retry: () => {
+        void refetchAppointment();
+      },
       toggleSidebar: () => setIsSidebarOpen((prev) => !prev),
       setIsSidebarOpen,
     },

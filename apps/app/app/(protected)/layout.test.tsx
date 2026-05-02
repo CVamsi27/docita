@@ -40,6 +40,10 @@ vi.mock("@/features/_shared/components", () => ({
   ),
   Sidebar: () => null,
   SidebarMobileTrigger: () => null,
+  AskAiProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  AskAiOverlay: () => null,
 }));
 
 vi.mock("@/components/common/navigation/back-button", () => ({

@@ -24,9 +24,7 @@ const SETTINGS_TAB_ACCESS_TARGETS: Partial<Record<string, AppAccessTarget>> = {
 const SETTINGS_TAB_REQUIRED_PERMISSIONS: Partial<Record<string, Permission>> = {
   general: "manageClinic",
   members: "manageStaff",
-  "join-requests": "manageStaff",
   subscription: "manageBilling",
-  compliance: "manageClinic",
   queue: "manageClinic",
   prescriptions: "createPrescription",
   reminders: "manageClinic",

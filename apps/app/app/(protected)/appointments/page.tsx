@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
@@ -10,7 +11,7 @@ import { getStatusColor } from "@workspace/ui/components/status-badge";
 import type { StatusType } from "@workspace/ui/components/status-badge";
 import { AppPageScaffold } from "@workspace/ui/components/app-page-scaffold";
 import { ConfirmationDialog } from "@workspace/ui/components/confirmation-dialog";
-import { LoadingState } from "@workspace/ui/components/empty-state";
+import { DataState } from "@workspace/ui/components/data-state";
 import { FeatureGate } from "@/features/_shared/components/auth/feature-gate";
 import { Feature } from "@/lib/stores/permission-store";
 
@@ -21,6 +22,7 @@ import {
   AppointmentsPageHeaderUI,
   CancelAppointmentDialog,
 } from "@/features/appointments/components";
+import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { AppointmentRequestsPanel } from "@/features/appointments/components/sections/AppointmentRequestsPanel";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
 
@@ -28,6 +30,20 @@ export const dynamic = "force-dynamic";
 
 function AppointmentsContent() {
   const { state, handlers } = useAppointmentsLogic();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handleScheduleFollowUp = useCallback(
+    (appointment: AppointmentListItem) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("action", "new");
+      if (appointment.patientId) {
+        params.set("patientId", appointment.patientId);
+      }
+      router.replace(`/appointments?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
 
   const {
     date,
@@ -190,6 +206,7 @@ function AppointmentsContent() {
               setNoShowAptId(id);
               setNoShowDialogOpen(true);
             }}
+            onScheduleFollowUp={handleScheduleFollowUp}
             currentUserId={user?.id}
           />
         </div>
@@ -221,7 +238,15 @@ function AppointmentsContent() {
 export default function AppointmentsPage() {
   return (
     <Suspense
-      fallback={<LoadingState message="Loading appointments…" className="py-16" />}
+      fallback={
+        <AppPageScaffold>
+          <DataState
+            status="loading"
+            loadingMessage="Loading appointments…"
+            className="min-h-[40vh]"
+          />
+        </AppPageScaffold>
+      }
     >
       <AppointmentsContent />
     </Suspense>

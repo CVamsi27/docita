@@ -87,10 +87,10 @@ export const ConsultationDashboardUI: FC = () => {
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="col-span-1">
             <CardHeader>
-              <Skeleton animation="wave" className="h-6 w-48 max-w-full" />
+              <Skeleton className="h-6 w-48 max-w-full" />
               <div className="mt-2 space-y-2">
-                <Skeleton animation="wave" className="h-4 w-full" />
-                <Skeleton animation="wave" className="h-4 w-[85%]" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-[85%]" />
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -100,17 +100,13 @@ export const ConsultationDashboardUI: FC = () => {
                   className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <Skeleton
-                      variant="circular"
-                      animation="wave"
-                      className="h-10 w-10 shrink-0"
-                    />
+                    <Skeleton variant="circular" className="h-10 w-10 shrink-0" />
                     <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton animation="wave" className="h-4 w-40" />
-                      <Skeleton animation="wave" className="h-3 w-28" />
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-28" />
                     </div>
                   </div>
-                  <Skeleton animation="wave" className="h-9 w-20 shrink-0 rounded-md" />
+                  <Skeleton className="h-9 w-20 shrink-0 rounded-md" />
                 </div>
               ))}
             </CardContent>
@@ -118,10 +114,10 @@ export const ConsultationDashboardUI: FC = () => {
 
           <Card className="col-span-1">
             <CardHeader>
-              <Skeleton animation="wave" className="h-6 w-40 max-w-full" />
+              <Skeleton className="h-6 w-40 max-w-full" />
               <div className="mt-2 space-y-2">
-                <Skeleton animation="wave" className="h-4 w-full" />
-                <Skeleton animation="wave" className="h-4 w-[75%]" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-[75%]" />
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -131,17 +127,13 @@ export const ConsultationDashboardUI: FC = () => {
                   className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-border/50 p-3 sm:p-4"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <Skeleton
-                      variant="circular"
-                      animation="wave"
-                      className="h-10 w-10 shrink-0"
-                    />
+                    <Skeleton variant="circular" className="h-10 w-10 shrink-0" />
                     <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton animation="wave" className="h-4 w-36" />
-                      <Skeleton animation="wave" className="h-3 w-32" />
+                      <Skeleton className="h-4 w-36" />
+                      <Skeleton className="h-3 w-32" />
                     </div>
                   </div>
-                  <Skeleton animation="wave" className="h-9 w-16 shrink-0 rounded-md" />
+                  <Skeleton className="h-9 w-16 shrink-0 rounded-md" />
                 </div>
               ))}
             </CardContent>

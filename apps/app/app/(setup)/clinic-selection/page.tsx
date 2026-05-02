@@ -27,7 +27,7 @@ export default function ClinicSelectionPage() {
     }
 
     if (user.clinicId) {
-      router.replace("/dashboard");
+      router.replace("/today");
       return;
     }
 

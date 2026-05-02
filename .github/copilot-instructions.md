@@ -2,6 +2,12 @@
 
 Apply these rules when generating or editing code in this repository.
 
+## 0) Authoritative Sources
+
+- Engineering rules (typing, security, hygiene, SOLID/KISS/DRY/patterns, final checklist): [`AGENTS.md`](../AGENTS.md), especially §3 (architecture), §7 (hygiene), §12 (design principles), §14 (final checklist).
+- UI/UX rules for `apps/app`, `apps/internal`, `apps/landing`: [`docs/UI_UX_STANDARD_2026.md`](../docs/UI_UX_STANDARD_2026.md). It supersedes [`docs/DESIGN_SYSTEM.md`](../docs/DESIGN_SYSTEM.md) and [`docs/UI_UX_CONTRACT.md`](../docs/UI_UX_CONTRACT.md) where they conflict.
+- SOLID, KISS, and DRY are mandatory; do not invent abstractions without a current consumer, and do not duplicate Zod schemas, API clients, UI primitives, or tokens.
+
 ## 1) Architecture First
 
 - Follow existing feature/module structure.
@@ -10,11 +16,14 @@ Apply these rules when generating or editing code in this repository.
 
 ## 2) Frontend Rules
 
-- Use shared UI from `@workspace/ui` whenever possible.
+- Use shared UI from `@workspace/ui` whenever possible. Required primitives for new pages: `AppPageScaffold`, `PageHeader`, `DataState`, `PageTabs`, `MicroLabel`, `WizardDialog`, `RightRailCardStack`, `PromptInput`, `CategoryAvatar`, `ProgressGauge`, `EmptyState`, `ErrorState`, `LoadingState`. Do not introduce app-local duplicates.
+- Sidebar IA: TRACK / SERVICES sections, Settings / Help / Theme / Plan footer, Ask AI pinned at the bottom; command palette stays in lockstep with the sidebar (see [`docs/UI_UX_STANDARD_2026.md`](../docs/UI_UX_STANDARD_2026.md) §1).
+- AI surfaces follow the contract in [`docs/UI_UX_STANDARD_2026.md`](../docs/UI_UX_STANDARD_2026.md) §4 (`AskAiButton`, `AskAiOverlay`, scope chip, "AI suggestions are not medical advice" footer).
+- Motion: no `animate-pulse` on chrome, no skeleton `animation="wave"`, no decorative `animate-in fade-in slide-in-from-bottom-*`, no `transition-all`. Only `animate-spin` for loading and `transition-colors duration-150` for hover/focus.
 - Use React Query for server data.
 - Use `router.push` / `Link` for internal navigation.
-- Use React Hook Form + Zod for forms.
-- Always cover loading/error/empty states.
+- Use React Hook Form + Zod for forms; floating-label `Input` variant by default.
+- Always cover loading/error/empty states via `DataState` at page level.
 - Keep components accessible and keyboard-friendly.
 
 ## 3) Backend Rules

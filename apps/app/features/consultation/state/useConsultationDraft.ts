@@ -110,6 +110,8 @@ export interface ConsultationDraftActions {
   markSaving: () => void;
   markError: (message: string) => void;
   setDiagnosesContentHash: (hash: string | null) => void;
+  /** Clears dirty/error/saving guard without persisting; use when abandoning edits for leave navigation. */
+  clearConsultationLeaveGuard: () => void;
   reset: () => void;
 }
 
@@ -326,6 +328,13 @@ export const useConsultationDraft = create<ConsultationDraftStore>(
     setDiagnosesContentHash: (hash) =>
       set(() => ({
         diagnosesContentHash: hash,
+      })),
+
+    clearConsultationLeaveGuard: () =>
+      set(() => ({
+        dirty: false,
+        saveState: "idle",
+        lastError: null,
       })),
 
     reset: () => set(() => ({ ...DEFAULT_STATE })),

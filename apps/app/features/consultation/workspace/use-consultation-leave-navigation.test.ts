@@ -230,11 +230,11 @@ describe("useConsultationLeaveNavigation", () => {
 
     expect(historyBackSpy).toHaveBeenCalledTimes(1);
     await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/consultation");
+      expect(push).toHaveBeenCalledWith("/consultation");
     });
   });
 
-  it("leave without saving uses replace(fallback), not router.back(), when in-app nav depth is high", async () => {
+  it("leave without saving uses push(fallback), not router.back(), when in-app nav depth is high", async () => {
     readInAppNavCountMock.mockReturnValue(5);
     const saveHandlesRef = makeSaveHandlesRef();
     const { result } = renderHook(() =>
@@ -259,7 +259,7 @@ describe("useConsultationLeaveNavigation", () => {
     });
 
     await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/consultation");
+      expect(push).toHaveBeenCalledWith("/consultation");
     });
     expect(back).not.toHaveBeenCalled();
   });
@@ -342,7 +342,7 @@ describe("useConsultationLeaveNavigation", () => {
     });
 
     await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/consultation");
+      expect(push).toHaveBeenCalledWith("/consultation");
     });
 
     document.body.removeChild(anchor);
@@ -385,7 +385,7 @@ describe("useConsultationLeaveNavigation", () => {
     });
 
     await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/consultation");
+      expect(push).toHaveBeenCalledWith("/consultation");
     });
     expect(push).not.toHaveBeenCalledWith("/dashboard");
 
@@ -429,7 +429,7 @@ describe("useConsultationLeaveNavigation", () => {
     });
 
     await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/consultation");
+      expect(push).toHaveBeenCalledWith("/consultation");
     });
     expect(push).not.toHaveBeenCalledWith("/dashboard");
 

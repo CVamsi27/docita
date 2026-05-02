@@ -78,6 +78,21 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - All web apps share global styles from `packages/ui/src/styles/globals.css`.
 - Do not create app-specific global css variants that diverge from this standard.
 
+### 4.3 UI design consistency (mandatory)
+
+- [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) is the authoritative UI/UX source for `apps/app`, `apps/internal`, and `apps/landing`. It supersedes any conflicting older guidance in `docs/DESIGN_SYSTEM.md` or `docs/UI_UX_CONTRACT.md`; those files remain for history and detail.
+- Every new page, modal, or feature surface MUST be assembled from `@workspace/ui` primitives. Do not reinvent a primitive that already exists.
+  - Layout/chrome: `AppPageScaffold`, `PageHeader`, `PageContainer`, `Section`, `AppShell`, `TopBar`, `Breadcrumbs`, `PageTabs`.
+  - State: `DataState`, `LoadingState`, `EmptyState`, `ErrorState`, `Skeleton`.
+  - Origin patterns: `MicroLabel`, `WizardDialog`, `RightRailCardStack`, `PromptInput`, `CategoryAvatar`, `ProgressGauge`, `FloatingInput`.
+- Sidebar IA must remain sectioned (TRACK / SERVICES + Settings / Help / Theme / Plan footer + Ask AI pinned) per `UI_UX_STANDARD_2026.md` §1.1. The command palette must stay in lockstep with the sidebar.
+- AI surfaces follow the contract in `UI_UX_STANDARD_2026.md` §4 (`AskAiButton` pinned, `AskAiOverlay` shell, contextual scope chip, "AI suggestions are not medical advice" footer).
+- Motion policy is fixed: no `animate-pulse` on chrome, no skeleton `animation="wave"`, no decorative `animate-in fade-in slide-in-from-bottom-*`, no `transition-all`. Only `animate-spin` for explicit loading and `transition-colors duration-150` for hover/focus.
+- Loading, error, and empty states must use `DataState` at page level (not inline rows or ad-hoc text).
+- Inputs default to the floating-label `Input` variant; password fields ship the eye toggle and inline rules list per `UI_UX_STANDARD_2026.md` §3.2.
+- Tokens are the only source of color/typography/spacing. No raw hex outside `packages/ui/src/styles/globals.css`. No `text-[10px]/[11px]/[13px]/[15px]`; use `--fs-2xs/xs/sm/md`.
+- If a needed pattern is missing, add it to `packages/ui/src/components` rather than creating an app-local duplicate, and update `UI_UX_STANDARD_2026.md` if the pattern is new.
+
 ## 5) Backend Rules
 
 - Preserve tenant-aware and role-aware constraints on all sensitive operations.
@@ -128,6 +143,8 @@ It adapts and consolidates guidance from `CONTRIBUTING.md` and `.github/copilot-
 - In CI, Knip runs in the Repository Standards job only when the diff touches dependency manifests, `knip.json`, `turbo.json`, or paths under `apps/`, `packages/`, or `scripts/` (see `isKnipChange` in [`scripts/detect-workflow-scope.mjs`](scripts/detect-workflow-scope.mjs)). Workflow-only edits skip Knip to conserve minutes per section 11.2.
 
 ## 8) UX and Design Rules (Project-Wide)
+
+The Origin-inspired standard in [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) is authoritative for all web UI work going forward. The rules below are the minimum hierarchy/spacing/responsiveness contract that applies even when that standard does not call something out explicitly.
 
 ### 8.1 Typography hierarchy (mandatory)
 
@@ -261,12 +278,44 @@ Use a branch from **up-to-date `main`**, merge via PR **into `main`**, and let t
 
 ## 12) Design Principles
 
-- Apply SOLID and clean layering pragmatically:
-  - Single responsibility for modules/classes.
-  - Dependency injection over direct instantiation.
-  - Open/closed design for extensible workflows.
-  - Interface segregation for focused contracts.
-- Prefer repository and factory patterns for persistence and complex object creation flows.
+These principles are mandatory for every change. Apply them pragmatically; do not introduce abstractions that no current caller needs.
+
+### 12.1 SOLID
+
+- **Single responsibility**: one reason to change per module/class/component. Split a NestJS service when it spans two unrelated domains; split a React component when its render and data orchestration both grow.
+- **Open/closed**: extend behaviour through new strategies, providers, or props rather than editing stable call sites. Prefer adding a new repository implementation, NestJS provider, or `@workspace/ui` variant over branching inside an existing one.
+- **Liskov substitution**: subclasses, repository implementations, and React component variants must honour the parent contract (return shapes, error semantics, accessibility roles). A `Mock*Repository` must satisfy the same interface as the real one.
+- **Interface segregation**: keep DTOs, Zod schemas, and TypeScript interfaces focused. Do not force a controller to depend on fields it never reads; split schemas in `packages/types` instead.
+- **Dependency inversion**: depend on abstractions, not concretions. Controllers depend on service interfaces; services depend on repository interfaces; React features depend on `packages/data-access` hooks, not on `fetch` directly.
+
+### 12.2 KISS (keep it simple)
+
+- Choose the simplest design that satisfies the current requirement and the next obvious one. Do not pre-build for hypothetical futures.
+- Prefer flat, sequential code over nested abstractions, premature generics, or clever metaprogramming.
+- Prefer composing existing `@workspace/ui` primitives over wrapping them in new abstractions.
+- Small focused modules and functions over large multi-purpose ones; if a function needs section comments, split it.
+- If a new pattern is added, it must replace at least one duplicate; standalone "framework" PRs are not acceptable.
+
+### 12.3 DRY (do not repeat yourself)
+
+- Zod schemas live once in `packages/types` and are reused via `z.infer` everywhere. Never hand-redefine the same shape in API DTOs and frontend forms.
+- API clients and React Query hooks live once in `packages/data-access`. Apps must consume them, not re-roll `fetch` calls.
+- UI primitives live once in `@workspace/ui`. Do not introduce app-local duplicates of `EmptyState`, `BackButton`, navigation chrome, etc.; remove duplicates when you find them (see `docs/UI_UX_STANDARD_2026.md` §8).
+- Tokens live once in `packages/ui/src/styles/globals.css` and are mirrored by `packages/ui/src/design-tokens.ts`. Do not redefine spacing, radius, or color in app code.
+- Repository mappers live once per aggregate inside `packages/db` / API repositories; do not duplicate Prisma-to-domain mapping in services.
+
+### 12.4 Patterns
+
+- Repository pattern for persistence; controllers and services never touch `@prisma/client` directly (see §3.2).
+- Dependency injection for cross-cutting concerns (logging, auth, tenant scope, external clients).
+- Factory functions for complex object creation (test fixtures, seeded patients, multi-step entities) so call sites stay readable.
+- Strategy/adapter pattern when integrating multiple external providers (payments, messaging) so the API surface stays uniform.
+
+## 12.5) Future work convention
+
+- Every PR opened from this point on MUST comply with §4.3 (UI consistency), §7 (logging/comments/hygiene), §8 (typography), §12 (SOLID/KISS/DRY/patterns), and the Origin-inspired standard in [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md).
+- Deviations are allowed only when documented inline in the PR description with a one-line rationale and, when relevant, a follow-up issue link. "We will fix it later" is not a rationale.
+- Reviewers should block merges that introduce app-local duplicates of `@workspace/ui` primitives, parallel hand-written types alongside Zod schemas, or new pages that skip `AppPageScaffold` / `PageHeader` / `DataState` without justification.
 
 ## 13) Commands Reference
 
@@ -307,6 +356,12 @@ Before finalizing changes:
 - Imports use aliases (`@/...` and `@workspace/...`) instead of deep relative paths.
 - TODO/FIXME-style comments are resolved or removed from touched areas; redundant comments are removed per section 7.2.
 - Typographic hierarchy is preserved (headings > body > sub-points).
+- New or changed pages comply with [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) (sectioned sidebar, minimal topbar, Origin visual language, AI surface contract, modal/wizard patterns, per-page test contract).
+- Loading, error, and empty states use `DataState` at page level; no inline `Loading...` text.
+- No decorative motion: no `animate-pulse` on chrome, no skeleton `animation="wave"`, no `animate-in fade-in slide-in-from-bottom-*`, no `transition-all` (per `UI_UX_STANDARD_2026.md` §5).
+- Origin sidebar IA preserved: TRACK / SERVICES sections, Settings / Help / Theme / Plan footer, Ask AI pinned at the bottom; command palette parity with the sidebar.
+- New surfaces use `@workspace/ui` primitives (`AppPageScaffold`, `PageHeader`, `DataState`, `PageTabs`, `MicroLabel`, `WizardDialog`, `RightRailCardStack`, `PromptInput`, `CategoryAvatar`, `ProgressGauge`, `EmptyState`, `ErrorState`, `LoadingState`) instead of app-local duplicates.
+- SOLID, KISS, and DRY were considered before introducing new abstractions; any new abstraction has at least one current consumer and removes at least one duplicate.
 - Changed behavior is covered by appropriate tests/checks.
 - When your change is Knip-relevant per the CI scope detector, `pnpm knip` passes locally and the Knip step runs in CI; otherwise run Knip locally before merging if you touched dependencies or exports.
 - Relevant local tests/builds were run and passed before the final push.

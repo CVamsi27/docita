@@ -68,8 +68,8 @@ export default function JoinRequestStatusPage() {
     }
 
     if (user.clinicId || user.onboardingStep === 'COMPLETED') {
-      setRedirectMessage('Your request is complete. Taking you to the dashboard…');
-      router.replace('/dashboard');
+      setRedirectMessage('Your request is complete. Taking you to your workspace…');
+      router.replace('/today');
       return;
     }
 
@@ -85,8 +85,8 @@ export default function JoinRequestStatusPage() {
     if (request.status === 'APPROVED') {
       void (async () => {
         await refreshUser();
-        setRedirectMessage('Your request was approved. Taking you to the dashboard…');
-        router.replace('/dashboard');
+        setRedirectMessage('Your request was approved. Taking you to your workspace…');
+        router.replace('/today');
       })();
       return;
     }
@@ -150,7 +150,7 @@ export default function JoinRequestStatusPage() {
       currentStep="join-request-status"
       contentMaxWidth="max-w-2xl"
     >
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack">
+      <div className="ui-copy-stack">
         <BackButton
           fallback="/choose-path"
           className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
@@ -161,10 +161,7 @@ export default function JoinRequestStatusPage() {
         </p>
       </div>
 
-      <div
-        className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700"
-        style={{ animationDelay: "100ms" }}
-      >
+      <div className="space-y-4">
         <Card className="ui-card-surface p-5 sm:p-6">
           <div className="flex items-start gap-3 sm:gap-4 mb-6">
             <div className={`p-3 rounded-full shrink-0 ${getStatusColor()} border`}>

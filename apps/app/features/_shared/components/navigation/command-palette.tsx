@@ -12,20 +12,24 @@ import {
   CommandPaletteShell,
   type CommandPaletteAction,
 } from "@workspace/ui/components/command-palette-shell";
-import { PlusCircle, Stethoscope } from "lucide-react";
+import { PlusCircle, Sparkles, Stethoscope } from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
+import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
 import {
-  navItems,
+  AI_ASSISTANT_NAV_ITEM,
+  HELP_NAV_ITEM,
   IPD_NAV_ITEM,
+  navItems,
   SETTINGS_NAV_ITEM,
   type NavItem,
 } from "./nav-config";
 
 const GROUP_NAVIGATION = "Navigation";
 const GROUP_ACTIONS = "Actions";
+const GROUP_AI = "AI";
 
-const QUICK_ACTIONS: Array<{
+export interface QuickAction {
   id: string;
   label: string;
   href?: string;
@@ -33,11 +37,13 @@ const QUICK_ACTIONS: Array<{
   accessTarget?: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
   keywords?: string[];
   shortcut?: string;
-}> = [
+}
+
+export const QUICK_ACTIONS: QuickAction[] = [
   {
     id: "new-patient",
     label: "New patient",
-    href: "/patients?new=true",
+    href: "/patients?action=new",
     kind: "navigate",
     accessTarget: APP_ACCESS_TARGETS.PAGE_PATIENTS,
     keywords: ["create", "add", "register"],
@@ -46,7 +52,7 @@ const QUICK_ACTIONS: Array<{
   {
     id: "new-appointment",
     label: "New appointment",
-    href: "/appointments?new=true",
+    href: "/appointments?action=new",
     kind: "navigate",
     accessTarget: APP_ACCESS_TARGETS.PAGE_APPOINTMENTS,
     keywords: ["schedule", "book"],
@@ -75,6 +81,7 @@ function navItemIsAccessible(
   item: NavItem,
   args: { role: UserRole | undefined; canAccess: CanAccessFeatureFn },
 ): boolean {
+  if (item.feature && !args.canAccess(item.feature)) return false;
   if (!item.accessTarget) return true;
   return canAccessTarget(
     item.accessTarget,
@@ -89,6 +96,7 @@ export function CommandPalette() {
   const { user } = useAuth();
   const { canStartConsultation } = usePermissions();
   const { canAccess } = usePermissionStore();
+  const { openOverlay } = useAskAi();
 
   const canAccessQueueApi = canAccessTarget(
     APP_ACCESS_TARGETS.API_QUEUE,
@@ -161,7 +169,13 @@ export function CommandPalette() {
   const actions = useMemo<CommandPaletteAction[]>(() => {
     const out: CommandPaletteAction[] = [];
 
-    const allNav = [...navItems, IPD_NAV_ITEM, SETTINGS_NAV_ITEM];
+    const allNav = [
+      ...navItems,
+      AI_ASSISTANT_NAV_ITEM,
+      IPD_NAV_ITEM,
+      SETTINGS_NAV_ITEM,
+      HELP_NAV_ITEM,
+    ];
     for (const item of allNav) {
       if (!navItemIsAccessible(item, { role: user?.role, canAccess })) continue;
       const Icon = item.icon;
@@ -173,6 +187,16 @@ export function CommandPalette() {
         onRun: () => router.push(item.href),
       });
     }
+
+    out.push({
+      id: "ai-ask",
+      label: "Ask AI",
+      group: GROUP_AI,
+      icon: <Sparkles className="size-4" />,
+      keywords: ["assistant", "chat", "prompt"],
+      shortcut: "⌘J",
+      onRun: () => openOverlay(),
+    });
 
     for (const action of QUICK_ACTIONS) {
       if (action.accessTarget) {
@@ -207,7 +231,14 @@ export function CommandPalette() {
     }
 
     return out;
-  }, [canAccess, canStartConsultation, handleStartConsultation, router, user?.role]);
+  }, [
+    canAccess,
+    canStartConsultation,
+    handleStartConsultation,
+    openOverlay,
+    router,
+    user?.role,
+  ]);
 
   return (
     <CommandPaletteShell
@@ -215,7 +246,7 @@ export function CommandPalette() {
       onOpenChange={setOpen}
       actions={actions}
       placeholder="Enter command"
-      groupOrder={[GROUP_NAVIGATION, GROUP_ACTIONS]}
+      groupOrder={[GROUP_NAVIGATION, GROUP_AI, GROUP_ACTIONS]}
     />
   );
 }

@@ -67,7 +67,7 @@ describe("VerifyEmailVerifiedPage", () => {
     expect(mocks.router.push).toHaveBeenCalledWith("/onboarding");
   });
 
-  it("routes completed users to the dashboard", () => {
+  it("routes completed users to their workspace", () => {
     mocks.user = {
       clinicId: "clinic-1",
       onboardingStep: "COMPLETED",
@@ -77,6 +77,6 @@ describe("VerifyEmailVerifiedPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
 
-    expect(mocks.router.push).toHaveBeenCalledWith("/dashboard");
+    expect(mocks.router.push).toHaveBeenCalledWith("/today");
   });
 });

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { cn } from "@workspace/ui/lib/utils";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { useConsultationDraft } from "@/features/consultation/state/useConsultationDraft";
 import type { ConsultationSection } from "@/features/consultation/workspace/consultation-section-registry";
 
@@ -159,9 +160,8 @@ export function SectionRail({
                   {section.subtitle}
                 </span>
               ) : null}
-              <span
+              <MicroLabel
                 className={cn(
-                  "text-[var(--fs-2xs)] uppercase tracking-wide",
                   isActive
                     ? "text-primary-foreground/80"
                     : isComplete
@@ -170,7 +170,7 @@ export function SectionRail({
                 )}
               >
                 {isComplete ? "Started" : "Empty"}
-              </span>
+              </MicroLabel>
             </span>
             <Icon
               aria-hidden

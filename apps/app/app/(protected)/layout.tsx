@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
+  AskAiOverlay,
+  AskAiProvider,
   FloatingStartConsultation,
   RealtimeProviders,
   Sidebar,
@@ -163,7 +165,7 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
 
     const target = getAccessTargetForPath(pathname);
     if (!target) {
-      router.replace("/dashboard");
+      router.replace("/today");
       return;
     }
 
@@ -184,7 +186,7 @@ function PageAccessGuard({ children }: { children: React.ReactNode }) {
     );
 
     if (!hasAccess) {
-      router.replace("/dashboard");
+      router.replace("/today");
     }
   }, [canAccess, clinic, pathname, router, user?.role]);
 
@@ -206,7 +208,7 @@ function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
       {isConsultationDetailRoute ? (
         <div className="min-w-0 flex-1" aria-hidden="true" />
       ) : canGoBack ? (
-        <BackButton fallback="/dashboard" iconOnly className="px-2" />
+        <BackButton fallback="/today" iconOnly className="px-2" />
       ) : (
         <div className="flex h-10 items-center">
           <DocitaLogo />
@@ -435,6 +437,7 @@ export default function ProtectedLayout({
         <DoctorVerificationGuard>
           <SubscriptionGuard>
             <PageAccessGuard>
+             <AskAiProvider>
               <div className="flex h-screen overflow-hidden bg-background">
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel
@@ -522,6 +525,8 @@ export default function ProtectedLayout({
               </div>
               <FloatingStartConsultation />
               <CommandPalette />
+              <AskAiOverlay />
+             </AskAiProvider>
             </PageAccessGuard>
           </SubscriptionGuard>
         </DoctorVerificationGuard>

@@ -2,7 +2,7 @@ import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-
 import { memo } from "react";
 import { formatDate } from "@workspace/utils";
 import { formatTime } from "@/lib/formatters";
-import { Check, Clock, ExternalLink, MoreVertical, Stethoscope, User, UserCheck } from "lucide-react";
+import { CalendarPlus, Check, Clock, ExternalLink, MoreVertical, Stethoscope, User, UserCheck } from "lucide-react";
 import Link from "next/link";
 import type { AppointmentListItem } from "@/hooks/api/use-appointments";
 import { Button } from "@workspace/ui/components/button";
@@ -30,6 +30,7 @@ interface TimeSlotRowProps {
   onStartConsultation: (id: string) => void;
   onCancelClick: (id: string) => void;
   onNoShowClick: (id: string) => void;
+  onScheduleFollowUp?: (appointment: AppointmentListItem) => void;
   currentUserId?: string;
 }
 
@@ -42,6 +43,7 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
     onStartConsultation,
     onCancelClick,
     onNoShowClick,
+    onScheduleFollowUp,
     currentUserId,
   }) => {
     const { canStartConsultation } = usePermissions();
@@ -215,6 +217,15 @@ export const TimeSlotRow = memo<TimeSlotRowProps>(
                     View Patient
                   </Link>
                 </DropdownMenuItem>
+                {onScheduleFollowUp && (
+                  <DropdownMenuItem
+                    onClick={() => onScheduleFollowUp(apt)}
+                    data-testid="schedule-follow-up"
+                  >
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    Schedule follow-up
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={() => onCancelClick(apt.id || "")}
                   className="text-destructive focus:text-destructive"

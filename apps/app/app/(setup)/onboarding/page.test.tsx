@@ -76,7 +76,7 @@ describe("OnboardingPage", () => {
     );
   });
 
-  it("redirects completed onboarding users to the dashboard", async () => {
+  it("redirects completed onboarding users to their workspace", async () => {
     mocks.auth = {
       user: {
         id: "user-1",
@@ -90,7 +90,7 @@ describe("OnboardingPage", () => {
     render(<OnboardingPage />);
 
     await waitFor(() => {
-      expect(mocks.router.replace).toHaveBeenCalledWith("/dashboard");
+      expect(mocks.router.replace).toHaveBeenCalledWith("/today");
     });
 
     expect(screen.getByTestId("page-transition-loader")).toHaveTextContent(

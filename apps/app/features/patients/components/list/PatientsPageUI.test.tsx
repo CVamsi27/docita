@@ -16,6 +16,7 @@ const baseHandlers = {
   onAddPatient: noop,
   onPrevPage: noop,
   onNextPage: noop,
+  onRetry: noop,
 };
 
 const mockPatient: Patient = {
@@ -30,7 +31,7 @@ const mockPatient: Patient = {
 };
 
 describe("PatientsPageUI", () => {
-  it("renders empty state when no patients match", () => {
+  it("renders the page-level empty state when no patients exist", () => {
     render(
       <PatientsPageUI
         {...baseHandlers}
@@ -48,15 +49,17 @@ describe("PatientsPageUI", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Patients" })).toBeVisible();
-    expect(screen.getByText("No patients found")).toBeVisible();
+    expect(screen.getByText(/no patients yet/i)).toBeVisible();
   });
 
-  it("shows API error message when error is set", () => {
+  it("shows the API error message and retry control when error is set", () => {
+    const onRetry = vi.fn();
     render(
       <PatientsPageUI
         {...baseHandlers}
+        onRetry={onRetry}
         isLoading={false}
-        error="Unable to load patients"
+        error="We could not load patients. Please try again."
         searchQuery=""
         sortConfig={null}
         filteredPatients={[]}
@@ -68,7 +71,12 @@ describe("PatientsPageUI", () => {
       />,
     );
 
-    expect(screen.getByText("Unable to load patients")).toBeVisible();
+    expect(
+      screen.getByText(/we could not load patients/i),
+    ).toBeVisible();
+    const retry = screen.getByRole("button", { name: /try again|retry/i });
+    fireEvent.click(retry);
+    expect(onRetry).toHaveBeenCalled();
   });
 
   it("shows consultation queue shortcut when handler is provided", () => {
@@ -82,8 +90,8 @@ describe("PatientsPageUI", () => {
         error={null}
         searchQuery=""
         sortConfig={null}
-        filteredPatients={[]}
-        totalPatients={0}
+        filteredPatients={[mockPatient]}
+        totalPatients={1}
         pageSize={25}
         currentPage={1}
         canGoPrev={false}

@@ -19,6 +19,10 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { useWhatsappStats } from "@/hooks/api/use-whatsapp";
+import {
+  type ClinicAppSettings,
+  useClinicSettings,
+} from "@/hooks/api/use-settings";
 import { useState } from "react";
 import { WhatsAppBroadcastDialog } from "@/features/dialogs/components/WhatsAppBroadcastDialogContainer";
 import { WhatsAppSettingsDialog } from "@/features/dialogs/components/WhatsAppSettingsDialogContainer";
@@ -28,12 +32,32 @@ import { whatsappOptInRatePercent } from "@/features/whatsapp/lib/whatsapp-opt-i
 
 export default function WhatsAppPage() {
   const { data: stats, isLoading, isError, refetch } = useWhatsappStats();
+  const { data: clinic } = useClinicSettings();
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
 
   const subscriberCount = stats?.subscribers || 0;
   const totalPatients = stats?.totalPatients || 0;
   const optInRate = whatsappOptInRatePercent(subscriberCount, totalPatients);
+  const clinicSettings = (clinic?.settings as ClinicAppSettings | undefined) ?? {};
+  const reminderToggles: Array<{ label: string; enabled: boolean }> = [
+    {
+      label: "Appointment reminders",
+      enabled: clinicSettings.whatsappAppointmentReminders ?? true,
+    },
+    {
+      label: "Follow-up messages",
+      enabled: clinicSettings.whatsappFollowUpMessages ?? true,
+    },
+    {
+      label: "Birthday wishes",
+      enabled: clinicSettings.whatsappBirthdayWishes ?? false,
+    },
+    {
+      label: "Medicine reminders",
+      enabled: clinicSettings.whatsappMedicineReminders ?? true,
+    },
+  ];
 
   const header = (
     <PageHeader
@@ -102,13 +126,14 @@ export default function WhatsAppPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2 text-success font-medium mb-4">
-                <div className="h-2.5 w-2.5 rounded-full bg-success animate-pulse" />
-                Active
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-success">
+                <span className="h-2 w-2 rounded-full bg-success" aria-hidden />
+                <span className="text-sm font-medium">Active</span>
               </div>
               <p className="ui-helper-text">
-                Your bot is currently handling patient queries, appointment
-                confirmations, and reminders.
+                Your bot handles patient queries, appointment confirmations,
+                and reminders based on the templates configured in WhatsApp
+                automation settings.
               </p>
             </CardContent>
           </Card>
@@ -124,11 +149,11 @@ export default function WhatsAppPage() {
             <CardContent className="space-y-4">
               <p className="ui-helper-text">
                 Send health tips, facility updates, or holiday notices to your
-                patient list. Use the
-                <span className="mx-1 font-medium text-foreground">
+                patient list. Use{" "}
+                <span className="font-medium text-foreground">
                   Create Campaign
-                </span>
-                control above when you are ready.
+                </span>{" "}
+                above when you are ready.
               </p>
             </CardContent>
           </Card>
@@ -139,26 +164,31 @@ export default function WhatsAppPage() {
                 <Settings className="h-5 w-5" />
                 Configuration
               </CardTitle>
-              <CardDescription>Manage templates and triggers</CardDescription>
+              <CardDescription>Templates and triggers</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span>Appointment Reminders</span>
-                <span className="text-success font-medium">On</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span>Follow-up Messages</span>
-                <span className="text-success font-medium">On</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span>Birthday Wishes</span>
-                <span className="text-muted-foreground">Off</span>
-              </div>
+            <CardContent className="space-y-3">
+              {reminderToggles.map((toggle) => (
+                <div
+                  key={toggle.label}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span>{toggle.label}</span>
+                  <span
+                    className={
+                      toggle.enabled
+                        ? "font-medium text-success"
+                        : "text-muted-foreground"
+                    }
+                  >
+                    {toggle.enabled ? "On" : "Off"}
+                  </span>
+                </div>
+              ))}
               <p className="ui-helper-text pt-1">
-                Open
-                <span className="mx-1 font-medium text-foreground">
+                Open{" "}
+                <span className="font-medium text-foreground">
                   Manage Settings
-                </span>
+                </span>{" "}
                 above to change templates and triggers.
               </p>
             </CardContent>

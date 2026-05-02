@@ -4,16 +4,19 @@ import {
   Boxes,
   CalendarClock,
   CalendarDays,
+  CheckSquare,
   FileInput,
   Files,
   FlaskConical,
-  LayoutDashboard,
+  HelpCircle,
+  Inbox,
   type LucideIcon,
   MessageCircle,
   Pill,
   Receipt,
   Settings2,
   SmilePlus,
+  Sparkles,
   Stethoscope,
   TrendingUp,
   Users,
@@ -28,13 +31,16 @@ export interface NavItem {
   accessTarget?: AppAccessTarget;
 }
 
-export const navItems: NavItem[] = [
-  {
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    label: "Dashboard",
-    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
-  },
+export type NavSectionId = "track" | "services";
+
+export interface NavSection {
+  id: NavSectionId;
+  /** All-caps section label rendered in the sidebar (e.g. "TRACK"). */
+  label: string;
+  items: NavItem[];
+}
+
+const TRACK_ITEMS: NavItem[] = [
   {
     href: "/today",
     icon: CalendarClock,
@@ -76,6 +82,22 @@ export const navItems: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_LAB_TESTS,
   },
   {
+    href: "/documents",
+    icon: Files,
+    label: "Documents",
+    feature: Feature.DOCUMENT_ARCHIVAL,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DOCUMENTS,
+  },
+];
+
+const SERVICES_ITEMS: NavItem[] = [
+  {
+    href: "/inbox",
+    icon: Inbox,
+    label: "Inbox",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+  },
+  {
     href: "/invoices",
     icon: Receipt,
     label: "Invoices",
@@ -90,11 +112,17 @@ export const navItems: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVENTORY,
   },
   {
-    href: "/documents",
-    icon: Files,
-    label: "Documents",
-    feature: Feature.DOCUMENT_ARCHIVAL,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_DOCUMENTS,
+    href: "/follow-ups",
+    icon: CheckSquare,
+    label: "Follow-ups",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+  },
+  {
+    href: "/whatsapp",
+    icon: MessageCircle,
+    label: "WhatsApp",
+    feature: Feature.WHATSAPP_MESSAGING,
+    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
   },
   {
     href: "/analytics",
@@ -109,14 +137,19 @@ export const navItems: NavItem[] = [
     label: "Import Data",
     accessTarget: APP_ACCESS_TARGETS.PAGE_IMPORT,
   },
-  {
-    href: "/whatsapp",
-    icon: MessageCircle,
-    label: "WhatsApp Inbox",
-    feature: Feature.WHATSAPP_MESSAGING,
-    accessTarget: APP_ACCESS_TARGETS.PAGE_WHATSAPP,
-  },
 ];
+
+export const navSections: NavSection[] = [
+  { id: "track", label: "Track", items: TRACK_ITEMS },
+  { id: "services", label: "Services", items: SERVICES_ITEMS },
+];
+
+/**
+ * Flat ordered list of nav items used for back-compat with existing call sites
+ * (command palette, customize-sidebar preferences, access checks). Order is
+ * preserved as TRACK followed by SERVICES.
+ */
+export const navItems: NavItem[] = [...TRACK_ITEMS, ...SERVICES_ITEMS];
 
 export const SETTINGS_NAV_ITEM: NavItem = {
   href: "/settings",
@@ -125,7 +158,20 @@ export const SETTINGS_NAV_ITEM: NavItem = {
   accessTarget: APP_ACCESS_TARGETS.PAGE_SETTINGS,
 };
 
-export const FIXED_NAV_HREFS = new Set(["/dashboard", "/settings"]);
+export const HELP_NAV_ITEM: NavItem = {
+  href: "/help",
+  icon: HelpCircle,
+  label: "Help",
+};
+
+export const AI_ASSISTANT_NAV_ITEM: NavItem = {
+  href: "/ai-assistant",
+  icon: Sparkles,
+  label: "AI Assistant",
+  feature: Feature.AI_PRESCRIPTION_ASSISTANT,
+};
+
+export const FIXED_NAV_HREFS = new Set(["/today", "/settings"]);
 
 export const mobileOnlyNavItems: NavItem[] = [
   {

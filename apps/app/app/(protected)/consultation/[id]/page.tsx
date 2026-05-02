@@ -35,7 +35,7 @@ export default function ConsultationPage() {
     fallbackRoute,
   } = state;
 
-  const { handleBack, toggleSidebar } = handlers;
+  const { handleBack, toggleSidebar, retry } = handlers;
 
   const consultationReadOnly = appointmentData
     ? isConsultationReadOnlyStatus(appointmentData.status)
@@ -75,7 +75,7 @@ export default function ConsultationPage() {
           status="error"
           className="min-h-[50vh]"
           errorMessage="We could not open this consultation. Please try again."
-          onRetry={() => window.location.reload()}
+          onRetry={retry}
         />
       </AppPageScaffold>
     );

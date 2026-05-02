@@ -66,11 +66,11 @@ function LazySettingsPanelFallback() {
           iconClassName="h-8 w-8"
         />
         <div className="min-w-0 flex-1 space-y-2">
-          <Skeleton animation="wave" className="h-4 w-40" />
-          <Skeleton animation="wave" className="h-4 w-full max-w-sm" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-full max-w-sm" />
         </div>
       </div>
-      <Skeleton animation="wave" className="h-32 w-full rounded-lg" />
+      <Skeleton className="h-32 w-full rounded-lg" />
     </div>
   );
 }
@@ -152,28 +152,6 @@ const DangerZoneSettingsLazy = dynamic(
   },
 );
 
-const ComplianceSettingsLazy = dynamic(
-  () =>
-    import("@/features/settings/components/compliance/ComplianceSettingsPanel").then(
-      (mod) => mod.ComplianceSettingsPanel,
-    ),
-  {
-    ssr: false,
-    loading: () => <LazySettingsPanelFallback />,
-  },
-);
-
-const JoinRequestsSettingsLazy = dynamic(
-  () =>
-    import("@/features/settings/components/management/JoinRequestsSettingsPanel").then(
-      (mod) => mod.JoinRequestsSettingsPanel,
-    ),
-  {
-    ssr: false,
-    loading: () => <LazySettingsPanelFallback />,
-  },
-);
-
 export function SettingsPageUI({
   filteredTabs,
   searchQuery,
@@ -191,7 +169,7 @@ export function SettingsPageUI({
       header={
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <PageHeader
-            breadcrumbs={<BackButton fallback="/dashboard" label="Back to Dashboard" />}
+            breadcrumbs={<BackButton fallback="/today" label="Back to Today" />}
             title="Settings"
             description="Manage your facility preferences and configurations."
           />
@@ -309,26 +287,10 @@ export function SettingsPageUI({
             </TabsContent>
           )}
 
-          {visibleTabValues.has("join-requests") && (
-            <TabsContent value="join-requests" className="mt-0 space-y-6">
-              <RoleGuard requiredPermission="manageStaff">
-                <JoinRequestsSettingsLazy />
-              </RoleGuard>
-            </TabsContent>
-          )}
-
           {visibleTabValues.has("subscription") && (
             <TabsContent value="subscription" className="mt-0 space-y-6">
               <RoleGuard requiredPermission="manageBilling">
                 <SubscriptionSettingsLazy />
-              </RoleGuard>
-            </TabsContent>
-          )}
-
-          {visibleTabValues.has("compliance") && (
-            <TabsContent value="compliance" className="mt-0 space-y-6">
-              <RoleGuard requiredPermission="manageClinic">
-                <ComplianceSettingsLazy />
               </RoleGuard>
             </TabsContent>
           )}

@@ -2,6 +2,16 @@
 
 Thank you for your interest in contributing to Docita! This document provides guidelines and instructions for contributing to this project. We want to make it as easy as possible for you to get started.
 
+## Engineering Principles (mandatory)
+
+Every contribution must follow these foundations. They apply to humans and coding agents equally.
+
+- **SOLID, KISS, DRY** are mandatory. The concrete rules and examples live in [`AGENTS.md`](AGENTS.md) §12. Do not introduce abstractions without a current consumer; do not duplicate Zod schemas, API clients, UI primitives, or tokens.
+- **Architecture and layering** rules in [`AGENTS.md`](AGENTS.md) §3 (Zod-first types, Prisma boundary, controller/service/repository separation) and §5 (backend) are non-negotiable.
+- **UI/UX standard**: every new page, modal, or feature surface in `apps/app`, `apps/internal`, and `apps/landing` must comply with [`docs/UI_UX_STANDARD_2026.md`](docs/UI_UX_STANDARD_2026.md) (Origin-inspired sectioned sidebar, minimal topbar, AI surface contract, motion policy, modal/wizard patterns, per-page test contract). Use `@workspace/ui` primitives instead of app-local duplicates.
+- **Hygiene**: logging, comments, and code-hygiene rules in [`AGENTS.md`](AGENTS.md) §7 are required (no `console.log`, no decorative motion, no stale TODOs, no emojis in code).
+- Deviations from any of the above require an explicit, dated note in the PR description.
+
 ## 🚀 Getting Started
 
 ### Prerequisites

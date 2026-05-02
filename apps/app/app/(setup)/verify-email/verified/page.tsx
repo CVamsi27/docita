@@ -11,7 +11,7 @@ function getNextPathForVerifiedUser(user: User | null): string {
   }
 
   if (user.clinicId || user.onboardingStep === "COMPLETED") {
-    return "/dashboard";
+    return "/today";
   }
 
   switch (user.onboardingStep) {

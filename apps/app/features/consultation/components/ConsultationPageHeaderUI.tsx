@@ -4,9 +4,11 @@ import {
   HeartPulse,
   MoreVertical,
   PanelLeft,
+  Sparkles,
   Clock,
   User,
 } from "lucide-react";
+import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
 import { Button } from "@workspace/ui/components/button";
 import { Badge } from "@workspace/ui/components/badge";
 import {
@@ -74,6 +76,7 @@ export function ConsultationPageHeaderUI({
   onToggleDesktopSidebar,
 }: ConsultationPageHeaderUIProps) {
   const { openVitals } = useConsultationVitals();
+  const { openOverlay } = useAskAi();
   const [billingOpen, setBillingOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -244,6 +247,24 @@ export function ConsultationPageHeaderUI({
                   <span className="hidden md:inline">Invoice</span>
                 </Button>
               </SymbolTooltip>
+              <SymbolTooltip label="Ask AI about this consultation" side="bottom">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex gap-1.5 h-8"
+                  data-testid="consultation-ask-ai"
+                  onClick={() =>
+                    openOverlay({
+                      id: `consultation:${appointmentId}`,
+                      label: `on ${patientName}'s consultation`,
+                      payload: { appointmentId, patientId },
+                    })
+                  }
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <span className="hidden md:inline">Ask AI</span>
+                </Button>
+              </SymbolTooltip>
               <DropdownMenu>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -268,6 +289,18 @@ export function ConsultationPageHeaderUI({
                   <DropdownMenuItem onClick={() => setBillingOpen(true)}>
                     <CreditCard className="mr-2 h-4 w-4 text-success" />
                     Invoice
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      openOverlay({
+                        id: `consultation:${appointmentId}`,
+                        label: `on ${patientName}'s consultation`,
+                        payload: { appointmentId, patientId },
+                      })
+                    }
+                  >
+                    <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                    Ask AI
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

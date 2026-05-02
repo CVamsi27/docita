@@ -43,7 +43,7 @@ function getPostAuthPath(user: User): string {
     }
   }
 
-  return "/dashboard";
+  return "/today";
 }
 
 export function AuthPageContainer() {
@@ -281,7 +281,7 @@ export function AuthPageContainer() {
     >
       <div
         className={[
-          "animate-in fade-in slide-in-from-bottom-4 duration-700 ui-copy-stack",
+          "ui-copy-stack",
           step === "signup" ? "text-center lg:text-left" : "text-center",
         ].join(" ")}
       >
@@ -292,10 +292,7 @@ export function AuthPageContainer() {
       </div>
 
       <div className="ui-card-surface p-6 sm:p-8">
-        <div
-          key={step}
-          className="animate-in fade-in slide-in-from-right-4 duration-500"
-        >
+        <div key={step}>
           {step === "email" && (
             <AuthEmailStepUI
               email={email}

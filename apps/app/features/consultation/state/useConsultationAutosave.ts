@@ -181,7 +181,17 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
 
         failureStreakRef.current = 0;
         useConsultationDraft.getState().markClean();
-        persistToSession();
+        if (typeof window !== "undefined") {
+          try {
+            window.sessionStorage.removeItem(
+              draftSessionStorageKey(appointmentId),
+            );
+          } catch (error) {
+            logger.warn("Failed to clear consultation draft session key", {
+              error,
+            });
+          }
+        }
         return true;
       } catch (error) {
         failureStreakRef.current += 1;

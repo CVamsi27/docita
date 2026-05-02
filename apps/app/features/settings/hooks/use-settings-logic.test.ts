@@ -90,4 +90,23 @@ describe("getVisibleSettingsTabs", () => {
 
     expect(store.canAccess(Feature.BROADCAST_CAMPAIGNS)).toBe(false);
   });
+
+  it("excludes legacy join-requests and compliance tabs (now dedicated routes)", () => {
+    const store = usePermissionStore.getState();
+    store.setUserRole("ADMIN");
+
+    const tabs = getVisibleSettingsTabs({
+      userRole: "ADMIN",
+      currentTier: store.currentTier,
+      canAccessFeature: store.canAccess,
+      canAccessTier: store.canAccessTier,
+    });
+
+    const visibleTabValues = tabs.flatMap((category) =>
+      category.items.map((item) => item.value),
+    );
+
+    expect(visibleTabValues).not.toContain("join-requests");
+    expect(visibleTabValues).not.toContain("compliance");
+  });
 });

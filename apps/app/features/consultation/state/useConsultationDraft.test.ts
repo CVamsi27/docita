@@ -67,6 +67,17 @@ describe("useConsultationDraft", () => {
     expect(state.lastError).toBe("offline");
     expect(state.dirty).toBe(true);
   });
+
+  it("clearConsultationLeaveGuard clears guard fields without marking saved", () => {
+    useConsultationDraft.getState().hydrate("apt-1", {});
+    useConsultationDraft.getState().setHistory("draft text");
+    useConsultationDraft.getState().clearConsultationLeaveGuard();
+    const state = useConsultationDraft.getState();
+    expect(state.history).toBe("draft text");
+    expect(state.dirty).toBe(false);
+    expect(state.saveState).toBe("idle");
+    expect(state.lastError).toBe(null);
+  });
 });
 
 describe("consultationDraftNeedsLeaveGuard", () => {

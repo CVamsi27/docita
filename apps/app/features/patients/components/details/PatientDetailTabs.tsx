@@ -3,12 +3,8 @@
 import { useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs";
+import { PageTabs, type PageTabItem } from "@workspace/ui/components/page-tabs";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { PatientDetailTabLoadingShell } from "@/features/patients/components/details/patient-detail-tab-loading-shell";
 import {
   Activity,
@@ -104,20 +100,29 @@ export const PATIENT_DETAIL_TAB_VALUES = [
 
 export type PatientDetailTabValue = (typeof PATIENT_DETAIL_TAB_VALUES)[number];
 
+type PatientTabGroup = "summary" | "care" | "money";
+
 const TAB_DEFINITIONS: Array<{
   value: PatientDetailTabValue;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  group: PatientTabGroup;
 }> = [
-  { value: "overview", label: "Overview", icon: LayoutDashboard },
-  { value: "visits", label: "Visits", icon: Stethoscope },
-  { value: "records", label: "Records", icon: ClipboardList },
-  { value: "prescriptions", label: "Prescriptions", icon: Pill },
-  { value: "vitals", label: "Vitals", icon: Activity },
-  { value: "labs", label: "Lab Tests", icon: FlaskConical },
-  { value: "documents", label: "Documents", icon: FileText },
-  { value: "billing", label: "Billing", icon: Receipt },
+  { value: "overview", label: "Overview", icon: LayoutDashboard, group: "summary" },
+  { value: "vitals", label: "Vitals", icon: Activity, group: "summary" },
+  { value: "visits", label: "Visits", icon: Stethoscope, group: "care" },
+  { value: "records", label: "Records", icon: ClipboardList, group: "care" },
+  { value: "prescriptions", label: "Prescriptions", icon: Pill, group: "care" },
+  { value: "labs", label: "Labs", icon: FlaskConical, group: "care" },
+  { value: "documents", label: "Documents", icon: FileText, group: "care" },
+  { value: "billing", label: "Billing", icon: Receipt, group: "money" },
 ];
+
+const GROUP_LABEL: Record<PatientTabGroup, string> = {
+  summary: "Summary",
+  care: "Care",
+  money: "Money",
+};
 
 const isPatientDetailTabValue = (
   value: string | null,
@@ -169,34 +174,46 @@ export function PatientDetailTabs({
     [pathname, router, searchParams],
   );
 
-  const tabsList = useMemo(
-    () => (
-      <TabsList className="w-full sm:w-auto h-auto flex-wrap gap-1">
-        {TAB_DEFINITIONS.map(({ value, label, icon: Icon }) => (
-          <TabsTrigger
-            key={value}
-            value={value}
-            className="flex-1 sm:flex-none whitespace-nowrap"
-          >
-            <Icon className="mr-1.5 h-4 w-4" aria-hidden />
-            {label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    ),
-    [],
-  );
+  const groups = useMemo(() => {
+    const seen = new Set<PatientTabGroup>();
+    const ordered: PatientTabGroup[] = [];
+    for (const tab of TAB_DEFINITIONS) {
+      if (!seen.has(tab.group)) {
+        seen.add(tab.group);
+        ordered.push(tab.group);
+      }
+    }
+    return ordered.map((group) => ({
+      group,
+      label: GROUP_LABEL[group],
+      items: TAB_DEFINITIONS.filter((tab) => tab.group === group).map<PageTabItem>(
+        ({ value, label }) => ({ id: value, label }),
+      ),
+    }));
+  }, []);
 
   return (
-    <Tabs value={activeTab} onValueChange={handleSelectTab} className="w-full">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-        {tabsList}
+    <div role="region" aria-label="Patient detail" className="w-full">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3" data-testid="patient-detail-tab-bar">
+          {groups.map(({ group, label, items }) => (
+            <div key={group} className="flex flex-col gap-1">
+              <MicroLabel className="px-1">{label}</MicroLabel>
+              <PageTabs
+                items={items}
+                activeId={activeTab}
+                onSelect={handleSelectTab}
+                ariaLabel={`${label} sections`}
+              />
+            </div>
+          ))}
+        </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
           <PatientTagManager patientId={patientId} />
         </div>
       </div>
 
-      <TabsContent value="overview" className="mt-0">
+      {activeTab === "overview" && (
         <OverviewTab
           patientId={patientId}
           appointments={appointments}
@@ -204,39 +221,24 @@ export function PatientDetailTabs({
           onSelectTab={handleSelectTab}
           onScheduleVisit={onScheduleVisit}
         />
-      </TabsContent>
-
-      <TabsContent value="visits" className="mt-0">
-        <VisitsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="records" className="mt-0">
+      )}
+      {activeTab === "visits" && <VisitsTab patientId={patientId} />}
+      {activeTab === "records" && (
         <RecordsTab patient={patient} canEditPatient={canEditPatient} />
-      </TabsContent>
-
-      <TabsContent value="prescriptions" className="mt-0">
+      )}
+      {activeTab === "prescriptions" && (
         <PrescriptionsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="vitals" className="mt-0">
+      )}
+      {activeTab === "vitals" && (
         <VitalsTab
           patientId={patientId}
           appointments={appointments}
           canRecordPatientVitals={canRecordPatientVitals}
         />
-      </TabsContent>
-
-      <TabsContent value="labs" className="mt-0">
-        <LabsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="documents" className="mt-0">
-        <DocumentsTab patientId={patientId} />
-      </TabsContent>
-
-      <TabsContent value="billing" className="mt-0">
-        <BillingTab patientId={patientId} />
-      </TabsContent>
-    </Tabs>
+      )}
+      {activeTab === "labs" && <LabsTab patientId={patientId} />}
+      {activeTab === "documents" && <DocumentsTab patientId={patientId} />}
+      {activeTab === "billing" && <BillingTab patientId={patientId} />}
+    </div>
   );
 }

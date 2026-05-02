@@ -153,7 +153,7 @@ export function PricingDialog({
         </div>
 
         <div className="flex flex-wrap justify-center gap-4 py-4">
-          {tiers.map((tierName, index) => {
+          {tiers.map((tierName) => {
             const info = TIER_INFO[tierName];
             const tierPricing = getTierPricing(tierName);
             const limits = TIER_LIMITS[tierName];
@@ -172,12 +172,10 @@ export function PricingDialog({
             return (
               <div
                 key={tierName}
-                style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
                   "relative flex w-full max-w-[280px] flex-col rounded-[var(--radius)] border-2 p-4",
                   "bg-card",
-                  "transition-all duration-300 ease-out",
-                  "hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-4",
+                  "transition-colors duration-150",
                   PRICING_DIALOG_TIER_BORDERS[tierName],
                   isCurrentTier &&
                     "ring-2 ring-primary ring-offset-2 ring-offset-background",

@@ -112,11 +112,11 @@ describe("JoinRequestStatusPage", () => {
     };
   });
 
-  it("redirects completed users to the dashboard", async () => {
+  it("redirects completed users to their workspace", async () => {
     render(<JoinRequestStatusPage />);
 
     await waitFor(() => {
-      expect(mocks.router.replace).toHaveBeenCalledWith("/dashboard");
+      expect(mocks.router.replace).toHaveBeenCalledWith("/today");
     });
   });
 

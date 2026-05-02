@@ -33,6 +33,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
+import { MicroLabel } from "@workspace/ui/components/micro-label";
+import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_COUNTRY_CODE } from "@workspace/utils";
 import { formatDateTime } from "@/lib/formatters";
 
@@ -416,30 +418,52 @@ export function ClinicRegistrationForm({
       </div>
 
       <div className="ui-card-surface p-4 md:p-5">
-        <div className="flex items-center justify-between text-sm mb-3">
-          <p className="font-medium text-foreground">
-            Step {step} of {TOTAL_STEPS}: {currentStep.label}
-          </p>
-          <p className="text-muted-foreground text-xs">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <MicroLabel>Setup wizard</MicroLabel>
+            <p className="text-base font-semibold text-foreground">
+              Step {step} of {TOTAL_STEPS}: {currentStep.label}
+            </p>
+          </div>
+          <p className="shrink-0 text-xs text-muted-foreground">
             ~{currentStep.estimatedTime} remaining
           </p>
         </div>
-        <div className="h-2 w-full rounded-full bg-muted">
-          <div
-            className="h-2 rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-            role="progressbar"
-            aria-valuenow={progressPercent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Onboarding progress: ${progressPercent}%`}
-          />
-        </div>
-        <div className="hidden sm:flex justify-between mt-2">
+        <div
+          className="mt-3 flex items-center gap-2"
+          role="progressbar"
+          aria-valuenow={progressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Onboarding progress: ${progressPercent}%`}
+        >
           {STEPS.map((s) => (
             <span
               key={s.number}
-              className={`text-xs ${s.number === step ? "font-semibold text-primary" : s.number < step ? "text-muted-foreground" : "text-muted-foreground/50"}`}
+              className={cn(
+                "h-1.5 flex-1 rounded-full transition-colors",
+                s.number < step
+                  ? "bg-primary"
+                  : s.number === step
+                    ? "bg-primary/80"
+                    : "bg-muted",
+              )}
+              aria-hidden
+            />
+          ))}
+        </div>
+        <div className="mt-2 hidden justify-between sm:flex">
+          {STEPS.map((s) => (
+            <span
+              key={s.number}
+              className={cn(
+                "text-[var(--fs-2xs)] uppercase tracking-wide",
+                s.number === step
+                  ? "font-semibold text-primary"
+                  : s.number < step
+                    ? "text-muted-foreground"
+                    : "text-muted-foreground/50",
+              )}
             >
               {s.label}
             </span>
