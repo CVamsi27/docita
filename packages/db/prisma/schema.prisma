@@ -3614,3 +3614,35 @@ model QueueJob {
   @@index([createdAt])
   @@index([name, idempotencyKey, completedAt(sort: Desc)], map: "QueueJob_idempotency_lookup_idx")
 }
+
+enum ApiHttpIdempotencyStatus {
+  PROCESSING
+  COMPLETED
+}
+
+/// Cross-replica HTTP idempotency for POST mutations (Idempotency-Key header).
+/// Rows are purged after recordExpiresAt by EphemeralStoreCleanupScheduler.
+model ApiHttpIdempotencyRecord {
+  id                    String                   @id @default(cuid())
+  scopedKey             String                   @unique
+  bodyHash              String
+  status                ApiHttpIdempotencyStatus
+  response              Json?
+  processingExpiresAt   DateTime
+  recordExpiresAt       DateTime
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([recordExpiresAt])
+  @@index([status, processingExpiresAt])
+}
+
+/// Short-lived dedupe for verified webhook deliveries (replay protection).
+model WebhookReplayDedupe {
+  id            String   @id @default(cuid())
+  dedupeKeyHash String   @unique
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([expiresAt])
+}
