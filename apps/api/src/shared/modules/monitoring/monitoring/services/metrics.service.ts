@@ -14,6 +14,9 @@ function getMetadataPage(
   return typeof page === 'string' ? page : undefined;
 }
 
+/** Stored in `SystemMetric.unit` for browser Core Web Vitals rows only. */
+const CORE_WEB_VITAL_NAMES = new Set(['LCP', 'INP', 'CLS', 'FCP', 'TTFB']);
+
 @Injectable()
 export class MetricsService {
   private readonly logger = new Logger(MetricsService.name);
@@ -457,20 +460,29 @@ export class MetricsService {
   async recordWebVital(vital: WebVitalDto) {
     const rating = this.getRating(vital.name, vital.value);
 
-    await this.prisma.systemMetric.create({
-      data: {
-        metricType: MetricType.AVG_RESPONSE_TIME,
-        value: vital.value,
-        unit: vital.name,
-        metadata: {
-          rating,
-          page: vital.page,
-          userId: vital.userId,
-          sessionId: vital.sessionId,
-          metricName: vital.name,
-        } as Prisma.InputJsonValue,
-      },
-    });
+    if (this.persistenceDisabled) {
+      return { success: true, rating };
+    }
+
+    try {
+      await this.prisma.systemMetric.create({
+        data: {
+          metricType: MetricType.AVG_RESPONSE_TIME,
+          value: vital.value,
+          unit: vital.name,
+          metadata: {
+            rating,
+            page: vital.page,
+            userId: vital.userId,
+            sessionId: vital.sessionId,
+            metricName: vital.name,
+            ...(vital.feature ? { feature: vital.feature } : {}),
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error) {
+      this.handlePersistenceError(error, 'Failed to record web vital');
+    }
 
     return { success: true, rating };
   }
@@ -500,6 +512,9 @@ export class MetricsService {
     const grouped = filtered.reduce(
       (acc, vital) => {
         const name = vital.unit || 'unknown';
+        if (!CORE_WEB_VITAL_NAMES.has(name)) {
+          return acc;
+        }
         if (!acc[name]) acc[name] = [];
         acc[name].push(vital.value);
         return acc;
@@ -556,5 +571,143 @@ export class MetricsService {
     });
 
     return result.count;
+  }
+
+  async getSecurityMonitoringSummary(startDate: Date, endDate: Date) {
+    const whereBase: Prisma.ApiRequestWhereInput = {
+      createdAt: { gte: startDate, lte: endDate },
+    };
+
+    try {
+      const [
+        totalRequests,
+        status401,
+        status403,
+        status429,
+        status5xx,
+        topAuthFailureRoutes,
+      ] = await Promise.all([
+        this.prisma.apiRequest.count({ where: whereBase }),
+        this.prisma.apiRequest.count({
+          where: { ...whereBase, statusCode: 401 },
+        }),
+        this.prisma.apiRequest.count({
+          where: { ...whereBase, statusCode: 403 },
+        }),
+        this.prisma.apiRequest.count({
+          where: { ...whereBase, statusCode: 429 },
+        }),
+        this.prisma.apiRequest.count({
+          where: {
+            ...whereBase,
+            statusCode: { gte: 500, lte: 599 },
+          },
+        }),
+        this.prisma.apiRequest.groupBy({
+          by: ['path', 'method', 'statusCode'],
+          where: {
+            ...whereBase,
+            statusCode: { in: [401, 403, 429] },
+          },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 25,
+        }),
+      ]);
+
+      return {
+        windowStart: startDate.toISOString(),
+        windowEnd: endDate.toISOString(),
+        totalRequests,
+        status401,
+        status403,
+        status429,
+        status5xx,
+        topAuthFailureRoutes: topAuthFailureRoutes.map((row) => ({
+          path: row.path,
+          method: row.method,
+          statusCode: row.statusCode,
+          count: row._count.id,
+        })),
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to load security monitoring summary: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
+      );
+      return {
+        windowStart: startDate.toISOString(),
+        windowEnd: endDate.toISOString(),
+        totalRequests: 0,
+        status401: 0,
+        status403: 0,
+        status429: 0,
+        status5xx: 0,
+        topAuthFailureRoutes: [],
+      };
+    }
+  }
+
+  async getQueueHealthSummary() {
+    try {
+      const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const [countsByStatus, topQueuesByWaiting, topQueuesByFailed, dlq24h] =
+        await Promise.all([
+          this.prisma.queueJob.groupBy({
+            by: ['status'],
+            _count: { id: true },
+          }),
+          this.prisma.queueJob.groupBy({
+            by: ['name'],
+            where: { status: 'WAITING' },
+            _count: { id: true },
+            orderBy: { _count: { id: 'desc' } },
+            take: 12,
+          }),
+          this.prisma.queueJob.groupBy({
+            by: ['name'],
+            where: { status: 'FAILED' },
+            _count: { id: true },
+            orderBy: { _count: { id: 'desc' } },
+            take: 12,
+          }),
+          this.prisma.queueJob.count({
+            where: {
+              status: 'DEAD_LETTERED',
+              deadLetteredAt: { gte: since24h },
+            },
+          }),
+        ]);
+
+      return {
+        countsByStatus: countsByStatus.map((row) => ({
+          status: row.status,
+          count: row._count.id,
+        })),
+        topQueuesByWaiting: topQueuesByWaiting.map((row) => ({
+          name: row.name,
+          count: row._count.id,
+        })),
+        topQueuesByFailed: topQueuesByFailed.map((row) => ({
+          name: row.name,
+          count: row._count.id,
+        })),
+        deadLetteredLast24h: dlq24h,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to load queue health summary: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
+      );
+      return {
+        countsByStatus: [],
+        topQueuesByWaiting: [],
+        topQueuesByFailed: [],
+        deadLetteredLast24h: 0,
+      };
+    }
   }
 }

@@ -209,4 +209,12 @@ export class MonitoringService implements OnModuleDestroy {
   async getWebVitals(startDate?: Date, endDate?: Date, page?: string) {
     return this.metricsService.getWebVitals(startDate, endDate, page);
   }
+
+  async getSecurityMonitoringSummary(startDate: Date, endDate: Date) {
+    return this.metricsService.getSecurityMonitoringSummary(startDate, endDate);
+  }
+
+  async getQueueHealthSummary() {
+    return this.metricsService.getQueueHealthSummary();
+  }
 }

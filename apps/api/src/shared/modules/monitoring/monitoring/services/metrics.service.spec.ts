@@ -31,6 +31,10 @@ describe('MetricsService', () => {
       upsert: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
       findMany: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
     };
+    queueJob: {
+      groupBy: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+      count: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+    };
   };
 
   const mockPrismaService = {
@@ -51,6 +55,10 @@ describe('MetricsService', () => {
     performanceAggregate: {
       upsert: jest.fn(),
       findMany: jest.fn(),
+    },
+    queueJob: {
+      groupBy: jest.fn(),
+      count: jest.fn(),
     },
   };
 
@@ -266,6 +274,81 @@ describe('MetricsService', () => {
       };
       const result = await service.recordWebVital(vital);
       expect(result.rating).toBe('poor');
+    });
+
+    it('should persist optional feature in metadata', async () => {
+      const vital = {
+        name: 'LCP',
+        value: 1200,
+        rating: 'good' as const,
+        feature: 'internal-admin',
+      };
+      await service.recordWebVital(vital);
+      expect(prismaService.systemMetric.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            metadata: expect.objectContaining({
+              feature: 'internal-admin',
+            }),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getSecurityMonitoringSummary', () => {
+    it('should aggregate status counts and top auth routes', async () => {
+      prismaService.apiRequest.count
+        .mockResolvedValueOnce(1000)
+        .mockResolvedValueOnce(10)
+        .mockResolvedValueOnce(3)
+        .mockResolvedValueOnce(2)
+        .mockResolvedValueOnce(5);
+      prismaService.apiRequest.groupBy.mockResolvedValueOnce([
+        {
+          path: '/api/v1/patients',
+          method: 'GET',
+          statusCode: 401,
+          _count: { id: 7 },
+        },
+      ]);
+
+      const start = new Date('2026-01-01T00:00:00.000Z');
+      const end = new Date('2026-01-02T00:00:00.000Z');
+      const result = await service.getSecurityMonitoringSummary(start, end);
+
+      expect(result.totalRequests).toBe(1000);
+      expect(result.status401).toBe(10);
+      expect(result.status403).toBe(3);
+      expect(result.status429).toBe(2);
+      expect(result.status5xx).toBe(5);
+      expect(result.topAuthFailureRoutes).toHaveLength(1);
+      expect(result.topAuthFailureRoutes[0]).toEqual({
+        path: '/api/v1/patients',
+        method: 'GET',
+        statusCode: 401,
+        count: 7,
+      });
+    });
+  });
+
+  describe('getQueueHealthSummary', () => {
+    it('should return queue aggregates', async () => {
+      prismaService.queueJob.groupBy
+        .mockResolvedValueOnce([
+          { status: 'WAITING', _count: { id: 4 } },
+          { status: 'COMPLETED', _count: { id: 100 } },
+        ])
+        .mockResolvedValueOnce([{ name: 'email', _count: { id: 3 } }])
+        .mockResolvedValueOnce([{ name: 'import', _count: { id: 1 } }]);
+      prismaService.queueJob.count.mockResolvedValueOnce(2);
+
+      const result = await service.getQueueHealthSummary();
+
+      expect(result.countsByStatus).toHaveLength(2);
+      expect(result.topQueuesByWaiting).toEqual([{ name: 'email', count: 3 }]);
+      expect(result.topQueuesByFailed).toEqual([{ name: 'import', count: 1 }]);
+      expect(result.deadLetteredLast24h).toBe(2);
     });
   });
 });

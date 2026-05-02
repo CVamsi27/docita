@@ -63,6 +63,15 @@ export class CsrfInterceptor implements NestInterceptor {
     );
   }
 
+  /** Public browser RUM beacons do not carry CSRF headers. */
+  private isPublicWebVitalsPost(request: Request): boolean {
+    if (request.method?.toUpperCase() !== 'POST') {
+      return false;
+    }
+    const path = this.getRequestPath(request);
+    return /^\/api\/v\d+\/monitoring\/web-vitals$/i.test(path);
+  }
+
   private hasSessionCookie(request: Request): boolean {
     const cookies = request.cookies ?? {};
     return Boolean(cookies['access_token'] || cookies['refresh_token']);
@@ -100,6 +109,10 @@ export class CsrfInterceptor implements NestInterceptor {
     }
 
     if (!this.isSafeMethod(request.method)) {
+      if (this.isPublicWebVitalsPost(request)) {
+        return next.handle();
+      }
+
       const headerToken = this.getHeaderToken(request);
 
       if (this.canBootstrapCsrfForAuthMutation(request)) {

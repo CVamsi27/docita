@@ -6,6 +6,9 @@ import {
   ErrorStatsSchema,
   PerformanceMetricsSchema,
   WebVitalSchema,
+  WebVitalsAggregateListSchema,
+  securityMonitoringSummarySchema,
+  queueHealthSummarySchema,
   jsonObjectSchema,
 } from '@workspace/types';
 
@@ -15,6 +18,9 @@ export {
   ErrorStatsSchema,
   PerformanceMetricsSchema,
   WebVitalSchema,
+  WebVitalsAggregateListSchema,
+  securityMonitoringSummarySchema,
+  queueHealthSummarySchema,
 };
 
 export class WebVitalDto extends createZodDto(WebVitalSchema) {}
@@ -25,8 +31,16 @@ export class ErrorStatsResponseDto extends createZodDto(ErrorStatsSchema) {}
 export class PerformanceMetricsResponseDto extends createZodDto(
   PerformanceMetricsSchema,
 ) {}
-export class WebVitalListResponseDto extends createZodDto(
-  z.array(WebVitalSchema),
+export class WebVitalsAggregateListResponseDto extends createZodDto(
+  WebVitalsAggregateListSchema,
+) {}
+
+export class SecurityMonitoringSummaryResponseDto extends createZodDto(
+  securityMonitoringSummarySchema,
+) {}
+
+export class QueueHealthSummaryResponseDto extends createZodDto(
+  queueHealthSummarySchema,
 ) {}
 
 export const AggregatedPerformanceSchema = z.object({

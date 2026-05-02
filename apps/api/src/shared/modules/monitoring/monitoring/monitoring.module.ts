@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { MonitoringController } from './monitoring.controller';
+import { MonitoringRumController } from './monitoring-rum.controller';
 import { MonitoringClientController } from './monitoring-client.controller';
 import { MonitoringService } from './monitoring.service';
 import { PrismaModule } from '@/prisma/prisma.module';
@@ -19,6 +20,7 @@ import { HealthCheckService } from './services/health-check.service';
   imports: [TerminusModule, PrismaModule, ComplianceModule],
   controllers: [
     MonitoringController,
+    MonitoringRumController,
     MonitoringClientController,
     HealthController,
   ],
