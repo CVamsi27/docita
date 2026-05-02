@@ -53,6 +53,7 @@ import {
   isPastSubscriptionGraceDeadline,
 } from "@/lib/subscription-lockout";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
+import { FeatureFlagsProvider } from "@/features/_shared/hooks/use-feature-flag";
 
 const SUBSCRIPTION_ALLOWED_PATHS = ["/settings", "/login", "/billing-locked"];
 const VERIFICATION_ALLOWED_PATHS = ["/verify-doctor", "/login"];
@@ -434,6 +435,7 @@ export default function ProtectedLayout({
   return (
     <RealtimeProviders>
       <ClinicProvider>
+        <FeatureFlagsProvider>
         <DoctorVerificationGuard>
           <SubscriptionGuard>
             <PageAccessGuard>
@@ -530,6 +532,7 @@ export default function ProtectedLayout({
             </PageAccessGuard>
           </SubscriptionGuard>
         </DoctorVerificationGuard>
+        </FeatureFlagsProvider>
       </ClinicProvider>
     </RealtimeProviders>
   );

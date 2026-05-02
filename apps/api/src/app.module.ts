@@ -68,6 +68,7 @@ import {
 } from './shared/modules/tenant-rate-limit';
 import { WebhooksModule } from './shared/modules/webhooks';
 import { RlsModule } from './shared/modules/rls';
+import { FeatureFlagsModule } from './shared/modules/feature-flags';
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
@@ -133,6 +134,7 @@ import { IpdModule } from './domains/ipd/ipd.module';
     TenantRateLimitModule,
     WebhooksModule,
     RlsModule,
+    FeatureFlagsModule,
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [

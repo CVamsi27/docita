@@ -1076,6 +1076,17 @@ model ClinicApiQuota {
   @@index([currentMonthResetsAt])
 }
 
+model FeatureFlagDefinition {
+  key               String   @id
+  description       String
+  defaultEnabled    Boolean  @default(false)
+  clinicOverrides   Json?
+  userOverrides     Json?
+  percentageRollout Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 model MetricCategory {
   id          String   @id @default(cuid())
   clinicId    String
