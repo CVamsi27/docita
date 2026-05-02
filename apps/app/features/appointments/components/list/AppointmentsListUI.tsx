@@ -1,4 +1,3 @@
-import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 import { useMemo } from "react";
 import { formatDate } from "@workspace/utils";
 import { formatLocalHalfHourSlotKey } from "@/features/appointments/hooks/use-appointments-logic";

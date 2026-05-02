@@ -214,7 +214,6 @@ export function useConsultationAutosave(options: UseConsultationAutosaveOptions)
       appointmentId,
       buildAppointmentPatch,
       getDraft,
-      persistToSession,
       readOnly,
       syncDiagnoses,
       updateAppointment,

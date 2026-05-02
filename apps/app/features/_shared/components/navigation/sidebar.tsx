@@ -344,18 +344,6 @@ function SidebarContent({
                 {section.items.map((item) => renderNavLink(item))}
               </div>
             );
-
-            return (
-              <Fragment key={item.href}>
-                {collapsedRail ? (
-                  <SymbolTooltip label={item.label} side="right">
-                    {link}
-                  </SymbolTooltip>
-                ) : (
-                  link
-                )}
-              </Fragment>
-            );
           })}
 
           {dynamicSection && dynamicSection.items.length > 0 ? (

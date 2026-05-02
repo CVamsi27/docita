@@ -10,10 +10,8 @@ import {
   Lock,
   MessageSquare,
   Paintbrush,
-  Shield,
   Ticket,
   UserCircle,
-  UserPlus,
   Users,
 } from "lucide-react";
 import { Feature } from "@workspace/types";
@@ -41,24 +39,10 @@ export const settingsTabs = [
         roles: ADMIN_ROLES,
       },
       {
-        value: "join-requests",
-        label: "Join Requests",
-        icon: UserPlus,
-        description: "Pending team invitations",
-        roles: ADMIN_ROLES,
-      },
-      {
         value: "subscription",
         label: "Billing & Subscription",
         icon: Crown,
         description: "Plan, invoices & usage",
-        roles: ADMIN_ROLES,
-      },
-      {
-        value: "compliance",
-        label: "Compliance",
-        icon: Shield,
-        description: "DPDP, audits & data requests",
         roles: ADMIN_ROLES,
       },
     ],
