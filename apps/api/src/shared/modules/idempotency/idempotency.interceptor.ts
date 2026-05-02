@@ -39,8 +39,18 @@ function readHeader(value: unknown): string | null {
   return null;
 }
 
+/**
+ * Canonical route path for idempotency scoping. Prefer the raw URL path
+ * (without query) so concurrent requests on the same route always share the
+ * same scoped key; `req.path` can differ across Express/Nest versions or mounts.
+ */
 function readPath(req: ScopedRequest): string {
-  return req.path ?? req.originalUrl ?? req.url ?? '';
+  const fromUrl = (req.originalUrl ?? req.url ?? '').split('?')[0];
+  if (fromUrl.length > 0) {
+    return fromUrl.startsWith('/') ? fromUrl : `/${fromUrl}`;
+  }
+  const p = req.path ?? '';
+  return p.startsWith('/') ? p : `/${p}`;
 }
 
 function readUserId(req: ScopedRequest): string | null {
@@ -113,13 +123,17 @@ export class IdempotencyInterceptor implements NestInterceptor {
       return of(cached.response);
     }
 
-    if (await this.service.isProcessing(scopedKey)) {
-      throw new ConflictException(
-        'A request with this Idempotency-Key is already in progress.',
-      );
+    try {
+      await this.service.markProcessing(scopedKey);
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        const replay = await this.service.getCached(scopedKey);
+        if (replay && replay.bodyHash === bodyHash) {
+          return of(replay.response);
+        }
+      }
+      throw err;
     }
-
-    await this.service.markProcessing(scopedKey);
 
     return new Observable((subscriber) => {
       next

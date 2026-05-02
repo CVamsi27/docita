@@ -1,41 +1,36 @@
-import { describe, expect, it, beforeEach } from '@jest/globals';
+import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { IdempotencyService } from './idempotency.service';
-import type { Cache } from 'cache-manager';
+import type { IdempotencyRepository } from './idempotency.repository';
+import { IDEMPOTENCY_TTL_SECONDS_DEFAULT } from './idempotency.constants';
 
-function buildMemoryCache(): Cache {
-  const store = new Map<string, { value: unknown; expiresAt: number }>();
+function buildRepositoryMock(): jest.Mocked<
+  Pick<
+    IdempotencyRepository,
+    | 'findActiveCompleted'
+    | 'isKeyProcessing'
+    | 'markProcessing'
+    | 'completeProcessing'
+    | 'abortProcessing'
+  >
+> {
   return {
-    get: async (key: string) => {
-      const entry = store.get(key);
-      if (!entry) return undefined;
-      if (entry.expiresAt && Date.now() > entry.expiresAt) {
-        store.delete(key);
-        return undefined;
-      }
-      return entry.value;
-    },
-    set: async (key: string, value: unknown, ttlMs?: number) => {
-      store.set(key, {
-        value,
-        expiresAt: ttlMs ? Date.now() + ttlMs : 0,
-      });
-    },
-    del: async (key: string) => {
-      store.delete(key);
-    },
-    reset: async () => {
-      store.clear();
-    },
-  } as unknown as Cache;
+    findActiveCompleted: jest.fn(),
+    isKeyProcessing: jest.fn(),
+    markProcessing: jest.fn(),
+    completeProcessing: jest.fn(),
+    abortProcessing: jest.fn(),
+  };
 }
 
 describe('IdempotencyService', () => {
-  let cache: Cache;
+  let repository: ReturnType<typeof buildRepositoryMock>;
   let service: IdempotencyService;
 
   beforeEach(() => {
-    cache = buildMemoryCache();
-    service = new IdempotencyService(cache);
+    repository = buildRepositoryMock();
+    service = new IdempotencyService(
+      repository as unknown as IdempotencyRepository,
+    );
   });
 
   describe('buildKey', () => {
@@ -115,7 +110,7 @@ describe('IdempotencyService', () => {
     });
   });
 
-  describe('cache lifecycle', () => {
+  describe('persistence delegation', () => {
     it('round-trips an entry through getCached/saveCached', async () => {
       const key = service.buildKey({
         tenantId: 't',
@@ -124,7 +119,7 @@ describe('IdempotencyService', () => {
         path: '/x',
         key: 'k',
       });
-      await service.saveCached(key, {
+      repository.findActiveCompleted.mockResolvedValueOnce({
         bodyHash: 'h',
         response: { id: 'a' },
         createdAt: 1,
@@ -135,26 +130,40 @@ describe('IdempotencyService', () => {
         response: { id: 'a' },
         createdAt: 1,
       });
+
+      await service.saveCached(key, {
+        bodyHash: 'h2',
+        response: { id: 'b' },
+        createdAt: 2,
+      });
+      expect(repository.completeProcessing).toHaveBeenCalledWith(
+        key,
+        'h2',
+        { id: 'b' },
+        IDEMPOTENCY_TTL_SECONDS_DEFAULT,
+      );
     });
 
-    it('returns null for an unknown key', async () => {
+    it('returns null when the repository has no active completed row', async () => {
+      repository.findActiveCompleted.mockResolvedValue(null);
       const cached = await service.getCached('nope');
       expect(cached).toBeNull();
     });
 
-    it('returns null for a malformed cached entry (defensive)', async () => {
-      await cache.set('weird', 'not-an-object', 60_000);
-      const cached = await service.getCached('weird');
-      expect(cached).toBeNull();
-    });
-
-    it('marks and clears the in-flight processing flag', async () => {
+    it('marks and clears the in-flight processing flag via the repository', async () => {
       const key = 'pkey';
+      repository.isKeyProcessing
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+      repository.markProcessing.mockResolvedValue();
+      repository.abortProcessing.mockResolvedValue();
+
       expect(await service.isProcessing(key)).toBe(false);
       await service.markProcessing(key);
+      expect(repository.markProcessing).toHaveBeenCalledWith(key);
       expect(await service.isProcessing(key)).toBe(true);
       await service.clearProcessing(key);
-      expect(await service.isProcessing(key)).toBe(false);
+      expect(repository.abortProcessing).toHaveBeenCalledWith(key);
     });
   });
 });

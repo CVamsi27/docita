@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -75,7 +76,7 @@ describe('Idempotency (e2e)', () => {
     const patient = await factories.patient(testClinicId);
     const invoice = await factories.invoice(patient.id);
 
-    const idempotencyKey = 'unique-test-key-' + Date.now();
+    const idempotencyKey = randomUUID();
     const payload = {
       invoiceId: invoice.id,
       amount: 100,
@@ -107,7 +108,7 @@ describe('Idempotency (e2e)', () => {
     const patient = await factories.patient(testClinicId);
     const invoice = await factories.invoice(patient.id);
 
-    const idempotencyKey = 'concurrent-test-key-' + Date.now();
+    const idempotencyKey = randomUUID();
     const payload = {
       invoiceId: invoice.id,
       amount: 100,

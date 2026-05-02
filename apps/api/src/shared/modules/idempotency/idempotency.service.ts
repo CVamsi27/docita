@@ -1,11 +1,7 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cache } from 'cache-manager';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { createHash } from 'crypto';
-import {
-  IDEMPOTENCY_PROCESSING_TTL_SECONDS,
-  IDEMPOTENCY_TTL_SECONDS_DEFAULT,
-} from './idempotency.constants';
+import { IDEMPOTENCY_TTL_SECONDS_DEFAULT } from './idempotency.constants';
+import { IdempotencyRepository } from './idempotency.repository';
 
 export interface CachedIdempotencyEntry {
   /**
@@ -22,26 +18,19 @@ export interface CachedIdempotencyEntry {
 }
 
 /**
- * Storage layer for the idempotency interceptor. Uses the existing
- * Nest cache-manager (configured as in-memory at the time of writing). When a
- * Redis-backed cache becomes available, swap CacheConfigModule's factory; no
- * changes are needed here.
- *
- * Logs a single startup warning if no distributed cache is configured because
- * an in-memory cache cannot enforce idempotency across multiple API replicas.
+ * Storage layer for the idempotency interceptor. Persists state in Postgres so
+ * idempotency holds across multiple API replicas.
  */
 @Injectable()
 export class IdempotencyService implements OnModuleInit {
   private readonly logger = new Logger(IdempotencyService.name);
 
-  constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
+  constructor(private readonly repository: IdempotencyRepository) {}
 
   onModuleInit(): void {
-    if (!process.env.REDIS_URL && process.env.NODE_ENV !== 'test') {
-      this.logger.warn(
-        'IdempotencyService is using an in-memory cache. ' +
-          'Idempotency guarantees are SINGLE-NODE ONLY. ' +
-          'Configure REDIS_URL and a Redis-backed cache for multi-replica safety.',
+    if (process.env.NODE_ENV !== 'test') {
+      this.logger.log(
+        'HTTP idempotency is persisted to Postgres and is safe across API replicas.',
       );
     }
   }
@@ -75,12 +64,7 @@ export class IdempotencyService implements OnModuleInit {
   }
 
   async getCached(scopedKey: string): Promise<CachedIdempotencyEntry | null> {
-    const value = await this.cache.get(scopedKey);
-    if (!value) return null;
-    if (typeof value !== 'object') return null;
-    const entry = value as Partial<CachedIdempotencyEntry>;
-    if (typeof entry.bodyHash !== 'string') return null;
-    return entry as CachedIdempotencyEntry;
+    return this.repository.findActiveCompleted(scopedKey);
   }
 
   async saveCached(
@@ -88,24 +72,24 @@ export class IdempotencyService implements OnModuleInit {
     entry: CachedIdempotencyEntry,
     ttlSeconds: number = IDEMPOTENCY_TTL_SECONDS_DEFAULT,
   ): Promise<void> {
-    await this.cache.set(scopedKey, entry, ttlSeconds * 1000);
-  }
-
-  async isProcessing(scopedKey: string): Promise<boolean> {
-    const value = await this.cache.get(`${scopedKey}:processing`);
-    return Boolean(value);
-  }
-
-  async markProcessing(scopedKey: string): Promise<void> {
-    await this.cache.set(
-      `${scopedKey}:processing`,
-      true,
-      IDEMPOTENCY_PROCESSING_TTL_SECONDS * 1000,
+    await this.repository.completeProcessing(
+      scopedKey,
+      entry.bodyHash,
+      entry.response,
+      ttlSeconds,
     );
   }
 
+  async isProcessing(scopedKey: string): Promise<boolean> {
+    return this.repository.isKeyProcessing(scopedKey);
+  }
+
+  async markProcessing(scopedKey: string): Promise<void> {
+    await this.repository.markProcessing(scopedKey);
+  }
+
   async clearProcessing(scopedKey: string): Promise<void> {
-    await this.cache.del(`${scopedKey}:processing`);
+    await this.repository.abortProcessing(scopedKey);
   }
 }
 

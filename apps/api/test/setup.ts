@@ -79,6 +79,8 @@ export async function resetDatabase() {
     'Referral',
     'ErrorLog',
     'ApiRequest',
+    'ApiHttpIdempotencyRecord',
+    'WebhookReplayDedupe',
     'SystemMetric',
     'PerformanceAggregate',
     'WhatsappMessage',

@@ -65,6 +65,11 @@ function buildService(): IdempotencyService {
     },
     isProcessing: async (k: string) => map.has(`${k}:processing`),
     markProcessing: async (k: string) => {
+      if (map.has(`${k}:processing`)) {
+        throw new ConflictException(
+          'A request with this Idempotency-Key is already in progress.',
+        );
+      }
       map.set(`${k}:processing`, true);
     },
     clearProcessing: async (k: string) => {
