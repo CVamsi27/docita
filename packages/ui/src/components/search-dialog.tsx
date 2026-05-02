@@ -49,6 +49,10 @@ export function SearchDialog({
 }: SearchDialogProps) {
   const [value, setValue] = React.useState("");
 
+  React.useEffect(() => {
+    if (!open) setValue("");
+  }, [open]);
+
   const handleSelect = (item: SearchItem) => {
     onSelect(item);
     onOpenChange(false);
@@ -83,9 +87,10 @@ export function SearchDialog({
             onValueChange={setValue}
             disabled={isLoading}
             className="border-0"
+            showClearButton
           />
           <CommandList>
-            <CommandEmpty>{isLoading ? "Loading..." : emptyText}</CommandEmpty>
+            <CommandEmpty>{isLoading ? "Loading…" : emptyText}</CommandEmpty>
 
             {Object.entries(groupedItems).map(([group, groupItems]) => (
               <CommandGroup key={group} heading={group}>

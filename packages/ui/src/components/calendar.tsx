@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
 
+import { formatPickerIsoDate, formatPickerMonthShort } from "@workspace/utils";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button, buttonVariants } from "@workspace/ui/components/button";
 
@@ -36,8 +37,7 @@ function Calendar({
       )}
       captionLayout={captionLayout}
       formatters={{
-        formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+        formatMonthDropdown: (date) => formatPickerMonthShort(date),
         ...formatters,
       }}
       classNames={{
@@ -193,7 +193,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={formatPickerIsoDate(day.date)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

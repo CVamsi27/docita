@@ -37,8 +37,8 @@ function FormMessageFixture({ message }: { message: string }) {
 
 describe("DataState", () => {
   it("renders loading state", () => {
-    render(<DataState status="loading" loadingMessage="Loading patients..." />);
-    expect(screen.getByText("Loading patients...")).toBeInTheDocument();
+    render(<DataState status="loading" loadingMessage="Loading patients…" />);
+    expect(screen.getByText("Loading patients…")).toBeInTheDocument();
   });
 
   it("renders error state with retry action", () => {

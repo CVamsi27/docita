@@ -1,5 +1,6 @@
 export * from "./accordion";
 export * from "./docita-logo";
+export * from "./docita-loading-indicator";
 export * from "./app-page-scaffold";
 export * from "./app-shell";
 export * from "./breadcrumbs";

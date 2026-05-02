@@ -57,6 +57,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DocitaIcon,
+  DocitaLoadingIndicator,
   DocitaLogo,
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -537,6 +538,29 @@ export function StatusAndFeedback() {
         action={{ label: "View all", href: "#" }}
       />
       <LoadingState message="Loading dashboard" />
+      <div className="flex flex-wrap items-center justify-center gap-8 rounded-lg border border-border/60 p-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            DocitaLoadingIndicator page
+          </span>
+          <DocitaLoadingIndicator variant="page" aria-label="Page loading" />
+        </div>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            DocitaLoadingIndicator section
+          </span>
+          <DocitaLoadingIndicator variant="section" aria-label="Section loading" />
+        </div>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            DocitaLoadingIndicator inline
+          </span>
+          <Button type="button" size="sm" variant="outline" className="gap-2">
+            <DocitaLoadingIndicator variant="inline" decorative />
+            Saving
+          </Button>
+        </div>
+      </div>
       <Skeleton className="h-8 w-full" />
       <StatCardSkeleton />
       <TableSkeleton rows={3} />

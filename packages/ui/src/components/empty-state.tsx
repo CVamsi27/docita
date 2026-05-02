@@ -2,7 +2,9 @@
 
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
-import { ChevronRight, Loader2, LucideIcon } from "lucide-react";
+import { ChevronRight, LucideIcon } from "lucide-react";
+
+import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 
 export interface EmptyStateProps {
   icon: LucideIcon;
@@ -133,13 +135,13 @@ export interface LoadingStateProps {
 }
 
 const sizeClasses = {
-  sm: { icon: "h-6 w-6", text: "text-sm" },
-  default: { icon: "h-8 w-8", text: "text-base" },
+  sm: { icon: "h-8 w-8", text: "text-sm" },
+  default: { icon: "h-10 w-10", text: "text-base" },
   lg: { icon: "h-12 w-12", text: "text-lg" },
 };
 
 export function LoadingState({
-  message = "Loading...",
+  message = "Loading…",
   className,
   size = "default",
 }: LoadingStateProps) {
@@ -151,9 +153,15 @@ export function LoadingState({
         "ui-section-stack py-8 text-center text-muted-foreground",
         className,
       )}
+      role="status"
+      aria-live="polite"
     >
-      <Loader2
-        className={cn(sizes.icon, "mx-auto animate-spin text-primary")}
+      <DocitaLoadingIndicator
+        variant="section"
+        className="gap-3"
+        iconClassName={sizes.icon}
+        withStatusRole={false}
+        iconAlt=""
       />
       <p className={sizes.text}>{message}</p>
     </div>

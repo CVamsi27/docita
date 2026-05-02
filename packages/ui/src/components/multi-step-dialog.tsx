@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 import {
   Dialog,
   DialogContent,
@@ -170,7 +172,9 @@ export function MultiStepDialog({
               disabled={busy || disabled}
               className="gap-2"
             >
-              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              {busy ? (
+                <DocitaLoadingIndicator variant="inline" decorative />
+              ) : null}
               {completeLabel}
             </Button>
           )}

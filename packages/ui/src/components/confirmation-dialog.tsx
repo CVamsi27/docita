@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { AlertCircle, CheckCircle2, Info, Loader2, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Info, XCircle } from "lucide-react";
+
+import { DocitaLoadingIndicator } from "./docita-loading-indicator";
 import {
   Dialog,
   DialogContent,
@@ -103,7 +105,9 @@ export function ConfirmationDialog({
             disabled={isLoading_ || disabled}
             className="gap-2"
           >
-            {isLoading_ && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading_ ? (
+              <DocitaLoadingIndicator variant="inline" decorative />
+            ) : null}
             {confirmText}
           </Button>
         </DialogFooter>

@@ -20,7 +20,7 @@ describe("PatientListSkeleton", () => {
   it("renders content area skeletons", () => {
     const { container } = render(<PatientListSkeleton />);
 
-    const skeletonLines = container.querySelectorAll(".animate-pulse");
+    const skeletonLines = container.querySelectorAll(".animate-shimmer");
     expect(skeletonLines.length).toBeGreaterThan(24); 
   });
 
@@ -44,7 +44,7 @@ describe("PatientListSkeleton", () => {
 
   it("renders all skeleton elements with animation", () => {
     const { container } = render(<PatientListSkeleton />);
-    const animatedElements = container.querySelectorAll(".animate-pulse");
+    const animatedElements = container.querySelectorAll(".animate-shimmer");
 
     expect(animatedElements.length).toBeGreaterThanOrEqual(40);
   });

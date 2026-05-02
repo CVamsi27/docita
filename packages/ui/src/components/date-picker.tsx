@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import { formatDate } from "@workspace/utils";
 
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
@@ -70,7 +70,11 @@ const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
             {...props}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateValue ? format(dateValue, "PPP") : <span>{placeholder}</span>}
+            {dateValue ? (
+              formatDate(dateValue, "dd MMMM yyyy")
+            ) : (
+              <span>{placeholder}</span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
