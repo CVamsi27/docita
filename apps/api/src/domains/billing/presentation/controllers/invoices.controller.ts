@@ -7,12 +7,17 @@ import {
   Param,
   Delete as _Delete,
   UseGuards,
+  UseInterceptors,
   Request,
   Query,
   Res,
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import {
+  IdempotencyInterceptor,
+  RequiresIdempotency,
+} from '@/shared/modules/idempotency';
 import { InvoicesService } from '@/domains/billing/application/services/invoices.service';
 import {
   PdfJobService,
@@ -45,6 +50,7 @@ interface AuthRequest {
 @UseGuards(TierGuard)
 @RequireFeature(Feature.INVOICING)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseInterceptors(IdempotencyInterceptor)
 export class InvoicesController {
   constructor(
     private readonly invoicesService: InvoicesService,
@@ -74,6 +80,7 @@ export class InvoicesController {
   }
 
   @Post()
+  @RequiresIdempotency()
   @ZodSerializerDto(InvoiceResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({

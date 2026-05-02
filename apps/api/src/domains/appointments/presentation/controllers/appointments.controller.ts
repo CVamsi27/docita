@@ -6,11 +6,16 @@ import {
   Patch,
   Param,
   UseGuards,
+  UseInterceptors,
   Request,
   Query,
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import {
+  IdempotencyInterceptor,
+  RequiresIdempotency,
+} from '@/shared/modules/idempotency';
 import { ZodSerializerDto } from 'nestjs-zod';
 import { AppointmentService } from '@/domains/appointments/application/services/appointment.service';
 import { AppointmentStatusEnum } from '@/domains/appointments/core/value-objects/appointment-status.value-object';
@@ -76,6 +81,7 @@ const parseAppointmentStatus = (
 @UseGuards(TierGuard)
 @RequireFeature(Feature.CALENDAR_SLOTS)
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_APPOINTMENTS))
+@UseInterceptors(IdempotencyInterceptor)
 export class AppointmentsController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
@@ -90,6 +96,7 @@ export class AppointmentsController {
   }
 
   @Post()
+  @RequiresIdempotency()
   @ApiOperation({ summary: 'Create new appointment' })
   async create(
     @Request() req: RequestWithUser,

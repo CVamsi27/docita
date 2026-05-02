@@ -61,6 +61,7 @@ import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor'
 import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
 import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
+import { IdempotencyModule } from './shared/modules/idempotency';
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
@@ -122,6 +123,7 @@ import { IpdModule } from './domains/ipd/ipd.module';
     EventsModule,
     CommonServicesModule,
     CacheConfigModule,
+    IdempotencyModule,
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [

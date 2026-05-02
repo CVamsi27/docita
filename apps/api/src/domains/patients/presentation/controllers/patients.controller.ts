@@ -9,8 +9,13 @@ import {
   Request,
   Query,
   UseGuards,
+  UseInterceptors,
   HttpCode,
 } from '@nestjs/common';
+import {
+  IdempotencyInterceptor,
+  RequiresIdempotency,
+} from '@/shared/modules/idempotency';
 import { PatientService } from '@/domains/patients/application/services/patient.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
@@ -41,6 +46,7 @@ import {
 @UseGuards(TierGuard)
 @RequireFeature(Feature.BASIC_PATIENT_MANAGEMENT)
 @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS_READ))
+@UseInterceptors(IdempotencyInterceptor)
 export class PatientsController {
   constructor(private readonly patientService: PatientService) {}
 
@@ -70,6 +76,7 @@ export class PatientsController {
 
   @Post()
   @Roles(...getDbRolesForTarget(APP_ACCESS_TARGETS.API_PATIENTS, 'write'))
+  @RequiresIdempotency()
   @ApiOperation({ summary: 'Create new patient' })
   async create(
     @Request() req: RequestWithUser,

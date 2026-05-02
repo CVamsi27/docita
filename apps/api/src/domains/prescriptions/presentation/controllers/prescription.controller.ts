@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   UseGuards,
+  UseInterceptors,
   Request,
   Res,
   Query,
@@ -12,6 +13,10 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import {
+  IdempotencyInterceptor,
+  RequiresIdempotency,
+} from '@/shared/modules/idempotency';
 import type { Response } from 'express';
 import { PrescriptionsService } from '@/domains/prescriptions/application/services/prescription.service';
 import {
@@ -46,6 +51,7 @@ interface AuthRequest {
 @UseGuards(TierGuard)
 @RequireFeature(Feature.DIGITAL_PRESCRIPTIONS)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+@UseInterceptors(IdempotencyInterceptor)
 export class PrescriptionsController {
   constructor(
     private readonly prescriptionsService: PrescriptionsService,
@@ -75,6 +81,7 @@ export class PrescriptionsController {
   }
 
   @Post()
+  @RequiresIdempotency()
   @ZodSerializerDto(PrescriptionResponseDto)
   @UsePipes(new ZodValidationPipe(CreatePrescriptionSchema))
   create(@Request() req: AuthRequest, @Body() dto: CreatePrescriptionDto) {

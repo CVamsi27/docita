@@ -23,8 +23,10 @@ import {
   Feature,
   RequireFeature,
 } from '@/shared/modules/auth/auth/tier.decorator';
-import { Idempotent } from '@/shared/modules/auth/decorators/idempotent.decorator';
-import { IdempotencyInterceptor } from '@/common/interceptors/idempotency.interceptor';
+import {
+  IdempotencyInterceptor,
+  RequiresIdempotency,
+} from '@/shared/modules/idempotency';
 import { UseInterceptors } from '@nestjs/common';
 import { RequestWithUser } from '@/common/types/common.types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
@@ -41,7 +43,7 @@ export class PaymentsController {
   ) {}
 
   @Post('link')
-  @Idempotent()
+  @RequiresIdempotency()
   @ZodSerializerDto(PaymentLinkResponseDto)
   async createPaymentLink(
     @Body() dto: CreatePaymentLinkDto,

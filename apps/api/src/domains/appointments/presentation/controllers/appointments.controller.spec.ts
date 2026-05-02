@@ -4,6 +4,10 @@ import { AppointmentsController } from './appointments.controller';
 import { AppointmentService as AppointmentsService } from '@/domains/appointments/application/services/appointment.service';
 import { JwtAuthGuard } from '@/shared/modules/auth/auth/jwt-auth.guard';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
+import {
+  IdempotencyInterceptor,
+  IdempotencyService,
+} from '@/shared/modules/idempotency';
 import { RequestWithUser } from '@/common/types/common.types';
 import { Role } from '@workspace/db';
 import { CreateAppointmentDto } from '@/domains/appointments/application/dto/appointments.dto';
@@ -68,6 +72,18 @@ describe('AppointmentsController', () => {
         {
           provide: AppointmentsService,
           useValue: mockAppointmentsService,
+        },
+        {
+          provide: IdempotencyService,
+          useValue: {},
+        },
+        {
+          provide: IdempotencyInterceptor,
+          useValue: {
+            intercept: jest.fn(
+              (_ctx: unknown, next: { handle: () => unknown }) => next.handle(),
+            ),
+          },
         },
       ],
     })

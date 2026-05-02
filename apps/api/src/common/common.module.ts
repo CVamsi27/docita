@@ -2,7 +2,6 @@ import { Module, Global } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EncryptionService } from './encryption.service';
 import { AppLogger } from '@/shared/modules/services/logger.service';
-import { IdempotencyService } from '@/shared/modules/services/idempotency.service';
 import { IpRateLimitService } from '@/shared/modules/services/ip-rate-limit.service';
 import { OptimisticConcurrencyService } from '@/shared/modules/services/optimistic-concurrency.service';
 import { BusinessRulesService } from '@/shared/modules/services/business-rules.service';
@@ -28,7 +27,6 @@ import { CursorPaginationService } from '@/shared/modules/services/cursor-pagina
   providers: [
     EncryptionService,
     AppLogger,
-    IdempotencyService,
     IpRateLimitService,
     OptimisticConcurrencyService,
     BusinessRulesService,
@@ -48,7 +46,6 @@ import { CursorPaginationService } from '@/shared/modules/services/cursor-pagina
   exports: [
     EncryptionService,
     AppLogger,
-    IdempotencyService,
     IpRateLimitService,
     OptimisticConcurrencyService,
     BusinessRulesService,
