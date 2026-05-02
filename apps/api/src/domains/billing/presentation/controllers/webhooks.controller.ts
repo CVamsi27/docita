@@ -8,9 +8,9 @@ import {
   UsePipes,
   Req,
   UnauthorizedException,
+  ConflictException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import * as crypto from 'crypto';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { Public } from '@/shared/modules/auth/auth/public.decorator';
 import { WebhookErrorHandlingService } from '@/domains/webhooks/application/services/webhook-error-handling.service';
@@ -20,6 +20,7 @@ import {
   type PaymentWebhookPayload,
 } from '@workspace/types';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
+import { WebhookVerifierService } from '@/shared/modules/webhooks';
 
 @Controller('webhooks/payments')
 export class WebhooksController {
@@ -29,31 +30,8 @@ export class WebhooksController {
     private readonly paymentsService: PaymentsService,
     private readonly webhookErrorHandler: WebhookErrorHandlingService,
     private readonly configService: AppConfigService,
+    private readonly webhookVerifier: WebhookVerifierService,
   ) {}
-
-  private verifyRazorpaySignature(rawBody: Buffer, signature: string): boolean {
-    const secret = this.configService.getRazorpayWebhookSecret();
-    if (!secret) {
-      this.logger.warn(
-        'RAZORPAY_WEBHOOK_SECRET not configured — rejecting webhook',
-      );
-      return false;
-    }
-
-    const expected = crypto
-      .createHmac('sha256', secret)
-      .update(rawBody)
-      .digest('hex');
-
-    if (expected.length !== signature.length) {
-      return false;
-    }
-
-    return crypto.timingSafeEqual(
-      Buffer.from(expected),
-      Buffer.from(signature),
-    );
-  }
 
   @Public()
   @Post('razorpay')
@@ -71,12 +49,23 @@ export class WebhooksController {
       throw new UnauthorizedException('Missing webhook signature');
     }
 
-    if (!this.verifyRazorpaySignature(rawBody, signature)) {
-      this.logger.warn('Razorpay webhook signature verification failed', {
+    const verification = await this.webhookVerifier.verify({
+      provider: 'razorpay',
+      rawBody,
+      signature,
+      secret: this.configService.getRazorpayWebhookSecret(),
+    });
+
+    if (!verification.ok) {
+      this.logger.warn('Razorpay webhook verification failed', {
         ipAddress,
         userAgent,
         event: payload?.event,
+        failure: verification.failure,
       });
+      if (verification.failure === 'replayed') {
+        throw new ConflictException('Webhook already processed');
+      }
       throw new UnauthorizedException('Invalid webhook signature');
     }
 

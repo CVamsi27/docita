@@ -66,6 +66,7 @@ import {
   TenantRateLimitGuard,
   TenantRateLimitModule,
 } from './shared/modules/tenant-rate-limit';
+import { WebhooksModule } from './shared/modules/webhooks';
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
@@ -129,6 +130,7 @@ import { IpdModule } from './domains/ipd/ipd.module';
     CacheConfigModule,
     IdempotencyModule,
     TenantRateLimitModule,
+    WebhooksModule,
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [
