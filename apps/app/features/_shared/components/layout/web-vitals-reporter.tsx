@@ -5,11 +5,6 @@ import { usePathname } from "next/navigation";
 import type { Metric } from "web-vitals";
 import { API_URL } from "@/lib/api-config";
 
-function getFeatureFromPath(pathname: string | null): string {
-  if (!pathname || pathname === "/") return "root";
-  return pathname.split("/").filter(Boolean)[0] ?? "root";
-}
-
 export function WebVitalsReporter() {
   const pathname = usePathname();
 
@@ -19,7 +14,6 @@ export function WebVitalsReporter() {
     }
 
     const sessionId = `session-${Date.now()}-${Math.random()}`;
-    const feature = getFeatureFromPath(pathname);
 
     function sendToAnalytics(metric: Metric) {
       const body = JSON.stringify({
@@ -27,7 +21,7 @@ export function WebVitalsReporter() {
         value: metric.value,
         rating: metric.rating,
         page: pathname,
-        feature,
+        feature: "clinician-app",
         sessionId,
       });
 
