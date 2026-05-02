@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { TemplatesService } from './templates.service';
 import { WhatsappClientService } from './whatsapp-client.service';
+import { DATE_FORMATS, formatDate, formatTime } from '@workspace/utils';
 
 @Injectable()
 export class SystemEventsService {
@@ -140,8 +141,8 @@ export class SystemEventsService {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       clinicName: appointment.clinic?.name ?? '',
       doctorName: appointment.doctor.name,
-      date: appointment.startTime.toLocaleDateString(),
-      time: appointment.startTime.toLocaleTimeString(),
+      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
+      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
     };
 
     const resolved = await this.templatesService.resolveTemplate(
@@ -191,8 +192,8 @@ export class SystemEventsService {
     const variables = {
       patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
       clinicName: appointment.clinic?.name ?? '',
-      date: appointment.startTime.toLocaleDateString(),
-      time: appointment.startTime.toLocaleTimeString(),
+      date: formatDate(appointment.startTime, DATE_FORMATS.DATE_MEDIUM),
+      time: formatTime(appointment.startTime, DATE_FORMATS.TIME_MEDIUM),
     };
 
     const resolved = await this.templatesService.resolveTemplate(

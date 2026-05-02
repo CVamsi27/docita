@@ -9,6 +9,7 @@ import {
   TableColumn as _TableColumn,
   resolveCurrencySymbol,
 } from '@workspace/types';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 
 export interface PDFContext {
   currentY: number;
@@ -164,11 +165,7 @@ export class BasePdfService {
     doc.fillColor('#000000');
     currentY += 37;
 
-    const dateStr = `Date: ${new Date().toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })}`;
+    const dateStr = `Date: ${formatDate(new Date(), DATE_FORMATS.DATE_LONG)}`;
 
     doc.fontSize(9).font('Helvetica').fillColor('#6b7280');
 

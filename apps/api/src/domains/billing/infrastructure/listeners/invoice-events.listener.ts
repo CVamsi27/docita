@@ -5,7 +5,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { SendMessageUseCase } from '@/domains/whatsapp/application/use-cases/send-message.use-case';
 import { PaymentsService } from '@/domains/billing/application/services/payments.service';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
-import { formatCurrency } from '@workspace/utils';
+import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
 
 @Injectable()
 export class InvoiceEventsListener {
@@ -110,11 +110,7 @@ export class InvoiceEventsListener {
     paymentLink?: string,
   ): string {
     const patientName = invoice.patient.firstName;
-    const date = new Date(invoice.createdAt).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const date = formatDate(invoice.createdAt, DATE_FORMATS.DATE_MEDIUM);
 
     let message = `Hello ${patientName}\n\n`;
     message += `Your invoice from *${clinicName}* is ready!\n\n`;

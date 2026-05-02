@@ -12,7 +12,7 @@ import {
   ApprovalStatus,
   PaymentSessionStatus,
 } from '@workspace/db';
-import { formatCurrency } from '@workspace/utils';
+import { DATE_FORMATS, formatCurrency, formatDate } from '@workspace/utils';
 
 @Injectable()
 export class WhatsappResendService {
@@ -176,7 +176,7 @@ export class WhatsappResendService {
         currency: invoice.currency ?? invoice.appointment?.clinic?.currency,
       }),
       invoiceNumber: id.slice(-8).toUpperCase(),
-      date: new Date(invoice.createdAt).toLocaleDateString('en-IN'),
+      date: formatDate(invoice.createdAt, DATE_FORMATS.DATE_SHORT),
       paymentLink: paymentLink || '',
     };
 

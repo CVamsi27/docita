@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { EmailService } from '@/shared/modules/messaging/email/email.service';
 import { SubscriptionStatus } from '@workspace/db';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 
 export interface NotifyGraceDeadlineRequest {
   targetDate: Date;
@@ -28,12 +29,10 @@ export class NotifySubscriptionGraceDeadlineUseCase {
   ) {}
 
   private buildEmail(reminderType: string, clinicName: string, deadline: Date) {
-    const deadlineLabel = deadline.toLocaleDateString('en-IN', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    const deadlineLabel = formatDate(
+      deadline,
+      DATE_FORMATS.DATE_WEEKDAY_SHORT_MEDIUM,
+    );
 
     let subject = 'Docita billing action needed';
     let body =

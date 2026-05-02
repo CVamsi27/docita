@@ -1,6 +1,7 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { DoctorVerificationStatus, Role } from '@workspace/db';
 import { JsonValue } from '@workspace/types';
+import { DATE_FORMATS, formatDate } from '@workspace/utils';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import { runWithTenant } from '@/common/middleware/tenant.middleware';
 import {
@@ -118,7 +119,10 @@ export class DoctorVerificationService {
     if (expiryDate < now) {
       return {
         valid: false,
-        reason: `Medical license expired on ${expiryDate.toLocaleDateString()}`,
+        reason: `Medical license expired on ${formatDate(
+          expiryDate,
+          DATE_FORMATS.DATE_MEDIUM,
+        )}`,
       };
     }
 
