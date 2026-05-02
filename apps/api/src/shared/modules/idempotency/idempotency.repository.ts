@@ -68,6 +68,11 @@ export class IdempotencyRepository {
   /**
    * Claims in-flight processing for a key. Throws ConflictException when an
    * active PROCESSING or COMPLETED row already exists for this scopedKey.
+   *
+   * Uses separate statements instead of a single interactive transaction: the
+   * Prisma Postgres driver can leave the client unusable after a rolled-back tx
+   * that hit a unique violation, which then breaks unrelated writes such as
+   * {@link completeProcessing}.
    */
   async markProcessing(scopedKey: string): Promise<void> {
     const now = new Date();
@@ -80,41 +85,36 @@ export class IdempotencyRepository {
       IDEMPOTENCY_PROCESSING_TTL_SECONDS + IDEMPOTENCY_TTL_SECONDS_DEFAULT,
     );
 
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.apiHttpIdempotencyRecord.deleteMany({
-          where: {
-            scopedKey,
-            OR: [
-              {
-                status: 'PROCESSING',
-                processingExpiresAt: { lt: now },
-              },
-              {
-                status: 'COMPLETED',
-                recordExpiresAt: { lt: now },
-              },
-            ],
-          },
-        });
-
-        await tx.apiHttpIdempotencyRecord.create({
-          data: {
-            scopedKey,
-            bodyHash: '',
+    await this.prisma.apiHttpIdempotencyRecord.deleteMany({
+      where: {
+        scopedKey,
+        OR: [
+          {
             status: 'PROCESSING',
-            processingExpiresAt,
-            recordExpiresAt: processingGuardExpiresAt,
+            processingExpiresAt: { lt: now },
           },
-        });
+          {
+            status: 'COMPLETED',
+            recordExpiresAt: { lt: now },
+          },
+        ],
+      },
+    });
+
+    try {
+      await this.prisma.apiHttpIdempotencyRecord.create({
+        data: {
+          scopedKey,
+          bodyHash: '',
+          status: 'PROCESSING',
+          processingExpiresAt,
+          recordExpiresAt: processingGuardExpiresAt,
+        },
       });
     } catch (error) {
       if (!isPrismaUniqueViolation(error)) {
         throw error;
       }
-      // After INSERT ... ON CONFLICT / unique failure, Postgres aborts the
-      // transaction. Never query on the same interactive `tx`; read committed
-      // state on a fresh client instead so follow-up writes are not poisoned.
       const existing = await this.prisma.apiHttpIdempotencyRecord.findUnique({
         where: { scopedKey },
       });
