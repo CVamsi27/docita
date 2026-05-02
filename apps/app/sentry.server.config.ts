@@ -1,12 +1,16 @@
 import * as Sentry from "@sentry/nextjs";
+import { scrubSentryEvent } from "./lib/sentry-phi-redactor";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NODE_ENV ?? "development",
   tracesSampleRate: 0.1,
   sendDefaultPii: false,
-  // Server errors are always captured — no sampling on errors
   beforeSend(event) {
-    return event;
+    return scrubSentryEvent(event);
+  },
+  beforeBreadcrumb(crumb) {
+    if (!crumb) return crumb;
+    return scrubSentryEvent({ breadcrumbs: [crumb] }).breadcrumbs?.[0] ?? crumb;
   },
 });

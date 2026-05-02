@@ -60,6 +60,7 @@ import { UserRateLimitGuard } from './shared/modules/auth/guards/user-rate-limit
 import { CsrfInterceptor } from './shared/modules/interceptors/csrf.interceptor';
 import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
 import { TimeoutInterceptor } from './shared/modules/interceptors/timeout.interceptor';
+import { buildPinoOptions } from './shared/modules/observability/pino-options.factory';
 
 import { EventsModule } from './common/events/events.module';
 import { CommonServicesModule } from './shared/modules/services/common-services.module';
@@ -84,20 +85,9 @@ import { IpdModule } from './domains/ipd/ipd.module';
       imports: [AppConfigModule],
       inject: [AppConfigService],
       useFactory: (configService: AppConfigService) => ({
-        pinoHttp: {
-          level: configService.isProduction() ? 'info' : 'debug',
-          transport: !configService.isProduction()
-            ? { target: 'pino-pretty' }
-            : undefined,
-          autoLogging: false,
-          serializers: {
-            req: (req: Record<string, unknown>) => ({
-              id: req.id,
-              method: req.method,
-              url: req.url,
-            }),
-          },
-        },
+        pinoHttp: buildPinoOptions({
+          isProduction: configService.isProduction(),
+        }),
       }),
     }),
     PrometheusModule.register({
