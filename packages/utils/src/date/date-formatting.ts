@@ -1,4 +1,9 @@
-import { format, isSameDay, subDays } from "date-fns";
+import {
+  format,
+  formatDistanceToNow as formatDistanceToNowFns,
+  isSameDay,
+  subDays,
+} from "date-fns";
 import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import {
   DATE_FORMATS,
@@ -6,6 +11,10 @@ import {
   DEFAULT_TIMEZONE,
 } from "./date-config.js";
 import { parseDate } from "./date-parsing.js";
+
+type FormatDistanceToNowDisplayOptions = NonNullable<
+  Parameters<typeof formatDistanceToNowFns>[1]
+>;
 
 export function formatDate(
   date: string | Date | null | undefined,
@@ -38,6 +47,35 @@ export function formatDateTime(
   options: DateTimeOptions = {},
 ): string {
   return formatDate(date, formatPattern, options);
+}
+
+/**
+ * Human-readable distance from the given instant to now (e.g. "about 2 hours ago").
+ * Defaults to `addSuffix: true` ("ago" / "in …") to match product copy patterns.
+ */
+export function formatDistanceToNow(
+  date: string | Date | number | null | undefined,
+  options: FormatDistanceToNowDisplayOptions = {},
+): string {
+  if (date === null || date === undefined) return "";
+
+  if (typeof date === "number") {
+    if (!Number.isFinite(date)) return "";
+    const fromEpoch = new Date(date);
+    if (Number.isNaN(fromEpoch.getTime())) return "";
+    return formatDistanceToNowFns(fromEpoch, {
+      addSuffix: true,
+      ...options,
+    });
+  }
+
+  const parsedDate = parseDate(date);
+  if (!parsedDate) return "";
+
+  return formatDistanceToNowFns(parsedDate, {
+    addSuffix: true,
+    ...options,
+  });
 }
 
 export function formatRelativeDate(
@@ -77,4 +115,17 @@ export function formatDateRange(
   if (!end) return `From ${start}`;
 
   return `${start} - ${end}`;
+}
+
+/**
+ * yyyy-MM-dd from the Date's local calendar fields.
+ * Use for date-picker DOM attributes and picker-aligned labels — not for IST-normalized portal copy.
+ */
+export function formatPickerIsoDate(date: Date): string {
+  return format(date, DATE_FORMATS.ISO_DATE);
+}
+
+/** Abbreviated month label using local calendar fields (picker month dropdowns). */
+export function formatPickerMonthShort(date: Date): string {
+  return format(date, "MMM");
 }

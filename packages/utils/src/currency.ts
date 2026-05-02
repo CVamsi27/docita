@@ -1,4 +1,8 @@
 import {
+  PRICING_CURRENCY_CONFIG,
+  type SupportedCurrency,
+} from "@workspace/types";
+import {
   CURRENCY_OPTIONS,
   DEFAULT_CURRENCY,
 } from "./config/config-options.js";
@@ -120,4 +124,18 @@ export function formatCurrency(
       maximumFractionDigits: options.fractionDigits,
     }),
   }).format(amount);
+}
+
+/** Tier / pricing UI: uses `PRICING_CURRENCY_CONFIG` locale and decimal rules. */
+export function formatPriceWithCurrency(
+  amount: number | "custom",
+  currency: SupportedCurrency = "INR",
+): string {
+  if (amount === "custom") return "Custom";
+  const config = PRICING_CURRENCY_CONFIG[currency];
+  return formatCurrency(amount, {
+    currency,
+    locale: config.locale,
+    fractionDigits: config.decimalPlaces,
+  });
 }

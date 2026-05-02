@@ -7,3 +7,4 @@ export * from "./imports.js";
 export * from "./security.js";
 export * from "./country.js";
 export * from "./currency.js";
+export * from "./locale-numbers.js";
