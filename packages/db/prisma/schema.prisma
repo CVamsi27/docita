@@ -2746,7 +2746,7 @@ model Subscription {
   paymentMethodType      String?
   lastFailedPaymentDate  DateTime?
   failureRetryCount      Int                @default(0)
-  graceUntil             DateTime?
+  graceUntil             DateTime? // Payment resolution deadline; length from SUBSCRIPTION_LOCKOUT_GRACE_DAYS (API) when status is GRACE or PAST_DUE
   scheduledChange        Json?
 
   createdAt DateTime @default(now())
