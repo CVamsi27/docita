@@ -43,7 +43,7 @@ const FALLBACK_TIERS: TierConfig[] = [
     id: "STARTER",
     name: "Starter",
     description: "Core clinical workflows for solo doctors moving off paper",
-    tagline: "Start clinic digitization",
+    tagline: "Go digital from day one",
     pricing: { monthly: 499, yearly: 4990, currency: "₹" },
     features: [
       "50 patients",

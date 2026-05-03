@@ -144,7 +144,10 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
                     </span>
                   ) : null}
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground min-h-[3rem]">
+                <p className="mt-1 text-xs font-medium text-pretty leading-snug text-muted-foreground">
+                  {tier.tagline}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground min-h-[3rem]">
                   {tier.description}
                 </p>
 
