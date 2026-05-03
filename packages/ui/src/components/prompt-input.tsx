@@ -59,12 +59,15 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
         ) : null}
         <div
           className={cn(
-            "flex items-end gap-2 rounded-full border border-border bg-card px-3 py-2 shadow-sm",
+            "flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 shadow-sm",
             "focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background",
             disabled && "opacity-60",
           )}
         >
-          <span aria-hidden className="mt-1.5 text-muted-foreground">
+          <span
+            aria-hidden
+            className="inline-flex shrink-0 items-center justify-center text-muted-foreground"
+          >
             {leadingIcon ?? <Sparkles className="size-4" />}
           </span>
           <textarea
