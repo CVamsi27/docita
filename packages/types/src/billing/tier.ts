@@ -994,7 +994,7 @@ export const TIER_INFO: Record<TierName, TierInfo> = {
   STARTER: {
     name: "Starter",
     description: "Basic clinical workflow for solo doctors moving off paper",
-    tagline: "Start clinic digitization",
+    tagline: "Go digital from day one",
     color: "gray",
   },
   ESSENTIAL: {

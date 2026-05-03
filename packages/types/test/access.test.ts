@@ -12,6 +12,7 @@ import {
   hasFeatureAccess,
   isAccessComingSoon,
   isFeatureGenerallyAvailable,
+  mapClinicTierDbStringToAccessTier,
   Tier,
 } from "../src";
 
@@ -114,5 +115,17 @@ describe("@workspace/types access contracts", () => {
         `${feature} must be route/API gated or documented as a subfeature`,
       ).toBe(true);
     }
+  });
+
+  it("maps clinic DB tier strings consistently including legacy values", () => {
+    expect(mapClinicTierDbStringToAccessTier("STARTER")).toBe(Tier.STARTER);
+    expect(mapClinicTierDbStringToAccessTier("ESSENTIAL")).toBe(Tier.ESSENTIAL);
+    expect(mapClinicTierDbStringToAccessTier("CORE")).toBe(Tier.ESSENTIAL);
+    expect(mapClinicTierDbStringToAccessTier("PLUS")).toBe(Tier.ESSENTIAL);
+    expect(mapClinicTierDbStringToAccessTier("CAPTURE")).toBe(Tier.STARTER);
+    expect(mapClinicTierDbStringToAccessTier("FREE")).toBe(Tier.STARTER);
+    expect(mapClinicTierDbStringToAccessTier("UNKNOWN_TIER")).toBe(
+      Tier.STARTER,
+    );
   });
 });
