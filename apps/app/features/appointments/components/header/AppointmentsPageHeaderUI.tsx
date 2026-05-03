@@ -9,6 +9,8 @@ import type { Appointment } from "@workspace/types";
 interface AppointmentsPageHeaderUIProps {
   onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
+  /** When the add dialog needs the first day with open slots, move the calendar (e.g. today fully booked). */
+  onAdjustSchedulingDate?: (next: Date) => void;
   isAddDialogOpen: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedPatientId?: string;
@@ -19,6 +21,7 @@ interface AppointmentsPageHeaderUIProps {
 export function AppointmentsPageHeaderUI({
   onAppointmentAdded,
   selectedDate,
+  onAdjustSchedulingDate,
   isAddDialogOpen,
   onOpenChange,
   preselectedPatientId,
@@ -68,6 +71,7 @@ export function AppointmentsPageHeaderUI({
       <AddAppointmentDialog
         onAppointmentAdded={onAppointmentAdded}
         {...(selectedDate && { selectedDate })}
+        {...(onAdjustSchedulingDate && { onAdjustSchedulingDate })}
         open={isAddDialogOpen}
         onOpenChange={onOpenChange}
         {...(preselectedPatientId && { preselectedPatientId })}

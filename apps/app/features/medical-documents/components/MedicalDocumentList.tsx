@@ -9,6 +9,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
+import { DataState } from "@workspace/ui/components/data-state";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
@@ -188,9 +189,7 @@ export function MedicalDocumentList({ patientId }: Props) {
 
   if (loading) {
     return (
-      <div className="text-sm text-muted-foreground py-4">
-        Loading documents…
-      </div>
+      <DataState status="loading" loadingMessage="Loading documents…" />
     );
   }
 

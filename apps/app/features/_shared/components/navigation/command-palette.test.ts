@@ -20,6 +20,20 @@ describe("command-palette QUICK_ACTIONS", () => {
     expect(newAppt?.href).toBe("/appointments?action=new");
   });
 
+  it("includes clinic-day jump actions with read access where appropriate", () => {
+    const today = QUICK_ACTIONS.find((a) => a.id === "today-schedule");
+    expect(today?.href).toBe("/today");
+    expect(today?.accessMode).toBe("read");
+
+    const coding = QUICK_ACTIONS.find((a) => a.id === "coding-queue");
+    expect(coding?.href).toBe("/coding-queue");
+    expect(coding?.accessMode).toBe("read");
+
+    const followUps = QUICK_ACTIONS.find((a) => a.id === "follow-ups-board");
+    expect(followUps?.href).toBe("/follow-ups");
+    expect(followUps?.accessMode).toBe("read");
+  });
+
   it("declares a start-consultation action without a static href", () => {
     const startConsultation = QUICK_ACTIONS.find(
       (action) => action.id === "start-consultation",

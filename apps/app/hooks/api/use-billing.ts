@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
   CreateInvoiceRequest,
@@ -21,20 +21,39 @@ import {
   subscriptionBillingPreviewResponseSchema,
   subscriptionBillingStatusResponseSchema,
 } from "@workspace/types";
-import { useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { fetchAPI, useAPIMutation, useAPIQuery } from "@/lib/api-core";
+import { ApiError } from "@/lib/errors";
 import { fetchWithSession } from "@/lib/fetch-with-session";
 import { withQueryString } from "@/lib/http/query-string";
 
+export type InvoiceListRow = Invoice & {
+  patient: Patient;
+  appointment?: { doctor: { name: string } };
+};
+
+/** API list returns `{ items, hasMore, ... }`; older clients may still receive a bare array. */
+export function normalizeInvoicesListResponse<T>(data: unknown): T[] {
+  if (Array.isArray(data)) {
+    return data as T[];
+  }
+  if (
+    data &&
+    typeof data === "object" &&
+    "items" in data &&
+    Array.isArray((data as { items: unknown }).items)
+  ) {
+    return (data as { items: T[] }).items;
+  }
+  return [];
+}
+
 export const useInvoices = (filters?: ListInvoicesContractQuery) =>
-  useAPIQuery<
-    (Invoice & {
-      patient: Patient;
-      appointment?: { doctor: { name: string } };
-    })[]
-  >(
-    ["invoices", filters || {}],
-    withQueryString("/invoices", filters),
-  );
+  useQuery<unknown, ApiError, InvoiceListRow[]>({
+    queryKey: ["invoices", filters || {}],
+    queryFn: () => fetchAPI<unknown>(withQueryString("/invoices", filters)),
+    select: (raw) => normalizeInvoicesListResponse<InvoiceListRow>(raw),
+    staleTime: 60 * 1000,
+  });
 
 const infiniteInvoicesResponseSchema = z.object({
   items: z.array(invoiceResponseSchema),

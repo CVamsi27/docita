@@ -12,10 +12,20 @@ import { Button } from "@workspace/ui/components/button";
 import { DataState } from "@workspace/ui/components/data-state";
 import { ExternalLink, FlaskConical } from "lucide-react";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
+import { Feature } from "@workspace/types";
 import { useLabTestOrders } from "@/hooks/api/use-clinical";
+import { TierGate } from "@/components/common/auth/access-gates";
 
 interface LabsTabProps {
   patientId: string;
+}
+
+export function LabsTab({ patientId }: LabsTabProps) {
+  return (
+    <TierGate feature={Feature.LAB_TESTS}>
+      <LabsTabContent patientId={patientId} />
+    </TierGate>
+  );
 }
 
 const STATUS_VARIANT: Record<
@@ -29,7 +39,7 @@ const STATUS_VARIANT: Record<
   CANCELLED: "destructive",
 };
 
-export function LabsTab({ patientId }: LabsTabProps) {
+function LabsTabContent({ patientId }: LabsTabProps) {
   const {
     data: orders,
     isLoading,

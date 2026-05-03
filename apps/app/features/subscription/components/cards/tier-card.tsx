@@ -27,6 +27,7 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 
 interface TierCardProps {
   tier: Tier;
@@ -49,6 +50,11 @@ interface TierCardProps {
   featureDisplay?: "compact" | "detailed";
   /** Accent stripe at top of card (plans grid usually omits this). */
   showTopAccent?: boolean;
+  /**
+   * Short bullets shown under the description (e.g. onboarding plan picker).
+   * Distinct from the full `features` list rendered by `PlanFeatures`.
+   */
+  keyHighlights?: string[];
   /**
    * `summary`: name, tagline, price, CTA only — for surfaces that already show a full comparison (e.g. Compare Plans tab).
    * `full`: default rich plan card.
@@ -115,9 +121,6 @@ function formatTierPrice(
   ) {
     return "Custom";
   }
-  if (tier === Tier.STARTER && pricing.monthly === 0 && pricing.yearly === 0) {
-    return "Free forever";
-  }
   if (billingCycle === "YEARLY" && typeof pricing.yearly === "number") {
     return `${sym}${formatAmountLocale(pricing.yearly)}/yr`;
   }
@@ -149,6 +152,7 @@ export function TierCard({
   limitHighlights,
   featureDisplay = "compact",
   showTopAccent = false,
+  keyHighlights,
   density = "full",
 }: TierCardProps & { currentTierValue?: Tier; onSelect?: () => void }) {
   const tierName = Tier[tier] as string;
@@ -197,7 +201,14 @@ export function TierCard({
             <h3 className="ui-section-title text-[var(--fs-xl)] leading-[var(--lh-tight)] text-foreground">
               {info.name}
             </h3>
-            <CardDescription className="text-[var(--fs-sm)] font-medium leading-snug text-muted-foreground">
+            <CardDescription
+              className={cn(
+                "text-pretty font-medium leading-snug text-muted-foreground",
+                isSummary
+                  ? "text-[var(--fs-xs)]"
+                  : "text-[var(--fs-sm)]",
+              )}
+            >
               {info.tagline}
             </CardDescription>
           </div>
@@ -206,6 +217,38 @@ export function TierCard({
           <p className="mt-4 min-h-12 text-sm leading-relaxed text-muted-foreground">
             {info.description}
           </p>
+        ) : null}
+        {keyHighlights?.length ? (
+          <ul
+            className={cn(
+              "space-y-1.5 border-t border-border/60",
+              isSummary
+                ? "mt-2 pt-2"
+                : "mt-3 pt-3",
+            )}
+            aria-label="Plan highlights"
+          >
+            {keyHighlights.slice(0, isSummary ? 4 : 5).map((line) => (
+              <li
+                key={line}
+                className={cn(
+                  "flex gap-2 leading-snug text-foreground",
+                  isSummary
+                    ? "text-[var(--fs-2xs)]"
+                    : "text-[var(--fs-xs)]",
+                )}
+              >
+                <Check
+                  className={cn(
+                    "mt-0.5 shrink-0 text-primary",
+                    isSummary ? "h-3 w-3" : "h-3.5 w-3.5",
+                  )}
+                  aria-hidden
+                />
+                <span className="text-pretty">{line}</span>
+              </li>
+            ))}
+          </ul>
         ) : null}
         {!isSummary && bestFor ? (
           <p className="mt-3 rounded-md border border-border/70 bg-background/70 px-3 py-2 text-xs font-medium leading-relaxed text-foreground">
@@ -216,7 +259,20 @@ export function TierCard({
           <div className={cn("space-y-4", isSummary ? "mt-4" : "mt-5")}>
             <div className="rounded-lg border border-border/70 bg-background/80 p-4 shadow-sm">
               <p className="text-[var(--fs-3xl)] font-semibold leading-[var(--lh-tight)] tabular-nums text-foreground">
-                {formatTierPrice(tier, pricing, billingCycle, currencySymbol)}
+                {billingCycle === "YEARLY" &&
+                typeof pricing.monthly === "number" &&
+                typeof pricing.yearly === "number" &&
+                tier !== Tier.ENTERPRISE ? (
+                  <YearlyVsListAnnualPrice
+                    monthlyListPrice={pricing.monthly}
+                    discountedAnnualPrice={pricing.yearly}
+                    formatMoney={(amount) =>
+                      `${currencySymbol ?? ""}${formatAmountLocale(amount)}`
+                    }
+                  />
+                ) : (
+                  formatTierPrice(tier, pricing, billingCycle, currencySymbol)
+                )}
               </p>
               {pricing.monthly !== 0 && pricing.monthly !== "custom" && (
                 <p className="mt-1 text-[var(--fs-2xs)] leading-snug text-muted-foreground">

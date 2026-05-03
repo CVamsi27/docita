@@ -326,16 +326,13 @@ export function useDoctorAvailabilitySlots(
 ) {
   const enabled =
     Boolean(date && doctorId) && (queryOptions?.enabled ?? true);
+  const dateKey = date ? formatPickerIsoDate(date) : "";
 
   return useAPIQueryValidated(
-    [
-      "doctor-availability-slots",
-      date?.toISOString() ?? "",
-      doctorId ?? "",
-    ],
+    ["doctor-availability-slots", dateKey, doctorId ?? ""],
     enabled && date && doctorId
       ? withQueryString("/doctor-availability/slots", {
-          date: date.toISOString(),
+          date: dateKey,
           doctorId,
         })
       : "/doctor-availability/slots",

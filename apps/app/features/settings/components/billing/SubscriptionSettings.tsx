@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRef } from "react";
+import type { ReactNode } from "react";
+import type { SubscriptionCurrentResponse } from "@workspace/types";
 import { useAuth } from "@/lib/auth-context";
 import { useBillingHistory } from "@/hooks/api/use-billing-history";
 import { getTierInfo } from "@/lib/tier-config";
@@ -29,6 +31,7 @@ import {
 } from "@workspace/ui/components/alert";
 import { AlertTriangle, Clock, XCircle } from "lucide-react";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
+import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 
 function scrollToBillingPlans() {
   document.getElementById("billing-plans-section")?.scrollIntoView({
@@ -37,9 +40,96 @@ function scrollToBillingPlans() {
   });
 }
 
-function BillingHistory() {
+function billingHistorySectionActions(
+  subscription: SubscriptionCurrentResponse | null | undefined,
+): ReactNode {
+  if (!subscription) {
+    return (
+      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
+        View plans
+      </Button>
+    );
+  }
+
+  const { subscriptionStatus: status } = subscription;
+
+  if (status === "EXPIRED") {
+    return (
+      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
+        Choose plan and pay
+      </Button>
+    );
+  }
+
+  if (status === "PAST_DUE" || status === "PAYMENT_DUE" || status === "GRACE") {
+    return (
+      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
+        {status === "GRACE" ? "Resolve payment" : "Update payment"}
+      </Button>
+    );
+  }
+
+  if (status === "TRIALING") {
+    return (
+      <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
+        Add payment
+      </Button>
+    );
+  }
+
+  if (status === "ACTIVE") {
+    return null;
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={scrollToBillingPlans}>
+      View plans
+    </Button>
+  );
+}
+
+function billingHistorySectionDescription(
+  subscription: SubscriptionCurrentResponse | null | undefined,
+): string {
+  const base = "View and download past invoices";
+  if (!subscription) {
+    return base;
+  }
+
+  if (subscription.subscriptionStatus === "TRIALING") {
+    return `${base}. Add a payment method before the trial ends so renewals can generate invoices here.`;
+  }
+
+  return base;
+}
+
+function billingHistoryEmptyDescription(
+  subscription: SubscriptionCurrentResponse | null | undefined,
+): string | undefined {
+  if (!subscription) {
+    return undefined;
+  }
+
+  if (subscription.subscriptionStatus === "TRIALING") {
+    return "Invoices appear after you add a payment method and your first paid charge completes.";
+  }
+
+  return undefined;
+}
+
+function BillingHistory({
+  emptyStateDescription,
+}: {
+  emptyStateDescription?: string;
+}) {
   const { data: invoices, isLoading } = useBillingHistory();
-  return <BillingHistoryTable invoices={invoices} isLoading={isLoading} />;
+  return (
+    <BillingHistoryTable
+      invoices={invoices}
+      isLoading={isLoading}
+      emptyStateDescription={emptyStateDescription}
+    />
+  );
 }
 
 export function SubscriptionSettings() {
@@ -76,7 +166,7 @@ export function SubscriptionSettings() {
 
   const tierName = subscription?.tier
     ? getTierInfo(subscription.tier).name
-    : "Free Plan";
+    : "Starter";
   const subscriptionStatus = subscription?.subscriptionStatus || "Inactive";
 
   if (!isAdmin) {
@@ -113,14 +203,8 @@ export function SubscriptionSettings() {
       : null;
 
   const paidPeriodDaysLeft =
-    subscriptionStatus === "ACTIVE" && subscription?.currentPeriodEnd
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) /
-              (1000 * 60 * 60 * 24),
-          ),
-        )
+    subscriptionStatus === "ACTIVE" && subscription
+      ? (getDisplayBillingPeriodEndAndDaysLeft(subscription)?.daysLeft ?? null)
       : null;
 
   const isPaymentDue =
@@ -139,18 +223,15 @@ export function SubscriptionSettings() {
               {trialDaysLeft > 0
                 ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? "s" : ""} left in your ${tierName} trial.`
                 : `Your ${tierName} trial ends today`}{" "}
-              {subscription?.tier === "STARTER"
-                ? "Upgrade when you need higher limits or paid features."
-                : "Add payment details to keep your paid features."}
+              Add payment before the trial ends so your subscription can renew
+              without interruption.
             </span>
             <Button
               size="sm"
               onClick={scrollToBillingPlans}
               className="shrink-0"
             >
-              {subscription?.tier === "STARTER"
-                ? "View plans"
-                : "Add Payment"}
+              Add payment
             </Button>
           </AlertDescription>
         </Alert>
@@ -285,14 +366,14 @@ export function SubscriptionSettings() {
         <Section
           id="billing-history-section"
           title="Billing History"
-          description="View and download past invoices"
-          actions={
-            <Button variant="outline" onClick={scrollToBillingPlans}>
-              Manage payment
-            </Button>
-          }
+          description={billingHistorySectionDescription(subscription ?? undefined)}
+          actions={billingHistorySectionActions(subscription ?? undefined)}
         >
-          <BillingHistory />
+          <BillingHistory
+            emptyStateDescription={billingHistoryEmptyDescription(
+              subscription ?? undefined,
+            )}
+          />
         </Section>
       </div>
     </div>

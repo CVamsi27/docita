@@ -5,7 +5,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Badge } from "@workspace/ui/components/badge";
 import { Baby, Eye, History, Smile } from "lucide-react";
 import {
   GrowthChartData,
@@ -213,130 +212,144 @@ export function PatientMedicalHistoryUI({
     );
   };
 
-  const ContentWrapper = isCompact
-    ? ({ children }: { children: React.ReactNode }) => (
-        <div className="space-y-6">{children}</div>
-      )
-    : ({ children }: { children: React.ReactNode }) => (
-        <Card>
-          <CardHeader className="py-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <History className="h-5 w-5 text-info" />
-                Patient Medical History
-              </CardTitle>
-              {readOnly && (
-                <Badge variant="outline" className="text-xs">
-                  Read Only
-                </Badge>
-              )}
-            </div>
-            {!readOnly && (
-              <CardDescription>
-                Add or remove conditions directly. Changes are saved
-                automatically
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-6">{children}</CardContent>
-        </Card>
-      );
+  const conditionsBlock = (
+    <div className="space-y-4">
+      {!isCompact ? null : (
+        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
+          Conditions
+        </div>
+      )}
+      <PatientConditions
+        patient={patient}
+        readOnly={readOnly}
+        newCondition={newCondition}
+        onNewConditionChange={onNewConditionChange}
+        onAddCondition={onAddCondition}
+        onRemoveCondition={onRemoveCondition}
+      />
+    </div>
+  );
+
+  const allergiesBlock = (
+    <div className="space-y-4">
+      {!isCompact ? null : (
+        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
+          Allergies
+        </div>
+      )}
+      <PatientAllergies
+        patient={patient}
+        readOnly={readOnly}
+        newAllergy={newAllergy}
+        onNewAllergyChange={onNewAllergyChange}
+        onAddAllergy={onAddAllergy}
+        onRemoveAllergy={onRemoveAllergy}
+        editingAllergy={editingAllergy}
+        onEditAllergy={onEditAllergy}
+        onUpdateAllergy={onUpdateAllergy}
+        onCancelEditAllergy={onCancelEditAllergy}
+        onEditingAllergyChange={onEditingAllergyChange}
+      />
+    </div>
+  );
+
+  const surgeriesBlock = (
+    <div className="space-y-4">
+      {!isCompact ? null : (
+        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
+          Surgeries
+        </div>
+      )}
+      <PatientSurgeries
+        patient={patient}
+        readOnly={readOnly}
+        newSurgery={newSurgery}
+        newSurgeryDate={newSurgeryDate}
+        onNewSurgeryChange={onNewSurgeryChange}
+        onNewSurgeryDateChange={onNewSurgeryDateChange}
+        onAddSurgery={onAddSurgery}
+        onRemoveSurgery={onRemoveSurgery}
+      />
+    </div>
+  );
+
+  const familyBlock = (
+    <div className="mt-8">
+      {!isCompact ? null : (
+        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
+          Family History
+        </div>
+      )}
+      <PatientFamilyHistory
+        patient={patient}
+        readOnly={readOnly}
+        newFamilyCondition={newFamilyCondition}
+        newFamilyRelation={newFamilyRelation}
+        onNewFamilyConditionChange={onNewFamilyConditionChange}
+        onNewFamilyRelationChange={onNewFamilyRelationChange}
+        onAddFamilyHistory={onAddFamilyHistory}
+        onRemoveFamilyHistory={onRemoveFamilyHistory}
+      />
+    </div>
+  );
+
+  const socialBlock = (
+    <div className="mt-8">
+      {!isCompact ? null : (
+        <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
+          Social History
+        </div>
+      )}
+      <PatientSocialHistoryComp
+        patient={patient}
+        readOnly={readOnly}
+        onSocialHistoryUpdate={onSocialHistoryUpdate}
+      />
+    </div>
+  );
+
+  if (isCompact) {
+    return (
+      <div className={className}>
+        {renderSpecialtySection()}
+        <div className="space-y-6">
+          {conditionsBlock}
+          <div className="h-px bg-border/50" />
+          {allergiesBlock}
+          <div className="h-px bg-border/50" />
+          {surgeriesBlock}
+        </div>
+        {familyBlock}
+        {socialBlock}
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
       {renderSpecialtySection()}
-
-      <ContentWrapper>
-        <div className="space-y-4">
-          {!isCompact ? null : (
-            <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
-              Conditions
-            </div>
+      <Card>
+        <CardHeader className="py-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <History className="h-5 w-5 text-info" />
+            Patient Medical History
+          </CardTitle>
+          {!readOnly && (
+            <CardDescription>
+              Add or remove entries directly. Changes are saved automatically.
+            </CardDescription>
           )}
-          <PatientConditions
-            patient={patient}
-            readOnly={readOnly}
-            newCondition={newCondition}
-            onNewConditionChange={onNewConditionChange}
-            onAddCondition={onAddCondition}
-            onRemoveCondition={onRemoveCondition}
-          />
-        </div>
-
-        <div className="h-px bg-border/50" />
-
-        <div className="space-y-4">
-          {!isCompact ? null : (
-            <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
-              Allergies
-            </div>
-          )}
-          <PatientAllergies
-            patient={patient}
-            readOnly={readOnly}
-            newAllergy={newAllergy}
-            onNewAllergyChange={onNewAllergyChange}
-            onAddAllergy={onAddAllergy}
-            onRemoveAllergy={onRemoveAllergy}
-            editingAllergy={editingAllergy}
-            onEditAllergy={onEditAllergy}
-            onUpdateAllergy={onUpdateAllergy}
-            onCancelEditAllergy={onCancelEditAllergy}
-            onEditingAllergyChange={onEditingAllergyChange}
-          />
-        </div>
-
-        <div className="h-px bg-border/50" />
-
-        <div className="space-y-4">
-          {!isCompact ? null : (
-            <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider">
-              Surgeries
-            </div>
-          )}
-          <PatientSurgeries
-            patient={patient}
-            readOnly={readOnly}
-            newSurgery={newSurgery}
-            newSurgeryDate={newSurgeryDate}
-            onNewSurgeryChange={onNewSurgeryChange}
-            onNewSurgeryDateChange={onNewSurgeryDateChange}
-            onAddSurgery={onAddSurgery}
-            onRemoveSurgery={onRemoveSurgery}
-          />
-        </div>
-      </ContentWrapper>
-
-      <div className="mt-8">
-        {!isCompact ? null : (
-          <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
-            Family History
-          </div>
-        )}
-        <PatientFamilyHistory
-          patient={patient}
-          readOnly={readOnly}
-          newFamilyCondition={newFamilyCondition}
-          newFamilyRelation={newFamilyRelation}
-          onNewFamilyConditionChange={onNewFamilyConditionChange}
-          onNewFamilyRelationChange={onNewFamilyRelationChange}
-          onAddFamilyHistory={onAddFamilyHistory}
-          onRemoveFamilyHistory={onRemoveFamilyHistory}
-        />
-      </div>
-
-      <div className="mt-8">
-        {!isCompact ? null : (
-          <div className="font-semibold text-sm text-foreground/70 uppercase tracking-wider mb-4">
-            Social History
-          </div>
-        )}
-        <PatientSocialHistoryComp
-          patient={patient}
-          readOnly={readOnly}
-          onSocialHistoryUpdate={onSocialHistoryUpdate}
-        />
-      </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {conditionsBlock}
+          <div className="h-px bg-border/50" />
+          {allergiesBlock}
+          <div className="h-px bg-border/50" />
+          {surgeriesBlock}
+        </CardContent>
+      </Card>
+      {familyBlock}
+      {socialBlock}
     </div>
   );
 }

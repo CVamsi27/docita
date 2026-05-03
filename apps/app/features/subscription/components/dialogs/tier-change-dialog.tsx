@@ -27,6 +27,7 @@ import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useProrationPreview } from "@/hooks/api/use-billing";
 import { formatCurrency, formatPriceWithCurrency } from "@workspace/utils";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 
 interface TierChangeDialogProps {
   open: boolean;
@@ -216,9 +217,21 @@ export function TierChangeDialog({
                 </div>
                 <p className="font-semibold">{currentInfo.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {!currentHasCustomPricing && typeof currentPrice === "number"
-                    ? `${formatPrice(currentPrice)}${cycleSuffix}`
-                    : "Custom pricing"}
+                  {billingCycle === "YEARLY" &&
+                  !currentHasCustomPricing &&
+                  currentTierData &&
+                  typeof currentTierData.pricing.monthly === "number" &&
+                  typeof currentPrice === "number" ? (
+                    <YearlyVsListAnnualPrice
+                      monthlyListPrice={currentTierData.pricing.monthly}
+                      discountedAnnualPrice={currentPrice}
+                      formatMoney={formatPrice}
+                    />
+                  ) : !currentHasCustomPricing && typeof currentPrice === "number" ? (
+                    `${formatPrice(currentPrice)}${cycleSuffix}`
+                  ) : (
+                    "Custom pricing"
+                  )}
                 </p>
               </div>
 
@@ -239,9 +252,22 @@ export function TierChangeDialog({
                 </div>
                 <p className="font-semibold">{selectedInfo.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {!selectedHasCustomPricing && typeof selectedPrice === "number"
-                    ? `${formatPrice(selectedPrice)}${cycleSuffix}`
-                    : "Custom pricing"}
+                  {billingCycle === "YEARLY" &&
+                  !selectedHasCustomPricing &&
+                  selectedTierData &&
+                  typeof selectedTierData.pricing.monthly === "number" &&
+                  typeof selectedPrice === "number" ? (
+                    <YearlyVsListAnnualPrice
+                      monthlyListPrice={selectedTierData.pricing.monthly}
+                      discountedAnnualPrice={selectedPrice}
+                      formatMoney={formatPrice}
+                    />
+                  ) : !selectedHasCustomPricing &&
+                    typeof selectedPrice === "number" ? (
+                    `${formatPrice(selectedPrice)}${cycleSuffix}`
+                  ) : (
+                    "Custom pricing"
+                  )}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {billingCycle === "YEARLY" ? "Yearly billing" : "Monthly billing"}

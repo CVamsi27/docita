@@ -66,8 +66,8 @@ export const PLAN_DESCRIPTIONS: Record<
   { tagline: string; description: string }
 > = {
   [Tier.STARTER]: {
-    tagline: "Free forever",
-    description: "Basic clinical workflow for free",
+    tagline: "Go digital from day one",
+    description: "Basic clinical workflow for solo doctors moving off paper",
   },
   [Tier.ESSENTIAL]: {
     tagline: "For solo clinics",

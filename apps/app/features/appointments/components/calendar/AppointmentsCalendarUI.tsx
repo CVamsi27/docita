@@ -114,7 +114,7 @@ export function AppointmentsCalendarUI({
             }}
             modifiersClassNames={{
               hasAppointments:
-                "[&_button]:relative [&_button]:after:absolute [&_button]:after:bottom-1 [&_button]:after:left-1/2 [&_button]:after:h-1 [&_button]:after:w-1 [&_button]:after:-translate-x-1/2 [&_button]:after:rounded-full [&_button]:after:bg-primary [&_button]:after:content-['']",
+                "relative after:pointer-events-none after:absolute after:top-0.5 after:end-0.5 after:z-20 after:size-2 after:rounded-full after:bg-primary after:ring-2 after:ring-background after:content-[''] aria-selected:after:bg-primary-foreground",
             }}
             captionLayout="dropdown"
             className="w-full max-w-full bg-transparent p-0 [--cell-size:--spacing(8)] [&_[data-day]]:!size-auto [&_[data-day]]:!min-h-0 [&_[data-day]]:!min-w-0 [&_[data-day]]:!h-full [&_[data-day]]:!w-full [&_table]:w-full [&_td]:p-0.5"
@@ -124,9 +124,11 @@ export function AppointmentsCalendarUI({
         {hasAnyMonthIndicators ? (
           <div className="flex items-center gap-2 px-5 text-xs text-muted-foreground">
             <span
-              className="inline-block size-2 shrink-0 rounded-full bg-primary"
+              className="relative inline-block size-6 shrink-0 rounded-md border border-border/70 bg-muted/30"
               aria-hidden
-            />
+            >
+              <span className="absolute top-0.5 end-0.5 size-2 rounded-full bg-primary ring-2 ring-background" />
+            </span>
             <span>Day has scheduled appointments</span>
           </div>
         ) : null}

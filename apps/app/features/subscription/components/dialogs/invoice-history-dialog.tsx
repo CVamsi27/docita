@@ -35,7 +35,9 @@ export function InvoiceHistoryDialog({
             Billing History
           </DialogTitle>
           <DialogDescription>
-            View and download your past invoices and receipts.
+            Paid subscription charges list here; after each payment completes,
+            open Receipt to download the PDF invoice. Pending rows are unpaid
+            checkouts until you finish payment.
           </DialogDescription>
         </DialogHeader>
 

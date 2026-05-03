@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
-import { Pencil } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
 import type { PatientWithMedicalHistory } from "@workspace/types";
 import { PatientMedicalHistoryContainer } from "@/features/patients/components/details/PatientMedicalHistoryContainer";
 
@@ -21,10 +21,20 @@ export function RecordsTab({ patient, canEditPatient }: RecordsTabProps) {
           <Button
             size="sm"
             variant={isEditing ? "default" : "outline"}
+            aria-pressed={isEditing}
             onClick={() => setIsEditing((v) => !v)}
           >
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
-            {isEditing ? "Editing records" : "Edit records"}
+            {isEditing ? (
+              <>
+                <Check className="h-3.5 w-3.5 mr-1.5" />
+                Save
+              </>
+            ) : (
+              <>
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Edit records
+              </>
+            )}
           </Button>
         </div>
       )}

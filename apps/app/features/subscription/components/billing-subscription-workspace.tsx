@@ -42,6 +42,7 @@ import { useLocaleCurrency } from "@/hooks/use-locale-currency";
 import { useSubscription } from "@/hooks/api/use-settings";
 import {
   ANNUAL_DISCOUNT_PERCENT,
+  TIER_PRICING_BY_CURRENCY,
   type SupportedCurrency,
   type TierName,
 } from "@workspace/types";
@@ -52,6 +53,8 @@ import {
 } from "@workspace/types";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
 import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
+import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
+import { getDisplayBillingPeriodEndAndDaysLeft } from "@/features/subscription/lib/billing-period-display";
 
 const PLAN_ORDER = [
   Tier.STARTER,
@@ -67,16 +70,113 @@ function formatPlanDate(value?: string | null) {
 }
 
 function formatStatusLabel(status?: string) {
-  if (!status) return "Free";
+  if (!status) return "Not set";
   return status
     .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function formatBillingCycle(cycle?: "MONTHLY" | "YEARLY") {
-  if (!cycle) return "Free";
-  return cycle === "YEARLY" ? "Yearly" : "Monthly";
+function isStarterActiveZeroBase(
+  subscription: { tier?: string; basePriceCents?: number } | null | undefined,
+  subscriptionStatus: string | undefined,
+): boolean {
+  return (
+    subscription?.tier === "STARTER" &&
+    subscriptionStatus === "ACTIVE" &&
+    (subscription.basePriceCents ?? 0) === 0
+  );
+}
+
+function starterCatalogListMajorUnits(
+  currency: string | undefined,
+  billingCycle?: "MONTHLY" | "YEARLY" | string,
+): number | null {
+  const code = (currency ?? "INR").toUpperCase();
+  if (
+    !Object.prototype.hasOwnProperty.call(TIER_PRICING_BY_CURRENCY, code)
+  ) {
+    return null;
+  }
+  const row =
+    TIER_PRICING_BY_CURRENCY[code as SupportedCurrency].STARTER;
+  const amount =
+    billingCycle === "YEARLY" ? row.yearly : row.monthly;
+  return typeof amount === "number" && Number.isFinite(amount) ? amount : null;
+}
+
+function billingCadenceLabel(cycle?: "MONTHLY" | "YEARLY" | string) {
+  if (!cycle) return "Monthly";
+  return cycle === "YEARLY" ? "Annual" : "Monthly";
+}
+
+function currencySymbolFor(code: string | undefined) {
+  const upper = (code ?? "INR").toUpperCase();
+  return (
+    PRICING_CURRENCY_SYMBOLS[
+      upper as keyof typeof PRICING_CURRENCY_SYMBOLS
+    ] ?? upper
+  );
+}
+
+/**
+ * Platform subscription row: always states cadence (monthly vs annual) and list
+ * price when the subscription carries a non-zero base.
+ */
+function formatPlanBillingDetail(
+  subscription:
+    | {
+        tier?: string;
+        billingCycle?: "MONTHLY" | "YEARLY";
+        basePriceCents?: number;
+        currency?: string;
+      }
+    | null
+    | undefined,
+  subscriptionStatus: string | undefined,
+): string {
+  const cadence = billingCadenceLabel(subscription?.billingCycle);
+  const symbol = currencySymbolFor(subscription?.currency);
+
+  if (isStarterActiveZeroBase(subscription, subscriptionStatus)) {
+    const listMajor = starterCatalogListMajorUnits(
+      subscription?.currency,
+      subscription?.billingCycle,
+    );
+    if (listMajor != null) {
+      const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
+      return `${cadence} — ${symbol}${listMajor}${suffix}`;
+    }
+    return `${cadence} — ${symbol}0`;
+  }
+
+  const cents = subscription?.basePriceCents ?? 0;
+  if (cents <= 0) {
+    return `${cadence} — ${symbol}0`;
+  }
+
+  const majorUnits = cents / 100;
+  const amountLabel = Number.isInteger(majorUnits)
+    ? String(majorUnits)
+    : majorUnits.toFixed(2);
+  const suffix = subscription?.billingCycle === "YEARLY" ? "/yr" : "/mo";
+  return `${cadence} — ${symbol}${amountLabel}${suffix}`;
+}
+
+/**
+ * Legacy rows set Starter to MONTHLY with a ~365d access window; avoid implying
+ * a monthly renewal cadence from that combination.
+ */
+function starterMonthlyAccessTermMismatch(
+  subscription: { tier?: string; billingCycle?: string } | null | undefined,
+  daysLeftInPeriod: number | null,
+): boolean {
+  return (
+    subscription?.tier === "STARTER" &&
+    subscription?.billingCycle === "MONTHLY" &&
+    daysLeftInPeriod !== null &&
+    daysLeftInPeriod > 45
+  );
 }
 
 export function BillingSubscriptionWorkspace() {
@@ -128,6 +228,14 @@ export function BillingSubscriptionWorkspace() {
           ),
         )
       : null;
+  const displayBillingPeriod =
+    subscription?.subscriptionStatus === "ACTIVE"
+      ? getDisplayBillingPeriodEndAndDaysLeft(subscription)
+      : null;
+  const planStripPeriodEnd =
+    displayBillingPeriod?.periodEnd ?? subscriptionPeriodEnd;
+  const planStripDaysLeft =
+    displayBillingPeriod?.daysLeft ?? daysLeftInPeriod;
   const isTrialing = subscriptionStatus === "TRIALING";
   const isTrialExpired =
     isTrialing && subscriptionPeriodEnd !== null
@@ -138,6 +246,12 @@ export function BillingSubscriptionWorkspace() {
     subscriptionStatus === "PAST_DUE" || subscriptionStatus === "PAYMENT_DUE";
   const isInGracePeriod = subscriptionStatus === "GRACE";
   const effectiveCurrentTier = isTrialExpired ? Tier.STARTER : currentTier;
+  const starterLongMonthlyWindow = starterMonthlyAccessTermMismatch(
+    subscription,
+    planStripDaysLeft,
+  );
+  /** Date row label only; do not drive billing copy (paid Starter can have a long prepaid window). */
+  const showStarterAccessThroughLabel = starterLongMonthlyWindow;
 
   const handleSelectTier = useCallback(
     (tier: TierName, cycle: "MONTHLY" | "YEARLY") => {
@@ -201,10 +315,10 @@ export function BillingSubscriptionWorkspace() {
         : isTrialing || isTrialExpired
           ? {
               title: isTrialExpired ? "Trial Ended" : "Trial In Progress",
-              badgeLabel: isTrialExpired ? "Free Plan" : "Trial Active",
+              badgeLabel: isTrialExpired ? "Starter" : "Trial Active",
               description: isTrialExpired
-                ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
-                : daysLeftInPeriod !== null && daysLeftInPeriod > 0
+                ? "Your trial has ended and your facility is now on the Starter plan. Upgrade to continue paid features."
+                : planStripDaysLeft !== null && planStripDaysLeft > 0
                   ? "Upgrade anytime to keep paid features after the trial."
                   : "Your trial ends today. Upgrade anytime to keep paid features active.",
               variant: isTrialExpired
@@ -214,8 +328,8 @@ export function BillingSubscriptionWorkspace() {
           : subscriptionStatus === "ACTIVE"
             ? undefined
             : {
-                title: "Starter Plan Active",
-                badgeLabel: "Free",
+                title: "Starter plan",
+                badgeLabel: "Starter",
                 description:
                   "Your clinic is on the Starter plan. Choose a paid plan when you need higher limits or advanced workflows.",
                 variant: "default" as const,
@@ -226,7 +340,7 @@ export function BillingSubscriptionWorkspace() {
     { label: "Status", value: formatStatusLabel(subscriptionStatus) },
     {
       label: "Billing",
-      value: formatBillingCycle(subscription?.billingCycle),
+      value: formatPlanBillingDetail(subscription, subscriptionStatus),
     },
     {
       label:
@@ -234,12 +348,14 @@ export function BillingSubscriptionWorkspace() {
           ? "Trial Ends"
           : subscription?.cancelAtPeriodEnd
             ? "Ends On"
-            : "Renews On",
+            : showStarterAccessThroughLabel
+              ? "Access through"
+              : "Renews On",
       value:
-        subscriptionPeriodEnd !== null
-          ? `${formatPlanDate(subscription?.currentPeriodEnd)}${
-              daysLeftInPeriod !== null
-                ? ` (${daysLeftInPeriod} day${daysLeftInPeriod === 1 ? "" : "s"} left)`
+        planStripPeriodEnd !== null
+          ? `${formatPlanDate(planStripPeriodEnd.toISOString())}${
+              planStripDaysLeft !== null
+                ? ` (${planStripDaysLeft} day${planStripDaysLeft === 1 ? "" : "s"} left)`
                 : ""
             }`
           : "Not scheduled",
@@ -315,7 +431,7 @@ export function BillingSubscriptionWorkspace() {
           </Alert>
         )}
 
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]">
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))]">
           {planCards.map(({ tier, info }) => {
             const tierName = Tier[tier] as TierName;
             const tierPricingData = pricingConfig?.tiers.find(
@@ -358,6 +474,9 @@ export function BillingSubscriptionWorkspace() {
                 isCurrentTier={tier === effectiveCurrentTier}
                 isLocked={false}
                 currentTierValue={effectiveCurrentTier}
+                keyHighlights={
+                  PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
+                }
                 pricing={tierPricingData?.pricing}
                 billingCycle={selectedCycle}
                 currencySymbol={currencySymbol}
@@ -420,9 +539,6 @@ export function BillingSubscriptionWorkspace() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={scrollToPlans}>
-              View plans
-            </Button>
             <Button onClick={() => setShowContactSalesModal(true)}>
               Contact Sales
             </Button>

@@ -5,6 +5,7 @@ import {
   Feature,
   FEATURE_TIER_MAP,
   isFeatureGenerallyAvailable,
+  mapClinicTierDbStringToAccessTier,
   Tier,
   TIER_INFO,
   TierName,
@@ -59,19 +60,10 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   featureOverrides: {},
 
   setTier: (tier) => {
-    let parsedTier = Tier.STARTER;
-
-    if (typeof tier === "string") {
-      const dbToTier: Record<string, Tier> = {
-        STARTER: Tier.STARTER,
-        ESSENTIAL: Tier.ESSENTIAL,
-        PROFESSIONAL: Tier.PROFESSIONAL,
-        ENTERPRISE: Tier.ENTERPRISE,
-      };
-      parsedTier = dbToTier[tier] ?? Tier.STARTER;
-    } else {
-      parsedTier = tier;
-    }
+    const parsedTier =
+      typeof tier === "string"
+        ? mapClinicTierDbStringToAccessTier(tier)
+        : tier;
 
     set({ currentTier: parsedTier });
   },

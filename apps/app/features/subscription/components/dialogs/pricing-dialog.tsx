@@ -39,6 +39,7 @@ import {
   formatCountLocale,
   formatPriceWithCurrency,
 } from "@workspace/utils";
+import { YearlyVsListAnnualPrice } from "@/features/subscription/lib/yearly-vs-list-annual-price";
 
 interface PricingDialogProps {
   open: boolean;
@@ -206,7 +207,7 @@ export function PricingDialog({
 
                 <div
                   key={isYearly ? "yearly" : "monthly"}
-                  className="mb-4 animate-in fade-in slide-in-from-left-2 duration-200"
+                  className="mb-4"
                 >
                   {isCustomTier ? (
                     <div className="text-[var(--fs-2xl)] font-semibold leading-[var(--lh-tight)]">
@@ -222,11 +223,17 @@ export function PricingDialog({
                           /mo
                         </span>
                       </div>
-                      {isYearly && (
-                        <p className="text-xs text-muted-foreground">
-                          {formatPrice(price)} billed yearly
-                        </p>
-                      )}
+                      {isYearly &&
+                        typeof tierPricing.monthly === "number" &&
+                        typeof tierPricing.yearly === "number" && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            <YearlyVsListAnnualPrice
+                              monthlyListPrice={tierPricing.monthly}
+                              discountedAnnualPrice={tierPricing.yearly}
+                              formatMoney={formatPrice}
+                            />
+                          </p>
+                        )}
                     </>
                   )}
                 </div>

@@ -19,6 +19,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@work
 import { Progress } from "@workspace/ui/components/progress";
 import { Badge } from "@workspace/ui/components/badge";
 import { cn } from "@workspace/ui/lib/utils";
+import {
+  formatUsageMeterCaption,
+  usageMeterHasNoIncludedQuota,
+  usageProgressPercentForBar,
+} from "@/features/subscription/lib/usage-meter-display";
 
 interface UsageMeterProps {
   label: string;
@@ -43,9 +48,12 @@ function UsageMeter({
   amountLocale,
   amountFractionDigits,
 }: UsageMeterProps) {
-  const pct = included > 0 ? Math.min(100, (current / included) * 100) : 0;
+  const noIncludedQuota = usageMeterHasNoIncludedQuota(included);
+  const pct = usageProgressPercentForBar(current, included);
   const isOver = overage > 0;
-  const isWarning = pct >= 80 && !isOver;
+  const isWarning =
+    included > 0 && pct >= 80 && !isOver;
+  const caption = formatUsageMeterCaption(current, included, unit);
 
   return (
     <div className="space-y-2">
@@ -61,7 +69,7 @@ function UsageMeter({
             <AlertTriangle className="h-3.5 w-3.5 text-warning" />
           )}
           <span className={cn("text-muted-foreground", isOver && "text-destructive")}>
-            {formatCountLocale(current)} / {formatCountLocale(included)} {unit}
+            {caption}
           </span>
         </div>
       </div>
@@ -71,6 +79,10 @@ function UsageMeter({
           "h-2",
           isOver && "[&>div]:bg-destructive",
           isWarning && "[&>div]:bg-warning",
+          noIncludedQuota &&
+            !isOver &&
+            !isWarning &&
+            "[&>div]:bg-primary/35",
         )}
       />
       {isOver && overageRate !== undefined && (

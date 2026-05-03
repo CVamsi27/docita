@@ -13,6 +13,7 @@ type SelectOption = {
 interface AddAppointmentDialogContainerProps {
   onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
+  onAdjustSchedulingDate?: (next: Date) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   preselectedPatientId?: string;
@@ -21,6 +22,7 @@ interface AddAppointmentDialogContainerProps {
 export function AddAppointmentDialogContainer({
   onAppointmentAdded,
   selectedDate,
+  onAdjustSchedulingDate,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   preselectedPatientId,
@@ -83,6 +85,7 @@ export function AddAppointmentDialogContainer({
   } = useAppointmentForm({
     onAppointmentAdded,
     selectedDate,
+    onAdjustSchedulingDate,
     preselectedPatientId,
     startHour,
     endHour,

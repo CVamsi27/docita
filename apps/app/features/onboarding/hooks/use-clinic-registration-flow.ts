@@ -321,7 +321,7 @@ export function useClinicRegistrationFlow() {
         return;
       }
 
-      if (tier === "STARTER" || tier === "ESSENTIAL") {
+      if (tier === "ESSENTIAL") {
         setFormData((prev) => ({
           ...prev,
           paymentDetails: {
@@ -331,6 +331,18 @@ export function useClinicRegistrationFlow() {
         }));
 
         setStep(3);
+        return;
+      }
+
+      if (
+        resolvedCurrency === "INR" &&
+        !formData.clinicDetails.gstin?.trim()
+      ) {
+        showUserFacingErrorToast(
+          null,
+          "Add your facility GSTIN on the previous step before paying for a plan in India.",
+          "form",
+        );
         return;
       }
 

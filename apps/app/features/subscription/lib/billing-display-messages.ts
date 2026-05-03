@@ -5,6 +5,9 @@
 export const SUBSCRIPTION_GST_INCLUSIVE_NOTICE =
   "Prices and invoice totals are inclusive of GST where applicable.";
 
+/** Table caption: GST line plus where PDF receipts appear. */
+export const BILLING_HISTORY_TABLE_CAPTION = `${SUBSCRIPTION_GST_INCLUSIVE_NOTICE} After payment, use Receipt to download the PDF invoice. Pending rows stay unpaid until checkout completes.`;
+
 const INTERNAL_DESCRIPTION_PREFIX = /^\[INTERNAL:([A-Z0-9_]+)\]\s*/;
 
 const INTERNAL_CATEGORY_LABELS: Record<string, string> = {

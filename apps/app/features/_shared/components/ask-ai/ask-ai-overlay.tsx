@@ -8,8 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
+import { EmptyState } from "@workspace/ui/components/empty-state";
 import { PromptInput } from "@workspace/ui/components/prompt-input";
-import { Button } from "@workspace/ui/components/button";
 import { MicroLabel } from "@workspace/ui/components/micro-label";
 import { cn } from "@workspace/ui/lib/utils";
 import { useAskAi } from "./ask-ai-context";
@@ -22,10 +22,8 @@ interface AskAiMessage {
 }
 
 /**
- * Origin-style full-screen Ask AI overlay: left history rail, main chat pane,
- * pinned PromptInput, scope chip above the input. The actual AI transport will
- * be wired in a follow-up; for now this captures prompts and renders a local
- * acknowledgement so the surface is reachable, testable, and accessible.
+ * Ask AI overlay: history rail (md+), chat pane, pinned PromptInput, scope chip,
+ * and compliance footer. AI transport is stubbed with a local acknowledgement.
  */
 export function AskAiOverlay() {
   const { open, scope, closeOverlay, openOverlay } = useAskAi();
@@ -86,61 +84,72 @@ export function AskAiOverlay() {
     });
   }
 
+  const scopeChipClass =
+    "inline-flex max-w-full items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-2.5 py-1 text-[var(--fs-xs)] font-medium text-foreground";
+
   const scopeChip = scope ? (
-    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5">
-      <Sparkles aria-hidden className="size-3" />
-      <span>{scope.label}</span>
+    <span className={scopeChipClass}>
+      <Sparkles aria-hidden className="size-3 shrink-0 text-primary" />
+      <span className="truncate">{scope.label}</span>
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 text-muted-foreground">
-      <Sparkles aria-hidden className="size-3" />
-      <span>Ask anything about your workspace.</span>
+    <span className={scopeChipClass}>
+      <Sparkles aria-hidden className="size-3 shrink-0 text-primary" />
+      <span>Clinic-wide</span>
     </span>
   );
 
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? openOverlay() : closeOverlay())}>
       <DialogContent
+        showCloseButton
         className={cn(
-          "sm:max-w-[960px] h-[min(720px,90vh)] gap-0 p-0 overflow-hidden",
+          "gap-0 overflow-hidden p-0 shadow-xl",
+          "max-sm:inset-x-0 max-sm:top-0 max-sm:bottom-0 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:max-w-none max-sm:translate-y-0 max-sm:rounded-none max-sm:border-x-0",
+          "sm:h-[min(720px,90dvh)] sm:max-h-[min(720px,90dvh)] sm:max-w-[960px]",
         )}
       >
-        <DialogHeader className="sr-only">
-          <DialogTitle>Ask AI</DialogTitle>
+        <DialogHeader className="flex shrink-0 flex-row items-center gap-2 border-b border-border/50 bg-muted/10 px-4 py-3 sm:px-5">
+          <Sparkles
+            aria-hidden
+            className="size-4 shrink-0 text-primary"
+          />
+          <DialogTitle className="text-left text-[var(--fs-sm)] font-semibold leading-snug text-foreground">
+            Ask AI
+          </DialogTitle>
         </DialogHeader>
-        <div className="grid h-full grid-rows-[1fr_auto] md:grid-cols-[220px_1fr]">
+        <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[minmax(12rem,13.5rem)_1fr] md:grid-rows-1">
           <aside
-            aria-label="Ask AI history"
-            className="hidden border-r border-border/60 bg-muted/30 p-3 md:block"
+            aria-label="Ask AI conversation history for today"
+            className="hidden shrink-0 flex-col gap-1 border-r border-border/50 bg-muted/10 p-4 md:flex"
           >
-            <MicroLabel>Today</MicroLabel>
-            <p className="mt-2 text-sm text-muted-foreground">
-              No prior threads. Start a new conversation.
+            <MicroLabel as="h2">Today</MicroLabel>
+            <p className="ui-section-subtitle mt-1 text-pretty text-left leading-snug">
+              Nothing from today yet. New threads will show here.
             </p>
           </aside>
-          <section className="flex h-full min-h-0 flex-col">
-            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+          <section className="flex min-h-0 flex-1 flex-col bg-background">
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
               {messages.length === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
-                  <Sparkles aria-hidden className="size-8 text-primary" />
-                  <p className="text-base font-semibold text-foreground">
-                    Ask anything about your clinic.
-                  </p>
-                  <p className="text-sm">
-                    Try: &ldquo;Summarize today&rsquo;s queue&rdquo; or &ldquo;Draft a
-                    follow-up for Mr. Sharma&rdquo;.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Sparkles}
+                  title="What should we look at?"
+                  description="Summarize today's queue, draft a follow-up, or ask about a schedule block."
+                  className="mx-auto max-w-sm py-4 md:py-8"
+                />
               ) : (
-                <ol className="flex flex-col gap-3" aria-label="Conversation">
+                <ol
+                  className="flex w-full flex-col gap-2.5"
+                  aria-label="Conversation"
+                >
                   {messages.map((message) => (
                     <li
                       key={message.id}
                       className={cn(
-                        "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
+                        "max-w-[min(100%,28rem)] text-[var(--fs-sm)] leading-relaxed",
                         message.author === "user"
-                          ? "self-end bg-foreground text-background"
-                          : "self-start bg-muted text-foreground",
+                          ? "self-end rounded-2xl rounded-br-md bg-primary px-3.5 py-2.5 text-primary-foreground shadow-sm"
+                          : "self-start rounded-2xl rounded-bl-md border border-border/60 bg-muted/40 px-3.5 py-2.5 text-foreground",
                       )}
                     >
                       {message.content}
@@ -149,23 +158,25 @@ export function AskAiOverlay() {
                 </ol>
               )}
             </div>
-            <div className="border-t border-border/60 bg-muted/20 px-4 py-3 sm:px-6">
+            <div className="shrink-0 border-t border-border/50 bg-muted/10 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pb-4 sm:pt-4">
               <PromptInput
+                className="gap-1.5"
                 onSubmitPrompt={handleSubmit}
                 submitting={submitting}
                 scopeChip={scopeChip}
-                placeholder="Ask anything…"
+                placeholder="Enter your question about patients, visits, or follow-ups"
                 aria-label="Ask AI prompt"
               />
-              <p className="mt-2 text-[var(--fs-2xs)] text-muted-foreground">
-                AI suggestions are not medical advice. Confirm with a clinician
-                before acting.
-              </p>
+              <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+                  Not medical advice—confirm with a clinician before acting.
+                </p>
+                <p className="shrink-0 text-[var(--fs-2xs)] text-muted-foreground/80">
+                  Enter to send · Shift+Enter for new line
+                </p>
+              </div>
             </div>
           </section>
-        </div>
-        <div className="sr-only">
-          <Button onClick={closeOverlay}>Close</Button>
         </div>
       </DialogContent>
     </Dialog>

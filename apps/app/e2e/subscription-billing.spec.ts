@@ -54,7 +54,7 @@ test.describe("Subscription billing (settings)", () => {
     await expect(page.getByRole("button", { name: "Monthly" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Yearly" })).toBeVisible();
     await expect(
-      page.getByText(/Free forever|From|Custom/).first(),
+      page.getByText(/From.*\/mo|\/yr|Custom/).first(),
     ).toBeVisible();
   });
 

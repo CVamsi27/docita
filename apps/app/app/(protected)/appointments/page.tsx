@@ -165,6 +165,7 @@ function AppointmentsContent() {
         <AppointmentsPageHeaderUI
           onAppointmentAdded={handleAppointmentAdded}
           selectedDate={date}
+          onAdjustSchedulingDate={setDate}
           isAddDialogOpen={isAddDialogOpen}
           onOpenChange={handleDialogChange}
           preselectedPatientId={preselectedPatientId}

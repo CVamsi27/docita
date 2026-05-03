@@ -39,7 +39,7 @@ import { formatDate, formatDateTime } from "@/lib/formatters";
 import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
 import {
   formatInvoiceDescriptionForDisplay,
-  SUBSCRIPTION_GST_INCLUSIVE_NOTICE,
+  BILLING_HISTORY_TABLE_CAPTION,
 } from "@/features/subscription/lib/billing-display-messages";
 
 type BillingHistoryItemWithActions = BillingHistoryItem & {
@@ -121,10 +121,16 @@ export function BillingHistoryTable({
   invoices,
   isLoading,
   onPayNow,
+  footerNote,
+  emptyStateDescription,
 }: {
   invoices: BillingHistoryItem[] | undefined;
   isLoading?: boolean;
   onPayNow?: () => void;
+  /** Optional note below the table (e.g. billing policy context). */
+  footerNote?: string;
+  /** Overrides default empty copy when there are no rows at all. */
+  emptyStateDescription?: string;
 }) {
   const resumePayment = useResumeSubscriptionPayment();
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
@@ -243,7 +249,10 @@ export function BillingHistoryTable({
       <EmptyState
         icon={FileText}
         title="No billing history yet"
-        description="Receipts and invoices will appear after checkout."
+        description={
+          emptyStateDescription ??
+          "Receipts and invoices will appear after checkout."
+        }
       />
     );
   }
@@ -335,7 +344,7 @@ export function BillingHistoryTable({
             <div className="overflow-x-auto">
               <Table className="min-w-[min(100%,36rem)] table-auto">
                 <caption className="caption-bottom px-3 pb-3 pt-2 text-left text-[var(--fs-2xs)] leading-snug text-muted-foreground">
-                  {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+                  {BILLING_HISTORY_TABLE_CAPTION}
                 </caption>
               <TableHeader>
                 <TableRow>
@@ -481,6 +490,11 @@ export function BillingHistoryTable({
               </TableFooter>
               </Table>
             </div>
+            {footerNote ? (
+              <p className="border-t px-3 py-2 text-left text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+                {footerNote}
+              </p>
+            ) : null}
           </div>
         )}
       </div>

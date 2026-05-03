@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useStartConsultation, useQueueByDoctor } from "@/hooks/api/use-appointments";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -12,7 +18,14 @@ import {
   CommandPaletteShell,
   type CommandPaletteAction,
 } from "@workspace/ui/components/command-palette-shell";
-import { PlusCircle, Sparkles, Stethoscope } from "lucide-react";
+import {
+  CalendarClock,
+  CheckSquare,
+  ClipboardList,
+  PlusCircle,
+  Sparkles,
+  Stethoscope,
+} from "lucide-react";
 import { APP_ACCESS_TARGETS } from "@workspace/types";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 import { useAskAi } from "@/features/_shared/components/ask-ai/ask-ai-context";
@@ -35,11 +48,39 @@ export interface QuickAction {
   href?: string;
   kind?: "navigate" | "start-consultation";
   accessTarget?: (typeof APP_ACCESS_TARGETS)[keyof typeof APP_ACCESS_TARGETS];
+  /** Defaults to "write" (create flows); use "read" for navigation-only jumps. */
+  accessMode?: "read" | "write";
   keywords?: string[];
   shortcut?: string;
 }
 
+function quickActionRowIcon(action: QuickAction): ReactNode {
+  if (action.kind === "start-consultation") {
+    return <Stethoscope className="size-4" />;
+  }
+  if (action.id === "today-schedule") {
+    return <CalendarClock className="size-4" />;
+  }
+  if (action.id === "coding-queue") {
+    return <ClipboardList className="size-4" />;
+  }
+  if (action.id === "follow-ups-board") {
+    return <CheckSquare className="size-4" />;
+  }
+  return <PlusCircle className="size-4" />;
+}
+
 export const QUICK_ACTIONS: QuickAction[] = [
+  {
+    id: "today-schedule",
+    label: "Today's schedule",
+    href: "/today",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+    accessMode: "read",
+    keywords: ["today", "agenda", "day", "schedule"],
+    shortcut: "G T",
+  },
   {
     id: "new-patient",
     label: "New patient",
@@ -66,6 +107,26 @@ export const QUICK_ACTIONS: QuickAction[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_INVOICES,
     keywords: ["bill", "create"],
     shortcut: "N I",
+  },
+  {
+    id: "coding-queue",
+    label: "Coding queue",
+    href: "/coding-queue",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_CODING_QUEUE,
+    accessMode: "read",
+    keywords: ["medical coding", "claims", "pending", "charts"],
+    shortcut: "G Q",
+  },
+  {
+    id: "follow-ups-board",
+    label: "Follow-ups",
+    href: "/follow-ups",
+    kind: "navigate",
+    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
+    accessMode: "read",
+    keywords: ["tasks", "callbacks", "reminders"],
+    shortcut: "G F",
   },
   {
     id: "start-consultation",
@@ -213,7 +274,7 @@ export function CommandPalette() {
         const ok = canAccessTarget(
           action.accessTarget,
           { role: user?.role, canAccessFeature: canAccess },
-          "write",
+          action.accessMode ?? "write",
         );
         if (!ok) continue;
       }
@@ -223,11 +284,7 @@ export function CommandPalette() {
         id: `action-${action.id}`,
         label: action.label,
         group: GROUP_ACTIONS,
-        icon: action.kind === "start-consultation" ? (
-          <Stethoscope className="size-4" />
-        ) : (
-          <PlusCircle className="size-4" />
-        ),
+        icon: quickActionRowIcon(action),
         keywords: action.keywords,
         shortcut: action.shortcut,
         onRun: () => {

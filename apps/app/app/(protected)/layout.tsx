@@ -282,11 +282,7 @@ function SubscriptionLockNotice() {
       : isPaused
         ? "This subscription is paused. Resolve billing to restore full access."
         : isTrialing
-          ? `${trialTierLabel} plan: ${trialDaysLeft !== null ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your trial` : "trial active"}${trialEndText ? ` (ends ${trialEndText})` : ""}. Starter and Essential include a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation. ${
-              clinic?.tier === "STARTER"
-                ? "Upgrade when you need higher limits or paid-only features."
-                : "Add payment before the trial ends to avoid entering a payment grace period."
-            }`
+          ? `${trialTierLabel} plan: ${trialDaysLeft !== null ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your trial` : "trial active"}${trialEndText ? ` (ends ${trialEndText})` : ""}. Your trial includes a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation period. Add payment before the trial ends to avoid entering a payment grace period.`
           : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
 
   return (
@@ -319,11 +315,9 @@ function SubscriptionLockNotice() {
             onClick={() => router.push(SUBSCRIPTION_SETTINGS_PATH)}
             className="self-start sm:self-auto"
           >
-            {isTrialing && clinic?.tier === "STARTER"
-              ? "View plans"
-              : isTrialing
-                ? "Add Payment"
-                : "Resolve Payment"}
+            {isTrialing
+              ? "Billing & subscription"
+              : "Resolve Payment"}
           </Button>
         </AlertDescription>
       </Alert>

@@ -11,6 +11,7 @@ import { fetchJsonWithSession } from "@/lib/fetch-with-session";
 import {
   Feature,
   FEATURE_TIER_MAP,
+  mapClinicTierDbStringToAccessTier,
   subscriptionCurrentResponseSchema,
   Tier,
   type SubscriptionCurrentResponse,
@@ -19,26 +20,11 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 const TIER_NAMES: Record<number, string> = {
-  [Tier.STARTER]: "Free",
+  [Tier.STARTER]: "Starter",
   [Tier.ESSENTIAL]: "Essential",
   [Tier.PROFESSIONAL]: "Professional",
   [Tier.ENTERPRISE]: "Enterprise",
   [Tier.INTELLIGENCE]: "Intelligence",
-};
-
-const TIER_FROM_DB: Record<string, Tier> = {
-  // New tier names
-  STARTER: Tier.STARTER,
-  ESSENTIAL: Tier.ESSENTIAL,
-  PROFESSIONAL: Tier.PROFESSIONAL,
-  ENTERPRISE: Tier.ENTERPRISE,
-  // Legacy DB values
-  CAPTURE: Tier.STARTER,
-  CORE: Tier.ESSENTIAL,
-  PLUS: Tier.ESSENTIAL,
-  PRO: Tier.PROFESSIONAL,
-  CLINIC: Tier.PROFESSIONAL,
-  FREE: Tier.STARTER,
 };
 
 export function useTierAccess() {
@@ -75,7 +61,7 @@ export function useTierAccess() {
 
   const currentTierValue = useMemo(() => {
     if (!subscription?.tier) return Tier.STARTER;
-    const mapped = TIER_FROM_DB[subscription.tier] ?? Tier.STARTER;
+    const mapped = mapClinicTierDbStringToAccessTier(subscription.tier);
     if (subscriptionHardLocked) {
       return Math.min(mapped, Tier.STARTER);
     }

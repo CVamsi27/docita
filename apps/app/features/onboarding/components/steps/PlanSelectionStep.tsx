@@ -37,6 +37,7 @@ import {
   type TierName,
 } from "@workspace/types";
 import { useLocaleCurrency } from "@/hooks/use-locale-currency";
+import { PLAN_ONBOARDING_KEY_HIGHLIGHTS } from "@/features/subscription/config/plan-onboarding-highlights";
 
 interface PlanSelectionProps {
   onSelect: (
@@ -53,7 +54,7 @@ interface PlanSelectionProps {
 const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
 
 const PLAN_AUDIENCE: Record<string, string> = {
-  STARTER: "Best for solo doctors wanting to start free",
+  STARTER: "Best for solo doctors starting with full clinic workflows",
   ESSENTIAL:
     "Best for small facilities needing clear limits and simple billing",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
@@ -216,16 +217,43 @@ Please contact me with deployment and commercial details.`;
               const overageRates = (TIER_OVERAGE_RATES_BY_CURRENCY[
                 currencyKey
               ] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR)[tierName];
-              const overageHint =
+              const overageFromRates =
                 overageRates?.appointmentRate > 0
                   ? `then ${currencySymbol}${overageRates.appointmentRate}/extra consultation`
                   : undefined;
+              const tierOverageHint =
+                tierName === "ESSENTIAL"
+                  ? `${currencySymbol}0 for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`
+                  : tierName === "STARTER"
+                    ? [
+                        "Payment at signup (Razorpay). No unpaid trial on Starter.",
+                        overageFromRates,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")
+                    : tierName === "PROFESSIONAL"
+                      ? [
+                          "Payment required at signup. Unpaid trial is only on Essential.",
+                          overageFromRates,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
+                      : tierName === "ENTERPRISE"
+                        ? "Custom pricing and deployment. Contact sales to continue."
+                        : overageFromRates;
+
+              const tierButtonLabel =
+                tierName === "ESSENTIAL"
+                  ? `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`
+                  : tierName === "ENTERPRISE"
+                    ? "Contact sales"
+                    : "Select and pay";
 
               return (
                 <div
                   key={tier}
                   className={cn(
-                    "relative flex w-full max-w-[340px] flex-col",
+                    "relative flex w-full max-w-[22rem] flex-col sm:max-w-[24rem]",
                     tierName === "ESSENTIAL" && "order-first md:order-none",
                   )}
                 >
@@ -245,19 +273,14 @@ Please contact me with deployment and commercial details.`;
                       selectedTier === tierName &&
                         "border-primary ring-2 ring-primary/20 shadow-lg",
                     )}
+                    keyHighlights={
+                      PLAN_ONBOARDING_KEY_HIGHLIGHTS[tierName] ?? []
+                    }
                     pricing={tierPricingData?.pricing}
                     billingCycle={billingCycle}
                     currencySymbol={currencySymbol}
-                    overageHint={
-                      tierName === "ESSENTIAL"
-                        ? `${currencySymbol}0 for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`
-                        : overageHint
-                    }
-                    buttonLabel={
-                      tierName === "ESSENTIAL"
-                        ? `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`
-                        : "Select Plan"
-                    }
+                    overageHint={tierOverageHint}
+                    buttonLabel={tierButtonLabel}
                     maxDisplay={8}
                     usageHints={
                       PLAN_LIMITS[tierName as keyof typeof PLAN_LIMITS]

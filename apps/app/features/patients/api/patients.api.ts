@@ -1,22 +1,41 @@
 import { api } from "@/lib/api-client";
 import type {
+  CreateMedicalConditionInput,
   CreateMetricCategoryInput,
   CreateMetricDefinitionInput,
+  CreatePatientAllergyInput,
+  CreatePatientFamilyHistoryInput,
   CreatePatientMetricValueInput,
   CreatePatientRequest,
+  CreatePatientSocialHistoryInput,
+  CreatePatientSurgicalHistoryInput,
   MetricCategoryResponse,
   MetricDefinitionResponse,
   MetricHistoryQueryInput,
   MetricHistoryResponse,
   Patient,
-  UpsertMetricSelectionsInput,
+  PatientAllergy,
+  PatientFamilyHistory,
+  PatientMedicalCondition,
+  PatientSocialHistory,
+  PatientSurgicalHistory,
+  UpdateMedicalConditionInput,
+  UpdatePatientAllergyInput,
+  UpdatePatientFamilyHistoryInput,
   UpdatePatientRequest,
+  UpdatePatientSurgicalHistoryInput,
+  UpsertMetricSelectionsInput,
 } from "@workspace/types";
 import {
-  createPatientRequestSchema,
+  createMedicalConditionSchema,
   createMetricCategorySchema,
   createMetricDefinitionSchema,
+  createPatientAllergySchema,
+  createPatientFamilyHistorySchema,
   createPatientMetricValueSchema,
+  createPatientRequestSchema,
+  createPatientSocialHistorySchema,
+  createPatientSurgicalHistorySchema,
   listPatientsResponseSchema,
   metricCategoryResponseSchema,
   metricDefinitionResponseSchema,
@@ -24,8 +43,12 @@ import {
   metricHistoryResponseSchema,
   metricRecordResponseSchema,
   patientResponseSchema,
-  upsertMetricSelectionsSchema,
+  updateMedicalConditionSchema,
+  updatePatientAllergySchema,
+  updatePatientFamilyHistorySchema,
   updatePatientRequestSchema,
+  updatePatientSurgicalHistorySchema,
+  upsertMetricSelectionsSchema,
 } from "@workspace/types";
 
 export const patientsApi = {
@@ -177,4 +200,112 @@ export const patientsApi = {
       }),
 
   delete: (id: string) => api.delete(`/patients/${id}`),
+
+  createCondition: (
+    patientId: string,
+    data: CreateMedicalConditionInput,
+  ): Promise<PatientMedicalCondition> =>
+    api.post<PatientMedicalCondition>(
+      `/patients/${patientId}/medical-history/conditions`,
+      createMedicalConditionSchema.parse(data),
+    ),
+
+  updateCondition: (
+    patientId: string,
+    conditionId: string,
+    data: UpdateMedicalConditionInput,
+  ): Promise<PatientMedicalCondition> =>
+    api.patch<PatientMedicalCondition>(
+      `/patients/${patientId}/medical-history/conditions/${conditionId}`,
+      updateMedicalConditionSchema.parse(data),
+    ),
+
+  deleteCondition: (patientId: string, conditionId: string): Promise<void> =>
+    api.delete(
+      `/patients/${patientId}/medical-history/conditions/${conditionId}`,
+    ),
+
+  createAllergy: (
+    patientId: string,
+    data: CreatePatientAllergyInput,
+  ): Promise<PatientAllergy> =>
+    api.post<PatientAllergy>(
+      `/patients/${patientId}/medical-history/allergies`,
+      createPatientAllergySchema.parse(data),
+    ),
+
+  updateAllergy: (
+    patientId: string,
+    allergyId: string,
+    data: UpdatePatientAllergyInput,
+  ): Promise<PatientAllergy> =>
+    api.patch<PatientAllergy>(
+      `/patients/${patientId}/medical-history/allergies/${allergyId}`,
+      updatePatientAllergySchema.parse(data),
+    ),
+
+  deleteAllergy: (patientId: string, allergyId: string): Promise<void> =>
+    api.delete(
+      `/patients/${patientId}/medical-history/allergies/${allergyId}`,
+    ),
+
+  createSurgicalHistory: (
+    patientId: string,
+    data: CreatePatientSurgicalHistoryInput,
+  ): Promise<PatientSurgicalHistory> =>
+    api.post<PatientSurgicalHistory>(
+      `/patients/${patientId}/medical-history/surgical`,
+      createPatientSurgicalHistorySchema.parse(data),
+    ),
+
+  updateSurgicalHistory: (
+    patientId: string,
+    surgicalId: string,
+    data: UpdatePatientSurgicalHistoryInput,
+  ): Promise<PatientSurgicalHistory> =>
+    api.patch<PatientSurgicalHistory>(
+      `/patients/${patientId}/medical-history/surgical/${surgicalId}`,
+      updatePatientSurgicalHistorySchema.parse(data),
+    ),
+
+  deleteSurgicalHistory: (
+    patientId: string,
+    surgicalId: string,
+  ): Promise<void> =>
+    api.delete(
+      `/patients/${patientId}/medical-history/surgical/${surgicalId}`,
+    ),
+
+  createFamilyHistory: (
+    patientId: string,
+    data: CreatePatientFamilyHistoryInput,
+  ): Promise<PatientFamilyHistory> =>
+    api.post<PatientFamilyHistory>(
+      `/patients/${patientId}/medical-history/family`,
+      createPatientFamilyHistorySchema.parse(data),
+    ),
+
+  updateFamilyHistory: (
+    patientId: string,
+    familyId: string,
+    data: UpdatePatientFamilyHistoryInput,
+  ): Promise<PatientFamilyHistory> =>
+    api.patch<PatientFamilyHistory>(
+      `/patients/${patientId}/medical-history/family/${familyId}`,
+      updatePatientFamilyHistorySchema.parse(data),
+    ),
+
+  deleteFamilyHistory: (patientId: string, familyId: string): Promise<void> =>
+    api.delete(
+      `/patients/${patientId}/medical-history/family/${familyId}`,
+    ),
+
+  upsertSocialHistory: (
+    patientId: string,
+    data: CreatePatientSocialHistoryInput,
+  ): Promise<PatientSocialHistory> =>
+    api.post<PatientSocialHistory>(
+      `/patients/${patientId}/medical-history/social`,
+      createPatientSocialHistorySchema.parse(data),
+    ),
 };

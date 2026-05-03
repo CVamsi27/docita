@@ -16,7 +16,12 @@ import {
   createAppointmentSchema,
   Patient,
 } from "@workspace/types";
-import { DEFAULT_TIMEZONE, toLocalISOString } from "@workspace/utils";
+import {
+  addDays,
+  DEFAULT_TIMEZONE,
+  formatPickerIsoDate,
+  toLocalISOString,
+} from "@workspace/utils";
 import { useAppConfig } from "@/lib/app-config-context";
 import { useAuth } from "@/lib/auth-context";
 import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
@@ -24,10 +29,20 @@ import { showUserFacingErrorToast } from "@/lib/user-facing-errors";
 interface UseAppointmentFormProps {
   onAppointmentAdded: (appointment: Appointment) => void | Promise<void>;
   selectedDate?: Date;
+  /** Move appointments page calendar when the picked day has no bookable slots (e.g. advance from today). */
+  onAdjustSchedulingDate?: (next: Date) => void;
   preselectedPatientId?: string;
   startHour?: number;
   endHour?: number;
   open?: boolean;
+}
+
+function pickerDayDiff(fromIso: string, toIso: string): number {
+  const [fy, fm, fd] = fromIso.split("-").map(Number);
+  const [ty, tm, td] = toIso.split("-").map(Number);
+  const fromT = new Date(fy!, fm! - 1, fd!, 12, 0, 0, 0).getTime();
+  const toT = new Date(ty!, tm! - 1, td!, 12, 0, 0, 0).getTime();
+  return Math.round((toT - fromT) / 86_400_000);
 }
 
 function mergeCalendarDateWithScheduleStart(
@@ -62,6 +77,7 @@ function mergeCalendarDateWithScheduleStart(
 export function useAppointmentForm({
   onAppointmentAdded,
   selectedDate,
+  onAdjustSchedulingDate,
   preselectedPatientId,
   startHour = 9,
   endHour = 17,
@@ -194,9 +210,25 @@ export function useAppointmentForm({
     watchedDoctorId || undefined,
   );
 
-  const { data: slots } = useDoctorAvailabilitySlots(selectedDate, watchedDoctorId, {
+  const {
+    data: slots = [],
+    isFetching: slotsFetching,
+    isSuccess: slotsQuerySuccess,
+  } = useDoctorAvailabilitySlots(selectedDate, watchedDoctorId, {
     enabled: Boolean(open && selectedDate && watchedDoctorId),
   });
+
+  const autoAdvanceChainOriginStrRef = useRef<string | null>(null);
+  const autoAdvanceChainActiveRef = useRef(false);
+  const lastAutoAdvanceFromDayStrRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      autoAdvanceChainOriginStrRef.current = null;
+      autoAdvanceChainActiveRef.current = false;
+      lastAutoAdvanceFromDayStrRef.current = null;
+    }
+  }, [open]);
 
   const hasAutoSelectedTimeRef = useRef(false);
 
@@ -269,25 +301,60 @@ export function useAppointmentForm({
 
   useEffect(() => {
     if (!open || !selectedDate || !watchedDoctorId) return;
+    if (!slotsQuerySuccess || slotsFetching) return;
 
     const startTimeState = form.getFieldState("startTime");
     if (startTimeState.isDirty) return;
 
-    if (slots && slots.length > 0) {
-      const first = slots.find(
-        (s) => s.doctorId === watchedDoctorId && s.isAvailable,
+    const firstAvailable = slots.find(
+      (s) => s.doctorId === watchedDoctorId && s.isAvailable,
+    );
+
+    if (firstAvailable) {
+      autoAdvanceChainOriginStrRef.current = null;
+      autoAdvanceChainActiveRef.current = false;
+      lastAutoAdvanceFromDayStrRef.current = null;
+
+      const parts = firstAvailable.time.split(":").map((x) => parseInt(x, 10));
+      const h = parts[0] ?? startHour;
+      const mi = parts[1] ?? 0;
+      const d = new Date(selectedDate);
+      d.setHours(h, mi, 0, 0);
+      form.setValue(
+        "startTime",
+        toLocalISOString(d, { timezone: DEFAULT_TIMEZONE }),
+        { shouldDirty: false },
       );
-      if (first) {
-        const parts = first.time.split(":").map((x) => parseInt(x, 10));
-        const h = parts[0] ?? startHour;
-        const mi = parts[1] ?? 0;
-        const d = new Date(selectedDate);
-        d.setHours(h, mi, 0, 0);
-        form.setValue(
-          "startTime",
-          toLocalISOString(d, { timezone: DEFAULT_TIMEZONE }),
-          { shouldDirty: false },
-        );
+      return;
+    }
+
+    const todayStr = formatPickerIsoDate(new Date());
+    const selectedStr = formatPickerIsoDate(selectedDate);
+
+    if (!autoAdvanceChainActiveRef.current && onAdjustSchedulingDate) {
+      if (selectedStr === todayStr) {
+        autoAdvanceChainActiveRef.current = true;
+        autoAdvanceChainOriginStrRef.current = todayStr;
+      }
+    }
+
+    if (
+      autoAdvanceChainActiveRef.current &&
+      autoAdvanceChainOriginStrRef.current &&
+      onAdjustSchedulingDate
+    ) {
+      const origin = autoAdvanceChainOriginStrRef.current;
+      const daysFromOrigin = pickerDayDiff(origin, selectedStr);
+      if (daysFromOrigin >= 14) {
+        autoAdvanceChainActiveRef.current = false;
+        autoAdvanceChainOriginStrRef.current = null;
+        lastAutoAdvanceFromDayStrRef.current = null;
+      } else {
+        if (lastAutoAdvanceFromDayStrRef.current === selectedStr) {
+          return;
+        }
+        lastAutoAdvanceFromDayStrRef.current = selectedStr;
+        onAdjustSchedulingDate(addDays(selectedDate, 1));
         return;
       }
     }
@@ -305,9 +372,12 @@ export function useAppointmentForm({
     selectedDate,
     watchedDoctorId,
     slots,
+    slotsQuerySuccess,
+    slotsFetching,
     doctorSchedules,
     startHour,
     form,
+    onAdjustSchedulingDate,
   ]);
 
   useEffect(() => {
