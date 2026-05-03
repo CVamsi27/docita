@@ -47,7 +47,13 @@ import {
   FormMessage,
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
-import { CreditCard, TrendingUp } from "lucide-react";
+import { Textarea } from "@workspace/ui/components/textarea";
+import { CreditCard, Receipt, TrendingUp } from "lucide-react";
+import {
+  GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
+  recordInternalAdditionalChargeRequestSchema,
+  type SupportedCurrency,
+} from "@workspace/types";
 import { useAuth } from "@/lib/auth";
 import { client } from "@/lib/api-client";
 import { internalQueryKeys } from "@/lib/query-keys";
@@ -87,6 +93,29 @@ interface PaymentFormData {
   amount: string;
   newTier: string;
   paymentNotes?: string;
+}
+
+interface AdditionalChargeFormData {
+  category: string;
+  amount: string;
+  paymentMethod: string;
+  razorpayPaymentId: string;
+  notes: string;
+}
+
+function guidedSetupPresetAmount(currency: string | undefined): string {
+  const key = (currency ?? DEFAULT_CURRENCY).toUpperCase();
+  if (
+    Object.prototype.hasOwnProperty.call(
+      GUIDED_SETUP_LIST_PRICE_BY_CURRENCY,
+      key,
+    )
+  ) {
+    return String(
+      GUIDED_SETUP_LIST_PRICE_BY_CURRENCY[key as SupportedCurrency],
+    );
+  }
+  return "";
 }
 
 const DEFAULT_TIERS: TierPricing[] = [
@@ -140,6 +169,10 @@ export default function PaymentProcessingPage() {
     [],
   );
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showAdditionalChargeDialog, setShowAdditionalChargeDialog] =
+    useState(false);
+  const [additionalChargeClinic, setAdditionalChargeClinic] =
+    useState<Clinic | null>(null);
 
   const { token, isInternal, isLoading } = useAuth();
   const form = useForm<PaymentFormData>({
@@ -174,6 +207,16 @@ export default function PaymentProcessingPage() {
       }
     },
     enabled: Boolean(isInternal && token),
+  });
+
+  const additionalChargeForm = useForm<AdditionalChargeFormData>({
+    defaultValues: {
+      category: "GUIDED_SETUP",
+      amount: "",
+      paymentMethod: "manual",
+      razorpayPaymentId: "",
+      notes: "",
+    },
   });
 
   const clinics = clinicsQuery.data ?? [];
@@ -230,6 +273,41 @@ export default function PaymentProcessingPage() {
     }
   };
 
+  const openAdditionalChargeForClinic = (clinic: Clinic) => {
+    setAdditionalChargeClinic(clinic);
+    const defaultAmount = guidedSetupPresetAmount(clinic.currency);
+    additionalChargeForm.reset({
+      category: "GUIDED_SETUP",
+      amount: defaultAmount,
+      paymentMethod: "manual",
+      razorpayPaymentId: "",
+      notes: "",
+    });
+    setShowAdditionalChargeDialog(true);
+  };
+
+  const recordAdditionalChargeMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      client.post(
+        `/internal/clinics/${additionalChargeClinic?.id}/additional-charge`,
+        data,
+      ),
+    onSuccess: async () => {
+      const currencySnapshot = additionalChargeClinic?.currency;
+      toast.success("Additional charge recorded");
+      setShowAdditionalChargeDialog(false);
+      setAdditionalChargeClinic(null);
+      additionalChargeForm.reset({
+        category: "GUIDED_SETUP",
+        amount: guidedSetupPresetAmount(currencySnapshot),
+        paymentMethod: "manual",
+        razorpayPaymentId: "",
+        notes: "",
+      });
+      await clinicsQuery.refetch();
+    },
+  });
+
   const processPaymentMutation = useMutation({
     mutationFn: (data: PaymentFormData) =>
       client.post(`/internal/clinics/${selectedClinic?.id}/process-payment`, {
@@ -261,6 +339,39 @@ export default function PaymentProcessingPage() {
     } catch {
       showUserFacingErrorToast(
         "We could not process this payment. Please try again.",
+      );
+    }
+  };
+
+  const onSubmitAdditionalCharge = async (raw: AdditionalChargeFormData) => {
+    if (!additionalChargeClinic || !token) return;
+
+    const amount = Number.parseFloat(raw.amount);
+    const parsed = recordInternalAdditionalChargeRequestSchema.safeParse({
+      category: raw.category,
+      paymentMethod: raw.paymentMethod,
+      amount,
+      currency: additionalChargeClinic.currency || DEFAULT_CURRENCY,
+      razorpayPaymentId: raw.razorpayPaymentId.trim() || undefined,
+      notes: raw.notes.trim() || undefined,
+    });
+
+    if (!parsed.success) {
+      const first = parsed.error.flatten().fieldErrors;
+      const msg =
+        first.amount?.[0] ??
+        first.category?.[0] ??
+        first.paymentMethod?.[0] ??
+        "Check the form and try again.";
+      showUserFacingErrorToast(msg);
+      return;
+    }
+
+    try {
+      await recordAdditionalChargeMutation.mutateAsync(parsed.data);
+    } catch {
+      showUserFacingErrorToast(
+        "We could not record this charge. Please try again.",
       );
     }
   };
@@ -305,7 +416,7 @@ export default function PaymentProcessingPage() {
     <div className="space-y-6">
       <PageHeader
         title="Payment Processing"
-        description="Process payments and manage clinic tier upgrades"
+        description="Record subscription payments and tier changes, or bill add-on services such as guided setup"
         size="compact"
       />
 
@@ -371,7 +482,8 @@ export default function PaymentProcessingPage() {
                 Facilities Payment Management
               </CardTitle>
               <CardDescription>
-                Select a facility to process payment or upgrade tier
+                Select a facility to change plan and record subscription
+                payment, or record an add-on charge (for example guided setup)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -421,14 +533,28 @@ export default function PaymentProcessingPage() {
                             {clinic.currency || DEFAULT_CURRENCY}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              size="sm"
-                              onClick={() => loadClinicTierInfo(clinic)}
-                              className="gap-2"
-                            >
-                              <TrendingUp className="h-4 w-4" />
-                              Manage Payment
-                            </Button>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => loadClinicTierInfo(clinic)}
+                                className="gap-2"
+                              >
+                                <TrendingUp className="h-4 w-4" />
+                                Manage plan payment
+                              </Button>
+                              <Button
+                                size="sm"
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                  openAdditionalChargeForClinic(clinic)
+                                }
+                                className="gap-2"
+                              >
+                                <Receipt className="h-4 w-4" />
+                                Add-on charge
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -630,6 +756,202 @@ export default function PaymentProcessingPage() {
               </form>
             </Form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showAdditionalChargeDialog}
+        onOpenChange={(open) => {
+          setShowAdditionalChargeDialog(open);
+          if (!open) {
+            setAdditionalChargeClinic(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              Add-on charge — {additionalChargeClinic?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Records a paid one-off charge (for example guided setup) in
+              billing history. This does not change the clinic subscription
+              tier.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...additionalChargeForm}>
+            <form
+              onSubmit={additionalChargeForm.handleSubmit(
+                onSubmitAdditionalCharge,
+              )}
+              noValidate
+              className="space-y-4"
+            >
+              <FormField
+                control={additionalChargeForm.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Charge category</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (value === "GUIDED_SETUP") {
+                          additionalChargeForm.setValue(
+                            "amount",
+                            guidedSetupPresetAmount(
+                              additionalChargeClinic?.currency,
+                            ),
+                          );
+                        }
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="GUIDED_SETUP">
+                          Guided setup
+                        </SelectItem>
+                        <SelectItem value="DATA_MIGRATION">
+                          Data migration
+                        </SelectItem>
+                        <SelectItem value="CUSTOM_TRAINING">
+                          Custom training
+                        </SelectItem>
+                        <SelectItem value="INTEGRATION">Integration</SelectItem>
+                        <SelectItem value="OTHER">Other service</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Guided setup is separate from the software subscription.
+                      Default amount follows the list price for the
+                      clinic&apos;s currency; adjust to match your invoice.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Amount (
+                      {additionalChargeClinic?.currency || DEFAULT_CURRENCY})
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        min={0}
+                        step="1"
+                        placeholder="Enter amount"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment method</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="razorpay">Razorpay</SelectItem>
+                        <SelectItem value="stripe">Stripe</SelectItem>
+                        <SelectItem value="bank_transfer">
+                          Bank transfer
+                        </SelectItem>
+                        <SelectItem value="manual">Manual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="razorpayPaymentId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Razorpay payment ID (optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter Razorpay payment id"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={additionalChargeForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes (optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Scope, invoice reference, or internal note"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex gap-3 justify-end pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAdditionalChargeDialog(false)}
+                  disabled={recordAdditionalChargeMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={recordAdditionalChargeMutation.isPending}
+                >
+                  {recordAdditionalChargeMutation.isPending && (
+                    <DocitaLoadingIndicator
+                      variant="inline"
+                      decorative
+                      className="mr-2"
+                    />
+                  )}
+                  {recordAdditionalChargeMutation.isPending
+                    ? "Saving…"
+                    : "Record charge"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

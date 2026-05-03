@@ -699,7 +699,7 @@ export default function BillingDashboard() {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Clinic</TableHead>
-                    <TableHead>Tier</TableHead>
+                    <TableHead>Plan / service</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Gateway ID</TableHead>
@@ -727,18 +727,16 @@ export default function BillingDashboard() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <p className="font-medium">
-                            {payment.subscription.clinic.name}
-                          </p>
+                          <p className="font-medium">{payment.clinicName}</p>
                         </TableCell>
                         <TableCell>
                           <Badge
                             className={
-                              tierColors[payment.subscription.tier] ||
-                              tierColors.CAPTURE
+                              tierColors[payment.planLabel] ?? "badge-info"
                             }
+                            title={payment.description}
                           >
-                            {payment.subscription.tier}
+                            {payment.planLabel}
                           </Badge>
                         </TableCell>
                         <TableCell>

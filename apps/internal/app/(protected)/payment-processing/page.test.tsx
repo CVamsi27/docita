@@ -128,7 +128,9 @@ describe("PaymentProcessingPage", () => {
     renderWithQueryClient(<PaymentProcessingPage />);
 
     expect(await screen.findByText("Care Clinic")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Manage Payment/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Manage plan payment/i }),
+    );
 
     const dialog = await screen.findByRole("dialog", {
       name: "Payment Processing - Care Clinic",
@@ -156,6 +158,35 @@ describe("PaymentProcessingPage", () => {
     });
     expect(toastSuccessMock).toHaveBeenCalledWith(
       "Payment processed and tier updated successfully",
+    );
+  });
+
+  it("records an add-on charge without changing tier", async () => {
+    renderWithQueryClient(<PaymentProcessingPage />);
+
+    expect(await screen.findByText("Care Clinic")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Add-on charge/i }));
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "Add-on charge — Care Clinic",
+    });
+    expect(within(dialog).getByLabelText("Amount (INR)")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Record charge" }));
+
+    await waitFor(() => {
+      expect(clientMocks.post).toHaveBeenCalledWith(
+        "/internal/clinics/clinic_1/additional-charge",
+        expect.objectContaining({
+          amount: 4999,
+          currency: "INR",
+          category: "GUIDED_SETUP",
+          paymentMethod: "manual",
+        }),
+      );
+    });
+    expect(toastSuccessMock).toHaveBeenCalledWith(
+      "Additional charge recorded",
     );
   });
 
@@ -192,7 +223,7 @@ describe("PaymentProcessingPage", () => {
     renderWithQueryClient(<PaymentProcessingPage />);
 
     fireEvent.click(
-      await screen.findByRole("button", { name: /Manage Payment/i }),
+      await screen.findByRole("button", { name: /Manage plan payment/i }),
     );
 
     await waitFor(() => {

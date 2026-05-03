@@ -4,6 +4,7 @@ import {
   Appointment,
   AppPerformanceMetrics,
   DatabaseStats,
+  InternalBillingPaymentItem,
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
   Patient,
@@ -330,19 +331,7 @@ export interface SubscriptionOverview {
   currentPeriodEnd: string;
 }
 
-export interface PaymentRecord {
-  id: string;
-  amount: number;
-  currency: string;
-  status: "SUCCESS" | "PENDING" | "FAILED";
-  gatewayPaymentId?: string;
-  paidAt?: string;
-  createdAt: string;
-  subscription: {
-    clinic: { name: string };
-    tier: string;
-  };
-}
+export type PaymentRecord = InternalBillingPaymentItem;
 
 export interface BillingMetrics {
   mrr: number;
