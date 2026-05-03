@@ -27,7 +27,9 @@ import type { Response } from 'express';
 import { TierGuard } from '@/shared/modules/auth/auth/tier.guard';
 import {
   RequireFeature,
+  RequireTier,
   Feature,
+  Tier,
 } from '@/shared/modules/auth/auth/tier.decorator';
 import { Roles } from '@/shared/modules/auth/auth/roles.decorator';
 import { Role, InvoiceStatus } from '@workspace/db';
@@ -48,7 +50,6 @@ interface AuthRequest {
 
 @Controller('invoices')
 @UseGuards(TierGuard)
-@RequireFeature(Feature.INVOICING)
 @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
 @UseInterceptors(IdempotencyInterceptor)
 export class InvoicesController {
@@ -59,6 +60,7 @@ export class InvoicesController {
   ) {}
 
   @Get()
+  @RequireTier(Tier.STARTER)
   @ZodSerializerDto(PaginatedInvoiceResponseDto)
   findAll(@Request() req: AuthRequest, @Query() query?: ListInvoicesQueryDto) {
     const { cursor, limit, patientId, status, date, search } = query ?? {};
@@ -74,6 +76,7 @@ export class InvoicesController {
   }
 
   @Get(':id')
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   findOne(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.invoicesService.findOne(id, req.user.clinicId);
@@ -81,6 +84,7 @@ export class InvoicesController {
 
   @Post()
   @RequiresIdempotency()
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   create(@Request() req: AuthRequest, @Body() dto: CreateInvoiceDto) {
     return this.invoicesService.create({
@@ -90,6 +94,7 @@ export class InvoicesController {
   }
 
   @Patch(':id')
+  @RequireFeature(Feature.INVOICING)
   @ZodSerializerDto(InvoiceResponseDto)
   update(
     @Request() req: AuthRequest,
@@ -100,21 +105,25 @@ export class InvoicesController {
   }
 
   @Get(':id/claim-readiness')
+  @RequireFeature(Feature.INVOICING)
   getClaimReadiness(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.invoicesService.getClaimReadiness(id, req.user.clinicId);
   }
 
   @Post(':id/submit-claim')
+  @RequireFeature(Feature.INVOICING)
   submitClaim(@Request() req: AuthRequest, @Param('id') id: string) {
     return this.invoicesService.submitClaim(id, req.user.clinicId);
   }
 
   @Get(':id/pdf/status')
+  @RequireFeature(Feature.INVOICING)
   getPdfStatus(@Request() req: AuthRequest, @Query('jobId') jobId: string) {
     return this.pdfJobService.getStatus(jobId, req.user.clinicId);
   }
 
   @Get(':id/pdf')
+  @RequireFeature(Feature.INVOICING)
   async generatePDF(
     @Request() req: AuthRequest,
     @Param('id') id: string,

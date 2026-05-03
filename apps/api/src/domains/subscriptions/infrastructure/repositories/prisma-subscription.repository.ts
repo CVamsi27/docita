@@ -365,6 +365,22 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
     return result.count;
   }
 
+  async expireOtherPendingSubscriptionCheckouts(params: {
+    clinicId: string;
+    keepOrderId: string;
+  }): Promise<number> {
+    const result = await this.prisma.subscriptionPayment.updateMany({
+      where: {
+        clinicId: params.clinicId,
+        status: { in: ['pending', 'PENDING'] },
+        razorpayOrderId: { not: params.keepOrderId },
+      },
+      data: { status: 'expired' },
+    });
+
+    return result.count;
+  }
+
   async findReusablePendingCheckout(params: {
     clinicId: string;
     amountCents: number;

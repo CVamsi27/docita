@@ -235,8 +235,7 @@ export class OnboardingWorkflowService {
     const now = new Date();
     const trialMs = SUBSCRIPTION_TRIAL_DAYS * 24 * 60 * 60 * 1000;
     const isTrialWithoutPayment =
-      (planData.tier === ClinicTier.STARTER ||
-        planData.tier === ClinicTier.ESSENTIAL) &&
+      planData.tier === ClinicTier.ESSENTIAL &&
       paymentData?.skipPayment === true;
     const periodEnd = isTrialWithoutPayment
       ? planData.billingCycle === BillingCycle.YEARLY

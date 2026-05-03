@@ -116,6 +116,10 @@ export class CreateCheckoutUseCase {
       withinMinutes: 30,
     });
     if (reusable?.razorpayOrderId) {
+      await this.subscriptionRepo.expireOtherPendingSubscriptionCheckouts({
+        clinicId: request.clinicId,
+        keepOrderId: reusable.razorpayOrderId,
+      });
       this.logger.log(
         `Reusing pending checkout order ${reusable.razorpayOrderId} for clinic ${request.clinicId}`,
       );
@@ -151,11 +155,8 @@ export class CreateCheckoutUseCase {
       razorpayOrderId: order.razorpayOrderId,
       description,
     });
-    await this.subscriptionRepo.expireDuplicatePendingCheckouts({
+    await this.subscriptionRepo.expireOtherPendingSubscriptionCheckouts({
       clinicId: request.clinicId,
-      amountCents,
-      currency: currencyCode,
-      description,
       keepOrderId: order.razorpayOrderId,
     });
 

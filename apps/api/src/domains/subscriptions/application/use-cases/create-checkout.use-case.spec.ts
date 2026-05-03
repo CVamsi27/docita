@@ -29,6 +29,7 @@ describe('CreateCheckoutUseCase', () => {
     findPaymentByOrderId: jest.fn(async () => null),
     updatePaymentLink: jest.fn(async () => undefined),
     expireDuplicatePendingCheckouts: jest.fn(async () => 0),
+    expireOtherPendingSubscriptionCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: findReusablePendingCheckoutMock,
   };
 
@@ -113,6 +114,12 @@ describe('CreateCheckoutUseCase', () => {
     expect(result.orderId).toBe('order_existing');
     expect(paymentGateway.createOrder).not.toHaveBeenCalled();
     expect(subscriptionRepo.savePayment).not.toHaveBeenCalled();
+    expect(
+      subscriptionRepo.expireOtherPendingSubscriptionCheckouts,
+    ).toHaveBeenCalledWith({
+      clinicId: 'clinic-1',
+      keepOrderId: 'order_existing',
+    });
   });
 
   it('expires older duplicate pending checkouts after creating a new order', async () => {
@@ -135,12 +142,9 @@ describe('CreateCheckoutUseCase', () => {
       }),
     );
     expect(
-      subscriptionRepo.expireDuplicatePendingCheckouts,
+      subscriptionRepo.expireOtherPendingSubscriptionCheckouts,
     ).toHaveBeenCalledWith({
       clinicId: 'clinic-1',
-      amountCents: 99900,
-      currency: 'INR',
-      description: 'ESSENTIAL MONTHLY subscription',
       keepOrderId: 'order_new',
     });
   });

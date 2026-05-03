@@ -9,11 +9,13 @@ import { FeatureFlagService } from '@/shared/modules/services/feature-flag.servi
 describe('SubscriptionsQueryService', () => {
   const findPaymentsByClinicIdMock =
     jest.fn<ISubscriptionRepository['findPaymentsByClinicId']>();
+  const findByClinicIdMock =
+    jest.fn<ISubscriptionRepository['findByClinicId']>();
 
   const subscriptionRepo: ISubscriptionRepository = {
     save: jest.fn(async () => undefined),
     findById: jest.fn(async () => null),
-    findByClinicId: jest.fn(async () => null),
+    findByClinicId: findByClinicIdMock,
     findByStatus: jest.fn(async () => []),
     findApproachingRenewal: jest.fn(async () => []),
     update: jest.fn(async () => undefined),
@@ -25,6 +27,7 @@ describe('SubscriptionsQueryService', () => {
     findPaymentByOrderId: jest.fn(async () => null),
     updatePaymentLink: jest.fn(async () => undefined),
     expireDuplicatePendingCheckouts: jest.fn(async () => 0),
+    expireOtherPendingSubscriptionCheckouts: jest.fn(async () => 0),
     findReusablePendingCheckout: jest.fn(async () => null),
   };
 
@@ -40,6 +43,7 @@ describe('SubscriptionsQueryService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    findByClinicIdMock.mockResolvedValue(null);
     service = new SubscriptionsQueryService(
       subscriptionRepo,
       clinicOps,
@@ -50,6 +54,9 @@ describe('SubscriptionsQueryService', () => {
   });
 
   it('keeps receipts and only the newest pending checkout per plan amount', async () => {
+    findByClinicIdMock.mockResolvedValue({
+      getPlan: () => ({ value: 'ESSENTIAL' }),
+    } as never);
     const now = new Date('2026-04-29T00:00:00.000Z');
     findPaymentsByClinicIdMock.mockResolvedValue([
       {
@@ -92,5 +99,57 @@ describe('SubscriptionsQueryService', () => {
 
     expect(result).toEqual(['pending-new', 'paid']);
     expect(findPaymentsByClinicIdMock).toHaveBeenCalledWith('clinic-1', 100);
+  });
+
+  it('keeps only the newest pending tier upgrade when several abandoned checkouts exist', async () => {
+    findByClinicIdMock.mockResolvedValue({
+      getPlan: () => ({ value: 'ESSENTIAL' }),
+    } as never);
+    findPaymentsByClinicIdMock.mockResolvedValue([
+      {
+        id: 'pending-essential',
+        amountCents: 99900,
+        currency: 'INR',
+        status: 'pending',
+        description: 'ESSENTIAL MONTHLY subscription',
+        createdAt: new Date('2026-04-28T12:00:00.000Z'),
+      },
+      {
+        id: 'pending-pro',
+        amountCents: 249900,
+        currency: 'INR',
+        status: 'pending',
+        description: 'PROFESSIONAL MONTHLY subscription',
+        createdAt: new Date('2026-04-27T12:00:00.000Z'),
+      },
+    ]);
+
+    const result = (await service.getPaymentHistory('clinic-1')).map(
+      (payment) => (payment as unknown as { id: string }).id,
+    );
+
+    expect(result).toEqual(['pending-essential']);
+  });
+
+  it('hides pending upgrade checkouts that do not match the active subscription tier', async () => {
+    findByClinicIdMock.mockResolvedValue({
+      getPlan: () => ({ value: 'STARTER' }),
+    } as never);
+    findPaymentsByClinicIdMock.mockResolvedValue([
+      {
+        id: 'pending-essential',
+        amountCents: 99900,
+        currency: 'INR',
+        status: 'pending',
+        description: 'ESSENTIAL MONTHLY subscription',
+        createdAt: new Date('2026-04-28T12:00:00.000Z'),
+      },
+    ]);
+
+    const result = (await service.getPaymentHistory('clinic-1')).map(
+      (payment) => (payment as unknown as { id: string }).id,
+    );
+
+    expect(result).toEqual([]);
   });
 });

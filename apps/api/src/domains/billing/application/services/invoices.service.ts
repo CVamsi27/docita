@@ -4,6 +4,9 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { Feature } from '@/shared/modules/auth/auth/tier.decorator';
+import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import {
   Prisma,
   InvoiceStatus,
@@ -169,6 +172,7 @@ export class InvoicesService {
   constructor(
     @Inject(INVOICE_REPOSITORY_TOKEN)
     private readonly repository: IInvoiceRepository,
+    private readonly prisma: PrismaService,
     private readonly pdfService: PDFService,
     private readonly taxCalculator: TaxCalculatorService,
     private readonly eventEmitter: EventEmitter2,
@@ -270,9 +274,42 @@ export class InvoicesService {
       search?: string;
     },
   ) {
+    const patientId = params?.patientId?.trim() || undefined;
+
+    if (patientId) {
+      const patient = await this.repository.findPatientContext(
+        patientId,
+        clinicId,
+      );
+      if (!patient) {
+        throw new NotFoundException(`Patient ${patientId} not found`);
+      }
+    } else {
+      const clinic = await this.prisma.clinic.findUnique({
+        where: { id: clinicId },
+        select: {
+          tier: true,
+          intelligenceAddon: true,
+          features: true,
+        },
+      });
+      if (!clinic) {
+        throw new NotFoundException(`Clinic ${clinicId} not found`);
+      }
+      assertClinicHasFeatureOrThrow(
+        {
+          tier: clinic.tier,
+          intelligenceAddon: clinic.intelligenceAddon,
+          features: clinic.features,
+        },
+        Feature.INVOICING,
+      );
+    }
+
     return this.repository.findAll({
       clinicId,
       ...params,
+      patientId,
     });
   }
 

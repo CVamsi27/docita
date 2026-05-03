@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { InvoiceStatus, Prisma } from '@workspace/db';
+import {
+  ClinicTier,
+  IntelligenceAddon,
+  InvoiceStatus,
+  Prisma,
+} from '@workspace/db';
+import { PrismaService } from '@/prisma/prisma.service';
 import {
   ClaimReadinessResult,
   ClaimValidationService,
@@ -19,6 +26,19 @@ import type { PdfJobServicePort } from '@/shared/modules/queue/pdf-job.service';
 
 describe('InvoicesService', () => {
   const baseDate = new Date('2026-01-01T00:00:00.000Z');
+
+  const clinicFindUniqueMock = jest.fn<
+    (...args: unknown[]) => Promise<{
+      tier: ClinicTier;
+      intelligenceAddon: IntelligenceAddon;
+      features: Record<string, unknown>;
+    } | null>
+  >();
+  const prisma = {
+    clinic: {
+      findUnique: clinicFindUniqueMock,
+    },
+  } as unknown as PrismaService;
 
   const repository: jest.Mocked<IInvoiceRepository> = {
     findAll: jest.fn<IInvoiceRepository['findAll']>(),
@@ -167,6 +187,7 @@ describe('InvoicesService', () => {
 
     service = new InvoicesService(
       repository,
+      prisma,
       pdfService,
       taxCalculator,
       eventEmitter,
@@ -382,5 +403,88 @@ describe('InvoicesService', () => {
         authorizedSignatureUrl: undefined,
       }),
     );
+  });
+
+  describe('findAll', () => {
+    it('allows listing when scoped to a patient in the clinic without checking invoicing tier', async () => {
+      repository.findPatientContext.mockResolvedValue({
+        id: 'patient-1',
+        firstName: 'Asha',
+        lastName: 'Rao',
+        phoneNumber: '9999999999',
+        email: null,
+        address: null,
+        clinicId: 'clinic-1',
+        clinic: {
+          id: 'clinic-1',
+          name: 'Docita Clinic',
+          address: 'Main Road',
+          phone: '1234567890',
+          email: 'clinic@test.com',
+          currency: 'INR',
+          settings: null,
+        },
+      });
+      repository.findAll.mockResolvedValue({
+        items: [],
+        hasMore: false,
+        count: 0,
+      });
+
+      await service.findAll('clinic-1', { patientId: 'patient-1' });
+
+      expect(clinicFindUniqueMock).not.toHaveBeenCalled();
+      expect(repository.findPatientContext).toHaveBeenCalledWith(
+        'patient-1',
+        'clinic-1',
+      );
+      expect(repository.findAll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clinicId: 'clinic-1',
+          patientId: 'patient-1',
+        }),
+      );
+    });
+
+    it('returns 404 when patientId does not belong to the clinic', async () => {
+      repository.findPatientContext.mockResolvedValue(null);
+
+      await expect(
+        service.findAll('clinic-1', { patientId: 'missing' }),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(repository.findAll).not.toHaveBeenCalled();
+    });
+
+    it('requires invoicing feature for clinic-wide listing', async () => {
+      clinicFindUniqueMock.mockResolvedValue({
+        tier: ClinicTier.STARTER,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+      });
+
+      await expect(service.findAll('clinic-1', {})).rejects.toThrow(
+        ForbiddenException,
+      );
+
+      expect(repository.findAll).not.toHaveBeenCalled();
+    });
+
+    it('allows clinic-wide listing when clinic has invoicing access', async () => {
+      clinicFindUniqueMock.mockResolvedValue({
+        tier: ClinicTier.ESSENTIAL,
+        intelligenceAddon: IntelligenceAddon.NONE,
+        features: {},
+      });
+      repository.findAll.mockResolvedValue({
+        items: [],
+        hasMore: false,
+        count: 0,
+      });
+
+      await service.findAll('clinic-1', {});
+
+      expect(repository.findAll).toHaveBeenCalled();
+    });
   });
 });

@@ -9,6 +9,8 @@ import {
   DataSubjectRequestType,
   Prisma,
 } from '@workspace/db';
+import { Feature } from '@workspace/types';
+import { assertClinicHasFeatureOrThrow } from '@/shared/modules/auth/utils/clinic-feature-access.util';
 import { SettingsFactory } from '@/domains/clinics/core/factories/settings.factory';
 import { AuditService } from '@/shared/modules/audit/audit/audit.service';
 import type {
@@ -105,6 +107,94 @@ export class ClinicSettingsService {
     private auditService: AuditService,
   ) {}
 
+  private payloadTouchesKeys(
+    data: ClinicSettingsData,
+    keys: (keyof ClinicSettingsData)[],
+  ): boolean {
+    return keys.some((key) => data[key] !== undefined);
+  }
+
+  private async assertTierGatedSettingsAllowed(
+    clinicId: string,
+    data: ClinicSettingsData,
+  ): Promise<void> {
+    const whatsappKeys: (keyof ClinicSettingsData)[] = [
+      'whatsappAppointmentReminders',
+      'whatsappFollowUpMessages',
+      'whatsappBirthdayWishes',
+      'whatsappMedicineReminders',
+      'whatsappPreAppointmentEnabled',
+      'whatsappPreAppointmentMinutes',
+      'paymentReminderAutoSendWhatsApp',
+    ];
+    const queueKeys: (keyof ClinicSettingsData)[] = [
+      'useDoctorQueues',
+      'queueBufferMinutes',
+    ];
+    const invoicingKeys: (keyof ClinicSettingsData)[] = [
+      'invoiceReminderEnabled',
+      'invoiceReminderBefore',
+      'invoiceReminderUnit',
+    ];
+    const auditKeys: (keyof ClinicSettingsData)[] = ['auditLogs'];
+    const autoReminderKeys: (keyof ClinicSettingsData)[] = [
+      'followUpReminderEnabled',
+      'followUpReminderBefore',
+      'followUpReminderUnit',
+      'paymentReminderEnabled',
+      'paymentReminderDays',
+      'prescriptionReminderEnabled',
+      'prescriptionReminderBefore',
+      'prescriptionReminderUnit',
+    ];
+
+    const needsCheck =
+      this.payloadTouchesKeys(data, whatsappKeys) ||
+      this.payloadTouchesKeys(data, queueKeys) ||
+      this.payloadTouchesKeys(data, invoicingKeys) ||
+      this.payloadTouchesKeys(data, auditKeys) ||
+      this.payloadTouchesKeys(data, autoReminderKeys);
+
+    if (!needsCheck) {
+      return;
+    }
+
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id: clinicId },
+      select: {
+        tier: true,
+        intelligenceAddon: true,
+        features: true,
+      },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException('Clinic not found');
+    }
+
+    const snapshot = {
+      tier: clinic.tier,
+      intelligenceAddon: clinic.intelligenceAddon,
+      features: clinic.features,
+    };
+
+    if (this.payloadTouchesKeys(data, whatsappKeys)) {
+      assertClinicHasFeatureOrThrow(snapshot, Feature.WHATSAPP_MESSAGING);
+    }
+    if (this.payloadTouchesKeys(data, queueKeys)) {
+      assertClinicHasFeatureOrThrow(snapshot, Feature.QUEUE_MANAGEMENT);
+    }
+    if (this.payloadTouchesKeys(data, invoicingKeys)) {
+      assertClinicHasFeatureOrThrow(snapshot, Feature.INVOICING);
+    }
+    if (this.payloadTouchesKeys(data, auditKeys)) {
+      assertClinicHasFeatureOrThrow(snapshot, Feature.AUDIT_LOGS);
+    }
+    if (this.payloadTouchesKeys(data, autoReminderKeys)) {
+      assertClinicHasFeatureOrThrow(snapshot, Feature.AUTO_REMINDERS);
+    }
+  }
+
   private toRecord(value: unknown): Record<string, unknown> {
     if (!value || typeof value !== 'object') {
       return {};
@@ -136,6 +226,8 @@ export class ClinicSettingsService {
   }
 
   async updateSettings(id: string, data: ClinicSettingsData) {
+    await this.assertTierGatedSettingsAllowed(id, data);
+
     const settingsToValidate = {
       description: data.description,
       openingTime: data.openingTime,

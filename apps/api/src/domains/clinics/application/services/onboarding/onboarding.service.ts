@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { AuthService } from '@/shared/modules/auth/auth/auth.service';
-import { SubscriptionStatus } from '@workspace/db';
 import { UploadSessionPurpose } from '@workspace/db';
 import { AppConfigService } from '@/shared/modules/config/app-configuration.service';
 import {
@@ -250,17 +249,17 @@ export class OnboardingService {
         !!completeData.paymentDetails?.razorpayOrderId &&
         !!completeData.paymentDetails?.razorpaySignature;
 
-      if (
-        completeData.planSelection.tier !== ClinicTier.STARTER &&
-        !completeData.paymentDetails?.skipPayment &&
-        hasRazorpayPayment
-      ) {
-        const expectedAmountCents = this.validationService.getTierPricing(
-          completeData.planSelection.tier,
-          completeData.planSelection.billingCycle,
-          completeData.planSelection.currency,
-        );
+      const listPriceCents = this.validationService.getTierPricing(
+        completeData.planSelection.tier,
+        completeData.planSelection.billingCycle,
+        completeData.planSelection.currency,
+      );
 
+      const isUnpaidEssentialTrial =
+        completeData.planSelection.tier === ClinicTier.ESSENTIAL &&
+        completeData.paymentDetails?.skipPayment === true;
+
+      if (listPriceCents > 0 && !isUnpaidEssentialTrial && hasRazorpayPayment) {
         const verification = await this.paymentGateway.verifyPayment({
           razorpayPaymentId: completeData.paymentDetails!.razorpayPaymentId!,
           razorpayOrderId: completeData.paymentDetails!.razorpayOrderId!,
@@ -271,7 +270,7 @@ export class OnboardingService {
           throw new BadRequestException('Unable to verify payment');
         }
 
-        if (verification.amountCents !== expectedAmountCents) {
+        if (verification.amountCents !== listPriceCents) {
           throw new BadRequestException(
             'Payment amount does not match selected plan',
           );
@@ -295,39 +294,13 @@ export class OnboardingService {
           );
           userId = adminUser.id;
 
-          let subscriptionId: string;
-          if (completeData.planSelection.tier !== ClinicTier.STARTER) {
-            const subscription = await this.workflowService.createSubscription(
-              tx,
-              clinic.id,
-              completeData.planSelection,
-              completeData.paymentDetails,
-            );
-            subscriptionId = subscription.id;
-          } else {
-            const subscription = await tx.subscription.create({
-              data: {
-                clinicId: clinic.id,
-                plan: 'STARTER',
-                billingCycle: 'MONTHLY',
-                basePriceCents: 0,
-                status: SubscriptionStatus.ACTIVE,
-                currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(
-                  Date.now() + 365 * 24 * 60 * 60 * 1000,
-                ),
-              },
-            });
-            await tx.clinic.update({
-              where: { id: clinic.id },
-              data: {
-                tier: ClinicTier.STARTER,
-                subscriptionStatus: SubscriptionStatus.ACTIVE,
-                trialEndsAt: null,
-              },
-            });
-            subscriptionId = subscription.id;
-          }
+          const subscription = await this.workflowService.createSubscription(
+            tx,
+            clinic.id,
+            completeData.planSelection,
+            completeData.paymentDetails,
+          );
+          const subscriptionId = subscription.id;
 
           await this.complianceService.recordSLAAgreement(
             tx,

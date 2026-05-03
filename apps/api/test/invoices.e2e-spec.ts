@@ -91,6 +91,50 @@ describe('Invoices (e2e)', () => {
     });
   });
 
+  describe('GET /invoices patient scope (starter tier)', () => {
+    let starterToken: string;
+    let starterPatientId: string;
+
+    beforeEach(async () => {
+      await resetDatabase();
+
+      const clinic = await factories.clinic({ tier: 'CAPTURE' });
+      const clinicId = clinic.id;
+
+      const { user, plainPassword } = await factories.user({
+        clinicId,
+        role: 'DOCTOR',
+      });
+
+      await factories.doctorClinic(user.id, clinicId);
+
+      const patient = await factories.patient(clinicId);
+      starterPatientId = patient.id;
+
+      const loginResponse = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ email: user.email, password: plainPassword });
+
+      starterToken = loginResponse.body.access_token;
+    });
+
+    it('should return 200 with an empty list when patient exists but clinic lacks invoicing', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/invoices?patientId=${starterPatientId}`)
+        .set('Authorization', `Bearer ${starterToken}`)
+        .expect(200);
+
+      expect(response.body.items).toEqual([]);
+    });
+
+    it('should return 403 for clinic-wide list without invoicing', async () => {
+      await request(app.getHttpServer())
+        .get('/invoices')
+        .set('Authorization', `Bearer ${starterToken}`)
+        .expect(403);
+    });
+  });
+
   describe('POST /invoices', () => {
     it('should create invoice', async () => {
       const invoiceData = {
