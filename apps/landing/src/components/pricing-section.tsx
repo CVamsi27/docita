@@ -181,7 +181,7 @@ export function PricingSection({ appUrl }: PricingSectionProps) {
           })}
         </motion.div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card/80 px-5 py-4 text-sm text-muted-foreground sm:px-6">
+        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 py-4 text-sm text-muted-foreground sm:px-6">
           <Check className="h-4 w-4 shrink-0 text-success" aria-hidden />
           <p className="min-w-0 flex-1">
             Features marked &ldquo;planned&rdquo; in higher tiers are part of

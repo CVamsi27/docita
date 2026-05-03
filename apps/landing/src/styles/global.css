@@ -188,8 +188,6 @@
   box-shadow:
     4px 4px 0 color-mix(in oklch, var(--foreground) 6%, transparent),
     inset 0 1px 0 color-mix(in oklch, oklch(1 0 0) 22%, transparent);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
 }
 
 .dark .landing-command-bar-editorial {
@@ -323,12 +321,68 @@ body {
   overflow-x: hidden;
 }
 
+/*
+ * Landing canvas: almost flat background so cards read as crisp opaque surfaces
+ * (no frosted / soft stack behind translucent panels).
+ *
+ * tw-animate enter/exit keyframes always set filter: blur(var(--tw-enter-blur)).
+ * Pin blur tokens to 0 and strip backdrop-filter so nothing on marketing pages
+ * runs a glass or filter stack (avoids mushy text/UI on some GPUs).
+ */
 body.landing-surface {
+  --tw-enter-blur: 0 !important;
+  --tw-exit-blur: 0 !important;
+  background-color: var(--background);
   background-image: radial-gradient(
-    130% 90% at 50% -12%,
-    color-mix(in oklch, var(--surface-tint) 38%, transparent),
-    transparent 58%
+    130% 55% at 50% -8%,
+    color-mix(in oklch, var(--surface-tint) 18%, transparent),
+    transparent 52%
   );
+  background-repeat: no-repeat;
+  background-size: 100% min(42vh, 380px);
+}
+
+body.landing-surface * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+body.landing-surface :is(.animate-in, .animate-out) {
+  filter: none !important;
+}
+
+.dark body.landing-surface {
+  background-image: radial-gradient(
+    130% 50% at 50% -6%,
+    color-mix(in oklch, var(--surface-tint) 10%, transparent),
+    transparent 52%
+  );
+}
+
+.landing-footer {
+  border-top: 1px solid color-mix(in oklch, var(--border) 55%, transparent);
+  background: color-mix(in oklch, var(--muted) 38%, var(--background));
+}
+
+/* Inner marketing pages: solid card panels (no see-through over page bg). */
+.landing-surface-panel {
+  background: var(--card);
+}
+
+.landing-surface-panel--accent {
+  background: color-mix(in oklch, var(--card) 93%, var(--primary) 7%);
+}
+
+.dark .landing-surface-panel--accent {
+  background: color-mix(in oklch, var(--card) 92%, var(--primary) 8%);
+}
+
+.landing-surface-panel--success {
+  background: color-mix(in oklch, var(--card) 93%, var(--success) 7%);
+}
+
+.dark .landing-surface-panel--success {
+  background: color-mix(in oklch, var(--card) 92%, var(--success) 8%);
 }
 
 img,
@@ -353,19 +407,35 @@ canvas {
 }
 
 .landing-section-muted {
-  background-color: color-mix(in oklch, var(--muted) 40%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--muted) 16%, transparent) 0%,
+    transparent 72%
+  );
 }
 
 .landing-section-soft {
-  background-color: color-mix(in oklch, var(--surface-tint) 36%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--surface-tint) 14%, transparent) 0%,
+    transparent 70%
+  );
 }
 
 .landing-band-muted {
-  background-color: color-mix(in oklch, var(--muted) 42%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--muted) 18%, transparent) 0%,
+    transparent 75%
+  );
 }
 
 .landing-band-soft {
-  background-color: color-mix(in oklch, var(--surface-tint) 44%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--surface-tint) 16%, transparent) 0%,
+    transparent 75%
+  );
 }
 
 /* Homepage band rhythm: proof (stats), surface (product + workflow), depth (migration/AI/resources), commercial (trust/pricing/FAQ). */
@@ -398,17 +468,25 @@ canvas {
       color-mix(in oklch, var(--primary) 10%, transparent),
       transparent 55%
     ),
-    color-mix(in oklch, var(--muted) 40%, var(--background));
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--muted) 14%, transparent) 0%,
+      transparent 80%
+    );
 }
 
 .dark .landing-band-surface {
   background:
     radial-gradient(
       115% 75% at 50% -12%,
-      color-mix(in oklch, var(--primary) 14%, transparent),
+      color-mix(in oklch, var(--primary) 12%, transparent),
       transparent 52%
     ),
-    color-mix(in oklch, var(--muted) 34%, var(--background));
+    linear-gradient(
+      180deg,
+      color-mix(in oklch, var(--muted) 12%, transparent) 0%,
+      transparent 78%
+    );
 }
 
 /* Pair with `.landing-band-surface`: static micro-grain (no animation). */
@@ -446,11 +524,12 @@ canvas {
   position: relative;
   background: linear-gradient(
     185deg,
-    color-mix(in oklch, var(--surface-tint) 50%, var(--background)) 0%,
-    color-mix(in oklch, var(--background) 92%, var(--muted) 8%) 52%,
-    color-mix(in oklch, var(--muted) 26%, var(--background)) 100%
+    color-mix(in oklch, var(--surface-tint) 22%, transparent) 0%,
+    transparent 38%,
+    color-mix(in oklch, var(--muted) 10%, transparent) 68%,
+    transparent 100%
   );
-  border-block: 1px solid color-mix(in oklch, var(--border) 48%, transparent);
+  border-block: 1px solid color-mix(in oklch, var(--border) 40%, transparent);
 }
 
 .landing-migration-soft-wash::before {
@@ -474,7 +553,12 @@ canvas {
 
 .landing-band-commercial {
   position: relative;
-  background: color-mix(in oklch, var(--background) 86%, var(--muted) 14%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in oklch, var(--muted) 12%, transparent) 55%,
+    transparent 100%
+  );
 }
 
 .landing-depth-shell {
@@ -657,8 +741,6 @@ canvas {
   box-shadow:
     0 1px 0 color-mix(in oklch, oklch(1 0 0) 45%, transparent) inset,
     0 14px 40px color-mix(in oklch, var(--foreground) 5%, transparent);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
 }
 
 .landing-bento-cell::before {
@@ -772,8 +854,6 @@ canvas {
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.06),
     0 8px 24px rgba(0, 0, 0, 0.06);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
 }
 
 .landing-chip {
@@ -786,8 +866,6 @@ canvas {
   padding: 0.5rem 1rem; /* px-4 py-2 */
   font-size: var(--fs-sm);
   line-height: var(--lh-normal);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
 }
 
 .landing-command-bar {
@@ -801,8 +879,6 @@ canvas {
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.06),
     0 24px 80px rgba(15, 23, 42, 0.12);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
 }
 
 .landing-product-stage {
@@ -1283,6 +1359,64 @@ canvas {
   --font-inter: "Inter";
   --font-jetbrains-mono: "JetBrains Mono";
   --font-display: "Fraunces";
+
+  /*
+   * R2 dual-accent (primary + info): stronger washes in light mode,
+   * calmer in dark mode.
+   */
+  --r2-radial-primary-mix: 12%;
+  --r2-radial-info-mix: 8%;
+  --r2-hero-grid-line-mix: 4%;
+  --r2-hero-grid-opacity: 0.55;
+  --r2-section-ambient-primary: 4.5%;
+  --r2-section-ambient-info: 3%;
+  --r2-band-tint-strength: 17%;
+  --r2-rhythm-surface-mix: 18%;
+  --r2-rhythm-ambient-primary: 10%;
+  --r2-rhythm-ambient-info: 7%;
+  --r2-compare-muted-mix: 13%;
+  --r2-compare-ambient-primary: 11%;
+  --r2-compare-ambient-info: 7%;
+  --r2-rollout-rail-a: 60%;
+  --r2-rollout-rail-mid: 24%;
+  --r2-rollout-rail-b: 18%;
+  --r2-surface-rail-opacity: 0.6;
+  --r2-surface-rail-info-mix: 42%;
+  --r2-price-featured-primary-mix: 10%;
+  --r2-price-featured-info-mix: 6%;
+  --r2-price-featured-shadow: 22%;
+  --r2-cta-radial-primary: 18%;
+  --r2-cta-radial-info: 10%;
+  --r2-cta-grid-line: 5%;
+  --r2-cta-grid-opacity: 0.6;
+}
+
+.dark {
+  --r2-radial-primary-mix: 7%;
+  --r2-radial-info-mix: 4.5%;
+  --r2-hero-grid-line-mix: 2.5%;
+  --r2-hero-grid-opacity: 0.32;
+  --r2-section-ambient-primary: 3%;
+  --r2-section-ambient-info: 2%;
+  --r2-band-tint-strength: 11%;
+  --r2-rhythm-surface-mix: 11%;
+  --r2-rhythm-ambient-primary: 6%;
+  --r2-rhythm-ambient-info: 4%;
+  --r2-compare-muted-mix: 8%;
+  --r2-compare-ambient-primary: 6.5%;
+  --r2-compare-ambient-info: 4%;
+  --r2-rollout-rail-a: 42%;
+  --r2-rollout-rail-mid: 16%;
+  --r2-rollout-rail-b: 12%;
+  --r2-surface-rail-opacity: 0.42;
+  --r2-surface-rail-info-mix: 30%;
+  --r2-price-featured-primary-mix: 7%;
+  --r2-price-featured-info-mix: 4%;
+  --r2-price-featured-shadow: 14%;
+  --r2-cta-radial-primary: 11%;
+  --r2-cta-radial-info: 5.5%;
+  --r2-cta-grid-line: 3.5%;
+  --r2-cta-grid-opacity: 0.45;
 }
 
 /*
@@ -1357,33 +1491,67 @@ canvas {
   padding-block: clamp(3rem, 1rem + 4vw, 5rem);
 }
 
-/* Quiet, clean backgrounds (no gradient chaos). */
+/* Sections stay mostly transparent so body.landing-surface reads as one canvas. */
 .r2-band-base {
-  background: var(--background);
+  background: transparent;
 }
 
 .r2-band-tint {
+  background: linear-gradient(
+    180deg,
+    color-mix(
+        in oklch,
+        var(--surface-tint) var(--r2-band-tint-strength),
+        transparent
+      )
+      0%,
+    transparent min(72%, 28rem)
+  );
+}
+
+/* Soft primary + info wash over banded sections (homepage R2). */
+.r2-section:is(.r2-band-base, .r2-band-tint, .r2-band-card)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
   background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklch, var(--surface-tint) 40%, var(--background)) 0%,
-      var(--background) 100%
+    radial-gradient(
+      72% 48% at 10% 12%,
+      color-mix(
+          in oklch,
+          var(--primary) var(--r2-section-ambient-primary),
+          transparent
+        )
+        0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      58% 42% at 92% 88%,
+      color-mix(
+          in oklch,
+          var(--info) var(--r2-section-ambient-info),
+          transparent
+        )
+        0%,
+      transparent 62%
     );
 }
 
-.r2-band-ink {
-  background: color-mix(in oklch, var(--foreground) 96%, var(--primary) 4%);
-  color: var(--background);
-}
-
-.r2-band-ink .r2-eyebrow,
-.r2-band-ink .r2-section-marker {
-  color: color-mix(in oklch, var(--background) 70%, transparent);
+.r2-section:is(.r2-band-base, .r2-band-tint, .r2-band-card) > * {
+  position: relative;
+  z-index: 1;
 }
 
 .r2-band-card {
-  background: color-mix(in oklch, var(--card) 96%, var(--background));
-  border-block: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in oklch, var(--card) 26%, transparent) 48%,
+    transparent 100%
+  );
+  border-block: 1px solid color-mix(in oklch, var(--border) 48%, transparent);
 }
 
 /* Hairline rule used to separate sections instead of heavy borders. */
@@ -1422,12 +1590,17 @@ canvas {
   background:
     radial-gradient(
       85% 70% at 12% 0%,
-      color-mix(in oklch, var(--primary) 12%, transparent) 0%,
+      color-mix(
+          in oklch,
+          var(--primary) var(--r2-radial-primary-mix),
+          transparent
+        )
+        0%,
       transparent 60%
     ),
     radial-gradient(
       55% 55% at 95% 25%,
-      color-mix(in oklch, var(--info) 8%, transparent) 0%,
+      color-mix(in oklch, var(--info) var(--r2-radial-info-mix), transparent) 0%,
       transparent 70%
     );
   pointer-events: none;
@@ -1440,12 +1613,22 @@ canvas {
   inset: 0;
   background-image:
     linear-gradient(
-      color-mix(in oklch, var(--foreground) 4%, transparent) 1px,
+      color-mix(
+          in oklch,
+          var(--foreground) var(--r2-hero-grid-line-mix),
+          transparent
+        )
+        1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      color-mix(in oklch, var(--foreground) 4%, transparent) 1px,
+      color-mix(
+          in oklch,
+          var(--foreground) var(--r2-hero-grid-line-mix),
+          transparent
+        )
+        1px,
       transparent 1px
     );
   background-size: 56px 56px;
@@ -1457,11 +1640,7 @@ canvas {
   );
   pointer-events: none;
   z-index: 0;
-  opacity: 0.55;
-}
-
-.dark .r2-hero::after {
-  opacity: 0.32;
+  opacity: var(--r2-hero-grid-opacity);
 }
 
 .r2-hero-shell {
@@ -1477,18 +1656,18 @@ canvas {
   position: relative;
   border-radius: calc(var(--radius) + 8px);
   border: 1px solid color-mix(in oklch, var(--border) 60%, transparent);
-  background: color-mix(in oklch, var(--card) 94%, var(--background));
+  background: var(--card);
   box-shadow:
     0 1px 0 color-mix(in oklch, oklch(1 0 0) 50%, transparent) inset,
     0 1px 2px color-mix(in oklch, var(--foreground) 5%, transparent),
-    0 24px 60px -20px color-mix(in oklch, var(--foreground) 18%, transparent);
+    0 12px 28px -12px color-mix(in oklch, var(--foreground) 10%, transparent);
   overflow: hidden;
 }
 
 .dark .r2-product {
   box-shadow:
     0 1px 0 color-mix(in oklch, oklch(1 0 0) 6%, transparent) inset,
-    0 28px 64px -22px rgba(0, 0, 0, 0.5);
+    0 14px 32px -14px rgba(0, 0, 0, 0.35);
 }
 
 .r2-product-chrome {
@@ -1633,17 +1812,8 @@ canvas {
 }
 
 /* ======================================================================
- * R2 Proof strip — live counters + clinic initials
+ * R2 Proof strip — live counters + operating facts (uses r2-band-base)
  * ====================================================================== */
-
-.r2-proof {
-  background: color-mix(in oklch, var(--foreground) 96%, var(--primary) 4%);
-  color: var(--background);
-}
-
-.dark .r2-proof {
-  background: color-mix(in oklch, var(--card) 96%, var(--primary) 4%);
-}
 
 .r2-proof-stat {
   font-family: var(--font-display), Georgia, serif;
@@ -1654,24 +1824,56 @@ canvas {
   font-variant-numeric: tabular-nums;
 }
 
-.r2-proof-divider {
-  width: 1px;
-  align-self: stretch;
-  background: color-mix(in oklch, var(--background) 18%, transparent);
-}
-
 /* ======================================================================
  * R2 Clinic Day Rhythm — sticky scroll signature section
  * ====================================================================== */
 
 .r2-rhythm {
   position: relative;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(
+        in oklch,
+        var(--surface-tint) var(--r2-rhythm-surface-mix),
+        transparent
+      )
+      100%
+  );
+}
+
+.r2-rhythm::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
   background:
-    linear-gradient(
-      180deg,
-      var(--background) 0%,
-      color-mix(in oklch, var(--surface-tint) 28%, var(--background)) 100%
+    radial-gradient(
+      70% 50% at 8% 18%,
+      color-mix(
+          in oklch,
+          var(--primary) var(--r2-rhythm-ambient-primary),
+          transparent
+        )
+        0%,
+      transparent 56%
+    ),
+    radial-gradient(
+      56% 44% at 94% 78%,
+      color-mix(
+          in oklch,
+          var(--info) var(--r2-rhythm-ambient-info),
+          transparent
+        )
+        0%,
+      transparent 60%
     );
+}
+
+.r2-rhythm > * {
+  position: relative;
+  z-index: 1;
 }
 
 /*
@@ -1851,7 +2053,46 @@ canvas {
  * ====================================================================== */
 
 .r2-compare {
-  background: color-mix(in oklch, var(--muted) 18%, var(--background));
+  position: relative;
+  background: color-mix(
+    in oklch,
+    var(--muted) var(--r2-compare-muted-mix),
+    transparent
+  );
+}
+
+.r2-compare::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(
+      66% 46% at 6% 8%,
+      color-mix(
+          in oklch,
+          var(--primary) var(--r2-compare-ambient-primary),
+          transparent
+        )
+        0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      54% 40% at 96% 92%,
+      color-mix(
+          in oklch,
+          var(--info) var(--r2-compare-ambient-info),
+          transparent
+        )
+        0%,
+      transparent 62%
+    );
+}
+
+.r2-compare > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* ======================================================================
@@ -1873,8 +2114,9 @@ canvas {
   border-radius: 2px;
   background: linear-gradient(
     180deg,
-    color-mix(in oklch, var(--primary) 60%, transparent) 0%,
-    color-mix(in oklch, var(--primary) 18%, transparent) 100%
+    color-mix(in oklch, var(--primary) var(--r2-rollout-rail-a), transparent) 0%,
+    color-mix(in oklch, var(--info) var(--r2-rollout-rail-mid), transparent) 52%,
+    color-mix(in oklch, var(--primary) var(--r2-rollout-rail-b), transparent) 100%
   );
 }
 
@@ -1940,9 +2182,15 @@ canvas {
   background: linear-gradient(
     90deg,
     var(--primary) 0%,
-    color-mix(in oklch, var(--primary) 30%, transparent) 100%
+    color-mix(
+        in oklch,
+        var(--info) var(--r2-surface-rail-info-mix),
+        var(--primary)
+      )
+      45%,
+    color-mix(in oklch, var(--primary) 28%, transparent) 100%
   );
-  opacity: 0.6;
+  opacity: var(--r2-surface-rail-opacity);
 }
 
 .r2-surface-list {
@@ -2045,13 +2293,33 @@ canvas {
   background:
     radial-gradient(
       80% 50% at 50% 0%,
-      color-mix(in oklch, var(--primary) 10%, transparent) 0%,
+      color-mix(
+          in oklch,
+          var(--primary) var(--r2-price-featured-primary-mix),
+          transparent
+        )
+        0%,
       transparent 60%
+    ),
+    radial-gradient(
+      90% 70% at 100% 20%,
+      color-mix(
+          in oklch,
+          var(--info) var(--r2-price-featured-info-mix),
+          transparent
+        )
+        0%,
+      transparent 55%
     ),
     color-mix(in oklch, var(--card) 96%, var(--background));
   box-shadow:
     0 0 0 1px color-mix(in oklch, var(--primary) 25%, transparent),
-    0 24px 56px -22px color-mix(in oklch, var(--primary) 22%, transparent);
+    0 24px 56px -22px
+      color-mix(
+        in oklch,
+        var(--primary) var(--r2-price-featured-shadow),
+        transparent
+      );
 }
 
 .r2-price-amount {
@@ -2166,8 +2434,18 @@ details[open] .r2-faq-icon::after {
   background:
     radial-gradient(
       90% 80% at 0% 0%,
-      color-mix(in oklch, var(--primary) 18%, transparent) 0%,
+      color-mix(
+          in oklch,
+          var(--primary) var(--r2-cta-radial-primary),
+          transparent
+        )
+        0%,
       transparent 70%
+    ),
+    radial-gradient(
+      70% 60% at 100% 40%,
+      color-mix(in oklch, var(--info) var(--r2-cta-radial-info), transparent) 0%,
+      transparent 65%
     ),
     color-mix(in oklch, var(--foreground) 96%, var(--primary) 4%);
   color: var(--background);
@@ -2181,17 +2459,27 @@ details[open] .r2-faq-icon::after {
   inset: 0;
   background-image:
     linear-gradient(
-      color-mix(in oklch, var(--background) 5%, transparent) 1px,
+      color-mix(
+          in oklch,
+          var(--background) var(--r2-cta-grid-line),
+          transparent
+        )
+        1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      color-mix(in oklch, var(--background) 5%, transparent) 1px,
+      color-mix(
+          in oklch,
+          var(--background) var(--r2-cta-grid-line),
+          transparent
+        )
+        1px,
       transparent 1px
     );
   background-size: 32px 32px;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: var(--r2-cta-grid-opacity);
 }
 
 .r2-cta-card > * {

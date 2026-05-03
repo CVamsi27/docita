@@ -99,7 +99,7 @@ export function DifferentiatorsSection() {
                 ].map((row) => (
                   <li
                     key={row.label}
-                    className="flex items-center gap-2 rounded-md border border-border/40 bg-background/80 px-2.5 py-1.5"
+                    className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
                   >
                     <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
                     <span className="truncate text-foreground">{row.label}</span>
@@ -157,7 +157,7 @@ export function DifferentiatorsSection() {
                 ].map((row) => (
                   <li
                     key={row.label}
-                    className="flex items-center gap-2 rounded-md border border-border/40 bg-background/80 px-2.5 py-1.5"
+                    className="flex items-center gap-2 rounded-md border border-border/40 bg-muted px-2.5 py-1.5"
                   >
                     <row.icon className="h-3.5 w-3.5 shrink-0 text-primary" />
                     <span className="flex-1 truncate text-foreground">
@@ -201,7 +201,7 @@ export function DifferentiatorsSection() {
                 {TRUST_BADGES.map((b) => (
                   <li
                     key={b}
-                    className="flex items-start gap-1.5 rounded-md border border-border/40 bg-background/80 px-2 py-1.5"
+                    className="flex items-start gap-1.5 rounded-md border border-border/40 bg-muted px-2 py-1.5"
                   >
                     <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-success" />
                     <span className="leading-tight text-foreground">{b}</span>

@@ -49,7 +49,7 @@ export function WhatsappSection() {
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </Button>
-              <Button asChild variant="outline" className="bg-background/70">
+              <Button asChild variant="outline" className="bg-card">
                 <a href="/contact">Book a WhatsApp demo</a>
               </Button>
             </div>
@@ -61,7 +61,7 @@ export function WhatsappSection() {
           <div className="order-1 lg:order-2 flex justify-center">
             <div className="relative w-full max-w-[280px] aspect-[1/2] rounded-[2.5rem] sm:rounded-[3rem] border-8 border-card bg-card shadow-lg overflow-hidden">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-card rounded-b-xl z-20" />
-              <div className="w-full h-full bg-muted/40 overflow-hidden flex flex-col">
+              <div className="flex h-full w-full flex-col overflow-hidden bg-muted">
                 <div className="bg-primary p-4 pt-12 text-primary-foreground flex items-center gap-3 shadow-md z-10">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
                     <Stethoscope className="h-5 w-5 text-white" />

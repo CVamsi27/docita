@@ -64,7 +64,7 @@ export function WorkflowCompareSection() {
               role="group"
               aria-label="Workflow comparison"
             >
-              <div className="relative rounded-xl border border-border/60 bg-background/80 p-1 shadow-sm">
+              <div className="relative rounded-xl border border-border/60 bg-card p-1 shadow-sm">
                 {!reduce ? (
                   <motion.div
                     aria-hidden
@@ -122,7 +122,7 @@ export function WorkflowCompareSection() {
           />
         </div>
 
-        <div className="mt-8 overflow-hidden rounded-2xl border border-border/60 bg-background/70 p-6 shadow-sm sm:p-8">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-border/60 bg-card p-6 shadow-sm sm:p-8">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={tab}
@@ -132,7 +132,7 @@ export function WorkflowCompareSection() {
               transition={landingSpringTransition(reduce ?? false)}
             >
               <p className="r2-eyebrow r2-eyebrow-accent">{active.eyebrow}</p>
-              <ul className="mt-4 space-y-3 text-base leading-relaxed text-foreground sm:text-lg">
+              <ul className="mt-4 space-y-3 text-base leading-relaxed text-muted-foreground">
                 {active.points.map((line) => (
                   <li key={line} className="flex gap-3">
                     <span
@@ -165,7 +165,7 @@ function CompareColumn({ tone, data, isActive }: CompareColumnProps) {
   return (
     <div
       className={cn(
-        "relative rounded-2xl border bg-background/70 p-5 transition-all sm:p-6",
+        "relative rounded-2xl border bg-card p-5 transition-colors sm:p-6",
         isActive
           ? "border-foreground/20 shadow-md"
           : "border-border/60 opacity-70",

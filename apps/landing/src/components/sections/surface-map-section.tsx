@@ -191,7 +191,7 @@ export function SurfaceMapSection() {
             {PORTAL_FEATURES.map((f) => (
               <li
                 key={f}
-                className="r2-mono rounded-full border border-border/60 bg-background/80 px-2.5 py-1 text-[11px] uppercase tracking-[0.08em] text-foreground"
+                className="r2-mono rounded-full border border-border/60 bg-muted px-2.5 py-1 text-[11px] uppercase tracking-[0.08em] text-foreground"
               >
                 {f}
               </li>

@@ -28,7 +28,7 @@ export function SpecialtiesSection() {
           <Card className="overflow-hidden border-border bg-card">
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="h-12 w-12 rounded-full border border-border/70 bg-background/70 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-full border border-border/70 bg-muted flex items-center justify-center">
                   <Baby className="h-6 w-6 text-info" />
                 </div>
                 <div>
@@ -74,7 +74,7 @@ export function SpecialtiesSection() {
           <Card className="overflow-hidden border-border bg-card">
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="h-12 w-12 rounded-full border border-border/70 bg-background/70 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-full border border-border/70 bg-muted flex items-center justify-center">
                   <Smile className="h-6 w-6 text-success" />
                 </div>
                 <div>

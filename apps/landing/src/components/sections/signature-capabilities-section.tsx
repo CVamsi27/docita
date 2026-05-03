@@ -145,7 +145,7 @@ export function SignatureCapabilitiesSection({
               >
                 <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
                   <div className="flex items-start justify-between gap-3">
-                    <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background/90 text-primary shadow-md ring-1 ring-primary/10">
+                    <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-card text-primary shadow-md ring-1 ring-primary/10">
                       <Icon className="h-5 w-5" aria-hidden />
                     </span>
                     <ArrowRight

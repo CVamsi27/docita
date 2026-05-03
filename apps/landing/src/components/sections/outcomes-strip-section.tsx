@@ -42,7 +42,7 @@ const outcomes = [
 export function OutcomesStripSection() {
   return (
     <section
-      className="landing-outcomes-strip landing-section landing-section-compact border-y border-border/60 bg-muted/25"
+      className="landing-outcomes-strip landing-section landing-section-compact border-y border-border/60 bg-muted"
       aria-labelledby="outcomes-strip-heading"
     >
       <div className="ui-page-shell">
@@ -59,7 +59,7 @@ export function OutcomesStripSection() {
           {outcomes.map((item) => (
             <li
               key={item.label}
-              className="rounded-2xl border border-border/70 bg-card/80 px-5 py-5 text-center shadow-sm backdrop-blur-sm"
+              className="rounded-2xl border border-border/70 bg-card px-5 py-5 text-center shadow-sm"
             >
               <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {item.label}

@@ -71,7 +71,7 @@ export function ProductTourSection({ appUrl }: ProductTourSectionProps) {
               key={item.title}
               className="landing-card p-5"
             >
-              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/70">
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-muted">
                 <item.icon className="h-5 w-5 text-primary" />
               </div>
               <div className="flex flex-wrap items-center gap-3">

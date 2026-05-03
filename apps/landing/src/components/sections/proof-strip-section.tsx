@@ -24,7 +24,7 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
 
   return (
     <section
-      className="r2-section r2-section-tight r2-band-ink"
+      className="r2-section r2-section-tight r2-band-base"
       aria-labelledby="r2-proof-heading"
     >
       <div className="ui-page-shell">
@@ -46,11 +46,11 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
                 className={
                   i === STAT_LABELS.length - 1
                     ? ""
-                    : "sm:border-r sm:border-background/15 sm:pr-6"
+                    : "sm:border-r sm:border-border/50 sm:pr-6"
                 }
               >
-                <dt className="r2-eyebrow text-background/70">{stat.label}</dt>
-                <dd className="mt-2 r2-proof-stat text-background">
+                <dt className="r2-eyebrow text-muted-foreground">{stat.label}</dt>
+                <dd className="mt-2 r2-proof-stat text-foreground">
                   {formatStatValue(stats[stat.key])}
                 </dd>
               </div>
@@ -58,13 +58,13 @@ export function ProofStripSection({ stats }: ProofStripSectionProps) {
           </dl>
         ) : null}
 
-        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-background/15 pt-8 sm:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-border/50 pt-8 sm:grid-cols-4">
           {OPERATING_FACTS.map((fact) => (
             <div key={fact.label}>
-              <p className="r2-mono text-sm font-semibold text-background">
+              <p className="r2-mono text-sm font-semibold text-foreground">
                 {fact.value}
               </p>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-background/60">
+              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                 {fact.label}
               </p>
             </div>

@@ -332,11 +332,11 @@ function ConsultFrame() {
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs">
+        <div className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-xs">
           <p className="r2-eyebrow">Lab</p>
           <p className="mt-0.5 text-foreground">HbA1c · 6 weeks</p>
         </div>
-        <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs">
+        <div className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-xs">
           <p className="r2-eyebrow">Next visit</p>
           <p className="mt-0.5 text-foreground">28 May · 11:30</p>
         </div>
@@ -360,7 +360,7 @@ function CheckoutFrame() {
         </span>
       </div>
 
-      <div className="rounded-xl border border-border/60 bg-card/80 p-3">
+      <div className="rounded-xl border border-border/60 bg-card p-3">
         <div className="space-y-2 text-sm">
           {[
             ["Consultation", "₹500"],

@@ -58,7 +58,7 @@ export function ClinicSetupSection() {
       <div className="ui-page-shell">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(320px,1.05fr)] lg:items-center">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-sm text-primary">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted px-4 py-2 text-sm text-primary">
               <Settings2 className="h-4 w-4" />
               <span className="font-medium">Paid clinic setup service</span>
             </div>
@@ -98,7 +98,7 @@ export function ClinicSetupSection() {
             {setupDeliverables.map((item) => (
               <Card key={item.title} className="landing-card bg-muted/30">
                 <CardHeader>
-                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/70">
+                  <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-muted">
                     <item.icon className="h-5 w-5 text-primary" />
                   </div>
                   <CardTitle className="text-lg">{item.title}</CardTitle>

@@ -133,7 +133,7 @@ export function RolloutSection() {
                   {m.artifacts.map((a) => (
                     <li
                       key={a}
-                      className="rounded-lg border border-border/60 bg-card/80 px-3 py-2 r2-mono text-xs leading-snug"
+                      className="rounded-lg border border-border/60 bg-muted px-3 py-2 r2-mono text-xs leading-snug"
                     >
                       {a}
                     </li>
