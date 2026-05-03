@@ -24,6 +24,7 @@ import {
   ClinicTier,
 } from '@/domains/clinics/application/dto/onboarding/create-clinic-onboarding.dto';
 import { OnboardingValidationService } from './onboarding-validation.service';
+import { SUBSCRIPTION_TRIAL_DAYS } from '@workspace/types';
 
 interface OnboardingPaymentInput {
   razorpayPaymentId?: string;
@@ -232,15 +233,18 @@ export class OnboardingWorkflowService {
     paymentData?: OnboardingPaymentInput,
   ): Promise<Subscription> {
     const now = new Date();
-    const isStarterWithoutPayment =
-      planData.tier === ClinicTier.STARTER && paymentData?.skipPayment === true;
-    const periodEnd = isStarterWithoutPayment
+    const trialMs = SUBSCRIPTION_TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    const isTrialWithoutPayment =
+      (planData.tier === ClinicTier.STARTER ||
+        planData.tier === ClinicTier.ESSENTIAL) &&
+      paymentData?.skipPayment === true;
+    const periodEnd = isTrialWithoutPayment
       ? planData.billingCycle === BillingCycle.YEARLY
         ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+        : new Date(now.getTime() + trialMs)
       : planData.billingCycle === BillingCycle.YEARLY
         ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-        : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        : new Date(now.getTime() + trialMs);
 
     const priceCents = this.validation.getTierPricing(
       planData.tier,

@@ -59,6 +59,7 @@ import {
   subscriptionBillingPreviewResponseSchema,
   subscriptionBillingStatusResponseSchema,
   subscriptionCurrentResponseSchema,
+  SUBSCRIPTION_TRIAL_DAYS,
 } from '@workspace/types';
 import { getDbRolesForTarget } from '@/shared/modules/auth/auth/access-matrix.util';
 import { ZodSerializerDto } from 'nestjs-zod';
@@ -164,7 +165,9 @@ export class SubscriptionsController {
       plan: body.tier as ClinicTierEnum,
       billingCycle: normalizedBillingCycle,
       currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      currentPeriodEnd: new Date(
+        Date.now() + SUBSCRIPTION_TRIAL_DAYS * 24 * 60 * 60 * 1000,
+      ),
     });
   }
 

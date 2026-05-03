@@ -1,9 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@workspace/db';
+
 import { PrismaService } from '@/prisma/prisma.service';
 import {
   QuotaUpsertInput,
   TenantQuota,
 } from '@/shared/modules/tenant-rate-limit/tenant-rate-limit.types';
+
+function isMissingClinicApiQuotaTable(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2021' &&
+    String(error.message).includes('ClinicApiQuota')
+  );
+}
 
 const monthlyResetDate = (): Date => {
   const now = new Date();
@@ -18,17 +28,24 @@ export class TenantRateLimitRepository {
 
   async findQuota(clinicId: string): Promise<TenantQuota | null> {
     return this.prisma.runUnrestricted(async () => {
-      const row = await this.prisma.clinicApiQuota.findUnique({
-        where: { clinicId },
-      });
-      if (!row) return null;
-      return {
-        rps: row.rps,
-        rpm: row.rpm,
-        monthlyBudget: row.monthlyBudget,
-        currentMonthUsed: row.currentMonthUsed,
-        currentMonthResetsAt: row.currentMonthResetsAt,
-      } satisfies TenantQuota;
+      try {
+        const row = await this.prisma.clinicApiQuota.findUnique({
+          where: { clinicId },
+        });
+        if (!row) return null;
+        return {
+          rps: row.rps,
+          rpm: row.rpm,
+          monthlyBudget: row.monthlyBudget,
+          currentMonthUsed: row.currentMonthUsed,
+          currentMonthResetsAt: row.currentMonthResetsAt,
+        } satisfies TenantQuota;
+      } catch (error) {
+        if (isMissingClinicApiQuotaTable(error)) {
+          return null;
+        }
+        throw error;
+      }
     });
   }
 
@@ -77,31 +94,38 @@ export class TenantRateLimitRepository {
   ): Promise<TenantQuota | null> {
     if (delta <= 0) return null;
     return this.prisma.runUnrestricted(async () => {
-      const existing = await this.prisma.clinicApiQuota.findUnique({
-        where: { clinicId },
-      });
-      if (!existing) {
-        return null;
+      try {
+        const existing = await this.prisma.clinicApiQuota.findUnique({
+          where: { clinicId },
+        });
+        if (!existing) {
+          return null;
+        }
+        const now = new Date();
+        const needsReset =
+          existing.currentMonthResetsAt.getTime() <= now.getTime();
+        const updated = await this.prisma.clinicApiQuota.update({
+          where: { clinicId },
+          data: needsReset
+            ? {
+                currentMonthUsed: delta,
+                currentMonthResetsAt: monthlyResetDate(),
+              }
+            : { currentMonthUsed: { increment: delta } },
+        });
+        return {
+          rps: updated.rps,
+          rpm: updated.rpm,
+          monthlyBudget: updated.monthlyBudget,
+          currentMonthUsed: updated.currentMonthUsed,
+          currentMonthResetsAt: updated.currentMonthResetsAt,
+        };
+      } catch (error) {
+        if (isMissingClinicApiQuotaTable(error)) {
+          return null;
+        }
+        throw error;
       }
-      const now = new Date();
-      const needsReset =
-        existing.currentMonthResetsAt.getTime() <= now.getTime();
-      const updated = await this.prisma.clinicApiQuota.update({
-        where: { clinicId },
-        data: needsReset
-          ? {
-              currentMonthUsed: delta,
-              currentMonthResetsAt: monthlyResetDate(),
-            }
-          : { currentMonthUsed: { increment: delta } },
-      });
-      return {
-        rps: updated.rps,
-        rpm: updated.rpm,
-        monthlyBudget: updated.monthlyBudget,
-        currentMonthUsed: updated.currentMonthUsed,
-        currentMonthResetsAt: updated.currentMonthResetsAt,
-      };
     });
   }
 }

@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Specialization } from '@workspace/db';
 import {
   TIER_PRICING_BY_CURRENCY,
+  type MultiCurrencyTierPricing,
   type SupportedCurrency,
 } from '@workspace/types';
 import {
@@ -13,6 +14,22 @@ import {
   validateClinicTier,
   validateBillingCycle,
 } from './type-helpers';
+
+function billingCycleEnumToCatalogKey(
+  cycle: string,
+): keyof MultiCurrencyTierPricing | null {
+  switch (cycle.toUpperCase()) {
+    case 'MONTHLY':
+      return 'monthly';
+    case 'YEARLY':
+      return 'yearly';
+    case 'QUARTERLY':
+    case 'SEMI_ANNUAL':
+      return 'monthly';
+    default:
+      return null;
+  }
+}
 
 @Injectable()
 export class OnboardingValidationService {
@@ -61,19 +78,31 @@ export class OnboardingValidationService {
       }
     }
 
-    if (data.planSelection && data.planSelection.tier !== ClinicTier.STARTER) {
+    if (data.planSelection) {
       const currency = this.resolveCurrency(data.planSelection.currency);
-
       const hasProcessedPayment =
         !!data.paymentDetails?.razorpayPaymentId ||
         (!!data.paymentDetails?.cardLast4 &&
           data.paymentDetails?.skipPayment !== true);
 
-      if (!hasProcessedPayment) {
+      const unpaidStarterOrEssentialTrial =
+        (data.planSelection.tier === ClinicTier.STARTER ||
+          data.planSelection.tier === ClinicTier.ESSENTIAL) &&
+        data.paymentDetails?.skipPayment === true;
+
+      if (!unpaidStarterOrEssentialTrial && !hasProcessedPayment) {
         errors.push('Payment details are required for paid plans');
       }
 
-      if (currency === 'INR' && !data.clinicDetails?.gstin) {
+      if (
+        currency === 'INR' &&
+        !data.clinicDetails?.gstin &&
+        data.planSelection.tier !== ClinicTier.STARTER &&
+        !(
+          data.planSelection.tier === ClinicTier.ESSENTIAL &&
+          unpaidStarterOrEssentialTrial
+        )
+      ) {
         errors.push(
           'GSTIN is required for paid Indian plans so we can issue GST invoices',
         );
@@ -182,8 +211,14 @@ export class OnboardingValidationService {
     const resolvedCurrency = this.resolveCurrency(currency);
     const pricing = TIER_PRICING_BY_CURRENCY[resolvedCurrency];
     const tierPricing = pricing[tier as keyof typeof pricing];
-    const amount = tierPricing?.[cycle as keyof typeof tierPricing];
-    return typeof amount === 'number' ? amount : 0;
+    const pricingKey = billingCycleEnumToCatalogKey(cycle);
+    const amount = pricingKey !== null ? tierPricing?.[pricingKey] : undefined;
+    if (typeof amount !== 'number') {
+      return 0;
+    }
+    // Catalog amounts are in major units (e.g. INR rupees); Razorpay and
+    // Subscription.basePriceCents store smallest currency units (paise).
+    return Math.round(amount * 100);
   }
 
   getTierLimits(tier: string): {

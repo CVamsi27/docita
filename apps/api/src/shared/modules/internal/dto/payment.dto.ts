@@ -1,6 +1,9 @@
 import { ClinicTier } from '@workspace/db';
 import { createZodDto } from 'nestjs-zod';
-import { extendGracePeriodRequestSchema } from '@workspace/types';
+import {
+  extendGracePeriodRequestSchema,
+  recordInternalAdditionalChargeRequestSchema,
+} from '@workspace/types';
 
 export interface ProcessPaymentDto {
   paymentId: string;
@@ -14,4 +17,8 @@ export interface ProcessPaymentDto {
 export const ExtendGracePeriodSchema = extendGracePeriodRequestSchema;
 export class ExtendGracePeriodRequestDto extends createZodDto(
   ExtendGracePeriodSchema,
+) {}
+
+export class RecordInternalAdditionalChargeRequestDto extends createZodDto(
+  recordInternalAdditionalChargeRequestSchema,
 ) {}

@@ -4,8 +4,7 @@ import { NotifyExpiringSubscriptionsUseCase } from '@/domains/subscriptions/appl
 import { NotifySubscriptionGraceDeadlineUseCase } from '@/domains/subscriptions/application/use-cases/notify-subscription-grace-deadline.use-case';
 import { EnterGracePeriodUseCase } from '@/domains/subscriptions/application/use-cases/enter-grace-period.use-case';
 import { PrismaService } from '@/prisma/prisma.service';
-import { BillingCycle, ClinicTier, SubscriptionStatus } from '@workspace/db';
-import { TIER_LIMITS } from '@workspace/types';
+import { SubscriptionStatus } from '@workspace/db';
 import { isCronDisabledInThisProcess } from '@/shared/schedule/cron-env';
 import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admin-alerts.service';
 
@@ -13,8 +12,6 @@ import { AdminAlertsService } from '@/shared/modules/messaging/admin-alerts/admi
 export class SubscriptionReminderScheduler {
   private readonly logger = new Logger(SubscriptionReminderScheduler.name);
   private databaseAccessDisabled = false;
-  private readonly starterFallbackPeriodDays = 365;
-
   constructor(
     private readonly notifyUseCase: NotifyExpiringSubscriptionsUseCase,
     private readonly notifyGraceDeadlineUseCase: NotifySubscriptionGraceDeadlineUseCase,
@@ -72,6 +69,7 @@ export class SubscriptionReminderScheduler {
     const now = new Date();
 
     const schedules = [
+      { days: 14, type: 'expiry_14d' },
       { days: 7, type: 'expiry_7d' },
       { days: 3, type: 'expiry_3d' },
       { days: 1, type: 'expiry_1d' },
@@ -165,49 +163,16 @@ export class SubscriptionReminderScheduler {
           },
           select: {
             id: true,
-            clinicId: true,
           },
         });
 
         for (const trial of expiredTrials) {
-          const periodStart = new Date();
-          const periodEnd = new Date(
-            periodStart.getTime() +
-              this.starterFallbackPeriodDays * 24 * 60 * 60 * 1000,
-          );
-
-          await this.prisma.subscription.update({
-            where: { id: trial.id },
-            data: {
-              plan: ClinicTier.STARTER,
-              billingCycle: BillingCycle.MONTHLY,
-              basePriceCents: 0,
-              status: SubscriptionStatus.ACTIVE,
-              currentPeriodStart: periodStart,
-              currentPeriodEnd: periodEnd,
-              trialEnd: null,
-              includedPatients: TIER_LIMITS.STARTER.patients,
-              includedAppointments: TIER_LIMITS.STARTER.appointments,
-              includedStorageGB: TIER_LIMITS.STARTER.storageGB,
-              includedUsers: TIER_LIMITS.STARTER.users,
-              cancelAtPeriodEnd: false,
-              cancelledAt: null,
-            },
-          });
-
-          await this.prisma.clinic.update({
-            where: { id: trial.clinicId },
-            data: {
-              tier: ClinicTier.STARTER,
-              subscriptionStatus: SubscriptionStatus.ACTIVE,
-              trialEndsAt: null,
-            },
-          });
+          await this.graceUseCase.execute(trial.id);
         }
 
         if (expiredTrials.length > 0) {
           this.logger.log(
-            `Converted ${expiredTrials.length} expired trial subscription(s) to STARTER`,
+            `Moved ${expiredTrials.length} expired trial subscription(s) into grace (payment required)`,
           );
         }
 

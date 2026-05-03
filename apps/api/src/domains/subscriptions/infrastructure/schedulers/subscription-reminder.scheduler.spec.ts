@@ -95,36 +95,16 @@ describe('SubscriptionReminderScheduler', () => {
     );
   });
 
-  it('converts expired trial subscriptions to STARTER free fallback', async () => {
+  it('moves expired trial subscriptions into grace via EnterGracePeriodUseCase', async () => {
     findManyMock
-      .mockResolvedValueOnce([{ id: 'sub_trial_1', clinicId: 'clinic_1' }])
+      .mockResolvedValueOnce([{ id: 'sub_trial_1' }])
       .mockResolvedValueOnce([]);
-    subscriptionUpdateMock.mockResolvedValue({} as Record<string, never>);
-    clinicUpdateMock.mockResolvedValue({} as Record<string, never>);
 
     await scheduler.handleLapsedSubscriptions();
 
-    expect(subscriptionUpdateMock).toHaveBeenCalledTimes(1);
-    expect(subscriptionUpdateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: 'sub_trial_1' },
-        data: expect.objectContaining({
-          plan: 'STARTER',
-          status: 'ACTIVE',
-          basePriceCents: 0,
-        }),
-      }),
-    );
-    expect(clinicUpdateMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: 'clinic_1' },
-        data: expect.objectContaining({
-          tier: 'STARTER',
-          subscriptionStatus: 'ACTIVE',
-          trialEndsAt: null,
-        }),
-      }),
-    );
+    expect(graceExecuteMock).toHaveBeenCalledWith('sub_trial_1');
+    expect(subscriptionUpdateMock).not.toHaveBeenCalled();
+    expect(clinicUpdateMock).not.toHaveBeenCalled();
   });
 
   it('still moves lapsed ACTIVE subscriptions into grace period', async () => {

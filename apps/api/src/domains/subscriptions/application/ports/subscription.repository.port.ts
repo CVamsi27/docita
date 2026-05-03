@@ -16,6 +16,8 @@ export interface ISubscriptionRepository {
     status: string;
     razorpayOrderId: string;
     description: string;
+    razorpayPaymentId?: string;
+    paidAt?: Date | null;
   }): Promise<void>;
   updatePaymentStatus(
     orderId: string,
