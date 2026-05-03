@@ -145,7 +145,7 @@ export const listAppointmentsQuerySchema = z.object({
   search: z.string().optional(),
   status: z.string().optional(),
   cursor: z.string().optional(),
-  limit: z.coerce.number().int().positive().max(100).optional(),
+  limit: z.coerce.number().int().positive().max(500).optional(),
 });
 
 const normalizeDate = (

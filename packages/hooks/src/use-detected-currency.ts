@@ -93,47 +93,19 @@ export function useDetectedCurrency() {
     if (typeof window === "undefined") return "USD";
     return readCache() ?? guessCurrencyFromTimezone();
   });
-  const [isDetecting, setIsDetecting] = useState(true);
+  /** Always false: currency comes from cache or timezone (no network geo lookup). */
+  const isDetecting = false;
 
   useEffect(() => {
     const cached = readCache();
     if (cached) {
       setCurrencyState(cached);
-      setIsDetecting(false);
       return;
     }
 
-    let cancelled = false;
-    const controller = new AbortController();
-
-    const detect = async () => {
-      try {
-        const res = await fetch("https://ipapi.co/json/", {
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error("geo-lookup failed");
-        const data = (await res.json()) as { country_code?: string };
-        if (cancelled) return;
-        const detected = countryCodeToCurrency(data.country_code ?? "");
-        setCurrencyState(detected);
-        writeCache(detected);
-      } catch {
-        const fallback = guessCurrencyFromTimezone();
-        if (!cancelled) {
-          setCurrencyState(fallback);
-          writeCache(fallback);
-        }
-      } finally {
-        if (!cancelled) setIsDetecting(false);
-      }
-    };
-
-    void detect();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
+    const fallback = guessCurrencyFromTimezone();
+    setCurrencyState(fallback);
+    writeCache(fallback);
   }, []);
 
   const setCurrency = useCallback((next: SupportedCurrency) => {

@@ -200,6 +200,25 @@ export const PRICING_CURRENCY_CONFIG: Record<
   },
 };
 
+/** Free-trial length (days) for unpaid Starter/Essential onboarding and copy alignment. */
+export const SUBSCRIPTION_TRIAL_DAYS = 30 as const;
+
+/** Guided setup list price (whole currency units, not cents) for internal presets and marketing. */
+export const GUIDED_SETUP_LIST_PRICE_BY_CURRENCY: Record<
+  SupportedCurrency,
+  number
+> = {
+  INR: 4999,
+  USD: 60,
+  EUR: 55,
+  GBP: 45,
+  AUD: 90,
+  CAD: 85,
+  SGD: 65,
+  AED: 185,
+  ZAR: 999,
+};
+
 export const tierPricingSchema = z.object({
   monthly: z.union([z.number(), z.literal("custom")]),
   yearly: z.union([z.number(), z.literal("custom")]),
