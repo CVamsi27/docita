@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -37,6 +37,7 @@ export function useSubscriptionCheckout(
   const { openCheckout } = useRazorpay();
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const checkoutInFlightRef = useRef(false);
 
   const invalidateSubscriptionQueries = useCallback(async () => {
     await Promise.all([
@@ -50,6 +51,10 @@ export function useSubscriptionCheckout(
       if (!token) {
         throw new Error("Please sign in to manage your subscription");
       }
+      if (checkoutInFlightRef.current) {
+        return;
+      }
+      checkoutInFlightRef.current = true;
       setIsProcessing(true);
       setProcessingId(`tier-${tier}`);
 
@@ -138,6 +143,7 @@ export function useSubscriptionCheckout(
         }
         throw error;
       } finally {
+        checkoutInFlightRef.current = false;
         setIsProcessing(false);
         setProcessingId(null);
       }

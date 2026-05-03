@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import { formatAmountLocale, formatCountLocale } from "@workspace/utils";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 
 interface TierCardProps {
   tier: Tier;
@@ -48,6 +49,11 @@ interface TierCardProps {
   featureDisplay?: "compact" | "detailed";
   /** Accent stripe at top of card (plans grid usually omits this). */
   showTopAccent?: boolean;
+  /**
+   * `summary`: name, tagline, price, CTA only — for surfaces that already show a full comparison (e.g. Compare Plans tab).
+   * `full`: default rich plan card.
+   */
+  density?: "full" | "summary";
 }
 
 const TIER_ICONS: Record<string, React.ElementType> = {
@@ -143,10 +149,12 @@ export function TierCard({
   limitHighlights,
   featureDisplay = "compact",
   showTopAccent = false,
+  density = "full",
 }: TierCardProps & { currentTierValue?: Tier; onSelect?: () => void }) {
   const tierName = Tier[tier] as string;
   const Icon = TIER_ICONS[tierName] || Zap;
   const gradient = TIER_GRADIENTS[tierName] || TIER_GRADIENTS.STARTER;
+  const isSummary = density === "summary";
 
   const isUpgrade = currentTierValue !== undefined && tier > currentTierValue;
   const isDowngrade = currentTierValue !== undefined && tier < currentTierValue;
@@ -154,7 +162,7 @@ export function TierCard({
   return (
     <Card
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg border bg-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
+        "group relative flex flex-col overflow-hidden rounded-lg border bg-card transition-colors duration-150 hover:shadow-md",
         gradient.card,
         isCurrentTier && "border-primary ring-2 ring-primary/20 shadow-lg",
         !isCurrentTier && "border-border/80 hover:border-primary/40",
@@ -170,8 +178,13 @@ export function TierCard({
         </Badge>
       )}
 
-      <CardHeader className="pb-4 text-left">
-        <div className="flex items-start gap-3 pr-20">
+      <CardHeader className={cn("pb-4 text-left", isSummary && "pb-3")}>
+        <div
+          className={cn(
+            "flex items-start gap-3",
+            isCurrentTier ? "pr-24 sm:pr-28" : "pr-2",
+          )}
+        >
           <div
             className={cn(
               "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border shadow-sm",
@@ -180,45 +193,60 @@ export function TierCard({
           >
             <Icon className="h-5 w-5" />
           </div>
-          <div className="min-w-0 space-y-1">
+          <div className="min-w-0 flex-1 space-y-1">
             <h3 className="ui-section-title text-[var(--fs-xl)] leading-[var(--lh-tight)] text-foreground">
               {info.name}
             </h3>
-            <CardDescription className="text-sm font-medium">
+            <CardDescription className="text-[var(--fs-sm)] font-medium leading-snug text-muted-foreground">
               {info.tagline}
             </CardDescription>
           </div>
         </div>
-        <p className="mt-4 min-h-12 text-sm leading-relaxed text-muted-foreground">
-          {info.description}
-        </p>
-        {bestFor && (
-          <p className="rounded-md border border-border/70 bg-background/70 px-3 py-2 text-xs font-medium leading-relaxed text-foreground">
+        {!isSummary ? (
+          <p className="mt-4 min-h-12 text-sm leading-relaxed text-muted-foreground">
+            {info.description}
+          </p>
+        ) : null}
+        {!isSummary && bestFor ? (
+          <p className="mt-3 rounded-md border border-border/70 bg-background/70 px-3 py-2 text-xs font-medium leading-relaxed text-foreground">
             {bestFor}
           </p>
-        )}
+        ) : null}
         {pricing && (
-          <div className="mt-5 space-y-4">
+          <div className={cn("space-y-4", isSummary ? "mt-4" : "mt-5")}>
             <div className="rounded-lg border border-border/70 bg-background/80 p-4 shadow-sm">
               <p className="text-[var(--fs-3xl)] font-semibold leading-[var(--lh-tight)] tabular-nums text-foreground">
                 {formatTierPrice(tier, pricing, billingCycle, currencySymbol)}
               </p>
               {pricing.monthly !== 0 && pricing.monthly !== "custom" && (
-                <p className="mt-1 text-xs font-medium text-muted-foreground">
-                  Incl. 18% GST
+                <p className="mt-1 text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+                  {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
                 </p>
               )}
-              {(overageItems?.length || overageHint) && (
-                <div className="mt-3 border-t border-border/70 pt-3">
+              {overageItems?.length || overageHint ? (
+                <div
+                  className={cn(
+                    "mt-3 border-t border-border/70 pt-3",
+                    isSummary && "pt-2.5",
+                  )}
+                >
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Overage meters
+                    Additional usage
                   </p>
                   {overageItems?.length ? (
-                    <ul className="mt-2 flex flex-wrap gap-1.5">
+                    <ul
+                      className={cn(
+                        "mt-2 flex flex-wrap gap-1.5",
+                        isSummary && "gap-1",
+                      )}
+                    >
                       {overageItems.map((item) => (
                         <li
                           key={item}
-                          className="rounded-md border border-border/70 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground"
+                          className={cn(
+                            "rounded-md border border-border/70 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground",
+                            isSummary && "px-2 py-0.5 text-[var(--fs-2xs)]",
+                          )}
                         >
                           {item}
                         </li>
@@ -230,10 +258,10 @@ export function TierCard({
                     </p>
                   )}
                 </div>
-              )}
+              ) : null}
             </div>
 
-            {limitHighlights?.length ? (
+            {!isSummary && limitHighlights?.length ? (
               <ul className="grid grid-cols-2 gap-2 text-sm text-foreground">
                 {limitHighlights.map((item, index) => {
                   const LimitIcon = LIMIT_ICONS[index] ?? Check;
@@ -249,7 +277,7 @@ export function TierCard({
                   );
                 })}
               </ul>
-            ) : usageHints ? (
+            ) : !isSummary && usageHints ? (
               <ul className="grid grid-cols-1 gap-2 text-sm text-foreground">
                 {usageHints.patients !== undefined && (
                   <li className="flex min-h-12 items-center gap-2 rounded-md border border-border/70 bg-background/70 px-3 py-2 leading-tight">
@@ -287,19 +315,21 @@ export function TierCard({
         )}
       </CardHeader>
       <CardContent className="flex-1 space-y-4 pt-0">
-        {includedLabel && (
+        {!isSummary && includedLabel ? (
           <div className="space-y-3 pt-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {includedLabel}
             </p>
           </div>
-        )}
-        <PlanFeatures
-          features={features}
-          maxDisplay={maxDisplay}
-          align={featureDisplay === "compact" ? "center" : "left"}
-          display={featureDisplay}
-        />
+        ) : null}
+        {!isSummary ? (
+          <PlanFeatures
+            features={features}
+            maxDisplay={maxDisplay}
+            align={featureDisplay === "compact" ? "center" : "left"}
+            display={featureDisplay}
+          />
+        ) : null}
       </CardContent>
       {onSelect && (
         <div className="mt-auto border-t border-border/70 bg-background/70 p-4">

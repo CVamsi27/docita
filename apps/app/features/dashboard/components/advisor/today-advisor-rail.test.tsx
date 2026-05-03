@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -17,7 +17,6 @@ describe("TodayAdvisorRail", () => {
         pendingJoinRequests={3}
         pendingReports={0}
         waitingCount={0}
-        totalAppointments={0}
       />,
     );
 
@@ -33,7 +32,6 @@ describe("TodayAdvisorRail", () => {
         pendingJoinRequests={0}
         pendingReports={0}
         waitingCount={1}
-        totalAppointments={0}
       />,
     );
 
@@ -44,37 +42,13 @@ describe("TodayAdvisorRail", () => {
     );
   });
 
-  it("always renders the weekly recap card and lets users dismiss it", () => {
-    render(
-      <TodayAdvisorRail
-        pendingJoinRequests={0}
-        pendingReports={0}
-        waitingCount={0}
-        totalAppointments={5}
-      />,
-    );
-
-    expect(screen.getByText(/your week at a glance/i)).toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole("button", { name: /dismiss weekly recap/i }),
-    );
-
-    expect(screen.queryByText(/your week at a glance/i)).not.toBeInTheDocument();
-  });
-
   it("returns nothing when there are no recommendations to render", () => {
     const { container } = render(
       <TodayAdvisorRail
         pendingJoinRequests={0}
         pendingReports={0}
         waitingCount={0}
-        totalAppointments={0}
       />,
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", { name: /dismiss weekly recap/i }),
     );
 
     expect(container.firstChild).toBeNull();

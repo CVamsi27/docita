@@ -48,12 +48,6 @@ const TRACK_ITEMS: NavItem[] = [
     accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
   },
   {
-    href: "/today",
-    icon: CalendarClock,
-    label: "Today",
-    accessTarget: APP_ACCESS_TARGETS.PAGE_DASHBOARD,
-  },
-  {
     href: "/patients",
     icon: Users,
     label: "Patients",

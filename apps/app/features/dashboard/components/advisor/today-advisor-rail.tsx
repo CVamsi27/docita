@@ -12,14 +12,9 @@ interface TodayAdvisorRailProps {
   pendingJoinRequests: number;
   pendingReports: number;
   waitingCount: number;
-  totalAppointments: number;
 }
 
-type CardKey =
-  | "join-requests"
-  | "pending-reports"
-  | "weekly-recap"
-  | "waiting-queue";
+type CardKey = "join-requests" | "pending-reports" | "waiting-queue";
 
 /**
  * Origin-style advisor cards rendered to the right of the today workspace.
@@ -30,7 +25,6 @@ export function TodayAdvisorRail({
   pendingJoinRequests,
   pendingReports,
   waitingCount,
-  totalAppointments,
 }: TodayAdvisorRailProps) {
   const [dismissed, setDismissed] = useState<Set<CardKey>>(new Set());
 
@@ -112,30 +106,6 @@ export function TodayAdvisorRail({
     });
   }
 
-  if (!dismissed.has("weekly-recap")) {
-    cards.push({
-      key: "weekly-recap",
-      node: (
-        <RightRailCard
-          category="Weekly recap"
-          headline="Your week at a glance"
-          description={
-            totalAppointments > 0
-              ? `${totalAppointments} scheduled today. View your weekly trend in analytics.`
-              : "Track patterns in consultations, follow-ups, and revenue."
-          }
-          onDismiss={() => dismiss("weekly-recap")}
-          dismissLabel="Dismiss weekly recap"
-          action={
-            <Button asChild size="sm" variant="outline">
-              <Link href="/analytics">Open analytics</Link>
-            </Button>
-          }
-        />
-      ),
-    });
-  }
-
   if (cards.length === 0) {
     return null;
   }
@@ -143,7 +113,7 @@ export function TodayAdvisorRail({
   return (
     <RightRailCardStack
       ariaLabel="Today recommendations"
-      className="xl:sticky xl:top-4"
+      className="w-full max-w-full shrink-0 xl:sticky xl:top-4 xl:w-80"
     >
       {cards.map((card) => (
         <div key={card.key}>{card.node}</div>

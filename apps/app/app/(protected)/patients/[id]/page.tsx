@@ -111,8 +111,8 @@ export default function PatientDetailPage() {
         }
       />
 
-      <div className="grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0 space-y-6">
+      <div className="flex flex-col gap-6 py-6 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1 space-y-6">
           <EditPatientDialog
             patient={patient}
             open={isEditDialogOpen}
@@ -132,9 +132,7 @@ export default function PatientDetailPage() {
             />
           </Suspense>
         </div>
-        <div className="hidden lg:block">
-          <PatientAdvisorRail patient={patient} />
-        </div>
+        <PatientAdvisorRail patient={patient} />
       </div>
     </AppPageScaffold>
   );

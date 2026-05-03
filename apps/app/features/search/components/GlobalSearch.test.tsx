@@ -40,6 +40,12 @@ describe("<GlobalSearch /> error state", () => {
 
     renderWithClient(<GlobalSearch />);
 
+    fireEvent.click(screen.getByRole("button", { name: /open global search/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
     fireEvent.change(screen.getByRole("combobox"), {
       target: { value: "Jane" },
     });

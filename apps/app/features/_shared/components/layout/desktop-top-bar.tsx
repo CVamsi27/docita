@@ -39,15 +39,12 @@ export function DesktopTopBar() {
             type="button"
             variant="outline"
             size="sm"
-            className="hidden gap-2 md:inline-flex"
+            className="hidden h-9 gap-2 px-2.5 md:inline-flex"
             onClick={openPalette}
             aria-label="Open command palette"
           >
-            <Search className="size-4" aria-hidden />
-            <span className="text-[var(--fs-xs)] text-muted-foreground">
-              Search or jump to
-            </span>
-            <Kbd>⌘K</Kbd>
+            <Search className="size-4 shrink-0" aria-hidden />
+            <Kbd className="font-sans text-[var(--fs-2xs)]">⌘K</Kbd>
           </Button>
           <Button
             type="button"

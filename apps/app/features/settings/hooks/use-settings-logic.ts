@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { settingsTabs } from "@/features/settings/constants";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessTarget } from "@/lib/access-policy";
@@ -109,6 +109,7 @@ export function getVisibleSettingsTabs({
 }
 
 export const useSettingsLogic = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const canAccessFeature = usePermissionStore((state) => state.canAccess);
@@ -134,15 +135,27 @@ export const useSettingsLogic = () => {
     ? requestedTab
     : (allVisibleTabValues[0] ?? "notifications");
 
+  const tabValue =
+    searchQuery.trim() && firstMatchingTab ? firstMatchingTab : defaultTab;
+
+  const onTabChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", value);
+      router.replace(`/settings?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
   return {
     state: {
       filteredTabs,
       searchQuery,
-      defaultTab,
-      firstMatchingTab,
+      tabValue,
     },
     handlers: {
       setSearchQuery,
+      onTabChange,
     },
   };
 };

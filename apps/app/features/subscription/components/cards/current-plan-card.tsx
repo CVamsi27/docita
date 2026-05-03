@@ -16,6 +16,7 @@ import { Progress } from "@workspace/ui/components/progress";
 import { cn } from "@workspace/ui/lib/utils";
 import type { CurrentUsage, TierInfo } from "@workspace/types";
 import { formatCountLocale } from "@workspace/utils";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 
 interface CurrentPlanCardProps {
   tierInfo: TierInfo;
@@ -128,7 +129,7 @@ export function CurrentPlanCard({
       </CardHeader>
       <CardContent className="space-y-5">
         {planDetails && planDetails.length > 0 && (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="flex flex-wrap gap-x-8 gap-y-3 rounded-lg border border-border/70 bg-background/70 px-4 py-3">
             {planDetails.map((detail, index) => {
               const DetailIcon =
                 index === 0
@@ -137,22 +138,23 @@ export function CurrentPlanCard({
                     ? CreditCard
                     : CalendarClock;
               return (
-                <div
-                  key={`${detail.label}-${detail.value}`}
-                  className="rounded-lg border border-border/70 bg-background/70 p-3"
-                >
-                  <div className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
-                    <DetailIcon className="h-3.5 w-3.5" />
+                <div key={`${detail.label}-${detail.value}`} className="min-w-[8rem]">
+                  <dt className="flex items-center gap-1.5 text-[var(--fs-2xs)] font-medium uppercase tracking-wide text-muted-foreground">
+                    <DetailIcon className="h-3 w-3 shrink-0" aria-hidden />
                     {detail.label}
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-foreground">
+                  </dt>
+                  <dd className="mt-1 text-[var(--fs-sm)] font-semibold text-foreground">
                     {detail.value}
-                  </p>
+                  </dd>
                 </div>
               );
             })}
-          </div>
+          </dl>
         )}
+
+        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+          {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+        </p>
 
         {statusNotice && (
           <div className={cn("rounded-lg border p-3", statusNoticeClassName)}>

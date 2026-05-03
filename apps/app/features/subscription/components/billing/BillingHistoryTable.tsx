@@ -30,12 +30,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
+import { EmptyState } from "@workspace/ui/components/empty-state";
 import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { cn } from "@workspace/ui/lib/utils";
 import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import type { BillingHistoryItem } from "@/hooks/api/use-billing-history";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import { useResumeSubscriptionPayment } from "@/hooks/api/use-resume-subscription-payment";
+import {
+  formatInvoiceDescriptionForDisplay,
+  SUBSCRIPTION_GST_INCLUSIVE_NOTICE,
+} from "@/features/subscription/lib/billing-display-messages";
 
 type BillingHistoryItemWithActions = BillingHistoryItem & {
   payUrl?: string;
@@ -235,13 +240,11 @@ export function BillingHistoryTable({
 
   if (!hasRows) {
     return (
-      <div className="rounded-lg border bg-muted/20 py-10 text-center text-muted-foreground">
-        <FileText className="mx-auto mb-2 h-10 w-10 opacity-20" />
-        <p className="font-medium text-foreground">No billing history yet</p>
-        <p className="mt-1 text-sm">
-          Receipts and invoices will appear after checkout.
-        </p>
-      </div>
+      <EmptyState
+        icon={FileText}
+        title="No billing history yet"
+        description="Receipts and invoices will appear after checkout."
+      />
     );
   }
 
@@ -322,17 +325,23 @@ export function BillingHistoryTable({
         </div>
 
         {!filteredHasRows ? (
-          <div className="rounded-lg border bg-muted/20 py-8 text-center text-sm text-muted-foreground">
-            No rows match the current filters.
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No matching invoices"
+            description="Try clearing filters or widening the date range."
+          />
         ) : (
           <div className="rounded-lg border">
-            <Table className="min-w-0 table-fixed">
+            <div className="overflow-x-auto">
+              <Table className="min-w-[min(100%,36rem)] table-auto">
+                <caption className="caption-bottom px-3 pb-3 pt-2 text-left text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+                  {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+                </caption>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[96px] sm:w-[120px]">Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="w-[110px] sm:w-[140px]">
+                  <TableHead className="min-w-[10rem]">Description</TableHead>
+                  <TableHead className="w-[110px] sm:w-[140px] whitespace-nowrap">
                     Amount
                   </TableHead>
                   <TableHead className="w-[90px] sm:w-[110px]">Status</TableHead>
@@ -361,6 +370,8 @@ export function BillingHistoryTable({
                   const dateCell = (
                     <span>{formatDate(invoice.createdAt)}</span>
                   );
+                  const { label, detail } =
+                    formatInvoiceDescriptionForDisplay(invoice.description);
 
                   return (
                     <TableRow key={invoice.id}>
@@ -384,8 +395,24 @@ export function BillingHistoryTable({
                           dateCell
                         )}
                       </TableCell>
-                      <TableCell className="min-w-0 break-words text-muted-foreground">
-                        {invoice.description || "Subscription Payment"}
+                      <TableCell className="min-w-0 max-w-[14rem] sm:max-w-md">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium text-foreground">
+                            {label}
+                          </span>
+                          {detail ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="line-clamp-2 cursor-default text-[var(--fs-2xs)] text-muted-foreground">
+                                  {detail}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                {detail}
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell className="font-medium">
                         {formatMoney(invoice.amountCents, invoice.currency)}
@@ -452,7 +479,8 @@ export function BillingHistoryTable({
                   <TableCell colSpan={2} />
                 </TableRow>
               </TableFooter>
-            </Table>
+              </Table>
+            </div>
           </div>
         )}
       </div>

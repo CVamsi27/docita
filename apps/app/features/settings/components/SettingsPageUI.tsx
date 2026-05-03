@@ -1,9 +1,5 @@
-import { Search, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { Button } from "@workspace/ui/components/button";
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
-import { Input } from "@workspace/ui/components/input";
-import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { cn } from "@workspace/ui/lib/utils";
 import { BackButton } from "@/components/common/navigation/back-button";
@@ -29,7 +25,11 @@ import {
   QueueSettings,
 } from "@/features/settings/components";
 import { HelpSupportSettingsPanel } from "./help-support/HelpSupportSettingsPanel";
-import { SettingsProfileHeader } from "./profile/SettingsProfileHeader";
+import {
+  SettingsPageHeaderUserMeta,
+  SettingsProfileHeader,
+} from "./profile/SettingsProfileHeader";
+import { SettingsExpandedSearch } from "./settings-expanded-search";
 
 interface SettingsTabItem {
   value: string;
@@ -47,8 +47,8 @@ interface SettingsPageUIProps {
   filteredTabs: SettingsCategory[];
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  defaultTab: string;
-  firstMatchingTab?: string;
+  tabValue: string;
+  onTabChange: (value: string) => void;
 }
 
 function LazySettingsPanelFallback() {
@@ -156,8 +156,8 @@ export function SettingsPageUI({
   filteredTabs,
   searchQuery,
   setSearchQuery,
-  defaultTab,
-  firstMatchingTab,
+  tabValue,
+  onTabChange,
 }: SettingsPageUIProps) {
   const visibleTabValues = new Set(
     filteredTabs.flatMap((category) => category.items.map((item) => item.value)),
@@ -167,53 +167,45 @@ export function SettingsPageUI({
     <AppPageScaffold
       className="pb-24"
       header={
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <PageHeader
-            breadcrumbs={<BackButton fallback="/today" label="Back to Today" />}
-            title="Settings"
-            description="Manage your facility preferences and configurations."
-          />
-          <div className="relative w-full md:w-72 md:shrink-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-            <Input
-              id="settings-search"
-              name="settingsSearch"
-              type="search"
-              autoComplete="off"
-              aria-label="Search settings"
-              placeholder="Enter search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={cn("pl-9", searchQuery.trim() && "pr-10")}
+        <div
+          className={cn(
+            "grid items-start gap-x-3 gap-y-5 sm:gap-x-4",
+            "grid-cols-[auto_minmax(0,1fr)]",
+            "lg:[grid-template-columns:minmax(0,1fr)_fit-content(24rem)] lg:gap-x-10",
+          )}
+        >
+          <div className="col-start-1 row-start-1 min-w-0 shrink-0">
+            <BackButton fallback="/today" label="Back to Today" />
+          </div>
+          <div className="col-start-2 row-start-1 min-w-0 w-full max-w-md justify-self-end sm:max-w-lg lg:max-w-none">
+            <SettingsExpandedSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
             />
-            {searchQuery.trim() ? (
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-                <SymbolTooltip label="Clear search">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setSearchQuery("")}
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
-                  </Button>
-                </SymbolTooltip>
-              </div>
-            ) : null}
+          </div>
+          <div className="col-span-2 min-w-0 lg:col-span-1 lg:col-start-1 lg:row-start-2">
+            <PageHeader
+              title="Settings"
+              description="Manage your facility preferences and configurations."
+              className="min-w-0"
+            />
+          </div>
+          <div className="col-span-2 flex min-w-0 justify-start lg:col-span-1 lg:col-start-2 lg:row-start-2">
+            <div className="w-fit max-w-full">
+              <SettingsPageHeaderUserMeta />
+            </div>
           </div>
         </div>
       }
     >
 
-      <SettingsProfileHeader />
-
-      <Tabs
-        defaultValue={defaultTab}
-        value={searchQuery && firstMatchingTab ? firstMatchingTab : undefined}
-        className="flex flex-col items-start gap-6 md:flex-row lg:gap-10"
-      >
+      <div className="flex flex-col gap-5 md:gap-6">
+        <SettingsProfileHeader />
+        <Tabs
+          value={tabValue}
+          onValueChange={onTabChange}
+          className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8 lg:gap-10"
+        >
         <aside className="w-full shrink-0 md:sticky md:top-4 md:w-56 lg:w-64">
           <TabsList className="flex h-auto w-full flex-row flex-wrap gap-0.5 overflow-x-hidden bg-transparent p-0 pb-1 md:flex-col md:flex-nowrap md:items-stretch md:overflow-visible md:pb-0">
             {filteredTabs.map((category, categoryIndex) => {
@@ -388,7 +380,8 @@ export function SettingsPageUI({
             </TabsContent>
           )}
         </div>
-      </Tabs>
+        </Tabs>
+      </div>
     </AppPageScaffold>
   );
 }

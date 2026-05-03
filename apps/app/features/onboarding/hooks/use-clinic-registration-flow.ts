@@ -321,7 +321,7 @@ export function useClinicRegistrationFlow() {
         return;
       }
 
-      if (tier === "STARTER") {
+      if (tier === "STARTER" || tier === "ESSENTIAL") {
         setFormData((prev) => ({
           ...prev,
           paymentDetails: {

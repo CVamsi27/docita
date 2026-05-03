@@ -3,12 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { PrivacyPolicyContent, SLAContent } from "@/features/legal";
-import {
-  Feature,
-  FEATURE_TIER_MAP,
-  getTierInfo,
-  Tier,
-} from "@/lib/tier-config";
+import { getTierInfo, Tier } from "@/lib/tier-config";
 import {
   Alert,
   AlertDescription,
@@ -38,7 +33,6 @@ import { InvoiceHistoryDialog } from "@/features/subscription/components/dialogs
 import { PaymentSuccessModal } from "@/features/subscription/components/modals/payment-success-modal";
 import { TierCard } from "@/features/subscription/components/cards/tier-card";
 import { TierChangeDialog } from "@/features/subscription/components/dialogs/tier-change-dialog";
-import { getFeatureDetails } from "@/features/subscription/config/feature-config";
 import {
   type CheckoutSuccessData,
   useSubscriptionCheckout,
@@ -56,8 +50,8 @@ import {
   TIER_OVERAGE_RATES_BY_CURRENCY,
   getWhatsAppAddonPricingByCurrency,
 } from "@workspace/types";
-import { formatCountLocale } from "@workspace/utils";
 import { formatLocaleDateShortMonthYear } from "@/lib/formatters";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 
 const PLAN_ORDER = [
   Tier.STARTER,
@@ -66,42 +60,10 @@ const PLAN_ORDER = [
   Tier.ENTERPRISE,
 ] as const;
 
-const PLAN_BEST_FOR: Record<TierName, string> = {
-  STARTER: "Best for testing Docita or very small practices.",
-  ESSENTIAL: "Best for solo clinics ready for billing and messaging.",
-  PROFESSIONAL: "Best for multi-doctor clinics with higher throughput.",
-  ENTERPRISE: "Best for hospitals and multi-location organizations.",
-  INTELLIGENCE: "Best for AI-assisted workflows.",
-};
-
-const PLAN_INCLUDED_LABEL: Partial<Record<TierName, string>> = {
-  STARTER: "Included foundation",
-  ESSENTIAL: "Everything in Starter, plus",
-  PROFESSIONAL: "Everything in Essential, plus",
-  ENTERPRISE: "Everything in Professional, plus",
-};
-
 function formatPlanDate(value?: string | null) {
   if (!value) return "Not scheduled";
   const formatted = formatLocaleDateShortMonthYear(value);
   return formatted.length > 0 ? formatted : "Not scheduled";
-}
-
-function formatLimitValue(value?: number) {
-  if (value === undefined) return undefined;
-  if (value >= 999999 || value === 999) return "Unlimited";
-  return formatCountLocale(value);
-}
-
-function formatLimitLabel(
-  value: number | undefined,
-  singular: string,
-  plural = `${singular}s`,
-) {
-  const formattedValue = formatLimitValue(value);
-  if (!formattedValue) return undefined;
-  const unit = value === 1 ? singular : plural;
-  return `${formattedValue} ${unit}`;
 }
 
 function formatStatusLabel(status?: string) {
@@ -136,7 +98,8 @@ export function BillingSubscriptionWorkspace() {
   );
   const plansRef = useRef<HTMLDivElement>(null);
 
-  const { checkoutTier } = useSubscriptionCheckout((data) => {
+  const { checkoutTier, isProcessing: isCheckoutProcessing } =
+    useSubscriptionCheckout((data) => {
     setSuccessData(data);
     setShowSuccessModal(true);
     setShowTierChangeDialog(false);
@@ -200,17 +163,9 @@ export function BillingSubscriptionWorkspace() {
     plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  const featuresByTier = PLAN_ORDER.map((tier) => ({
+  const planCards = PLAN_ORDER.map((tier) => ({
     tier,
     info: getTierInfo(tier),
-    features: Object.entries(FEATURE_TIER_MAP)
-      .filter(([, requiredTier]) => requiredTier === tier)
-      .map(([feature, requiredTier]) => ({
-        feature: feature as Feature,
-        details: getFeatureDetails(feature as Feature),
-        hasAccess: effectiveCurrentTier >= requiredTier,
-      }))
-      .filter((entry) => entry.details.isGenerallyAvailable),
   }));
 
   const currentPlanStatusNotice = isSubscriptionExpired
@@ -250,22 +205,14 @@ export function BillingSubscriptionWorkspace() {
               description: isTrialExpired
                 ? "Your trial has ended and your facility is now on the Free plan. Upgrade to continue paid features."
                 : daysLeftInPeriod !== null && daysLeftInPeriod > 0
-                  ? `${daysLeftInPeriod} day${daysLeftInPeriod !== 1 ? "s" : ""} left in your trial. Upgrade anytime to keep paid features active.`
+                  ? "Upgrade anytime to keep paid features after the trial."
                   : "Your trial ends today. Upgrade anytime to keep paid features active.",
               variant: isTrialExpired
                 ? ("warning" as const)
                 : ("default" as const),
             }
           : subscriptionStatus === "ACTIVE"
-            ? {
-                title: "Subscription Active",
-                badgeLabel: "Active",
-                description:
-                  daysLeftInPeriod !== null
-                    ? `${daysLeftInPeriod} day${daysLeftInPeriod === 1 ? "" : "s"} remaining in this billing period.`
-                    : "Your paid subscription is active.",
-                variant: "default" as const,
-              }
+            ? undefined
             : {
                 title: "Starter Plan Active",
                 badgeLabel: "Free",
@@ -322,17 +269,23 @@ export function BillingSubscriptionWorkspace() {
         id="billing-plans-section"
         className="scroll-mt-6 space-y-4"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+          <div className="min-w-0 space-y-2">
             <h2 className="ui-section-title text-[var(--fs-xl)]">
               Choose a plan
             </h2>
-            <p className="ui-page-subtitle">
-              Select a plan below. The confirmation step appears only after you
-              choose one.
+            <p className="max-w-prose text-[var(--fs-sm)] leading-relaxed text-muted-foreground">
+              Select a tier to open a short confirmation step before checkout.
+              Each card shows{" "}
+              <span className="font-medium text-foreground">
+                additional usage
+              </span>{" "}
+              rates after included limits. Use{" "}
+              <span className="font-medium text-foreground">Compare plans</span>{" "}
+              below for the full feature matrix.
             </p>
           </div>
-          <div className="inline-flex items-center gap-1 rounded-lg border bg-background p-1 self-start sm:self-auto">
+          <div className="inline-flex shrink-0 items-center gap-1 self-start rounded-lg border bg-background p-1 sm:self-auto">
             <Button
               variant={selectedCycle === "MONTHLY" ? "default" : "ghost"}
               size="sm"
@@ -362,21 +315,20 @@ export function BillingSubscriptionWorkspace() {
           </Alert>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-          {featuresByTier.map(({ tier, info, features }) => {
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(17.5rem,1fr))]">
+          {planCards.map(({ tier, info }) => {
             const tierName = Tier[tier] as TierName;
             const tierPricingData = pricingConfig?.tiers.find(
               (t) => t.id === tierName,
             );
-            const limits = tierPricingData?.limits;
-            const overageRates =
-              TIER_OVERAGE_RATES_BY_CURRENCY[
-                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
-              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
             const currencySymbol =
               PRICING_CURRENCY_SYMBOLS[
                 currency as keyof typeof PRICING_CURRENCY_SYMBOLS
               ] ?? PRICING_CURRENCY_SYMBOLS.INR;
+            const overageRates =
+              TIER_OVERAGE_RATES_BY_CURRENCY[
+                currency as keyof typeof TIER_OVERAGE_RATES_BY_CURRENCY
+              ]?.[tierName] ?? TIER_OVERAGE_RATES_BY_CURRENCY.INR[tierName];
             const whatsappRate =
               tierName === "ESSENTIAL" || tierName === "PROFESSIONAL"
                 ? getWhatsAppAddonPricingByCurrency(
@@ -397,40 +349,22 @@ export function BillingSubscriptionWorkspace() {
                 ? `${currencySymbol}${whatsappRate}/WA msg`
                 : null,
             ].filter((item): item is string => !!item);
-            const overageHint =
-              overageParts.length > 0
-                ? `Overage meters: ${overageParts.join(", ")}`
-                : undefined;
-            const limitHighlights = [
-              formatLimitLabel(limits?.patients, "patient"),
-              formatLimitLabel(limits?.doctors, "doctor"),
-              limits?.appointments !== undefined
-                ? `${formatLimitValue(limits.appointments)} consults/mo`
-                : undefined,
-              limits?.storage !== undefined
-                ? `${formatLimitValue(limits.storage)} GB storage`
-                : undefined,
-            ].filter((item): item is string => !!item);
-
             return (
               <TierCard
                 key={tier}
                 tier={tier}
                 info={info}
-                features={features}
+                features={[]}
                 isCurrentTier={tier === effectiveCurrentTier}
                 isLocked={false}
                 currentTierValue={effectiveCurrentTier}
                 pricing={tierPricingData?.pricing}
                 billingCycle={selectedCycle}
                 currencySymbol={currencySymbol}
-                overageHint={overageHint}
-                overageItems={overageParts}
-                bestFor={PLAN_BEST_FOR[tierName]}
-                includedLabel={PLAN_INCLUDED_LABEL[tierName]}
-                limitHighlights={limitHighlights}
-                featureDisplay="detailed"
-                maxDisplay={tier === Tier.STARTER ? 4 : 5}
+                overageItems={
+                  overageParts.length > 0 ? overageParts : undefined
+                }
+                density="summary"
                 buttonLabel={
                   tier === Tier.ENTERPRISE ? "Contact Sales" : undefined
                 }
@@ -445,6 +379,9 @@ export function BillingSubscriptionWorkspace() {
             );
           })}
         </div>
+        <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground max-w-prose">
+          {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+        </p>
       </div>
 
       <Tabs defaultValue="compare" className="w-full">
@@ -551,6 +488,7 @@ export function BillingSubscriptionWorkspace() {
         billingCycle={selectedCycle}
         currency={currency as SupportedCurrency}
         onConfirm={handleConfirmTierChange}
+        checkoutInFlight={isCheckoutProcessing}
       />
       <PaymentSuccessModal
         open={showSuccessModal}

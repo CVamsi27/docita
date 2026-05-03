@@ -36,6 +36,7 @@ import {
   Tier,
   TIER_LIMITS,
   TIER_PRICING,
+  WHATSAPP_ADDON_PRICING,
 } from "@workspace/types";
 import { formatCountLocale } from "@workspace/utils";
 
@@ -176,6 +177,20 @@ export function getFeatureComparisonData(): FeatureComparisonRow[] {
           t,
           formatLimitValue(PLAN_LIMITS[Tier[t] as keyof typeof PLAN_LIMITS].invoices),
         ]),
+      ) as Record<Tier, string>,
+    },
+    {
+      name: "WhatsApp messages (incl. / mo)",
+      category: "limit",
+      values: Object.fromEntries(
+        tiers.map((t) => {
+          if (t === Tier.STARTER) return [t, "—"] as const;
+          const tierName = Tier[t] as keyof typeof WHATSAPP_ADDON_PRICING;
+          return [
+            t,
+            formatLimitValue(WHATSAPP_ADDON_PRICING[tierName].includedQuota),
+          ] as const;
+        }),
       ) as Record<Tier, string>,
     },
 

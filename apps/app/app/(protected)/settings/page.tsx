@@ -42,8 +42,8 @@ function SettingsContent() {
         filteredTabs={state.filteredTabs}
         searchQuery={state.searchQuery}
         setSearchQuery={handlers.setSearchQuery}
-        defaultTab={state.defaultTab}
-        firstMatchingTab={state.firstMatchingTab}
+        tabValue={state.tabValue}
+        onTabChange={handlers.onTabChange}
       />
       <PaymentSuccessModal
         open={showSuccessModal}

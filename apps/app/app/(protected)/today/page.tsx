@@ -138,8 +138,8 @@ export default function TodayPage() {
 
   return (
     <AppPageScaffold header={header}>
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0">
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+        <div className="min-w-0 flex-1">
           <DashboardSharedWorkspace
             mode="today"
             todayAppointments={todayAppointments}
@@ -163,7 +163,6 @@ export default function TodayPage() {
           pendingJoinRequests={pendingJoinRequests}
           pendingReports={stats.pendingReports}
           waitingCount={waitingCount}
-          totalAppointments={todayAppointments.length}
         />
       </div>
     </AppPageScaffold>

@@ -21,14 +21,16 @@ export default function BillingLockedPage() {
             <h1 className="ui-section-title text-xl">Workspace access paused</h1>
           </div>
           <CardDescription className="text-base">
-            Your organization&apos;s subscription billing must be resolved before
-            staff accounts can use Docita again.
+            Your organization&apos;s subscription is past the payment grace period
+            or trial ended without payment. Staff accounts are paused until a
+            billing administrator completes payment.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
           <p>
-            Please contact an organization administrator or billing owner. They
-            can sign in and renew or update payment under Settings, Subscription.
+            Please contact an organization administrator or billing owner
+            (Admin or Admin Doctor). They can sign in and renew or add payment
+            under Settings, Subscription.
           </p>
           <p className="text-xs text-foreground">
             If you believe this is a mistake, use Help and support in Settings

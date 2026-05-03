@@ -19,8 +19,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
+import { Section } from "@workspace/ui/components/section";
 import { Button } from "@workspace/ui/components/button";
-import { humanizeUiLabel } from "@workspace/ui/lib/label-formatters";
 import { Badge } from "@workspace/ui/components/badge";
 import {
   Alert,
@@ -28,9 +28,7 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert";
 import { AlertTriangle, Clock, XCircle } from "lucide-react";
-import { DEFAULT_CURRENCY, formatCurrency } from "@workspace/utils";
 import { BillingHistoryTable } from "@/features/subscription/components/billing/BillingHistoryTable";
-import { formatDateSafe } from "@/lib/formatters";
 
 function scrollToBillingPlans() {
   document.getElementById("billing-plans-section")?.scrollIntoView({
@@ -129,22 +127,6 @@ export function SubscriptionSettings() {
     subscriptionStatus === "PAYMENT_DUE" || subscriptionStatus === "PAST_DUE";
   const isExpired = subscriptionStatus === "EXPIRED";
   const isInGracePeriod = subscriptionStatus === "GRACE";
-
-  const subscriptionCurrency = subscription?.currency || DEFAULT_CURRENCY;
-  const billingCycle = subscription?.billingCycle || "monthly";
-  const basePrice = (subscription?.basePriceCents ?? 0) / 100;
-  const periodEnd = subscription?.currentPeriodEnd
-    ? formatDateSafe(subscription.currentPeriodEnd)
-    : "-";
-  const periodDaysLeft = subscription?.currentPeriodEnd
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24),
-        ),
-      )
-    : null;
 
   return (
     <div className="space-y-6">
@@ -264,122 +246,54 @@ export function SubscriptionSettings() {
         </Alert>
       )}
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="ui-section-title text-[var(--fs-xl)]">
-            Billing &amp; Subscription
-          </CardTitle>
-          <CardDescription>
-            Plans, comparison, checkout, and billing summary
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-2">
-          <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0 space-y-1">
-              <p className="text-sm font-medium text-foreground">
-                {tierName} · {billingCycle} billing
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Current period ends {periodEnd}
-                {periodDaysLeft !== null
-                  ? ` (${periodDaysLeft} day${periodDaysLeft === 1 ? "" : "s"} left)`
-                  : ""}
-              </p>
-            </div>
-            <Button
+      <Section
+        id="billing-subscription-section"
+        title="Billing & Subscription"
+        description="Change plan, compare features, and view invoices"
+        contentClassName="space-y-6"
+      >
+        <BillingSubscriptionWorkspace />
+
+        <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
+          <p className="text-[var(--fs-2xs)] text-muted-foreground">
+            General product help (email and WhatsApp) is under{" "}
+            <Link
+              href="/settings?tab=help-support"
+              className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+            >
+              Help & support
+            </Link>
+            .
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[var(--fs-sm)] text-muted-foreground">
+              Need help with billing or onboarding?
+            </p>
+            <WhatsAppButton
+              phoneNumber={supportPhone}
+              message="Hi Docita team, I need help with billing and onboarding"
+              label="Message support"
               variant="outline"
               size="sm"
               className="shrink-0"
-              onClick={scrollToBillingPlans}
-            >
-              View plans
-            </Button>
+            />
           </div>
-
-          <div className="rounded-lg border bg-background/60 p-4 md:p-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Billing cycle</p>
-                <p className="font-medium capitalize">
-                  {humanizeUiLabel(billingCycle)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Base price</p>
-                <p className="font-medium">
-                  {formatCurrency(basePrice, {
-                    currency: subscriptionCurrency,
-                  })}
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="text-sm text-muted-foreground">
-                  Current period ends
-                </p>
-                <p className="font-medium">{periodEnd}</p>
-              </div>
-              {periodDaysLeft !== null && (
-                <div className="sm:col-span-2">
-                  <p className="text-sm text-muted-foreground">
-                    Days remaining
-                  </p>
-                  <p className="font-medium">
-                    {periodDaysLeft} day{periodDaysLeft === 1 ? "" : "s"}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <BillingSubscriptionWorkspace />
-
-          <div className="flex flex-col gap-3 border-t pt-4">
-            <p className="text-xs text-muted-foreground">
-              General product help (email and WhatsApp) is under{" "}
-              <Link
-                href="/settings?tab=help-support"
-                className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
-              >
-                Help & support
-              </Link>
-              .
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-muted-foreground">
-                Need help with billing or onboarding?
-              </p>
-              <WhatsAppButton
-                phoneNumber={supportPhone}
-                message="Hi Docita team, I need help with billing and onboarding"
-                label="Message support"
-                variant="outline"
-                size="sm"
-                className="shrink-0"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Section>
 
       <div ref={billingHistoryRef} className="scroll-mt-6">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Billing History</CardTitle>
-                <CardDescription>
-                  View and download past invoices
-                </CardDescription>
-              </div>
-              <Button variant="outline" onClick={scrollToBillingPlans}>
-                Manage payment
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <BillingHistory />
-          </CardContent>
-        </Card>
+        <Section
+          id="billing-history-section"
+          title="Billing History"
+          description="View and download past invoices"
+          actions={
+            <Button variant="outline" onClick={scrollToBillingPlans}>
+              Manage payment
+            </Button>
+          }
+        >
+          <BillingHistory />
+        </Section>
       </div>
     </div>
   );

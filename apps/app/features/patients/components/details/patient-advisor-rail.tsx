@@ -124,8 +124,14 @@ export function PatientAdvisorRail({
   if (cards.length === 0) return null;
 
   return (
-    <div data-testid="patient-advisor-rail">
-      <RightRailCardStack ariaLabel="Patient advisor">
+    <div
+      data-testid="patient-advisor-rail"
+      className="hidden w-full max-w-full shrink-0 lg:block lg:w-80 xl:sticky xl:top-4"
+    >
+      <RightRailCardStack
+        ariaLabel="Patient advisor"
+        className="w-full max-w-full"
+      >
         {cards.map((card) => (
         <RightRailCard
           key={card.id}

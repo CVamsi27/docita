@@ -91,7 +91,10 @@ const FEATURE_CATEGORIES: { label: string; features: Feature[] }[] = [
   },
   {
     label: "Communication",
-    features: [Feature.BROADCAST_CAMPAIGNS],
+    features: [
+      Feature.WHATSAPP_MESSAGING,
+      Feature.BROADCAST_CAMPAIGNS,
+    ],
   },
   {
     label: "Team & Access Control",
@@ -152,6 +155,8 @@ const LIMIT_ROW_DESCRIPTIONS: Record<string, string> = {
     "Number of digital prescriptions included in the billing cycle",
   Invoices:
     "Number of invoices you can generate in the billing cycle",
+  "WhatsApp messages (incl. / mo)":
+    "WhatsApp messages included per calendar month before per-message overage applies (Essential and above)",
 };
 
 export function ComparisonTable({

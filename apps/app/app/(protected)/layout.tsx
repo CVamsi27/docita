@@ -25,7 +25,7 @@ import { ErrorBoundaryWrapper } from "@/components/common/error-boundary";
 import { useAuth } from "@/lib/auth-context";
 import { useAPIQuery } from "@/lib/api-core";
 import type { TierName, User } from "@workspace/types";
-import { APP_ACCESS_TARGETS } from "@workspace/types";
+import { APP_ACCESS_TARGETS, SUBSCRIPTION_TRIAL_DAYS } from "@workspace/types";
 import { ThemeToggleWithAppearanceSync } from "@/features/_shared/components/layout/theme-toggle-with-appearance-sync";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { DocitaLogo } from "@workspace/ui/components/docita-logo";
@@ -245,28 +245,49 @@ function SubscriptionLockNotice() {
     trialEnd && Number.isFinite(trialEnd.getTime())
       ? formatDate(trialEnd, "en-IN")
       : null;
+  const trialDaysLeft =
+    isTrialing && trialEnd && Number.isFinite(trialEnd.getTime())
+      ? Math.max(
+          0,
+          Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+        )
+      : null;
+  const graceUntilRaw = clinic?.subscriptionGraceUntil;
+  const graceUntil =
+    graceUntilRaw !== undefined && graceUntilRaw !== null
+      ? new Date(graceUntilRaw)
+      : null;
+  const graceUntilText =
+    graceUntil && Number.isFinite(graceUntil.getTime())
+      ? formatDate(graceUntil, "en-IN")
+      : null;
+  const pastGraceDeadline = clinic
+    ? isPastSubscriptionGraceDeadline(clinic)
+    : false;
   const title = isExpired
     ? "Subscription Expired: Workspace Locked"
-    : isGrace || isPastDue || isPaused
-      ? "Payment Grace Period: Access Restricted"
-      : isTrialing
-        ? "Trial Active: Payment Not Completed"
-        : "Payment Required";
+    : isPaused
+      ? "Subscription Paused"
+      : isGrace || isPastDue
+        ? "Payment Grace Period: Access Restricted"
+        : isTrialing
+          ? trialDaysLeft !== null && trialDaysLeft <= 3
+            ? "Trial ending soon"
+            : "Trial active: payment not completed"
+          : "Payment required";
   const description = isExpired
     ? "This facility is locked until payment is completed. You can still open billing under Settings, Subscription to restore access."
-    : isGrace
-      ? "A missed payment has placed this facility in grace period. Resolve payment now to avoid full lockout."
-      : isPastDue
-        ? "Your payment is overdue. Resolve payment now to keep Docita access active."
-        : isPaused
-          ? "This subscription is paused. Resolve billing to restore full access."
-      : isTrialing
-        ? `Your ${trialTierLabel} trial is active${trialEndText ? ` until ${trialEndText}` : ""}. ${
-            clinic?.tier === "STARTER"
-              ? "Upgrade to a paid plan when you need higher limits."
-              : "Add payment to keep full access after the trial ends."
-          }`
-        : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
+    : isGrace || isPastDue
+      ? `${isPastDue ? "Your payment is overdue." : "Payment is still unresolved."}${graceUntilText && !pastGraceDeadline ? ` Resolve by ${graceUntilText} or staff access may pause until a billing admin completes payment under Settings, Subscription.` : " Resolve payment now to keep Docita access active."}`
+      : isPaused
+        ? "This subscription is paused. Resolve billing to restore full access."
+        : isTrialing
+          ? `${trialTierLabel} plan: ${trialDaysLeft !== null ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in your trial` : "trial active"}${trialEndText ? ` (ends ${trialEndText})` : ""}. Starter and Essential include a ${SUBSCRIPTION_TRIAL_DAYS}-day evaluation. ${
+              clinic?.tier === "STARTER"
+                ? "Upgrade when you need higher limits or paid-only features."
+                : "Add payment before the trial ends to avoid entering a payment grace period."
+            }`
+          : "Your subscription needs billing attention. Resolve payment to keep Docita access active.";
 
   return (
     <div className="border-b bg-background px-4 py-3 md:px-6">

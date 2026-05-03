@@ -12,6 +12,12 @@ import { appQueryKeys } from "@/lib/query-keys";
 import { Button } from "@workspace/ui/components/button";
 import { SymbolTooltip } from "@workspace/ui/components/tooltip";
 import { Input } from "@workspace/ui/components/input";
+import { Kbd } from "@workspace/ui/components/kbd";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover";
 import { cn } from "@workspace/ui/lib/utils";
 import {
   searchGlobal,
@@ -34,13 +40,14 @@ const typeColors = {
   prescription: "tier-intelligence",
 };
 
+const GLOBAL_SEARCH_INPUT_ID = "global-search-combobox-input";
+
 export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const debouncedQuery = useDebounce(query, 300);
   const searchEnabled = debouncedQuery.length >= 2;
@@ -53,7 +60,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
   } = useQuery({
     queryKey: appQueryKeys.search.global(debouncedQuery),
     queryFn: () => searchGlobal(debouncedQuery),
-    enabled: searchEnabled,
+    enabled: searchEnabled && open,
     retry: false,
     staleTime: 30 * 1000,
   });
@@ -62,9 +69,36 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
     [data, searchEnabled],
   );
 
+  const focusInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      focusInput();
+    }
+  }, [open, focusInput]);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [debouncedQuery]);
+
   const handleResultClick = useCallback(
     (result: SearchResult) => {
-      setIsOpen(false);
+      setOpen(false);
       setQuery("");
       onResultClick?.(result);
 
@@ -98,7 +132,7 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
           }
           break;
         case "Escape":
-          setIsOpen(false);
+          setOpen(false);
           setQuery("");
           inputRef.current?.blur();
           break;
@@ -107,170 +141,188 @@ export function GlobalSearch({ onResultClick }: GlobalSearchProps) {
     [results, selectedIndex, handleResultClick],
   );
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        inputRef.current?.focus();
-        setIsOpen(true);
-      }
-    };
-    document.addEventListener("keydown", handleGlobalKeyDown);
-    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
-  }, []);
+  const showResultsPanel =
+    open &&
+    (query.length >= 2 || results.length > 0 || isError || isLoading);
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-md">
-      <div className="relative">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setIsOpen(true);
-            setSelectedIndex(-1);
-          }}
-          onFocus={() => setIsOpen(true)}
-          onKeyDown={handleKeyDown}
-          placeholder="Enter patient, appointment, or prescription"
-          className="h-10 pl-10 pr-10 bg-muted/40 hover:bg-background"
-          aria-label="Global search"
-          aria-expanded={isOpen}
-          aria-controls="search-results"
-          aria-activedescendant={
-            selectedIndex >= 0 ? `result-${selectedIndex}` : undefined
-          }
-          role="combobox"
-        />
-        {query && (
-          <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
-            <SymbolTooltip label="Clear search">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setQuery("");
-                  inputRef.current?.focus();
-                }}
-                className="h-7 w-7"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </SymbolTooltip>
-          </div>
-        )}
-      </div>
-
-      {isOpen && (query.length >= 2 || results.length > 0 || isError) && (
-        <div
-          id="search-results"
-          role="listbox"
-          className="absolute top-full z-50 mt-2 w-full max-h-80 overflow-y-auto ui-card-surface shadow-lg"
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          setQuery("");
+          setSelectedIndex(-1);
+        }
+      }}
+    >
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-9 gap-2 px-2.5 font-normal transition-colors duration-150"
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          aria-label="Open global search"
         >
-          {isLoading ? (
-            <div
-              className="flex items-center justify-center p-4 text-muted-foreground"
-              role="status"
-              aria-live="polite"
-            >
-              <DocitaLoadingIndicator variant="inline" decorative className="mr-2" iconClassName="h-5 w-5" />
-              Searching…
-            </div>
-          ) : isError ? (
-            <div
-              className="flex flex-col items-center gap-2 p-4 text-center text-destructive"
-              role="alert"
-              aria-live="assertive"
-              data-testid="global-search-error"
-            >
-              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-              <p className="text-sm">
-                {sanitizeUserFacingMessage(
-                  error instanceof Error ? error.message : "",
-                  "We could not run this search. Please try again.",
-                )}
-              </p>
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => {
-                  void refetch();
-                }}
-              >
-                Try again
-              </Button>
-            </div>
-          ) : results.length > 0 ? (
-            <ul className="py-2">
-              {results.map((result, index) => {
-                const Icon = typeIcons[result.type];
-                return (
-                  <li
-                    key={result.id}
-                    id={`result-${index}`}
-                    role="option"
-                    aria-selected={index === selectedIndex}
-                    onClick={() => handleResultClick(result)}
-                    className={cn(
-                      "flex cursor-pointer items-center gap-3 px-4 py-3",
-                      index === selectedIndex
-                        ? "bg-muted/60"
-                        : "hover:bg-muted/60",
-                    )}
+          <Search className="size-4 shrink-0" aria-hidden />
+          <Kbd className="font-sans text-[var(--fs-2xs)]">⌘K</Kbd>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[min(100vw-2rem,28rem)] p-3"
+        align="start"
+        sideOffset={8}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <div className="flex flex-col gap-2">
+          <label htmlFor={GLOBAL_SEARCH_INPUT_ID} className="sr-only">
+            Global search
+          </label>
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              ref={inputRef}
+              id={GLOBAL_SEARCH_INPUT_ID}
+              type="text"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSelectedIndex(-1);
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter patient, appointment, or prescription"
+              className="h-10 pl-10 pr-10 bg-muted/40 transition-colors duration-150 hover:bg-background"
+              aria-label="Global search"
+              aria-expanded={showResultsPanel}
+              aria-controls="search-results"
+              aria-activedescendant={
+                selectedIndex >= 0 ? `result-${selectedIndex}` : undefined
+              }
+              role="combobox"
+            />
+            {query ? (
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
+                <SymbolTooltip label="Clear search">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setQuery("");
+                      inputRef.current?.focus();
+                    }}
+                    className="h-7 w-7"
+                    aria-label="Clear search"
                   >
-                    <div
-                      className={cn(
-                        "rounded-full border px-2 py-2",
-                        typeColors[result.type],
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-foreground truncate">
-                        {result.title}
-                      </div>
-                      {result.subtitle && (
-                        <div className="text-sm text-muted-foreground truncate">
-                          {result.subtitle}
+                    <X className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </Button>
+                </SymbolTooltip>
+              </div>
+            ) : null}
+          </div>
+
+          {showResultsPanel ? (
+            <div
+              id="search-results"
+              role="listbox"
+              className="max-h-80 overflow-y-auto rounded-md border border-border/60 ui-card-surface shadow-sm"
+            >
+              {isLoading ? (
+                <div
+                  className="flex items-center justify-center p-4 text-muted-foreground"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <DocitaLoadingIndicator
+                    variant="inline"
+                    decorative
+                    className="mr-2"
+                    iconClassName="h-5 w-5"
+                  />
+                  Searching…
+                </div>
+              ) : isError ? (
+                <div
+                  className="flex flex-col items-center gap-2 p-4 text-center text-destructive"
+                  role="alert"
+                  aria-live="assertive"
+                  data-testid="global-search-error"
+                >
+                  <AlertTriangle className="h-5 w-5" aria-hidden />
+                  <p className="text-sm">
+                    {sanitizeUserFacingMessage(
+                      error instanceof Error ? error.message : "",
+                      "We could not run this search. Please try again.",
+                    )}
+                  </p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => {
+                      void refetch();
+                    }}
+                  >
+                    Try again
+                  </Button>
+                </div>
+              ) : results.length > 0 ? (
+                <ul className="py-2">
+                  {results.map((result, index) => {
+                    const Icon = typeIcons[result.type];
+                    return (
+                      <li
+                        key={result.id}
+                        id={`result-${index}`}
+                        role="option"
+                        aria-selected={index === selectedIndex}
+                        onClick={() => handleResultClick(result)}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-3 px-4 py-3",
+                          index === selectedIndex
+                            ? "bg-muted/60"
+                            : "hover:bg-muted/60",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "rounded-full border px-2 py-2",
+                            typeColors[result.type],
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
                         </div>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground capitalize">
-                      {result.type}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : query.length >= 2 ? (
-            <div className="p-4 text-center text-muted-foreground">
-              No results found for &ldquo;{query}&rdquo;
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium text-foreground">
+                            {result.title}
+                          </div>
+                          {result.subtitle ? (
+                            <div className="truncate text-sm text-muted-foreground">
+                              {result.subtitle}
+                            </div>
+                          ) : null}
+                        </div>
+                        <span className="text-xs capitalize text-muted-foreground">
+                          {result.type}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : query.length >= 2 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  No results found for &ldquo;{query}&rdquo;
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

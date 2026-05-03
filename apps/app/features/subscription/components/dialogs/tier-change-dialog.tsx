@@ -26,6 +26,7 @@ import {
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
 import { useProrationPreview } from "@/hooks/api/use-billing";
 import { formatCurrency, formatPriceWithCurrency } from "@workspace/utils";
+import { SUBSCRIPTION_GST_INCLUSIVE_NOTICE } from "@/features/subscription/lib/billing-display-messages";
 
 interface TierChangeDialogProps {
   open: boolean;
@@ -35,6 +36,8 @@ interface TierChangeDialogProps {
   billingCycle: "MONTHLY" | "YEARLY";
   currency: SupportedCurrency;
   onConfirm: () => Promise<void>;
+  /** True while Razorpay or billing API is in flight (parent checkout hook). */
+  checkoutInFlight?: boolean;
 }
 
 const TIER_ICONS: Record<TierName, React.ElementType> = {
@@ -53,6 +56,7 @@ export function TierChangeDialog({
   billingCycle,
   currency,
   onConfirm,
+  checkoutInFlight = false,
 }: TierChangeDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -153,8 +157,10 @@ export function TierChangeDialog({
     }
   };
 
+  const busy = isLoading || checkoutInFlight;
+
   const handleClose = () => {
-    if (!isLoading) {
+    if (!busy) {
       setSuccess(false);
       setError(null);
       onOpenChange(false);
@@ -296,6 +302,10 @@ export function TierChangeDialog({
               </div>
             )}
 
+            <p className="text-[var(--fs-2xs)] leading-snug text-muted-foreground">
+              {SUBSCRIPTION_GST_INCLUSIVE_NOTICE}
+            </p>
+
             {isDowngrade && (
               <Alert className="surface-warning">
                 <AlertTriangle className="h-4 w-4 text-warning" />
@@ -330,18 +340,18 @@ export function TierChangeDialog({
               <Button
                 variant="outline"
                 onClick={handleClose}
-                disabled={isLoading}
+                disabled={busy}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={isLoading}
+                disabled={busy}
                 className={cn(
                   isUpgrade ? "" : "btn-warning",
                 )}
               >
-                {isLoading ? (
+                {busy ? (
                   <>
                     <DocitaLoadingIndicator variant="inline" decorative className="mr-2" />
                     Processing…

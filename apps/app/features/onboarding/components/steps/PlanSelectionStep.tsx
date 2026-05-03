@@ -32,6 +32,7 @@ import {
 } from "@/lib/tier-config";
 import {
   PRICING_CURRENCY_SYMBOLS,
+  SUBSCRIPTION_TRIAL_DAYS,
   TIER_OVERAGE_RATES_BY_CURRENCY,
   type TierName,
 } from "@workspace/types";
@@ -249,12 +250,12 @@ Please contact me with deployment and commercial details.`;
                     currencySymbol={currencySymbol}
                     overageHint={
                       tierName === "ESSENTIAL"
-                        ? `${currencySymbol}0 for first 14 days, then regular billing`
+                        ? `${currencySymbol}0 for the first ${SUBSCRIPTION_TRIAL_DAYS} days, then regular billing`
                         : overageHint
                     }
                     buttonLabel={
                       tierName === "ESSENTIAL"
-                        ? "Start Free 14-Day Trial"
+                        ? `Start free ${SUBSCRIPTION_TRIAL_DAYS}-day trial`
                         : "Select Plan"
                     }
                     maxDisplay={8}

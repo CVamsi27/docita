@@ -21,11 +21,28 @@ export function AppearanceController() {
   const { theme: nextThemesPreference, setTheme } = useTheme();
   const setNextThemeRef = useRef(setTheme);
   setNextThemeRef.current = setTheme;
+  const hydrated = useRef(false);
+  const lastStoreTheme = useRef(theme);
 
   useEffect(() => {
     if (nextThemesPreference === undefined) return;
-    if (nextThemesPreference === theme) return;
-    setNextThemeRef.current(theme);
+
+    if (!hydrated.current) {
+      hydrated.current = true;
+      lastStoreTheme.current = theme;
+      if (nextThemesPreference !== theme) {
+        setNextThemeRef.current(theme);
+      }
+      return;
+    }
+
+    if (lastStoreTheme.current === theme) {
+      return;
+    }
+    lastStoreTheme.current = theme;
+    if (nextThemesPreference !== theme) {
+      setNextThemeRef.current(theme);
+    }
   }, [theme, nextThemesPreference]);
 
   useEffect(() => {
