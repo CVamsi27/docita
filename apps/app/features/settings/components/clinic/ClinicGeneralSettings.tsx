@@ -38,6 +38,8 @@ import {
 } from "@workspace/ui/components/select";
 import { getFacilityLabel } from "@workspace/utils";
 import { SettingsAiChips } from "@/features/settings/components/settings-ai-chips";
+import { CopyableLinkField } from "@/features/_shared/components/signature/copyable-link-field";
+import { getPublicAppOrigin } from "@/lib/public-app-origin";
 
 const clinicSettingsSchema = z.object({
   name: requiredStringSchema("Facility Name"),
@@ -161,6 +163,15 @@ export function ClinicGeneralSettings() {
               Share this code with team members so they can find and join your{" "}
               {facilityLabel.toLowerCase()}
             </p>
+            <div className="mt-4 border-t border-border pt-4">
+              <p className="text-xs font-medium text-muted-foreground mb-2">
+                Public online booking
+              </p>
+              <CopyableLinkField
+                value={`${getPublicAppOrigin()}/book/${encodeURIComponent(clinic.referralCode)}`}
+                helperText="Patients can open this link to request an appointment without signing in."
+              />
+            </div>
           </div>
         )}
         <Form {...form}>

@@ -11,6 +11,11 @@ import { TodayScheduleUI } from "@/features/dashboard/components/schedule/today-
 import { TodayAdvisorRail } from "@/features/dashboard/components/advisor/today-advisor-rail";
 import { formatDashboardSummary } from "@/features/dashboard/lib/format-dashboard-summary";
 import { useDashboardLogic } from "@/features/dashboard/hooks/use-dashboard-logic";
+import { useClinicReferralShare } from "@/features/dashboard/hooks/use-clinic-referral-share";
+import {
+  ClinicReferralShareSearchButton,
+  ClinicReferralShareToolbar,
+} from "@/features/dashboard/components/layout/clinic-referral-share-toolbar";
 import { Feature } from "@/lib/stores/permission-store";
 import { useClinic } from "@/lib/clinic-context";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -23,6 +28,12 @@ import { LayoutDashboard, Sparkles } from "lucide-react";
 
 export default function TodayPage() {
   const { clinic } = useClinic();
+  const {
+    referralCode,
+    publicOnlineBookingUrl,
+    canQuickShareClinicCode,
+    clinicName,
+  } = useClinicReferralShare();
   const { canStartConsultation } = usePermissions();
   const { openOverlay } = useAskAi();
   const { state } = useDashboardLogic();
@@ -48,31 +59,48 @@ export default function TodayPage() {
     [todayAppointments.length, waitingCount],
   );
 
+  const handleSearchClick = () => {
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true }),
+    );
+  };
+
   const headerActions = useMemo(
     () => (
-      <div className="flex flex-wrap items-center gap-2">
-        <DashboardRefreshControl
-          updatedAtMs={lastDataUpdatedAtMs}
-          isRefreshing={isRefreshing}
-          onRefresh={refetchAll}
-        />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            openOverlay({ id: "today", label: "on today's workspace" })
-          }
-          aria-label="Ask AI about today"
-          data-testid="today-ask-ai"
-        >
-          <Sparkles className="size-4" aria-hidden />
-          Ask AI
-        </Button>
-        {canStartConsultation ? (
-          <Button variant="default" size="sm" asChild>
-            <Link href="/consultation">Open queue</Link>
+      <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          <DashboardRefreshControl
+            updatedAtMs={lastDataUpdatedAtMs}
+            isRefreshing={isRefreshing}
+            onRefresh={refetchAll}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              openOverlay({ id: "today", label: "on today's workspace" })
+            }
+            aria-label="Ask AI about today"
+            data-testid="today-ask-ai"
+          >
+            <Sparkles className="size-4" aria-hidden />
+            Ask AI
           </Button>
-        ) : null}
+          {canStartConsultation ? (
+            <Button variant="default" size="sm" asChild>
+              <Link href="/consultation">Open queue</Link>
+            </Button>
+          ) : null}
+        </div>
+        <ClinicReferralShareToolbar
+          clinicCode={referralCode}
+          clinicName={clinicName}
+          publicOnlineBookingUrl={publicOnlineBookingUrl}
+          canQuickShareClinicCode={canQuickShareClinicCode}
+          trailingActions={
+            <ClinicReferralShareSearchButton onSearchClick={handleSearchClick} />
+          }
+        />
       </div>
     ),
     [
@@ -81,6 +109,10 @@ export default function TodayPage() {
       refetchAll,
       canStartConsultation,
       openOverlay,
+      referralCode,
+      publicOnlineBookingUrl,
+      canQuickShareClinicCode,
+      clinicName,
     ],
   );
 
