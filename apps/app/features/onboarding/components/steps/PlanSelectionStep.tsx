@@ -2,7 +2,7 @@
 
 import { DocitaLoadingIndicator } from "@workspace/ui/components/docita-loading-indicator";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import {
@@ -57,12 +57,20 @@ interface PlanSelectionProps {
   initialWorkspaceProfile?: WorkspaceProfile;
 }
 
-const DISPLAY_TIERS = ["STARTER", "ESSENTIAL", "PROFESSIONAL", "ENTERPRISE"];
+const DISPLAY_TIERS = [
+  "STARTER",
+  "ESSENTIAL",
+  "FRONT_DESK",
+  "PROFESSIONAL",
+  "ENTERPRISE",
+];
 
 const PLAN_AUDIENCE: Record<string, string> = {
   STARTER: "Best for solo doctors starting with full clinic workflows",
   ESSENTIAL:
     "Best for small facilities needing clear limits and simple billing",
+  FRONT_DESK:
+    "Best for reception-led facilities that need scheduling and billing without full clinical workflows in-app",
   PROFESSIONAL: "Best for multi-doctor facilities and growing practices",
   ENTERPRISE: "Best for hospitals and chains with custom requirements",
 };
@@ -77,18 +85,36 @@ function PlanSelectionStepInner({
   const searchParams = useSearchParams();
   const { currency: detectedCurrency } = useLocaleCurrency();
   const [workspaceProfile, setWorkspaceProfile] = useState<WorkspaceProfile>(
-    () =>
-      searchParams.get("workspace") === "front_desk"
-        ? "FRONT_DESK"
-        : initialWorkspaceProfile,
+    () => {
+      if (searchParams.get("workspace") === "front_desk") {
+        return "FRONT_DESK";
+      }
+      if (searchParams.get("tier") === "FRONT_DESK") {
+        return "FRONT_DESK";
+      }
+      return initialWorkspaceProfile;
+    },
   );
-  const [selectedTier, setSelectedTier] = useState<string>(defaultTier);
+  const [selectedTier, setSelectedTier] = useState<string>(() => {
+    if (searchParams.get("tier") === "FRONT_DESK") {
+      return "FRONT_DESK";
+    }
+    return defaultTier;
+  });
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "YEARLY">(
     defaultBillingCycle,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showContactSalesModal, setShowContactSalesModal] = useState(false);
   const [comparisonOpen, setComparisonOpen] = useState(false);
+
+  useEffect(() => {
+    if (workspaceProfile === "FRONT_DESK") {
+      setSelectedTier("FRONT_DESK");
+      return;
+    }
+    setSelectedTier((prev) => (prev === "FRONT_DESK" ? "ESSENTIAL" : prev));
+  }, [workspaceProfile]);
 
   const resolvedCurrency = currency ?? detectedCurrency;
   const { pricingConfig, isLoading, error } =
@@ -291,6 +317,13 @@ Please contact me with deployment and commercial details.`;
                       ]
                         .filter(Boolean)
                         .join(" ")
+                    : tierName === "FRONT_DESK"
+                      ? [
+                          "Payment required at signup. Clinical workflows stay disabled in-app.",
+                          overageFromRates,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
                     : tierName === "PROFESSIONAL"
                       ? [
                           "Payment required at signup. Unpaid trial is only on Essential.",
@@ -359,6 +392,9 @@ Please contact me with deployment and commercial details.`;
                         ? undefined
                         : () => {
                             setSelectedTier(tierName);
+                            if (tierName === "FRONT_DESK") {
+                              setWorkspaceProfile("FRONT_DESK");
+                            }
                             handleSelectTier(tierName);
                           }
                     }

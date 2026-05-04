@@ -59,6 +59,7 @@ export function PricingDialog({
   const TIER_ICON_CLASSES: Record<TierName, string> = {
     STARTER: "tier-capture",
     ESSENTIAL: "tier-core",
+    FRONT_DESK: "tier-core",
     PROFESSIONAL: "tier-pro",
     ENTERPRISE: "tier-enterprise",
     INTELLIGENCE: "tier-intelligence",

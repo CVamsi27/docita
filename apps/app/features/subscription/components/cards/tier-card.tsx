@@ -16,6 +16,7 @@ import {
   Building2,
   CalendarDays,
   Check,
+  ClipboardList,
   Crown,
   HardDrive,
   Rocket,
@@ -65,6 +66,7 @@ interface TierCardProps {
 const TIER_ICONS: Record<string, React.ElementType> = {
   STARTER: Zap,
   ESSENTIAL: Rocket,
+  FRONT_DESK: ClipboardList,
   PROFESSIONAL: Crown,
   ENTERPRISE: Building2,
   INTELLIGENCE: Sparkles,
@@ -81,6 +83,12 @@ const TIER_GRADIENTS: Record<
     accent: "bg-muted-foreground",
   },
   ESSENTIAL: {
+    card: "from-card via-card to-info/10",
+    icon: "tier-core",
+    badge: "tier-core",
+    accent: "bg-info",
+  },
+  FRONT_DESK: {
     card: "from-card via-card to-info/10",
     icon: "tier-core",
     badge: "tier-core",

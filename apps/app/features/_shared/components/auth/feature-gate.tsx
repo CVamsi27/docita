@@ -20,9 +20,9 @@ import {
 import {
   Feature,
   FEATURE_TIER_MAP,
+  getTierName,
   Tier,
   TIER_INFO,
-  TierName,
 } from "@workspace/types";
 import { usePermissionStore } from "@/lib/stores/permission-store";
 import { SUBSCRIPTION_SETTINGS_PATH } from "@/lib/subscription-settings-path";
@@ -68,7 +68,7 @@ export function LockedFeatureCard({
 }: LockedFeatureCardProps) {
   const requiredTier = feature ? FEATURE_TIER_MAP[feature] : tier;
   const tierName =
-    requiredTier !== undefined ? (Tier[requiredTier] as TierName) : undefined;
+    requiredTier !== undefined ? getTierName(requiredTier) : undefined;
   const tierInfo = tierName ? TIER_INFO[tierName] : undefined;
 
   return (
@@ -127,12 +127,13 @@ export function FeatureTierBadge({
   className,
 }: FeatureTierBadgeProps) {
   const requiredTier = FEATURE_TIER_MAP[feature];
-  const tierName = Tier[requiredTier] as TierName;
+  const tierName = getTierName(requiredTier);
   const tierInfo = TIER_INFO[tierName];
 
   const tierColors: Record<Tier, string> = {
     [Tier.STARTER]: "tier-capture",
     [Tier.ESSENTIAL]: "tier-core",
+    [Tier.FRONT_DESK]: "tier-core",
     [Tier.PROFESSIONAL]: "tier-pro",
     [Tier.ENTERPRISE]: "tier-enterprise",
     [Tier.INTELLIGENCE]: "tier-intelligence",
@@ -154,12 +155,13 @@ export function TierBadge({ tier, className }: TierBadgeProps) {
   const tierColors: Record<Tier, string> = {
     [Tier.STARTER]: "tier-capture",
     [Tier.ESSENTIAL]: "tier-core",
+    [Tier.FRONT_DESK]: "tier-core",
     [Tier.PROFESSIONAL]: "tier-pro",
     [Tier.ENTERPRISE]: "tier-enterprise",
     [Tier.INTELLIGENCE]: "tier-intelligence",
   };
 
-  const tierName = Tier[tier] as TierName;
+  const tierName = getTierName(tier);
   const tierInfo = TIER_INFO[tierName];
 
   return (
@@ -201,7 +203,7 @@ export function LockedFeatureIndicator({
   className?: string;
 }) {
   const requiredTier = FEATURE_TIER_MAP[feature];
-  const tierName = Tier[requiredTier] as TierName;
+  const tierName = getTierName(requiredTier);
   void TIER_INFO[tierName];
 
   return (

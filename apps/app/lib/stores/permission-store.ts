@@ -4,14 +4,15 @@ import {
   type ClinicType,
   Feature,
   FEATURE_TIER_MAP,
+  FRONT_DESK_BLOCKED_FEATURES,
   isFeatureGenerallyAvailable,
   mapClinicTierDbStringToAccessTier,
   Tier,
   TIER_INFO,
-  TierName,
   type UserRole,
   type WorkspaceProfile,
   DEFAULT_WORKSPACE_PROFILE,
+  getTierName,
   parseWorkspaceProfile,
 } from "@workspace/types";
 import { hasPermission, type Permission } from "@/lib/permissions";
@@ -118,7 +119,11 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       clinic.settings && typeof clinic.settings === "object" && !Array.isArray(clinic.settings)
         ? (clinic.settings as Record<string, unknown>).workspaceProfile
         : undefined;
-    setWorkspaceProfile(fromRoot ?? fromSettings);
+    if (clinic.tier === "FRONT_DESK") {
+      setWorkspaceProfile("FRONT_DESK");
+    } else {
+      setWorkspaceProfile(fromRoot ?? fromSettings);
+    }
 
     if (clinic.type) {
       setClinicType(clinic.type);
@@ -152,6 +157,13 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
       return hasIntelligence;
     }
 
+    if (currentTier === Tier.FRONT_DESK) {
+      if (FRONT_DESK_BLOCKED_FEATURES.has(feature)) {
+        return false;
+      }
+      return Tier.ESSENTIAL >= requiredTier;
+    }
+
     return currentTier >= requiredTier;
   },
 
@@ -160,6 +172,10 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
 
     if (tier === Tier.INTELLIGENCE) {
       return hasIntelligence;
+    }
+
+    if (currentTier === Tier.FRONT_DESK) {
+      return tier <= Tier.ESSENTIAL;
     }
 
     return currentTier >= tier;
@@ -196,7 +212,7 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
 
   getTierInfo: (tier) => {
     const targetTier = tier ?? get().currentTier;
-    const tierName = Tier[targetTier] as TierName;
+    const tierName = getTierName(targetTier);
     return TIER_INFO[tierName];
   },
 }));

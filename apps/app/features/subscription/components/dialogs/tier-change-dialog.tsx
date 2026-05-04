@@ -14,13 +14,25 @@ import {
 import { Button } from "@workspace/ui/components/button";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { cn } from "@workspace/ui/lib/utils";
-import { AlertTriangle, ArrowDown, ArrowRight, Building2, CheckCircle, Crown, Rocket, Sparkles, Zap } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  Building2,
+  CheckCircle,
+  ClipboardList,
+  Crown,
+  Rocket,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 import {
   PRICING_CURRENCY_CONFIG,
   type SupportedCurrency,
   Tier,
   TIER_INFO,
   type TierName,
+  getTierName,
   getUserFacingErrorMessage,
 } from "@workspace/types";
 import { type TierPricing, usePricingConfig } from "@/hooks/api/use-pricing";
@@ -44,9 +56,19 @@ interface TierChangeDialogProps {
 const TIER_ICONS: Record<TierName, React.ElementType> = {
   STARTER: Zap,
   ESSENTIAL: Rocket,
+  FRONT_DESK: ClipboardList,
   PROFESSIONAL: Crown,
   ENTERPRISE: Building2,
   INTELLIGENCE: Sparkles,
+};
+
+const PLAN_TIER_RANK: Record<TierName, number> = {
+  STARTER: 10,
+  FRONT_DESK: 18,
+  ESSENTIAL: 20,
+  PROFESSIONAL: 30,
+  ENTERPRISE: 40,
+  INTELLIGENCE: 35,
 };
 
 export function TierChangeDialog({
@@ -96,13 +118,14 @@ export function TierChangeDialog({
     );
   }
 
-  const currentTierName = Tier[currentTier] as TierName;
+  const currentTierName = getTierName(currentTier);
   const currentInfo = TIER_INFO[currentTierName];
   const selectedInfo = TIER_INFO[selectedTier];
-  const selectedTierNumeric = Tier[selectedTier as keyof typeof Tier];
+  const currentRank = PLAN_TIER_RANK[currentTierName] ?? 0;
+  const selectedRank = PLAN_TIER_RANK[selectedTier] ?? 0;
 
-  const isUpgrade = selectedTierNumeric > currentTier;
-  const isDowngrade = selectedTierNumeric < currentTier;
+  const isUpgrade = selectedRank > currentRank;
+  const isDowngrade = selectedRank < currentRank;
 
   const currentTierData = pricingConfig.tiers.find(
     (t: TierPricing) => t.id === currentTierName,

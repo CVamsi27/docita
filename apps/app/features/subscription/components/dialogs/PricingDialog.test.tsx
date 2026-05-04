@@ -32,6 +32,11 @@ const pricingConfig = {
       features: ["Invoices", "WhatsApp reminders"],
     },
     {
+      id: "FRONT_DESK",
+      pricing: { monthly: 799, yearly: 7990 },
+      features: ["Queue", "Reception-first"],
+    },
+    {
       id: "PROFESSIONAL",
       pricing: { monthly: 2999, yearly: 29990 },
       features: ["Inventory", "Lab tests"],
@@ -58,6 +63,11 @@ describe("PricingDialog", () => {
         ESSENTIAL: {
           totalMonthly: 999,
           totalYearly: 9990,
+          currency: { symbol: "₹" },
+        },
+        FRONT_DESK: {
+          totalMonthly: 799,
+          totalYearly: 7990,
           currency: { symbol: "₹" },
         },
         PROFESSIONAL: {
@@ -110,7 +120,7 @@ describe("PricingDialog", () => {
     expect(screen.getByText("2 months free")).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Upgrade" })[0]!);
-    expect(onSelectTier).toHaveBeenCalledWith("PROFESSIONAL", "YEARLY");
+    expect(onSelectTier).toHaveBeenCalledWith("FRONT_DESK", "YEARLY");
 
     fireEvent.click(screen.getByRole("button", { name: "Contact sales" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);

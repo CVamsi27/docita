@@ -16,6 +16,12 @@ export const PLAN_ONBOARDING_KEY_HIGHLIGHTS: Record<string, string[]> = {
     "Queue and calendar tuned for busy OPD",
     `${SUBSCRIPTION_TRIAL_DAYS}-day trial where checkout is eligible`,
   ],
+  FRONT_DESK: [
+    "Reception-first scheduling and queue",
+    "Invoicing and WhatsApp within plan limits",
+    "Schedule-only doctor profiles (no app login)",
+    "Admin and receptionist roles for daily operations",
+  ],
   PROFESSIONAL: [
     "Up to 5 doctors with role-aware access",
     "Higher consultation and WhatsApp bundles",
