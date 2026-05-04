@@ -1,6 +1,7 @@
 import {
   Controller,
   Put,
+  Post,
   Body,
   Request,
   BadRequestException,
@@ -8,6 +9,9 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '@/domains/users/application/services/users.service';
 import {
+  StaffAccountDeletionRequestDto,
+  StaffAccountDeletionResponseDto,
+  StaffAccountDeletionRequestSchema,
   UpdateProfileDto,
   UserResponseDto,
   UpdateProfileSchema,
@@ -37,5 +41,21 @@ export class UsersController {
     }
 
     return await this.usersService.updateProfile(req.user.id, dto);
+  }
+
+  @SkipSubscriptionCheck()
+  @Roles(Role.ADMIN, Role.DOCTOR, Role.RECEPTIONIST, Role.ADMIN_DOCTOR)
+  @Post('account/delete-request')
+  @ZodSerializerDto(StaffAccountDeletionResponseDto)
+  async requestAccountDeletion(
+    @Request() req: RequestWithUser,
+    @Body(new ZodValidationPipe(StaffAccountDeletionRequestSchema))
+    _body: StaffAccountDeletionRequestDto,
+  ) {
+    if (!req.user?.id) {
+      throw new BadRequestException('User ID not found in token');
+    }
+
+    return await this.usersService.requestAccountDeletion(req.user.id);
   }
 }

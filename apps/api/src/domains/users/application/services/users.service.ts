@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import {
   IUserRepository,
   USER_REPOSITORY_TOKEN,
@@ -11,6 +16,8 @@ interface UpdateProfileDto {
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
     private repository: IUserRepository,
@@ -38,5 +45,22 @@ export class UsersService {
     }
 
     return this.repository.updateProfile(userId, data);
+  }
+
+  async requestAccountDeletion(userId: string) {
+    const user = await this.repository.findById(userId);
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    this.logger.log('Staff user requested account deletion');
+
+    return {
+      message:
+        'Your account deletion request has been received. Our team will process it within 30 days as per applicable data protection guidelines.',
+      userId,
+      requestedAt: new Date().toISOString(),
+    };
   }
 }
