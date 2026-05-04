@@ -30,7 +30,6 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   isInternal: boolean;
-  isClinicAdmin: boolean;
   login: (token: string | null, user: User) => void;
   logout: (reason?: string) => void;
   validateToken: () => Promise<boolean>;
@@ -237,7 +236,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const isInternal = isInternalRole(user?.role);
-  const isClinicAdmin = isInternal;
 
   return (
     <AuthContext.Provider
@@ -247,7 +245,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         isInternal,
-        isClinicAdmin,
         login,
         logout,
         validateToken,

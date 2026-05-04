@@ -1,13 +1,11 @@
 import { client } from "./api-client";
 import { API_URL } from "./api-config";
 import {
-  Appointment,
   AppPerformanceMetrics,
   DatabaseStats,
   InternalBillingPaymentItem,
   InternalBillingPaymentsQuery,
   InternalBillingSubscriptionsQuery,
-  Patient,
   queueHealthSummarySchema,
   securityMonitoringSummarySchema,
   SupportInquiry,
@@ -196,33 +194,6 @@ export const operationsAPI = {
     tenantScopeDiagnosticsSchema.parse(
       await client.get("/operations/database/tenant-scope"),
     ),
-};
-
-export const patientsAPI = {
-  getAll: (): Promise<Patient[]> => client.get("/patients"),
-  getOne: (id: string): Promise<Patient> => client.get(`/patients/${id}`),
-  create: (
-    data: Omit<Patient, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Patient> => client.post("/patients", data),
-  update: (
-    id: string,
-    data: Partial<Omit<Patient, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<Patient> => client.patch(`/patients/${id}`, data),
-  delete: (id: string): Promise<void> => client.delete(`/patients/${id}`),
-};
-
-export const appointmentsAPI = {
-  getAll: (): Promise<Appointment[]> => client.get("/appointments"),
-  getOne: (id: string): Promise<Appointment> =>
-    client.get(`/appointments/${id}`),
-  create: (
-    data: Omit<Appointment, "id" | "createdAt" | "updatedAt">,
-  ): Promise<Appointment> => client.post("/appointments", data),
-  update: (
-    id: string,
-    data: Partial<Omit<Appointment, "id" | "createdAt" | "updatedAt">>,
-  ): Promise<Appointment> => client.patch(`/appointments/${id}`, data),
-  delete: (id: string): Promise<void> => client.delete(`/appointments/${id}`),
 };
 
 export interface Feedback {
