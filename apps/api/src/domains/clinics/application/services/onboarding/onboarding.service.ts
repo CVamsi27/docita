@@ -343,6 +343,17 @@ export class OnboardingService {
 
           await this.workflowService.initializeClinicSettings(tx, clinic.id);
 
+          const weeklyRows =
+            completeData.clinicWeeklyHours &&
+            completeData.clinicWeeklyHours.length === 7
+              ? completeData.clinicWeeklyHours
+              : this.workflowService.getDefaultClinicWeeklyHoursInput();
+          await this.workflowService.replaceClinicWeeklySchedules(
+            tx,
+            clinic.id,
+            weeklyRows,
+          );
+
           return {
             clinic,
             adminUser,

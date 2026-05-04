@@ -39,12 +39,7 @@ import { runWithTenant } from '@/common/middleware/tenant.middleware';
 
 const SLOT_MATCH_TOLERANCE_MS = 120_000;
 
-type ResolvedPublicBookingClinic = {
-  id: string;
-  name: string;
-  referralCode: string;
-  timezone: string;
-};
+type ResolvedPublicBookingClinic = PublicBookingClinicResponse;
 
 @Injectable()
 export class PublicBookingService {
@@ -73,12 +68,19 @@ export class PublicBookingService {
     return phone.startsWith('+') ? phone : `+${digits}`;
   }
 
-  private async resolveClinicByReferralCode(referralCode: string): Promise<{
-    id: string;
-    name: string;
-    referralCode: string;
-    timezone: string;
-  }> {
+  private readFacilityLabelFromSettings(
+    settings: unknown,
+  ): 'CLINIC' | 'HOSPITAL' | undefined {
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+      return undefined;
+    }
+    const raw = (settings as Record<string, unknown>).facilityLabel;
+    return raw === 'HOSPITAL' || raw === 'CLINIC' ? raw : undefined;
+  }
+
+  private async resolveClinicByReferralCode(
+    referralCode: string,
+  ): Promise<PublicBookingClinicResponse> {
     const normalized = referralCode.trim().toUpperCase();
     const clinic = await this.prisma.clinic.findFirst({
       where: {
@@ -90,6 +92,11 @@ export class PublicBookingService {
         name: true,
         referralCode: true,
         timezone: true,
+        address: true,
+        phone: true,
+        email: true,
+        website: true,
+        settings: true,
       },
     });
     if (!clinic?.referralCode) {
@@ -100,6 +107,11 @@ export class PublicBookingService {
       name: clinic.name,
       referralCode: clinic.referralCode,
       timezone: clinic.timezone,
+      address: clinic.address,
+      phone: clinic.phone,
+      email: clinic.email,
+      website: clinic.website ?? undefined,
+      facilityLabel: this.readFacilityLabelFromSettings(clinic.settings),
     };
   }
 
@@ -180,20 +192,25 @@ export class PublicBookingService {
         throw new BadRequestException('Doctor is not available at this clinic');
       }
 
-      const slots = await this.slotGeneration.getAvailableSlots(
-        clinic.id,
-        date,
-        doctorId,
-      );
+      const { slots, slotListEmptyReason } =
+        await this.slotGeneration.getAvailableSlotsWithMeta(
+          clinic.id,
+          date,
+          doctorId,
+        );
+      const mapped = slots.map((s) => ({
+        doctorId: s.doctorId,
+        doctorName: s.doctorName,
+        specialization: s.specialization,
+        startTime: this.buildSlotIso(date, s.time),
+        endTime: this.buildSlotIso(date, s.endTime),
+        isAvailable: s.isAvailable,
+      }));
       return {
-        slots: slots.map((s) => ({
-          doctorId: s.doctorId,
-          doctorName: s.doctorName,
-          specialization: s.specialization,
-          startTime: this.buildSlotIso(date, s.time),
-          endTime: this.buildSlotIso(date, s.endTime),
-          isAvailable: s.isAvailable,
-        })),
+        slots: mapped,
+        ...(mapped.length === 0 && slotListEmptyReason
+          ? { slotListEmptyReason }
+          : {}),
       };
     });
   }

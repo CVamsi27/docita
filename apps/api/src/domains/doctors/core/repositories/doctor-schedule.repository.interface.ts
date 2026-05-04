@@ -1,4 +1,9 @@
-import { DoctorSchedule, DoctorTimeOff, Prisma } from '@workspace/db';
+import {
+  ClinicWeeklySchedule,
+  DoctorSchedule,
+  DoctorTimeOff,
+  Prisma,
+} from '@workspace/db';
 
 export interface IDoctorScheduleRepository {
   findSchedules(
@@ -36,6 +41,11 @@ export interface IDoctorScheduleRepository {
       }
     >
   >;
+
+  findClinicWeeklyForSlotGeneration(params: {
+    clinicId: string;
+    dayOfWeek: string;
+  }): Promise<ClinicWeeklySchedule[]>;
 
   createSchedule(
     data: Prisma.DoctorScheduleCreateInput,

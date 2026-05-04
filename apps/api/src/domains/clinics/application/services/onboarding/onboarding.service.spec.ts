@@ -148,6 +148,60 @@ describe('OnboardingService', () => {
     initializeClinicSettings: jest
       .fn()
       .mockImplementation(async () => undefined),
+    getDefaultClinicWeeklyHoursInput: jest.fn(() => [
+      {
+        dayOfWeek: 'SUNDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: false,
+      },
+      {
+        dayOfWeek: 'MONDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'TUESDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'WEDNESDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'THURSDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'FRIDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: true,
+      },
+      {
+        dayOfWeek: 'SATURDAY',
+        startTime: '09:00',
+        endTime: '17:00',
+        slotDuration: 30,
+        isActive: false,
+      },
+    ]),
+    replaceClinicWeeklySchedules: jest
+      .fn()
+      .mockImplementation(async () => undefined),
   };
   const mockComplianceService = {
     recordSLAAgreement: jest.fn().mockImplementation(async () => undefined),

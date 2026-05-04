@@ -111,6 +111,7 @@ export async function resetDatabase() {
     'ClinicalTemplate',
     'CustomField',
     'DoctorTimeOff',
+    'ClinicWeeklySchedule',
     'DoctorSchedule',
     'DoctorSpecialization',
     'DoctorCertification',
