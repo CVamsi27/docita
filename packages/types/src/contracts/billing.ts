@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stripHtmlTags } from "../api/sanitization";
 import { createInvoiceSchema, invoiceSchema } from "../billing/invoices";
 import {
   createPaymentLinkSchema,
@@ -26,11 +27,42 @@ export const createPaymentLinkRequestSchema = createPaymentLinkSchema;
 export const paymentLinkContractResponseSchema = paymentLinkResponseSchema;
 export const paymentSessionContractResponseSchema = paymentSessionSchema;
 
+/**
+ * Desk / reception settlement channel. `OTHER` is legacy API input and is
+ * normalized server-side to `OTHER_ONLINE` in audit metadata.
+ */
+export const markInvoicePaidPaymentMethodSchema = z.enum([
+  "CASH",
+  "CARD_POS",
+  "UPI_QR",
+  "PINELABS",
+  "OTHER_TERMINAL",
+  "OTHER_ONLINE",
+  "OTHER",
+]);
+
 export const markInvoicePaidRequestSchema = z.object({
-  paymentMethod: z.enum(["CASH", "OTHER"]).default("CASH"),
+  paymentMethod: markInvoicePaidPaymentMethodSchema.default("CASH"),
   amount: z.number().positive().optional(),
-  notes: z.string().max(500).optional(),
+  notes: z
+    .string()
+    .max(500)
+    .optional()
+    .transform((val) =>
+      val === undefined || val === "" ? undefined : stripHtmlTags(val),
+    ),
+  reference: z
+    .string()
+    .max(120)
+    .optional()
+    .transform((val) =>
+      val === undefined || val === "" ? undefined : stripHtmlTags(val),
+    ),
 });
+
+export type MarkInvoicePaidPaymentMethod = z.infer<
+  typeof markInvoicePaidPaymentMethodSchema
+>;
 
 export type InvoiceContractResponse = z.infer<typeof invoiceResponseSchema>;
 export type CreateInvoiceRequest = z.infer<typeof createInvoiceRequestSchema>;

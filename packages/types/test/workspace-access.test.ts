@@ -53,6 +53,16 @@ describe("workspace-access", () => {
     ).toBe(false);
   });
 
+  it("does not deny payment desk under FRONT_DESK", () => {
+    expect(
+      shouldDenyAccessForWorkspaceProfile(
+        APP_ACCESS_TARGETS.PAGE_DESK_PAYMENT,
+        "RECEPTIONIST",
+        "FRONT_DESK",
+      ),
+    ).toBe(false);
+  });
+
   it("isFrontDeskBlockedAccessTarget matches consultation page", () => {
     expect(isFrontDeskBlockedAccessTarget(APP_ACCESS_TARGETS.PAGE_CONSULTATION))
       .toBe(true);

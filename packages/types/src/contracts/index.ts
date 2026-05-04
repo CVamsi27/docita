@@ -7,6 +7,7 @@ export * from "./app";
 export * from "./billing";
 export * from "./clinics";
 export * from "./documents";
+export * from "./desk";
 export * from "./doctors";
 export * from "./lab-tests";
 export * from "./onboarding";
