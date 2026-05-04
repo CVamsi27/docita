@@ -35,6 +35,7 @@ export * from "./confirmation-dialog";
 export * from "./crud-dialog";
 export * from "./kbd";
 export * from "./date-picker";
+export * from "./iso-date-picker-field";
 export * from "./date-time-picker";
 export * from "./data-state";
 export * from "./dialog";

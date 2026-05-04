@@ -88,8 +88,8 @@ export function RightRailCardStack({
     <aside
       aria-label={ariaLabel}
       className={cn(
-        "flex gap-3 md:flex-col md:gap-3",
-        "max-md:overflow-x-auto max-md:pb-2 max-md:[&>*]:min-w-[260px]",
+        "flex gap-3 md:flex-col md:gap-4",
+        "max-md:snap-x max-md:snap-mandatory max-md:-mx-1 max-md:overflow-x-auto max-md:px-1 max-md:pb-3 max-md:[&>*]:min-w-[min(100%,280px)] max-md:[&>*]:snap-start",
         className,
       )}
     >
