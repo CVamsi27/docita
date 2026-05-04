@@ -16,7 +16,7 @@ import {
   REFUND_PROVIDER_TOKEN,
 } from './core/ports';
 
-/** Wires Razorpay adapters for platform billing (Flow A). See docs/PAYMENT_FLOWS.md. */
+/** Wires Razorpay adapters for Docita SaaS + shared factory; see docs/PAYMENT_FLOWS.md. */
 @Module({
   imports: [ConfigModule],
   providers: [

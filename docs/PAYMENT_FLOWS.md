@@ -1,30 +1,42 @@
 # Payment flows (do not mix)
 
-Docita supports **two independent payment domains**. They use different money flows, actors, compliance context, and (eventually) different gateways. **Never merge or reuse primitives across them** (no shared webhook handlers for both, no subscription Razorpay order IDs on patient invoices, no desk settlement logic inside subscription checkout).
+Docita distinguishes **clinic-owned payment configuration**, **patient-to-clinic collection**, and **Docita SaaS billing**. They must not share credentials, webhooks, or merchant accounts in ways that move the wrong party’s money.
 
-## Flow A: Clinic or hospital pays Docita (platform SaaS)
+## Flow A: Clinic or hospital payment settings (optional)
 
-**Actor:** The clinic or hospital (the Docita customer).  
-**Purpose:** Subscription, plan upgrades, onboarding checkout, usage overage billed by Docita, internal ops tooling.  
-**Gateway:** **Razorpay** (and related Docita-held credentials) under the `subscriptions` / `payments` gateway stack — orders, subscriptions, payment links issued **for Docita revenue**, webhooks processed for **platform billing** only.
+**What it is:** **Optional** configuration in **settings** where the hospital or clinic stores **their own** payment credentials and enabled providers for **their** operational needs (whatever they choose to add).
 
-**Typical surfaces:** Onboarding payment step, settings subscription checkout, subscription webhooks, internal payment-processing tools that record Docita-side gateway IDs.
+**Whose money:** Always the **clinic’s or hospital’s** rails — their Razorpay (or other) accounts, **not** Docita’s platform merchant.
 
-## Flow B: Patient pays the clinic or hospital (clinic-collected revenue)
+**Rules:** Flow A is **not required**. Clinics can add, omit, or swap providers over time. Implementation must read **per-tenant** settings, never reuse Docita corporate keys as a stand-in for “the clinic’s” gateway.
 
-**Actor:** The patient (or guarantor) pays **the care provider**, not Docita.  
-**Purpose:** Visit invoices, procedures, consumables — money belongs to the clinic.  
-**Methods:** At-desk settlement (cash, card terminal, UPI QR, other terminals) recorded in-app; **plug-and-play** online or device integrations **chosen and configured per clinic** (their merchant accounts, their acquirers).
+## Flow B: Patient pays the clinic or hospital
 
-**Typical surfaces:** Front-desk settlement APIs (`/desk/...`), reception workflows, future per-clinic payment connectors. **Do not** implement this path using Docita’s platform Razorpay merchant or subscription webhook pipeline.
+**Actor:** The patient (or guarantor) pays **the care provider**, not Docita.
+
+**Purpose:** Visit invoices, procedures, consumables — revenue belongs to the clinic.
+
+**Methods:** At-desk settlement (cash, POS, UPI QR, terminals) and **online** collection when the clinic enables it.
+
+**Razorpay:** **Allowed** for Flow B only when the integration runs on **Flow A (clinic) credentials** from settings. **Never** use **Docita’s** Razorpay merchant or Docita-held keys for patient settlement.
+
+**Typical surfaces:** Front-desk settlement (`/desk/...`), invoice payment links, future plug-in gateways bound to Flow A config.
+
+## Docita platform SaaS billing (separate rail)
+
+**What it is:** When the clinic or hospital **pays Docita** for the product (subscription, onboarding checkout, usage overage to Docita, internal ops). Uses **Docita’s** integrations and merchants.
+
+**Rules:** Subscription and platform payment-link webhooks drive **Docita SaaS** state only. Do not route patient invoice settlement or Flow A clinic-settings webhooks through this pipeline unless the event is explicitly for Docita revenue.
+
+**Code note:** Nest’s `DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN` names this **Docita SaaS** payment-link injection site — it is **not** “Flow A” from the product glossary above (Flow A is clinic settings).
 
 ## Engineering rules
 
-1. **Flow A code** lives around subscriptions, platform checkout, and Razorpay adapters used for **Docita’s own invoices**.  
-2. **Flow B code** lives around clinic invoices, desk settlement, and future **`IPaymentLinkProvider`-style abstractions scoped to the clinic’s configured provider** — not the default platform singleton used for Flow A unless an explicit, temporary, documented bridge exists.  
-3. **Webhooks:** Subscription / platform Razorpay webhooks must only drive subscription and platform billing state. Patient invoice state must be confirmed via the clinic’s gateway or in-app settlement, not by reusing Flow A webhook routing.  
-4. **Naming and reviews:** PRs that touch both areas should split by flow or justify an adapter boundary; reviewers block accidental coupling.
+1. **Flow A (settings):** Persist and resolve **clinic-scoped** gateway configuration; no patient or subscription logic mixed into credential storage beyond clear UI/API boundaries.
+2. **Flow B:** Resolve payment actions using **that clinic’s** configured providers; desk settlement stays provider-agnostic metadata where no hosted gateway runs.
+3. **Docita SaaS:** Keep subscription/order/payment-link adapters and webhooks isolated from Flow B and from clinic Flow A secrets except where you intentionally copy **public** identifiers for support.
+4. **Reviews:** Block PRs that send patient charges to Docita’s merchant or that handle subscription webhooks inside clinic invoice code paths.
 
 ## Current implementation note
 
-Nest binds **`DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN`** (Flow A: subscriptions, overage) and **`CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN`** (Flow B: patient invoice links) to **separate injection sites**; today both may resolve to the same gateway factory instance until per-clinic adapters exist. Desk settlement already follows Flow B only. Replace the clinic token’s implementation with clinic-scoped providers so Flow B never uses Docita’s platform merchant for clinic-collected revenue.
+`CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN` (Flow B) and `DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN` (**Docita SaaS**) use **separate injection sites**. Until Flow B resolves a **clinic-scoped** `IPaymentLinkProvider` from Flow A settings, the clinic token may still delegate to a shared adapter — that is **technical debt** and must not rely on Docita keys for new patient-online flows.

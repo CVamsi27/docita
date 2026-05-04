@@ -30,9 +30,9 @@ import { computeSubscriptionGraceDeadline } from '@/domains/subscriptions/core/c
 import { SubscriptionPricingService } from '@/domains/subscriptions/core/services/subscription-pricing.service';
 
 /**
- * Flow A only: Razorpay webhooks for **clinic pays Docita** (subscriptions and
- * related platform billing). Not for patient-to-clinic settlement (Flow B);
- * see docs/PAYMENT_FLOWS.md.
+ * **Docita SaaS** only: Razorpay webhooks for subscription and related platform
+ * billing (clinic pays Docita). Not for patient-to-clinic settlement (Flow B)
+ * or clinic payment-settings webhooks; see docs/PAYMENT_FLOWS.md.
  */
 @Injectable()
 export class ProcessWebhookUseCase {

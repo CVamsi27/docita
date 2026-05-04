@@ -1,7 +1,8 @@
 /**
- * Abstraction for creating hosted payment links. Two Nest tokens bind
- * implementations separately so Flow A (Docita SaaS) and Flow B (patient pays
- * clinic) never share an injection site — see docs/PAYMENT_FLOWS.md.
+ * Abstraction for creating hosted payment links. Two Nest tokens separate
+ * Docita SaaS billing links from clinic invoice (Flow B) links — see
+ * docs/PAYMENT_FLOWS.md. Flow B Razorpay must use clinic credentials from
+ * settings (Flow A), not Docita’s merchant.
  */
 import { IPaymentGateway } from '@/domains/payments/core/ports/payment-gateway.port';
 import { PaymentLinkStatus } from '@/domains/payments/core/entities/payment-link-status.enum';
@@ -36,12 +37,12 @@ export interface IPaymentLinkProvider extends IPaymentGateway {
   cancelPaymentLink(linkId: string): Promise<void>;
 }
 
-/** Flow A: clinic or hospital pays Docita (subscriptions, platform overage). */
+/** Docita SaaS: payment links for subscription / platform revenue (Docita merchant). */
 export const DOCITA_PLATFORM_PAYMENT_LINK_PROVIDER_TOKEN = Symbol(
   'DocitaPlatformPaymentLinkProvider',
 );
 
-/** Flow B: patient pays clinic (invoice payment links; per-clinic adapters). */
+/** Flow B: patient pays clinic — invoice links; must use clinic gateways (e.g. Razorpay from Flow A settings), not Docita’s keys. */
 export const CLINIC_INVOICE_PAYMENT_LINK_PROVIDER_TOKEN = Symbol(
   'ClinicInvoicePaymentLinkProvider',
 );

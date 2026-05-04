@@ -20,10 +20,10 @@ import { DeskRecordInvoiceSettlementBodyDto } from '@/domains/billing/applicatio
 import { AnyResponseDto } from '@/domains/billing/application/dto/payments.dto';
 
 /**
- * Flow B (patient pays clinic): front-desk settlement recording (cash / POS /
- * UPI / terminal metadata). Separate from {@link PaymentsController} payment
- * links and from platform Razorpay subscription checkout (Flow A). See
- * docs/PAYMENT_FLOWS.md — never mix settlement with Docita SaaS billing.
+ * Flow B (patient pays clinic): front-desk settlement (cash / POS / UPI /
+ * terminal metadata). Separate from {@link PaymentsController} payment links,
+ * from optional clinic payment **settings** (Flow A), and from **Docita SaaS**
+ * subscription checkout. See docs/PAYMENT_FLOWS.md.
  */
 @Controller('desk')
 @UseGuards(TierGuard)

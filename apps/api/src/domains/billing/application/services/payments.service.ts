@@ -27,10 +27,10 @@ import {
 
 /**
  * Clinic invoice payments: payment sessions (links / cash), manual desk
- * settlement, and related helpers. Flow B (patient pays clinic) in
- * docs/PAYMENT_FLOWS.md. Platform Razorpay for clinic-pays-Docita (Flow A)
- * lives under subscriptions / dedicated gateways — do not conflate webhook
- * or order semantics between the two flows.
+ * settlement, and related helpers. **Flow B** (patient pays clinic) in
+ * docs/PAYMENT_FLOWS.md. **Docita SaaS** subscription / platform billing uses
+ * other services and tokens — do not conflate webhooks or Docita merchant
+ * semantics with patient settlement.
  */
 @Injectable()
 export class PaymentsService {
@@ -97,8 +97,9 @@ export class PaymentsService {
     try {
       const amount = new Money(dto.amount, dto.currency);
 
-      // Patient invoice online link: must move to per-clinic gateway (Flow B);
-      // today may delegate to the shared adapter — see docs/PAYMENT_FLOWS.md.
+      // Flow B online link: must use clinic gateway creds from settings (Flow A);
+      // interim shared adapter must not be Docita merchant for new work — see
+      // docs/PAYMENT_FLOWS.md.
       paymentLinkResponse = await this.paymentLinkProvider.createPaymentLink({
         amount,
         description: dto.description || `Invoice #${dto.invoiceId.slice(0, 8)}`,

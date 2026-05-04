@@ -4,8 +4,8 @@ import { markInvoicePaidRequestSchema } from "./billing";
 /**
  * Body for recording an at-desk settlement against an invoice (patient pays
  * clinic — Flow B in docs/PAYMENT_FLOWS.md). Same shape as legacy mark-paid;
- * lives under the desk contract namespace, separate from platform Razorpay
- * checkout and subscription payment-link HTTP surfaces (Flow A).
+ * desk contract namespace, separate from optional clinic payment settings
+ * (Flow A) and Docita SaaS subscription / platform payment surfaces.
  */
 export const deskRecordInvoiceSettlementBodySchema =
   markInvoicePaidRequestSchema;
